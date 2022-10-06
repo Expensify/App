@@ -219,7 +219,8 @@ class WorkspaceInvitePage extends React.Component {
 
         const logins = _.map(this.state.selectedOptions, option => option.login);
         const filteredLogins = _.uniq(_.compact(_.map(logins, login => login.toLowerCase().trim())));
-        Policy.invite(filteredLogins, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
+        Policy.addMembersToWorkspace(filteredLogins, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
+        Navigation.goBack();
     }
 
     /**
@@ -318,6 +319,7 @@ class WorkspaceInvitePage extends React.Component {
                                     onFixTheErrorsLinkPressed={() => {}}
                                     message={this.props.policy.alertMessage}
                                     containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                                    enabledWhenOffline
                                 />
                                 <Pressable
                                     onPress={(e) => {

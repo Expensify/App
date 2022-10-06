@@ -13,12 +13,11 @@ import ReportScreen from '../../../pages/home/ReportScreen';
 import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
 import BaseDrawerNavigator from './BaseDrawerNavigator';
 import * as ReportUtils from '../../ReportUtils';
+import reportPropTypes from '../../../pages/reportPropTypes';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
-    reports: PropTypes.objectOf(PropTypes.shape({
-        reportID: PropTypes.number,
-    })),
+    reports: PropTypes.objectOf(reportPropTypes),
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
@@ -68,7 +67,16 @@ const MainDrawerNavigator = (props) => {
     // This is usually needed after login/create account and re-launches
     return (
         <BaseDrawerNavigator
-            drawerContent={() => <SidebarScreen />}
+            drawerContent={({navigation, state}) => {
+                // This state belongs to the drawer so it should always have the ReportScreen as it's initial (and only) route
+                const reportIDFromRoute = lodashGet(state, ['routes', 0, 'params', 'reportID']);
+                return (
+                    <SidebarScreen
+                        navigation={navigation}
+                        reportIDFromRoute={reportIDFromRoute}
+                    />
+                );
+            }}
             screens={[
                 {
                     name: SCREENS.REPORT,

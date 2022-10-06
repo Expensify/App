@@ -2,8 +2,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, ScrollView, Pressable} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
@@ -25,21 +23,15 @@ import * as Policy from '../../libs/actions/Policy';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import CONST from '../../CONST';
 import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
-import ONYXKEYS from '../../ONYXKEYS';
-import policyMemberPropType from '../policyMemberPropType';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
 const propTypes = {
     ...policyPropTypes,
     ...withLocalizePropTypes,
-
-    /** The employee list of this policy (coming from Onyx) */
-    policyMemberList: PropTypes.objectOf(policyMemberPropType),
 };
 
 const defaultProps = {
     ...policyDefaultProps,
-    policyMemberList: {},
 };
 
 class WorkspaceInitialPage extends React.Component {
@@ -250,9 +242,4 @@ WorkspaceInitialPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withPolicy,
-    withOnyx({
-        policyMemberList: {
-            key: ({policy}) => `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`,
-        },
-    }),
 )(WorkspaceInitialPage);
