@@ -24,8 +24,8 @@ const propTypes = {
 
 const defaultProps = {
     iouReport: {
-        reportID: 0,
-        chatReportID: 0,
+        reportID: '',
+        chatReportID: '',
         total: 0,
         ownerEmail: null,
         currency: CONST.CURRENCY.USD,
