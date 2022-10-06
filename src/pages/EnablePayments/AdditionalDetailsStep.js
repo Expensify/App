@@ -190,6 +190,18 @@ class AdditionalDetailsStep extends React.Component {
             errors.addressStreet = true;
         }
 
+        if (_.isEmpty(this.props.walletAdditionalDetailsDraft.addressCity)) {
+            errors.addressCity = true;
+        }
+
+        if (_.isEmpty(this.props.walletAdditionalDetailsDraft.addressState)) {
+            errors.addressState = true;
+        }
+
+        if (!ValidationUtils.isValidZipCode(this.props.walletAdditionalDetailsDraft.addressZip)) {
+            errors.addressZip = true;
+        }
+
         if (!ValidationUtils.isValidUSPhone(this.props.walletAdditionalDetailsDraft.phoneNumber, true)) {
             errors.phoneNumber = true;
         }
