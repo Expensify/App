@@ -744,6 +744,7 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, 
  * @param {Boolean} isOwnPolicyExpenseChat
  * @param {String} oldPolicyName
  * @param {String} visibility
+ * @param {String} notificationPreference
  * @returns {Object}
  */
 function buildOptimisticChatReport(
@@ -755,6 +756,7 @@ function buildOptimisticChatReport(
     isOwnPolicyExpenseChat = false,
     oldPolicyName = '',
     visibility = undefined,
+    notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
 ) {
     return {
         chatType,
@@ -768,7 +770,7 @@ function buildOptimisticChatReport(
         lastMessageTimestamp: 0,
         lastVisitedTimestamp: 0,
         maxSequenceNumber: 0,
-        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
+        notificationPreference,
         oldPolicyName,
         ownerEmail,
         participants: participantList,
