@@ -64,12 +64,9 @@ class AddPersonalBankAccountPage extends React.Component {
      */
     validate(values) {
         const errors = {};
-        if (_.isUndefined(this.state.selectedPlaidBankAccount)) {
-            errors.selectedBank = true;
-        }
 
-        if (this.props.isPasswordRequired && _.isEmpty(values.password)) {
-            errors.password = true;
+        if (_.isEmpty(values.password)) {
+            errors.password = `${this.props.translate('common.password')} ${this.props.translate('common.isRequiredField')}.`;
         }
 
         return errors;
