@@ -20,6 +20,7 @@ import RoomNameInput from '../components/RoomNameInput';
 import Picker from '../components/Picker';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
+import reportPropTypes from './reportPropTypes';
 
 const propTypes = {
     /** Route params */
@@ -35,25 +36,7 @@ const propTypes = {
     /* Onyx Props */
 
     /** The active report */
-    report: PropTypes.shape({
-        /** The list of icons */
-        icons: PropTypes.arrayOf(PropTypes.string),
-
-        /** The report name */
-        reportName: PropTypes.string,
-
-        /** ID of the report */
-        reportID: PropTypes.number,
-
-        /** The current user's notification preference for this report */
-        notificationPreference: PropTypes.string,
-
-        /** Access setting e.g. whether the report is "restricted" */
-        visibility: PropTypes.string,
-
-        /** Linked policy's ID */
-        policyID: PropTypes.string,
-    }).isRequired,
+    report: reportPropTypes.isRequired,
 
     /** All reports shared with the user */
     reports: PropTypes.objectOf(PropTypes.shape({
