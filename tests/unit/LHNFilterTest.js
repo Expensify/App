@@ -430,16 +430,24 @@ describe('Sidebar', () => {
                 });
         });
 
-        it('does not show archived or policy rooms unless they are unread', () => {
-            // Given an archived report and a policy room report
+        it('archived rooms are displayed only when they have unread messages', () => {
+            // Given an archived chat report, an archived default policy room, and an archived user created policy room
             const archivedReport = {
                 ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
                 statusNum: CONST.REPORT.STATUS.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             };
-            const policyRoomReport = {
+            const archivedPolicyRoomReport = {
                 ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+                statusNum: CONST.REPORT.STATUS.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            };
+            const archivedUserCreatedPolicyRoomReport = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                statusNum: CONST.REPORT.STATUS.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             };
             const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
@@ -450,7 +458,8 @@ describe('Sidebar', () => {
                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                     [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                     [`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`]: archivedReport,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${policyRoomReport.reportID}`]: policyRoomReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${archivedPolicyRoomReport.reportID}`]: archivedPolicyRoomReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${archivedUserCreatedPolicyRoomReport.reportID}`]: archivedUserCreatedPolicyRoomReport,
                 }))
 
                 // Then neither reports are visible
@@ -459,17 +468,64 @@ describe('Sidebar', () => {
                     expect(displayNames).toHaveLength(0);
                 })
 
-                // When the policy room has an unread message
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyRoomReport.reportID}`, {
+                // When they have unread messages
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`, {
+                    lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
+                }))
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${archivedPolicyRoomReport.reportID}`, {
+                    lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
+                }))
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${archivedUserCreatedPolicyRoomReport.reportID}`, {
                     lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
                 }))
 
-                // Then the policy room is visible
-                // Note: archived reports can't be unread by nature
+                // Then they are all visible
                 .then(() => {
                     const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
-                    expect(displayNames).toHaveLength(1);
-                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Report');
+                    expect(displayNames).toHaveLength(3);
+                });
+        });
+
+        it('policy rooms are displayed only when they have unread messages', () => {
+            // Given a default policy room and user created policy room
+            const policyRoomReport = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+            };
+            const userCreatedPolicyRoomReport = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+            };
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+            return waitForPromisesToResolve()
+
+                // When Onyx is updated to contain that data and the sidebar re-renders
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${policyRoomReport.reportID}`]: policyRoomReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${userCreatedPolicyRoomReport.reportID}`]: userCreatedPolicyRoomReport,
+                }))
+
+                // Then neither reports are visible
+                .then(() => {
+                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    expect(displayNames).toHaveLength(0);
+                })
+
+                // When they both have unread messages
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyRoomReport.reportID}`, {
+                    lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
+                }))
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${userCreatedPolicyRoomReport.reportID}`, {
+                    lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
+                }))
+
+                // Then both rooms are visible
+                .then(() => {
+                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    expect(displayNames).toHaveLength(2);
                 });
         });
     });
