@@ -935,6 +935,12 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
         return false;
     }
 
+    // Include unread reports when in GSD mode
+    // GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
+    if (isInGSDMode) {
+        return isUnread(report);
+    }
+
     // Include default rooms for free plan policies
     if (isDefaultRoom(report) && getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE) {
         return true;
@@ -953,12 +959,6 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
     // Include policy expense chats if the user isn't in the policy expense chat beta
     if (isPolicyExpenseChat(report) && !Permissions.canUsePolicyExpenseChat(betas)) {
         return false;
-    }
-
-    // Include unread reports when in GSD mode
-    // GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
-    if (isInGSDMode) {
-        return isUnread(report);
     }
 
     return true;
