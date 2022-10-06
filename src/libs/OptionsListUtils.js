@@ -447,7 +447,6 @@ function getOptions(reports, personalDetails, {
     sortPersonalDetailsByAlphaAsc = true,
     forcePolicyNamePreview = false,
 }) {
-    const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     let recentReportOptions = [];
     let personalDetailsOptions = [];
     const reportMapForLogins = {};
@@ -456,7 +455,7 @@ function getOptions(reports, personalDetails, {
     const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(
         report,
         Navigation.getReportIDFromRoute(),
-        isInGSDMode,
+        false,
         currentUserLogin,
         iouReports,
         betas,
