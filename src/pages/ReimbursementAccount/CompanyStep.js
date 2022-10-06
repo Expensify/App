@@ -313,9 +313,6 @@ export default compose(
         reimbursementAccountDraft: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
         },
-        reimbursementAccountDraftValues: {
-            key: FormActions.getDraftValuesKey(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM),
-        },
         session: {
             key: ONYXKEYS.SESSION,
         },
