@@ -147,7 +147,7 @@ function createIOUTransaction(params) {
  *
  * @return {Object}
  */
-function buildSplitBillOnyxData(participants, amount, comment, currentUserEmail, currency, locale) {
+function createSplitsAndBuildOnyxData(participants, amount, comment, currentUserEmail, currency, locale) {
     // getChatByParticipants should be created in this PR https://github.com/Expensify/App/pull/11439/files
     const existingGroupChatReport = ReportUtils.getChatByParticipants(participants);
     const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(participants);
@@ -208,8 +208,9 @@ function buildSplitBillOnyxData(participants, amount, comment, currentUserEmail,
     ];
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
-    // @TODO: this splitAmount is wrong.
+    // @TODO: this splitAmount is wrong. See how to calculate it in https://github.com/Expensify/App/blob/b62cb936bcdf8dfbe8ece237860a308f6827cc11/src/components/IOUConfirmationList.js#L272
     const splitAmount = amount / participants.length;
+    const splits = [{email: currentUserEmail, amount: splitAmount}];
     _.each(participants, (email) => {
         if (email === currentUserEmail) {
             return;
@@ -298,9 +299,20 @@ function buildSplitBillOnyxData(participants, amount, comment, currentUserEmail,
                 },
             },
         );
+
+        splits.push({
+            email,
+            amount: splitAmount,
+            iouReportID: oneOnOneIOUReport.reportID,
+            chatReportID: oneOnOneChatReport.reportID,
+            transactionID: oneOnOneIOUReportAction.originalMessage.transactionID,
+            reportActionID: oneOnOneIOUReportAction.reportActionID,
+        });
     });
 
-    return {optimisticData, successData, failureData};
+    return {
+        optimisticData, successData, failureData, splits,
+    };
 }
 
 /**
@@ -308,7 +320,7 @@ function buildSplitBillOnyxData(participants, amount, comment, currentUserEmail,
  */
 //  CreateIOUSplit(chatReportID, amount, splits, currency, comment, transactionID = 0, reportActionID = 0)
 function splitBill(splits, report, participants, amount, currency, currentUserEmail, locale, comment) {
-    const onyxData = buildSplitBillOnyxData(participants, amount, comment, currentUserEmail, currency, locale);
+    const onyxData = createSplitsAndBuildOnyxData(participants, amount, comment, currentUserEmail, currency, locale);
 
     // Call API
     API.write('SplitBill', {
