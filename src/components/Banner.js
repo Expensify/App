@@ -79,7 +79,6 @@ const Banner = props => (
                             : <Text style={[...props.textStyles]} onPress={props.onPress}>{props.text}</Text>
                     }
                 </View>
-
                 {props.shouldShowCloseButton && (
                     <Tooltip text={props.translate('common.close')}>
                         <Pressable
