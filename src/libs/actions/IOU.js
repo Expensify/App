@@ -248,8 +248,6 @@ function buildSplitBillOnyxData(participants, amount, comment, currentUserEmail,
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneChatReport.reportID}`,
-
-                // @TODO: Do we need to add a pending action for iouReports?
                 value: oneOnOneIOUReport,
             },
             {
@@ -264,10 +262,36 @@ function buildSplitBillOnyxData(participants, amount, comment, currentUserEmail,
             },
         );
 
-        successData.push();
-        failureData.push();
+        successData.push(
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
+                value: {pendingFields: {createChat: null}},
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
+                value: {
+                    [oneOnOneIOUReportAction.sequenceNumber]: {pendingAction: null},
+                },
+            },
+        );
 
-        // @TODO: build success and failure data
+        failureData.push(
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
+                value: {pendingFields: {createChat: null}},
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
+                value: {
+                    [oneOnOneIOUReportAction.sequenceNumber]: {pendingAction: null},
+                },
+            },
+        );
+
         return {optimisticData, successData, failureData};
     });
 }
