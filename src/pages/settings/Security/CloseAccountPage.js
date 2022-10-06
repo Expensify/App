@@ -150,7 +150,6 @@ export default compose(
     withOnyx({
         closeAccount: {
             key: ONYXKEYS.CLOSE_ACCOUNT,
-            initWithStoredValues: {error: '', isLoading: false},
         },
         session: {
             key: ONYXKEYS.SESSION,
