@@ -14,6 +14,7 @@ import Log from '../Log';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
 import * as IOUUtils from '../IOUUtils';
+import * as OptionsListUtils from '../OptionsListUtils';
 
 const iouReports = {};
 Onyx.connect({
@@ -141,13 +142,13 @@ function createIOUTransaction(params) {
  * @param {Array} participants
  * @param {Int} amount
  * @param {String} comment
- * @param {String} currentUserEmail
+ * @param {String} currentUserLogin
  * @param {String} currency
  * @param {String} locale
  *
  * @return {Object}
  */
-function createSplitsAndBuildOnyxData(participants, amount, comment, currentUserEmail, currency, locale) {
+function createSplitsAndBuildOnyxData(participants, amount, comment, currentUserLogin, currency, locale) {
     // getChatByParticipants should be created in this PR https://github.com/Expensify/App/pull/11439/files
     const existingGroupChatReport = ReportUtils.getChatByParticipants(participants);
     const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(participants);
@@ -209,9 +210,11 @@ function createSplitsAndBuildOnyxData(participants, amount, comment, currentUser
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
     const splitAmount = IOUUtils.calculateAmount(participants, amount);
+    const currentUserEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const splits = [{email: currentUserEmail, amount: IOUUtils.calculateAmount(participants, amount, true)}];
-    _.each(participants, (email) => {
-        // @TODO: I think we need to get the email by calling OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login),
+
+    _.each(participants, (participant) => {
+        const email = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
         if (email === currentUserEmail) {
             return;
         }
@@ -311,6 +314,11 @@ function createSplitsAndBuildOnyxData(participants, amount, comment, currentUser
     });
 
     return {
+        groupData: {
+            chatReportID: groupChatReport.reportID,
+            transactionID: groupReportAction.originalMessage.transactionID,
+            reportActionID: groupReportAction.reportActionID,
+        },
         splits,
         onyxData: {optimisticData, successData, failureData},
     };
@@ -320,17 +328,17 @@ function createSplitsAndBuildOnyxData(participants, amount, comment, currentUser
  * @param {Object} params
  */
 function splitBill(participants, amount, currency, currentUserEmail, locale, comment) {
-    const {splits, onyxData} = createSplitsAndBuildOnyxData(participants, amount, comment, currentUserEmail, currency, locale);
+    const {groupData, splits, onyxData} = createSplitsAndBuildOnyxData(participants, amount, comment, currentUserEmail, currency, locale);
 
     // Call API
     API.write('SplitBill', {
-        chatReportID: null,
+        chatReportID: groupData.chatReportID,
         amount,
         splits,
         currency,
         comment,
-        transactionID: null,
-        reportActionID: null,
+        transactionID: groupData.transactionID,
+        reportActionID: groupData.reportActionID,
     }, onyxData);
 }
 
