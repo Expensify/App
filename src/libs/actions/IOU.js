@@ -13,7 +13,7 @@ import asyncOpenURL from '../asyncOpenURL';
 import Log from '../Log';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
-import DateUtils from '../DateUtils';
+import * as OptionsListUtils from '../OptionsListUtils';
 
 const iouReports = {};
 Onyx.connect({
@@ -138,12 +138,104 @@ function createIOUTransaction(params) {
 }
 
 /**
+ * Calculates the amount per user given a list of participants
+ * @param {Array} participants
+ * @param {Boolean} isDefaultUser
+ * @returns {Number}
+ */
+function calculateAmount(participants, isDefaultUser = false) {
+    // Convert to cents before working with iouAmount to avoid
+    // javascript subtraction with decimal problem -- when dealing with decimals,
+    // because they are encoded as IEEE 754 floating point numbers, some of the decimal
+    // numbers cannot be represented with perfect accuracy.
+    // Cents is temporary and there must be support for other currencies in the future
+    const iouAmount = Math.round(parseFloat(this.props.iouAmount * 100));
+    const totalParticipants = participants.length + 1;
+    const amountPerPerson = Math.round(iouAmount / totalParticipants);
+
+    if (!isDefaultUser) { return amountPerPerson; }
+
+    const sumAmount = amountPerPerson * totalParticipants;
+    const difference = iouAmount - sumAmount;
+
+    return iouAmount !== sumAmount ? (amountPerPerson + difference) : amountPerPerson;
+}
+
+/**
+ * Gets splits for the transaction
+ * @param {Array} participants
+ * @param {String} currentUserLogin
+ * @returns {Array|null}
+ */
+function createBillSplits(participants, currentUserLogin, currency, locale, comment) {
+    // There can only be splits when there are multiple participants, so return early when there are not
+    // multiple participants
+    if (participants.length < 2) {
+        return null;
+    }
+
+    const currentUserEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
+    const splits = _.map(participants, (participant) => {
+        const email = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
+        const amount = calculateAmount(participants);
+        const chatReport = ReportUtils.getChatByParticipants([currentUserEmail, email]) || ReportUtils.buildOptimisticChatReport([currentUserEmail, email]);
+        let iouReport;
+        if (chatReport.iouReportID) {
+            iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`];
+            iouReport.total += amount;
+        } else {
+            iouReport = ReportUtils.buildOptimisticIOUReport(
+                currentUserEmail,
+                email,
+                amount,
+                chatReport.reportID,
+                currency,
+                locale,
+            );
+        }
+
+        const iouReportAction = ReportUtils.buildOptimisticIOUReportAction(
+            lodashGet(chatReport, 'maxSequenceNumber', 0) + 1,
+            CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            amount,
+            currency,
+            comment,
+        );
+
+        return {
+            email,
+
+            // We should send in cents to API
+            // Cents is temporary and there must be support for other currencies in the future
+            amount: calculateAmount(participants),
+
+            // @TODO: Auth now expects each split to include iouReportID, chatReportID, transactionID and reportActionID
+            // getChatByParticipants should be created in this PR https://github.com/Expensify/App/pull/11439/files
+            chatReportID: chatReport.reportID,
+            iouReportID: iouReport.reportID,
+            transactionID: iouReportAction.originalMessage.transactionID,
+        };
+    });
+
+    splits.push({
+        email: currentUserEmail,
+
+        // The user is default and we should send in cents to API
+        // USD is temporary and there must be support for other currencies in the future
+        amount: this.calculateAmount(participants, true),
+    });
+    return splits;
+}
+
+/**
  * @param {Array} participants
  * @param {Int} amount
  * @param {String} comment
  * @param {String} currentUserEmail
  * @param {String} currency
  * @param {String} locale
+ *
+ * @return {Object}
  */
 function buildSplitBillOnyxData(participants, amount, comment, currentUserEmail, currency, locale) {
     // getChatByParticipants should be created in this PR https://github.com/Expensify/App/pull/11439/files
@@ -206,6 +298,7 @@ function buildSplitBillOnyxData(participants, amount, comment, currentUserEmail,
     ];
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
+    // @TODO: this splitAmount is wrong.
     const splitAmount = amount / participants.length;
     _.each(participants, (email) => {
         if (email === currentUserEmail) {
@@ -305,12 +398,17 @@ function buildSplitBillOnyxData(participants, amount, comment, currentUserEmail,
  */
 //  CreateIOUSplit(chatReportID, amount, splits, currency, comment, transactionID = 0, reportActionID = 0)
 function splitBill(splits, report, participants, amount, currency, currentUserEmail, locale, comment) {
-    const onyxData = buildSplitBillOnyxData(report, participants, amount, comment, currentUserEmail, currency, locale);
+    const onyxData = buildSplitBillOnyxData(participants, amount, comment, currentUserEmail, currency, locale);
 
     // Call API
     API.write('SplitBill', {
-        chatReportID: report.reportID,
-
+        chatReportID: null,
+        amount,
+        splits,
+        currency,
+        comment,
+        transactionID: null,
+        reportActionID: null,
     }, onyxData);
 }
 
