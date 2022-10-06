@@ -138,7 +138,12 @@ function createIOUTransaction(params) {
 }
 
 /**
- * @param {Object} params
+ * @param {Array} participants
+ * @param {Int} amount
+ * @param {String} comment
+ * @param {String} currentUserEmail
+ * @param {String} currency
+ * @param {String} locale
  */
 function buildSplitBillOnyxData(participants, amount, comment, currentUserEmail, currency, locale) {
     // getChatByParticipants should be created in this PR https://github.com/Expensify/App/pull/11439/files
@@ -296,11 +301,18 @@ function buildSplitBillOnyxData(participants, amount, comment, currentUserEmail,
     });
 }
 
-function splitBill(report, participants, amount, currency, currentUserEmail, locale, comment) {
+/**
+ * @param {Object} params
+ */
+//  CreateIOUSplit(chatReportID, amount, splits, currency, comment, transactionID = 0, reportActionID = 0)
+function splitBill(splits, report, participants, amount, currency, currentUserEmail, locale, comment) {
     const onyxData = buildSplitBillOnyxData(report, participants, amount, comment, currentUserEmail, currency, locale);
 
     // Call API
-    API.write('SplitBill', params, onyxData);
+    API.write('SplitBill', {
+        chatReportID: report.reportID,
+
+    }, onyxData);
 }
 
 /**

@@ -234,6 +234,8 @@ class IOUConfirmationList extends Component {
             // We should send in cents to API
             // Cents is temporary and there must be support for other currencies in the future
             amount: this.calculateAmount(selectedParticipants),
+
+            // @TODO: Auth now expects each split to include iouReportID, chatReportID, transactionID and reportActionID
         }));
 
         splits.push({
