@@ -247,17 +247,16 @@ describe('Sidebar', () => {
 
             // Given these combinations of booleans which result in the report being filtered out (not shown).
             const booleansWhichRemovesInactiveReport = [
-                // isUserCreatedPolicyRoom
-                JSON.stringify([false, false, true, false, false, false, false]),
+                JSON.stringify([false, false, false, false, false, false, false]),
 
-                // isUserCreatedPolicyRoom, isUnread
-                JSON.stringify([false, false, true, false, true, false, false]),
+                // isUnread
+                JSON.stringify([false, false, false, false, true, false, false]),
 
-                // isUserCreatedPolicyRoom, hasAddWorkspaceError
-                JSON.stringify([false, false, true, true, false, false, false]),
+                // hasAddWorkspaceError, isUnread
+                JSON.stringify([false, false, false, true, true, false, false]),
 
-                // isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread
-                JSON.stringify([false, false, true, true, true, false, false]),
+                // hasAddWorkspaceError
+                JSON.stringify([false, false, false, true, false, false, false]),
 
                 // isArchived
                 JSON.stringify([false, true, false, false, false, false, false]),
@@ -563,10 +562,10 @@ describe('Sidebar', () => {
         const booleansWhichRemovesInactiveReport = [
             JSON.stringify([false, false, false, false, false, false, false]),
             JSON.stringify([false, false, false, true, false, false, false]),
+            JSON.stringify([false, false, false, false, true, false, false]),
+            JSON.stringify([false, false, false, true, true, false, false]),
             JSON.stringify([false, false, true, false, false, false, false]),
-            JSON.stringify([false, false, true, false, true, false, false]),
             JSON.stringify([false, false, true, true, false, false, false]),
-            JSON.stringify([false, false, true, true, true, false, false]),
             JSON.stringify([false, true, false, false, false, false, false]),
             JSON.stringify([false, true, false, false, true, false, false]),
             JSON.stringify([false, true, false, true, false, false, false]),
