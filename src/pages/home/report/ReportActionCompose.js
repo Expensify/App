@@ -380,7 +380,7 @@ class ReportActionCompose extends React.Component {
      * @param {String} comment
      * @param {Boolean} shouldDebounceSaveComment
      */
-    updateComment(newComment, shouldDebounceSaveComment) {
+    updateComment(comment, shouldDebounceSaveComment) {
         const newComment = EmojiUtils.replaceEmojis(comment);
         this.setState({
             isCommentEmpty: !!newComment.match(/^(\s|`)*$/),
