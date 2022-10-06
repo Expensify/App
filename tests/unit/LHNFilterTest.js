@@ -398,5 +398,40 @@ describe('Sidebar', () => {
                     expect(sidebarLinks.queryAllByText(/One, Two/)).toHaveLength(0);
                 });
         });
+
+        it('always shows pinned and draft chats', () => {
+            // Given a draft report and an unread report
+            const draftReport = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                hasDraft: true,
+            };
+            const pinnedReport = {
+                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']),
+                isPinned: true,
+            };
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(draftReport.reportID);
+
+            return waitForPromisesToResolve()
+
+                // When Onyx is updated to contain that data and the sidebar re-renders
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`]: draftReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${pinnedReport.reportID}`]: pinnedReport,
+                }))
+
+                // Then both reports are visible
+                .then(() => {
+                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    expect(displayNames).toHaveLength(2);
+                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
+                    expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
+                });
+        });
+
+        it('does not show archived or policy rooms unless they are unread', () => {
+
+        });
     });
 });
