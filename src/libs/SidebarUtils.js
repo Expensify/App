@@ -179,6 +179,7 @@ function getOptionData(reportID) {
     const result = {
         text: null,
         alternateText: null,
+        pendingAction: null,
         brickRoadIndicator: null,
         icons: null,
         tooltipText: null,
@@ -212,6 +213,7 @@ function getOptionData(reportID) {
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
+    result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom : null;
     result.brickRoadIndicator = OptionsListUtils.getBrickRoadIndicatorStatusForReport(report, reportActions);
     result.ownerEmail = report.ownerEmail;
     result.reportID = report.reportID;
