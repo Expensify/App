@@ -19,12 +19,10 @@ import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneE
 import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
 
-let sessionAuthToken = '';
 let currentUserAccountID = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        sessionAuthToken = lodashGet(val, 'authToken', '');
         currentUserAccountID = lodashGet(val, 'accountID', '');
     },
 });
@@ -207,7 +205,6 @@ function setSecondaryLoginAndNavigate(login, password) {
  * @param {String} validateCode
  */
 function validateLogin(accountID, validateCode) {
-    const isLoggedIn = !_.isEmpty(sessionAuthToken);
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
 
     const optimisticData = [
