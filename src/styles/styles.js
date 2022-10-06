@@ -1122,9 +1122,7 @@ const styles = {
     },
 
     popoverMenuText: {
-        fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
-        fontWeight: fontWeightBold,
         color: themeColors.heading,
         maxWidth: 240,
     },
@@ -1856,6 +1854,10 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: 15,
+    },
+
+    blockingViewContainer: {
+        paddingBottom: variables.contentHeaderHeight,
     },
 
     defaultModalContainer: {
