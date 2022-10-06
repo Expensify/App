@@ -30,12 +30,6 @@ Onyx.connect({
     },
 });
 
-let currentlyViewedReportID = '';
-Onyx.connect({
-    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-    callback: val => currentlyViewedReportID = val || '',
-});
-
 /**
  * Changes a password for a given account
  *
@@ -215,7 +209,6 @@ function setSecondaryLoginAndNavigate(login, password) {
  */
 function validateLogin(accountID, validateCode) {
     const isLoggedIn = !_.isEmpty(sessionAuthToken);
-    const redirectRoute = isLoggedIn ? ROUTES.getReportRoute(currentlyViewedReportID) : ROUTES.HOME;
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
 
     DeprecatedAPI.ValidateEmail({
@@ -237,7 +230,7 @@ function validateLogin(accountID, validateCode) {
         }
     }).finally(() => {
         Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
-        Navigation.navigate(redirectRoute);
+        Navigation.navigate(ROUTES.HOME);
     });
 }
 
