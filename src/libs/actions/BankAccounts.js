@@ -44,7 +44,7 @@ function updatePlaidData(plaidData) {
     Onyx.merge(ONYXKEYS.PLAID_DATA, plaidData);
 }
 
-function clearOnfido() {
+function clearOnfidoToken() {
     Onyx.merge(ONYXKEYS.ONFIDO_TOKEN, '');
 }
 
@@ -244,6 +244,38 @@ function validateBankAccount(bankAccountID, validateCode) {
 }
 
 /**
+ * Updates the bank account in the database with the company step data
+ *
+ * @param {Object} bankAccount
+ * @param {Number} [bankAccount.bankAccountID]
+ *
+ * Fields from BankAccount step
+ * @param {String} [bankAccount.routingNumber]
+ * @param {String} [bankAccount.accountNumber]
+ * @param {String} [bankAccount.bankName]
+ * @param {String} [bankAccount.plaidAccountID]
+ * @param {String} [bankAccount.plaidAccessToken]
+ * @param {Boolean} [bankAccount.isSavings]
+ *
+ * Fields from Company step
+ * @param {String} [bankAccount.companyName]
+ * @param {String} [bankAccount.addressStreet]
+ * @param {String} [bankAccount.addressCity]
+ * @param {String} [bankAccount.addressState]
+ * @param {String} [bankAccount.addressZipCode]
+ * @param {String} [bankAccount.companyPhone]
+ * @param {String} [bankAccount.website]
+ * @param {String} [bankAccount.companyTaxID]
+ * @param {String} [bankAccount.incorporationType]
+ * @param {String} [bankAccount.incorporationState]
+ * @param {String} [bankAccount.incorporationDate]
+ * @param {Boolean} [bankAccount.hasNoConnectionToCannabis]
+ */
+function updateCompanyInformationForBankAccount(bankAccount) {
+    API.write('UpdateCompanyInformationForBankAccount', bankAccount, getVBBADataForOnyx());
+}
+
+/**
  * Create the bank account with manually entered data.
  *
  * @param {String} [bankAccountID]
@@ -261,15 +293,30 @@ function connectBankAccountManually(bankAccountID, accountNumber, routingNumber,
     }, getVBBADataForOnyx());
 }
 
+/**
+ * Verify the user's identity via Onfido
+ *
+ * @param {Number} bankAccountID
+ * @param {Object} onfidoData
+ */
+function verifyIdentityForBankAccount(bankAccountID, onfidoData) {
+    API.write('VerifyIdentityForBankAccount', {
+        bankAccountID,
+        onfidoData: JSON.stringify(onfidoData),
+    }, getVBBADataForOnyx());
+}
+
 export {
     addPersonalBankAccount,
     connectBankAccountManually,
     deletePaymentBankAccount,
     clearPersonalBankAccount,
     clearPlaid,
-    clearOnfido,
+    clearOnfidoToken,
     updatePersonalInformationForBankAccount,
     validateBankAccount,
+    verifyIdentityForBankAccount,
+    updateCompanyInformationForBankAccount,
     connectBankAccountWithPlaid,
     updatePlaidData,
 };

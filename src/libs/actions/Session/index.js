@@ -41,10 +41,10 @@ Onyx.connect({
 function setSuccessfulSignInData(data) {
     PushNotification.register(data.accountID);
     Onyx.merge(ONYXKEYS.SESSION, {
-        shouldShowComposeInput: true,
         errors: null,
         ..._.pick(data, 'authToken', 'accountID', 'email', 'encryptedAuthToken'),
     });
+    Onyx.set(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, true);
 }
 
 /**
@@ -385,7 +385,8 @@ function cleanupSession() {
 function clearAccountMessages() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {
         success: '',
-        errors: [],
+        errors: null,
+        message: null,
         isLoading: false,
     });
 }
@@ -566,13 +567,6 @@ function authenticatePusher(socketID, channelName, callback) {
     });
 }
 
-/**
- * @param {Boolean} shouldShowComposeInput
- */
-function setShouldShowComposeInput(shouldShowComposeInput) {
-    Onyx.merge(ONYXKEYS.SESSION, {shouldShowComposeInput});
-}
-
 export {
     beginSignIn,
     updatePasswordAndSignin,
@@ -589,7 +583,6 @@ export {
     validateEmail,
     authenticatePusher,
     reauthenticatePusher,
-    setShouldShowComposeInput,
     changePasswordAndSignIn,
     invalidateCredentials,
     invalidateAuthToken,
