@@ -89,6 +89,7 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
+        console.log('REPORT ACTIONS VIEW MOUNTING');
         this.appStateChangeListener = AppState.addEventListener('change', () => {
             if (!this.getIsReportFullyVisible()) {
                 return;
@@ -237,6 +238,7 @@ class ReportActionsView extends React.Component {
     }
 
     componentWillUnmount() {
+        console.log('ReportActionsView unmounting');
         if (this.keyboardEvent) {
             this.keyboardEvent.remove();
         }

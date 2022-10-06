@@ -129,6 +129,7 @@
     "@octokit/plugin-paginate-rest": "3.1.0",
     "@octokit/plugin-throttling": "4.1.0",
     "@react-native-community/eslint-config": "3.0.0",
+    "@react-navigation/devtools": "^6.0.10",
     "@storybook/addon-a11y": "^6.5.9",
     "@storybook/addon-essentials": "^6.5.9",
     "@storybook/addon-react-native-web": "0.0.19--canary.37.cb55428.0",
