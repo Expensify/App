@@ -17,6 +17,7 @@ import ROUTES from '../ROUTES';
 import networkPropTypes from './networkPropTypes';
 import {withNetwork} from './OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from './withCurrentUserPersonalDetails';
+import * as IOUUtils from '../libs/IOUUtils';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -148,7 +149,7 @@ class IOUConfirmationList extends Component {
     getParticipantsWithAmount(participants) {
         return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
             participants,
-            this.props.numberFormat(this.calculateAmount(participants) / 100, {
+            this.props.numberFormat(IOUUtils.calculateAmount(participants, this.props.iouAmount) / 100, {
                 style: 'currency',
                 currency: this.props.iou.selectedCurrencyCode,
             }),
@@ -182,7 +183,7 @@ class IOUConfirmationList extends Component {
 
             const formattedMyPersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(
                 this.props.currentUserPersonalDetails,
-                this.props.numberFormat(this.calculateAmount(selectedParticipants, true) / 100, {
+                this.props.numberFormat(IOUUtils.calculateAmount(selectedParticipants, this.props.iouAmount, true) / 100, {
                     style: 'currency',
                     currency: this.props.iou.selectedCurrencyCode,
                 }),
@@ -233,9 +234,7 @@ class IOUConfirmationList extends Component {
 
             // We should send in cents to API
             // Cents is temporary and there must be support for other currencies in the future
-            amount: this.calculateAmount(selectedParticipants),
-
-            // @TODO: Auth now expects each split to include iouReportID, chatReportID, transactionID and reportActionID
+            amount: IOUUtils.calculateAmount(selectedParticipants, this.props.iouAmount),
         }));
 
         splits.push({
@@ -243,7 +242,7 @@ class IOUConfirmationList extends Component {
 
             // The user is default and we should send in cents to API
             // USD is temporary and there must be support for other currencies in the future
-            amount: this.calculateAmount(selectedParticipants, true),
+            amount: IOUUtils.calculateAmount(selectedParticipants, this.props.iouAmount, true),
         });
         return splits;
     }
@@ -261,30 +260,6 @@ class IOUConfirmationList extends Component {
             ...selectedParticipants,
             OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(this.props.currentUserPersonalDetails),
         ];
-    }
-
-    /**
-     * Calculates the amount per user given a list of participants
-     * @param {Array} participants
-     * @param {Boolean} isDefaultUser
-     * @returns {Number}
-     */
-    calculateAmount(participants, isDefaultUser = false) {
-        // Convert to cents before working with iouAmount to avoid
-        // javascript subtraction with decimal problem -- when dealing with decimals,
-        // because they are encoded as IEEE 754 floating point numbers, some of the decimal
-        // numbers cannot be represented with perfect accuracy.
-        // Cents is temporary and there must be support for other currencies in the future
-        const iouAmount = Math.round(parseFloat(this.props.iouAmount * 100));
-        const totalParticipants = participants.length + 1;
-        const amountPerPerson = Math.round(iouAmount / totalParticipants);
-
-        if (!isDefaultUser) { return amountPerPerson; }
-
-        const sumAmount = amountPerPerson * totalParticipants;
-        const difference = iouAmount - sumAmount;
-
-        return iouAmount !== sumAmount ? (amountPerPerson + difference) : amountPerPerson;
     }
 
     /**

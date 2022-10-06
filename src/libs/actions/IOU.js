@@ -13,7 +13,7 @@ import asyncOpenURL from '../asyncOpenURL';
 import Log from '../Log';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
-import * as OptionsListUtils from '../OptionsListUtils';
+import * as IOUUtils from '../IOUUtils';
 
 const iouReports = {};
 Onyx.connect({
@@ -138,31 +138,6 @@ function createIOUTransaction(params) {
 }
 
 /**
- * Calculates the amount per user given a list of participants
- * @param {Array} participants
- * @param {Int} total
- * @param {Boolean} isDefaultUser
- * @returns {Number}
- */
-function calculateAmount(participants, total, isDefaultUser = false) {
-    // Convert to cents before working with iouAmount to avoid
-    // javascript subtraction with decimal problem -- when dealing with decimals,
-    // because they are encoded as IEEE 754 floating point numbers, some of the decimal
-    // numbers cannot be represented with perfect accuracy.
-    // Cents is temporary and there must be support for other currencies in the future
-    const iouAmount = Math.round(parseFloat(total * 100));
-    const totalParticipants = participants.length + 1;
-    const amountPerPerson = Math.round(iouAmount / totalParticipants);
-
-    if (!isDefaultUser) { return amountPerPerson; }
-
-    const sumAmount = amountPerPerson * totalParticipants;
-    const difference = iouAmount - sumAmount;
-
-    return iouAmount !== sumAmount ? (amountPerPerson + difference) : amountPerPerson;
-}
-
-/**
  * @param {Array} participants
  * @param {Int} amount
  * @param {String} comment
@@ -233,8 +208,8 @@ function createSplitsAndBuildOnyxData(participants, amount, comment, currentUser
     ];
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
-    const splitAmount = calculateAmount(participants, amount);
-    const splits = [{email: currentUserEmail, amount: calculateAmount(participants, amount, true)}];
+    const splitAmount = IOUUtils.calculateAmount(participants, amount);
+    const splits = [{email: currentUserEmail, amount: IOUUtils.calculateAmount(participants, amount, true)}];
     _.each(participants, (email) => {
         // @TODO: I think we need to get the email by calling OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login),
         if (email === currentUserEmail) {
