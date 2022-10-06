@@ -247,6 +247,9 @@ describe('Sidebar', () => {
 
             // Given these combinations of booleans which result in the report being filtered out (not shown).
             const booleansWhichRemovesInactiveReport = [
+                // hasComments is false
+                JSON.stringify([false, false, false, false, false, false, false]),
+
                 // isUserCreatedPolicyRoom
                 JSON.stringify([false, false, true, false, false, false, false]),
 
@@ -258,6 +261,12 @@ describe('Sidebar', () => {
 
                 // isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread
                 JSON.stringify([false, false, true, true, true, false, false]),
+
+                // isUnread
+                JSON.stringify([false, false, false, false, true, false, false]),
+
+                // hasAddWorkspaceError
+                JSON.stringify([false, false, false, false, true, false, false]),
 
                 // isArchived
                 JSON.stringify([false, true, false, false, false, false, false]),
