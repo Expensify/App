@@ -247,7 +247,6 @@ describe('Sidebar', () => {
 
             // Given these combinations of booleans which result in the report being filtered out (not shown).
             const booleansWhichRemovesInactiveReport = [
-                // hasComments is false
                 JSON.stringify([false, false, false, false, false, false, false]),
 
                 // isUnread
