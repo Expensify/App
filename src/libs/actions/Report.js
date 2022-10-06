@@ -428,41 +428,39 @@ function subscribeToReportTypingEvents(reportID) {
         return;
     }
 
-    setTimeout(() => {
-        // Make sure we have a clean Typing indicator before subscribing to typing events
-        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {});
+    // Make sure we have a clean Typing indicator before subscribing to typing events
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {});
 
-        const pusherChannelName = getReportChannelName(reportID);
-        Pusher.subscribe(pusherChannelName, 'client-userIsTyping', (typingStatus) => {
-            const normalizedTypingStatus = getNormalizedTypingStatus(typingStatus);
-            const login = _.first(_.keys(normalizedTypingStatus));
+    const pusherChannelName = getReportChannelName(reportID);
+    Pusher.subscribe(pusherChannelName, 'client-userIsTyping', (typingStatus) => {
+        const normalizedTypingStatus = getNormalizedTypingStatus(typingStatus);
+        const login = _.first(_.keys(normalizedTypingStatus));
 
-            if (!login) {
-                return;
-            }
+        if (!login) {
+            return;
+        }
 
-            // Don't show the typing indicator if a user is typing on another platform
-            if (login === currentUserEmail) {
-                return;
-            }
+        // Don't show the typing indicator if a user is typing on another platform
+        if (login === currentUserEmail) {
+            return;
+        }
 
-            // Use a combo of the reportID and the login as a key for holding our timers.
-            const reportUserIdentifier = `${reportID}-${login}`;
-            clearTimeout(typingWatchTimers[reportUserIdentifier]);
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, normalizedTypingStatus);
+        // Use a combo of the reportID and the login as a key for holding our timers.
+        const reportUserIdentifier = `${reportID}-${login}`;
+        clearTimeout(typingWatchTimers[reportUserIdentifier]);
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, normalizedTypingStatus);
 
-            // Wait for 1.5s of no additional typing events before setting the status back to false.
-            typingWatchTimers[reportUserIdentifier] = setTimeout(() => {
-                const typingStoppedStatus = {};
-                typingStoppedStatus[login] = false;
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStoppedStatus);
-                delete typingWatchTimers[reportUserIdentifier];
-            }, 1500);
-        })
-            .catch((error) => {
-                Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', false, {errorType: error.type, pusherChannelName});
-            });
-    }, 1000);
+        // Wait for 1.5s of no additional typing events before setting the status back to false.
+        typingWatchTimers[reportUserIdentifier] = setTimeout(() => {
+            const typingStoppedStatus = {};
+            typingStoppedStatus[login] = false;
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStoppedStatus);
+            delete typingWatchTimers[reportUserIdentifier];
+        }, 1500);
+    })
+        .catch((error) => {
+            Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', false, {errorType: error.type, pusherChannelName});
+        });
 }
 
 /**
@@ -475,11 +473,9 @@ function unsubscribeFromReportChannel(reportID) {
         return;
     }
 
-    setTimeout(() => {
-        const pusherChannelName = getReportChannelName(reportID);
-        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {});
-        Pusher.unsubscribe(pusherChannelName);
-    }, 1000);
+    const pusherChannelName = getReportChannelName(reportID);
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {});
+    Pusher.unsubscribe(pusherChannelName);
 }
 
 /**

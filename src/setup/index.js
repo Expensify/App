@@ -35,7 +35,6 @@ export default function () {
             [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
             [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
         },
-        debugSetState: true,
     });
 
     // Force app layout to work left to right because our design does not currently support devices using this mode
