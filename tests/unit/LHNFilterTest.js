@@ -400,7 +400,7 @@ describe('Sidebar', () => {
         });
 
         it('always shows pinned and draft chats', () => {
-            // Given a draft report and an unread report
+            // Given a draft report and a pinned report
             const draftReport = {
                 ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
                 hasDraft: true,
