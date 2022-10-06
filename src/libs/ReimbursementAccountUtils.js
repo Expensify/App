@@ -35,7 +35,6 @@ function getDefaultStateForField(props, fieldName, defaultValue = '') {
 function getBankAccountFields(props, fieldNames) {
     return {
         ..._.pick(lodashGet(props, 'reimbursementAccount.achData'), ...fieldNames),
-        ..._.pick(lodashGet(props, 'reimbursementAccountDraft'), ...fieldNames),
         ..._.pick(props.reimbursementAccountDraft, ...fieldNames),
     };
 }
