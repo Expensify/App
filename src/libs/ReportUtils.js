@@ -830,11 +830,35 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
     const announceChatReportID = announceChatData.reportID;
     const announceReportActionData = buildOptimisticCreatedReportAction(announceChatData.ownerEmail);
 
-    const adminsChatData = buildOptimisticChatReport([currentUserEmail], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, null, false, policyName);
+    const adminsChatData = buildOptimisticChatReport(
+        [currentUserEmail],
+        CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
+        CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+        policyID,
+        null,
+        false,
+        policyName,
+        null,
+
+        // #admins room members should be notified immediately of messages sent by guides during onboarding.
+        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+    );
     const adminsChatReportID = adminsChatData.reportID;
     const adminsReportActionData = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
 
-    const expenseChatData = buildOptimisticChatReport([currentUserEmail], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserEmail, true, policyName);
+    const expenseChatData = buildOptimisticChatReport(
+        [currentUserEmail],
+        '',
+        CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        policyID,
+        currentUserEmail,
+        true,
+        policyName,
+        null,
+
+        // Policy expense chats should notify immediately / always because they carry the same importance as private, direct conversations.
+        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+    );
     const expenseChatReportID = expenseChatData.reportID;
     const expenseReportActionData = buildOptimisticCreatedReportAction(expenseChatData.ownerEmail);
 
