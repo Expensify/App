@@ -63,12 +63,17 @@ const Banner = props => (
                             : <Text style={[...props.textStyles]} onPress={props.onPress}>{props.text}</Text>
                     }
                 </View>
-                {
-                    props.shouldRenderHTML
-                        ? <RenderHTML html={props.text} />
-                        : <Text>{props.text}</Text>
-                }
-                {props.children}
+                {props.shouldShowCloseButton && (
+                    <Tooltip text={props.translate('common.close')}>
+                        <Pressable
+                            onPress={props.onClose}
+                            accessibilityRole="button"
+                            accessibilityLabel={props.translate('common.close')}
+                        >
+                            <Icon src={Expensicons.Close} />
+                        </Pressable>
+                    </Tooltip>
+                )}
             </View>
         )}
     </Hoverable>
