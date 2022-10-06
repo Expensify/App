@@ -72,15 +72,12 @@ class BankAccountManualStep extends React.Component {
         if (!this.validate()) {
             return;
         }
-
-        const params = {
-            bankAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
-            mask: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidMask'),
-            bankName: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankName'),
-            plaidAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidAccountID'),
-            ...this.state,
-        };
-        BankAccounts.setupWithdrawalAccount(params);
+        BankAccounts.connectBankAccountManually(
+            ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
+            this.state.accountNumber,
+            this.state.routingNumber,
+            ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidMask'),
+        );
     }
 
     /**
