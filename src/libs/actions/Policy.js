@@ -725,7 +725,7 @@ function generateDefaultWorkspaceName() {
         // Get the name of the policy
         const {name} = policy;
 
-        if (name.toLowerCase().includes(defaultWorkspaceName.toLowerCase())) {
+        if (name?.toLowerCase().includes(defaultWorkspaceName.toLowerCase())) {
             suffix += 1;
         }
     });
