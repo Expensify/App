@@ -380,7 +380,7 @@ class ReportActionCompose extends React.Component {
      *
      * @param {String} comment
      */
-    updateComment(comment) {
+    updateComment(comment, shouldDebounceSaveComment) {
         const newComment = EmojiUtils.replaceEmojis(comment);
         this.textInput.setNativeProps({text: newComment});
         this.setState({
