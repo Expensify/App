@@ -24,9 +24,6 @@ export default {
     // Stores current date
     CURRENT_DATE: 'currentDate',
 
-    // Currently viewed reportID
-    CURRENTLY_VIEWED_REPORTID: 'currentlyViewedReportID',
-
     // Credentials to authenticate the user
     CREDENTIALS: 'credentials',
 
@@ -161,9 +158,6 @@ export default {
     // Is policy data loading?
     IS_LOADING_POLICY_DATA: 'isLoadingPolicyData',
 
-    // Are we loading the create policy room command
-    IS_LOADING_CREATE_POLICY_ROOM: 'isLoadingCratePolicyRoom',
-
     // Is Keyboard shortcuts modal open?
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
 
@@ -182,4 +176,7 @@ export default {
         REQUEST_CALL_FORM: 'requestCallForm',
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
     },
+
+    // Whether we should show the compose input or not
+    SHOULD_SHOW_COMPOSE_INPUT: 'shouldShowComposeInput',
 };
