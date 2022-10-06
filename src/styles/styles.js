@@ -1985,6 +1985,7 @@ const styles = {
         flexDirection: 'row',
         alignItems: 'center',
         zIndex: 1,
+        cursor: 'default',
     },
 
     unreadIndicatorLine: {
