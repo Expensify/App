@@ -238,7 +238,6 @@ function buildSplitBillOnyxData(participants, amount, comment, currentUserEmail,
             comment,
         );
 
-        // @TODO: Add RBR pendingAction
         optimisticData.push(
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -296,9 +295,9 @@ function buildSplitBillOnyxData(participants, amount, comment, currentUserEmail,
                 },
             },
         );
-
-        return {optimisticData, successData, failureData};
     });
+
+    return {optimisticData, successData, failureData};
 }
 
 /**
