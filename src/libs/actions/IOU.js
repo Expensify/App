@@ -138,6 +138,31 @@ function createIOUTransaction(params) {
 }
 
 /**
+ * Calculates the amount per user given a list of participants
+ * @param {Array} participants
+ * @param {Int} total
+ * @param {Boolean} isDefaultUser
+ * @returns {Number}
+ */
+function calculateAmount(participants, total, isDefaultUser = false) {
+    // Convert to cents before working with iouAmount to avoid
+    // javascript subtraction with decimal problem -- when dealing with decimals,
+    // because they are encoded as IEEE 754 floating point numbers, some of the decimal
+    // numbers cannot be represented with perfect accuracy.
+    // Cents is temporary and there must be support for other currencies in the future
+    const iouAmount = Math.round(parseFloat(total * 100));
+    const totalParticipants = participants.length + 1;
+    const amountPerPerson = Math.round(iouAmount / totalParticipants);
+
+    if (!isDefaultUser) { return amountPerPerson; }
+
+    const sumAmount = amountPerPerson * totalParticipants;
+    const difference = iouAmount - sumAmount;
+
+    return iouAmount !== sumAmount ? (amountPerPerson + difference) : amountPerPerson;
+}
+
+/**
  * @param {Array} participants
  * @param {Int} amount
  * @param {String} comment
@@ -208,10 +233,10 @@ function createSplitsAndBuildOnyxData(participants, amount, comment, currentUser
     ];
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
-    // @TODO: this splitAmount is wrong. See how to calculate it in https://github.com/Expensify/App/blob/b62cb936bcdf8dfbe8ece237860a308f6827cc11/src/components/IOUConfirmationList.js#L272
-    const splitAmount = amount / participants.length;
-    const splits = [{email: currentUserEmail, amount: splitAmount}];
+    const splitAmount = calculateAmount(participants, amount);
+    const splits = [{email: currentUserEmail, amount: calculateAmount(participants, amount, true)}];
     _.each(participants, (email) => {
+        // @TODO: I think we need to get the email by calling OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login),
         if (email === currentUserEmail) {
             return;
         }
@@ -311,16 +336,16 @@ function createSplitsAndBuildOnyxData(participants, amount, comment, currentUser
     });
 
     return {
-        optimisticData, successData, failureData, splits,
+        splits,
+        onyxData: {optimisticData, successData, failureData},
     };
 }
 
 /**
  * @param {Object} params
  */
-//  CreateIOUSplit(chatReportID, amount, splits, currency, comment, transactionID = 0, reportActionID = 0)
-function splitBill(splits, report, participants, amount, currency, currentUserEmail, locale, comment) {
-    const onyxData = createSplitsAndBuildOnyxData(participants, amount, comment, currentUserEmail, currency, locale);
+function splitBill(participants, amount, currency, currentUserEmail, locale, comment) {
+    const {splits, onyxData} = createSplitsAndBuildOnyxData(participants, amount, comment, currentUserEmail, currency, locale);
 
     // Call API
     API.write('SplitBill', {
