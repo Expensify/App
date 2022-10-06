@@ -122,9 +122,9 @@ class BasePaymentsPage extends React.Component {
      * @param {String} account
      * @param {Boolean} isDefault
      * @param {String|Number} methodID
-     * @param {Boolean} isPendingAccount
+     * @param {string} pendingAction
      */
-    paymentMethodPressed(nativeEvent, accountType, account, isDefault, methodID, isPendingAccount = false) {
+    paymentMethodPressed(nativeEvent, accountType, account, isDefault, methodID, pendingAction) {
         const position = getClickedTargetLocation(nativeEvent.currentTarget);
         this.setState({
             addPaymentMethodButton: nativeEvent.currentTarget,
@@ -142,7 +142,7 @@ class BasePaymentsPage extends React.Component {
                 };
             } else if (accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
                 // If the bank account is pending creation, direct the user to complete setting up their personal bank account
-                if (isPendingAccount) {
+                if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
                     Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT);
                     return;
                 }

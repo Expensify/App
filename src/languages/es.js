@@ -586,8 +586,8 @@ export default {
         enterPassword: 'Escribe tu contraseña de Expensify',
         alreadyAdded: 'Esta cuenta ya ha sido agregada.',
         chooseAccountLabel: 'Cuenta',
-        successTitle: '¡Cuenta bancaria personal añadida!',
-        successMessage: 'Enhorabuena, tu cuenta bancaria está lista para recibir reembolsos.',
+        passwordRequired: 'Por favor introduce tu contraseña',
+        plaidBankAccountRequired: 'Por favor seleccione una cuenta bancaria',
     },
     attachmentView: {
         unknownFilename: 'Archivo desconocido',

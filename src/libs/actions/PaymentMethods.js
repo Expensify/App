@@ -310,14 +310,11 @@ function dismissSuccessfulTransferBalancePage() {
  * Looks through each payment method to see if there is an existing error
  * @param {Object} bankList
  * @param {Object} cardList
- * @param {Object} personalBankAccount
  * @returns {Boolean}
  */
-function hasPaymentMethodError(bankList, cardList, personalBankAccount) {
-    // Check if there is a pending bank account
-    const hasPendingBankAccountError = !_.isEmpty(lodashGet(personalBankAccount, 'errors', {}));
+function hasPaymentMethodError(bankList, cardList) {
     const combinedPaymentMethods = lodashMerge(bankList, cardList);
-    return hasPendingBankAccountError || _.some(combinedPaymentMethods, item => !_.isEmpty(item.errors));
+    return _.some(combinedPaymentMethods, item => !_.isEmpty(item.errors));
 }
 
 /**
@@ -407,10 +404,9 @@ function clearPersonalBankAccount() {
 function clearPersonalBankAccountErrors() {
     Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
         errors: null,
-        pendingFields: {
-            plaidSelector: null,
-        },
-        selectedPlaidAccountID: null,
+    });
+    Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
+        0: null,
     });
 }
 

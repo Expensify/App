@@ -4,6 +4,8 @@ import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 export {
     setupWithdrawalAccount,
@@ -112,7 +114,6 @@ function connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount) {
  *
  * @param {Object} account
  * @param {String} password
- * @TODO offline pattern for this command will have to be added later once the pattern B design doc is complete
  */
 function addPersonalBankAccount(account, password) {
     const commandName = 'AddPersonalBankAccount';
@@ -136,25 +137,39 @@ function addPersonalBankAccount(account, password) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
-                    isLoading: true,
                     errors: null,
                     errorFields: null,
-                    pendingFields: {
-                        plaidSelector: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    },
                     selectedPlaidAccountID: parameters.plaidAccountID,
+                },
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {
+                    0: {
+                        title: account.addressName,
+                        description: `${Localize.translateLocal('paymentMethodList.accountLastFour')} ${account.accountNumber.slice(-4)}`,
+                        methodID: 0,
+                        key: 'bankAccount-0',
+                        accountType: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
+                        accountData: account,
+                        errors: null,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
                 },
             },
         ],
         successData: [
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: CONST.ONYX.METHOD.SET,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                value: {},
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
                 value: {
-                    isLoading: false,
-                    shouldShowSuccess: true,
-                    errors: null,
-                    pendingFields: null,
+                    0: null,
                 },
             },
             {
@@ -171,13 +186,12 @@ function addPersonalBankAccount(account, password) {
         failureData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
                 value: {
-                    isLoading: false,
-                    errors: null,
-                    errorFields: null,
-                    pendingFields: {
-                        plaidSelector: null,
+                    0: {
+                        errors: {
+                            [DateUtils.getMicroseconds()]: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                        },
                     },
                 },
             },
@@ -185,6 +199,9 @@ function addPersonalBankAccount(account, password) {
     };
 
     API.write(commandName, parameters, onyxData);
+
+    // Optimistically go to the list of bank accounts
+    Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
 }
 
 function deletePaymentBankAccount(bankAccountID) {

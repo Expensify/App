@@ -29,7 +29,6 @@ import policyMemberPropType from '../policyMemberPropType';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import cardPropTypes from '../../components/cardPropTypes';
-import personalBankAccountPropTypes from '../../components/personalBankAccountPropTypes';
 import * as Wallet from '../../libs/actions/Wallet';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import walletTermsPropTypes from '../EnablePayments/walletTermsPropTypes';
@@ -75,9 +74,6 @@ const propTypes = {
 
     /** List of cards */
     cardList: PropTypes.objectOf(cardPropTypes),
-
-    /** Personal Bank Account */
-    personalBankAccount: personalBankAccountPropTypes,
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
@@ -166,7 +162,7 @@ class InitialSettingsPage extends React.Component {
                 translationKey: 'common.payments',
                 icon: Expensicons.Wallet,
                 action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
-                brickRoadIndicator: PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.cardList, this.props.personalBankAccount)
+                brickRoadIndicator: PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.cardList)
                     || !_.isEmpty(this.props.userWallet.errors)
                     || !_.isEmpty(this.props.walletTerms.errors) ? 'error' : null,
             },
@@ -340,9 +336,6 @@ export default compose(
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
-        },
-        personalBankAccount: {
-            key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
         },
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,

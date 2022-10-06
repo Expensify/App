@@ -17,7 +17,6 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
 import paypalMeDataPropTypes from '../../../components/paypalMeDataPropTypes';
 import cardPropTypes from '../../../components/cardPropTypes';
-import personalBankAccountPropTypes from '../../../components/personalBankAccountPropTypes';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
 import FormAlertWrapper from '../../../components/FormAlertWrapper';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
@@ -36,9 +35,6 @@ const propTypes = {
 
     /** List of cards */
     cardList: PropTypes.objectOf(cardPropTypes),
-
-    /** Personal Bank Account */
-    personalBankAccount: personalBankAccountPropTypes,
 
     /** Whether the add Payment button be shown on the list */
     shouldShowAddPaymentMethodButton: PropTypes.bool,
@@ -71,7 +67,6 @@ const defaultProps = {
     payPalMeData: {},
     bankAccountList: {},
     cardList: {},
-    personalBankAccount: {},
     userWallet: {
         walletLinkedAccountID: 0,
         walletLinkedAccountType: '',
@@ -117,8 +112,7 @@ class PaymentMethodList extends Component {
     getFilteredPaymentMethods() {
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
         const filteredCardList = _.filter(this.props.cardList, card => card.accountData.additionalData.isP2PDebitCard);
-        const pendingBankAccount = PaymentUtils.getPendingBankAccount(this.props.personalBankAccount, this.props.plaidData);
-        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, this.props.payPalMeData, pendingBankAccount);
+        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, this.props.payPalMeData);
 
         if (!_.isEmpty(this.props.filterType)) {
             combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === this.props.filterType);
@@ -126,7 +120,7 @@ class PaymentMethodList extends Component {
 
         combinedPaymentMethods = _.map(combinedPaymentMethods, paymentMethod => ({
             ...paymentMethod,
-            onPress: e => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault, paymentMethod.methodID, paymentMethod.isPending),
+            onPress: e => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault, paymentMethod.methodID, paymentMethod.pendingAction),
             iconFill: this.isPaymentMethodActive(paymentMethod) ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
             wrapperStyle: this.isPaymentMethodActive(paymentMethod) ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
         }));
@@ -173,11 +167,13 @@ class PaymentMethodList extends Component {
      * @return {React.Component}
      */
     renderItem({item}) {
+        const isPendingAdd = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
         return (
             <OfflineWithFeedback
                 onClose={() => this.dismissError(item)}
                 pendingAction={item.pendingAction}
-                errors={!item.isPending ? item.errors : {}}
+                errors={!isPendingAdd ? item.errors : {}}
                 errorRowStyles={styles.ph6}
             >
                 <MenuItem
@@ -193,8 +189,8 @@ class PaymentMethodList extends Component {
                     wrapperStyle={item.wrapperStyle}
                     shouldShowSelectedState={this.props.shouldShowSelectedState}
                     isSelected={this.props.selectedMethodID === item.methodID}
-                    brickRoadIndicator={!_.isEmpty(item.errors) && item.isPending ? 'error' : null}
-                    pending={item.isPending}
+                    brickRoadIndicator={!_.isEmpty(item.errors) && isPendingAdd ? 'error' : null}
+                    isPending={Boolean(item.pendingAction)}
                 />
             </OfflineWithFeedback>
         );
@@ -263,12 +259,6 @@ export default compose(
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
-        },
-        personalBankAccount: {
-            key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
-        },
-        plaidData: {
-            key: ONYXKEYS.PLAID_DATA,
         },
         payPalMeData: {
             key: ONYXKEYS.PAYPAL,
