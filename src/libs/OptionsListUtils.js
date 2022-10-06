@@ -23,12 +23,6 @@ Onyx.connect({
     callback: val => currentUserLogin = val && val.email,
 });
 
-let priorityMode;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIORITY_MODE,
-    callback: val => priorityMode = val,
-});
-
 let loginList;
 Onyx.connect({
     key: ONYXKEYS.LOGIN_LIST,
