@@ -204,8 +204,6 @@ class ReportScreen extends React.Component {
         const reportID = getReportID(this.props.route);
         const addWorkspaceRoomPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom');
         const addWorkspaceRoomErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom');
-        const isReportLoaded = this.props.report && this.props.report.reportID === reportID;
-        const isTransitioning = !isReportLoaded;
         return (
             <ScreenWrapper
                 style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
@@ -229,7 +227,6 @@ class ReportScreen extends React.Component {
                             key={reportID}
                             reportID={reportID}
                             onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-                            isLoading={isTransitioning}
                             personalDetails={this.props.personalDetails}
                             report={this.props.report}
                             policies={this.props.policies}
@@ -250,7 +247,7 @@ class ReportScreen extends React.Component {
                         style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                         onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
                     >
-                        {(this.shouldShowLoader() || isTransitioning)
+                        {this.shouldShowLoader()
                             ? (
                                 <ReportActionsSkeletonView
                                     containerHeight={this.state.skeletonViewContainerHeight}
@@ -274,7 +271,6 @@ class ReportScreen extends React.Component {
                             report={this.props.report}
                             isComposerFullSize={this.props.isComposerFullSize}
                             onSubmitComment={this.onSubmitComment}
-                            isLoading={isTransitioning}
                         />
                     </View>
                 </FullPageNotFoundView>

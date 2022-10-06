@@ -96,9 +96,6 @@ const propTypes = {
         expiresAt: PropTypes.string,
     }),
 
-    /** Whether a report is being transitioned to */
-    isLoading: PropTypes.bool.isRequired,
-
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -527,7 +524,7 @@ class ReportActionCompose extends React.Component {
             ]}
             >
                 {shouldShowReportRecipientLocalTime
-                    && <ParticipantLocalTime participant={reportRecipient} isLoading={this.props.isLoading} />}
+                    && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
                     (!isBlockedFromConcierge && (this.state.isFocused || this.state.isDraggingOver))
                         ? styles.chatItemComposeBoxFocusedColor
