@@ -529,4 +529,111 @@ describe('Sidebar', () => {
                 });
         });
     });
+
+    describe('all combinations of hasComments, isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft', () => {
+        // Given a report that is the active report and doesn't change
+        const report1 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']);
+
+        // Given a free policy that doesn't change
+        const policy = {
+            name: 'Policy One',
+            policyID: '1',
+            type: CONST.POLICY.TYPE.FREE,
+        };
+
+        // Given the user is in all betas
+        const betas = [
+            CONST.BETAS.DEFAULT_ROOMS,
+            CONST.BETAS.POLICY_ROOMS,
+            CONST.BETAS.POLICY_EXPENSE_CHAT,
+        ];
+
+        // Given there are 7 boolean variables tested in the filtering logic:
+        // 1. hasComments
+        // 2. isArchived
+        // 3. isUserCreatedPolicyRoom
+        // 4. hasAddWorkspaceError
+        // 5. isUnread
+        // 6. isPinned
+        // 7. hasDraft
+        // There is one setting not represented here, which is hasOutstandingIOU. In order to test that setting, there must be
+        // additional reports in Onyx, so it's being left out for now. It's identical to the logic for hasDraft and isPinned though.
+
+        // Given these combinations of booleans which result in the report being filtered out (not shown).
+        const booleansWhichRemovesInactiveReport = [
+            JSON.stringify([false, false, false, false, false, false, false]),
+            JSON.stringify([false, false, false, true, false, false, false]),
+            JSON.stringify([false, false, true, false, false, false, false]),
+            JSON.stringify([false, false, true, false, true, false, false]),
+            JSON.stringify([false, false, true, true, false, false, false]),
+            JSON.stringify([false, false, true, true, true, false, false]),
+            JSON.stringify([false, true, false, false, false, false, false]),
+            JSON.stringify([false, true, false, false, true, false, false]),
+            JSON.stringify([false, true, false, true, false, false, false]),
+            JSON.stringify([false, true, false, true, true, false, false]),
+            JSON.stringify([false, true, true, false, false, false, false]),
+            JSON.stringify([false, true, true, false, true, false, false]),
+            JSON.stringify([false, true, true, true, false, false, false]),
+            JSON.stringify([false, true, true, true, true, false, false]),
+            JSON.stringify([true, false, false, false, false, false, false]),
+            JSON.stringify([true, false, false, true, false, false, false]),
+            JSON.stringify([true, false, true, false, false, false, false]),
+            JSON.stringify([true, false, true, true, false, false, false]),
+            JSON.stringify([true, true, false, false, false, false, false]),
+            JSON.stringify([true, true, false, true, false, false, false]),
+            JSON.stringify([true, true, true, false, false, false, false]),
+            JSON.stringify([true, true, true, true, false, false, false]),
+        ];
+
+        // When every single combination of those booleans is tested
+
+        // Taken from https://stackoverflow.com/a/39734979/9114791 to generate all possible boolean combinations
+        const AMOUNT_OF_VARIABLES = 7;
+        // eslint-disable-next-line no-bitwise
+        for (let i = 0; i < (1 << AMOUNT_OF_VARIABLES); i++) {
+            const boolArr = [];
+            for (let j = AMOUNT_OF_VARIABLES - 1; j >= 0; j--) {
+                // eslint-disable-next-line no-bitwise
+                boolArr.push(Boolean(i & (1 << j)));
+            }
+
+            // To test a failing set of conditions, comment out the for loop above and then use a hardcoded array
+            // for the specific case that's failing. You can then debug the code to see why the test is not passing.
+            // const boolArr = [false, false, false, true, false, false, false];
+
+            it(`the booleans ${JSON.stringify(boolArr)}`, () => {
+                const report2 = {
+                    ...LHNTestUtils.getAdvancedFakeReport(...boolArr),
+                    policyID: policy.policyID,
+                };
+                const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
+
+                return waitForPromisesToResolve()
+
+                    // When Onyx is updated to contain that data and the sidebar re-renders
+                    .then(() => Onyx.multiSet({
+                        [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                        [ONYXKEYS.BETAS]: betas,
+                        [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                        [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                        [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                        [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
+                    }))
+
+                    // Then depending on the outcome, either one or two reports are visible
+                    .then(() => {
+                        if (booleansWhichRemovesInactiveReport.indexOf(JSON.stringify(boolArr)) > -1) {
+                            // Only one report visible
+                            expect(sidebarLinks.queryAllByA11yHint('Navigates to a chat')).toHaveLength(1);
+                            expect(sidebarLinks.queryAllByA11yLabel('Chat user display names')).toHaveLength(1);
+                            const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                            expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
+                        } else {
+                            // Both reports visible
+                            expect(sidebarLinks.queryAllByA11yHint('Navigates to a chat')).toHaveLength(2);
+                        }
+                    });
+            });
+        }
+    });
 });
