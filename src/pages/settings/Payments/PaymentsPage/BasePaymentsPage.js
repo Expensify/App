@@ -141,7 +141,7 @@ class BasePaymentsPage extends React.Component {
                     type: CONST.PAYMENT_METHODS.PAYPAL,
                 };
             } else if (accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-                // 0 means account is pending, send user to add-bank-account to complete setting up personal bank account
+                // If the bank account is pending creation, direct the user to complete setting up their personal bank account
                 if (isPendingAccount) {
                     Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT);
                     return;
