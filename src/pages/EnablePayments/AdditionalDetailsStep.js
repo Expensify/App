@@ -137,6 +137,16 @@ class AdditionalDetailsStep extends React.Component {
         });
     }
 
+    getFirstName() {
+        const {firstName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
+        return this.props.walletAdditionalDetailsDraft.legalFirstName || firstName;
+    }
+
+    getLastName() {
+        const {lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
+        return this.props.walletAdditionalDetailsDraft.legalLastName || lastName;
+    }
+
     /**
      * @returns {Object}
      */
@@ -171,6 +181,14 @@ class AdditionalDetailsStep extends React.Component {
         Wallet.setAdditionalDetailsErrorMessage('');
 
         const errors = {};
+
+        if (!this.getFirstName()) {
+            errors.legalFirstName = true;
+        }
+
+        if (!this.getLastName()) {
+            errors.legalLastName = true;
+        }
 
         if (!ValidationUtils.isValidPastDate(this.props.walletAdditionalDetailsDraft.dob)) {
             errors.dob = true;
@@ -215,6 +233,8 @@ class AdditionalDetailsStep extends React.Component {
         const personalDetails = {
             ...this.props.walletAdditionalDetailsDraft,
             phoneNumber: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(this.props.walletAdditionalDetailsDraft.phoneNumber),
+            legalFirstName: this.getFirstName(),
+            legalLastName: this.getLastName(),
         };
         Wallet.updatePersonalDetails(personalDetails);
     }
@@ -269,7 +289,6 @@ class AdditionalDetailsStep extends React.Component {
         const errorMessage = ErrorUtils.getLatestErrorMessage(this.props.walletAdditionalDetails) || '';
         const isErrorVisible = _.size(this.getErrors()) > 0 || Boolean(errorMessage);
         const shouldAskForFullSSN = this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN;
-        const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
 
         return (
             <>
@@ -294,14 +313,14 @@ class AdditionalDetailsStep extends React.Component {
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.legalFirstName)}
                                     onChangeText={val => this.clearErrorAndSetValue('legalFirstName', val)}
-                                    value={this.props.walletAdditionalDetailsDraft.legalFirstName || firstName}
+                                    value={this.getFirstName()}
                                     errorText={this.getErrorText('legalFirstName')}
                                 />
                                 <TextInput
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.legalLastName)}
                                     onChangeText={val => this.clearErrorAndSetValue('legalLastName', val)}
-                                    value={this.props.walletAdditionalDetailsDraft.legalLastName || lastName}
+                                    value={this.getLastName()}
                                     errorText={this.getErrorText('legalLastName')}
                                 />
                                 <AddressForm
