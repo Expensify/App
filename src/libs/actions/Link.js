@@ -36,7 +36,6 @@ function showGrowlIfOffline() {
  */
 function openOldDotLink(url) {
     /**
-     *
      * @param {String?} shortLivedAuthToken
      * @returns {String}
      */
