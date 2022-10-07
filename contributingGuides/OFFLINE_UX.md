@@ -145,9 +145,5 @@ If you're making a new feature, think about whether any data would need to be re
 5. Can the server response be anticipated?
   - Answer NO if there is data coming back from the server that we can't know (example: a list of bank accounts from Plaid, input validation that the server must perform). Answer YES if we can know what the response from the server would be.
 
-6. Is there validation done on the server that can't be done on the front end?
-  - If there is some validation happening on the server that needs to happen before the feature can work, then we answer YES to this question. Remember, this is referring to validation that cannot happen on the front end (e.g. reusing an existing password when resetting a password). For example, if we want to set up a bank account then our answer to this question is YES (because we can’t suggest to the user that their request succeeded when really it hasn’t been sent yet–their card wouldn’t work!)
-  - This question can be tricky, so if you're unsure, please ask a question in the #expensify-open-source slack room and tag @contributor-management-engineering.
-
-7. Does the user need to know if the action was successful?
+6. Does the user need to know if the action was successful?
   - Think back to the pinning example from above: the user doesn’t need to know that their pinned report's NVP has been updated. To them the impact of clicking the pin button is that their chat is at the top of the LHN. It makes no difference to them if the server has been updated or not, so the answer would be NO. Now let’s consider sending a payment request to another user. In this example, the user needs to know if their request was actually sent, so our answer is YES.
