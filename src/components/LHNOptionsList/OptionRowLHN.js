@@ -103,6 +103,8 @@ const OptionRowLHN = (props) => {
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
+            hasErrors={!_.isEmpty(optionItem.brickRoadIndicator)}
+            shouldShowErrorMessages={false}
         >
             <Hoverable>
                 {hovered => (
