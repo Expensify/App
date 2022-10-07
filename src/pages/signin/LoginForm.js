@@ -40,9 +40,11 @@ const propTypes = {
 
         /** Whether or not a sign on form is loading (being submitted) */
         isLoading: PropTypes.bool,
+    }),
 
-        /** Additional message to display to the user */
-        message: PropTypes.string,
+    closeAccount: PropTypes.shape({
+        /** Success message to display when necessary */
+        success: PropTypes.string,
     }),
 
     /** Props to detect online status */
@@ -57,6 +59,7 @@ const propTypes = {
 
 const defaultProps = {
     account: {},
+    closeAccount: {},
     blurOnSubmit: false,
 };
 
@@ -180,8 +183,8 @@ class LoginForm extends React.Component {
                         {this.props.account.success}
                     </Text>
                 )}
-                {!_.isEmpty(this.props.account.message) && (
-                    <DotIndicatorMessage style={[styles.mv2]} type="success" messages={{0: this.props.account.message}} />
+                {!_.isEmpty(this.props.closeAccount.success) && (
+                    <DotIndicatorMessage style={[styles.mv2]} type="success" messages={{0: this.props.closeAccount.success}} />
                 )}
                 { // We need to unmount the submit button when the component is not visible so that the Enter button
                   // key handler gets unsubscribed and does not conflict with the Password Form
@@ -210,6 +213,7 @@ LoginForm.defaultProps = defaultProps;
 export default compose(
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
+        closeAccount: {key: ONYXKEYS.CLOSE_ACCOUNT},
     }),
     withWindowDimensions,
     withLocalize,
