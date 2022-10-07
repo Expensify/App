@@ -79,7 +79,7 @@ const MenuItem = (props) => {
         >
             {({hovered, pressed}) => (
                 <>
-                    <View style={[styles.flexRow, styles.pointerEventsNone, styles.flex1]}>
+                    <View style={[styles.flexRow, styles.pointerEventsAuto, styles.flex1, props.disabled && styles.cursorDisabled]}>
                         {(props.icon && props.iconType === CONST.ICON_TYPE_ICON) && (
                             <View
                                 style={[
@@ -161,7 +161,7 @@ const MenuItem = (props) => {
                             </View>
                         )}
                         {Boolean(props.shouldShowRightIcon) && (
-                            <View style={styles.popoverMenuIcon}>
+                            <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled]}>
                                 <Icon
                                     src={props.iconRight}
                                     fill={StyleUtils.getIconFillColor(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive))}
