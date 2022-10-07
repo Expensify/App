@@ -25,7 +25,7 @@ const propTypes = {
     /** Additional styles to add to checkbox button */
     style: stylePropTypes,
 
-    /** Should the keyboard kept open on onMouseDown */
+    /** Callback that is called when mousedown is triggered. */
     onMouseDown: PropTypes.func,
 
     /** A ref to forward to the Pressable */
