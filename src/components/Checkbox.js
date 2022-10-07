@@ -26,7 +26,7 @@ const propTypes = {
     style: stylePropTypes,
 
     /** Should the keyboard kept open on onMouseDown */
-    onMouseDown: PropTypes.bool,
+    onMouseDown: PropTypes.func,
 
     /** A ref to forward to the Pressable */
     forwardedRef: PropTypes.oneOfType([
