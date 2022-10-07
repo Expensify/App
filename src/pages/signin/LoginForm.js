@@ -22,6 +22,7 @@ import OfflineIndicator from '../../components/OfflineIndicator';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import * as ErrorUtils from '../../libs/ErrorUtils';
+import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -39,6 +40,9 @@ const propTypes = {
 
         /** Whether or not a sign on form is loading (being submitted) */
         isLoading: PropTypes.bool,
+
+        /** Additional message to display to the user */
+        message: PropTypes.string,
     }),
 
     /** Props to detect online status */
@@ -175,6 +179,9 @@ class LoginForm extends React.Component {
                     <Text style={[styles.formSuccess]}>
                         {this.props.account.success}
                     </Text>
+                )}
+                {!_.isEmpty(this.props.account.message) && (
+                    <DotIndicatorMessage style={[styles.mv2]} type="success" messages={{0: this.props.account.message}} />
                 )}
                 { // We need to unmount the submit button when the component is not visible so that the Enter button
                   // key handler gets unsubscribed and does not conflict with the Password Form
