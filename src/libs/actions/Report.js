@@ -787,10 +787,11 @@ function addComment(reportID, text) {
 
 /**
  * Gets the latest page of report actions and updates the last read message
+ * If a chat with the passed reportID is not found, we will create a chat based on the passed participantList
  *
- * @param {Number} reportID
- * @param {Array} participantList
- * @param {Object} newReportObject
+ * @param {String} reportID
+ * @param {Array} participantList The list of users that are included in a new chat, not including the user creating it
+ * @param {Object} newReportObject The optimistic report object created when making a new chat, saved as optimistic data
  */
 function openReport(reportID, participantList = [], newReportObject = {}) {
     const onyxData = {
@@ -830,7 +831,8 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             isOptimisticReport: true,
         };
 
-        // Change the method to set for new reports because it is faster
+        // Change the method to set for new reports because it doesn't exist yet, is faster,
+        // and we need thee data to be available when we navigate to the chat page
         onyxData.optimisticData[0].onyxMethod = CONST.ONYX.METHOD.SET;
 
         // Also create a report action so that the page isn't endlessly loading
