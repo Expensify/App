@@ -82,7 +82,7 @@ const defaultProps = {
     textInputContainerStyles: [],
     inputStyle: [],
     autoFocus: false,
-    autoCorrect: false,
+    autoCorrect: true,
 
     /**
      * To be able to function as either controlled or uncontrolled component we should not
