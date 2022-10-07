@@ -65,7 +65,7 @@ const RoomHeaderAvatars = (props) => {
         <View pointerEvents="none">
             <View style={[styles.flexRow, styles.wAuto, styles.ml3]}>
                 {_.map(iconsToDisplay, (val, index) => (
-                    <View key={index} style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <View key={`${val}${index}`} style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <Image source={{uri: val}} style={[styles.roomHeaderAvatar]} />
 
                         {index === CONST.REPORT.MAX_PREVIEW_AVATARS - 1 && props.icons.length - CONST.REPORT.MAX_PREVIEW_AVATARS !== 0 && (
