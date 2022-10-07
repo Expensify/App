@@ -25,8 +25,8 @@ const propTypes = {
     /** Additional styles to add to checkbox button */
     style: stylePropTypes,
 
-    /** Should the keyboard kept open on mousePress */
-    preventKeyboardHide: PropTypes.bool,
+    /** Should the keyboard kept open on onMouseDown */
+    onMouseDown: PropTypes.bool,
 
     /** A ref to forward to the Pressable */
     forwardedRef: PropTypes.oneOfType([
@@ -42,7 +42,7 @@ const defaultProps = {
     style: [],
     forwardedRef: undefined,
     children: null,
-    preventKeyboardHide: false,
+    onMouseDown: undefined,
 };
 
 class Checkbox extends React.Component {
@@ -56,7 +56,6 @@ class Checkbox extends React.Component {
         this.onBlur = this.onBlur.bind(this);
         this.handleSpaceKey = this.handleSpaceKey.bind(this);
         this.firePressHandlerOnClick = this.firePressHandlerOnClick.bind(this);
-        this.handleOnMouseDown = this.handleOnMouseDown.bind(this);
     }
 
     onFocus() {
@@ -85,19 +84,12 @@ class Checkbox extends React.Component {
         this.props.onPress();
     }
 
-    handleOnMouseDown(event) {
-        if (!this.props.preventKeyboardHide) {
-            return;
-        }
-        event.preventDefault();
-    }
-
     render() {
         return (
             <Pressable
                 disabled={this.props.disabled}
                 onPress={this.firePressHandlerOnClick}
-                onMouseDown={this.handleOnMouseDown}
+                onMouseDown={this.props.onMouseDown}
                 onFocus={this.onFocus}
                 onBlur={this.onBlur}
                 ref={this.props.forwardedRef}
