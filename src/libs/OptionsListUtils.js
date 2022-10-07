@@ -250,6 +250,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
     const result = {
         text: null,
         alternateText: null,
+        pendingAction: null,
         brickRoadIndicator: null,
         icons: null,
         tooltipText: null,
@@ -289,6 +290,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
         result.brickRoadIndicator = getBrickRoadIndicatorStatusForReport(report, reportActions);
+        result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom : null;
         result.ownerEmail = report.ownerEmail;
         result.reportID = report.reportID;
         result.isUnread = ReportUtils.isUnread(report);
