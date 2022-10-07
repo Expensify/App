@@ -203,11 +203,15 @@ function onSubmit(values) {
 The following prop is available to form inputs:
 
 - inputID: An unique identifier for the input.
+- shouldSaveDraft: Saves a draft of the input value.
+- defaultValue: The initial value of the input.
+- value: The value to show for the input.
+- onValueChange: A callback that is called when the input's value changes.
 
 Form.js will automatically provide the following props to any input with the inputID prop.
 
 - ref: A React ref that must be attached to the input.
-- defaultValue: The input default value.
+- value: The input value.
 - errorText: The translated error text that is returned by validate for that specific input.
 - onBlur: An onBlur handler that calls validate.
 - onInputChange: An onChange handler that saves draft values and calls validate for that input (inputA). Passing an inputID as a second param allows inputA to manipulate the input value of the provided inputID (inputB).
