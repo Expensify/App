@@ -588,6 +588,8 @@ export default {
         chooseAccountLabel: 'Account',
         successTitle: 'Personal bank account added!',
         successMessage: 'Congrats, your bank account is set up and ready to receive reimbursements.',
+        passwordRequired: 'Please enter a password',
+        plaidBankAccountRequired: 'Please select a bank account',
     },
     attachmentView: {
         unknownFilename: 'Unknown filename',

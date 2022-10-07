@@ -59,7 +59,7 @@ const propTypes = {
     disabled: PropTypes.bool,
 
     /** Gives the menu item a pending style */
-    pending: PropTypes.bool,
+    isPending: PropTypes.bool,
 
     /** A right-aligned subtitle for this menu option */
     subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),

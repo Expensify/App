@@ -4,7 +4,6 @@ import BankAccount from './models/BankAccount';
 import * as Expensicons from '../components/Icon/Expensicons';
 import getBankIcon from '../components/Icon/BankIcons';
 import CONST from '../CONST';
-import * as Localize from './Localize';
 
 /**
  * Check to see if user has either a debit card or personal bank account added
@@ -30,30 +29,10 @@ function hasExpensifyPaymentMethod(cardList = [], bankAccountList = []) {
  * @param {Array} bankAccountList
  * @param {Array} cardList
  * @param {Object} [payPalMeData = null]
- * @param {Object} pendingBankAccount
  * @returns {Array<PaymentMethod>}
  */
-function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null, pendingBankAccount = {}) {
+function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null) {
     const combinedPaymentMethods = [];
-
-    // See if we need to show a pending bank account in the payment methods list
-    if (!_.isEmpty(pendingBankAccount)) {
-        const {icon, iconSize} = getBankIcon(lodashGet(pendingBankAccount, 'additionalData.bankName', ''));
-        combinedPaymentMethods.push({
-            accountData: _.extend({}, pendingBankAccount, {icon}),
-            accountType: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
-            description: `${Localize.translateLocal('paymentMethodList.accountLastFour')} ${pendingBankAccount.accountNumber.slice(-4)}`,
-            errors: pendingBankAccount.errors,
-            icon,
-            iconSize,
-            isDefault: false,
-            isPending: true,
-            key: 'bankAccount-0',
-            methodID: 0,
-            pendingAction: pendingBankAccount.pendingAction,
-            title: pendingBankAccount.addressName,
-        });
-    }
 
     _.each(bankAccountList, (bankAccount) => {
         // Add all bank accounts besides the wallet
@@ -93,34 +72,6 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null, pe
 }
 
 /**
- * Gets the selected plaid bank account object from plaidData
- * @param {Object} personalBankAccount
- * @param {Object} plaidData
- * @returns {Object}
- */
-function getPendingBankAccount(personalBankAccount, plaidData) {
-    // Get selected Plaid bank account
-    const plaidAccountID = lodashGet(personalBankAccount, 'selectedPlaidAccountID', 0);
-    const plaidBankAccounts = lodashGet(plaidData, 'bankAccounts', []);
-    const pendingBankAccount = _.findWhere(plaidBankAccounts, {plaidAccountID}) || {};
-
-    // Early return if empty
-    if (_.isEmpty(pendingBankAccount)) {
-        return {};
-    }
-
-    // Get errors
-    const pendingAccountErrors = lodashGet(personalBankAccount, 'errors', {});
-    pendingBankAccount.errors = _.chain(pendingAccountErrors)
-        .keys()
-        .sortBy()
-        .map(key => pendingAccountErrors[key])
-        .value();
-
-    return pendingBankAccount;
-}
-
-/**
  * @param {Number} currentBalance, in cents
  * @param {String} methodType
  * @returns {Number} the fee, in cents
@@ -136,6 +87,5 @@ function calculateWalletTransferBalanceFee(currentBalance, methodType) {
 export {
     calculateWalletTransferBalanceFee,
     formatPaymentMethods,
-    getPendingBankAccount,
     hasExpensifyPaymentMethod,
 };

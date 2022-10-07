@@ -10,7 +10,6 @@ import ONYXKEYS from '../ONYXKEYS';
 import policyMemberPropType from '../pages/policyMemberPropType';
 import bankAccountPropTypes from './bankAccountPropTypes';
 import cardPropTypes from './cardPropTypes';
-import personalBankAccountPropTypes from './personalBankAccountPropTypes';
 import userWalletPropTypes from '../pages/EnablePayments/userWalletPropTypes';
 import {policyPropTypes} from '../pages/workspace/withPolicy';
 import walletTermsPropTypes from '../pages/EnablePayments/walletTermsPropTypes';
@@ -39,9 +38,6 @@ const propTypes = {
     /** List of cards */
     cardList: PropTypes.objectOf(cardPropTypes),
 
-    /** Personal Bank Account */
-    personalBankAccount: personalBankAccountPropTypes,
-
     /** The user's wallet (coming from Onyx) */
     userWallet: userWalletPropTypes,
 
@@ -55,7 +51,6 @@ const defaultProps = {
     policiesMemberList: {},
     policies: {},
     bankAccountList: {},
-    personalBankAccount: {},
     cardList: {},
     userWallet: {},
     walletTerms: {},
@@ -79,7 +74,7 @@ const AvatarWithIndicator = (props) => {
     // we only care if a single error exists anywhere.
     const errorCheckingMethods = [
         () => !_.isEmpty(props.userWallet.errors),
-        () => PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList, props.personalBankAccount),
+        () => PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList),
         () => _.some(cleanPolicies, PolicyUtils.hasPolicyError),
         () => _.some(cleanPolicies, PolicyUtils.hasCustomUnitsError),
         () => _.some(cleanPolicyMembers, PolicyUtils.hasPolicyMemberError),
@@ -121,9 +116,6 @@ export default withOnyx({
     },
     cardList: {
         key: ONYXKEYS.CARD_LIST,
-    },
-    personalBankAccount: {
-        key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
     },
     userWallet: {
         key: ONYXKEYS.USER_WALLET,

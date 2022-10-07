@@ -11,9 +11,8 @@ export default PropTypes.shape({
         /** Key: fieldID - bool */
     }),
 
-    pendingFields: PropTypes.shape({
-        plaidSelector: PropTypes.string,
-    }),
+    /** Is this pending to be added? */
+    pendingAction: PropTypes.string,
 
     /** Plaid account ID of the pending bank account */
     selectedPlaidAccountID: PropTypes.string,

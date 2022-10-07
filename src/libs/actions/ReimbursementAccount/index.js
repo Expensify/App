@@ -9,6 +9,7 @@ export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute} from './navi
 export {
     setBankAccountFormValidationErrors,
     setPersonalBankAccountFormValidationErrorFields,
+    resetPersonalBankAccountErrors,
     resetReimbursementAccount,
     showBankAccountFormValidationError,
 } from './errors';

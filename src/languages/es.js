@@ -588,6 +588,8 @@ export default {
         chooseAccountLabel: 'Cuenta',
         successTitle: '¡Cuenta bancaria personal añadida!',
         successMessage: 'Enhorabuena, tu cuenta bancaria está lista para recibir reembolsos.',
+        passwordRequired: 'Por favor introduce tu contraseña',
+        plaidBankAccountRequired: 'Por favor seleccione una cuenta bancaria',
     },
     attachmentView: {
         unknownFilename: 'Archivo desconocido',

@@ -18,6 +18,9 @@ export default PropTypes.shape({
         /** Name of account */
         addressName: PropTypes.string,
 
+        /** Name of the bank */
+        bankName: PropTypes.string,
+
         /** Is the account a savings account? */
         isSavings: PropTypes.bool,
 
@@ -34,3 +37,4 @@ export default PropTypes.shape({
         plaidAccessToken: PropTypes.string,
     })),
 });
+

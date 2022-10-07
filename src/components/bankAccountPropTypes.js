@@ -7,6 +7,9 @@ export default PropTypes.shape({
     /** The masked bank account number */
     accountNumber: PropTypes.string,
 
+    /** The routing number */
+    routingNumber: PropTypes.string,
+
     /** The bankAccountID in the bankAccounts db */
     bankAccountID: PropTypes.number,
 

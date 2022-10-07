@@ -13,6 +13,14 @@ function setPersonalBankAccountFormValidationErrorFields(errorFields) {
 }
 
 /**
+ * Clear validation messages from personal bank account
+ */
+function resetPersonalBankAccountErrors() {
+    setPersonalBankAccountFormValidationErrorFields({});
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: null});
+}
+
+/**
  * Set the current fields with errors.
  *
  * @param {Object} errorFields
@@ -49,4 +57,5 @@ export {
     setPersonalBankAccountFormValidationErrorFields,
     showBankAccountFormValidationError,
     resetReimbursementAccount,
+    resetPersonalBankAccountErrors,
 };

@@ -4,6 +4,9 @@ import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
+import * as NetworkStore from '../Network/NetworkStore';
 
 export {
     setupWithdrawalAccount,
@@ -112,7 +115,6 @@ function connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount) {
  *
  * @param {Object} account
  * @param {String} password
- * @TODO offline pattern for this command will have to be added later once the pattern B design doc is complete
  */
 function addPersonalBankAccount(account, password) {
     const commandName = 'AddPersonalBankAccount';
@@ -136,13 +138,10 @@ function addPersonalBankAccount(account, password) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
-                    isLoading: true,
                     errors: null,
                     errorFields: null,
-                    pendingFields: {
-                        plaidSelector: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    },
                     selectedPlaidAccountID: parameters.plaidAccountID,
+                    isLoading: true,
                 },
             },
         ],
@@ -153,8 +152,6 @@ function addPersonalBankAccount(account, password) {
                 value: {
                     isLoading: false,
                     shouldShowSuccess: true,
-                    errors: null,
-                    pendingFields: null,
                 },
             },
             {
@@ -174,15 +171,51 @@ function addPersonalBankAccount(account, password) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: null,
-                    errorFields: null,
-                    pendingFields: {
-                        plaidSelector: null,
-                    },
                 },
             },
         ],
     };
+
+    if (NetworkStore.isOffline()) {
+        // If offline, Optimistically go to the list of bank accounts
+        Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
+
+        // And build Onyx Data for pattern B
+        onyxData.optimisticData = onyxData.optimisticData.concat({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.BANK_ACCOUNT_LIST,
+            value: {
+                0: {
+                    title: account.addressName,
+                    description: `${Localize.translateLocal('paymentMethodList.accountLastFour')} ${account.accountNumber.slice(-4)}`,
+                    methodID: 0,
+                    key: 'bankAccount-0',
+                    accountType: CONST.PAYMENT_METHODS.BANK_ACCOUNT,
+                    accountData: {...account, bankAccountID: 0},
+                    errors: null,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        });
+        onyxData.successData = onyxData.successData.concat({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.BANK_ACCOUNT_LIST,
+            value: {
+                0: null,
+            },
+        });
+        onyxData.failureData = onyxData.failureData.concat({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.BANK_ACCOUNT_LIST,
+            value: {
+                0: {
+                    errors: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                    },
+                },
+            },
+        });
+    }
 
     API.write(commandName, parameters, onyxData);
 }
@@ -195,7 +228,11 @@ function deletePaymentBankAccount(bankAccountID) {
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
-                value: {[bankAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+                value: {
+                    [bankAccountID]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
             },
         ],
     });

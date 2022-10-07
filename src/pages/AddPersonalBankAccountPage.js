@@ -7,7 +7,6 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
 import * as BankAccounts from '../libs/actions/BankAccounts';
-import * as PaymentMethods from '../libs/actions/PaymentMethods';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import AddPlaidBankAccount from '../components/AddPlaidBankAccount';
 import getPlaidOAuthReceivedRedirectURI from '../libs/getPlaidOAuthReceivedRedirectURI';
@@ -19,16 +18,18 @@ import * as Illustrations from '../components/Icon/Illustrations';
 import Icon from '../components/Icon';
 import defaultTheme from '../styles/themes/default';
 import Button from '../components/Button';
-import FixedFooter from '../components/FixedFooter';
 import FormScrollView from '../components/FormScrollView';
 import FormHelper from '../libs/FormHelper';
 import * as ReimbursementAccount from '../libs/actions/ReimbursementAccount';
 import TextInput from '../components/TextInput';
 import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus/index.native';
-import OfflineWithFeedback from '../components/OfflineWithFeedback';
-import ROUTES from '../ROUTES';
 import personalBankAccountPropTypes from '../components/personalBankAccountPropTypes';
 import {withNetwork} from '../components/OnyxProvider';
+import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
+import * as PaymentMethods from '../libs/actions/PaymentMethods';
+import FixedFooter from '../components/FixedFooter';
+import ROUTES from '../ROUTES';
+import * as ErrorUtils from '../libs/ErrorUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -53,7 +54,6 @@ class AddPersonalBankAccountPage extends React.Component {
         this.submit = this.submit.bind(this);
 
         this.state = {
-            selectedPlaidBankAccount: lodashGet(this.props, 'plaidData.selectedPlaidBankAccount', {}),
             password: '',
         };
 
@@ -61,6 +61,11 @@ class AddPersonalBankAccountPage extends React.Component {
             errorPath: 'personalBankAccount.errorFields',
             setErrors: errorFields => ReimbursementAccount.setPersonalBankAccountFormValidationErrorFields(errorFields),
         });
+
+        this.errorTranslationKeys = {
+            selectedBank: 'addPersonalBankAccountPage.plaidBankAccountRequired',
+            password: 'addPersonalBankAccountPage.passwordRequired',
+        };
     }
 
     /**
@@ -95,11 +100,11 @@ class AddPersonalBankAccountPage extends React.Component {
      */
     validate() {
         const errors = {};
-        if (_.isUndefined(this.state.selectedPlaidBankAccount)) {
+        if (_.isEmpty(lodashGet(this.props, 'plaidData.selectedPlaidBankAccount', {}))) {
             errors.selectedBank = true;
         }
 
-        if (this.props.isPasswordRequired && _.isEmpty(this.state.password)) {
+        if (_.isEmpty(this.state.password)) {
             errors.password = true;
         }
 
@@ -108,22 +113,29 @@ class AddPersonalBankAccountPage extends React.Component {
     }
 
     submit() {
+        ReimbursementAccount.resetPersonalBankAccountErrors();
         if (!this.validate()) {
             return;
         }
 
-        BankAccounts.addPersonalBankAccount(this.state.selectedPlaidBankAccount, this.state.password);
+        BankAccounts.addPersonalBankAccount(this.props.plaidData.selectedPlaidBankAccount, this.state.password);
     }
 
     render() {
+        const selectedPlaidBankAccount = lodashGet(this.props, 'plaidData.selectedPlaidBankAccount', {});
+        const hasPlaidBankAccounts = !_.isEmpty(lodashGet(this.props, 'plaidData.bankAccounts'));
         const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
         const isLoading = lodashGet(this.props, 'personalBankAccount.isLoading', false);
+        const error = ErrorUtils.getLatestErrorMessage(this.props.personalBankAccount);
 
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={this.props.translate('bankAccount.addBankAccount')}
-                    onCloseButtonPress={Navigation.goBack}
+                    onCloseButtonPress={() => {
+                        PaymentMethods.clearPersonalBankAccount();
+                        Navigation.goBack();
+                    }}
                     shouldShowBackButton
                     onBackButtonPress={Navigation.goBack}
                 />
@@ -159,55 +171,46 @@ class AddPersonalBankAccountPage extends React.Component {
                     <>
                         <FormScrollView>
                             <View style={[styles.mh5, styles.mb5, styles.flex1]}>
-                                <OfflineWithFeedback
-                                    pendingAction={lodashGet(this.props.personalBankAccount, 'pendingFields.plaidSelector', null)}
-                                    errors={lodashGet(this.props.personalBankAccount, 'errors', null)}
-                                    onClose={PaymentMethods.clearPersonalBankAccountErrors}
-                                >
-                                    <AddPlaidBankAccount
-                                        onSelect={(params) => {
-                                            BankAccounts.updatePlaidData({selectedPlaidBankAccount: params.selectedPlaidBankAccount});
-                                            this.setState({
-                                                selectedPlaidBankAccount: params.selectedPlaidBankAccount,
-                                            });
-                                        }}
-                                        onExitPlaid={Navigation.goBack}
-                                        receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
-                                        selectedPlaidAccountID={this.state.selectedPlaidBankAccount.plaidAccountID}
-                                    />
-                                    {!_.isEmpty(this.state.selectedPlaidBankAccount) && (
-                                        <View style={[styles.mb5]}>
-                                            <TextInput
-                                                label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
-                                                secureTextEntry
-                                                value={this.state.password}
-                                                autoCompleteType="password"
-                                                textContentType="password"
-                                                autoCapitalize="none"
-                                                autoFocus={canFocusInputOnScreenFocus()}
-                                                onChangeText={text => this.setState({password: text})}
-                                                errorText={this.getErrorText('password')}
-                                                hasError={this.getErrors().password}
-                                            />
-                                        </View>
-                                    )}
-                                </OfflineWithFeedback>
+                                <AddPlaidBankAccount
+                                    onSelect={(params) => {
+                                        this.clearError('selectedBank');
+                                        BankAccounts.updatePlaidData({selectedPlaidBankAccount: params.selectedPlaidBankAccount});
+                                    }}
+                                    onExitPlaid={Navigation.goBack}
+                                    receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
+                                    selectedPlaidAccountID={selectedPlaidBankAccount.plaidAccountID}
+                                    errorText={this.getErrors().selectedBank ? this.getErrorText('selectedBank') : ''}
+                                />
+                                {hasPlaidBankAccounts && (
+                                    <View style={[styles.mb5]}>
+                                        <TextInput
+                                            label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
+                                            secureTextEntry
+                                            value={this.state.password}
+                                            autoCompleteType="password"
+                                            textContentType="password"
+                                            autoCapitalize="none"
+                                            autoFocus={canFocusInputOnScreenFocus()}
+                                            onChangeText={(text) => {
+                                                this.setState({password: text});
+                                                this.clearError('password');
+                                            }}
+                                            errorText={this.getErrorText('password')}
+                                            hasError={this.getErrors().password}
+                                        />
+                                    </View>
+                                )}
                             </View>
                         </FormScrollView>
-                        {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
-                            <FixedFooter>
-                                <OfflineWithFeedback
-                                    pendingAction={lodashGet(this.props.personalBankAccount, 'pendingFields.plaidSelector', null)}
-                                >
-                                    <Button
-                                        success
-                                        pressOnEnter
-                                        text={this.props.translate('common.saveAndContinue')}
-                                        onPress={this.submit}
-                                        isLoading={isLoading && !this.props.network.isOffline}
-                                    />
-                                </OfflineWithFeedback>
-                            </FixedFooter>
+                        {hasPlaidBankAccounts && (
+                            <FormAlertWithSubmitButton
+                                isAlertVisible={Boolean(error) || !_.isEmpty(this.props.personalBankAccount.errorFields)}
+                                buttonText={this.props.translate('common.saveAndContinue')}
+                                onSubmit={this.submit}
+                                message={error}
+                                isLoading={isLoading}
+                                enabledWhenOffline
+                            />
                         )}
                     </>
                 )}

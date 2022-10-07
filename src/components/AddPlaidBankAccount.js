@@ -50,6 +50,9 @@ const propTypes = {
     /** Are we adding a withdrawal account? */
     allowDebit: PropTypes.bool,
 
+    /** Any error we want to show? */
+    errorText: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
@@ -69,6 +72,7 @@ const defaultProps = {
     plaidLinkOAuthToken: '',
     allowDebit: false,
     bankAccountID: 0,
+    errorText: '',
 };
 
 class AddPlaidBankAccount extends React.Component {
@@ -192,6 +196,7 @@ class AddPlaidBankAccount extends React.Component {
                             label: this.props.translate('bankAccount.chooseAnAccount'),
                         } : {}}
                         value={selectedPlaidBankAccount.plaidAccountID}
+                        errorText={this.props.errorText}
                     />
                 </View>
             </View>

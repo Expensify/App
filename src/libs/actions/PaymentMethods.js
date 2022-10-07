@@ -310,14 +310,11 @@ function dismissSuccessfulTransferBalancePage() {
  * Looks through each payment method to see if there is an existing error
  * @param {Object} bankList
  * @param {Object} cardList
- * @param {Object} personalBankAccount
  * @returns {Boolean}
  */
-function hasPaymentMethodError(bankList, cardList, personalBankAccount) {
-    // Check if there is a pending bank account
-    const hasPendingBankAccountError = !_.isEmpty(lodashGet(personalBankAccount, 'errors', {}));
+function hasPaymentMethodError(bankList, cardList) {
     const combinedPaymentMethods = lodashMerge(bankList, cardList);
-    return hasPendingBankAccountError || _.some(combinedPaymentMethods, item => !_.isEmpty(item.errors));
+    return _.some(combinedPaymentMethods, item => !_.isEmpty(item.errors));
 }
 
 /**
@@ -397,21 +394,15 @@ function navigateToAddPaymentMethodPage(paymentType, allowPaypalPaymentTypes = t
     throw new Error('Invalid payment method type selected');
 }
 
-function clearPersonalBankAccount() {
-    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
+function clearBankAccountPendingAdd() {
+    Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
+        0: null,
+    });
 }
 
-/**
- * Clear the pending and error fields for adding a pesonal bank account form in /add-bank-account
- */
-function clearPersonalBankAccountErrors() {
-    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
-        errors: null,
-        pendingFields: {
-            plaidSelector: null,
-        },
-        selectedPlaidAccountID: null,
-    });
+function clearPersonalBankAccount() {
+    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
+    clearBankAccountPendingAdd();
 }
 
 function clearPlaid() {
@@ -441,7 +432,7 @@ export {
     clearWalletError,
     navigateToAddPaymentMethodPage,
     clearPersonalBankAccount,
-    clearPersonalBankAccountErrors,
+    clearBankAccountPendingAdd,
     clearPlaid,
     clearWalletTermsError,
 };
