@@ -844,6 +844,8 @@ const CONST = {
         WRITE: 'write',
         MAKE_REQUEST_WITH_SIDE_EFFECTS: 'makeRequestWithSideEffects',
     },
+
+    TFA_CODE_LENGTH: 6,
 };
 
 export default CONST;
