@@ -1,4 +1,4 @@
-name: Contributor+ Checklist
+name: PR Reviewer Checklist
 
 on: pull_request_review
 
@@ -11,4 +11,4 @@ jobs:
         uses: Expensify/App/.github/actions/javascript/contributorChecklist@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CHECKLIST: 'contributorPlus'
+          CHECKLIST: 'reviewer'
