@@ -182,9 +182,10 @@ class NewChatPage extends Component {
      */
     createChat(option) {
         let newChat = {};
-        const chat = ReportUtils.getChatByParticipants([option.login], this.props.reports);
+        const formattedLogin = OptionsListUtils.addSMSDomainIfPhoneNumber(option.login);
+        const chat = ReportUtils.getChatByParticipants([formattedLogin], this.props.reports);
         if (!chat) {
-            newChat = ReportUtils.buildOptimisticChatReport([option.login]);
+            newChat = ReportUtils.buildOptimisticChatReport([formattedLogin]);
         }
         const reportID = chat ? chat.reportID : newChat.reportID;
         Report.openReport(reportID, newChat.participants, newChat);
@@ -200,10 +201,12 @@ class NewChatPage extends Component {
         if (userLogins.length < 1) {
             return;
         }
+        const formattedUserLogins = _.map(userLogins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login));
+        debugger;
         let newChat = {};
-        const chat = ReportUtils.getChatByParticipants(userLogins, this.props.reports);
+        const chat = ReportUtils.getChatByParticipants(formattedUserLogins, this.props.reports);
         if (!chat) {
-            newChat = ReportUtils.buildOptimisticChatReport(userLogins);
+            newChat = ReportUtils.buildOptimisticChatReport(formattedUserLogins);
         }
         const reportID = chat ? chat.reportID : newChat.reportID;
         Report.openReport(reportID, newChat.participants, newChat);
