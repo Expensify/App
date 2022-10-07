@@ -197,7 +197,6 @@ class BaseTextInput extends Component {
         const inputHelpText = this.props.errorText || this.props.hint;
         const formHelpStyles = this.props.errorText ? styles.formError : styles.formHelp;
         const placeholder = (this.props.prefixCharacter || this.state.isFocused || !hasLabel || (hasLabel && this.props.forceActiveLabel)) ? this.props.placeholder : null;
-        const disableAutoCorrectIfSecureText = this.props.secureTextEntry && ({autoCorrect: false});
         const textInputContainerStyles = _.reduce([
             styles.textInputContainer,
             ...this.props.textInputContainerStyles,
@@ -261,8 +260,7 @@ class BaseTextInput extends Component {
                                         }}
                                         // eslint-disable-next-line
                                         {...inputProps}
-                                        // eslint-disable-next-line react/jsx-props-no-spreading
-                                        {...disableAutoCorrectIfSecureText}
+                                        autoCorrect={this.props.secureTextEntry ? false : this.props.autoCorrect}
                                         placeholder={placeholder}
                                         placeholderTextColor={themeColors.placeholderText}
                                         underlineColorAndroid="transparent"
