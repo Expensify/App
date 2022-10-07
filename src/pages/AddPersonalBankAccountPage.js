@@ -125,7 +125,7 @@ class AddPersonalBankAccountPage extends React.Component {
                         submitButtonText={this.props.translate('common.saveAndContinue')}
                         onSubmit={this.submit}
                         validate={this.validate}
-                        style={[styles.mh5, styles.mb5, styles.flex1]}
+                        style={[styles.mh5, styles.flex1]}
                     >
                         <>
                             <AddPlaidBankAccount
