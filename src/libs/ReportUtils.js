@@ -969,7 +969,7 @@ function shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode
 function getChatByParticipants(newParticipantList, reports) {
     const sortedNewParticipantList = newParticipantList.sort();
     return _.find(reports, (report) => {
-        // Chat rooms don't have participants, so we can skip them
+        // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
         if (!report || !report.participants) {
             return false;
         }
