@@ -228,7 +228,6 @@ class ReportScreen extends React.Component {
                         errorRowStyles={styles.dNone}
                     >
                         <HeaderView
-                            key={reportID}
                             reportID={reportID}
                             onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                             personalDetails={this.props.personalDetails}
@@ -259,7 +258,6 @@ class ReportScreen extends React.Component {
                             )
                             : (
                                 <ReportActionsView
-                                    key={reportID}
                                     reportActions={this.props.reportActions}
                                     report={this.props.report}
                                     session={this.props.session}
