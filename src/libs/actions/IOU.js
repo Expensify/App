@@ -140,15 +140,15 @@ function createIOUTransaction(params) {
 
 /**
  * @param {Array} participants
+ * @param {String} currentUserLogin
  * @param {Int} amount
  * @param {String} comment
- * @param {String} currentUserLogin
  * @param {String} currency
  * @param {String} locale
  *
  * @return {Object}
  */
-function createSplitsAndBuildOnyxData(participants, amount, comment, currentUserLogin, currency, locale) {
+function createSplitsAndBuildOnyxData(participants, currentUserLogin, amount, comment, currency, locale) {
     // getChatByParticipants should be created in this PR https://github.com/Expensify/App/pull/11439/files
     const existingGroupChatReport = ReportUtils.getChatByParticipants(participants);
     const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(participants);
@@ -237,6 +237,7 @@ function createSplitsAndBuildOnyxData(participants, amount, comment, currentUser
             );
         }
 
+        // @TODO: Add created report action
         const oneOnOneIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
             lodashGet(oneOnOneChatReport, 'maxSequenceNumber', 0) + 1,
             CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -325,12 +326,16 @@ function createSplitsAndBuildOnyxData(participants, amount, comment, currentUser
 }
 
 /**
- * @param {Object} params
+ * @param {Array} participants
+ * @param {String} currentUserLogin
+ * @param {Int} amount
+ * @param {String} comment
+ * @param {String} currency
+ * @param {String} locale
  */
-function splitBill(participants, amount, currency, currentUserEmail, locale, comment) {
-    const {groupData, splits, onyxData} = createSplitsAndBuildOnyxData(participants, amount, comment, currentUserEmail, currency, locale);
+function splitBill(participants, currentUserLogin, amount, comment, currency, locale) {
+    const {groupData, splits, onyxData} = createSplitsAndBuildOnyxData(participants, currentUserLogin, amount, comment, currency, locale);
 
-    // Call API
     API.write('SplitBill', {
         chatReportID: groupData.chatReportID,
         amount,
@@ -343,17 +348,27 @@ function splitBill(participants, amount, currency, currentUserEmail, locale, com
 }
 
 /**
- * Creates IOUSplit Transaction for Group DM
- *
- * @param {Object} params
- * @param {Array} params.splits
- * @param {String} params.comment
- * @param {Number} params.amount
- * @param {String} params.currency
- * @param {String} params.reportID
+ * @param {Array} participants
+ * @param {String} currentUserLogin
+ * @param {Int} amount
+ * @param {String} comment
+ * @param {String} currency
+ * @param {String} locale
  */
-function splitBillAndOpenReport(params) {
+function splitBillAndOpenReport(participants, currentUserLogin, amount, comment, currency, locale) {
+    const {groupData, splits, onyxData} = createSplitsAndBuildOnyxData(participants, currentUserLogin, amount, comment, currency, locale);
 
+    API.write('SplitBillAndOpenReport', {
+        chatReportID: groupData.chatReportID,
+        amount,
+        splits,
+        currency,
+        comment,
+        transactionID: groupData.transactionID,
+        reportActionID: groupData.reportActionID,
+    }, onyxData);
+
+    Navigation.navigate(ROUTES.getReportRoute(groupData.chatReportID));
 }
 
 /**

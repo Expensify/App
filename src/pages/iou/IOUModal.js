@@ -331,15 +331,26 @@ class IOUModal extends Component {
             return;
         }
 
-        if (splits) {
+        if (splits && reportID) {
             IOU.splitBill(
-                this.props.report,
                 this.participants,
-                Math.round(this.state.amount * 100),
-                this.props.iou.selectedCurrencyCode,
                 this.props.currentUserPersonalDetails.login,
-                this.props.preferredLocale,
+                Math.round(this.state.amount * 100),
                 this.state.comment,
+                this.props.iou.selectedCurrencyCode,
+                this.props.preferredLocale,
+            );
+            return;
+        }
+
+        if (splits) {
+            IOU.splitBillAndOpenReport(
+                this.participants,
+                this.props.currentUserPersonalDetails.login,
+                Math.round(this.state.amount * 100),
+                this.state.comment,
+                this.props.iou.selectedCurrencyCode,
+                this.props.preferredLocale,
             );
             return;
         }
