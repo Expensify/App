@@ -209,7 +209,6 @@ class NewChatPage extends Component {
             return;
         }
         const formattedUserLogins = _.map(userLogins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login));
-        debugger;
         let newChat = {};
         const chat = ReportUtils.getChatByParticipants(formattedUserLogins, this.props.reports);
         if (!chat) {
