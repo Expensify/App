@@ -89,6 +89,11 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
       [UNUserNotificationCenter currentNotificationCenter];
   center.delegate = self;
 
+  // Make react-native-screens aware of device orientation
+  #if !TARGET_OS_TV
+      [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+  #endif
+
   // Start the "js_load" custom performance tracing metric. This timer is
   // stopped by a native module in the JS so we can measure total time starting
   // in the native layer and ending in the JS layer.
@@ -103,6 +108,13 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
   return [RCTLinkingManager application:application
                                 openURL:url
                                 options:options];
+}
+
+- (void)applicationWillTerminate:(UIApplication *)application
+{
+  #if !TARGET_OS_TV
+      [[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
+  #endif
 }
 
 - (BOOL)application:(UIApplication *)application
