@@ -112,7 +112,7 @@ class AddPersonalBankAccountPage extends React.Component {
                         validate={this.validate}
                         style={[styles.mh5, styles.mb5, styles.flex1]}
                     >
-                        <View style={[styles.mh5, styles.mb5, styles.flex1]}>
+                        <>
                             <AddPlaidBankAccount
                                 onSelect={(params) => {
                                     this.setState({
@@ -123,19 +123,17 @@ class AddPersonalBankAccountPage extends React.Component {
                                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                             />
                             {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
-                                <View style={[styles.mb5]}>
-                                    <TextInput
-                                        inputID="password"
-                                        label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
-                                        secureTextEntry
-                                        autoCompleteType="password"
-                                        textContentType="password"
-                                        autoCapitalize="none"
-                                        autoFocus={canFocusInputOnScreenFocus()}
-                                    />
-                                </View>
+                            <TextInput
+                                inputID="password"
+                                label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
+                                secureTextEntry
+                                autoCompleteType="password"
+                                textContentType="password"
+                                autoCapitalize="none"
+                                autoFocus={canFocusInputOnScreenFocus()}
+                            />
                             )}
-                        </View>
+                        </>
                     </Form>
                 )}
             </ScreenWrapper>
