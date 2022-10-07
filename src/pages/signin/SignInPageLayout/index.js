@@ -58,18 +58,17 @@ const SignInPageLayout = (props) => {
         </Pressable>
     );
 
-    const containerStyles = [];
-    const contentContainerStyles = [styles.flex1];
+    let containerStyles = [styles.flex1, styles.signInPageInner];
+    let contentContainerStyles = [styles.flex1, styles.flexRow];
 
     const isLongMediumScreenWidth = props.isMediumScreenWidth && props.windowHeight >= variables.minHeightToShowGraphics;
 
     if (props.isSmallScreenWidth) {
-        containerStyles.push(styles.flex1);
+        containerStyles = [styles.flex1];
+        contentContainerStyles = [styles.flex1];
     } else if (isLongMediumScreenWidth) {
-        containerStyles.push(styles.dFlex, styles.signInPageInner, styles.flexColumnReverse, styles.justifyContentBetween);
-    } else {
-        containerStyles.push(styles.flex1, styles.signInPageInner);
-        contentContainerStyles.push(styles.flexRow);
+        containerStyles = [styles.dFlex, styles.signInPageInner, styles.flexColumnReverse, styles.justifyContentBetween];
+        contentContainerStyles = [styles.flex1];
     }
 
     return (
