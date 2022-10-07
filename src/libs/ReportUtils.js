@@ -960,6 +960,24 @@ function shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode
     return true;
 }
 
+/**
+ * Attempts to find a report in onyx with the provided list of participants
+ * @param {Array} newParticipantList
+ * @param {Array} reports
+ * @returns {Array|undefined}
+ */
+function getChatByParticipants(newParticipantList, reports) {
+    const sortedNewParticipantList = newParticipantList.sort();
+    return _.find(reports, (report) => {
+        // Chat rooms don't have participants, so we can skip them
+        if (!report || !report.participants) {
+            return false;
+        }
+        const sortedReportParticipants = report.participants.sort();
+        return sortedNewParticipantList.join() === sortedReportParticipants.join();
+    });
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -999,4 +1017,5 @@ export {
     buildOptimisticIOUReportAction,
     buildOptimisticReportAction,
     shouldReportBeInOptionList,
+    getChatByParticipants,
 };
