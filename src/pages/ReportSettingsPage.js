@@ -96,7 +96,7 @@ class ReportSettingsPage extends Component {
     validate() {
         const errors = {};
 
-        // We return false because because we don't want to perform any action
+        // When the report name is not changed, skip the form submission. Added check here to keep the code clean
         if (this.state.newRoomName === this.props.report.reportName) {
             return false;
         }
