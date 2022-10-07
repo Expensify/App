@@ -28,7 +28,7 @@ jobs:
     needs: config
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
-    name: test (job ${{ matrix.chunk }})
+    name: test (job ${{ fromJSON(matrix.chunk) + 1 }})
     env:
       CI: true
     strategy:
