@@ -20,9 +20,9 @@ jobs:
         id: set-matrix
         uses: actions/github-script@v6
         with:
-          # Generate matrix array i.e. [0, 1, 2, ...., CHUNKS] for test job
+          # Generate matrix array i.e. [0, 1, 2, ...., CHUNKS - 1] for test job
           script: |
-            core.setOutput('MATRIX', Array.from({ length: Number(process.env.CHUNKS) + 1 }, (v, i) => i));
+            core.setOutput('MATRIX', Array.from({ length: Number(process.env.CHUNKS) }, (v, i) => i));
 
   test:
     needs: config
@@ -57,12 +57,12 @@ jobs:
           key: ${{ runner.os }}-jest
 
       - name: All Unit Tests
-        if: ${{ fromJSON(matrix.chunk) < fromJSON(env.CHUNKS) }}
+        if: ${{ fromJSON(matrix.chunk) < (fromJSON(env.CHUNKS) - 1) }}
         # Split the jest based test files in multiple chunks/groups and then execute them in parallel in different jobs/runners.
-        run: npx jest --listTests --json | jq -cM '[_nwise(length / ${{ fromJSON(env.CHUNKS) }} | ceil)]' | jq '.[${{ fromJSON(matrix.chunk) }}] | .[] | @text' | xargs npm test
+        run: npx jest --listTests --json | jq -cM '[_nwise(length / ${{ fromJSON(env.CHUNKS) - 1 }} | ceil)]' | jq '.[${{ fromJSON(matrix.chunk) }}] | .[] | @text' | xargs npm test
 
       - name: Pull Request Tests
         # Pull request related tests will be run in separate runner in parallel.
-        if: ${{ fromJSON(matrix.chunk) == fromJSON(env.CHUNKS) }}
+        if: ${{ fromJSON(matrix.chunk) == (fromJSON(env.CHUNKS) - 1) }}
         run: tests/unit/getPullRequestsMergedBetweenTest.sh
 
