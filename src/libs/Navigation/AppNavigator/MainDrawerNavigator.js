@@ -119,4 +119,3 @@ export default withOnyx({
         key: ONYXKEYS.COLLECTION.POLICY,
     },
 })(MainDrawerNavigator);
-export {getInitialReportScreenParams};
