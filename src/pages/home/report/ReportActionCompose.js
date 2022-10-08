@@ -383,16 +383,16 @@ class ReportActionCompose extends React.Component {
             this.setState({isCommentEmpty});
         }
 
-        // // Indicate that draft has been created.
-        // if (this.comment.length === 0 && newComment.length !== 0) {
-        //     Report.setReportWithDraft(this.props.reportID, true);
-        // }
-        //
-        // // The draft has been deleted.
-        // if (newComment.length === 0) {
-        //     Report.setReportWithDraft(this.props.reportID, false);
-        // }
-        //
+        // Indicate that draft has been created.
+        if (this.comment.length === 0 && newComment.length !== 0) {
+            Report.setReportWithDraft(this.props.reportID, true);
+        }
+
+        // The draft has been deleted.
+        if (newComment.length === 0) {
+            Report.setReportWithDraft(this.props.reportID, false);
+        }
+
         this.comment = newComment;
         // if (shouldDebounceSaveComment) {
         //     this.debouncedSaveReportComment(newComment);
