@@ -328,6 +328,9 @@ class ReportActionCompose extends React.Component {
             },
         }));
         this.updateComment(newComment);
+
+        // TODO: issue: we use setNativeProps which isn't fabric supported!
+        this.textInput.setNativeProps({text: newComment});
     }
 
     /**
@@ -653,9 +656,8 @@ class ReportActionCompose extends React.Component {
                                         shouldClear={this.state.textInputShouldClear}
                                         onClear={() => this.setTextInputShouldClear(false)}
                                         isDisabled={isComposeDisabled || isBlockedFromConcierge}
-
-                                        // selection={this.state.selection}
-                                        // onSelectionChange={this.onSelectionChange}
+                                        selection={this.state.selection}
+                                        onSelectionChange={this.onSelectionChange}
                                         isFullComposerAvailable={this.state.isFullComposerAvailable}
                                         setIsFullComposerAvailable={this.setIsFullComposerAvailable}
                                         isComposerFullSize={this.props.isComposerFullSize}
