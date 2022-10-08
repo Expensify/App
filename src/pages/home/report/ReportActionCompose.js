@@ -142,7 +142,6 @@ class ReportActionCompose extends React.Component {
                 end: props.comment.length,
             },
             maxLines: props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES,
-            value: props.comment,
             conciergePlaceholderRandomIndex: _.random(this.props.translate('reportActionCompose.conciergePlaceholderOptions').length - 1),
         };
     }
@@ -379,30 +378,30 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(newComment, shouldDebounceSaveComment) {
-        this.setState({
-            isCommentEmpty: !!newComment.match(/^(\s|`)*$/),
-            value: newComment,
-        });
-
-        // Indicate that draft has been created.
-        if (this.comment.length === 0 && newComment.length !== 0) {
-            Report.setReportWithDraft(this.props.reportID, true);
+        const isCommentEmpty = newComment.length === 0;
+        if (this.state.isCommentEmpty !== isCommentEmpty) {
+            this.setState({isCommentEmpty});
         }
 
-        // The draft has been deleted.
-        if (newComment.length === 0) {
-            Report.setReportWithDraft(this.props.reportID, false);
-        }
-
+        // // Indicate that draft has been created.
+        // if (this.comment.length === 0 && newComment.length !== 0) {
+        //     Report.setReportWithDraft(this.props.reportID, true);
+        // }
+        //
+        // // The draft has been deleted.
+        // if (newComment.length === 0) {
+        //     Report.setReportWithDraft(this.props.reportID, false);
+        // }
+        //
         this.comment = newComment;
-        if (shouldDebounceSaveComment) {
-            this.debouncedSaveReportComment(newComment);
-        } else {
-            Report.saveReportComment(this.props.reportID, newComment || '');
-        }
-        if (newComment) {
-            this.debouncedBroadcastUserIsTyping();
-        }
+        // if (shouldDebounceSaveComment) {
+        //     this.debouncedSaveReportComment(newComment);
+        // } else {
+        //     Report.saveReportComment(this.props.reportID, newComment || '');
+        // }
+        // if (newComment) {
+        //     this.debouncedBroadcastUserIsTyping();
+        // }
     }
 
     /**
@@ -615,7 +614,7 @@ class ReportActionCompose extends React.Component {
                                         textAlignVertical="top"
                                         placeholder={inputPlaceholder}
                                         placeholderTextColor={themeColors.placeholderText}
-                                        // onChangeText={comment => this.updateComment(comment, true)}
+                                        onChangeText={comment => this.updateComment(comment, true)}
                                         onKeyPress={this.triggerHotkeyActions}
                                         onDragEnter={(e, isOriginComposer) => {
                                             if (!isOriginComposer) {
@@ -656,7 +655,6 @@ class ReportActionCompose extends React.Component {
                                         isFullComposerAvailable={this.state.isFullComposerAvailable}
                                         setIsFullComposerAvailable={this.setIsFullComposerAvailable}
                                         isComposerFullSize={this.props.isComposerFullSize}
-                                        // value={this.state.value}
                                     />
                                 </View>
                             </>
