@@ -394,14 +394,14 @@ class ReportActionCompose extends React.Component {
         }
 
         this.comment = newComment;
-        // if (shouldDebounceSaveComment) {
-        //     this.debouncedSaveReportComment(newComment);
-        // } else {
-        //     Report.saveReportComment(this.props.reportID, newComment || '');
-        // }
-        // if (newComment) {
-        //     this.debouncedBroadcastUserIsTyping();
-        // }
+        if (shouldDebounceSaveComment) {
+            this.debouncedSaveReportComment(newComment);
+        } else {
+            Report.saveReportComment(this.props.reportID, newComment || '');
+        }
+        if (newComment) {
+            this.debouncedBroadcastUserIsTyping();
+        }
     }
 
     /**
