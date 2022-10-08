@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import RNTextInput from '../RNTextInput';
@@ -91,6 +91,14 @@ class Composer extends React.Component {
     }
 
     render() {
+        // On native layers we like to have the Text Input not focused so the
+        // user can read new chats without the keyboard in the way of the view.
+        // On Android, the selection prop is required on the TextInput but this prop has issues on IOS
+        // https://github.com/facebook/react-native/issues/29063
+        const propsToPass = Platform.select({
+            android: this.props,
+            ios: _.omit(this.props, 'selection'),
+        });
         return (
             <RNTextInput
                 autoComplete="off"
@@ -102,7 +110,7 @@ class Composer extends React.Component {
                 textAlignVertical="center"
                 style={this.state.propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...this.props}
+                {...propsToPass}
                 editable={!this.props.isDisabled}
             />
         );
