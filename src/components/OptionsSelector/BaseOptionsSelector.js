@@ -85,7 +85,7 @@ class BaseOptionsSelector extends Component {
         );
 
         if (this.props.shouldDelayFocus) {
-            setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
+            this.focusTimeout = setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
         } else {
             this.textInput.focus();
         }
@@ -123,6 +123,10 @@ class BaseOptionsSelector extends Component {
     }
 
     componentWillUnmount() {
+        if (this.focusTimeout) {
+            clearTimeout(this.focusTimeout);
+        }
+
         if (this.unsubscribeEnter) {
             this.unsubscribeEnter();
         }
