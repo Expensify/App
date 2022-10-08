@@ -132,6 +132,10 @@ class ReportActionCompose extends React.Component {
 
         this.comment = props.comment;
         this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+        this.selection = {
+            start: props.comment.length,
+            end: props.comment.length,
+        };
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -139,10 +143,6 @@ class ReportActionCompose extends React.Component {
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
             isMenuVisible: false,
-            selection: {
-                start: props.comment.length,
-                end: props.comment.length,
-            },
             maxLines: props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES,
             conciergePlaceholderRandomIndex: _.random(this.props.translate('reportActionCompose.conciergePlaceholderOptions').length - 1),
         };
@@ -192,7 +192,7 @@ class ReportActionCompose extends React.Component {
     }
 
     onSelectionChange(e) {
-        this.setState({selection: e.nativeEvent.selection});
+        this.selection = e.nativeEvent.selection;
     }
 
     /**
@@ -319,14 +319,12 @@ class ReportActionCompose extends React.Component {
      */
     addEmojiToTextBox(emoji) {
         const emojiWithSpace = `${emoji} `;
-        const newComment = this.comment.slice(0, this.state.selection.start)
-            + emojiWithSpace + this.comment.slice(this.state.selection.end, this.comment.length);
-        this.setState(prevState => ({
-            selection: {
-                start: prevState.selection.start + emojiWithSpace.length,
-                end: prevState.selection.start + emojiWithSpace.length,
-            },
-        }));
+        const newComment = this.comment.slice(0, this.selection.start)
+            + emojiWithSpace + this.comment.slice(this.selection.end, this.comment.length);
+        this.selection = {
+            start: this.selection.start + emojiWithSpace.length,
+            end: this.selection.start + emojiWithSpace.length,
+        };
         this.updateComment(newComment);
 
         // TODO: issue: we use setNativeProps which isn't fabric supported!
@@ -656,7 +654,6 @@ class ReportActionCompose extends React.Component {
                                         shouldClear={this.state.textInputShouldClear}
                                         onClear={() => this.setTextInputShouldClear(false)}
                                         isDisabled={isComposeDisabled || isBlockedFromConcierge}
-                                        selection={this.state.selection}
                                         onSelectionChange={this.onSelectionChange}
                                         isFullComposerAvailable={this.state.isFullComposerAvailable}
                                         setIsFullComposerAvailable={this.setIsFullComposerAvailable}
