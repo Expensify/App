@@ -325,10 +325,11 @@ class ReportActionCompose extends React.Component {
             start: this.selection.start + emojiWithSpace.length,
             end: this.selection.start + emojiWithSpace.length,
         };
-        this.updateComment(newComment);
 
-        // TODO: issue: we use setNativeProps which isn't fabric supported!
-        this.textInput.setNativeProps({text: newComment});
+        // this will call the function we passed
+        // to the TextInput's onChangeText,
+        // so updateComment gets called after this.
+        this.textInput.onChangeText(newComment);
     }
 
     /**
@@ -512,7 +513,6 @@ class ReportActionCompose extends React.Component {
         const inputPlaceholder = this.getInputPlaceholder();
         const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
 
-        console.log('i rerender!');
         return (
             <View style={[
                 shouldShowReportRecipientLocalTime && !lodashGet(this.props.network, 'isOffline') && styles.chatItemComposeWithFirstRow,

@@ -43,6 +43,12 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
 
+    /** The text to display in the input */
+    value: PropTypes.string,
+
+    /** Called when the text gets changed by user input */
+    onChangeText: PropTypes.func,
+
 };
 
 const defaultProps = {
@@ -58,18 +64,27 @@ const defaultProps = {
     isFullComposerAvailable: false,
     setIsFullComposerAvailable: () => {},
     style: null,
+    value: '',
+    onChangeText: null,
 };
 
 class Composer extends React.Component {
     constructor(props) {
         super(props);
 
+        this.onChangeText = this.onChangeText.bind(this);
         this.state = {
             propStyles: StyleSheet.flatten(this.props.style),
+            value: props.value,
         };
     }
 
     componentDidMount() {
+        // we pass the ref to the native view instance,
+        // however, we want this method to be
+        // available to be called from the outside as well.
+        this.textInput.onChangeText = this.onChangeText;
+
         // This callback prop is used by the parent component using the constructor to
         // get a ref to the inner textInput element e.g. if we do
         // <constructor ref={el => this.textInput = el} /> this will not
@@ -88,6 +103,16 @@ class Composer extends React.Component {
 
         this.textInput.clear();
         this.props.onClear();
+    }
+
+    onChangeText(text) {
+        // updates the text input to reflect the current value
+        this.setState({value: text});
+
+        // calls the onChangeText callback prop
+        if (this.props.onChangeText != null) {
+            this.props.onChangeText(text);
+        }
     }
 
     render() {
@@ -112,6 +137,11 @@ class Composer extends React.Component {
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...propsToPass}
                 editable={!this.props.isDisabled}
+                onChangeText={this.onChangeText}
+
+                // we have a value explicitly set so the value can be changed imperatively
+                // (needed e.g. when we are injecting emojis into the text view)
+                value={this.state.value}
             />
         );
     }
