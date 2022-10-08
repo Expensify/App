@@ -109,6 +109,8 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
+const IS_EMPTY_PATTERN = /^(\s|`)*$/;
+
 class ReportActionCompose extends React.Component {
     constructor(props) {
         super(props);
@@ -378,7 +380,7 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(newComment, shouldDebounceSaveComment) {
-        const isCommentEmpty = newComment.length === 0;
+        const isCommentEmpty = !!newComment.match(IS_EMPTY_PATTERN);
         if (this.state.isCommentEmpty !== isCommentEmpty) {
             this.setState({isCommentEmpty});
         }
@@ -508,7 +510,7 @@ class ReportActionCompose extends React.Component {
         const inputPlaceholder = this.getInputPlaceholder();
         const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
 
-        console.log("i rerender!");
+        console.log('i rerender!');
         return (
             <View style={[
                 shouldShowReportRecipientLocalTime && !lodashGet(this.props.network, 'isOffline') && styles.chatItemComposeWithFirstRow,
@@ -650,6 +652,7 @@ class ReportActionCompose extends React.Component {
                                         shouldClear={this.state.textInputShouldClear}
                                         onClear={() => this.setTextInputShouldClear(false)}
                                         isDisabled={isComposeDisabled || isBlockedFromConcierge}
+
                                         // selection={this.state.selection}
                                         // onSelectionChange={this.onSelectionChange}
                                         isFullComposerAvailable={this.state.isFullComposerAvailable}
