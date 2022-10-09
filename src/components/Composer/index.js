@@ -60,12 +60,6 @@ const propTypes = {
     /** Update selection position on change */
     onSelectionChange: PropTypes.func,
 
-    /** Selection Object */
-    selection: PropTypes.shape({
-        start: PropTypes.number,
-        end: PropTypes.number,
-    }),
-
     /** Whether the full composer can be opened */
     isFullComposerAvailable: PropTypes.bool,
 
@@ -91,10 +85,6 @@ const defaultProps = {
     autoFocus: false,
     forwardedRef: null,
     onSelectionChange: () => {},
-    selection: {
-        start: 0,
-        end: 0,
-    },
     isFullComposerAvailable: false,
     setIsFullComposerAvailable: () => {},
 };
@@ -123,12 +113,14 @@ class Composer extends React.Component {
             ? `${props.defaultValue}`
             : `${props.value || ''}`;
 
+        this.selection = {
+            start: initialValue.length,
+            end: initialValue.length,
+        };
+
         this.state = {
             numberOfLines: 1,
-            selection: {
-                start: initialValue.length,
-                end: initialValue.length,
-            },
+            value: initialValue,
         };
         this.dragNDropListener = this.dragNDropListener.bind(this);
         this.paste = this.paste.bind(this);
@@ -136,9 +128,21 @@ class Composer extends React.Component {
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
+        this.onChangeText = this.onChangeText.bind(this);
+        this.focus = this.focus.bind(this);
+        this.onSelectionChange = this.onSelectionChange.bind(this);
     }
 
     componentDidMount() {
+        // we pass the ref to the native view instance,
+        // however, we want this method to be
+        // available to be called from the outside as well.
+        this.textInput.onChangeText = this.onChangeText;
+
+        // overwrite focus with this components implementation
+        this.textInput.nativeFocus = this.textInput.focus;
+        this.textInput.focus = this.focus;
+
         this.updateNumberOfLines();
 
         // This callback prop is used by the parent component using the constructor to
@@ -160,6 +164,8 @@ class Composer extends React.Component {
             document.addEventListener('drop', this.dragNDropListener);
             this.textInput.addEventListener('paste', this.handlePaste);
             this.textInput.addEventListener('wheel', this.handleWheel);
+
+            this.textInput.setSelectionRange(this.selection.start, this.selection.end);
         }
     }
 
@@ -174,11 +180,6 @@ class Composer extends React.Component {
             || prevProps.isComposerFullSize !== this.props.isComposerFullSize) {
             this.updateNumberOfLines();
         }
-
-        if (prevProps.selection !== this.props.selection) {
-            // eslint-disable-next-line react/no-did-update-set-state
-            this.setState({selection: this.props.selection});
-        }
     }
 
     componentWillUnmount() {
@@ -192,6 +193,31 @@ class Composer extends React.Component {
         document.removeEventListener('drop', this.dragNDropListener);
         this.textInput.removeEventListener('paste', this.handlePaste);
         this.textInput.removeEventListener('wheel', this.handleWheel);
+    }
+
+    onChangeText(text) {
+        // updates the text input to reflect the current value
+        this.setState({value: text});
+
+        // calls the onChangeText callback prop
+        if (this.props.onChangeText != null) {
+            this.props.onChangeText(text);
+        }
+    }
+
+    onSelectionChange(event) {
+        this.selection = event.nativeEvent.selection;
+        this.props.onSelectionChange(event);
+    }
+
+    focus() {
+        this.textInput.nativeFocus();
+        requestAnimationFrame(() => {
+            this.textInput.setSelectionRange(
+                this.selection.start,
+                this.selection.end,
+            );
+        });
     }
 
     /**
@@ -367,20 +393,21 @@ class Composer extends React.Component {
     render() {
         const propStyles = StyleSheet.flatten(this.props.style);
         propStyles.outline = 'none';
-        const propsWithoutStyles = _.omit(this.props, 'style');
+        const propsToPass = _.omit(this.props, 'style', 'defaultValue');
         return (
             <RNTextInput
                 autoComplete="off"
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
-                selection={this.state.selection}
                 onChange={this.updateNumberOfLines}
-                onSelectionChange={this.onSelectionChange}
                 numberOfLines={this.state.numberOfLines}
                 style={propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...propsWithoutStyles}
+                {...propsToPass}
                 disabled={this.props.isDisabled}
+                onChangeText={this.onChangeText}
+                value={this.state.value}
+                onSelectionChange={this.onSelectionChange}
             />
         );
     }
