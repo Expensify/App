@@ -6,7 +6,7 @@
 ### Fixed Issues
 <!---
 1. Please replace GH_LINK with a URL link to the GitHub issue this Pull Request is fixing.
-2. Please replace GH_LINK_ISSUE(COMMENT) with a URL link to your GitHub comment, which contains your proposal (i.e. the proposal that was approved by Expensify).
+2. Please replace GH_LINK_ISSUE(COMMENT) with a URL link to your GitHub comment, which contains the approved proposal (i.e. the proposal that was approved by Expensify).
 
 Do NOT add the special GH keywords like `fixed` etc, we have our own process of managing the flow.
 It MUST be an entire link to the github issue and your comment proposal ; otherwise, the linking will not work as expected.
