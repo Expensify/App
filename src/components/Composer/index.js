@@ -131,6 +131,7 @@ class Composer extends React.Component {
         this.onChangeText = this.onChangeText.bind(this);
         this.focus = this.focus.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
+        this.updateSelection = this.updateSelection.bind(this);
     }
 
     componentDidMount() {
@@ -138,6 +139,7 @@ class Composer extends React.Component {
         // however, we want this method to be
         // available to be called from the outside as well.
         this.textInput.onChangeText = this.onChangeText;
+        this.textInput.updateSelection = this.updateSelection;
 
         // overwrite focus with this components implementation
         this.textInput.nativeFocus = this.textInput.focus;
@@ -218,6 +220,10 @@ class Composer extends React.Component {
                 this.selection.end,
             );
         });
+    }
+
+    updateSelection(selection) {
+        this.selection = selection;
     }
 
     /**

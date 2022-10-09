@@ -77,6 +77,7 @@ class Composer extends React.Component {
         // however, we want this method to be
         // available to be called from the outside as well.
         this.textInput.onChangeText = this.onChangeText;
+        this.textInput.updateSelection = () => {}; // noop
 
         // This callback prop is used by the parent component using the constructor to
         // get a ref to the inner textInput element e.g. if we do

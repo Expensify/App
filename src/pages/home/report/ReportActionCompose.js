@@ -326,6 +326,8 @@ class ReportActionCompose extends React.Component {
             end: this.selection.start + emojiWithSpace.length,
         };
 
+        this.textInput.updateSelection(this.selection);
+
         // this will call the function we passed
         // to the TextInput's onChangeText,
         // so updateComment gets called after this.
