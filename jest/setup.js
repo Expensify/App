@@ -75,3 +75,14 @@ jest.mock('../src/components/Icon/Expensicons', () => {
         return {...prev, [key]: fn};
     }, {});
 });
+
+// Set up manual mocks for any Logging methods that are supposed hit the 'server',
+// this is needed because before, the Logging queue would get flushed while tests were running,
+// causing unexpected calls to HttpUtils.xhr() which would cause mock mismatches and flaky tests.
+/* eslint-disable no-console */
+jest.mock('../src/libs/Log', () => ({
+    info: message => console.log(`[info] ${message} (mocked)`),
+    alert: message => console.log(`[alert] ${message} (mocked)`),
+    warn: message => console.log(`[warn] ${message} (mocked)`),
+    hmmm: message => console.log(`[hmmm] ${message} (mocked)`),
+}));

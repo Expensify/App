@@ -321,6 +321,10 @@ const styles = {
         backgroundColor: 'transparent',
     },
 
+    bgDark: {
+        backgroundColor: colors.dark,
+    },
+
     opacity0: {
         opacity: 0,
     },
@@ -1118,9 +1122,7 @@ const styles = {
     },
 
     popoverMenuText: {
-        fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
-        fontWeight: fontWeightBold,
         color: themeColors.heading,
         maxWidth: 240,
     },
@@ -1853,6 +1855,10 @@ const styles = {
         fontSize: 15,
     },
 
+    blockingViewContainer: {
+        paddingBottom: variables.contentHeaderHeight,
+    },
+
     defaultModalContainer: {
         backgroundColor: themeColors.componentBG,
         borderColor: colors.transparent,
@@ -1980,6 +1986,7 @@ const styles = {
         flexDirection: 'row',
         alignItems: 'center',
         zIndex: 1,
+        cursor: 'default',
     },
 
     unreadIndicatorLine: {
@@ -2620,10 +2627,6 @@ const styles = {
 
     closeAccountMessageInput: {
         height: 153,
-    },
-
-    avatarCropModalContainer: {
-        maxWidth: 450, // this width was chosen to match layout to average mobile device
     },
 
     imageCropContainer: {
