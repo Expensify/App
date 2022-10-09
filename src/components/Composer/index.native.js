@@ -49,6 +49,8 @@ const propTypes = {
     /** Called when the text gets changed by user input */
     onChangeText: PropTypes.func,
 
+    /** A value the input should have when it first mounts. Default is empty. */
+    defaultValue: PropTypes.string,
 };
 
 const defaultProps = {
@@ -66,6 +68,7 @@ const defaultProps = {
     style: null,
     value: '',
     onChangeText: null,
+    defaultValue: '',
 };
 
 class Composer extends React.Component {
@@ -75,7 +78,7 @@ class Composer extends React.Component {
         this.onChangeText = this.onChangeText.bind(this);
         this.state = {
             propStyles: StyleSheet.flatten(this.props.style),
-            value: props.value,
+            value: props.defaultValue || props.value,
         };
     }
 
