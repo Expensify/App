@@ -135,6 +135,7 @@ class Composer extends React.Component {
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
+        this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
     }
 
     componentDidMount() {
@@ -373,9 +374,7 @@ class Composer extends React.Component {
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
                 selection={this.state.selection}
-                onChange={() => {
-                    this.updateNumberOfLines();
-                }}
+                onChange={this.updateNumberOfLines}
                 onSelectionChange={this.onSelectionChange}
                 numberOfLines={this.state.numberOfLines}
                 style={propStyles}
