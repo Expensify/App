@@ -67,7 +67,6 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
 - [ ] If a new component is created I verified that:
     - [ ] A similar component doesn't exist in the codebase
     - [ ] All props are defined accurately and each prop has a `/** comment above it */`
-    - [ ] Any functional components have the `displayName` property
     - [ ] The file is named correctly
     - [ ] The component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone
     - [ ] The only data being stored in the state is data necessary for rendering and nothing else
@@ -120,7 +119,6 @@ The reviewer will copy/paste it into a new comment and complete it after the aut
 - [ ] If a new component is created I verified that:
     - [ ] A similar component doesn't exist in the codebase
     - [ ] All props are defined accurately and each prop has a `/** comment above it */`
-    - [ ] Any functional components have the `displayName` property
     - [ ] The file is named correctly
     - [ ] The component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone
     - [ ] The only data being stored in the state is data necessary for rendering and nothing else
