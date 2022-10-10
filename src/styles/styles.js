@@ -1856,6 +1856,10 @@ const styles = {
         fontSize: 15,
     },
 
+    blockingViewContainer: {
+        paddingBottom: variables.contentHeaderHeight,
+    },
+
     defaultModalContainer: {
         backgroundColor: themeColors.componentBG,
         borderColor: colors.transparent,
