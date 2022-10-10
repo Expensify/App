@@ -262,5 +262,7 @@ export {
     clearOnfidoToken,
     updatePersonalInformationForBankAccount,
     validateBankAccount,
-    verifyIdentityForBankAccount,
+    updateCompanyInformationForBankAccount,
+    connectBankAccountWithPlaid,
+    updatePlaidData,
 };
