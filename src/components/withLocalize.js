@@ -13,6 +13,9 @@ import CONST from '../CONST';
 const LocaleContext = createContext(null);
 
 const withLocalizePropTypes = {
+    /** Returns translated string for given locale and phrase */
+    translate: PropTypes.func.isRequired,
+
     /** Formats number formatted according to locale and options */
     numberFormat: PropTypes.func.isRequired,
 
@@ -33,9 +36,6 @@ const withLocalizePropTypes = {
 
     /** Gets the locale digit corresponding to a standard digit */
     toLocaleDigit: PropTypes.func.isRequired,
-
-    /** Returns translated string for given locale and phrase */
-    translate: PropTypes.func.isRequired,
 };
 
 const localeProviderPropTypes = {
