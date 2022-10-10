@@ -916,12 +916,6 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
         return true;
     }
 
-    // Include unread reports when in GSD mode
-    // GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
-    if (isInGSDMode) {
-        return isUnread(report);
-    }
-
     // Include reports if they have a draft, are pinned, or have an outstanding IOU
     // These are always relevant to the user no matter what view mode the user prefers
     if (report.hasDraft || report.isPinned || hasOutstandingIOU(report, currentUserLogin, iouReports)) {
@@ -935,10 +929,16 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
     }
 
     // Exclude reports that don't have any comments
-    // Archived rooms or user created policy rooms are OK to show when the don't have any comments
+    // User created policy rooms are OK to show when the don't have any comments, only if they aren't archived.
     const hasNoComments = report.lastMessageTimestamp === 0;
-    if (hasNoComments && (isArchivedRoom(report) || isUserCreatedPolicyRoom(report))) {
+    if (hasNoComments && (isArchivedRoom(report) || !isUserCreatedPolicyRoom(report))) {
         return false;
+    }
+
+    // Include unread reports when in GSD mode
+    // GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
+    if (isInGSDMode) {
+        return isUnread(report);
     }
 
     // Include default rooms for free plan policies
