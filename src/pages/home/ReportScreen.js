@@ -221,7 +221,7 @@ class ReportScreen extends React.Component {
                     <OfflineWithFeedback
                         pendingAction={addWorkspaceRoomPendingAction}
                         errors={addWorkspaceRoomErrors}
-                        errorRowStyles={styles.dNone}
+                        shouldShowErrorMessages={false}
                     >
                         <HeaderView
                             reportID={reportID}
