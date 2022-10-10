@@ -389,7 +389,6 @@ class ReportActionCompose extends React.Component {
             this.setState({isCommentEmpty});
         }
 
-        // TODO: when further deferring this code we can make the rendering more instantaneous
         // Indicate that draft has been created.
         if (this.comment.length === 0 && newComment.length !== 0) {
             Report.setReportWithDraft(this.props.reportID, true);
