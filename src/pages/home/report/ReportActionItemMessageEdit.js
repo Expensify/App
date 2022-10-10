@@ -76,9 +76,7 @@ class ReportActionItemMessageEdit extends React.Component {
             start: draftMessage.length,
             end: draftMessage.length,
         };
-        this.state = {
-            draft: draftMessage,
-        };
+        this.draft = draftMessage;
     }
 
     /**
@@ -96,7 +94,7 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} newDraft
      */
     updateDraft(newDraft) {
-        this.setState({draft: newDraft});
+        this.draft = newDraft;
 
         // This component is rendered only when draft is set to a non-empty string. In order to prevent component
         // unmount when user deletes content of textarea, we set previous message instead of empty string.
@@ -135,7 +133,7 @@ class ReportActionItemMessageEdit extends React.Component {
         // debounce here.
         this.debouncedSaveDraft.cancel();
 
-        const trimmedNewDraft = this.state.draft.trim();
+        const trimmedNewDraft = this.draft.trim();
 
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
@@ -156,12 +154,13 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        const newComment = this.state.draft.slice(0, this.selection.start)
-            + emoji + this.state.draft.slice(this.selection.end, this.state.draft.length);
+        const newComment = this.draft.slice(0, this.selection.start)
+            + emoji + this.draft.slice(this.selection.end, this.draft.length);
         this.selection = {
             start: this.selection.start + emoji.length,
             end: this.selection.start + emoji.length,
         };
+
         this.textInput.updateSelection(this.selection);
         this.textInput.onChangeText(newComment);
     }
@@ -196,7 +195,6 @@ class ReportActionItemMessageEdit extends React.Component {
                         }}
                         onChangeText={this.updateDraft} // Debounced saveDraftComment
                         onKeyPress={this.triggerSaveOrCancel}
-                        value={this.state.draft}
                         maxLines={16} // This is the same that slack has
                         style={[styles.textInputCompose, styles.flex4, styles.editInputComposeSpacing]}
                         onFocus={() => {
@@ -212,6 +210,7 @@ class ReportActionItemMessageEdit extends React.Component {
                             toggleReportActionComposeView(true, VirtualKeyboard.shouldAssumeIsOpen());
                         }}
                         onSelectionChange={this.onSelectionChange}
+                        defaultValue={this.props.draftMessage}
                     />
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton

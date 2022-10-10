@@ -213,11 +213,15 @@ class Composer extends React.Component {
     }
 
     focus() {
+        // capture the selection, as the "native focus" call will
+        // call onSelectionChange to the end of the text
+        const selection = this.selection;
+
         this.textInput.nativeFocus();
         requestAnimationFrame(() => {
             this.textInput.setSelectionRange(
-                this.selection.start,
-                this.selection.end,
+                selection.start,
+                selection.end,
             );
         });
     }
