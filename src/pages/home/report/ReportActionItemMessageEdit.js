@@ -72,12 +72,12 @@ class ReportActionItemMessageEdit extends React.Component {
         const parser = new ExpensiMark();
         const draftMessage = parser.htmlToMarkdown(this.props.draftMessage);
 
+        this.selection = {
+            start: draftMessage.length,
+            end: draftMessage.length,
+        };
         this.state = {
             draft: draftMessage,
-            selection: {
-                start: draftMessage.length,
-                end: draftMessage.length,
-            },
         };
     }
 
@@ -87,7 +87,7 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {Event} e
      */
     onSelectionChange(e) {
-        this.setState({selection: e.nativeEvent.selection});
+        this.selection = e.nativeEvent.selection;
     }
 
     /**
@@ -156,15 +156,14 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        const newComment = this.state.draft.slice(0, this.state.selection.start)
-            + emoji + this.state.draft.slice(this.state.selection.end, this.state.draft.length);
-        this.setState(prevState => ({
-            selection: {
-                start: prevState.selection.start + emoji.length,
-                end: prevState.selection.start + emoji.length,
-            },
-        }));
-        this.updateDraft(newComment);
+        const newComment = this.state.draft.slice(0, this.selection.start)
+            + emoji + this.state.draft.slice(this.selection.end, this.state.draft.length);
+        this.selection = {
+            start: this.selection.start + emoji.length,
+            end: this.selection.start + emoji.length,
+        };
+        this.textInput.updateSelection(this.selection);
+        this.textInput.onChangeText(newComment);
     }
 
     /**
@@ -212,7 +211,6 @@ class ReportActionItemMessageEdit extends React.Component {
 
                             toggleReportActionComposeView(true, VirtualKeyboard.shouldAssumeIsOpen());
                         }}
-                        selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}
                     />
                     <View style={styles.editChatItemEmojiWrapper}>
