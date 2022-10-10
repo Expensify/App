@@ -1734,4 +1734,6 @@ export {
     createOptimisticReportAction,
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
+    clearIOUError,
+    getMaxSequenceNumber,
 };

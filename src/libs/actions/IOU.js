@@ -136,7 +136,7 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
         iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, 'en');
     }
     const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
-        lodashGet(chatReport, 'maxSequenceNumber', 0) + 1,
+        Report.getMaxSequenceNumber(lodashGet(report, 'reportID', '0')) + 1,
         'create',
         amount,
         currency,
