@@ -11,6 +11,8 @@ import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
+import * as ReportUtils from '../ReportUtils';
+import Log from '../Log';
 
 const allPolicies = {};
 Onyx.connect({
@@ -1021,7 +1023,33 @@ function createWorkspace() {
         });
 }
 
+function openWorkspaceReimburseView(policyID) {
+    if (!policyID) {
+        Log.warn('openWorkspaceReimburseView invalid params', {policyID});
+        return;
+    }
+
+    API.read('OpenWorkspaceReimburseView', {policyID});
+}
+
+function openWorkspaceMembersPage(policyID, clientMemberEmails) {
+    if (!policyID || !clientMemberEmails) {
+        Log.warn('openWorkspaceMembersPage invalid params', {policyID, clientMemberEmails});
+        return;
+    }
+
+    API.read('OpenWorkspaceMembersPage', {
+        policyID,
+        clientMemberEmails: JSON.stringify(clientMemberEmails),
+    });
+}
+
 function openWorkspaceInvitePage(policyID, clientMemberEmails) {
+    if (!policyID || !clientMemberEmails) {
+        Log.warn('openWorkspaceInvitePage invalid params', {policyID, clientMemberEmails});
+        return;
+    }
+
     API.read('OpenWorkspaceInvitePage', {
         policyID,
         clientMemberEmails: JSON.stringify(clientMemberEmails),
