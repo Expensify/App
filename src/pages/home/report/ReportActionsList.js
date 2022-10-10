@@ -17,6 +17,7 @@ import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportActionPropTypes from './reportActionPropTypes';
 import CONST from '../../../CONST';
 import * as StyleUtils from '../../../styles/StyleUtils';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -26,13 +27,7 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The report currently being looked at */
-    report: PropTypes.shape({
-        /** The largest sequenceNumber on this report */
-        maxSequenceNumber: PropTypes.number,
-
-        /** Whether there is an outstanding amount in IOU */
-        hasOutstandingIOU: PropTypes.bool,
-    }).isRequired,
+    report: reportPropTypes.isRequired,
 
     /** Sorted actions prepared for display */
     sortedReportActions: PropTypes.arrayOf(PropTypes.shape({
@@ -140,7 +135,7 @@ class ReportActionsList extends React.Component {
             && !ReportActionsUtils.isDeletedAction(item.action);
         return (
             <ReportActionItem
-                reportID={this.props.report.reportID}
+                report={this.props.report}
                 action={item.action}
                 displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.props.sortedReportActions, index)}
                 shouldDisplayNewIndicator={shouldDisplayNewIndicator}

@@ -21,6 +21,9 @@ import * as ValidationUtils from '../../libs/ValidationUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import * as ErrorUtils from '../../libs/ErrorUtils';
+import {withNetwork} from '../../components/OnyxProvider';
+import networkPropTypes from '../../components/networkPropTypes';
+import OfflineIndicator from '../../components/OfflineIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -33,6 +36,9 @@ const propTypes = {
         /** Whether or not a sign on form is loading (being submitted) */
         isLoading: PropTypes.bool,
     }),
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
 
     ...withLocalizePropTypes,
     ...toggleVisibilityViewPropTypes,
@@ -63,7 +69,7 @@ class PasswordForm extends React.Component {
         this.inputPassword.focus();
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps, prevState) {
         if (!prevProps.isVisible && this.props.isVisible) {
             this.inputPassword.focus();
         }
@@ -72,6 +78,9 @@ class PasswordForm extends React.Component {
         }
         if (!prevProps.account.requiresTwoFactorAuth && this.props.account.requiresTwoFactorAuth) {
             this.input2FA.focus();
+        }
+        if (prevState.twoFactorAuthCode !== this.state.twoFactorAuthCode && this.state.twoFactorAuthCode.length === CONST.TFA_CODE_LENGTH) {
+            this.validateAndSubmitForm();
         }
     }
 
@@ -116,7 +125,7 @@ class PasswordForm extends React.Component {
         }
 
         if (!ValidationUtils.isValidPassword(this.state.password)) {
-            this.setState({formError: 'passwordForm.error.incorrectLoginOrPassword'});
+            this.setState({formError: 'passwordForm.error.incorrectPassword'});
             return;
         }
 
@@ -174,6 +183,7 @@ class PasswordForm extends React.Component {
                             onSubmitEditing={this.validateAndSubmitForm}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             blurOnSubmit={false}
+                            maxLength={CONST.TFA_CODE_LENGTH}
                         />
                     </View>
                 )}
@@ -191,6 +201,7 @@ class PasswordForm extends React.Component {
                 )}
                 <View>
                     <Button
+                        isDisabled={this.props.network.isOffline}
                         success
                         style={[styles.mv3]}
                         text={this.props.translate('common.signIn')}
@@ -199,6 +210,7 @@ class PasswordForm extends React.Component {
                     />
                     <ChangeExpensifyLoginLink onPress={this.clearSignInData} />
                 </View>
+                <OfflineIndicator containerStyles={[styles.mv5]} />
             </>
         );
     }
@@ -213,4 +225,5 @@ export default compose(
         account: {key: ONYXKEYS.ACCOUNT},
     }),
     withToggleVisibilityView,
+    withNetwork(),
 )(PasswordForm);

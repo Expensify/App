@@ -28,6 +28,7 @@ import walletAdditionalDetailsDraftPropTypes from './walletAdditionalDetailsDraf
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import OfflineIndicator from '../../components/OfflineIndicator';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -262,15 +263,13 @@ class AdditionalDetailsStep extends React.Component {
             );
         }
 
-        const errors = lodashGet(this.props, 'walletAdditionalDetails.errors', {});
-        const isErrorVisible = _.size(this.getErrors()) > 0
-            || !_.isEmpty(errors);
+        const errorMessage = ErrorUtils.getLatestErrorMessage(this.props.walletAdditionalDetails) || '';
+        const isErrorVisible = _.size(this.getErrors()) > 0 || Boolean(errorMessage);
         const shouldAskForFullSSN = this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN;
         const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
-        const errorMessage = _.isEmpty(errors) ? '' : _.last(_.values(errors));
 
         return (
-            <ScreenWrapper style={[styles.flex1]} keyboardAvoidingViewBehavior="height">
+            <>
                 <HeaderWithCloseButton
                     title={this.props.translate('additionalDetailsStep.headerTitle')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
@@ -371,7 +370,7 @@ class AdditionalDetailsStep extends React.Component {
                         <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
                     </FormScrollView>
                 </View>
-            </ScreenWrapper>
+            </>
         );
     }
 }

@@ -6,7 +6,6 @@ import withLocalize from '../../../../components/withLocalize';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import {sidebarPropTypes, sidebarDefaultProps} from './sidebarPropTypes';
 import BaseSidebarScreen from './BaseSidebarScreen';
-import withNavigation from '../../../../components/withNavigation';
 
 const SidebarScreen = (props) => {
     let baseSidebarScreen = null;
@@ -40,7 +39,6 @@ SidebarScreen.defaultProps = sidebarDefaultProps;
 SidebarScreen.displayName = 'SidebarScreen';
 
 export default compose(
-    withNavigation,
     withLocalize,
     withWindowDimensions,
     withOnyx({

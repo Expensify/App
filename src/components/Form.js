@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as FormActions from '../libs/actions/FormActions';
+import * as ErrorUtils from '../libs/ErrorUtils';
 import styles from '../styles/styles';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 
@@ -15,6 +16,9 @@ const propTypes = {
 
     /** Text to be displayed in the submit button */
     submitButtonText: PropTypes.string.isRequired,
+
+    /** Controls the submit button's visibility */
+    isSubmitButtonVisible: PropTypes.bool,
 
     /** Callback to validate the form */
     validate: PropTypes.func.isRequired,
@@ -32,23 +36,28 @@ const propTypes = {
         /** Controls the loading state of the form */
         isLoading: PropTypes.bool,
 
-        /** Server side error message */
-        error: PropTypes.string,
+        /** Server side errors keyed by microtime */
+        errors: PropTypes.objectOf(PropTypes.string),
     }),
 
     /** Contains draft values for each input in the form */
     // eslint-disable-next-line react/forbid-prop-types
     draftValues: PropTypes.object,
 
+    /** Should the button be enabled when offline */
+    enabledWhenOffline: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
+    isSubmitButtonVisible: true,
     formState: {
         isLoading: false,
-        error: '',
+        errors: null,
     },
     draftValues: {},
+    enabledWhenOffline: false,
 };
 
 class Form extends React.Component {
@@ -57,10 +66,10 @@ class Form extends React.Component {
 
         this.state = {
             errors: {},
+            inputValues: {},
         };
 
         this.inputRefs = {};
-        this.inputValues = {};
         this.touchedInputs = {};
 
         this.setTouchedInput = this.setTouchedInput.bind(this);
@@ -75,6 +84,11 @@ class Form extends React.Component {
         this.touchedInputs[inputID] = true;
     }
 
+    getErrorMessage() {
+        const latestErrorMessage = ErrorUtils.getLatestErrorMessage(this.props.formState);
+        return this.props.formState.error || (typeof latestErrorMessage === 'string' ? latestErrorMessage : '');
+    }
+
     submit() {
         // Return early if the form is already submitting to avoid duplicate submission
         if (this.props.formState.isLoading) {
@@ -87,12 +101,12 @@ class Form extends React.Component {
         ));
 
         // Validate form and return early if any errors are found
-        if (!_.isEmpty(this.validate(this.inputValues))) {
+        if (!_.isEmpty(this.validate(this.state.inputValues))) {
             return;
         }
 
         // Call submit handler
-        this.props.onSubmit(this.inputValues);
+        this.props.onSubmit(this.state.inputValues);
     }
 
     /**
@@ -100,7 +114,7 @@ class Form extends React.Component {
      * @returns {Object} - An object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
     validate(values) {
-        FormActions.setErrorMessage(this.props.formID, '');
+        FormActions.setErrors(this.props.formID, null);
         const validationErrors = this.props.validate(values);
 
         if (!_.isObject(validationErrors)) {
@@ -145,30 +159,38 @@ class Form extends React.Component {
             const defaultValue = this.props.draftValues[inputID] || child.props.defaultValue;
 
             // We want to initialize the input value if it's undefined
-            if (_.isUndefined(this.inputValues[inputID])) {
-                this.inputValues[inputID] = defaultValue;
+            if (_.isUndefined(this.state.inputValues[inputID])) {
+                this.state.inputValues[inputID] = defaultValue;
+            }
+
+            if (!_.isUndefined(child.props.value)) {
+                this.state.inputValues[inputID] = child.props.value;
             }
 
             return React.cloneElement(child, {
                 ref: node => this.inputRefs[inputID] = node,
-                defaultValue,
+                value: this.state.inputValues[inputID],
                 errorText: this.state.errors[inputID] || '',
                 onBlur: () => {
                     this.setTouchedInput(inputID);
-                    this.validate(this.inputValues);
+                    this.validate(this.state.inputValues);
                 },
                 onInputChange: (value, key) => {
                     const inputKey = key || inputID;
-                    this.inputValues[inputKey] = value;
-                    const inputRef = this.inputRefs[inputKey];
+                    this.setState(prevState => ({
+                        inputValues: {
+                            ...prevState.inputValues,
+                            [inputKey]: value,
+                        },
+                    }), () => this.validate(this.state.inputValues));
 
-                    if (key && inputRef && _.isFunction(inputRef.setNativeProps)) {
-                        inputRef.setNativeProps({value});
-                    }
                     if (child.props.shouldSaveDraft) {
                         FormActions.setDraftValues(this.props.formID, {[inputKey]: value});
                     }
-                    this.validate(this.inputValues);
+
+                    if (child.props.onValueChange) {
+                        child.props.onValueChange(value);
+                    }
                 },
             });
         });
@@ -184,17 +206,20 @@ class Form extends React.Component {
                 >
                     <View style={[this.props.style]}>
                         {this.childrenWrapperWithProps(this.props.children)}
+                        {this.props.isSubmitButtonVisible && (
                         <FormAlertWithSubmitButton
                             buttonText={this.props.submitButtonText}
-                            isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.props.formState.error)}
+                            isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.getErrorMessage())}
                             isLoading={this.props.formState.isLoading}
-                            message={this.props.formState.error}
+                            message={this.getErrorMessage()}
                             onSubmit={this.submit}
                             onFixTheErrorsLinkPressed={() => {
                                 this.inputRefs[_.first(_.keys(this.state.errors))].focus();
                             }}
                             containerStyles={[styles.mh0, styles.mt5]}
+                            enabledWhenOffline={this.props.enabledWhenOffline}
                         />
+                        )}
                     </View>
                 </ScrollView>
             </>

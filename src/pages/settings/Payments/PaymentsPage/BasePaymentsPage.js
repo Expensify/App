@@ -4,7 +4,6 @@ import {
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import PaymentMethodList from '../PaymentMethodList';
 import ROUTES from '../../../../ROUTES';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
@@ -52,6 +51,7 @@ class BasePaymentsPage extends React.Component {
             anchorPositionBottom: 0,
             anchorPositionRight: 0,
             addPaymentMethodButton: null,
+            methodID: null,
         };
 
         this.paymentMethodPressed = this.paymentMethodPressed.bind(this);
@@ -122,8 +122,9 @@ class BasePaymentsPage extends React.Component {
      * @param {String} accountType
      * @param {String} account
      * @param {Boolean} isDefault
+     * @param {String|Number} methodID
      */
-    paymentMethodPressed(nativeEvent, accountType, account, isDefault) {
+    paymentMethodPressed(nativeEvent, accountType, account, isDefault, methodID) {
         const position = getClickedTargetLocation(nativeEvent.currentTarget);
         this.setState({
             addPaymentMethodButton: nativeEvent.currentTarget,
@@ -160,6 +161,7 @@ class BasePaymentsPage extends React.Component {
                 selectedPaymentMethod: account,
                 selectedPaymentMethodType: accountType,
                 formattedSelectedPaymentMethod,
+                methodID,
             });
             this.setPositionAddPaymentMenu(position);
             return;
@@ -228,16 +230,14 @@ class BasePaymentsPage extends React.Component {
         const paymentMethods = PaymentUtils.formatPaymentMethods(
             this.props.bankAccountList,
             this.props.cardList,
-            '',
-            this.props.userWallet,
         );
+
         const previousPaymentMethod = _.find(paymentMethods, method => method.isDefault);
-        const previousPaymentMethodID = lodashGet(previousPaymentMethod, 'methodID');
-        const previousPaymentMethodType = lodashGet(previousPaymentMethod, 'accountType');
+        const currentPaymentMethod = _.find(paymentMethods, method => method.methodID === this.state.methodID);
         if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-            PaymentMethods.makeDefaultPaymentMethod(password, this.state.selectedPaymentMethod.bankAccountID, null, previousPaymentMethodID, previousPaymentMethodType);
+            PaymentMethods.makeDefaultPaymentMethod(password, this.state.selectedPaymentMethod.bankAccountID, null, previousPaymentMethod, currentPaymentMethod);
         } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            PaymentMethods.makeDefaultPaymentMethod(password, null, this.state.selectedPaymentMethod.fundID, previousPaymentMethodID, previousPaymentMethodType);
+            PaymentMethods.makeDefaultPaymentMethod(password, null, this.state.selectedPaymentMethod.fundID, previousPaymentMethod, currentPaymentMethod);
         }
     }
 
@@ -308,17 +308,19 @@ class BasePaymentsPage extends React.Component {
                     >
                         {this.props.translate('paymentsPage.paymentMethodsTitle')}
                     </Text>
-                    <PaymentMethodList
-                        onPress={this.paymentMethodPressed}
-                        style={[styles.flex4]}
-                        isAddPaymentMenuActive={this.state.shouldShowAddPaymentMenu}
-                        actionPaymentMethodType={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt || this.state.shouldShowConfirmPopover
-                            ? this.state.selectedPaymentMethodType
-                            : ''}
-                        activePaymentMethodID={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt || this.state.shouldShowConfirmPopover
-                            ? this.getSelectedPaymentMethodID()
-                            : ''}
-                    />
+                    <OfflineWithFeedback onClose={() => PaymentMethods.clearWalletError()} errors={this.props.userWallet.errors} errorRowStyles={[styles.ph6, styles.pv2]}>
+                        <PaymentMethodList
+                            onPress={this.paymentMethodPressed}
+                            style={[styles.flex4]}
+                            isAddPaymentMenuActive={this.state.shouldShowAddPaymentMenu}
+                            actionPaymentMethodType={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt || this.state.shouldShowConfirmPopover
+                                ? this.state.selectedPaymentMethodType
+                                : ''}
+                            activePaymentMethodID={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt || this.state.shouldShowConfirmPopover
+                                ? this.getSelectedPaymentMethodID()
+                                : ''}
+                        />
+                    </OfflineWithFeedback>
                 </View>
                 <AddPaymentMethodMenu
                     isVisible={this.state.shouldShowAddPaymentMenu}
@@ -439,7 +441,6 @@ class BasePaymentsPage extends React.Component {
                     shouldShowCancelButton
                     danger
                 />
-                <OfflineWithFeedback onClose={() => PaymentMethods.clearWalletError()} errors={this.props.userWallet.errors} errorRowStyles={[styles.ph6, styles.pv2]} />
             </ScreenWrapper>
         );
     }

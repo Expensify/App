@@ -33,9 +33,6 @@ const propTypes = {
 
         /** Whether a sign on form is loading (being submitted) */
         isLoading: PropTypes.bool,
-
-        /** If account is validated or not */
-        validated: PropTypes.bool,
     }),
 
     /** The credentials of the logged in person */
@@ -81,24 +78,22 @@ class SetPasswordPage extends Component {
         };
     }
 
+    componentWillUnmount() {
+        Session.clearAccountMessages();
+    }
+
     validateAndSubmitForm() {
         if (!this.state.isFormValid) {
             return;
         }
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
-
-        if (this.props.account.validated) {
-            Session.updatePasswordAndSignin(accountID, validateCode, this.state.password);
-        } else {
-            Session.setPasswordForNewAccountAndSignin(accountID, validateCode, this.state.password);
-        }
+        Session.updatePasswordAndSignin(accountID, validateCode, this.state.password);
     }
 
     render() {
         const buttonText = this.props.translate('setPasswordPage.setPassword');
         const error = ErrorUtils.getLatestErrorMessage(this.props.account) || ErrorUtils.getLatestErrorMessage(this.props.session);
-        const isErrorVisible = !this.props.account.isLoading && !_.isEmpty(error);
         return (
             <SafeAreaView style={[styles.signInPage]}>
                 <SignInPageLayout
@@ -120,7 +115,7 @@ class SetPasswordPage extends Component {
                                 onSubmit={this.validateAndSubmitForm}
                                 containerStyles={[styles.mb2, styles.mh0]}
                                 message={error}
-                                isAlertVisible={isErrorVisible}
+                                isAlertVisible={!_.isEmpty(error)}
                                 isDisabled={!this.state.isFormValid}
                             />
                         </View>

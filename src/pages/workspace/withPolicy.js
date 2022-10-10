@@ -57,12 +57,13 @@ const policyPropTypes = {
         errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
-    /** The policy member list for the current route */
+    /** The employee list of this policy */
     policyMemberList: PropTypes.objectOf(policyMemberPropType),
 };
 
 const policyDefaultProps = {
     policy: {},
+    policyMemberList: {},
 };
 
 /*
