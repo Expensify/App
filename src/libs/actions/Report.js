@@ -1493,5 +1493,4 @@ export {
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
     clearIOUError,
-    getMaxSequenceNumber,
 };
