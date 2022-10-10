@@ -65,7 +65,7 @@ const propTypes = {
 
 const defaultProps = {
     reimbursementAccount: {
-        loading: true,
+        isLoading: true,
     },
     plaidLinkToken: '',
     plaidData: {
@@ -170,7 +170,7 @@ class ReimbursementAccountPage extends React.Component {
         // next step.
         const achData = lodashGet(this.props, 'reimbursementAccount.achData', {});
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-        if (this.props.reimbursementAccount.loading) {
+        if (this.props.reimbursementAccount.isLoading) {
             const isSubmittingVerificationsData = _.contains([
                 CONST.BANK_ACCOUNT.STEP.COMPANY,
                 CONST.BANK_ACCOUNT.STEP.REQUESTOR,
@@ -220,17 +220,16 @@ class ReimbursementAccountPage extends React.Component {
             <ScreenWrapper>
                 {currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && (
                     <BankAccountStep
-                        achData={achData}
                         isPlaidDisabled={this.props.plaidData.isPlaidDisabled}
                         receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                         plaidLinkOAuthToken={this.props.plaidLinkToken}
                     />
                 )}
                 {currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && (
-                    <CompanyStep achData={achData} />
+                    <CompanyStep />
                 )}
                 {currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR && (
-                    <RequestorStep achData={achData} />
+                    <RequestorStep />
                 )}
                 {currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && (
                     <ACHContractStep companyName={achData.companyName} />
@@ -239,9 +238,7 @@ class ReimbursementAccountPage extends React.Component {
                     <ValidationStep />
                 )}
                 {currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE && (
-                    <EnableStep
-                        achData={this.props.reimbursementAccount.achData}
-                    />
+                    <EnableStep />
                 )}
                 <WorkspaceResetBankAccountModal />
             </ScreenWrapper>

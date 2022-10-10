@@ -45,6 +45,7 @@ import toggleReportActionComposeView from '../../../libs/toggleReportActionCompo
 import OfflineIndicator from '../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import withNavigationFocus from '../../../components/withNavigationFocus';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** Beta features list */
@@ -69,11 +70,7 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The report currently being looked at */
-    report: PropTypes.shape({
-
-        /** participants associated with current report */
-        participants: PropTypes.arrayOf(PropTypes.string),
-    }),
+    report: reportPropTypes,
 
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
@@ -146,6 +143,7 @@ class ReportActionCompose extends React.Component {
             },
             maxLines: props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES,
             value: props.comment,
+            conciergePlaceholderRandomIndex: _.random(this.props.translate('reportActionCompose.conciergePlaceholderOptions').length - 1),
         };
     }
 
@@ -244,8 +242,12 @@ class ReportActionCompose extends React.Component {
      * @return {String}
      */
     getInputPlaceholder() {
-        if (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge)) {
-            return this.props.translate('reportActionCompose.blockedFromConcierge');
+        if (ReportUtils.chatIncludesConcierge(this.props.report)) {
+            if (User.isBlockedFromConcierge(this.props.blockedFromConcierge)) {
+                return this.props.translate('reportActionCompose.blockedFromConcierge');
+            }
+
+            return this.props.translate('reportActionCompose.conciergePlaceholderOptions')[this.state.conciergePlaceholderRandomIndex];
         }
 
         if (this.isEmptyChat()) {
@@ -315,12 +317,13 @@ class ReportActionCompose extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
+        const emojiWithSpace = `${emoji} `;
         const newComment = this.comment.slice(0, this.state.selection.start)
-            + emoji + this.comment.slice(this.state.selection.end, this.comment.length);
+            + emojiWithSpace + this.comment.slice(this.state.selection.end, this.comment.length);
         this.setState(prevState => ({
             selection: {
-                start: prevState.selection.start + emoji.length,
-                end: prevState.selection.start + emoji.length,
+                start: prevState.selection.start + emojiWithSpace.length,
+                end: prevState.selection.start + emojiWithSpace.length,
             },
         }));
         this.updateComment(newComment);
@@ -373,8 +376,9 @@ class ReportActionCompose extends React.Component {
      * Update the value of the comment in Onyx
      *
      * @param {String} newComment
+     * @param {Boolean} shouldDebounceSaveComment
      */
-    updateComment(newComment) {
+    updateComment(newComment, shouldDebounceSaveComment) {
         this.setState({
             isCommentEmpty: !!newComment.match(/^(\s|`)*$/),
             value: newComment,
@@ -382,16 +386,20 @@ class ReportActionCompose extends React.Component {
 
         // Indicate that draft has been created.
         if (this.comment.length === 0 && newComment.length !== 0) {
-            Report.setReportWithDraft(this.props.reportID.toString(), true);
+            Report.setReportWithDraft(this.props.reportID, true);
         }
 
         // The draft has been deleted.
         if (newComment.length === 0) {
-            Report.setReportWithDraft(this.props.reportID.toString(), false);
+            Report.setReportWithDraft(this.props.reportID, false);
         }
 
         this.comment = newComment;
-        this.debouncedSaveReportComment(newComment);
+        if (shouldDebounceSaveComment) {
+            this.debouncedSaveReportComment(newComment);
+        } else {
+            Report.saveReportComment(this.props.reportID, newComment || '');
+        }
         if (newComment) {
             this.debouncedBroadcastUserIsTyping();
         }
@@ -468,6 +476,11 @@ class ReportActionCompose extends React.Component {
         if (e) {
             e.preventDefault();
         }
+
+        // Since we're submitting the form here which should clear the composer
+        // We don't really care about saving the draft the user was typing
+        // We need to make sure an empty draft gets saved instead
+        this.debouncedSaveReportComment.cancel();
 
         const comment = this.prepareCommentAndResetComposer();
         if (!comment) {
@@ -601,7 +614,7 @@ class ReportActionCompose extends React.Component {
                                         textAlignVertical="top"
                                         placeholder={inputPlaceholder}
                                         placeholderTextColor={themeColors.placeholderText}
-                                        onChangeText={this.updateComment}
+                                        onChangeText={comment => this.updateComment(comment, true)}
                                         onKeyPress={this.triggerHotkeyActions}
                                         onDragEnter={(e, isOriginComposer) => {
                                             if (!isOriginComposer) {

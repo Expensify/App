@@ -20,10 +20,7 @@ import Icon from '../components/Icon';
 import defaultTheme from '../styles/themes/default';
 import Button from '../components/Button';
 import FixedFooter from '../components/FixedFooter';
-import FormScrollView from '../components/FormScrollView';
-import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
-import FormHelper from '../libs/FormHelper';
-import * as ReimbursementAccount from '../libs/actions/ReimbursementAccount';
+import Form from '../components/Form';
 import TextInput from '../components/TextInput';
 import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus/index.native';
 import ROUTES from '../ROUTES';
@@ -33,7 +30,7 @@ const propTypes = {
     personalBankAccount: PropTypes.shape({
         error: PropTypes.string,
         shouldShowSuccess: PropTypes.bool,
-        loading: PropTypes.bool,
+        isLoading: PropTypes.bool,
     }),
 };
 
@@ -41,7 +38,7 @@ const defaultProps = {
     personalBankAccount: {
         error: '',
         shouldShowSuccess: false,
-        loading: false,
+        isLoading: false,
     },
 };
 
@@ -49,20 +46,12 @@ class AddPersonalBankAccountPage extends React.Component {
     constructor(props) {
         super(props);
 
-        this.getErrorText = this.getErrorText.bind(this);
-        this.clearError = this.clearError.bind(this);
         this.validate = this.validate.bind(this);
         this.submit = this.submit.bind(this);
 
         this.state = {
             selectedPlaidBankAccount: undefined,
-            password: '',
         };
-
-        this.formHelper = new FormHelper({
-            errorPath: 'personalBankAccount.errorFields',
-            setErrors: errorFields => ReimbursementAccount.setPersonalBankAccountFormValidationErrorFields(errorFields),
-        });
     }
 
     componentDidMount() {
@@ -70,61 +59,28 @@ class AddPersonalBankAccountPage extends React.Component {
     }
 
     /**
-     * @returns {Object}
+     * @param {Object} values - form input values passed by the Form component
+     * @returns {Ojbect}
      */
-    getErrors() {
-        return this.formHelper.getErrors(this.props);
-    }
-
-    /**
-     * @param {String} fieldName
-     * @returns {String}
-     */
-    getErrorText(fieldName) {
-        const errors = this.getErrors();
-        if (!errors[fieldName]) {
-            return '';
-        }
-
-        return this.props.translate(this.errorTranslationKeys[fieldName]);
-    }
-
-    /**
-     * @param {String} path
-     */
-    clearError(path) {
-        this.formHelper.clearError(this.props, path);
-    }
-
-    /**
-     * @returns {Boolean}
-     */
-    validate() {
+    validate(values) {
         const errors = {};
-        if (_.isUndefined(this.state.selectedPlaidBankAccount)) {
-            errors.selectedBank = true;
+
+        if (_.isEmpty(values.password)) {
+            errors.password = `${this.props.translate('common.password')} ${this.props.translate('common.isRequiredField')}.`;
         }
 
-        if (this.props.isPasswordRequired && _.isEmpty(this.state.password)) {
-            errors.password = true;
-        }
-
-        ReimbursementAccount.setPersonalBankAccountFormValidationErrorFields(errors);
-        return _.isEmpty(errors);
+        return errors;
     }
 
-    submit() {
-        if (!this.validate()) {
-            return;
-        }
-
-        BankAccounts.addPersonalBankAccount(this.state.selectedPlaidBankAccount, this.state.password);
+    /**
+     * @param {Object} values - form input values passed by the Form component
+     */
+    submit(values) {
+        BankAccounts.addPersonalBankAccount(this.state.selectedPlaidBankAccount, values.password);
     }
 
     render() {
         const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
-        const error = lodashGet(this.props, 'personalBankAccount.error', '');
-        const loading = lodashGet(this.props, 'personalBankAccount.loading', false);
 
         return (
             <ScreenWrapper>
@@ -163,8 +119,15 @@ class AddPersonalBankAccountPage extends React.Component {
                         </FixedFooter>
                     </>
                 ) : (
-                    <FormScrollView>
-                        <View style={[styles.mh5, styles.mb5, styles.flex1]}>
+                    <Form
+                        formID={ONYXKEYS.PERSONAL_BANK_ACCOUNT}
+                        isSubmitButtonVisible={!_.isUndefined(this.state.selectedPlaidBankAccount)}
+                        submitButtonText={this.props.translate('common.saveAndContinue')}
+                        onSubmit={this.submit}
+                        validate={this.validate}
+                        style={[styles.mh5, styles.flex1]}
+                    >
+                        <>
                             <AddPlaidBankAccount
                                 onSelect={(params) => {
                                     this.setState({
@@ -175,32 +138,18 @@ class AddPersonalBankAccountPage extends React.Component {
                                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                             />
                             {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
-                                <View style={[styles.mb5]}>
-                                    <TextInput
-                                        label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
-                                        secureTextEntry
-                                        value={this.state.password}
-                                        autoCompleteType="password"
-                                        textContentType="password"
-                                        autoCapitalize="none"
-                                        autoFocus={canFocusInputOnScreenFocus()}
-                                        onChangeText={text => this.setState({password: text})}
-                                        errorText={this.getErrorText('password')}
-                                        hasError={this.getErrors().password}
-                                    />
-                                </View>
-                            )}
-                        </View>
-                        {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
-                            <FormAlertWithSubmitButton
-                                isAlertVisible={Boolean(error)}
-                                buttonText={this.props.translate('common.saveAndContinue')}
-                                onSubmit={this.submit}
-                                message={error}
-                                isLoading={loading}
+                            <TextInput
+                                inputID="password"
+                                label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
+                                secureTextEntry
+                                autoCompleteType="password"
+                                textContentType="password"
+                                autoCapitalize="none"
+                                autoFocus={canFocusInputOnScreenFocus()}
                             />
-                        )}
-                    </FormScrollView>
+                            )}
+                        </>
+                    </Form>
                 )}
             </ScreenWrapper>
         );

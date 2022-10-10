@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import getReportActionContextMenuStyles from '../../../../styles/getReportActionContextMenuStyles';
@@ -13,7 +12,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import ContextMenuActions, {CONTEXT_MENU_TYPES} from './ContextMenuActions';
 import compose from '../../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
-import ONYXKEYS from '../../../../ONYXKEYS';
+import {withBetas} from '../../../../components/OnyxProvider';
 
 const propTypes = {
     /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
@@ -38,7 +37,7 @@ class BaseReportActionContextMenu extends React.Component {
     }
 
     render() {
-        const shouldShowFilter = contextAction => contextAction.shouldShow(this.props.type, this.props.reportAction, this.props.betas, this.props.anchor);
+        const shouldShowFilter = contextAction => contextAction.shouldShow(this.props.type, this.props.reportAction, this.props.isArchivedRoom, this.props.betas, this.props.anchor);
 
         return this.props.isVisible && (
             <View style={this.wrapperStyle}>
@@ -71,10 +70,6 @@ BaseReportActionContextMenu.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-    }),
+    withBetas(),
     withWindowDimensions,
 )(BaseReportActionContextMenu);

@@ -171,7 +171,10 @@ class ACHContractStep extends React.Component {
                     title={this.props.translate('beneficialOwnersStep.additionalInformation')}
                     stepCounter={{step: 4, total: 5}}
                     onCloseButtonPress={Navigation.dismissModal}
-                    onBackButtonPress={() => BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR)}
+                    onBackButtonPress={() => {
+                        BankAccounts.clearOnfidoToken();
+                        BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+                    }}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
