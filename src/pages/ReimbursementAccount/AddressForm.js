@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import TextInput from '../../components/TextInput';
 import AddressSearch from '../../components/AddressSearch';
 import styles from '../../styles/styles';
-import {translateLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
 import StatePicker from '../../components/StatePicker';
 
@@ -45,7 +44,8 @@ const propTypes = {
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft: PropTypes.bool,
 
-    ...translateLocalizePropTypes,
+    /** Returns translated string for given locale and phrase */
+    translate: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
