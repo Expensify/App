@@ -206,17 +206,27 @@ const OptionRowLHN = (props) => {
                                 )}
                             </View>
                         </View>
-                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                            {optionItem.hasDraftComment && (
-                            <View style={styles.ml2}>
+                    </View>
+                    <View
+                        style={[styles.flexRow, styles.alignItemsCenter]}
+                        accessible={false}
+                    >
+                        {optionItem.hasDraftComment && (
+                            <View
+                                style={styles.ml2}
+                                accessibilityLabel="Has draft message"
+                            >
                                 <Icon src={Expensicons.Pencil} height={16} width={16} />
                             </View>
                             )}
                             {optionItem.hasOutstandingIOU && (
                             <IOUBadge iouReportID={optionItem.iouReportID} />
-                            )}
-                            {optionItem.isPinned && (
-                            <View style={styles.ml2}>
+                        )}
+                        {optionItem.isPinned && (
+                            <View
+                                style={styles.ml2}
+                                accessibilityLabel="Chat pinned"
+                            >
                                 <Icon src={Expensicons.Pin} height={16} width={16} />
                             </View>
                             )}
