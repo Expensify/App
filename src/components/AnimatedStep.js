@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import * as Animatable from 'react-native-animatable';
 import CONST from '../CONST';
+import styles from '../styles/styles';
 
 const propTypes = {
     /** Children to wrap in AnimatedStep. */
@@ -21,24 +22,13 @@ const defaultProps = {
 };
 
 const AnimatedStep = (props) => {
-    function makeSlideInTranslation(translationType, fromValue) {
-        return {
-            from: {
-                [translationType]: fromValue,
-            },
-            to: {
-                [translationType]: 0,
-            },
-        };
-    }
-
     function getAnimationStyle(direction) {
         let animationStyle;
 
         if (direction === 'in') {
-            animationStyle = makeSlideInTranslation('translateX', CONST.ANIMATED_TRANSITION_FROM_VALUE);
+            animationStyle = styles.makeSlideInTranslation('translateX', CONST.ANIMATED_TRANSITION_FROM_VALUE);
         } else if (direction === 'out') {
-            animationStyle = makeSlideInTranslation('translateX', CONST.ANIMATED_TRANSITION_FROM_VALUE);
+            animationStyle = styles.makeSlideInTranslation('translateX', -CONST.ANIMATED_TRANSITION_FROM_VALUE);
         }
         return animationStyle;
     }
