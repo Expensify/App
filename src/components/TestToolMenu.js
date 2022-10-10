@@ -55,6 +55,14 @@ const TestToolMenu = props => (
             />
         </TestToolRow>
 
+        {/* When toggled the app will be forced offline. */}
+        <TestToolRow title="Force offline">
+            <Switch
+                isOn={props.network.shouldForceOffline || false}
+                onToggle={() => Network.setShouldForceOffline(!props.network.shouldForceOffline)}
+            />
+        </TestToolRow>
+
         {/* Instantly invalidates a user's local authToken. Useful for testing flows related to reauthentication. */}
         <TestToolRow title="Authentication status">
             <Button
