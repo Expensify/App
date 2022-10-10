@@ -22,6 +22,8 @@ const drawerIsReadyPromise = new Promise((resolve) => {
 });
 
 let isLoggedIn = false;
+let pendingRoute = null;
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: val => isLoggedIn = Boolean(val && val.authToken),
@@ -130,17 +132,22 @@ function isDrawerRoute(route) {
  */
 function navigate(route = ROUTES.HOME) {
     if (!canNavigate('navigate', {route})) {
+        // Store intended route if the navigator is not yet available,
+        // we will try again after the NavigationContainer is ready
+        Log.hmmm(`[Navigation] Container not yet ready, storing route as pending: ${route}`);
+        pendingRoute = route;
         return;
     }
 
     if (route === ROUTES.HOME) {
-        if (isLoggedIn) {
+        if (isLoggedIn && pendingRoute === null) {
             openDrawer();
             return;
         }
 
         // If we're navigating to the signIn page while logged out, pop whatever screen is on top
         // since it's guaranteed that the sign in page will be underneath (since it's the initial route).
+        // Also, if we're coming from a link to validate login (pendingRoute is not null), we want to pop the loading screen.
         navigationRef.current.dispatch(StackActions.pop());
         return;
     }
@@ -211,6 +218,19 @@ function isActiveRoute(routePath) {
 }
 
 /**
+ * Navigate to the route that we originally intended to go to
+ * but the NavigationContainer was not ready when navigate() was called
+ */
+function goToPendingRoute() {
+    if (pendingRoute === null) {
+        return;
+    }
+    Log.hmmm(`[Navigation] Container now ready, going to pending route: ${pendingRoute}`);
+    navigate(pendingRoute);
+    pendingRoute = null;
+}
+
+/**
  * @returns {Promise}
  */
 function isNavigationReady() {
@@ -218,6 +238,7 @@ function isNavigationReady() {
 }
 
 function setIsNavigationReady() {
+    goToPendingRoute();
     resolveNavigationIsReadyPromise();
 }
 
