@@ -41,12 +41,6 @@ Onyx.connect({
     },
 });
 
-let lastViewedReportID;
-Onyx.connect({
-    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-    callback: val => lastViewedReportID = val ? Number(val) : null,
-});
-
 const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
@@ -331,14 +325,6 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
             // Fetch the personal details if there are any
             PersonalDetails.getFromReportParticipants(_.values(simplifiedReports));
             return simplifiedReports;
-        })
-        .catch((err) => {
-            if (err.message !== CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
-                return;
-            }
-
-            // eslint-disable-next-line no-use-before-define
-            handleInaccessibleReport();
         });
 }
 
@@ -954,13 +940,6 @@ function handleReportChanged(report) {
     }
 }
 
-/**
- * @param {String} reportID
- */
-function updateCurrentlyViewedReportID(reportID) {
-    Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(reportID));
-}
-
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: handleReportChanged,
@@ -1086,6 +1065,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
                 isEdited: true,
                 html: htmlForNewComment,
                 text: textForNewComment,
+                type: originalReportAction.message[0].type,
             }],
         },
     };
@@ -1213,48 +1193,6 @@ function navigateToConciergeChat() {
 }
 
 /**
- * Handle the navigation when report is inaccessible
- */
-function handleInaccessibleReport() {
-    Growl.error(Localize.translateLocal('notFound.chatYouLookingForCannotBeFound'));
-    navigateToConciergeChat();
-}
-
-/**
- * Creates a policy room, fetches it, and navigates to it.
- * @param {String} policyID
- * @param {String} reportName
- * @param {String} visibility
- * @return {Promise}
- */
-function createPolicyRoom(policyID, reportName, visibility) {
-    Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, true);
-    return DeprecatedAPI.CreatePolicyRoom({policyID, reportName, visibility})
-        .then((response) => {
-            if (response.jsonCode === CONST.JSON_CODE.UNABLE_TO_RETRY) {
-                Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnError'));
-                return;
-            }
-
-            if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                Growl.error(response.message);
-                return;
-            }
-
-            return fetchChatReportsByIDs([response.reportID]);
-        })
-        .then((chatReports) => {
-            const reportID = lodashGet(_.first(_.values(chatReports)), 'reportID', '');
-            if (!reportID) {
-                Log.error('Unable to grab policy room after creation', reportID);
-                return;
-            }
-            Navigation.navigate(ROUTES.getReportRoute(reportID));
-        })
-        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, false));
-}
-
-/**
  * Add a policy report (workspace room) optimistically and navigate to it.
  *
  * @param {Object} policy
@@ -1263,7 +1201,7 @@ function createPolicyRoom(policyID, reportName, visibility) {
  */
 function addPolicyReport(policy, reportName, visibility) {
     // The participants include the current user (admin) and the employees. Participants must not be empty.
-    const participants = [currentUserEmail, ...policy.employeeList];
+    const participants = _.unique([currentUserEmail, ..._.pluck(policy.employeeList, 'email')]);
     const policyReport = ReportUtils.buildOptimisticChatReport(
         participants,
         reportName,
@@ -1276,7 +1214,7 @@ function addPolicyReport(policy, reportName, visibility) {
     );
 
     // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
-    // storeCurrentlyViewedReport is called on the ReportScreen, so fetchChatReportsByIDs is called which is unnecessary since the optimistic data will be stored in Onyx.
+    // fetchReportIfNeeded is called on the ReportScreen, so fetchChatReportsByIDs is called which is unnecessary since the optimistic data will be stored in Onyx.
     // If there was an error creating the room, then fetchChatReportsByIDs throws an error and the user is navigated away from the report instead of showing the RBR error message.
     // Therefore, Onyx.set is used instead of Onyx.merge.
     const optimisticData = [
@@ -1448,7 +1386,7 @@ function viewNewReportAction(reportID, action) {
     }
 
     // If we are currently viewing this report do not show a notification.
-    if (reportID === lastViewedReportID && Visibility.isVisible()) {
+    if (reportID === Navigation.getReportIDFromRoute() && Visibility.isVisible()) {
         Log.info('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report');
         return;
     }
@@ -1484,7 +1422,7 @@ Onyx.connect({
     initWithStoredValues: false,
     callback: (actions, key) => {
         // reportID can be derived from the Onyx key
-        const reportID = parseInt(key.split('_')[1], 10);
+        const reportID = key.split('_')[1];
         if (!reportID) {
             return;
         }
@@ -1537,16 +1475,13 @@ export {
     saveReportComment,
     broadcastUserIsTyping,
     togglePinnedState,
-    updateCurrentlyViewedReportID,
     editReportComment,
     saveReportActionDraft,
     deleteReportComment,
     getSimplifiedIOUReport,
     syncChatAndIOUReports,
     navigateToConciergeChat,
-    handleInaccessibleReport,
     setReportWithDraft,
-    createPolicyRoom,
     addPolicyReport,
     navigateToConciergeChatAndDeletePolicyReport,
     setIsComposerFullSize,
