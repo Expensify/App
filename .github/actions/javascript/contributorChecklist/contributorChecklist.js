@@ -35,7 +35,6 @@ const completedAuthorChecklist = `- [x] I linked the correct issue in the \`### 
 - [x] If a new component is created I verified that:
     - [x] A similar component doesn't exist in the codebase
     - [x] All props are defined accurately and each prop has a \`/** comment above it */\`
-    - [x] Any functional components have the \`displayName\` property
     - [x] The file is named correctly
     - [x] The component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone
     - [x] The only data being stored in the state is data necessary for rendering and nothing else
@@ -82,7 +81,6 @@ const completedReviewerChecklist = `- [x] I have verified the author checklist i
 - [x] If a new component is created I verified that:
     - [x] A similar component doesn't exist in the codebase
     - [x] All props are defined accurately and each prop has a \`/** comment above it */\`
-    - [x] Any functional components have the \`displayName\` property
     - [x] The file is named correctly
     - [x] The component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone
     - [x] The only data being stored in the state is data necessary for rendering and nothing else

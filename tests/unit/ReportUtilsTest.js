@@ -4,6 +4,7 @@ import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as ReportUtils from '../../src/libs/ReportUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
 
 const currentUserEmail = 'bjorn@vikings.net';
 const participantsPersonalDetails = {
@@ -221,6 +222,84 @@ describe('ReportUtils', () => {
                         .then(() => expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat, participantsPersonalDetails)).toBe('Ragnar Lothbrok (archivado)'));
                 });
             });
+        });
+    });
+
+    describe('hasOutstandingIOU', () => {
+        it('returns false when there is no report', () => {
+            expect(ReportUtils.hasOutstandingIOU()).toBe(false);
+        });
+        it('returns false when the report has no iouReportID', () => {
+            const report = LHNTestUtils.getFakeReport();
+            expect(ReportUtils.hasOutstandingIOU(report)).toBe(false);
+        });
+        it('returns false when there is no iouReports collection', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                iouReportID: '1',
+            };
+            expect(ReportUtils.hasOutstandingIOU(report)).toBe(false);
+        });
+        it('returns false when there is no matching IOU report', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                iouReportID: '1',
+            };
+            const iouReports = {};
+            expect(ReportUtils.hasOutstandingIOU(report, undefined, iouReports)).toBe(false);
+        });
+        it('returns false when the matched IOU report does not have an owner email', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                iouReportID: '1',
+            };
+            const iouReports = {
+                reportIOUs_1: {
+                    reportID: '1',
+                },
+            };
+            expect(ReportUtils.hasOutstandingIOU(report, undefined, iouReports)).toBe(false);
+        });
+        it('returns false when the matched IOU report does not have an owner email', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                iouReportID: '1',
+            };
+            const iouReports = {
+                reportIOUs_1: {
+                    reportID: '1',
+                    ownerEmail: 'a@a.com',
+                },
+            };
+            expect(ReportUtils.hasOutstandingIOU(report, 'b@b.com', iouReports)).toBe(false);
+        });
+        it('returns true when the report has an oustanding IOU', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                iouReportID: '1',
+                hasOutstandingIOU: true,
+            };
+            const iouReports = {
+                reportIOUs_1: {
+                    reportID: '1',
+                    ownerEmail: 'a@a.com',
+                },
+            };
+            expect(ReportUtils.hasOutstandingIOU(report, 'b@b.com', iouReports)).toBe(true);
+        });
+        it('returns false when the report has no oustanding IOU', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                iouReportID: '1',
+                hasOutstandingIOU: false,
+            };
+            const iouReports = {
+                reportIOUs_1: {
+                    reportID: '1',
+                    ownerEmail: 'a@a.com',
+                },
+            };
+            expect(ReportUtils.hasOutstandingIOU(report, 'b@b.com', iouReports)).toBe(false);
         });
     });
 });

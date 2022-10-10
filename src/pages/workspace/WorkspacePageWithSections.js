@@ -111,6 +111,7 @@ class WorkspacePageWithSections extends React.Component {
                     ? this.props.children(hasVBA, policyID, isUsingECard)
                     : (
                         <ScrollView
+                            keyboardShouldPersistTaps="handled"
                             style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
                         >
                             <View style={[styles.w100, styles.flex1]}>

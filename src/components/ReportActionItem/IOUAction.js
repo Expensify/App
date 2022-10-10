@@ -14,7 +14,7 @@ const propTypes = {
     action: PropTypes.shape(reportActionPropTypes).isRequired,
 
     /** The associated chatReport */
-    chatReportID: PropTypes.number.isRequired,
+    chatReportID: PropTypes.string.isRequired,
 
     /** Is this IOUACTION the most recent? */
     isMostRecentIOUReportAction: PropTypes.bool.isRequired,
@@ -47,7 +47,7 @@ const IOUAction = (props) => {
             {((props.isMostRecentIOUReportAction && Boolean(props.action.originalMessage.IOUReportID))
                 || (props.action.originalMessage.type === 'pay')) && (
                     <IOUPreview
-                        iouReportID={props.action.originalMessage.IOUReportID}
+                        iouReportID={props.action.originalMessage.IOUReportID.toString()}
                         chatReportID={props.chatReportID}
                         onPayButtonPressed={launchDetailsModal}
                         onPreviewPressed={launchDetailsModal}
