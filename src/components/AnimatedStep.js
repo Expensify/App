@@ -21,13 +21,24 @@ const defaultProps = {
 };
 
 const AnimatedStep = (props) => {
+    function makeSlideInTranslation(translationType, fromValue) {
+        return {
+            from: {
+                [translationType]: fromValue,
+            },
+            to: {
+                [translationType]: 0,
+            },
+        };
+    }
+
     function getAnimationStyle(direction) {
         let animationStyle;
 
         if (direction === 'in') {
-            animationStyle = 'slideInRight';
+            animationStyle = makeSlideInTranslation('translateX', CONST.ANIMATED_TRANSITION_FROM_VALUE);
         } else if (direction === 'out') {
-            animationStyle = 'slideInLeft';
+            animationStyle = makeSlideInTranslation('translateX', CONST.ANIMATED_TRANSITION_FROM_VALUE);
         }
         return animationStyle;
     }
