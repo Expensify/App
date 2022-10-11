@@ -14,6 +14,7 @@ import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import {propTypes as optionsSelectorPropTypes, defaultProps as optionsSelectorDefaultProps} from './optionsSelectorPropTypes';
+import setSelection from '../../libs/setSelection';
 
 const propTypes = {
     /** Whether we should wait before focusing the TextInput, useful when using transitions on Android */
@@ -202,6 +203,7 @@ class BaseOptionsSelector extends Component {
     selectRow(option, ref) {
         if (this.props.shouldFocusOnSelectRow) {
             // Input is permanently focused on native platforms, so we always highlight the text inside of it
+            setSelection(this.textInput, 0, this.props.value.length)
             if (this.relatedTarget && ref === this.relatedTarget) {
                 this.textInput.focus();
             }
