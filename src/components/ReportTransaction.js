@@ -2,9 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import * as IOU from '../libs/actions/IOU';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
@@ -27,17 +25,8 @@ const propTypes = {
     /** Can this transaction be rejected? */
     canBeRejected: PropTypes.bool,
 
-    /** Text label for the reject transaction button */
-    rejectButtonLabelText: PropTypes.string.isRequired,
-
-    /* Onyx Props */
-
-    /** List of transactionIDs in process of rejection */
-    /* eslint-disable-next-line react/no-unused-prop-types, react/require-default-props */
-    transactionsBeingRejected: PropTypes.shape({
-        /** IOUTransactionID that's being rejected */
-        transactionID: PropTypes.bool,
-    }),
+    /** Type of the reject transaction button */
+    rejectButtonType: PropTypes.oneOf(['decline', 'cancel']).isRequired,
 };
 
 const defaultProps = {
@@ -88,10 +77,9 @@ class ReportTransaction extends Component {
                     <View style={[styles.flexRow, styles.justifyContentStart]}>
                         <Button
                             small
-                            text={this.props.rejectButtonLabelText}
+                            text={this.props.translate(`common.${this.props.rejectButtonType}`)}
                             style={[styles.mb3, styles.chatItemComposeSecondaryRowOffset]}
                             onPress={this.rejectTransaction}
-                            isLoading={this.isBeingRejected()}
                         />
                     </View>
                 )}
@@ -102,8 +90,4 @@ class ReportTransaction extends Component {
 
 ReportTransaction.defaultProps = defaultProps;
 ReportTransaction.propTypes = propTypes;
-export default withOnyx({
-    transactionsBeingRejected: {
-        key: ONYXKEYS.TRANSACTIONS_BEING_REJECTED,
-    },
-})(ReportTransaction);
+export default ReportTransaction;
