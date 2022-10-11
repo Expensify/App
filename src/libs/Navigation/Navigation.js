@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import {Keyboard} from 'react-native';
 import {DrawerActions, getPathFromState, StackActions} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
@@ -183,6 +184,19 @@ function getActiveRoute() {
 }
 
 /**
+ * @returns {String}
+ */
+function getReportIDFromRoute() {
+    if (!navigationRef.current) {
+        return '';
+    }
+
+    const drawerState = lodashGet(navigationRef.current.getState(), ['routes', 0, 'state']);
+    const reportRoute = lodashGet(drawerState, ['routes', 0]);
+    return lodashGet(reportRoute, ['params', 'reportID'], '');
+}
+
+/**
  * Check whether the passed route is currently Active or not.
  *
  * Building path with getPathFromState since navigationRef.current.getCurrentRoute().path
@@ -230,6 +244,7 @@ export default {
     setDidTapNotification,
     isNavigationReady,
     setIsNavigationReady,
+    getReportIDFromRoute,
     isDrawerReady,
     setIsDrawerReady,
     isDrawerRoute,

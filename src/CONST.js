@@ -673,6 +673,7 @@ const CONST = {
             FREE: 'free',
             PERSONAL: 'personal',
             CORPORATE: 'corporate',
+            TEAM: 'team',
         },
         ROLE: {
             ADMIN: 'admin',
@@ -804,6 +805,7 @@ const CONST = {
     },
     BRICK_ROAD_INDICATOR_STATUS: {
         ERROR: 'error',
+        INFO: 'info',
     },
     REPORT_DETAILS_MENU_ITEM: {
         MEMBERS: 'member',

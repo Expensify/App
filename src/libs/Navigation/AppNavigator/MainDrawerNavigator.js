@@ -67,7 +67,16 @@ const MainDrawerNavigator = (props) => {
     // This is usually needed after login/create account and re-launches
     return (
         <BaseDrawerNavigator
-            drawerContent={() => <SidebarScreen />}
+            drawerContent={({navigation, state}) => {
+                // This state belongs to the drawer so it should always have the ReportScreen as it's initial (and only) route
+                const reportIDFromRoute = lodashGet(state, ['routes', 0, 'params', 'reportID']);
+                return (
+                    <SidebarScreen
+                        navigation={navigation}
+                        reportIDFromRoute={reportIDFromRoute}
+                    />
+                );
+            }}
             screens={[
                 {
                     name: SCREENS.REPORT,

@@ -10,7 +10,7 @@ function setIsLoading(formID, isLoading) {
 
 /**
  * @param {String} formID
- * @param {String} errors
+ * @param {Object} errors
  */
 function setErrors(formID, errors) {
     Onyx.merge(formID, {errors});
