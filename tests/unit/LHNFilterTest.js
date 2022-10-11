@@ -4,7 +4,6 @@ import lodashGet from 'lodash/get';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
-import {TEST_MAX_SEQUENCE_NUMBER} from '../utils/LHNTestUtils';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');
@@ -217,7 +216,7 @@ describe('Sidebar', () => {
                 });
         });
 
-        describe('all combinations of hasComments, isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft', () => {
+        describe('all combinations of isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft', () => {
             // Given a report that is the active report and doesn't change
             const report1 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']);
 
@@ -235,59 +234,28 @@ describe('Sidebar', () => {
                 CONST.BETAS.POLICY_EXPENSE_CHAT,
             ];
 
-            // Given there are 7 boolean variables tested in the filtering logic:
-            // 1. hasComments
-            // 2. isArchived
-            // 3. isUserCreatedPolicyRoom
-            // 4. hasAddWorkspaceError
-            // 5. isUnread
-            // 6. isPinned
-            // 7. hasDraft
+            // Given there are 6 boolean variables tested in the filtering logic:
+            // 1. isArchived
+            // 2. isUserCreatedPolicyRoom
+            // 3. hasAddWorkspaceError
+            // 4. isUnread
+            // 5. isPinned
+            // 6. hasDraft
             // There is one setting not represented here, which is hasOutstandingIOU. In order to test that setting, there must be
             // additional reports in Onyx, so it's being left out for now. It's identical to the logic for hasDraft and isPinned though.
 
             // Given these combinations of booleans which result in the report being filtered out (not shown).
-            const booleansWhichRemovesInactiveReport = [
-                JSON.stringify([false, false, false, false, false, false, false]),
-
-                // isUnread
-                JSON.stringify([false, false, false, false, true, false, false]),
-
-                // hasAddWorkspaceError, isUnread
-                JSON.stringify([false, false, false, true, true, false, false]),
-
-                // hasAddWorkspaceError
-                JSON.stringify([false, false, false, true, false, false, false]),
-
-                // isArchived
-                JSON.stringify([false, true, false, false, false, false, false]),
-
-                // isArchived, isUnread
-                JSON.stringify([false, true, false, false, true, false, false]),
-
-                // isArchived, hasAddWorkspaceError
-                JSON.stringify([false, true, false, true, false, false, false]),
-
-                // isArchived, hasAddWorkspaceError, isUnread
-                JSON.stringify([false, true, false, true, true, false, false]),
-
-                // isArchived, isUserCreatedPolicyRoom
-                JSON.stringify([false, true, true, false, false, false, false]),
-
-                // isArchived, isUserCreatedPolicyRoom, isUnread
-                JSON.stringify([false, true, true, false, true, false, false]),
-
-                // isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError
-                JSON.stringify([false, true, true, true, false, false, false]),
-
-                // isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread
-                JSON.stringify([false, true, true, true, true, false, false]),
+            const booleansWhichRemovesActiveReport = [
+                JSON.stringify([false, false, false, false, false, false]),
+                JSON.stringify([false, true, false, false, false, false]),
+                JSON.stringify([true, false, false, false, false, false]),
+                JSON.stringify([true, true, false, false, false, false]),
             ];
 
             // When every single combination of those booleans is tested
 
             // Taken from https://stackoverflow.com/a/39734979/9114791 to generate all possible boolean combinations
-            const AMOUNT_OF_VARIABLES = 7;
+            const AMOUNT_OF_VARIABLES = 6;
             // eslint-disable-next-line no-bitwise
             for (let i = 0; i < (1 << AMOUNT_OF_VARIABLES); i++) {
                 const boolArr = [];
@@ -298,7 +266,7 @@ describe('Sidebar', () => {
 
                 // To test a failing set of conditions, comment out the for loop above and then use a hardcoded array
                 // for the specific case that's failing. You can then debug the code to see why the test is not passing.
-                // const boolArr = [false, true, false, false, false, false, false];
+                // const boolArr = [false, false, true, false, false, false];
 
                 it(`the booleans ${JSON.stringify(boolArr)}`, () => {
                     const report2 = {
@@ -311,6 +279,7 @@ describe('Sidebar', () => {
 
                         // When Onyx is updated to contain that data and the sidebar re-renders
                         .then(() => Onyx.multiSet({
+                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -320,7 +289,7 @@ describe('Sidebar', () => {
 
                         // Then depending on the outcome, either one or two reports are visible
                         .then(() => {
-                            if (booleansWhichRemovesInactiveReport.indexOf(JSON.stringify(boolArr)) > -1) {
+                            if (booleansWhichRemovesActiveReport.indexOf(JSON.stringify(boolArr)) > -1) {
                                 // Only one report visible
                                 expect(sidebarLinks.queryAllByA11yHint('Navigates to a chat')).toHaveLength(1);
                                 expect(sidebarLinks.queryAllByA11yLabel('Chat user display names')).toHaveLength(1);
@@ -530,7 +499,7 @@ describe('Sidebar', () => {
         });
     });
 
-    describe('all combinations of hasComments, isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft', () => {
+    describe('all combinations of isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft', () => {
         // Given a report that is the active report and doesn't change
         const report1 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']);
 
@@ -548,47 +517,28 @@ describe('Sidebar', () => {
             CONST.BETAS.POLICY_EXPENSE_CHAT,
         ];
 
-        // Given there are 7 boolean variables tested in the filtering logic:
-        // 1. hasComments
-        // 2. isArchived
-        // 3. isUserCreatedPolicyRoom
-        // 4. hasAddWorkspaceError
-        // 5. isUnread
-        // 6. isPinned
-        // 7. hasDraft
+        // Given there are 6 boolean variables tested in the filtering logic:
+        // 1. isArchived
+        // 2. isUserCreatedPolicyRoom
+        // 3. hasAddWorkspaceError
+        // 4. isUnread
+        // 5. isPinned
+        // 6. hasDraft
         // There is one setting not represented here, which is hasOutstandingIOU. In order to test that setting, there must be
         // additional reports in Onyx, so it's being left out for now. It's identical to the logic for hasDraft and isPinned though.
 
         // Given these combinations of booleans which result in the report being filtered out (not shown).
-        const booleansWhichRemovesInactiveReport = [
-            JSON.stringify([false, false, false, false, false, false, false]),
-            JSON.stringify([false, false, false, true, false, false, false]),
-            JSON.stringify([false, false, false, false, true, false, false]),
-            JSON.stringify([false, false, false, true, true, false, false]),
-            JSON.stringify([false, false, true, false, false, false, false]),
-            JSON.stringify([false, false, true, true, false, false, false]),
-            JSON.stringify([false, true, false, false, false, false, false]),
-            JSON.stringify([false, true, false, false, true, false, false]),
-            JSON.stringify([false, true, false, true, false, false, false]),
-            JSON.stringify([false, true, false, true, true, false, false]),
-            JSON.stringify([false, true, true, false, false, false, false]),
-            JSON.stringify([false, true, true, false, true, false, false]),
-            JSON.stringify([false, true, true, true, false, false, false]),
-            JSON.stringify([false, true, true, true, true, false, false]),
-            JSON.stringify([true, false, false, false, false, false, false]),
-            JSON.stringify([true, false, false, true, false, false, false]),
-            JSON.stringify([true, false, true, false, false, false, false]),
-            JSON.stringify([true, false, true, true, false, false, false]),
-            JSON.stringify([true, true, false, false, false, false, false]),
-            JSON.stringify([true, true, false, true, false, false, false]),
-            JSON.stringify([true, true, true, false, false, false, false]),
-            JSON.stringify([true, true, true, true, false, false, false]),
+        const booleansWhichRemovesActiveReport = [
+            JSON.stringify([false, false, false, false, false, false]),
+            JSON.stringify([false, true, false, false, false, false]),
+            JSON.stringify([true, false, false, false, false, false]),
+            JSON.stringify([true, true, false, false, false, false]),
         ];
 
         // When every single combination of those booleans is tested
 
         // Taken from https://stackoverflow.com/a/39734979/9114791 to generate all possible boolean combinations
-        const AMOUNT_OF_VARIABLES = 7;
+        const AMOUNT_OF_VARIABLES = 6;
         // eslint-disable-next-line no-bitwise
         for (let i = 0; i < (1 << AMOUNT_OF_VARIABLES); i++) {
             const boolArr = [];
@@ -622,7 +572,7 @@ describe('Sidebar', () => {
 
                     // Then depending on the outcome, either one or two reports are visible
                     .then(() => {
-                        if (booleansWhichRemovesInactiveReport.indexOf(JSON.stringify(boolArr)) > -1) {
+                        if (booleansWhichRemovesActiveReport.indexOf(JSON.stringify(boolArr)) > -1) {
                             // Only one report visible
                             expect(sidebarLinks.queryAllByA11yHint('Navigates to a chat')).toHaveLength(1);
                             expect(sidebarLinks.queryAllByA11yLabel('Chat user display names')).toHaveLength(1);
@@ -691,7 +641,7 @@ describe('Sidebar', () => {
                 // Given an archived report that has all comments read
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
-                    lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+                    lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER,
                     statusNum: CONST.REPORT.STATUS.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 };
@@ -720,7 +670,7 @@ describe('Sidebar', () => {
                     })
 
                     // When the report has a new comment and is now unread
-                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1}))
+                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1}))
 
                     // Then the report is rendered in the LHN
                     .then(() => {
