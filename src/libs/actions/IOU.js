@@ -406,8 +406,10 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             lodashGet(oneOnOneChatReport, 'maxSequenceNumber', 0) + 1,
             CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             splitAmount,
-            currency,
             comment,
+            '',
+            '',
+            oneOnOneIOUReport.reportID,
         );
 
         optimisticData.push(
