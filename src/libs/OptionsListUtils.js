@@ -336,7 +336,6 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
                 ? lastMessageText
                 : Str.removeSMSDomain(personalDetail.login);
         }
-
     } else {
         result.keyForList = personalDetail.login;
         result.alternateText = Str.removeSMSDomain(personalDetail.login);
