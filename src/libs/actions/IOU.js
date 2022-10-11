@@ -159,7 +159,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     const groupIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         lodashGet(groupChatReport, 'maxSequenceNumber', 0) + 1,
         CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-        IOUUtils.calculateAmount(participants, amount),
+        Math.round(amount * 100),
         comment,
     );
 
@@ -365,7 +365,7 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, lo
  */
 function splitBillAndOpenReport(participants, currentUserLogin, amount, comment, currency, locale) {
     const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale);
-
+debugger;
     API.write('SplitBillAndOpenReport', {
         reportID: groupData.chatReportID,
         amount,
