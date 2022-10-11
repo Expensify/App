@@ -321,7 +321,7 @@ class IOUModal extends Component {
         // @TODO: there are 3 conditionals here, which ones are correct?
         if (splits && CONST.REGEX.NUMBER.test(reportID)) {
             IOU.splitBillAndOpenReport(
-                this.participants,
+                this.state.participants,
                 this.props.currentUserPersonalDetails.login,
                 Math.round(this.state.amount * 100),
                 this.state.comment,
@@ -333,7 +333,7 @@ class IOUModal extends Component {
 
         if (splits && reportID) {
             IOU.splitBill(
-                this.participants,
+                this.state.participants,
                 this.props.currentUserPersonalDetails.login,
                 Math.round(this.state.amount * 100),
                 this.state.comment,
@@ -345,7 +345,7 @@ class IOUModal extends Component {
 
         if (splits) {
             IOU.splitBillAndOpenReport(
-                this.participants,
+                this.state.participants,
                 this.props.currentUserPersonalDetails.login,
                 Math.round(this.state.amount * 100),
                 this.state.comment,

@@ -364,6 +364,7 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, lo
  * @param {String} locale
  */
 function splitBillAndOpenReport(participants, currentUserLogin, amount, comment, currency, locale) {
+    console.log(participants)
     const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale);
 
     API.write('SplitBillAndOpenReport', {
