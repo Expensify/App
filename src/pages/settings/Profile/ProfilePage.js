@@ -211,6 +211,7 @@ class ProfilePage extends Component {
                     validate={this.validate}
                     onSubmit={this.updatePersonalDetails}
                     submitButtonText={this.props.translate('common.save')}
+                    enabledWhenOffline
                 >
                     <OfflineWithFeedback
                         pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}

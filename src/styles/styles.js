@@ -1122,9 +1122,7 @@ const styles = {
     },
 
     popoverMenuText: {
-        fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
-        fontWeight: fontWeightBold,
         color: themeColors.heading,
         maxWidth: 240,
     },
@@ -1985,6 +1983,7 @@ const styles = {
         flexDirection: 'row',
         alignItems: 'center',
         zIndex: 1,
+        cursor: 'default',
     },
 
     unreadIndicatorLine: {
