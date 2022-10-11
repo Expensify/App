@@ -700,8 +700,8 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, 
     const message = [{
         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
         isEdited: false,
-        html: `Requested ${formattedTotal} from ${debtorEmail}`,
-        text: `Requested ${formattedTotal} from ${debtorEmail}`,
+        html: comment ? `Requested ${formattedTotal} from ${debtorEmail} for ${comment}` : `Requested ${formattedTotal} from ${debtorEmail}`,
+        text: comment ? `Requested ${formattedTotal} from ${debtorEmail} for ${comment}` : `Requested ${formattedTotal} from ${debtorEmail}`,
     }];
 
     // We store amount, comment, currency in IOUDetails when type = pay
