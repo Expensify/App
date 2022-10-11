@@ -169,7 +169,9 @@ class Composer extends React.Component {
             this.setState({numberOfLines: 1});
             this.props.onClear();
         }
-        if (prevProps.defaultValue !== this.props.defaultValue
+
+        if (prevProps.value !== this.props.value
+            || prevProps.defaultValue !== this.props.defaultValue
             || prevProps.isComposerFullSize !== this.props.isComposerFullSize) {
             this.updateNumberOfLines();
         }
