@@ -29,6 +29,10 @@ function isReady() {
 Onyx.connect({
     key: ONYXKEYS.ACTIVE_CLIENTS,
     callback: (val) => {
+        if (!val) {
+            return;
+        }
+
         activeClients = val;
 
         // Remove from the beginning of the list any clients that are past the limit, to avoid having thousands of them

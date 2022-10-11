@@ -8,6 +8,7 @@ import CONST from '../../CONST';
 import getComponentDisplayName from '../../libs/getComponentDisplayName';
 import * as Policy from '../../libs/actions/Policy';
 import ONYXKEYS from '../../ONYXKEYS';
+import policyMemberPropType from '../policyMemberPropType';
 
 /**
  * @param {Object} route
@@ -55,10 +56,14 @@ const policyPropTypes = {
         */
         errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
+
+    /** The employee list of this policy */
+    policyMemberList: PropTypes.objectOf(policyMemberPropType),
 };
 
 const policyDefaultProps = {
     policy: {},
+    policyMemberList: {},
 };
 
 /*
