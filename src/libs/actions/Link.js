@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import {Linking} from 'react-native';
+import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
@@ -42,10 +43,14 @@ function openOldDotLink(url) {
     function buildOldDotURL(shortLivedAuthToken) {
         const hasHashParams = url.indexOf('#') !== -1;
         const hasURLParams = url.indexOf('?') !== -1;
+
         const authTokenParam = shortLivedAuthToken ? `authToken=${shortLivedAuthToken}` : '';
+        const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
+
+        const params = _.compact([authTokenParam, emailParam]).join('&');
 
         // If the URL contains # or ?, we can assume they don't need to have the `?` token to start listing url parameters.
-        return `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${url}${hasHashParams || hasURLParams ? '&' : '?'}${authTokenParam}&email=${encodeURIComponent(currentUserEmail)}`;
+        return `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${url}${hasHashParams || hasURLParams ? '&' : '?'}${params}`;
     }
 
     if (isNetworkOffline) {
