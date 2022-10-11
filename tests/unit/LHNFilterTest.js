@@ -33,7 +33,7 @@ describe('Sidebar', () => {
         Onyx.clear();
     });
 
-    describe('in default mode', () => {
+    describe('in default (most recent) mode', () => {
         it('excludes a report with no participants', () => {
             const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
@@ -634,5 +634,45 @@ describe('Sidebar', () => {
                     });
             });
         }
+    });
+
+    describe('Archived chats', () => {
+        it('are shown an hidden properly depending on the view mode and number of comments', () => {
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+            // Given a report with no comments
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                lastMessageTimestamp: 0,
+                // statusNum: CONST.REPORT.STATUS.CLOSED,
+                // stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            };
+
+            // Given the user is in all betas
+            const betas = [
+                CONST.BETAS.DEFAULT_ROOMS,
+                CONST.BETAS.POLICY_ROOMS,
+                CONST.BETAS.POLICY_EXPENSE_CHAT,
+            ];
+
+            // Given the LHN is in the default (most recent) view mode
+            const currentViewMode = CONST.PRIORITY_MODE.DEFAULT;
+
+            return waitForPromisesToResolve()
+
+                // When Onyx is updated to contain that data and the sidebar re-renders
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: currentViewMode,
+                    [ONYXKEYS.BETAS]: betas,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                }))
+
+                // Then the report is rendered in the LHN
+                .then(() => {
+                    const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
+                    expect(optionRows).toHaveLength(1);
+                });
+        });
     });
 });
