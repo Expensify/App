@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -153,12 +154,12 @@ class Form extends React.Component {
             if (_.isFunction(child.type)) {
                 const nestedChildren = new child.type(child.props);
 
-                if (!React.isValidElement(nestedChildren) || !nestedChildren.props.children) {
+                if (!React.isValidElement(nestedChildren) || !lodashGet(nestedChildren, 'props.children')) {
                     return child;
                 }
 
                 return React.cloneElement(nestedChildren, {
-                    children: this.childrenWrapperWithProps(nestedChildren.props.children),
+                    children: this.childrenWrapperWithProps(lodashGet(nestedChildren, 'props.children')),
                 });
             }
 
