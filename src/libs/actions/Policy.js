@@ -764,7 +764,7 @@ function generatePolicyID() {
 /**
  * Optimistically creates a new workspace and default workspace chats
  */
-function createWorkspace() {
+function createWorkspace(ownerEmail = '', makeMeAdmin = false) {
     const policyID = generatePolicyID();
     const workspaceName = generateDefaultWorkspaceName();
 
@@ -785,6 +785,8 @@ function createWorkspace() {
         announceChatReportID,
         adminsChatReportID,
         expenseChatReportID,
+        ownerEmail,
+        makeMeAdmin,
         policyName: workspaceName,
         type: CONST.POLICY.TYPE.FREE,
     },
