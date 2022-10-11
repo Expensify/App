@@ -304,7 +304,7 @@ function requestMoney(report, amount, currency, recipientEmail, debtorEmail, com
  *
  * @return {Object}
  */
-function createSplitsAndBuildOnyxData(participants, currentUserLogin, amount, comment, currency, locale) {
+function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale) {
     const currentUserEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
 
     // getChatByParticipants should be created in this PR https://github.com/Expensify/App/pull/11439/files
@@ -496,7 +496,7 @@ function createSplitsAndBuildOnyxData(participants, currentUserLogin, amount, co
  * @param {String} locale
  */
 function splitBill(participants, currentUserLogin, amount, comment, currency, locale) {
-    const {groupData, splits, onyxData} = createSplitsAndBuildOnyxData(participants, currentUserLogin, amount, comment, currency, locale);
+    const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale);
 
     API.write('SplitBill', {
         chatReportID: groupData.chatReportID,
@@ -518,7 +518,7 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, lo
  * @param {String} locale
  */
 function splitBillAndOpenReport(participants, currentUserLogin, amount, comment, currency, locale) {
-    const {groupData, splits, onyxData} = createSplitsAndBuildOnyxData(participants, currentUserLogin, amount, comment, currency, locale);
+    const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale);
 
     API.write('SplitBillAndOpenReport', {
         chatReportID: groupData.chatReportID,
