@@ -25,6 +25,13 @@ Onyx.connect({
         allPolicies[key] = val;
     },
 });
+
+let lastAccessedWorkspacePolicyID = null;
+Onyx.connect({
+    key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
+    callback: value => lastAccessedWorkspacePolicyID = value,
+});
+
 let sessionEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -84,6 +91,14 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
 }
 
 /**
+ * Stores in Onyx the policy ID of the last workspace that was accessed by the user
+ * @param {String|null} policyID
+ */
+function updateLastAccessedWorkspace(policyID) {
+    Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
+}
+
+/**
  * Used to update ALL of the policies at once. If a policy is present locally, but not in the policies object passed here it will be removed.
  * @param {Object} policyCollection - object of policy key and partial policy object
  */
@@ -107,8 +122,9 @@ function updateAllPolicies(policyCollection) {
  * Delete the workspace
  *
  * @param {String} policyID
+ * @param {Array<Object>} reports
  */
-function deleteWorkspace(policyID) {
+function deleteWorkspace(policyID, reports) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -118,13 +134,37 @@ function deleteWorkspace(policyID) {
                 errors: null,
             },
         },
+        ..._.map(reports, ({reportID}) => ({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS.CLOSED,
+            },
+        })),
+    ];
+
+    // Restore the old report stateNum and statusNum
+    const failureData = [
+        ..._.map(reports, ({reportID, stateNum, statusNum}) => ({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                stateNum,
+                statusNum,
+            },
+        })),
     ];
 
     // We don't need success data since the push notification will update
     // the onyxData for all connected clients.
-    const failureData = [];
     const successData = [];
     API.write('DeleteWorkspace', {policyID}, {optimisticData, successData, failureData});
+
+    // Reset the lastAccessedWorkspacePolicyID
+    if (policyID === lastAccessedWorkspacePolicyID) {
+        updateLastAccessedWorkspace(null);
+    }
 }
 
 /**
@@ -631,14 +671,6 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
         customUnitID,
         customUnitRate: JSON.stringify(newCustomUnitRate),
     }, {optimisticData, successData, failureData});
-}
-
-/**
- * Stores in Onyx the policy ID of the last workspace that was accessed by the user
- * @param {String} policyID
- */
-function updateLastAccessedWorkspace(policyID) {
-    Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
 }
 
 /**

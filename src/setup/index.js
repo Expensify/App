@@ -23,7 +23,6 @@ export default function () {
     Onyx.init({
         keys: ONYXKEYS,
         safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-        keysToDisableSyncEvents: [ONYXKEYS.CURRENTLY_VIEWED_REPORTID],
         captureMetrics: Metrics.canCaptureOnyxMetrics(),
         debugSetState: CONFIG.ONYX_DEBUG_SET_STATE,
         initialKeyStates: {
