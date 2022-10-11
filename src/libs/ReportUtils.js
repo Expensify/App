@@ -249,7 +249,7 @@ function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
  * @returns {Boolean}
  */
 function isArchivedRoom(report) {
-    return report.statusNum === CONST.REPORT.STATUS.CLOSED && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
+    return lodashGet(report, ['statusNum']) === CONST.REPORT.STATUS.CLOSED && lodashGet(report, ['stateNum']) === CONST.REPORT.STATE_NUM.SUBMITTED;
 }
 
 /**
