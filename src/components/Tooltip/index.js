@@ -38,6 +38,10 @@ class Tooltip extends PureComponent {
     }
 
     componentDidUpdate(prevProps) {
+        if (TooltipSense.isActive() && this.isTooltipSenseInitiator && this.shouldStartShowAnimation) {
+            this.hideTooltip();
+        }
+
         if (this.props.windowWidth === prevProps.windowWidth && this.props.windowHeight === prevProps.windowHeight) {
             return;
         }
