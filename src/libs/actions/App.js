@@ -187,6 +187,9 @@ function setUpPoliciesAndNavigate(session) {
     const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
     const url = new URL(currentUrl);
     const exitTo = url.searchParams.get('exitTo');
+
+    // Approved Accountants and Guides can enter a flow where they make a workspace for other users,
+    // and those are passed as a search parameter when using transition links
     const ownerEmail = url.searchParams.get('ownerEmail');
     const makeMeAdmin = url.searchParams.get('makeMeAdmin');
 
