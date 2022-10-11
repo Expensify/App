@@ -643,8 +643,17 @@ function buildOptimisticReportAction(sequenceNumber, text, file) {
     };
 }
 
-/*
+/**
  * Builds an optimistic IOU report with a randomly generated reportID
+ *
+ * @param {String} ownerEmail - Email of the person generating the IOU.
+ * @param {String} recipientEmail - Email of the person receiving the IOU.
+ * @param {Number} total - IOU amount in cents.
+ * @param {String} chatReportID - Report ID of the chat where the IOU is.
+ * @param {String} currency - IOU currency.
+ * @param {String} locale - Locale where the IOU is created
+ *
+ * @returns {Object}
  */
 function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportID, currency, locale) {
     const formattedTotal = NumberFormatUtils.format(locale,
