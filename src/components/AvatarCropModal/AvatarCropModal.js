@@ -3,7 +3,7 @@ import React, {
     useCallback, useEffect, useState,
 } from 'react';
 import {
-    ActivityIndicator, Image, View,
+    ActivityIndicator, Image, View, Pressable,
 } from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {
@@ -67,6 +67,7 @@ const AvatarCropModal = (props) => {
     const scale = useSharedValue(CONST.AVATAR_CROP_MODAL.MIN_SCALE);
     const rotation = useSharedValue(0);
     const translateSlider = useSharedValue(0);
+    const isPressableEnabled = useSharedValue(true);
 
     const [imageContainerSize, setImageContainerSize] = useState(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const [sliderContainerSize, setSliderContainerSize] = useState(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
@@ -164,6 +165,15 @@ const AvatarCropModal = (props) => {
     }, [imageContainerSize, scale, clamp]);
 
     /**
+     * Calculate newScale value
+     * @param {Number} newSliderValue
+     * @returns {Number}
+     */
+    const newScaleValue = newSliderValue => ((newSliderValue / sliderContainerSize)
+                * (CONST.AVATAR_CROP_MODAL.MAX_SCALE - CONST.AVATAR_CROP_MODAL.MIN_SCALE))
+                + CONST.AVATAR_CROP_MODAL.MIN_SCALE;
+
+    /**
      * Calculates new x & y image translate value on image panning
      * and updates image's offset.
      */
@@ -194,12 +204,11 @@ const AvatarCropModal = (props) => {
             // since that is required for proper work of turbo modules.
             // eslint-disable-next-line no-param-reassign
             context.translateSliderX = translateSlider.value;
+            isPressableEnabled.value = false;
         },
         onActive: (event, context) => {
             const newSliderValue = clamp(event.translationX + context.translateSliderX, [0, sliderContainerSize]);
-            const newScale = ((newSliderValue / sliderContainerSize)
-                * (CONST.AVATAR_CROP_MODAL.MAX_SCALE - CONST.AVATAR_CROP_MODAL.MIN_SCALE))
-                + CONST.AVATAR_CROP_MODAL.MIN_SCALE;
+            const newScale = newScaleValue(newSliderValue);
 
             const differential = newScale / scale.value;
 
@@ -210,7 +219,8 @@ const AvatarCropModal = (props) => {
             const newY = translateY.value * differential;
             updateImageOffset(newX, newY);
         },
-    }, [imageContainerSize, clamp, translateX, translateY, translateSlider, scale, sliderContainerSize]);
+        onEnd: () => isPressableEnabled.value = true,
+    }, [imageContainerSize, clamp, translateX, translateY, translateSlider, scale, sliderContainerSize, isPressableEnabled]);
 
     // This effect is needed to prevent the incorrect position of
     // the slider's knob when the window's layout changes
@@ -295,9 +305,18 @@ const AvatarCropModal = (props) => {
                             />
                             <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthAndHeightStyle(imageContainerSize)]}>
                                 <Icon src={Expensicons.Zoom} fill={colors.gray3} />
-                                <View style={[styles.mh5, styles.flex1]} onLayout={initializeSliderContainer}>
+                                <Pressable
+                                    style={[styles.mh5, styles.flex1]}
+                                    onLayout={initializeSliderContainer}
+                                    onPressIn={(e) => {
+                                        if (!isPressableEnabled.value) { return; }
+                                        const newScale = newScaleValue(e.nativeEvent.locationX);
+                                        translateSlider.value = e.nativeEvent.locationX;
+                                        scale.value = newScale;
+                                    }}
+                                >
                                     <Slider sliderValue={translateSlider} onGesture={panSliderGestureEventHandler} />
-                                </View>
+                                </Pressable>
                                 <Button
                                     medium
                                     icon={Expensicons.Rotate}
