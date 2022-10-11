@@ -376,7 +376,6 @@ class ReportActionCompose extends React.Component {
     /**
      * Update the value of the comment in Onyx
      *
-
      * @param {String} comment
      * @param {Boolean} shouldDebounceSaveComment
      */
