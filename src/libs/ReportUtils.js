@@ -244,16 +244,11 @@ function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
 /**
  * Whether the provided report is an archived room
  * @param {Object} report
- * @param {String} report.chatType
  * @param {Number} report.stateNum
  * @param {Number} report.statusNum
  * @returns {Boolean}
  */
 function isArchivedRoom(report) {
-    // if (!isChatRoom(report) && !isPolicyExpenseChat(report)) {
-    //     return false;
-    // }
-
     return report.statusNum === CONST.REPORT.STATUS.CLOSED && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
 }
 
