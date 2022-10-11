@@ -129,8 +129,10 @@ function pushDrawerRoute(route) {
 
         // Keep the same key so the ReportScreen does not completely re-mount
         if (newScreenName === SCREENS.REPORT) {
-            const prevReportRoute = _.find(state.routes, reportRoute => reportRoute.name === SCREENS.REPORT);
-            routes[0].key = prevReportRoute.key;
+            const prevReportRoute = getRouteFromState(getActiveState());
+            if (prevReportRoute.key) {
+                routes[0].key = prevReportRoute.key;
+            }
         }
 
         return CommonActions.reset({
