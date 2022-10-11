@@ -140,7 +140,7 @@ function addPersonalBankAccount(account, password) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: true,
-                    error: '',
+                    errors: null,
                 },
             },
         ],
@@ -150,7 +150,7 @@ function addPersonalBankAccount(account, password) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
-                    error: '',
+                    errors: null,
                     shouldShowSuccess: true,
                 },
             },
@@ -161,7 +161,9 @@ function addPersonalBankAccount(account, password) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
-                    error: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                    errors: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                    },
                 },
             },
         ],
@@ -326,19 +328,6 @@ function connectBankAccountManually(bankAccountID, accountNumber, routingNumber,
     }, getVBBADataForOnyx());
 }
 
-/**
- * Verify the user's identity via Onfido
- *
- * @param {Number} bankAccountID
- * @param {Object} onfidoData
- */
-function verifyIdentityForBankAccount(bankAccountID, onfidoData) {
-    API.write('VerifyIdentityForBankAccount', {
-        bankAccountID,
-        onfidoData: JSON.stringify(onfidoData),
-    }, getVBBADataForOnyx());
-}
-
 export {
     addPersonalBankAccount,
     connectBankAccountManually,
@@ -349,7 +338,6 @@ export {
     openReimbursementAccountPage,
     updatePersonalInformationForBankAccount,
     validateBankAccount,
-    verifyIdentityForBankAccount,
     updateCompanyInformationForBankAccount,
     connectBankAccountWithPlaid,
     updatePlaidData,
