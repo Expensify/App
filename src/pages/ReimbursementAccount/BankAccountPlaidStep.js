@@ -11,8 +11,9 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
-import ReimbursementAccountForm from './ReimbursementAccountForm';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
+import Form from '../../components/Form';
+import styles from '../../styles/styles';
 
 const propTypes = {
     /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
@@ -69,7 +70,14 @@ class BankAccountPlaidStep extends React.Component {
                     onBackButtonPress={() => BankAccounts.setBankAccountSubStep(null)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                <ReimbursementAccountForm onSubmit={this.submit} hideSubmitButton={_.isUndefined(this.props.plaidData.selectedPlaidBankAccount)}>
+                <Form
+                    formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+                    validate={() => ({})}
+                    onSubmit={this.submit}
+                    submitButtonText={this.props.translate('common.saveAndContinue')}
+                    style={[styles.mh5, styles.flexGrow1]}
+                    isSubmitButtonVisible={!_.isUndefined(this.props.plaidData.selectedPlaidBankAccount)}
+                >
                     <AddPlaidBankAccount
                         text={this.props.translate('bankAccount.plaidBodyCopy')}
                         onSelect={(params) => {
@@ -81,7 +89,7 @@ class BankAccountPlaidStep extends React.Component {
                         allowDebit
                         bankAccountID={bankAccountID}
                     />
-                </ReimbursementAccountForm>
+                </Form>
             </>
         );
     }
