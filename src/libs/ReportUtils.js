@@ -647,11 +647,10 @@ function buildOptimisticReportAction(sequenceNumber, text, file) {
  * Builds an optimistic IOU report with a randomly generated reportID
  */
 function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportID, currency, locale) {
-    const formattedTotal = NumberFormatUtils.format(locale,
-        total, {
-            style: 'currency',
-            currency,
-        });
+    const formattedTotal = NumberFormatUtils.format(locale, total / 100, {
+        style: 'currency',
+        currency,
+    });
     return {
         cachedTotal: formattedTotal,
         chatReportID,
