@@ -310,8 +310,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     // getChatByParticipants should be created in this PR https://github.com/Expensify/App/pull/11439/files
     // const existingGroupChatReport = ReportUtils.getChatByParticipants(participants);
     const existingGroupChatReport = false;
-    const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(participants);
-    const groupCreatedReportAction = existingGroupChatReport && ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
+    const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(_.pluck(participants, 'login'));
+    const groupCreatedReportAction = existingGroupChatReport ? {} : ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
     const groupIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         lodashGet(groupChatReport, 'maxSequenceNumber', 0) + 1,
         CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -334,7 +334,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChatReport.reportID}`,
             value: {
-                0: groupCreatedReportAction,
+                ...groupCreatedReportAction,
                 [groupIOUReportAction.sequenceNumber]: groupIOUReportAction,
             },
         },
@@ -385,7 +385,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         // getChatByParticipants should be created in this PR https://github.com/Expensify/App/pull/11439/files
         // const existingOneOnOneChatReport = ReportUtils.getChatByParticipants([currentUserEmail, email]);
         const existingOneOnOneChatReport = false;
-        const oneOnOneChatReport = existingOneOnOneChatReport || ReportUtils.buildOptimisticChatReport([currentUserEmail, email]);
+        const oneOnOneChatReport = existingOneOnOneChatReport || ReportUtils.buildOptimisticChatReport([email]);
         let oneOnOneIOUReport;
         if (oneOnOneChatReport.iouReportID) {
             oneOnOneIOUReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneChatReport.iouReportID}`];
@@ -401,7 +401,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             );
         }
 
-        const oneOnOneCreatedReportAction = existingOneOnOneChatReport && ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
+        const oneOnOneCreatedReportAction = existingOneOnOneChatReport ? {} : ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
         const oneOnOneIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
             lodashGet(oneOnOneChatReport, 'maxSequenceNumber', 0) + 1,
             CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -430,7 +430,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
                 value: {
-                    0: oneOnOneCreatedReportAction,
+                    ...oneOnOneCreatedReportAction,
                     [oneOnOneIOUReportAction.sequenceNumber]: oneOnOneIOUReportAction,
                 },
             },
@@ -473,7 +473,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             amount: splitAmount,
             iouReportID: oneOnOneIOUReport.reportID,
             chatReportID: oneOnOneChatReport.reportID,
-            transactionID: oneOnOneIOUReportAction.originalMessage.transactionID,
+            transactionID: oneOnOneIOUReportAction.originalMessage.IOUTransactionID,
             reportActionID: oneOnOneIOUReportAction.reportActionID,
         });
     });
@@ -481,7 +481,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     return {
         groupData: {
             chatReportID: groupChatReport.reportID,
-            transactionID: groupIOUReportAction.originalMessage.transactionID,
+            transactionID: groupIOUReportAction.originalMessage.IOUTransactionID,
             reportActionID: groupIOUReportAction.reportActionID,
         },
         splits,
