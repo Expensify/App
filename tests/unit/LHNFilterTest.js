@@ -732,7 +732,7 @@ describe('Sidebar', () => {
             it('is shown when it is pinned', () => {
                 const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-                // Given an archived report that has unread comments
+                // Given an archived report that is not pinned
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
                     isPinned: false,
@@ -765,6 +765,52 @@ describe('Sidebar', () => {
 
                     // When the report is pinned
                     .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {isPinned: true}))
+
+                    // Then the report is rendered in the LHN
+                    .then(() => {
+                        const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
+                        expect(optionRows).toHaveLength(1);
+                    });
+            });
+
+            it('is shown when it is the active report', () => {
+                let sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+                // Given an archived report that is not the active report
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    statusNum: CONST.REPORT.STATUS.CLOSED,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                };
+
+                // Given the user is in all betas
+                const betas = [
+                    CONST.BETAS.DEFAULT_ROOMS,
+                    CONST.BETAS.POLICY_ROOMS,
+                    CONST.BETAS.POLICY_EXPENSE_CHAT,
+                ];
+
+                return waitForPromisesToResolve()
+
+                    // When Onyx is updated to contain that data and the sidebar re-renders
+                    .then(() => Onyx.multiSet({
+                        [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                        [ONYXKEYS.BETAS]: betas,
+                        [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                        [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                    }))
+
+                    // Then the report is not rendered in the LHN
+                    .then(() => {
+                        const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
+                        expect(optionRows).toHaveLength(0);
+                    })
+
+                    // When sidebar is rendered with the active report ID matching the archived report in Onyx
+                    .then(() => {
+                        sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID);
+                        return waitForPromisesToResolve();
+                    })
 
                     // Then the report is rendered in the LHN
                     .then(() => {
