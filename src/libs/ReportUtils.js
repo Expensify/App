@@ -638,12 +638,11 @@ function buildOptimisticReportAction(sequenceNumber, text, file) {
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, currency, locale) {
-    const formattedTotal = NumberFormatUtils.format(locale,
-        total, {
-            style: 'currency',
-            currency,
-        });
+function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportID, currency, locale) {
+    const formattedTotal = NumberFormatUtils.format(locale, total / 100, {
+        style: 'currency',
+        currency,
+    });
     return {
         cachedTotal: formattedTotal,
         chatReportID,
