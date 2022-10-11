@@ -336,11 +336,6 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
                 : Str.removeSMSDomain(personalDetail.login);
         }
 
-        const reportName = ReportUtils.getReportName(report, personalDetailMap, policies);
-        result.text = reportName;
-        result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
-        result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
-        result.subtitle = subtitle;
     } else {
         result.keyForList = personalDetail.login;
         result.alternateText = Str.removeSMSDomain(personalDetail.login);
@@ -359,6 +354,12 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         result.phoneNumber = personalDetail.phoneNumber;
         result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
+
+    const reportName = ReportUtils.getReportName(report, personalDetailMap, policies);
+    result.text = reportName;
+    result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
+    result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
+    result.subtitle = subtitle;
 
     return result;
 }
