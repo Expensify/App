@@ -211,7 +211,7 @@ class ReportScreen extends React.Component {
         const isTransitioning = !isReportLoaded;
         return (
             <Freeze
-                freeze={this.props.isDrawerOpen}
+                freeze={this.props.isSmallScreenWidth && this.props.isDrawerOpen}
             >
                 <ScreenWrapper
                     style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
