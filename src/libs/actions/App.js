@@ -187,12 +187,14 @@ function setUpPoliciesAndNavigate(session) {
     const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
     const url = new URL(currentUrl);
     const exitTo = url.searchParams.get('exitTo');
+    const ownerEmail = url.searchParams.get('ownerEmail');
+    const makeMeAdmin = url.searchParams.get('makeMeAdmin');
 
     const shouldCreateFreePolicy = !isLoggingInAsNewUser
                         && Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
                         && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        Policy.createWorkspace();
+        Policy.createWorkspace(ownerEmail, makeMeAdmin);
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
