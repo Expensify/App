@@ -165,10 +165,137 @@ function deletePaymentBankAccount(bankAccountID) {
     });
 }
 
+/**
+* Update the user's personal information on the bank account in database.
+*
+* This action is called by the requestor step in the Verified Bank Account flow
+*
+* @param {Object} params
+*
+* @param {String} [params.dob]
+* @param {String} [params.firstName]
+* @param {String} [params.lastName]
+* @param {String} [params.requestorAddressStreet]
+* @param {String} [params.requestorAddressCity]
+* @param {String} [params.requestorAddressState]
+* @param {String} [params.requestorAddressZipCode]
+* @param {String} [params.ssnLast4]
+* @param {String} [params.isControllingOfficer]
+* @param {Object} [params.onfidoData]
+* @param {Boolean} [params.isOnfidoSetupComplete]
+*/
+function updatePersonalInformationForBankAccount(params) {
+    API.write('UpdatePersonalInformationForBankAccount', params, getVBBADataForOnyx());
+}
+
+/**
+ * @param {Number} bankAccountID
+ * @param {String} validateCode
+ */
+function validateBankAccount(bankAccountID, validateCode) {
+    API.write('ValidateBankAccountWithTransactions', {
+        bankAccountID,
+        validateCode,
+    }, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                isLoading: true,
+                errors: null,
+            },
+        }],
+        successData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        }],
+    });
+}
+
+/**
+ * Updates the bank account in the database with the company step data
+ *
+ * @param {Object} bankAccount
+ * @param {Number} [bankAccount.bankAccountID]
+ *
+ * Fields from BankAccount step
+ * @param {String} [bankAccount.routingNumber]
+ * @param {String} [bankAccount.accountNumber]
+ * @param {String} [bankAccount.bankName]
+ * @param {String} [bankAccount.plaidAccountID]
+ * @param {String} [bankAccount.plaidAccessToken]
+ * @param {Boolean} [bankAccount.isSavings]
+ *
+ * Fields from Company step
+ * @param {String} [bankAccount.companyName]
+ * @param {String} [bankAccount.addressStreet]
+ * @param {String} [bankAccount.addressCity]
+ * @param {String} [bankAccount.addressState]
+ * @param {String} [bankAccount.addressZipCode]
+ * @param {String} [bankAccount.companyPhone]
+ * @param {String} [bankAccount.website]
+ * @param {String} [bankAccount.companyTaxID]
+ * @param {String} [bankAccount.incorporationType]
+ * @param {String} [bankAccount.incorporationState]
+ * @param {String} [bankAccount.incorporationDate]
+ * @param {Boolean} [bankAccount.hasNoConnectionToCannabis]
+ */
+function updateCompanyInformationForBankAccount(bankAccount) {
+    API.write('UpdateCompanyInformationForBankAccount', bankAccount, getVBBADataForOnyx());
+}
+
+/**
+ * Create the bank account with manually entered data.
+ *
+ * @param {String} [bankAccountID]
+ * @param {String} [accountNumber]
+ * @param {String} [routingNumber]
+ * @param {String} [plaidMask]
+ *
+ */
+function connectBankAccountManually(bankAccountID, accountNumber, routingNumber, plaidMask) {
+    API.write('ConnectBankAccountManually', {
+        bankAccountID,
+        accountNumber,
+        routingNumber,
+        plaidMask,
+    }, getVBBADataForOnyx());
+}
+
+/**
+ * Verify the user's identity via Onfido
+ *
+ * @param {Number} bankAccountID
+ * @param {Object} onfidoData
+ */
+ function verifyIdentityForBankAccount(bankAccountID, onfidoData) {
+    API.write('VerifyIdentityForBankAccount', {
+        bankAccountID,
+        onfidoData: JSON.stringify(onfidoData),
+    }, getVBBADataForOnyx());
+}
+
 export {
     addPersonalBankAccount,
     connectBankAccountManually,
-    deletePaymentBankAccount,
     clearPersonalBankAccount,
     clearPlaid,
+    clearOnfidoToken,
+    connectBankAccountWithPlaid,
+    deletePaymentBankAccount,
+    updateCompanyInformationForBankAccount,
+    updatePersonalInformationForBankAccount,
+    updatePlaidData,
+    validateBankAccount,
+    verifyIdentityForBankAccount,
 };
