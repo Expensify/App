@@ -12,7 +12,6 @@ class Trie {
     * @param {Object} [metaData] - attach additional data to the word
     * @param {TrieNode} [node]
     * @param {Boolean} [allowEmptyWords] - empty word doesn't have any char, you shouldn't pass a true value for it because we are disallowing adding an empty word
-    * @returns {void}
     */
     add(word, metaData = {}, node = this.root, allowEmptyWords = false) {
         const newNode = node;
@@ -26,9 +25,9 @@ class Trie {
         }
         if (!newNode.children[word[0]]) {
             newNode.children[word[0]] = new TrieNode();
-            return this.add(word.substring(1), metaData, newNode.children[word[0]], true);
+            this.add(word.substring(1), metaData, newNode.children[word[0]], true);
         }
-        return this.add(word.substring(1), metaData, newNode.children[word[0]], true);
+        this.add(word.substring(1), metaData, newNode.children[word[0]], true);
     }
 
     /**
@@ -53,15 +52,11 @@ class Trie {
     * Update a word data in the Trie.
     * @param {String} word
     * @param {Object} metaData
-    * @returns {void}
     */
     update(word, metaData) {
         let newWord = word;
         let node = this.root;
         while (newWord.length > 1) {
-            if (!node.children[newWord[0]]) {
-                return null;
-            }
             node = node.children[newWord[0]];
             newWord = newWord.substring(1);
         }
