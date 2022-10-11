@@ -639,7 +639,7 @@ describe('Sidebar', () => {
 
     describe('Archived chat', () => {
         describe('in default (most recent) mode', () => {
-            it('is shown when it has comments', () => {
+            it('is shown regardless if it has comments or not', () => {
                 const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
                 // Given an archived report with no comments
@@ -667,10 +667,10 @@ describe('Sidebar', () => {
                         [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                     }))
 
-                    // Then the report is not rendered in the LHN
+                    // Then the report is rendered in the LHN
                     .then(() => {
                         const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
-                        expect(optionRows).toHaveLength(0);
+                        expect(optionRows).toHaveLength(1);
                     })
 
                     // When the report has comments
@@ -819,7 +819,7 @@ describe('Sidebar', () => {
                     });
             });
 
-            it('is hidden when it is empty', () => {
+            it('is hidden regardless of how many comments it has', () => {
                 const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
                 // Given an archived report with no comments
@@ -856,10 +856,10 @@ describe('Sidebar', () => {
                     // When the report has comments
                     .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {lastMessageTimestamp: Date.now()}))
 
-                    // Then the report is rendered in the LHN
+                    // Then the report is not rendered in the LHN
                     .then(() => {
                         const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
-                        expect(optionRows).toHaveLength(1);
+                        expect(optionRows).toHaveLength(0);
                     });
             });
         });
