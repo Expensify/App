@@ -676,7 +676,7 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
  * @param {String} comment - User comment for the IOU.
  * @param {String} paymentType - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
  * @param {String} existingIOUTransactionID - Only required if the IOUReportAction type is oneOf(cancel, decline). Generates a randomID as default.
- * @param {Number} existingIOUReportID - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
+ * @param {String} existingIOUReportID - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
  * @param {String} debtorEmail - Email of the user that has to pay
  *
  * @returns {Object}
