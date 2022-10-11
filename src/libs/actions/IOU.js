@@ -135,8 +135,10 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
     } else {
         iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, 'en');
     }
+    const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
+    chatReport.maxSequenceNumber = newSequenceNumber;
     const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
-        Report.getMaxSequenceNumber(chatReport.reportID),
+        newSequenceNumber,
         'create',
         amount,
         currency,
