@@ -239,6 +239,95 @@ function rejectTransaction({
 }
 
 /**
+ * Cancels a transaction in iouReport. Declining and cancelling transactions are done via the same Auth command.
+ *
+ * @param {Object} params
+ * @param {Number} params.reportID
+ * @param {String} params.transactionID
+ */
+ function cancelMoneyRequest(iouReportID, transactionID) {
+    const chatReport = lodashGet(report, 'reportID', null) ? report : ReportUtils.buildOptimisticChatReport(participants);
+    Onyx.merge(ONYXKEYS.TRANSACTIONS_BEING_REJECTED, {
+        [transactionID]: true,
+    });
+    let iouReport;
+    if (chatReport.hasOutstandingIOU) {
+        iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`];
+        iouReport.total += amount;
+    } else {
+        iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, 'en');
+    }
+    const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
+    chatReport.maxSequenceNumber = newSequenceNumber;
+    const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
+        newSequenceNumber,
+        'create',
+        amount,
+        currency,
+        comment,
+        '',
+        '',
+        iouReport.reportID,
+        debtorEmail,
+    );
+
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticReportAction.sequenceNumber]: {
+                    ...optimisticReportAction,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: chatReport,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReport.reportID}`,
+            value: iouReport,
+        },
+    ];
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticReportAction.sequenceNumber]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticReportAction.sequenceNumber]: {
+                    ...optimisticReportAction,
+                    pendingAction: null,
+                    error: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                },
+            },
+        },
+    ];
+    API.write('CancelMoneyRequest', {
+        transactionID,
+        iouReportID: iouReport.reportID,
+        comment: '',
+        clientID: optimisticReportAction.sequenceNumber,
+        cancelMoneyRequestReportActionID: optimisticReportAction.reportActionID,
+    }, {optimisticData, successData, failureData});
+    Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
+}
+
+/**
  * Sets IOU'S selected currency
  *
  * @param {String} selectedCurrencyCode
@@ -321,6 +410,7 @@ function payIOUReport({
 }
 
 export {
+    cancelMoneyRequest,
     createIOUTransaction,
     createIOUSplit,
     createIOUSplitGroup,

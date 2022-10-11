@@ -232,18 +232,6 @@ function PreferredLocale_Update(parameters) {
 /**
  * @param {Object} parameters
  * @param {Number} parameters.reportID
- * @param {String} parameters.transactionID
- * @returns {Promise}
- */
-function RejectTransaction(parameters) {
-    const commandName = 'RejectTransaction';
-    requireParameters(['reportID', 'transactionID'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {Number} parameters.reportID
  * @returns {Promise}
  */
 function Report_GetHistory(parameters) {
