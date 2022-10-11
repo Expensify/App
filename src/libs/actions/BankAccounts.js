@@ -278,7 +278,7 @@ function connectBankAccountManually(bankAccountID, accountNumber, routingNumber,
  * @param {Number} bankAccountID
  * @param {Object} onfidoData
  */
- function verifyIdentityForBankAccount(bankAccountID, onfidoData) {
+function verifyIdentityForBankAccount(bankAccountID, onfidoData) {
     API.write('VerifyIdentityForBankAccount', {
         bankAccountID,
         onfidoData: JSON.stringify(onfidoData),
