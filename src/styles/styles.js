@@ -1410,7 +1410,7 @@ const styles = {
     }, 0),
 
     textInputFullCompose: {
-        alignSelf: 'flex-start',
+        alignSelf: 'stretch',
         flex: 1,
         maxHeight: '100%',
     },
