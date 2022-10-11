@@ -323,7 +323,7 @@ class IOUModal extends Component {
             IOU.splitBillAndOpenReport(
                 this.state.participants,
                 this.props.currentUserPersonalDetails.login,
-                Math.round(this.state.amount * 100),
+                this.state.amount,
                 this.state.comment,
                 this.props.iou.selectedCurrencyCode,
                 this.props.preferredLocale,
@@ -335,7 +335,7 @@ class IOUModal extends Component {
             IOU.splitBill(
                 this.state.participants,
                 this.props.currentUserPersonalDetails.login,
-                Math.round(this.state.amount * 100),
+                this.state.amount,
                 this.state.comment,
                 this.props.iou.selectedCurrencyCode,
                 this.props.preferredLocale,
@@ -347,7 +347,7 @@ class IOUModal extends Component {
             IOU.splitBillAndOpenReport(
                 this.state.participants,
                 this.props.currentUserPersonalDetails.login,
-                Math.round(this.state.amount * 100),
+                this.state.amount,
                 this.state.comment,
                 this.props.iou.selectedCurrencyCode,
                 this.props.preferredLocale,

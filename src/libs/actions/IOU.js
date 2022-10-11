@@ -159,7 +159,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     const groupIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         lodashGet(groupChatReport, 'maxSequenceNumber', 0) + 1,
         CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-        amount,
+        IOUUtils.calculateAmount(participants, amount),
         comment,
     );
 
@@ -249,7 +249,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         const oneOnOneIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
             lodashGet(oneOnOneChatReport, 'maxSequenceNumber', 0) + 1,
             CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            amount,
+            splitAmount,
             currency,
             comment,
         );
