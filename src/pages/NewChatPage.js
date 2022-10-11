@@ -182,7 +182,7 @@ class NewChatPage extends Component {
      */
     createChat(option) {
         let newChat = {};
-        const formattedLogin = OptionsListUtils.addSMSDomainIfPhoneNumber(option.login);
+        const formattedLogin = OptionsListUtils.addSMSDomainIfPhoneNumber(option.login).toLowerCase();
         const chat = ReportUtils.getChatByParticipants([formattedLogin], this.props.reports);
         if (!chat) {
             newChat = ReportUtils.buildOptimisticChatReport([formattedLogin]);
