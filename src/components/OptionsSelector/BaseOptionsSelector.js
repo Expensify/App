@@ -202,7 +202,6 @@ class BaseOptionsSelector extends Component {
     selectRow(option, ref) {
         if (this.props.shouldFocusOnSelectRow) {
             // Input is permanently focused on native platforms, so we always highlight the text inside of it
-            this.textInput.setNativeProps({selection: {start: 0, end: this.props.value.length}});
             if (this.relatedTarget && ref === this.relatedTarget) {
                 this.textInput.focus();
             }
@@ -232,12 +231,7 @@ class BaseOptionsSelector extends Component {
                 ref={el => this.textInput = el}
                 value={this.props.value}
                 label={this.props.textInputLabel}
-                onChangeText={(text) => {
-                    if (this.props.shouldFocusOnSelectRow) {
-                        this.textInput.setNativeProps({selection: null});
-                    }
-                    this.props.onChangeText(text);
-                }}
+                onChangeText={this.props.onChangeText}
                 placeholder={this.props.placeholderText || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                 onBlur={(e) => {
                     if (!this.props.shouldFocusOnSelectRow) {
