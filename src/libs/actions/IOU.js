@@ -343,7 +343,7 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, lo
     const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale);
 
     API.write('SplitBill', {
-        chatReportID: groupData.chatReportID,
+        reportID: groupData.chatReportID,
         amount,
         splits,
         currency,
@@ -365,7 +365,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
     const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale);
 
     API.write('SplitBillAndOpenReport', {
-        chatReportID: groupData.chatReportID,
+        reportID: groupData.chatReportID,
         amount,
         splits,
         currency,
