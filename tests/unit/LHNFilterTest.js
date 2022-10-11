@@ -4,6 +4,7 @@ import lodashGet from 'lodash/get';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
+import {TEST_MAX_SEQUENCE_NUMBER} from '../utils/LHNTestUtils';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');
@@ -636,43 +637,185 @@ describe('Sidebar', () => {
         }
     });
 
-    describe('Archived chats', () => {
-        it('are shown an hidden properly depending on the view mode and number of comments', () => {
-            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+    describe('Archived chat', () => {
+        describe('in default (most recent) mode', () => {
+            it('is shown when it has comments', () => {
+                const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            // Given a report with no comments
-            const report = {
-                ...LHNTestUtils.getFakeReport(),
-                lastMessageTimestamp: 0,
-                // statusNum: CONST.REPORT.STATUS.CLOSED,
-                // stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-            };
+                // Given an archived report with no comments
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    lastMessageTimestamp: 0,
+                    statusNum: CONST.REPORT.STATUS.CLOSED,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                };
 
-            // Given the user is in all betas
-            const betas = [
-                CONST.BETAS.DEFAULT_ROOMS,
-                CONST.BETAS.POLICY_ROOMS,
-                CONST.BETAS.POLICY_EXPENSE_CHAT,
-            ];
+                // Given the user is in all betas
+                const betas = [
+                    CONST.BETAS.DEFAULT_ROOMS,
+                    CONST.BETAS.POLICY_ROOMS,
+                    CONST.BETAS.POLICY_EXPENSE_CHAT,
+                ];
 
-            // Given the LHN is in the default (most recent) view mode
-            const currentViewMode = CONST.PRIORITY_MODE.DEFAULT;
+                return waitForPromisesToResolve()
 
-            return waitForPromisesToResolve()
+                    // When Onyx is updated to contain that data and the sidebar re-renders
+                    .then(() => Onyx.multiSet({
+                        [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
+                        [ONYXKEYS.BETAS]: betas,
+                        [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                        [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                    }))
 
-                // When Onyx is updated to contain that data and the sidebar re-renders
-                .then(() => Onyx.multiSet({
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: currentViewMode,
-                    [ONYXKEYS.BETAS]: betas,
-                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
-                }))
+                    // Then the report is not rendered in the LHN
+                    .then(() => {
+                        const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
+                        expect(optionRows).toHaveLength(0);
+                    })
 
-                // Then the report is rendered in the LHN
-                .then(() => {
-                    const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
-                    expect(optionRows).toHaveLength(1);
-                });
+                    // When the report has comments
+                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {lastMessageTimestamp: Date.now()}))
+
+                    // Then the report is rendered in the LHN
+                    .then(() => {
+                        const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
+                        expect(optionRows).toHaveLength(1);
+                    });
+            });
+        });
+
+        describe('in GSD (focus) mode', () => {
+            it('is shown when it is unread', () => {
+                const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+                // Given an archived report that has all comments read
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
+                    statusNum: CONST.REPORT.STATUS.CLOSED,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                };
+
+                // Given the user is in all betas
+                const betas = [
+                    CONST.BETAS.DEFAULT_ROOMS,
+                    CONST.BETAS.POLICY_ROOMS,
+                    CONST.BETAS.POLICY_EXPENSE_CHAT,
+                ];
+
+                return waitForPromisesToResolve()
+
+                    // When Onyx is updated to contain that data and the sidebar re-renders
+                    .then(() => Onyx.multiSet({
+                        [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                        [ONYXKEYS.BETAS]: betas,
+                        [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                        [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                    }))
+
+                    // Then the report is not rendered in the LHN
+                    .then(() => {
+                        const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
+                        expect(optionRows).toHaveLength(0);
+                    })
+
+                    // When the report has a new comment and is now unread
+                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER - 1}))
+
+                    // Then the report is rendered in the LHN
+                    .then(() => {
+                        const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
+                        expect(optionRows).toHaveLength(1);
+                    });
+            });
+
+            it('is shown when it is pinned', () => {
+                const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+                // Given an archived report that has unread comments
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    isPinned: false,
+                    statusNum: CONST.REPORT.STATUS.CLOSED,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                };
+
+                // Given the user is in all betas
+                const betas = [
+                    CONST.BETAS.DEFAULT_ROOMS,
+                    CONST.BETAS.POLICY_ROOMS,
+                    CONST.BETAS.POLICY_EXPENSE_CHAT,
+                ];
+
+                return waitForPromisesToResolve()
+
+                    // When Onyx is updated to contain that data and the sidebar re-renders
+                    .then(() => Onyx.multiSet({
+                        [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                        [ONYXKEYS.BETAS]: betas,
+                        [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                        [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                    }))
+
+                    // Then the report is not rendered in the LHN
+                    .then(() => {
+                        const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
+                        expect(optionRows).toHaveLength(0);
+                    })
+
+                    // When the report is pinned
+                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {isPinned: true}))
+
+                    // Then the report is rendered in the LHN
+                    .then(() => {
+                        const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
+                        expect(optionRows).toHaveLength(1);
+                    });
+            });
+
+            it('is hidden when it is empty', () => {
+                const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+                // Given an archived report with no comments
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    lastMessageTimestamp: 0,
+                    statusNum: CONST.REPORT.STATUS.CLOSED,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                };
+
+                // Given the user is in all betas
+                const betas = [
+                    CONST.BETAS.DEFAULT_ROOMS,
+                    CONST.BETAS.POLICY_ROOMS,
+                    CONST.BETAS.POLICY_EXPENSE_CHAT,
+                ];
+
+                return waitForPromisesToResolve()
+
+                    // When Onyx is updated to contain that data and the sidebar re-renders
+                    .then(() => Onyx.multiSet({
+                        [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                        [ONYXKEYS.BETAS]: betas,
+                        [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                        [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                    }))
+
+                    // Then the report is not rendered in the LHN
+                    .then(() => {
+                        const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
+                        expect(optionRows).toHaveLength(0);
+                    })
+
+                    // When the report has comments
+                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {lastMessageTimestamp: Date.now()}))
+
+                    // Then the report is rendered in the LHN
+                    .then(() => {
+                        const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
+                        expect(optionRows).toHaveLength(1);
+                    });
+            });
         });
     });
 });
