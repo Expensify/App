@@ -318,16 +318,16 @@ class IOUModal extends Component {
 
         // Only splits from a group DM has a reportID
         // Check if reportID is a number
+        // @TODO: there are 3 conditionals here, which ones are correct?
         if (splits && CONST.REGEX.NUMBER.test(reportID)) {
-            IOU.splitBillAndOpenReport({
-                comment: this.state.comment,
-
-                // should send in cents to API
-                amount: Math.round(this.state.amount * 100),
-                currency: this.props.iou.selectedCurrencyCode,
-                splits,
-                reportID,
-            });
+            IOU.splitBillAndOpenReport(
+                this.participants,
+                this.props.currentUserPersonalDetails.login,
+                Math.round(this.state.amount * 100),
+                this.state.comment,
+                this.props.iou.selectedCurrencyCode,
+                this.props.preferredLocale,
+            );
             return;
         }
 

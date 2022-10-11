@@ -152,7 +152,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     const currentUserEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
 
     // getChatByParticipants should be created in this PR https://github.com/Expensify/App/pull/11439/files
-    const existingGroupChatReport = ReportUtils.getChatByParticipants(participants);
+    // const existingGroupChatReport = ReportUtils.getChatByParticipants(participants);
+    const existingGroupChatReport = false;
     const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(participants);
     const groupCreatedReportAction = existingGroupChatReport && ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
     const groupIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
@@ -226,7 +227,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         }
 
         // getChatByParticipants should be created in this PR https://github.com/Expensify/App/pull/11439/files
-        const existingOneOnOneChatReport = ReportUtils.getChatByParticipants([currentUserEmail, email]);
+        // const existingOneOnOneChatReport = ReportUtils.getChatByParticipants([currentUserEmail, email]);
+        const existingOneOnOneChatReport = false;
         const oneOnOneChatReport = existingOneOnOneChatReport || ReportUtils.buildOptimisticChatReport([currentUserEmail, email]);
         let oneOnOneIOUReport;
         if (oneOnOneChatReport.iouReportID) {
@@ -340,6 +342,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
  * @param {String} locale
  */
 function splitBill(participants, currentUserLogin, amount, comment, currency, locale) {
+    console.log(participants)
     const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale);
 
     API.write('SplitBill', {
@@ -362,6 +365,7 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, lo
  * @param {String} locale
  */
 function splitBillAndOpenReport(participants, currentUserLogin, amount, comment, currency, locale) {
+    console.log(participants)
     const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale);
 
     API.write('SplitBillAndOpenReport', {
