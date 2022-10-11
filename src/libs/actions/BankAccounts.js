@@ -293,16 +293,30 @@ function connectBankAccountManually(bankAccountID, accountNumber, routingNumber,
     }, getVBBADataForOnyx());
 }
 
+/**
+ * Verify the user's identity via Onfido
+ *
+ * @param {Number} bankAccountID
+ * @param {Object} onfidoData
+ */
+ function verifyIdentityForBankAccount(bankAccountID, onfidoData) {
+    API.write('VerifyIdentityForBankAccount', {
+        bankAccountID,
+        onfidoData: JSON.stringify(onfidoData),
+    }, getVBBADataForOnyx());
+}
+
 export {
     addPersonalBankAccount,
     connectBankAccountManually,
-    deletePaymentBankAccount,
     clearPersonalBankAccount,
     clearPlaid,
     clearOnfidoToken,
-    updatePersonalInformationForBankAccount,
-    validateBankAccount,
-    updateCompanyInformationForBankAccount,
     connectBankAccountWithPlaid,
+    deletePaymentBankAccount,
+    updateCompanyInformationForBankAccount,
+    updatePersonalInformationForBankAccount,
     updatePlaidData,
+    validateBankAccount,
+    verifyIdentityForBankAccount,
 };
