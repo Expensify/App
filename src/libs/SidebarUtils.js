@@ -225,6 +225,7 @@ function getOptionData(reportID) {
 
     const hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((personalDetailList || []).slice(0, 10), hasMultipleParticipants);
 
     let lastMessageTextFromReport = '';
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
@@ -251,6 +252,17 @@ function getOptionData(reportID) {
     if (result.isChatRoom || result.isPolicyExpenseChat) {
         result.alternateText = lastMessageText || subtitle;
     } else {
+        if (hasMultipleParticipants && !lastMessageText) {
+            lastMessageText = Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistory')
+                + _.map(displayNamesWithTooltips, ({displayName, pronouns}, index) => {
+                    const formattedText = !_.isEmpty(pronouns) ? `${displayName} (${pronouns})` : displayName;
+
+                    if (index === displayNamesWithTooltips.length - 1) { return `${formattedText}.`; }
+                    if (index === displayNamesWithTooltips.length - 2) { return `${formattedText} ${Localize.translate(preferredLocale, 'common.and')}`; }
+                    if (index < displayNamesWithTooltips.length - 2) { return `${formattedText},`; }
+                }).join(' ');
+        }
+
         result.alternateText = lastMessageText || Str.removeSMSDomain(personalDetail.login);
     }
 
@@ -274,6 +286,7 @@ function getOptionData(reportID) {
     result.participantsList = personalDetailList;
     result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
     result.searchText = OptionsListUtils.getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
+    result.displayNamesWithTooltips = displayNamesWithTooltips;
 
     return result;
 }
