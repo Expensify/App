@@ -255,7 +255,7 @@ function getOptionData(reportID) {
         if (hasMultipleParticipants && !lastMessageText) {
             lastMessageText = Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistory')
                 + _.map(displayNamesWithTooltips, ({displayName, pronouns}, index) => {
-                    const formattedText = !_.isEmpty(pronouns) ? `${displayName} (${pronouns})` : displayName;
+                    const formattedText = _.isEmpty(pronouns) ? displayName : `${displayName} (${pronouns})`;
 
                     if (index === displayNamesWithTooltips.length - 1) { return `${formattedText}.`; }
                     if (index === displayNamesWithTooltips.length - 2) { return `${formattedText} ${Localize.translate(preferredLocale, 'common.and')}`; }
