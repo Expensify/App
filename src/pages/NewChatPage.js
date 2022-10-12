@@ -132,6 +132,23 @@ class NewChatPage extends Component {
     }
 
     /**
+     * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
+     *
+     * @param {Array} userLogins list of user logins.
+     */
+    getOrCreateChatReport(userLogins) {
+        const formattedUserLogins = _.map(userLogins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+        let newChat = {};
+        const chat = ReportUtils.getChatByParticipants(formattedUserLogins, this.props.reports);
+        if (!chat) {
+            newChat = ReportUtils.buildOptimisticChatReport(formattedUserLogins);
+        }
+        const reportID = chat ? chat.reportID : newChat.reportID;
+        Report.openReport(reportID, newChat.participants, newChat);
+        Navigation.navigate(ROUTES.getReportRoute(reportID));
+    }
+
+    /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      * @param {Object} option
      */
@@ -181,15 +198,7 @@ class NewChatPage extends Component {
      * @param {Object} option
      */
     createChat(option) {
-        let newChat = {};
-        const formattedLogin = OptionsListUtils.addSMSDomainIfPhoneNumber(option.login).toLowerCase();
-        const chat = ReportUtils.getChatByParticipants([formattedLogin], this.props.reports);
-        if (!chat) {
-            newChat = ReportUtils.buildOptimisticChatReport([formattedLogin]);
-        }
-        const reportID = chat ? chat.reportID : newChat.reportID;
-        Report.openReport(reportID, newChat.participants, newChat);
-        Navigation.navigate(ROUTES.getReportRoute(reportID));
+        this.getOrCreateChatReport([option.login]);
     }
 
     /**
@@ -201,15 +210,7 @@ class NewChatPage extends Component {
         if (userLogins.length < 1) {
             return;
         }
-        const formattedUserLogins = _.map(userLogins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login));
-        let newChat = {};
-        const chat = ReportUtils.getChatByParticipants(formattedUserLogins, this.props.reports);
-        if (!chat) {
-            newChat = ReportUtils.buildOptimisticChatReport(formattedUserLogins);
-        }
-        const reportID = chat ? chat.reportID : newChat.reportID;
-        Report.openReport(reportID, newChat.participants, newChat);
-        Navigation.navigate(ROUTES.getReportRoute(reportID));
+        this.getOrCreateChatReport(userLogins);
     }
 
     render() {
