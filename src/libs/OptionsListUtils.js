@@ -9,6 +9,7 @@ import * as ReportUtils from './ReportUtils';
 import * as Localize from './Localize';
 import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
+import Navigation from './Navigation/Navigation';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -20,18 +21,6 @@ let currentUserLogin;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: val => currentUserLogin = val && val.email,
-});
-
-let currentlyViewedReportID;
-Onyx.connect({
-    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-    callback: val => currentlyViewedReportID = val,
-});
-
-let priorityMode;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIORITY_MODE,
-    callback: val => priorityMode = val,
 });
 
 let loginList;
@@ -111,6 +100,9 @@ function addSMSDomainIfPhoneNumber(login) {
  */
 function getPersonalDetailsForLogins(logins, personalDetails) {
     const personalDetailsForLogins = {};
+    if (!personalDetails) {
+        return personalDetailsForLogins;
+    }
     _.each(logins, (login) => {
         let personalDetail = personalDetails[login];
         if (!personalDetail) {
@@ -290,6 +282,8 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
     let hasMultipleParticipants = personalDetailList.length > 1;
     let subtitle;
 
+    result.participantsList = personalDetailList;
+
     if (report) {
         result.isChatRoom = ReportUtils.isChatRoom(report);
         result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
@@ -362,10 +356,9 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
 
     const reportName = ReportUtils.getReportName(report, personalDetailMap, policies);
     result.text = reportName;
-    result.subtitle = subtitle;
-    result.participantsList = personalDetailList;
-    result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
     result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
+    result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
+    result.subtitle = subtitle;
 
     return result;
 }
@@ -428,12 +421,11 @@ function isCurrentUser(userDetails) {
  *
  * @param {Object} reports
  * @param {Object} personalDetails
- * @param {String} activeReportID
  * @param {Object} options
  * @returns {Object}
  * @private
  */
-function getOptions(reports, personalDetails, activeReportID, {
+function getOptions(reports, personalDetails, {
     reportActions = {},
     betas = [],
     selectedOptions = [],
@@ -451,13 +443,20 @@ function getOptions(reports, personalDetails, activeReportID, {
     sortPersonalDetailsByAlphaAsc = true,
     forcePolicyNamePreview = false,
 }) {
-    const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     let recentReportOptions = [];
     let personalDetailsOptions = [];
     const reportMapForLogins = {};
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode, currentUserLogin, iouReports, betas, policies));
+    const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(
+        report,
+        Navigation.getReportIDFromRoute(),
+        false,
+        currentUserLogin,
+        iouReports,
+        betas,
+        policies,
+    ));
 
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
@@ -507,7 +506,7 @@ function getOptions(reports, personalDetails, activeReportID, {
 
     if (sortPersonalDetailsByAlphaAsc) {
         // PersonalDetails should be ordered Alphabetically by default - https://github.com/Expensify/App/issues/8220#issuecomment-1104009435
-        allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [personalDetail => personalDetail.text.toLowerCase()], 'asc');
+        allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [personalDetail => personalDetail.text && personalDetail.text.toLowerCase()], 'asc');
     }
 
     // Always exclude already selected options and the currently logged in user
@@ -639,7 +638,7 @@ function getSearchOptions(
     searchValue = '',
     betas,
 ) {
-    return getOptions(reports, personalDetails, 0, {
+    return getOptions(reports, personalDetails, {
         betas,
         searchValue: searchValue.trim(),
         includeRecentReports: true,
@@ -706,7 +705,7 @@ function getNewChatOptions(
     selectedOptions = [],
     excludeLogins = [],
 ) {
-    return getOptions(reports, personalDetails, 0, {
+    return getOptions(reports, personalDetails, {
         betas,
         searchValue: searchValue.trim(),
         selectedOptions,
@@ -733,7 +732,7 @@ function getMemberInviteOptions(
     searchValue = '',
     excludeLogins = [],
 ) {
-    return getOptions([], personalDetails, 0, {
+    return getOptions([], personalDetails, {
         betas,
         searchValue: searchValue.trim(),
         excludeDefaultRooms: true,

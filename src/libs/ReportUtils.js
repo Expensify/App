@@ -9,7 +9,7 @@ import CONST from '../CONST';
 import * as Localize from './Localize';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Expensicons from '../components/Icon/Expensicons';
-import md5 from './md5';
+import hashCode from './hashCode';
 import Navigation from './Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
@@ -244,17 +244,12 @@ function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
 /**
  * Whether the provided report is an archived room
  * @param {Object} report
- * @param {String} report.chatType
  * @param {Number} report.stateNum
  * @param {Number} report.statusNum
  * @returns {Boolean}
  */
 function isArchivedRoom(report) {
-    if (!isChatRoom(report) && !isPolicyExpenseChat(report)) {
-        return false;
-    }
-
-    return report.statusNum === CONST.REPORT.STATUS.CLOSED && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
+    return lodashGet(report, ['statusNum']) === CONST.REPORT.STATUS.CLOSED && lodashGet(report, ['stateNum']) === CONST.REPORT.STATE_NUM.SUBMITTED;
 }
 
 /**
@@ -401,8 +396,8 @@ function formatReportLastMessageText(lastMessageText) {
  */
 function getDefaultAvatar(login = '') {
     // There are 8 possible default avatars, so we choose which one this user has based
-    // on a simple hash of their login (which is converted from HEX to INT)
-    const loginHashBucket = (parseInt(md5(login.toLowerCase()).substring(0, 4), 16) % 8) + 1;
+    // on a simple hash of their login
+    const loginHashBucket = (Math.abs(hashCode(login.toLowerCase())) % 8) + 1;
     return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
 }
 
@@ -575,7 +570,7 @@ function navigateToDetailsPage(report) {
  * @returns {String}
  */
 function generateReportID() {
-    return (Math.floor(Math.random() * (2 ** 21)) * (2 ** 32)) + Math.floor(Math.random() * (2 ** 32)).toString();
+    return ((Math.floor(Math.random() * (2 ** 21)) * (2 ** 32)) + Math.floor(Math.random() * (2 ** 32))).toString();
 }
 
 /**
@@ -865,12 +860,12 @@ function isUnread(report) {
  * @param {Object} report
  * @param {String} report.iouReportID
  * @param {String} currentUserLogin
- * @param {Object[]} iouReports
- * @param {String} iouReports[].ownerEmail
+ * @param {Object} iouReports
  * @returns {boolean}
  */
+
 function hasOutstandingIOU(report, currentUserLogin, iouReports) {
-    if (!report || !report.iouReportID || report.hasOutstandingIOU) {
+    if (!report || !report.iouReportID || _.isUndefined(report.hasOutstandingIOU)) {
         return false;
     }
 
@@ -879,7 +874,11 @@ function hasOutstandingIOU(report, currentUserLogin, iouReports) {
         return false;
     }
 
-    return iouReport.ownerEmail !== currentUserLogin;
+    if (iouReport.ownerEmail === currentUserEmail) {
+        return false;
+    }
+
+    return report.hasOutstandingIOU;
 }
 
 /**
@@ -890,7 +889,7 @@ function hasOutstandingIOU(report, currentUserLogin, iouReports) {
  * filter out the majority of reports before filtering out very specific minority of reports.
  *
  * @param {Object} report
- * @param {String} currentlyViewedReportID
+ * @param {String} reportIDFromRoute
  * @param {Boolean} isInGSDMode
  * @param {String} currentUserLogin
  * @param {Object} iouReports
@@ -898,7 +897,9 @@ function hasOutstandingIOU(report, currentUserLogin, iouReports) {
  * @param {Object} policies
  * @returns {boolean}
  */
-function shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode, currentUserLogin, iouReports, betas, policies) {
+function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies) {
+    const isInDefaultMode = !isInGSDMode;
+
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
     if (!report || !report.reportID || !report.participants || _.isEmpty(report.participants)) {
@@ -908,14 +909,8 @@ function shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode
     // Include the currently viewed report. If we excluded the currently viewed report, then there
     // would be no way to highlight it in the options list and it would be confusing to users because they lose
     // a sense of context.
-    if (report.reportID === currentlyViewedReportID) {
+    if (report.reportID === reportIDFromRoute) {
         return true;
-    }
-
-    // Include unread reports when in GSD mode
-    // GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
-    if (isInGSDMode) {
-        return isUnread(report);
     }
 
     // Include reports if they have a draft, are pinned, or have an outstanding IOU
@@ -930,11 +925,14 @@ function shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode
         return true;
     }
 
-    // Exclude reports that don't have any comments
-    // Archived rooms or user created policy rooms are OK to show when the don't have any comments
-    const hasNoComments = report.lastMessageTimestamp === 0;
-    if (hasNoComments && (isArchivedRoom(report) || isUserCreatedPolicyRoom(report))) {
-        return false;
+    // All unread chats (even archived ones) in GSD mode will be shown. This is because GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
+    if (isInGSDMode) {
+        return isUnread(report);
+    }
+
+    // Archived reports should always be shown when in default (most recent) mode. This is because you should still be able to access and search for the chats to find them.
+    if (isInDefaultMode && isArchivedRoom(report)) {
+        return true;
     }
 
     // Include default rooms for free plan policies
@@ -979,6 +977,7 @@ export {
     isConciergeChatReport,
     hasExpensifyEmails,
     hasExpensifyGuidesEmails,
+    hasOutstandingIOU,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
     chatIncludesConcierge,

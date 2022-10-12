@@ -104,6 +104,7 @@ class WorkspacePageWithSections extends React.Component {
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 <ScrollView
+                    keyboardShouldPersistTaps="handled"
                     style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
                 >
                     <View style={[styles.w100, styles.flex1]}>
