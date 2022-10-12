@@ -109,13 +109,13 @@ class Composer extends React.Component {
     constructor(props) {
         super(props);
 
-        const initialValue = props.defaultValue
+        this.initialValue = props.defaultValue
             ? `${props.defaultValue}`
             : `${props.value || ''}`;
 
         this.selection = {
-            start: initialValue.length,
-            end: initialValue.length,
+            start: this.initialValue.length,
+            end: this.initialValue.length,
         };
 
         this.state = {
@@ -168,6 +168,7 @@ class Composer extends React.Component {
             this.textInput.addEventListener('paste', this.handlePaste);
             this.textInput.addEventListener('wheel', this.handleWheel);
 
+            this.setText(this.initialValue);
             this.textInput.setSelectionRange(this.selection.start, this.selection.end);
         }
     }

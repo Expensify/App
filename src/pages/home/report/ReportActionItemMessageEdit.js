@@ -163,8 +163,8 @@ class ReportActionItemMessageEdit extends React.Component {
 
         this.updateDraft(newComment);
 
-        this.textInput.updateSelection(this.selection);
         this.textInput.setText(newComment);
+        this.textInput.updateSelection(this.selection);
     }
 
     /**
@@ -212,7 +212,7 @@ class ReportActionItemMessageEdit extends React.Component {
                             toggleReportActionComposeView(true, VirtualKeyboard.shouldAssumeIsOpen());
                         }}
                         onSelectionChange={this.onSelectionChange}
-                        defaultValue={this.props.draftMessage}
+                        defaultValue={this.draft}
                     />
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton
