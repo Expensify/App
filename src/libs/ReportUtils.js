@@ -58,6 +58,17 @@ Onyx.connect({
     },
 });
 
+const reports = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    callback: (val) => {
+        if (!_.isObject(val) || !_.has(val, 'reportID')) {
+            return;
+        }
+        reports[val.reportID] = val;
+    },
+});
+
 /**
  * Returns the concatenated title for the PrimaryLogins of a report
  *
@@ -82,11 +93,11 @@ function isReportMessageAttachment({text, html}) {
 /**
  * Given a collection of reports returns them sorted by last visited
  *
- * @param {Object} reports
+ * @param {Object} reportsToSort
  * @returns {Array}
  */
-function sortReportsByLastVisited(reports) {
-    return _.chain(reports)
+function sortReportsByLastVisited(reportsToSort) {
+    return _.chain(reportsToSort)
         .toArray()
         .filter(report => report && report.reportID)
         .sortBy('lastVisitedTimestamp')
@@ -224,13 +235,13 @@ function hasExpensifyGuidesEmails(emails) {
 /**
  * Given a collection of reports returns the most recently accessed one
  *
- * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
+ * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reportsToSearch
  * @param {Boolean} [ignoreDefaultRooms]
  * @param {Object} policies
  * @returns {Object}
  */
-function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
-    let sortedReports = sortReportsByLastVisited(reports);
+function findLastAccessedReport(reportsToSearch, ignoreDefaultRooms, policies) {
+    let sortedReports = sortReportsByLastVisited(reportsToSearch);
 
     if (ignoreDefaultRooms) {
         sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report)
@@ -967,10 +978,9 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
 /**
  * Attempts to find a report in onyx with the provided list of participants
  * @param {Array} newParticipantList
- * @param {Array} reports
  * @returns {Array|undefined}
  */
-function getChatByParticipants(newParticipantList, reports) {
+function getChatByParticipants(newParticipantList) {
     newParticipantList.sort();
     return _.find(reports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
