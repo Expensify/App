@@ -2,23 +2,23 @@ import React, {Component} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import ROUTES from '../../../ROUTES';
-import ONYXKEYS from '../../../ONYXKEYS';
-import CONST from '../../../CONST';
-import styles from '../../../styles/styles';
-import compose from '../../../libs/compose';
-import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import themeColors from '../../../styles/themes/default';
-import * as PolicyUtils from '../../../libs/PolicyUtils';
-import MenuItem from '../../../components/MenuItem';
-import * as Policy from '../../../libs/actions/Policy';
-import policyMemberPropType from '../../policyMemberPropType';
-import Permissions from '../../../libs/Permissions';
+import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import Navigation from '../../libs/Navigation/Navigation';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import ROUTES from '../../ROUTES';
+import ONYXKEYS from '../../ONYXKEYS';
+import CONST from '../../CONST';
+import styles from '../../styles/styles';
+import compose from '../../libs/compose';
+import OfflineWithFeedback from '../../components/OfflineWithFeedback';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import * as Expensicons from '../../components/Icon/Expensicons';
+import themeColors from '../../styles/themes/default';
+import * as PolicyUtils from '../../libs/PolicyUtils';
+import MenuItem from '../../components/MenuItem';
+import * as Policy from '../../libs/actions/Policy';
+import policyMemberPropType from '../policyMemberPropType';
+import Permissions from '../../libs/Permissions';
 
 const propTypes = {
     /* Onyx Props */
@@ -75,7 +75,7 @@ function dismissWorkspaceError(policyID, pendingAction) {
     throw new Error('Not implemented');
 }
 
-class WorkspacesPage extends Component {
+class WorkspacesListPage extends Component {
     constructor(props) {
         super(props);
 
@@ -183,8 +183,8 @@ class WorkspacesPage extends Component {
     }
 }
 
-WorkspacesPage.propTypes = propTypes;
-WorkspacesPage.defaultProps = defaultProps;
+WorkspacesListPage.propTypes = propTypes;
+WorkspacesListPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -199,4 +199,4 @@ export default compose(
             key: ONYXKEYS.USER_WALLET,
         },
     }),
-)(WorkspacesPage);
+)(WorkspacesListPage);

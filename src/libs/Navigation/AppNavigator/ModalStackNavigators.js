@@ -205,7 +205,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const SettingsWorkspacesPage = require('../../../pages/settings/Workspaces/WorkspacesPage').default;
+            const SettingsWorkspacesPage = require('../../../pages/workspace/WorkspacesListPage').default;
             return SettingsWorkspacesPage;
         },
         name: 'Settings_Workspaces',
