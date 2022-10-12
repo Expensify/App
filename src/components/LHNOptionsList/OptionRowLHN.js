@@ -22,6 +22,7 @@ import CONST from '../../CONST';
 import variables from '../../styles/variables';
 import themeColors from '../../styles/themes/default';
 import SidebarUtils from '../../libs/SidebarUtils';
+import TextPill from '../TextPill';
 
 const propTypes = {
     /** Style for hovered state */
@@ -66,10 +67,13 @@ const OptionRowLHN = (props) => {
     const textUnreadStyle = optionItem.isUnread
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
     const displayNameStyle = StyleUtils.combineStyles(props.viewMode === CONST.OPTION_MODE.COMPACT
-        ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2]
+        ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact]
         : [styles.optionDisplayName, ...textUnreadStyle], props.style);
+    const textPillStyle = props.isFocused
+        ? [styles.ml2, StyleUtils.getBackgroundColorStyle(themeColors.iconLight)]
+        : [styles.ml2];
     const alternateTextStyle = StyleUtils.combineStyles(props.viewMode === CONST.OPTION_MODE.COMPACT
-        ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact]
+        ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2]
         : [textStyle, styles.optionAlternateText, styles.textLabelSupporting], props.style);
     const contentContainerStyles = props.viewMode === CONST.OPTION_MODE.COMPACT
         ? [styles.flex1, styles.flexRow, styles.overflowHidden, styles.alignItemsCenter]
@@ -155,15 +159,22 @@ const OptionRowLHN = (props) => {
                                 )
                             }
                             <View style={contentContainerStyles}>
-                                <DisplayNames
-                                    accessibilityLabel="Chat user display names"
-                                    fullTitle={optionItem.text}
-                                    displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
-                                    tooltipEnabled
-                                    numberOfLines={1}
-                                    textStyles={displayNameStyle}
-                                    shouldUseFullTitle={optionItem.isChatRoom || optionItem.isPolicyExpenseChat}
-                                />
+                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                    <DisplayNames
+                                        accessibilityLabel="Chat user display names"
+                                        fullTitle={optionItem.text}
+                                        displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
+                                        tooltipEnabled
+                                        numberOfLines={1}
+                                        textStyles={displayNameStyle}
+                                        shouldUseFullTitle={optionItem.isChatRoom || optionItem.isPolicyExpenseChat}
+                                    />
+                                    {optionItem.isChatRoom && (
+                                        <TextPill style={textPillStyle} accessibilityLabel="Chat room name">
+                                            {optionItem.subtitle}
+                                        </TextPill>
+                                    )}
+                                </View>
                                 {optionItem.alternateText ? (
                                     <Text
                                         style={alternateTextStyle}
