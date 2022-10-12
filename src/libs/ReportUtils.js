@@ -971,14 +971,14 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
  * @returns {Array|undefined}
  */
 function getChatByParticipants(newParticipantList, reports) {
-    const sortedNewParticipantList = newParticipantList.sort();
+    newParticipantList.sort();
     return _.find(reports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
         if (!report || !report.participants) {
             return false;
         }
-        const sortedReportParticipants = report.participants.sort();
-        return sortedNewParticipantList.join() === sortedReportParticipants.join();
+        report.participants.sort();
+        return _.isEqual(sortedNewParticipantList, report.participants);
     });
 }
 
