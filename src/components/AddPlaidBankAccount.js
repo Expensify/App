@@ -26,11 +26,16 @@ const propTypes = {
     /** Contains plaid data */
     plaidData: plaidDataPropTypes,
 
+    selectedPlaidAccountID: PropTypes.string,
+
     /** Plaid SDK token to use to initialize the widget */
     plaidLinkToken: PropTypes.string,
 
     /** Fired when the user exits the Plaid flow */
     onExitPlaid: PropTypes.func,
+
+    /** Fired when the user selects an account */
+    onSelect: PropTypes.func,
 
     /** Additional text to display */
     text: PropTypes.string,
@@ -57,10 +62,11 @@ const defaultProps = {
         bankAccounts: [],
         isLoading: false,
         error: '',
-        selectedBankAccount: undefined,
     },
+    selectedPlaidAccountID: '',
     plaidLinkToken: '',
     onExitPlaid: () => {},
+    onSelect: () => {},
     text: '',
     receivedRedirectURI: null,
     plaidLinkOAuthToken: '',
@@ -72,7 +78,6 @@ class AddPlaidBankAccount extends React.Component {
     constructor(props) {
         super(props);
 
-        this.selectAccount = this.selectAccount.bind(this);
         this.getPlaidLinkToken = this.getPlaidLinkToken.bind(this);
     }
 
@@ -83,15 +88,6 @@ class AddPlaidBankAccount extends React.Component {
         }
 
         BankAccounts.openPlaidBankLogin(this.props.allowDebit, this.props.bankAccountID);
-    }
-
-    /**
-     * Get list of bank accounts
-     *
-     * @returns {Object[]}
-     */
-    getPlaidBankAccounts() {
-        return lodashGet(this.props.plaidData, 'bankAccounts', []);
     }
 
     /**
@@ -107,31 +103,13 @@ class AddPlaidBankAccount extends React.Component {
         }
     }
 
-    /**
-     * Triggered when user selects a Plaid bank account.
-     * @param {String} plaidAccountID
-     */
-    selectAccount(plaidAccountID) {
-        console.log('selectAccount', {plaidAccountID});
-        const selectedPlaidBankAccount = _.findWhere(this.getPlaidBankAccounts(), {plaidAccountID});
-        if (!selectedPlaidBankAccount) {
-            // TODO: Remove this early return. We shouldn't have to make this check.
-            // Currently, seems like we're calling selectAccount with the previous selectedID before calling it again with the right one.
-            return;
-        }
-        selectedPlaidBankAccount.bankName = this.props.plaidData.bankName;
-        selectedPlaidBankAccount.plaidAccessToken = this.props.plaidData.plaidAccessToken;
-        BankAccounts.updatePlaidData({selectedPlaidBankAccount});
-    }
-
     render() {
-        const plaidBankAccounts = this.getPlaidBankAccounts();
+        const plaidBankAccounts = lodashGet(this.props.plaidData, 'bankAccounts', []);
         const token = this.getPlaidLinkToken();
         const options = _.map(plaidBankAccounts, account => ({
-            value: account.plaidAccountID, label: `${account.addressName} ${account.mask}`,
+            value: account.plaidAccountID,
+            label: `${account.addressName} ${account.mask}`,
         }));
-        const selectedPlaidBankAccount = this.props.plaidData.selectedPlaidBankAccount;
-        console.log('render', selectedPlaidBankAccount);
         const {icon, iconSize} = getBankIcon();
 
         // Plaid Link view
@@ -188,13 +166,13 @@ class AddPlaidBankAccount extends React.Component {
                 <View style={[styles.mb5]}>
                     <Picker
                         label={this.props.translate('addPersonalBankAccountPage.chooseAccountLabel')}
-                        onInputChange={this.selectAccount}
+                        onInputChange={this.props.onSelect}
                         items={options}
-                        placeholder={!selectedPlaidBankAccount ? {
+                        placeholder={{
                             value: '',
                             label: this.props.translate('bankAccount.chooseAnAccount'),
-                        } : {}}
-                        value={lodashGet(selectedPlaidBankAccount, 'plaidAccountID', '')}
+                        }}
+                        value={this.props.selectedPlaidAccountID}
                     />
                 </View>
             </View>
