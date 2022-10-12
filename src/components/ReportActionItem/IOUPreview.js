@@ -79,7 +79,7 @@ const propTypes = {
     walletTerms: walletTermsPropTypes,
 
     /** Pending action, if any */
-    pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
+    pendingAction: PropTypes.string,
 
     ...withLocalizePropTypes,
 };
