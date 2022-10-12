@@ -1413,6 +1413,7 @@ const styles = {
         alignSelf: 'stretch',
         flex: 1,
         maxHeight: '100%',
+        textAlignVertical: 'top',
     },
 
     editInputComposeSpacing: {
