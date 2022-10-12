@@ -27,6 +27,8 @@ import ROUTES from '../../ROUTES';
 import Button from '../../components/Button';
 
 const propTypes = {
+    isPlaidDisabled: PropTypes.bool,
+
     /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
     receivedRedirectURI: PropTypes.string,
 
@@ -45,6 +47,7 @@ const propTypes = {
 const defaultProps = {
     receivedRedirectURI: null,
     plaidLinkOAuthToken: '',
+    isPlaidDisabled: false,
     user: {},
 };
 
@@ -167,6 +170,9 @@ export default compose(
         },
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        isPlaidDisabled: {
+            key: ONYXKEYS.IS_PLAID_DISABLED,
         },
     }),
 )(BankAccountStep);

@@ -58,6 +58,7 @@ class BankAccountPlaidStep extends React.Component {
 
     render() {
         const bankAccountID = ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0);
+        const selectedPlaidBankAccount = this.props.plaidData.selectedPlaidBankAccount;
 
         return (
             <>
@@ -76,13 +77,10 @@ class BankAccountPlaidStep extends React.Component {
                     onSubmit={this.submit}
                     submitButtonText={this.props.translate('common.saveAndContinue')}
                     style={[styles.mh5, styles.flexGrow1]}
-                    isSubmitButtonVisible={!_.isUndefined(this.props.plaidData.selectedPlaidBankAccount)}
+                    isSubmitButtonVisible={!_.isUndefined(selectedPlaidBankAccount)}
                 >
                     <AddPlaidBankAccount
                         text={this.props.translate('bankAccount.plaidBodyCopy')}
-                        onSelect={(params) => {
-                            BankAccounts.updatePlaidData({selectedPlaidBankAccount: params.selectedPlaidBankAccount});
-                        }}
                         onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}
                         receivedRedirectURI={this.props.receivedRedirectURI}
                         plaidLinkOAuthToken={this.props.plaidLinkOAuthToken}

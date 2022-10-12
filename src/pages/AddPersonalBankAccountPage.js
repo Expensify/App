@@ -48,10 +48,6 @@ class AddPersonalBankAccountPage extends React.Component {
 
         this.validate = this.validate.bind(this);
         this.submit = this.submit.bind(this);
-
-        this.state = {
-            selectedPlaidBankAccount: undefined,
-        };
     }
 
     componentDidMount() {
@@ -76,11 +72,16 @@ class AddPersonalBankAccountPage extends React.Component {
      * @param {Object} values - form input values passed by the Form component
      */
     submit(values) {
-        BankAccounts.addPersonalBankAccount(this.state.selectedPlaidBankAccount, values.password);
+        const selectedPlaidBankAccount = this.props.plaidData.selectedPlaidBankAccount;
+        if (!selectedPlaidBankAccount) {
+            return;
+        }
+        BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount, values.password);
     }
 
     render() {
         const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
+        const selectedPlaidBankAccount = this.props.plaidData.selectedPlaidBankAccount;
 
         return (
             <ScreenWrapper>
@@ -121,7 +122,7 @@ class AddPersonalBankAccountPage extends React.Component {
                 ) : (
                     <Form
                         formID={ONYXKEYS.PERSONAL_BANK_ACCOUNT}
-                        isSubmitButtonVisible={!_.isUndefined(this.state.selectedPlaidBankAccount)}
+                        isSubmitButtonVisible={!_.isUndefined(selectedPlaidBankAccount)}
                         submitButtonText={this.props.translate('common.saveAndContinue')}
                         onSubmit={this.submit}
                         validate={this.validate}
@@ -129,15 +130,10 @@ class AddPersonalBankAccountPage extends React.Component {
                     >
                         <>
                             <AddPlaidBankAccount
-                                onSelect={(params) => {
-                                    this.setState({
-                                        selectedPlaidBankAccount: params.selectedPlaidBankAccount,
-                                    });
-                                }}
                                 onExitPlaid={Navigation.goBack}
                                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                             />
-                            {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
+                            {!_.isUndefined(selectedPlaidBankAccount) && (
                             <TextInput
                                 inputID="password"
                                 label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
@@ -164,6 +160,9 @@ export default compose(
     withOnyx({
         personalBankAccount: {
             key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+        },
+        plaidData: {
+            key: ONYXKEYS.PLAID_DATA,
         },
     }),
 )(AddPersonalBankAccountPage);
