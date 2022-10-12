@@ -96,6 +96,11 @@ class ReportSettingsPage extends Component {
     validate() {
         const errors = {};
 
+        // When the report name is not changed, skip the form submission. Added check here to keep the code clean
+        if (this.state.newRoomName === this.props.report.reportName) {
+            return false;
+        }
+
         // We error if the user doesn't enter a room name or left blank
         if (!this.state.newRoomName || this.state.newRoomName === CONST.POLICY.ROOM_PREFIX) {
             errors.newRoomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
