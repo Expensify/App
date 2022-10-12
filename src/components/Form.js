@@ -238,7 +238,7 @@ export default compose(
             key: props => props.formID,
         },
         draftValues: {
-            key: props => `${props.formID}DraftValues`,
+            key: props => `${props.formID}Draft`,
         },
     }),
 )(Form);
