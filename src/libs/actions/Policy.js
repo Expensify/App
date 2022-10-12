@@ -148,40 +148,6 @@ function deleteWorkspace(policyID) {
 }
 
 /**
- * Fetches policy list from the API and saves a simplified version in Onyx, optionally creating a new policy first.
- *
- * More specifically, this action will:
- * 1. Optionally create a new policy.
- * 2. Fetch policy summaries.
- * 3. Optionally navigate to the new policy.
- * 4. Then fetch full policies.
- *
- * This way, we ensure that there's no race condition between creating the new policy and fetching existing ones,
- * and we also don't have to wait for full policies to load before navigating to the new policy.
- */
-function getPolicyList() {
-    Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, true);
-    DeprecatedAPI.GetPolicySummaryList()
-        .then((data) => {
-            if (data.jsonCode !== 200) {
-                Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, false);
-                return;
-            }
-
-            const policyCollection = _.reduce(data.policySummaryList, (memo, policy) => ({
-                ...memo,
-                [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy, false),
-            }), {});
-
-            if (!_.isEmpty(policyCollection)) {
-                updateAllPolicies(policyCollection);
-            }
-
-            Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, false);
-        });
-}
-
-/**
  * @param {String} policyID
  */
 function loadFullPolicy(policyID) {
@@ -937,7 +903,6 @@ function openWorkspaceInvitePage(policyID, clientMemberEmails) {
 }
 
 export {
-    getPolicyList,
     loadFullPolicy,
     removeMembers,
     addMembersToWorkspace,
