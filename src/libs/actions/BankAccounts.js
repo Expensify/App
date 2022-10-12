@@ -243,7 +243,7 @@ function validateBankAccount(bankAccountID, validateCode) {
     });
 }
 
-function openReimbursementAccountPage() {
+function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
     const onyxData = {
         optimisticData: [
             {
@@ -275,7 +275,13 @@ function openReimbursementAccountPage() {
         ],
     };
 
-    return API.read('OpenReimbursementAccountPage', {}, onyxData);
+    const param = {
+        stepToOpen,
+        subStep,
+        localCurrentStep,
+    };
+
+    return API.read('OpenReimbursementAccountPage', param, onyxData);
 }
 
 /**

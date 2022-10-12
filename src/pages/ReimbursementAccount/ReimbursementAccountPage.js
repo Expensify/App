@@ -159,15 +159,12 @@ class ReimbursementAccountPage extends React.Component {
         // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
         const stepToOpen = this.getStepToOpenFromRouteParams();
 
-        console.log('fetchData');
         // If we are trying to navigate to `/bank-account/new` and we already have a bank account then don't allow returning to `/new`
-        BankAccounts.fetchFreePlanVerifiedBankAccount(stepToOpen !== CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT ? stepToOpen : '');
+        // BankAccounts.fetchFreePlanVerifiedBankAccount(stepToOpen !== CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT ? stepToOpen : '');
 
-
-        const policyID = store.getReimbursementAccountWorkspaceID() || '';
         const subStep = lodashGet(store.getReimbursementAccountInSetup(), 'subStep', '');
-
-        BankAccounts.openReimbursementAccountPage(policyID, subStep);
+        const localCurrentStep = lodashGet(store.getReimbursementAccountInSetup(), 'currentStep', '');
+        BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep);
     }
 
     render() {
