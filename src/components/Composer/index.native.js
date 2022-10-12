@@ -37,9 +37,6 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
 
-    /** The text to display in the input */
-    value: PropTypes.string,
-
     /** Called when the text gets changed by user input */
     onChangeText: PropTypes.func,
 
@@ -56,7 +53,6 @@ const defaultProps = {
     isFullComposerAvailable: false,
     setIsFullComposerAvailable: () => {},
     style: null,
-    value: '',
     onChangeText: () => {},
     defaultValue: '',
 };
@@ -70,7 +66,7 @@ class Composer extends React.Component {
         this.updateSelection = this.updateSelection.bind(this);
         this.state = {
             propStyles: StyleSheet.flatten(this.props.style),
-            value: props.defaultValue || props.value,
+            value: props.defaultValue,
         };
     }
 

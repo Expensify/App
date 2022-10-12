@@ -19,9 +19,6 @@ const propTypes = {
     /** The default value of the comment box */
     defaultValue: PropTypes.string,
 
-    /** The value of the comment box */
-    value: PropTypes.string,
-
     /** Callback method to handle pasting a file */
     onPasteFile: PropTypes.func,
 
@@ -74,7 +71,6 @@ const propTypes = {
 
 const defaultProps = {
     defaultValue: undefined,
-    value: undefined,
     maxLines: -1,
     onPasteFile: () => {},
     shouldClear: false,
@@ -124,7 +120,6 @@ class Composer extends React.Component {
 
         this.state = {
             numberOfLines: 1,
-            value: initialValue,
         };
         this.dragNDropListener = this.dragNDropListener.bind(this);
         this.paste = this.paste.bind(this);
@@ -215,7 +210,7 @@ class Composer extends React.Component {
     }
 
     setText(text) {
-        this.setState({value: text});
+        this.textInput.value = text;
     }
 
     updateSelection(selection) {
@@ -426,7 +421,6 @@ class Composer extends React.Component {
                 {...propsToPass}
                 disabled={this.props.isDisabled}
                 onChangeText={this.onChangeText}
-                value={this.state.value}
                 onSelectionChange={this.onSelectionChange}
             />
         );
