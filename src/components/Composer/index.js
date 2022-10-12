@@ -136,6 +136,7 @@ class Composer extends React.Component {
         this.focus = this.focus.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.updateSelection = this.updateSelection.bind(this);
+        this.setText = this.setText.bind(this);
     }
 
     componentDidMount() {
@@ -153,7 +154,7 @@ class Composer extends React.Component {
             // We pass the ref to the native view instance
             // however, we want this method to be
             // available to be called from the outside as well.
-            this.textInput.onChangeText = this.onChangeText;
+            this.textInput.setText = this.setText;
             this.textInput.updateSelection = this.updateSelection;
 
             // Overwrite focus with this component's implementation
@@ -204,13 +205,25 @@ class Composer extends React.Component {
 
     onChangeText(text) {
         // Updates the text input to reflect the current value
-        this.setState({value: text});
+        this.setText(text);
         this.props.onChangeText(text);
     }
 
     onSelectionChange(event) {
         this.selection = event.nativeEvent.selection;
         this.props.onSelectionChange(event);
+    }
+
+    setText(text) {
+        this.setState({value: text});
+    }
+
+    updateSelection(selection) {
+        this.selection = selection;
+        this.textInput.setSelectionRange(
+            selection.start,
+            selection.end,
+        );
     }
 
     focus() {
@@ -225,10 +238,6 @@ class Composer extends React.Component {
                 selection.end,
             );
         });
-    }
-
-    updateSelection(selection) {
-        this.selection = selection;
     }
 
     /**

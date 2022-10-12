@@ -57,7 +57,7 @@ const defaultProps = {
     setIsFullComposerAvailable: () => {},
     style: null,
     value: '',
-    onChangeText: null,
+    onChangeText: () => {},
     defaultValue: '',
 };
 
@@ -66,6 +66,8 @@ class Composer extends React.Component {
         super(props);
 
         this.onChangeText = this.onChangeText.bind(this);
+        this.setText = this.setText.bind(this);
+        this.updateSelection = this.updateSelection.bind(this);
         this.state = {
             propStyles: StyleSheet.flatten(this.props.style),
             value: props.defaultValue || props.value,
@@ -76,8 +78,8 @@ class Composer extends React.Component {
         // We pass the ref to the native view instance,
         // however, we want this method to be
         // available to be called from the outside as well.
-        this.textInput.onChangeText = this.onChangeText;
-        this.textInput.updateSelection = () => {}; // noop
+        this.textInput.setText = this.setText;
+        this.textInput.updateSelection = this.updateSelection;
 
         // This callback prop is used by the parent component using the constructor to
         // get a ref to the inner textInput element e.g. if we do
@@ -100,14 +102,19 @@ class Composer extends React.Component {
     }
 
     onChangeText(text) {
-        // Updates the text input to reflect the current value
-        this.setState({value: text});
+        this.setText(text);
+        this.props.onChangeText(text);
+    }
 
-        // Calls the onChangeText callback prop
-        if (!this.props.onChangeText) {
+    setText(text) {
+        this.setState({value: text});
+    }
+
+    updateSelection(selection) {
+        if (this.textInput == null || selection == null) {
             return;
         }
-        this.props.onChangeText(text);
+        this.textInput.setSelection(selection.start, selection.end);
     }
 
     render() {
@@ -128,6 +135,7 @@ class Composer extends React.Component {
 
                 // We have a value explicitly set so the value can be changed imperatively
                 // (needed e.g. when we are injecting emojis into the text view)
+                // Can be avoided once: https://github.com/facebook/react-native/pull/34955 gets merged
                 value={this.state.value}
             />
         );

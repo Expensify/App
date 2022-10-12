@@ -186,7 +186,12 @@ class ReportActionCompose extends React.Component {
     }
 
     onSelectionChange(e) {
-        this.selection = e.nativeEvent.selection;
+        if (this.onNextSelectionChange == null) {
+            this.selection = e.nativeEvent.selection;
+        } else {
+            this.onNextSelectionChange(e.nativeEvent.selection);
+            this.onNextSelectionChange = null;
+        }
     }
 
     /**
@@ -315,16 +320,26 @@ class ReportActionCompose extends React.Component {
         const emojiWithSpace = `${emoji} `;
         const newComment = this.comment.slice(0, this.selection.start)
             + emojiWithSpace + this.comment.slice(this.selection.end, this.comment.length);
-        this.selection = {
+        const selection = {
             start: this.selection.start + emojiWithSpace.length,
             end: this.selection.start + emojiWithSpace.length,
         };
 
-        this.textInput.updateSelection(this.selection);
+        // Update selection before updating the text
+        // is intentional and makes the behaviour equally across all platforms (needed for web)
+        this.textInput.updateSelection(selection);
 
-        // This will call the function we passed to the TextInput's onChangeText.
-        // So updateComment gets called after this.
-        this.textInput.onChangeText(newComment);
+        // When the text input gets assigned a new value we will
+        // receive a new selection event, which will be the end of
+        // the text input. So we need to wait for that event and then
+        // set the selection to the place where we want it to be.
+        this.onNextSelectionChange = () => {
+            this.selection = selection;
+            this.textInput.updateSelection(selection);
+        };
+
+        this.updateComment(newComment, true);
+        this.textInput.setText(newComment);
     }
 
     /**
