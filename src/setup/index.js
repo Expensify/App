@@ -25,7 +25,6 @@ export default function () {
         // Increase the cached key count so that the app works more consistently for accounts with large numbers of reports
         maxCachedKeysCount: 10000,
         safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-        keysToDisableSyncEvents: [ONYXKEYS.CURRENTLY_VIEWED_REPORTID],
         captureMetrics: Metrics.canCaptureOnyxMetrics(),
         initialKeyStates: {
 

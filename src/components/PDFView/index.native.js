@@ -132,7 +132,7 @@ class PDFView extends Component {
                     <TouchableWithoutFeedback style={touchableStyles}>
                         <PDF
                             trustAllCerts={false}
-                            activityIndicator={<FullScreenLoadingIndicator />}
+                            renderActivityIndicator={() => <FullScreenLoadingIndicator />}
                             source={{uri: this.props.sourceURL}}
                             style={pdfStyles}
                             onError={this.initiatePasswordChallenge}

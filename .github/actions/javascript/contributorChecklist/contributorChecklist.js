@@ -35,7 +35,6 @@ const completedAuthorChecklist = `- [x] I linked the correct issue in the \`### 
 - [x] If a new component is created I verified that:
     - [x] A similar component doesn't exist in the codebase
     - [x] All props are defined accurately and each prop has a \`/** comment above it */\`
-    - [x] Any functional components have the \`displayName\` property
     - [x] The file is named correctly
     - [x] The component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone
     - [x] The only data being stored in the state is data necessary for rendering and nothing else
@@ -58,6 +57,7 @@ const completedReviewerChecklist = `- [x] I have verified the author checklist i
     - [x] I verified the steps cover any possible failure scenarios (i.e. verify an input displays the correct error message if the entered data is not correct)
     - [x] I turned off my network connection and tested it while offline to ensure it matches the expected behavior (i.e. verify the default avatar icon is displayed if app is offline)
 - [x] I checked that screenshots or videos are included for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
+- [x] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [x] I verified tests pass on **all platforms** & I tested again on:
     - [x] iOS / native
     - [x] Android / native
@@ -82,7 +82,6 @@ const completedReviewerChecklist = `- [x] I have verified the author checklist i
 - [x] If a new component is created I verified that:
     - [x] A similar component doesn't exist in the codebase
     - [x] All props are defined accurately and each prop has a \`/** comment above it */\`
-    - [x] Any functional components have the \`displayName\` property
     - [x] The file is named correctly
     - [x] The component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone
     - [x] The only data being stored in the state is data necessary for rendering and nothing else
