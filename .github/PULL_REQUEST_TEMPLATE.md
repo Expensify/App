@@ -36,25 +36,11 @@ For example:
 
 - [ ] Verify that no errors appear in the JS console
 
-### QA Steps
-<!---
-Add a numbered list of manual tests that can be performed by our QA engineers on the staging environment to validate that your changes work on all platforms, and that there are no regressions present.
-Add any additional QA steps if test steps are unique to a particular platform.
-Manual test steps should be written so that the QA engineer can repeat and verify one or more expected outcomes in the staging environment.
-
-For example:
-1. Click on the text input to bring it into focus
-2. Upload an image via copy paste
-3. Verify a modal appears displaying a preview of that image
---->
-
-- [ ] Verify that no errors appear in the JS console
-
-### PR Review Checklist
+### PR Author Checklist
 <!--
-This is a checklist for PR authors & reviewers. Please make sure to complete all tasks and check them off once you do, or else Expensify has the right not to merge your PR!
+This is a checklist for PR authors. Please make sure to complete all tasks and check them off once you do, or else your PR will not be merged!
 -->
-#### PR Author Checklist
+
 - [ ] I linked the correct issue in the `### Fixed Issues` section above
 - [ ] I wrote clear testing steps that cover the changes made in this PR
     - [ ] I added steps for local testing in the `Tests` section
@@ -103,7 +89,9 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
 <details>
 <summary><h4>PR Reviewer Checklist</h4>
 
-The reviewer will copy/paste it into a new comment and complete it after the author checklist is completed
+Any reviewer that is assigned to this PR will copy/paste this into a new comment and complete it.
+    
+The PR author does NOT complete this section.
 </summary>
 
 - [ ] I have verified the author checklist is complete (all boxes are checked off).
