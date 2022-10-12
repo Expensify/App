@@ -138,7 +138,7 @@ class WorkspaceInitialPage extends React.Component {
                     <HeaderWithCloseButton
                         title={this.props.translate('workspace.common.workspace')}
                         shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                         onCloseButtonPress={() => Navigation.dismissModal()}
                         shouldShowThreeDotsButton
                         shouldShowGetAssistanceButton
