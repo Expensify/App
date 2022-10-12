@@ -255,6 +255,8 @@ export default {
         split: ({amount}) => `Split ${amount}`,
         send: ({amount}) => `Send ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
+        requestedFrom: ({amount, from, comment}) => `Requested ${amount} from ${from}${comment && ` for ${comment}`}`,
+        splitWith: ({amount, from, comment}) => `Split ${amount} with ${from}${comment && ` for ${comment}`}`,
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',

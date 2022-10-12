@@ -255,6 +255,8 @@ export default {
         split: ({amount}) => `Dividir ${amount}`,
         send: ({amount}) => `Enviar ${amount}`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
+        requestedFrom: ({amount, from, comment}) => `Pidió ${amount} de ${from}${comment && ` para ${comment}`}`,
+        splitWith: ({amount, from, comment}) => `Dividir ${amount} con ${from}${comment && ` para ${comment}`}`,
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',

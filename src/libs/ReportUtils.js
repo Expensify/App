@@ -666,14 +666,18 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
 }
 
 function getIOUReportActionMessage(type, amount, participants, comment) {
-    const participantDisplayNames = _.each(participants, participant => lodashGet(allPersonalDetails, [participant, 'displayName'], participant));
+    const displayNames = _.map(participants, participant => lodashGet(participant, 'displayName', participant.email));
+    const from = displayNames.length < 3
+        ? displayNames.join(' and ')
+        : `${displayNames.slice(0, -1).join(', ')}, ${Localize.translateLocal('common.and')} ${_.last(displayNames)}`;
+
     let iouMessage;
     switch (type) {
         case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
-            iouMessage = `Requested ${amount} from ${participantDisplayNames}${comment && ` for ${comment}`}`;
+            iouMessage = Localize.translateLocal('iou.requestedFrom', {amount, from, comment});
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.SPLIT:
-            iouMessage = `Split ${amount} with ${participantDisplayNames}${comment && ` for ${comment}`}`;
+            iouMessage = Localize.translateLocal('iou.splitWith', {amount, from, comment});
             break;
         default:
             break;
@@ -723,6 +727,7 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, p
         originalMessage.paymentType = paymentType;
     }
 
+    // IOUs of type split only exist in group DMs and those don't have an iouReport so we need to delete the IOUReportID key
     if (type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
         delete originalMessage.IOUReportID;
     }
