@@ -41,9 +41,6 @@ class BankAccountPlaidStep extends React.Component {
         const selectedPlaidBankAccount = _.findWhere(lodashGet(this.props.plaidData, 'bankAccounts', []), {
             plaidAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidAccountID'),
         });
-        if (!selectedPlaidBankAccount) {
-            return;
-        }
 
         const bankAccountData = {
             routingNumber: selectedPlaidBankAccount.routingNumber,
