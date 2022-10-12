@@ -559,7 +559,6 @@ export {
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
     Policy_Employees_Merge,
-    RejectTransaction,
     Report_GetHistory,
     ResendValidateCode,
     SetNameValuePair,
