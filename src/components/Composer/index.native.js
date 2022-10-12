@@ -73,7 +73,7 @@ class Composer extends React.Component {
     }
 
     componentDidMount() {
-        // we pass the ref to the native view instance,
+        // We pass the ref to the native view instance,
         // however, we want this method to be
         // available to be called from the outside as well.
         this.textInput.onChangeText = this.onChangeText;
@@ -100,7 +100,7 @@ class Composer extends React.Component {
     }
 
     onChangeText(text) {
-        // updates the text input to reflect the current value
+        // Updates the text input to reflect the current value
         this.setState({value: text});
 
         // calls the onChangeText callback prop
@@ -125,7 +125,7 @@ class Composer extends React.Component {
                 editable={!this.props.isDisabled}
                 onChangeText={this.onChangeText}
 
-                // we have a value explicitly set so the value can be changed imperatively
+                // We have a value explicitly set so the value can be changed imperatively
                 // (needed e.g. when we are injecting emojis into the text view)
                 value={this.state.value}
             />

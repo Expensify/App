@@ -328,9 +328,8 @@ class ReportActionCompose extends React.Component {
 
         this.textInput.updateSelection(this.selection);
 
-        // this will call the function we passed
-        // to the TextInput's onChangeText,
-        // so updateComment gets called after this.
+        // This will call the function we passed to the TextInput's onChangeText.
+        // So updateComment gets called after this.
         this.textInput.onChangeText(newComment);
     }
 
