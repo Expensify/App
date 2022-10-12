@@ -77,7 +77,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         }),
         ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
         new DefinePlugin({
-            process: {env: {}},
+            ...(platform === 'desktop' ? {} : {process: {env: {}}}),
             __REACT_WEB_CONFIG__: JSON.stringify(
                 dotenv.config({path: envFile}).parsed,
             ),
