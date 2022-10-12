@@ -40,6 +40,9 @@ const propTypes = {
     /** Additional styles to add after local styles. Applied to the parent container */
     style: stylePropTypes,
 
+    /** Additional styles to add after local styles. Applied to the children wrapper container */
+    contentContainerStyle: stylePropTypes,
+
     /** Additional style object for the error row */
     errorRowStyles: stylePropTypes,
 
@@ -51,6 +54,7 @@ const defaultProps = {
     errors: null,
     onClose: () => {},
     style: [],
+    contentContainerStyle: [],
     errorRowStyles: [],
 };
 
