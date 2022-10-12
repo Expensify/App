@@ -58,7 +58,7 @@ function getNextStep(updatedACHData) {
         return currentStep;
     }
 
-    if (currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && updatedACHData.bankAccountInReview) {
+    if (currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && updatedACHData.isBankAccountInReview) {
         return currentStep;
     }
 
