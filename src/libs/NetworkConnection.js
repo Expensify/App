@@ -82,21 +82,6 @@ function listenForReconnect() {
 }
 
 /**
- * Tear down the event listeners when we are finished with them.
- */
-function stopListeningForReconnect() {
-    Log.info('[NetworkConnection] stopListeningForReconnect called');
-    if (unsubscribeFromNetInfo) {
-        unsubscribeFromNetInfo();
-        unsubscribeFromNetInfo = undefined;
-    }
-    if (unsubscribeFromAppState) {
-        unsubscribeFromAppState();
-        unsubscribeFromAppState = undefined;
-    }
-}
-
-/**
  * Register callback to fire when we reconnect
  *
  * @param {Function} callback - must return a Promise
