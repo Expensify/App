@@ -283,7 +283,7 @@ class Composer extends React.Component {
 
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
             this.textInput.blur();
-            this.textInput.focus();
+            this.textInput.nativeFocus();
         // eslint-disable-next-line no-empty
         } catch (e) {}
     }
