@@ -669,7 +669,7 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
  * Builds an optimistic IOU reportAction object
  *
  * @param {Number} sequenceNumber - Caller is responsible for providing a best guess at what the next sequenceNumber will be.
- * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay).
+ * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split).
  * @param {Number} amount - IOU amount in cents.
  * @param {String} comment - User comment for the IOU.
  * @param {String} paymentType - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
@@ -698,6 +698,10 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, p
         });
         originalMessage.IOUDetails = {amount, comment, currency};
         originalMessage.paymentType = paymentType;
+    }
+
+    if (type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
+        delete originalMessage.IOUReportID;
     }
 
     return {

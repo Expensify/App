@@ -158,7 +158,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     const groupCreatedReportAction = existingGroupChatReport ? {} : ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
     const groupIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         lodashGet(groupChatReport, 'maxSequenceNumber', 0) + 1,
-        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+        CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
         Math.round(amount * 100),
         comment,
     );

@@ -650,6 +650,7 @@ const CONST = {
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
             CREATE: 'create',
+            SPLIT: 'split',
         },
         AMOUNT_MAX_LENGTH: 10,
     },
