@@ -692,12 +692,20 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, p
     };
 
     // We store amount, comment, currency in IOUDetails when type = pay
+    // let message;
     if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         _.each(['amount', 'comment', 'currency'], (key) => {
             delete originalMessage[key];
         });
         originalMessage.IOUDetails = {amount, comment, currency};
         originalMessage.paymentType = paymentType;
+
+        // message = [{
+        //     html: '',
+        //     text: '',
+        //     isEdited: false,
+        //     type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+        // }];
     }
 
     if (type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
@@ -713,6 +721,7 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, p
         clientID: NumberUtils.generateReportActionClientID(),
         isAttachment: false,
         originalMessage,
+        // message,
         person: [{
             style: 'strong',
             text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
@@ -724,6 +733,84 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, p
         timestamp: moment().unix(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
+}
+
+/**
+ * 
+ * @param {*} type 
+ * @param {*} paymentType 
+ * @param {*} actorEmail 
+ * @param {*} originalMessage 
+ * @returns {Array}
+ */
+function buildOptimisticIOUReportActionMessage(type, paymentType, actorEmail, originalMessage) {
+    $IOUDetails = $this->container['message']['IOUDetails'] ?? [];
+    $isSendRequest = !empty($IOUDetails);
+    if ($isSendRequest) {
+        $formattedAmount = ForexUtils::format(abs($originalMessage['amount']), $originalMessage['currency']);
+    } else {
+        $formattedAmount = ForexUtils::format(abs($this->container['message']['amount']), $this->container['message']['currency']);
+    }
+
+    $comment = $this->container['message']['comment'];
+    switch ($type) {
+        case 'pay':
+            if ($isSendRequest) {
+                $comment = $originalMessage['comment'];
+                $message = 'Sent';
+                $message .= $formattedAmount ? " {$formattedAmount}" : '';
+                $message .= $formattedAmount && strlen($comment) ? " for {$comment}" : '';
+            } else {
+                $message = 'Settled up';
+            }
+            if ($paymentType === self::PAYMENT_TYPE_PAYPAL_ME) {
+                $message .= ' using PayPal.me';
+            } elseif ($paymentType === self::PAYMENT_TYPE_VENMO) {
+                $message .= ' using Venmo';
+            } elseif ($paymentType === self::PAYMENT_TYPE_EXPENSIFY) {
+                $message .= '!';
+            } else {
+                $message .= ' elsewhere';
+            }
+            break;
+        case 'create':
+        case 'split':
+            if (isset($this->container['message']['participants'])) {
+                $who = ArrayUtils::filter($this->container['message']['participants'], fn ($email) => $email !== $actorEmail);
+            } else {
+                // Newer actions have the participants in the message, but old ones do not
+                $actorAuthToken = AuthTokenManager::getEmailToken($actorEmail);
+                $chatReport = ReportStore::getByID($actorAuthToken, $this->getReportID(), true);
+                $who = $chatReport->getParticipants([$actorEmail, '__FAKE__', EMAIL_ACCOUNT_ID_0]);
+            }
+            $who = array_values(ArrayUtils::map(PersonalDetailsStore::getByEmails($who), fn (PersonalDetail $personalDetail) => $personalDetail->getFirstName() ?: $personalDetail->getEmail()));
+            if (count($who) === 1) {
+                $who = $who[0];
+            } else {
+                $who = implode(', ', array_slice($who, 0, -1)).' and '.$who[count($who) - 1];
+            }
+            if ($type === 'create') {
+                $message = "Requested $formattedAmount from $who".(strlen($comment) ? " for {$comment}" : '');
+            } else {
+                $message = "Split $formattedAmount with $who".(strlen($comment) ? " for {$comment}" : '');
+            }
+            break;
+        case 'cancel':
+            $message = "Cancelled the $formattedAmount request".(strlen($comment) ? " for {$comment}" : '');
+            break;
+        case 'decline':
+            $message = "Declined the $formattedAmount request".(strlen($comment) ? " for {$comment}" : '');
+            break;
+        default:
+            // This should only be hit for actions created before we standardized on having `type`
+            $message = 'This action was taken on old code and is not supported anymore';
+            break;
+    }
+    $messages = [];
+    if ($message) {
+        $messages[] = ReportUtils::createHTMLCommentFragment($message, []);
+    }
+    return $messages;
 }
 
 /**
