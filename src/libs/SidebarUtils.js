@@ -113,7 +113,15 @@ function getOrderedReportIDs(reportIDFromRoute) {
     // - Regardless of mode, all archived reports should remain at the bottom
     const orderedReports = _.sortBy(filteredReportsWithReportName, (report) => {
         if (ReportUtils.isArchivedRoom(report)) {
-            return isInDefaultMode ? -Infinity : 'ZZZZZZZZZZZZZ';
+            return isInDefaultMode
+
+                // -Infinity is used here because there is no chance that a report will ever have an older timestamp than -Infinity and it ensures that archived reports
+                // will always be listed last
+                ? -Infinity
+
+                // Similar logic is used for 'ZZZZZZZZZZZZZ' to reasonably assume that no report will ever have a report name that will be listed alphabetically after this, ensuring that
+                // archived reports will be listed last
+                : 'ZZZZZZZZZZZZZ';
         }
 
         return isInDefaultMode ? report.lastMessageTimestamp : report.reportDisplayName;
