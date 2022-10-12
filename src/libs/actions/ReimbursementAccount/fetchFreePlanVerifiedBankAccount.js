@@ -186,10 +186,10 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
                 isLoading: false,
             });
             Onyx.merge(ONYXKEYS.PLAID_DATA, {
-                isPlaidDisabled,
                 error: '',
                 isLoading: false,
             });
+            Onyx.set(ONYXKEYS.IS_PLAID_DISABLED, isPlaidDisabled);
         });
 }
 
