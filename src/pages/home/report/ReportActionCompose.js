@@ -1,10 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {
-    View,
-    TouchableOpacity,
-    InteractionManager,
-} from 'react-native';
+import {InteractionManager, TouchableOpacity, View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -34,7 +30,7 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import participantPropTypes from '../../../components/participantPropTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
@@ -108,8 +104,6 @@ const defaultProps = {
     personalDetails: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
-
-const IS_EMPTY_PATTERN = /^(\s|`)*$/;
 
 class ReportActionCompose extends React.Component {
     constructor(props) {
@@ -383,7 +377,7 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(newComment, shouldDebounceSaveComment) {
-        const isCommentEmpty = !!newComment.match(IS_EMPTY_PATTERN);
+        const isCommentEmpty = !!newComment.match(CONST.REGEX.IS_COMMENT_EMPTY);
         if (this.state.isCommentEmpty !== isCommentEmpty) {
             this.setState({isCommentEmpty});
         }
