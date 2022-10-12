@@ -31,6 +31,7 @@ const propTypes = {
         error: PropTypes.string,
         shouldShowSuccess: PropTypes.bool,
         isLoading: PropTypes.bool,
+        plaidAccountID: PropTypes.string,
     }),
 };
 
@@ -39,13 +40,16 @@ const defaultProps = {
         error: '',
         shouldShowSuccess: false,
         isLoading: false,
+        plaidAccountID: '',
     },
 };
 
 class AddPersonalBankAccountPage extends React.Component {
     constructor(props) {
         super(props);
-
+        this.state = {
+            selectedPlaidAccountID: this.props.personalBankAccount.plaidAccountID,
+        };
         this.validate = this.validate.bind(this);
         this.submit = this.submit.bind(this);
     }
@@ -72,7 +76,9 @@ class AddPersonalBankAccountPage extends React.Component {
      * @param {Object} values - form input values passed by the Form component
      */
     submit(values) {
-        const selectedPlaidBankAccount = this.props.plaidData.selectedPlaidBankAccount;
+        const selectedPlaidBankAccount = _.findWhere(lodashGet(this.props.plaidData, 'bankAccounts', []), {
+            plaidAccountID: this.state.selectedPlaidAccountID,
+        });
         if (!selectedPlaidBankAccount) {
             return;
         }
@@ -81,7 +87,6 @@ class AddPersonalBankAccountPage extends React.Component {
 
     render() {
         const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
-        const selectedPlaidBankAccount = this.props.plaidData.selectedPlaidBankAccount;
 
         return (
             <ScreenWrapper>
@@ -122,7 +127,7 @@ class AddPersonalBankAccountPage extends React.Component {
                 ) : (
                     <Form
                         formID={ONYXKEYS.PERSONAL_BANK_ACCOUNT}
-                        isSubmitButtonVisible={!_.isUndefined(selectedPlaidBankAccount)}
+                        isSubmitButtonVisible={Boolean(this.state.selectedPlaidAccountID)}
                         submitButtonText={this.props.translate('common.saveAndContinue')}
                         onSubmit={this.submit}
                         validate={this.validate}
@@ -130,10 +135,14 @@ class AddPersonalBankAccountPage extends React.Component {
                     >
                         <>
                             <AddPlaidBankAccount
+                                onSelect={(selectedPlaidAccountID) => {
+                                    this.setState({selectedPlaidAccountID});
+                                }}
                                 onExitPlaid={Navigation.goBack}
                                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
+                                selectedPlaidAccountID={this.state.selectedPlaidAccountID}
                             />
-                            {!_.isUndefined(selectedPlaidBankAccount) && (
+                            {Boolean(this.state.selectedPlaidAccountID) && (
                             <TextInput
                                 inputID="password"
                                 label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
