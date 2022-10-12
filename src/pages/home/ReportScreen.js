@@ -229,7 +229,6 @@ class ReportScreen extends React.Component {
         return (
             <ScreenWrapper
                 style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
-                keyboardAvoidingViewBehavior={Platform.OS === 'android' ? '' : 'padding'}
             >
                 <HeaderView
                     reportID={reportID}
