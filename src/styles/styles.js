@@ -2680,6 +2680,23 @@ const styles = {
         fontFamily: fontFamily.GTA,
         marginLeft: 6,
     },
+
+    addWorkspaceRoomErrorRow: {
+        paddingHorizontal: 20,
+        maxWidth: 450,
+        alignSelf: 'center',
+    },
+
+    textPill: {
+        ellipsizeMode: 'end',
+        backgroundColor: colors.gray2,
+        borderRadius: 10,
+        overflow: 'hidden',
+        paddingVertical: 2,
+        flexShrink: 1,
+        fontSize: variables.fontSizeLabel,
+        ...spacing.ph2,
+    },
 };
 
 export default styles;

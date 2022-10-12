@@ -14,6 +14,7 @@ export default {
     border: colors.gray2,
     borderFocus: colors.blue,
     icon: colors.gray3,
+    iconLight: 'rgba(198, 201, 202, 0.5)',
     iconHovered: colors.dark,
     iconSuccessFill: colors.green,
     iconReversed: colors.white,
