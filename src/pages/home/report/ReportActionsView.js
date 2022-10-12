@@ -257,7 +257,7 @@ class ReportActionsView extends React.Component {
         return Visibility.isVisible() && !isSidebarCoveringReportView;
     }
 
-    // If the chat is optimistic (AKA not yet created) we don't need to call openChat again
+    // If the report is optimistic (AKA not yet created) we don't need to call openReport again
     openReportIfNecessary() {
         if (this.props.report.isOptimisticReport) {
             return;
