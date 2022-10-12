@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.2.12-3",
+  "version": "1.2.13-4",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -217,7 +217,8 @@
     ],
     "setupFilesAfterEnv": [
       "@testing-library/jest-native/extend-expect"
-    ]
+    ],
+    "cacheDirectory": "<rootDir>/.jest-cache"
   },
   "prettier": {
     "bracketSpacing": false,
