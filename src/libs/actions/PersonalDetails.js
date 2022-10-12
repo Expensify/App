@@ -6,14 +6,13 @@ import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as API from '../API';
-// eslint-disable-next-line import/no-cycle
 import * as DeprecatedAPI from '../deprecatedAPI';
-// eslint-disable-next-line import/no-cycle
 import NameValuePair from './NameValuePair';
 import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../ReportUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
+import DateUtils from '../DateUtils';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -261,6 +260,14 @@ function setPersonalDetails(details, shouldGrowl) {
         });
 }
 
+/*
+ * Updates user's timezone, if their timezone is set to automatic and
+ * is different from current timezone
+ */
+function updateTimezone() {
+    setPersonalDetails({timezone: DateUtils.getCurrentTimezone()});
+}
+
 function updateProfile(firstName, lastName, pronouns, timezone) {
     API.write('UpdateProfile', {
         firstName,
@@ -393,6 +400,7 @@ export {
     getFromReportParticipants,
     getDisplayName,
     setPersonalDetails,
+    updateTimezone,
     updateAvatar,
     deleteAvatar,
     openIOUModalPage,
