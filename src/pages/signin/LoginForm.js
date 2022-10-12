@@ -23,6 +23,7 @@ import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
+import * as CloseAccount from '../../libs/actions/CloseAccount';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -43,7 +44,7 @@ const propTypes = {
     }),
 
     closeAccount: PropTypes.shape({
-        /** Success message to display when necessary */
+        /** Message to display when user successfully closed their account */
         success: PropTypes.string,
     }),
 
@@ -131,6 +132,11 @@ class LoginForm extends React.Component {
             return;
         }
 
+        // If account was closed and have success message in Onyx, we clear it here
+        if (!_.isEmpty(this.props.closeAccount.success)) {
+            CloseAccount.setDefaultData();
+        }
+
         const login = this.state.login.trim();
         if (!login) {
             this.setState({formError: 'common.pleaseEnterEmailOrPhoneNumber'});
@@ -184,6 +190,8 @@ class LoginForm extends React.Component {
                     </Text>
                 )}
                 {!_.isEmpty(this.props.closeAccount.success) && (
+
+                    // DotIndicatorMessage mostly expects onyxData errors, so we need to mock an object so that the messages looks similar to prop.account.errors
                     <DotIndicatorMessage style={[styles.mv2]} type="success" messages={{0: this.props.closeAccount.success}} />
                 )}
                 { // We need to unmount the submit button when the component is not visible so that the Enter button
