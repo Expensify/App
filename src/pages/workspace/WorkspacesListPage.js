@@ -125,46 +125,28 @@ class WorkspacesListPage extends Component {
         const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
         const isPaymentItem = item.translationKey === 'common.payments';
 
-        if (item.isPolicy) {
-            return (
-                <OfflineWithFeedback
-                    key={`${keyTitle}_${index}`}
-                    pendingAction={item.pendingAction}
-                    errorRowStyles={styles.offlineFeedback.menuItemErrorPadding}
-                    onClose={item.dismissError}
-                    errors={item.errors}
-                >
-                    <MenuItem
-                        title={keyTitle}
-                        icon={item.icon}
-                        iconType={item.iconType}
-                        onPress={item.action}
-                        iconStyles={item.iconStyles}
-                        iconFill={item.iconFill}
-                        shouldShowRightIcon
-                        badgeText={this.getWalletBalance(isPaymentItem)}
-                        fallbackIcon={item.fallbackIcon}
-                        brickRoadIndicator={item.brickRoadIndicator}
-                        disabled={item.disabled}
-                    />
-                </OfflineWithFeedback>
-            );
-        }
-
         return (
-            <MenuItem
+            <OfflineWithFeedback
                 key={`${keyTitle}_${index}`}
-                title={keyTitle}
-                icon={item.icon}
-                iconType={item.iconType}
-                onPress={item.action}
-                iconStyles={item.iconStyles}
-                iconFill={item.iconFill}
-                shouldShowRightIcon
-                badgeText={this.getWalletBalance(isPaymentItem)}
-                fallbackIcon={item.fallbackIcon}
-                brickRoadIndicator={item.brickRoadIndicator}
-            />
+                pendingAction={item.pendingAction}
+                errorRowStyles={styles.offlineFeedback.menuItemErrorPadding}
+                onClose={item.dismissError}
+                errors={item.errors}
+            >
+                <MenuItem
+                    title={keyTitle}
+                    icon={item.icon}
+                    iconType={item.iconType}
+                    onPress={item.action}
+                    iconStyles={item.iconStyles}
+                    iconFill={item.iconFill}
+                    shouldShowRightIcon
+                    badgeText={this.getWalletBalance(isPaymentItem)}
+                    fallbackIcon={item.fallbackIcon}
+                    brickRoadIndicator={item.brickRoadIndicator}
+                    disabled={item.disabled}
+                />
+            </OfflineWithFeedback>
         );
     }
 
