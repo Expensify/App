@@ -19,6 +19,7 @@ export default {
         save: 'Save',
         saveChanges: 'Save changes',
         password: 'Password',
+        workspaces: 'Workspaces',
         profile: 'Profile',
         payments: 'Payments',
         preferences: 'Preferences',
