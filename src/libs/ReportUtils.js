@@ -977,8 +977,7 @@ function getChatByParticipants(newParticipantList, reports) {
         if (!report || !report.participants) {
             return false;
         }
-        report.participants.sort();
-        return _.isEqual(sortedNewParticipantList, report.participants);
+        return _.isEqual(newParticipantList, report.participants.sort());
     });
 }
 
