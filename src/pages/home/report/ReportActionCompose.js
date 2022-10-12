@@ -322,10 +322,9 @@ class ReportActionCompose extends React.Component {
             this.textInput.setSelection(this.selection.start, this.selection.start);
         }
 
-        const emojiWithSpace = `${emoji} `;
         const newComment = this.comment.slice(0, this.selection.start)
-            + emojiWithSpace + this.comment.slice(this.selection.end, this.comment.length);
-        const newSelection = this.selection.start + emojiWithSpace.length;
+            + emoji + this.comment.slice(this.selection.end, this.comment.length);
+        const newSelection = this.selection.start + emoji.length;
         this.selection = {
             start: newSelection,
             end: newSelection,
