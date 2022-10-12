@@ -350,7 +350,7 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, lo
 
     API.write('SplitBill', {
         reportID: groupData.chatReportID,
-        amount,
+        amount: Math.round(amount * 100),
         splits: JSON.stringify(splits),
         currency,
         comment,
@@ -372,7 +372,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
 
     API.write('SplitBillAndOpenReport', {
         reportID: groupData.chatReportID,
-        amount,
+        amount: Math.round(amount * 100),
         splits: JSON.stringify(splits),
         currency,
         comment,
