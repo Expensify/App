@@ -665,6 +665,28 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
     };
 }
 
+function getIOUReportActionMessage(type, amount, participants, comment) {
+    const participantDisplayNames = _.each(participants, participant => lodashGet(allPersonalDetails, [participant, 'displayName'], participant));
+    let iouMessage;
+    switch (type) {
+        case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
+            iouMessage = `Requested ${amount} from ${participantDisplayNames}${comment && ` for ${comment}`}`;
+            break;
+        case CONST.IOU.REPORT_ACTION_TYPE.SPLIT:
+            iouMessage = `Split ${amount} with ${participantDisplayNames}${comment && ` for ${comment}`}`;
+            break;
+        default:
+            break;
+    }
+
+    return [{
+        html: iouMessage,
+        text: iouMessage,
+        isEdited: false,
+        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+    }];
+}
+
 /**
  * Builds an optimistic IOU reportAction object
  *
@@ -672,13 +694,14 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
  * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split).
  * @param {Number} amount - IOU amount in cents.
  * @param {String} comment - User comment for the IOU.
+ * @param {Array}  participants - An array with participants details.
  * @param {String} paymentType - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
  * @param {String} existingIOUTransactionID - Only required if the IOUReportAction type is oneOf(cancel, decline). Generates a randomID as default.
  * @param {Number} existingIOUReportID - Only required if we have an existing IOUReportID. Generates a randomID as default.
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = 0) {
+function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, participants, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = 0) {
     const currency = lodashGet(currentUserPersonalDetails, 'localCurrencyCode');
     const IOUTransactionID = existingIOUTransactionID || NumberUtils.rand64();
     const IOUReportID = existingIOUReportID || generateReportID();
@@ -692,20 +715,12 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, p
     };
 
     // We store amount, comment, currency in IOUDetails when type = pay
-    // let message;
     if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         _.each(['amount', 'comment', 'currency'], (key) => {
             delete originalMessage[key];
         });
         originalMessage.IOUDetails = {amount, comment, currency};
         originalMessage.paymentType = paymentType;
-
-        // message = [{
-        //     html: '',
-        //     text: '',
-        //     isEdited: false,
-        //     type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-        // }];
     }
 
     if (type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
@@ -721,7 +736,7 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, p
         clientID: NumberUtils.generateReportActionClientID(),
         isAttachment: false,
         originalMessage,
-        // message,
+        message: getIOUReportActionMessage(type, amount, participants, comment),
         person: [{
             style: 'strong',
             text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),

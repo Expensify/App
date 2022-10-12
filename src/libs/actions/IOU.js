@@ -161,6 +161,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
         Math.round(amount * 100),
         comment,
+        participants,
     );
 
     const optimisticData = [
@@ -251,6 +252,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             splitAmount,
             comment,
+            [participant],
             '',
             '',
             oneOnOneIOUReport.reportID,
