@@ -66,6 +66,9 @@ const propTypes = {
     /** Allow the full composer to be opened */
     setIsFullComposerAvailable: PropTypes.func,
 
+    /** Called when the user changes the text in the input */
+    onChangeText: PropTypes.func,
+
     ...withLocalizePropTypes,
 };
 
@@ -87,6 +90,7 @@ const defaultProps = {
     onSelectionChange: () => {},
     isFullComposerAvailable: false,
     setIsFullComposerAvailable: () => {},
+    onChangeText: () => {},
 };
 
 const IMAGE_EXTENSIONS = {
@@ -201,11 +205,7 @@ class Composer extends React.Component {
     onChangeText(text) {
         // Updates the text input to reflect the current value
         this.setState({value: text});
-
-        // Calls the onChangeText callback prop
-        if (this.props.onChangeText != null) {
-            this.props.onChangeText(text);
-        }
+        this.props.onChangeText(text);
     }
 
     onSelectionChange(event) {
