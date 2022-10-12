@@ -665,8 +665,9 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
     };
 }
 
-function getIOUReportActionMessage(type, amount, participants, comment) {
-    const displayNames = _.map(participants, participant => lodashGet(participant, 'displayName', participant.email));
+function getIOUReportActionMessage(type, total, participants, comment, currency) {
+    const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
+    const displayNames = _.map(participants, participant => lodashGet(participant, 'displayName', participant.login));
     const from = displayNames.length < 3
         ? displayNames.join(' and ')
         : `${displayNames.slice(0, -1).join(', ')}, ${Localize.translateLocal('common.and')} ${_.last(displayNames)}`;
@@ -741,7 +742,7 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, p
         clientID: NumberUtils.generateReportActionClientID(),
         isAttachment: false,
         originalMessage,
-        message: getIOUReportActionMessage(type, amount, participants, comment),
+        message: getIOUReportActionMessage(type, amount, participants, comment, currency),
         person: [{
             style: 'strong',
             text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
