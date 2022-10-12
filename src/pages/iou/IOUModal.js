@@ -316,22 +316,9 @@ class IOUModal extends Component {
     createTransaction(splits) {
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
 
-        // Only splits from a group DM has a reportID
-        // Check if reportID is a number
-        // @TODO: there are 3 conditionals here, which ones are correct?
+        // IOUs created from a group report will have a reportID param in the route.
+        // Since the user is already viewing the report, we don't need to navigate them to the report
         if (splits && CONST.REGEX.NUMBER.test(reportID)) {
-            IOU.splitBillAndOpenReport(
-                this.state.participants,
-                this.props.currentUserPersonalDetails.login,
-                this.state.amount,
-                this.state.comment,
-                this.props.iou.selectedCurrencyCode,
-                this.props.preferredLocale,
-            );
-            return;
-        }
-
-        if (splits && reportID) {
             IOU.splitBill(
                 this.state.participants,
                 this.props.currentUserPersonalDetails.login,
@@ -343,6 +330,7 @@ class IOUModal extends Component {
             return;
         }
 
+        // If the IOU is created from the global create menu, we also navigate the user to the group report
         if (splits) {
             IOU.splitBillAndOpenReport(
                 this.state.participants,
