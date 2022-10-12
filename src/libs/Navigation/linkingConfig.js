@@ -36,6 +36,10 @@ export default {
                     Settings_Root: {
                         path: ROUTES.SETTINGS,
                     },
+                    Settings_Workspaces: {
+                        path: ROUTES.SETTINGS_WORKSPACES,
+                        exact: true,
+                    },
                     Settings_Preferences: {
                         path: ROUTES.SETTINGS_PREFERENCES,
                         exact: true,
