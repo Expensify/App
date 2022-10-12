@@ -112,8 +112,11 @@ class AddPlaidBankAccount extends React.Component {
      * @param {String} plaidAccountID
      */
     selectAccount(plaidAccountID) {
+        console.log('selectAccount', {plaidAccountID});
         const selectedPlaidBankAccount = _.findWhere(this.getPlaidBankAccounts(), {plaidAccountID});
         if (!selectedPlaidBankAccount) {
+            // TODO: Remove this early return. We shouldn't have to make this check.
+            // Currently, seems like we're calling selectAccount with the previous selectedID before calling it again with the right one.
             return;
         }
         selectedPlaidBankAccount.bankName = this.props.plaidData.bankName;
@@ -128,6 +131,7 @@ class AddPlaidBankAccount extends React.Component {
             value: account.plaidAccountID, label: `${account.addressName} ${account.mask}`,
         }));
         const selectedPlaidBankAccount = this.props.plaidData.selectedPlaidBankAccount;
+        console.log('render', selectedPlaidBankAccount);
         const {icon, iconSize} = getBankIcon();
 
         // Plaid Link view
@@ -186,11 +190,11 @@ class AddPlaidBankAccount extends React.Component {
                         label={this.props.translate('addPersonalBankAccountPage.chooseAccountLabel')}
                         onInputChange={this.selectAccount}
                         items={options}
-                        placeholder={selectedPlaidBankAccount ? {
+                        placeholder={!selectedPlaidBankAccount ? {
                             value: '',
                             label: this.props.translate('bankAccount.chooseAnAccount'),
                         } : {}}
-                        value={selectedPlaidBankAccount.plaidAccountID}
+                        value={lodashGet(selectedPlaidBankAccount, 'plaidAccountID', '')}
                     />
                 </View>
             </View>
