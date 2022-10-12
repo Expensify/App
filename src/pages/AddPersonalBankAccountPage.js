@@ -47,11 +47,13 @@ const defaultProps = {
 class AddPersonalBankAccountPage extends React.Component {
     constructor(props) {
         super(props);
+
+        this.validate = this.validate.bind(this);
+        this.submit = this.submit.bind(this);
+
         this.state = {
             selectedPlaidAccountID: this.props.personalBankAccount.plaidAccountID,
         };
-        this.validate = this.validate.bind(this);
-        this.submit = this.submit.bind(this);
     }
 
     componentDidMount() {
@@ -79,9 +81,7 @@ class AddPersonalBankAccountPage extends React.Component {
         const selectedPlaidBankAccount = _.findWhere(lodashGet(this.props.plaidData, 'bankAccounts', []), {
             plaidAccountID: this.state.selectedPlaidAccountID,
         });
-        if (!selectedPlaidBankAccount) {
-            return;
-        }
+
         BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount, values.password);
     }
 
