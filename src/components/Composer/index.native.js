@@ -103,10 +103,11 @@ class Composer extends React.Component {
         // Updates the text input to reflect the current value
         this.setState({value: text});
 
-        // calls the onChangeText callback prop
-        if (this.props.onChangeText != null) {
-            this.props.onChangeText(text);
+        // Calls the onChangeText callback prop
+        if (!this.props.onChangeText) {
+            return;
         }
+        this.props.onChangeText(text);
     }
 
     render() {
