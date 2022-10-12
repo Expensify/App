@@ -1,11 +1,35 @@
 import React from 'react';
-import {StyleSheet} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import RNTextInput from '../RNTextInput';
 import themeColors from '../../styles/themes/default';
 import CONST from '../../CONST';
 import * as ComposerUtils from '../../libs/ComposerUtils';
+
+// Getting the commands module of the TextInput native component
+// See: https://github.com/facebook/react-native/blob/4a786d6b0d7a3420afdfb6b136d2ee3fa3b53145/Libraries/Components/TextInput/TextInput.js#L40
+let AndroidTextInputCommands;
+let RCTSinglelineTextInputNativeCommands;
+let RCTMultilineTextInputNativeCommands;
+if (Platform.OS === 'android') {
+    AndroidTextInputCommands = require('react-native/Libraries/Components/TextInput/AndroidTextInputNativeComponent').Commands;
+} else if (Platform.OS === 'ios') {
+    RCTSinglelineTextInputNativeCommands = require('react-native/Libraries/Components/TextInput/RCTSingelineTextInputNativeComponent').Commands;
+    RCTMultilineTextInputNativeCommands = require('react-native/Libraries/Components/TextInput/RCTMultilineTextInputNativeComponent').Commands;
+}
+
+const getViewCommands = (multiline) => {
+    let viewCommands;
+    if (AndroidTextInputCommands) {
+        viewCommands = AndroidTextInputCommands;
+    } else {
+        viewCommands = multiline === true
+            ? RCTMultilineTextInputNativeCommands
+            : RCTSinglelineTextInputNativeCommands;
+    }
+    return viewCommands;
+};
 
 const propTypes = {
     /** If the input should clear, it actually gets intercepted instead of .clear() */
@@ -42,6 +66,12 @@ const propTypes = {
 
     /** A value the input should have when it first mounts. Default is empty. */
     defaultValue: PropTypes.string,
+
+    /** If true, the text input can be multiple lines. The default value is false. */
+    multiline: PropTypes.bool,
+
+    /** Callback that is called when the text input's text changes. */
+    onChange: PropTypes.func,
 };
 
 const defaultProps = {
@@ -55,11 +85,19 @@ const defaultProps = {
     style: null,
     onChangeText: () => {},
     defaultValue: '',
+    multiline: false,
+    onChange: () => {},
 };
 
 class Composer extends React.Component {
     constructor(props) {
         super(props);
+
+        this.mostRecentEventCount = 0;
+        this.viewCommands = getViewCommands(props.multiline);
+
+        this.onChange = this.onChange.bind(this);
+        this.setTextAndSelection = this.setTextAndSelection.bind(this);
 
         this.state = {
             propStyles: StyleSheet.flatten(this.props.style),
@@ -74,6 +112,7 @@ class Composer extends React.Component {
         if (!this.props.forwardedRef || !_.isFunction(this.props.forwardedRef)) {
             return;
         }
+        this.textInput.setTextAndSelection = this.setTextAndSelection;
 
         this.props.forwardedRef(this.textInput);
     }
@@ -85,6 +124,21 @@ class Composer extends React.Component {
 
         this.textInput.clear();
         this.props.onClear();
+    }
+
+    onChange(event) {
+        this.mostRecentEventCount = event.nativeEvent.eventCount;
+        this.props.onChange(event);
+    }
+
+    setTextAndSelection(text, start, end) {
+        this.viewCommands.setTextAndSelection(
+            this.textInput,
+            this.mostRecentEventCount,
+            text,
+            start,
+            end,
+        );
     }
 
     render() {
@@ -101,6 +155,7 @@ class Composer extends React.Component {
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...this.props}
                 editable={!this.props.isDisabled}
+                onChange={this.onChange}
             />
         );
     }

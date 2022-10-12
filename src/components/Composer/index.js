@@ -127,11 +127,7 @@ class Composer extends React.Component {
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
-        this.onChangeText = this.onChangeText.bind(this);
-        this.focus = this.focus.bind(this);
-        this.onSelectionChange = this.onSelectionChange.bind(this);
-        this.updateSelection = this.updateSelection.bind(this);
-        this.setText = this.setText.bind(this);
+        this.setTextAndSelection = this.setTextAndSelection.bind(this);
     }
 
     componentDidMount() {
@@ -146,15 +142,7 @@ class Composer extends React.Component {
         }
 
         if (this.textInput) {
-            // We pass the ref to the native view instance
-            // however, we want this method to be
-            // available to be called from the outside as well.
-            this.textInput.setText = this.setText;
-            this.textInput.updateSelection = this.updateSelection;
-
-            // Overwrite focus with this component's implementation
-            this.textInput.nativeFocus = this.textInput.focus;
-            this.textInput.focus = this.focus;
+            this.textInput.setTextAndSelection = this.setTextAndSelection;
 
             // There is no onPaste or onDrag for TextInput in react-native so we will add event
             // listeners here and unbind when the component unmounts
@@ -168,7 +156,7 @@ class Composer extends React.Component {
             this.textInput.addEventListener('paste', this.handlePaste);
             this.textInput.addEventListener('wheel', this.handleWheel);
 
-            this.setText(this.initialValue);
+            this.textInput.value = this.initialValue;
             this.textInput.setSelectionRange(this.selection.start, this.selection.end);
         }
     }
@@ -199,41 +187,9 @@ class Composer extends React.Component {
         this.textInput.removeEventListener('wheel', this.handleWheel);
     }
 
-    onChangeText(text) {
-        // Updates the text input to reflect the current value
-        this.setText(text);
-        this.props.onChangeText(text);
-    }
-
-    onSelectionChange(event) {
-        this.selection = event.nativeEvent.selection;
-        this.props.onSelectionChange(event);
-    }
-
-    setText(text) {
+    setTextAndSelection(text, start, end) {
         this.textInput.value = text;
-    }
-
-    updateSelection(selection) {
-        this.selection = selection;
-        this.textInput.setSelectionRange(
-            selection.start,
-            selection.end,
-        );
-    }
-
-    focus() {
-        // Capture the selection, as the "native focus" call will
-        // call onSelectionChange to the end of the text
-        const selection = this.selection;
-
-        this.textInput.nativeFocus();
-        requestAnimationFrame(() => {
-            this.textInput.setSelectionRange(
-                selection.start,
-                selection.end,
-            );
-        });
+        this.textInput.setSelectionRange(start, end);
     }
 
     /**
@@ -288,7 +244,7 @@ class Composer extends React.Component {
 
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
             this.textInput.blur();
-            this.textInput.nativeFocus();
+            this.textInput.focus();
         // eslint-disable-next-line no-empty
         } catch (e) {}
     }
@@ -400,9 +356,7 @@ class Composer extends React.Component {
             + parseInt(computedStyle.paddingTop, 10);
             const numberOfLines = getNumberOfLines(this.props.maxLines, lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
             updateIsFullComposerAvailable(this.props, numberOfLines);
-            this.setState({
-                numberOfLines,
-            });
+            this.setState({numberOfLines});
         });
     }
 
@@ -421,8 +375,6 @@ class Composer extends React.Component {
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...propsToPass}
                 disabled={this.props.isDisabled}
-                onChangeText={this.onChangeText}
-                onSelectionChange={this.onSelectionChange}
             />
         );
     }
