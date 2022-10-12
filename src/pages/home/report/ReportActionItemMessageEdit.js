@@ -161,10 +161,8 @@ class ReportActionItemMessageEdit extends React.Component {
             end: this.selection.start + emoji.length,
         };
 
+        this.textInput.setTextAndSelection(newComment, this.selection.start, this.selection.end);
         this.updateDraft(newComment);
-
-        this.textInput.setText(newComment);
-        this.textInput.updateSelection(this.selection);
     }
 
     /**

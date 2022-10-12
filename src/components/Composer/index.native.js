@@ -61,22 +61,12 @@ class Composer extends React.Component {
     constructor(props) {
         super(props);
 
-        this.onChangeText = this.onChangeText.bind(this);
-        this.setText = this.setText.bind(this);
-        this.updateSelection = this.updateSelection.bind(this);
         this.state = {
             propStyles: StyleSheet.flatten(this.props.style),
-            value: props.defaultValue,
         };
     }
 
     componentDidMount() {
-        // We pass the ref to the native view instance,
-        // however, we want this method to be
-        // available to be called from the outside as well.
-        this.textInput.setText = this.setText;
-        this.textInput.updateSelection = this.updateSelection;
-
         // This callback prop is used by the parent component using the constructor to
         // get a ref to the inner textInput element e.g. if we do
         // <constructor ref={el => this.textInput = el} /> this will not
@@ -97,22 +87,6 @@ class Composer extends React.Component {
         this.props.onClear();
     }
 
-    onChangeText(text) {
-        this.setText(text);
-        this.props.onChangeText(text);
-    }
-
-    setText(text) {
-        this.setState({value: text});
-    }
-
-    updateSelection(selection) {
-        if (this.textInput == null || selection == null) {
-            return;
-        }
-        this.textInput.setSelection(selection.start, selection.end);
-    }
-
     render() {
         return (
             <RNTextInput
@@ -127,12 +101,6 @@ class Composer extends React.Component {
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...this.props}
                 editable={!this.props.isDisabled}
-                onChangeText={this.onChangeText}
-
-                // We have a value explicitly set so the value can be changed imperatively
-                // (needed e.g. when we are injecting emojis into the text view)
-                // Can be avoided once: https://github.com/facebook/react-native/pull/34955 gets merged
-                value={this.state.value}
             />
         );
     }

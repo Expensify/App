@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {InteractionManager, TouchableOpacity, View} from 'react-native';
+import {
+    InteractionManager, Platform, TouchableOpacity, View,
+} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -186,12 +188,7 @@ class ReportActionCompose extends React.Component {
     }
 
     onSelectionChange(e) {
-        if (this.onNextSelectionChange == null) {
-            this.selection = e.nativeEvent.selection;
-        } else {
-            this.onNextSelectionChange(e.nativeEvent.selection);
-            this.onNextSelectionChange = null;
-        }
+        this.selection = e.nativeEvent.selection;
     }
 
     /**
@@ -317,29 +314,25 @@ class ReportActionCompose extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
+        const hasRangeSelected = this.selection.start !== this.selection.end;
+        if (Platform.OS === 'android' && hasRangeSelected) {
+            // Android: when we have a range selected setTextAndSelection
+            // won't remove the highlight, so we manually set the cursor
+            // to a selection range of 0 (so there won't be any selection highlight).
+            this.textInput.setSelection(this.selection.start, this.selection.start);
+        }
+
         const emojiWithSpace = `${emoji} `;
         const newComment = this.comment.slice(0, this.selection.start)
             + emojiWithSpace + this.comment.slice(this.selection.end, this.comment.length);
-        const selection = {
-            start: this.selection.start + emojiWithSpace.length,
-            end: this.selection.start + emojiWithSpace.length,
+        const newSelection = this.selection.start + emojiWithSpace.length;
+        this.selection = {
+            start: newSelection,
+            end: newSelection,
         };
 
-        // Update selection before updating the text
-        // is intentional and makes the behaviour equally across all platforms (needed for web)
-        this.textInput.updateSelection(selection);
-
-        // When the text input gets assigned a new value we will
-        // receive a new selection event, which will be the end of
-        // the text input. So we need to wait for that event and then
-        // set the selection to the place where we want it to be.
-        this.onNextSelectionChange = () => {
-            this.selection = selection;
-            this.textInput.updateSelection(selection);
-        };
-
+        this.textInput.setTextAndSelection(newComment, this.selection.start, this.selection.end);
         this.updateComment(newComment, true);
-        this.textInput.setText(newComment);
     }
 
     /**
