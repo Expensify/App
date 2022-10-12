@@ -144,6 +144,11 @@ class InitialSettingsPage extends React.Component {
     getDefaultMenuItems() {
         return ([
             {
+                translationKey: 'common.workspaces',
+                icon: Expensicons.Profile,
+                action: () => { Navigation.navigate(ROUTES.SETTINGS_WORKSPACES); },
+            },
+            {
                 translationKey: 'common.profile',
                 icon: Expensicons.Profile,
                 action: () => { App.openProfile(); },
