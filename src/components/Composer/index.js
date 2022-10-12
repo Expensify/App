@@ -135,16 +135,6 @@ class Composer extends React.Component {
     }
 
     componentDidMount() {
-        // We pass the ref to the native view instance
-        // however, we want this method to be
-        // available to be called from the outside as well.
-        this.textInput.onChangeText = this.onChangeText;
-        this.textInput.updateSelection = this.updateSelection;
-
-        // Overwrite focus with this component's implementation
-        this.textInput.nativeFocus = this.textInput.focus;
-        this.textInput.focus = this.focus;
-
         this.updateNumberOfLines();
 
         // This callback prop is used by the parent component using the constructor to
@@ -155,9 +145,20 @@ class Composer extends React.Component {
             this.props.forwardedRef(this.textInput);
         }
 
-        // There is no onPaste or onDrag for TextInput in react-native so we will add event
-        // listeners here and unbind when the component unmounts
         if (this.textInput) {
+            // We pass the ref to the native view instance
+            // however, we want this method to be
+            // available to be called from the outside as well.
+            this.textInput.onChangeText = this.onChangeText;
+            this.textInput.updateSelection = this.updateSelection;
+
+            // Overwrite focus with this component's implementation
+            this.textInput.nativeFocus = this.textInput.focus;
+            this.textInput.focus = this.focus;
+
+            // There is no onPaste or onDrag for TextInput in react-native so we will add event
+            // listeners here and unbind when the component unmounts
+
             // Firefox will not allow dropping unless we call preventDefault on the dragover event
             // We listen on document to extend the Drop area beyond Composer
             document.addEventListener('dragover', this.dragNDropListener);
