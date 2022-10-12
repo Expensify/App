@@ -19,13 +19,10 @@ const defaultProps = {
 };
 
 const TextPill = (props) => {
-    const mergedStyles = !_.isArray(props.style) ? props.style : _.reduce(props.style, (finalStyles, s) => ({
-        ...finalStyles,
-        ...s,
-    }), {});
+    const propsStyle = _.isArray(props.style) ? props.style : [props.style];
 
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <Text {...props} style={[styles.textPill, mergedStyles]} numberOfLines={1}>{props.children}</Text>;
+    return <Text {...props} style={[styles.textPill, ...propsStyle]} numberOfLines={1}>{props.children}</Text>;
 };
 
 TextPill.propTypes = propTypes;
