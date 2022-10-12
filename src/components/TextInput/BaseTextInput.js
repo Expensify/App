@@ -263,6 +263,7 @@ class BaseTextInput extends Component {
                                         }}
                                         // eslint-disable-next-line
                                         {...inputProps}
+                                        autoCorrect={this.props.secureTextEntry ? false : this.props.autoCorrect}
                                         placeholder={placeholder}
                                         placeholderTextColor={themeColors.placeholderText}
                                         underlineColorAndroid="transparent"
@@ -291,6 +292,7 @@ class BaseTextInput extends Component {
                                         <Checkbox
                                             style={styles.secureInputShowPasswordButton}
                                             onPress={this.togglePasswordVisibility}
+                                            onMouseDown={e => e.preventDefault()}
                                         >
                                             <Icon
                                                 src={this.state.passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
