@@ -90,5 +90,7 @@ storybook-static
 /coverage.data
 /coverage/
 
+.jest-cache
+
 # E2E test reports
 e2e/.results/
