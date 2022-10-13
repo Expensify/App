@@ -58,15 +58,11 @@ Onyx.connect({
     },
 });
 
-const reports = {};
+let reports;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (val) => {
-        if (!_.isObject(val) || !_.has(val, 'reportID')) {
-            return;
-        }
-        reports[val.reportID] = val;
-    },
+    waitForCollectionCallback: true,
+    callback: val => reports = val,
 });
 
 /**
