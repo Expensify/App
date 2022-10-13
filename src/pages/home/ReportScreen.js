@@ -99,6 +99,9 @@ function getReportID(route) {
     return route.params.reportID.toString();
 }
 
+// Keep a reference to the list view height so we can use it when a new ReportScreen component mounts
+let reportActionsListViewHeight = 0;
+
 class ReportScreen extends React.Component {
     constructor(props) {
         super(props);
@@ -110,7 +113,7 @@ class ReportScreen extends React.Component {
         this.removeViewportResizeListener = () => {};
 
         this.state = {
-            skeletonViewContainerHeight: 0,
+            skeletonViewContainerHeight: reportActionsListViewHeight,
             viewportOffsetTop: 0,
             isBannerVisible: true,
         };
@@ -262,7 +265,18 @@ class ReportScreen extends React.Component {
                         <View
                             nativeID={CONST.REPORT.DROP_NATIVE_ID}
                             style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                            onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
+                            onLayout={(event) => {
+                                const skeletonViewContainerHeight = event.nativeEvent.layout.height;
+
+                                // The height can be 0 if the component unmounts - we are not interested in this value and want to know how much space it
+                                // takes up so we can set the skeleton view container height.
+                                if (skeletonViewContainerHeight === 0) {
+                                    return;
+                                }
+
+                                reportActionsListViewHeight = skeletonViewContainerHeight;
+                                this.setState({skeletonViewContainerHeight});
+                            }}
                         >
                             {this.shouldShowLoader()
                                 ? (
