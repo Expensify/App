@@ -56,26 +56,39 @@ class ReportTransaction extends Component {
 
     render() {
         return (
-            <View styles={[styles.mb5]}>
-                <ReportActionItemSingle
-                    action={this.props.action}
-                    wrapperStyles={[styles.reportTransactionWrapper]}
-                >
-                    <Text style={[styles.chatItemMessage]}>
-                        {this.props.action.message[0].text}
-                    </Text>
-                </ReportActionItemSingle>
-                {this.props.canBeRejected && (
-                    <View style={[styles.flexRow, styles.justifyContentStart]}>
-                        <Button
-                            small
-                            text={this.props.translate(`common.${this.props.rejectButtonType}`)}
-                            style={[styles.mb3, styles.chatItemComposeSecondaryRowOffset]}
-                            onPress={this.cancelMoneyRequest}
-                        />
-                    </View>
-                )}
-            </View>
+            <OfflineWithFeedback
+                onClose={() => {
+                    if (this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+                        ReportActions.deleteOptimisticReportAction(chatReportID, this.props.action.clientID);
+                    } else {
+                        ReportActions.clearReportActionErrors(chatReportID, this.props.action.sequenceNumber);
+                    }
+                }}
+                pendingAction={this.props.action.pendingAction}
+                errors={this.props.action.errors}
+                errorRowStyles={[styles.ml10, styles.mr2]}
+            >
+                <View styles={[styles.mb5]}>
+                    <ReportActionItemSingle
+                        action={this.props.action}
+                        wrapperStyles={[styles.reportTransactionWrapper]}
+                    >
+                        <Text style={[styles.chatItemMessage]}>
+                            {this.props.action.message[0].text}
+                        </Text>
+                    </ReportActionItemSingle>
+                    {this.props.canBeRejected && (
+                        <View style={[styles.flexRow, styles.justifyContentStart]}>
+                            <Button
+                                small
+                                text={this.props.translate(`common.${this.props.rejectButtonType}`)}
+                                style={[styles.mb3, styles.chatItemComposeSecondaryRowOffset]}
+                                onPress={this.cancelMoneyRequest}
+                            />
+                        </View>
+                    )}
+                </View>
+            </OfflineWithFeedback>
         );
     }
 }

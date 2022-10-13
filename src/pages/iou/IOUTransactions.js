@@ -58,7 +58,7 @@ class IOUTransactions extends Component {
             .map(rejectedAction => lodashGet(rejectedAction, 'originalMessage.IOUTransactionID', ''))
             .compact()
             .value();
-        
+
         return _.chain(actionsForIOUReport)
             .filter(action => action.originalMessage.type === 'create')
             .filter(action => !_.contains(rejectedTransactionIDs, action.originalMessage.IOUTransactionID))

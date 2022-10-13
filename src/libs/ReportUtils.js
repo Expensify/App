@@ -691,27 +691,41 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
             currency,
         });
     let message;
-    if (type === CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
-        message = [{
-            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-            isEdited: false,
-            html: comment ? `Requested ${formattedTotal} from ${debtorEmail} for ${comment}` : `Requested ${formattedTotal} from ${debtorEmail}`,
-            text: comment ? `Requested ${formattedTotal} from ${debtorEmail} for ${comment}` : `Requested ${formattedTotal} from ${debtorEmail}`,
-        }];
-    } else if (type === CONST.IOU.REPORT_ACTION_TYPE.CANCEL) {
-        message = [{
-            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-            isEdited: false,
-            html: comment ? `Cancelled the ${formattedTotal} for ${comment}` : `Cancelled the ${formattedTotal} from ${debtorEmail}`,
-            text: comment ? `Cancelled the ${formattedTotal} for ${comment}` : `Cancelled the ${formattedTotal} from ${debtorEmail}`,
-        }];
-    } else if (type === CONST.IOU.REPORT_ACTION_TYPE.DECLINE) {
-        message = [{
-            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-            isEdited: false,
-            html: comment ? `Declined the ${formattedTotal} for ${comment}` : `Declined the ${formattedTotal} from ${debtorEmail}`,
-            text: comment ? `Declined the ${formattedTotal} for ${comment}` : `Declined the ${formattedTotal} from ${debtorEmail}`,
-        }];
+    switch (type) {
+        case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
+            message = [{
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                isEdited: false,
+                html: comment ? `Requested ${formattedTotal} from ${debtorEmail} for ${comment}` : `Requested ${formattedTotal} from ${debtorEmail}`,
+                text: comment ? `Requested ${formattedTotal} from ${debtorEmail} for ${comment}` : `Requested ${formattedTotal} from ${debtorEmail}`,
+            }];
+            break;
+        case CONST.IOU.REPORT_ACTION_TYPE.CANCEL:
+            message = [{
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                isEdited: false,
+                html: comment ? `Cancelled the ${formattedTotal} for ${comment}` : `Cancelled the ${formattedTotal} from ${debtorEmail}`,
+                text: comment ? `Cancelled the ${formattedTotal} for ${comment}` : `Cancelled the ${formattedTotal} from ${debtorEmail}`,
+            }];
+            break;
+        case CONST.IOU.REPORT_ACTION_TYPE.DECLINE:
+            message = [{
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                isEdited: false,
+                html: comment ? `Requested ${formattedTotal} from ${debtorEmail} for ${comment}` : `Requested ${formattedTotal} from ${debtorEmail}`,
+                text: comment ? `Requested ${formattedTotal} from ${debtorEmail} for ${comment}` : `Requested ${formattedTotal} from ${debtorEmail}`,
+            }];
+            break;
+        case CONST.IOU.REPORT_ACTION_TYPE.PAY:
+            message = [{
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                isEdited: false,
+                html: comment ? `Paid ${formattedTotal} to ${debtorEmail} for ${comment}` : `Paid ${formattedTotal} to ${debtorEmail}`,
+                text: comment ? `Paid ${formattedTotal} to ${debtorEmail} for ${comment}` : `Paid ${formattedTotal} to ${debtorEmail}`,
+            }];
+            break;
+        default:
+            break;
     }
 
     // We store amount, comment, currency in IOUDetails when type = pay
