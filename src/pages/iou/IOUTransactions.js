@@ -4,8 +4,6 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import compose from '../../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import reportActionPropTypes from '../home/report/reportActionPropTypes';
@@ -26,8 +24,6 @@ const propTypes = {
 
     /** Is the associated IOU settled? */
     isIOUSettled: PropTypes.bool,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -101,12 +97,9 @@ class IOUTransactions extends Component {
 
 IOUTransactions.defaultProps = defaultProps;
 IOUTransactions.propTypes = propTypes;
-export default compose(
-    withLocalize,
-    withOnyx({
-        reportActions: {
-            key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
-            canEvict: false,
-        },
-    }),
-)(IOUTransactions);
+export default withOnyx({
+    reportActions: {
+        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+        canEvict: false,
+    },
+})(IOUTransactions);

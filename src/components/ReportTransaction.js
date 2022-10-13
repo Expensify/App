@@ -7,6 +7,7 @@ import styles from '../styles/styles';
 import * as IOU from '../libs/actions/IOU';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import ReportActionItemSingle from '../pages/home/report/ReportActionItemSingle';
+import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import Text from './Text';
 import Button from './Button';
 
@@ -27,6 +28,8 @@ const propTypes = {
 
     /** Type of the reject transaction button */
     rejectButtonType: PropTypes.oneOf(['decline', 'cancel']).isRequired,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -90,4 +93,4 @@ class ReportTransaction extends Component {
 
 ReportTransaction.defaultProps = defaultProps;
 ReportTransaction.propTypes = propTypes;
-export default ReportTransaction;
+export default withLocalize(ReportTransaction);
