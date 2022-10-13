@@ -118,7 +118,7 @@ function startLoadingAndResetError() {
  * Request money from another user
  *
  * @param {Object} report
- * @param {Array} participants
+ * @param {Array}  participants
  * @param {Number} amount
  * @param {String} currency
  * @param {String} recipientEmail
