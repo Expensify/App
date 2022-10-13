@@ -1,7 +1,7 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import styles from '../../styles/styles';
