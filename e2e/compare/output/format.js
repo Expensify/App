@@ -36,7 +36,7 @@ const formatChange = (value) => {
 };
 
 const getDurationSymbols = (entry) => {
-    if (!entry.isDurationDiffSignificant) {
+    if (!entry.isDurationDiffOfSignificance) {
         if (entry.relativeDurationDiff > 0.15) { return '🔴'; }
         if (entry.relativeDurationDiff < -0.15) { return '🟢'; }
         return '';
