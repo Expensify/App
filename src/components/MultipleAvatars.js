@@ -9,6 +9,9 @@ import Text from './Text';
 import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 import CONST from '../CONST';
+import * as Expensicons from './Icon/Expensicons';
+import defaultTheme from '../styles/themes/default';
+import Icon from './Icon';
 
 const propTypes = {
     /** Array of avatar URLs or icons */
@@ -23,6 +26,8 @@ const propTypes = {
 
     /** Tooltip for the Avatar */
     avatarTooltips: PropTypes.arrayOf(PropTypes.string),
+
+    fallbackIcon: PropTypes.func,
 };
 
 const defaultProps = {
@@ -30,6 +35,7 @@ const defaultProps = {
     size: CONST.AVATAR_SIZE.DEFAULT,
     secondAvatarStyle: [StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG)],
     avatarTooltips: [],
+    fallbackIcon: undefined,
 };
 
 const MultipleAvatars = (props) => {
@@ -64,20 +70,40 @@ const MultipleAvatars = (props) => {
                 style={singleAvatarStyles}
             >
                 <Tooltip text={props.avatarTooltips[0]} absolute>
-                    <Image
-                        source={{uri: props.icons[0]}}
-                        style={singleAvatarStyles}
-                    />
+                    {!_.isEmpty(props.icons[0]) && (
+                        <Image
+                            source={{uri: props.icons[0]}}
+                            style={singleAvatarStyles}
+                        />
+                    )}
+                    {_.isEmpty(props.icons[0]) && props.fallbackIcon && (
+                        <Icon
+                            src={props.fallbackIcon}
+                            height={24}
+                            width={24}
+                            fill={defaultTheme.iconSuccessFill}
+                        />
+                    )}
                 </Tooltip>
                 <View
                     style={secondAvatarStyles}
                 >
                     {props.icons.length === 2 ? (
                         <Tooltip text={props.avatarTooltips[1]} absolute>
-                            <Image
-                                source={{uri: props.icons[1]}}
-                                style={singleAvatarStyles}
-                            />
+                            {!_.isEmpty(props.icons[1]) && (
+                                <Image
+                                    source={{uri: props.icons[1]}}
+                                    style={singleAvatarStyles}
+                                />
+                            )}
+                            {_.isEmpty(props.icons[1]) && props.fallbackIcon && (
+                                <Icon
+                                    src={props.fallbackIcon}
+                                    height={24}
+                                    width={24}
+                                    fill={defaultTheme.iconSuccessFill}
+                                />
+                            )}
                         </Tooltip>
                     ) : (
                         <Tooltip text={props.avatarTooltips.slice(1).join(', ')} absolute>
