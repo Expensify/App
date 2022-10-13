@@ -69,14 +69,13 @@ class IOUAmountPage extends React.Component {
 
     componentDidMount() {
         this.focusTextInput();
+        this.unsubscribe = this.props.navigation.addListener('focus', () => {
+            this.focusTextInput();
+        });
     }
 
-    componentDidUpdate(prevProps) {
-        if (this.props.iou.selectedCurrencyCode === prevProps.iou.selectedCurrencyCode) {
-            return;
-        }
-
-        this.focusTextInput();
+    componentWillUnmount() {
+        this.unsubscribe();
     }
 
     /**
