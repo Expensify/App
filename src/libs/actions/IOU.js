@@ -306,7 +306,8 @@ function requestMoney(report, amount, currency, recipientEmail, debtorEmail, com
  */
 function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale) {
     const currentUserEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
-    const existingGroupChatReport = ReportUtils.getChatByParticipants(participants);
+    const participantLogins = _.map(participants, participant => OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login));
+    const existingGroupChatReport = ReportUtils.getChatByParticipants(participantLogins);
     const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(_.pluck(participants, 'login'));
     const groupCreatedReportAction = existingGroupChatReport ? {} : ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
     const groupIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
