@@ -141,6 +141,4 @@ module.exports = async (
 
     if (outputFormat === 'console' || outputFormat === 'all') { printToConsole(outputData); }
     if (outputFormat === 'markdown' || outputFormat === 'all') { await writeToMarkdown(`${OUTPUT_DIR}/output.md`, outputData); }
-
-    // TODO: output format markdown for CI systems
 };
