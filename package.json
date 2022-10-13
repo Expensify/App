@@ -9,8 +9,8 @@
   "scripts": {
     "postinstall": "cd desktop && npm install",
     "clean": "npx react-native clean-project-auto",
-    "android": "npm run check-metro-bundler-port && scripts/set-pusher-suffix.sh && npx react-native run-android",
-    "ios": "npm run check-metro-bundler-port && scripts/set-pusher-suffix.sh && npx react-native run-ios",
+    "android": "scripts/set-pusher-suffix.sh && npx react-native run-android --port=8083",
+    "ios": "scripts/set-pusher-suffix.sh && npx react-native run-ios --port=8082",
     "ipad": "npm run check-metro-bundler-port && npx react-native run-ios --simulator=\"iPad Pro (12.9-inch) (4th generation)\"",
     "ipad-sm": "npm run check-metro-bundler-port && npx react-native run-ios --simulator=\"iPad Pro (9.7-inch)\"",
     "start": "npx react-native start",
