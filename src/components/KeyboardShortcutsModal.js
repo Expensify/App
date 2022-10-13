@@ -56,7 +56,6 @@ class KeyboardShortcutsModal extends React.Component {
             <View
                 style={[
                     styles.keyboardShortcutTableRow,
-                    styles.flex1,
                     isFirstRow && styles.keyboardShortcutTableFirstRow,
                 ]}
                 key={shortcut.displayName}

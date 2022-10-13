@@ -230,7 +230,7 @@ function addPaymentCard(params) {
 function clearDebitCardFormErrorAndSubmit() {
     Onyx.set(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM, {
         isLoading: false,
-        error: null,
+        errors: null,
     });
 }
 
