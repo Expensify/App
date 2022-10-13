@@ -717,8 +717,8 @@ function clearDeleteWorkspaceError(policyID) {
  * Generate a policy name based on an email and policy list.
  * @returns {String}
  */
-function generateDefaultWorkspaceName() {
-    const emailParts = sessionEmail.split('@');
+function generateDefaultWorkspaceName(email = '') {
+    const emailParts = email ? email.split ('@') : sessionEmail.split('@');
     let defaultWorkspaceName = '';
     if (!emailParts || emailParts.length !== 2) {
         return defaultWorkspaceName;
@@ -769,7 +769,7 @@ function generatePolicyID() {
  */
 function createWorkspace(ownerEmail = '', makeMeAdmin = false) {
     const policyID = generatePolicyID();
-    const workspaceName = generateDefaultWorkspaceName();
+    const workspaceName = generateDefaultWorkspaceName(ownerEmail);
 
     const {
         announceChatReportID,
