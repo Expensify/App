@@ -14,6 +14,6 @@ module.exports = function (platform = 'android') {
         throw new Error(`installApp() missing implementation for platform: ${platform}`);
     }
 
-    // uninstall first, then install
+    // Uninstall first, then install
     return execAsync(`adb uninstall ${APP_PACKAGE}`).finally(() => execAsync(`adb install ${APP_PATH_FROM_ROOT}`));
 };

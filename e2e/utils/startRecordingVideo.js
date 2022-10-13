@@ -3,14 +3,14 @@ const {OUTPUT_DIR} = require('../config');
 const Logger = require('../utils/logger');
 
 module.exports = () => {
-    // the emulator on CI launches with no-window option.
-    // taking screenshots results in blank shots.
+    // The emulator on CI launches with no-window option.
+    // Taking screenshots results in blank shots.
     // Recording a video however includes the graphic content.
     const cmd = 'adb shell screenrecord /sdcard/video.mp4';
     let recordingFailed = false;
     const recording = execAsync(cmd);
     recording.catch((error) => {
-        // don't abort on errors
+        // Don't abort on errors
         Logger.warn('Error while recording video', error);
         recordingFailed = true;
     });
@@ -33,7 +33,7 @@ module.exports = () => {
                 } else {
                     resolve();
                 }
-            }, 1000); // give the device some time to finish writing the file
+            }, 1000); // Give the device some time to finish writing the file
         });
     };
 };

@@ -6,6 +6,6 @@ module.exports = function (platform = 'android') {
         throw new Error(`killApp() missing implementation for platform: ${platform}`);
     }
 
-    // use adb to kill the app
+    // Use adb to kill the app
     return execAsync(`adb shell am force-stop ${APP_PACKAGE}`);
 };

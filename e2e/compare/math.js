@@ -1,5 +1,5 @@
 /*
- * base implementation from: https://github.com/callstack/reassure/blob/main/packages/reassure-compare/src/compare.ts
+ * Base implementation from: https://github.com/callstack/reassure/blob/main/packages/reassure-compare/src/compare.ts
  */
 
 /**
