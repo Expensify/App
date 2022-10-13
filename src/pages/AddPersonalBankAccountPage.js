@@ -27,10 +27,19 @@ import ROUTES from '../ROUTES';
 
 const propTypes = {
     ...withLocalizePropTypes,
+
+    /** The details about the Personal bank account we are adding saved in Onyx */
     personalBankAccount: PropTypes.shape({
+        /** An error message to display to the user */
         error: PropTypes.string,
+
+        /** Whether we should show the view that the bank account was successfully added */
         shouldShowSuccess: PropTypes.bool,
+
+        /** Whether the form is loading */
         isLoading: PropTypes.bool,
+
+        /** The account ID of the selected bank account from Plaid */
         plaidAccountID: PropTypes.string,
     }),
 };
@@ -62,7 +71,8 @@ class AddPersonalBankAccountPage extends React.Component {
 
     /**
      * @param {Object} values - form input values passed by the Form component
-     * @returns {Ojbect}
+     * @param {Object} values.password The password of the user adding the bank account, for security.
+     * @returns {Object}
      */
     validate(values) {
         const errors = {};
@@ -76,6 +86,7 @@ class AddPersonalBankAccountPage extends React.Component {
 
     /**
      * @param {Object} values - form input values passed by the Form component
+     * @param {Object} values.password The password of the user adding the bank account, for security.
      */
     submit(values) {
         const selectedPlaidBankAccount = _.findWhere(lodashGet(this.props.plaidData, 'bankAccounts', []), {

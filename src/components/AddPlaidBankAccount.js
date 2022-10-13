@@ -26,6 +26,7 @@ const propTypes = {
     /** Contains plaid data */
     plaidData: plaidDataPropTypes,
 
+    /** Selected account ID from the Picker associated with the end of the Plaid flow */
     selectedPlaidAccountID: PropTypes.string,
 
     /** Plaid SDK token to use to initialize the widget */
