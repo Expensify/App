@@ -715,10 +715,12 @@ function clearDeleteWorkspaceError(policyID) {
 
 /**
  * Generate a policy name based on an email and policy list.
+ * @param {String} email Optional, the email to base the workspace name on. If not passed, will use
+ *                       the logged in user's email instead
  * @returns {String}
  */
 function generateDefaultWorkspaceName(email = '') {
-    const emailParts = email ? email.split ('@') : sessionEmail.split('@');
+    const emailParts = email ? email.split('@') : sessionEmail.split('@');
     let defaultWorkspaceName = '';
     if (!emailParts || emailParts.length !== 2) {
         return defaultWorkspaceName;
