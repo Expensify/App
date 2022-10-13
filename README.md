@@ -1,5 +1,8 @@
 <div align="center">
-    <a href="https://new.expensify.com">
+    
+
+
+<a href="https://new.expensify.com">
         <img src="https://raw.githubusercontent.com/Expensify/App/main/web/favicon.png" width="64" height="64" alt="New Expensify Icon">
     </a>
     <h1>
