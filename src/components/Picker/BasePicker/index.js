@@ -11,6 +11,25 @@ class BasePicker extends React.Component {
         super(props);
 
         this.executeOnCloseAndOnBlur = this.executeOnCloseAndOnBlur.bind(this);
+        this.setDefaultValue = this.setDefaultValue.bind(this);
+    }
+
+    componentDidMount() {
+        this.setDefaultValue();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.items === this.props.items) {
+            return;
+        }
+        this.setDefaultValue();
+    }
+
+    setDefaultValue() {
+        if (this.props.value || !this.props.items || this.props.items.length !== 1 || !this.props.onInputChange) {
+            return;
+        }
+        this.props.onInputChange(this.props.items[0].key);
     }
 
     executeOnCloseAndOnBlur() {
