@@ -1,4 +1,6 @@
 ---
+title: Smart Scan
+description: SmartScan is the time-saving tool that every Expensify user needs. Using SmartScan, you can quickly upload receipts and walk away to take care of more important things.
 ---
 <!-- The lines above are required by Jekyll to process the .md file -->
 # About
