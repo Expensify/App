@@ -690,7 +690,7 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = 0, debtorEmail = '') {
+function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = '', debtorEmail = '') {
     const IOUTransactionID = existingIOUTransactionID || NumberUtils.rand64();
     const IOUReportID = existingIOUReportID || generateReportID();
     const originalMessage = {
