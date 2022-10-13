@@ -27,6 +27,7 @@ import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import cardPropTypes from '../../components/cardPropTypes';
 import * as Wallet from '../../libs/actions/Wallet';
 import walletTermsPropTypes from '../EnablePayments/walletTermsPropTypes';
+import lodashGet from 'lodash/get';
 
 const propTypes = {
     /* Onyx Props */
@@ -120,15 +121,15 @@ class InitialSettingsPage extends React.Component {
     getDefaultMenuItems() {
         const policiesAvatars = _.chain(this.props.policies)
             .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
-            .get(policy => (policy.avatar ? policy.avatar : Expensicons.Building))
+            .pluck('avatar')
             .value();
-        debugger;
 
         return ([
             {
                 translationKey: 'common.workspaces',
                 icon: Expensicons.Workspace,
                 action: () => { Navigation.navigate(ROUTES.SETTINGS_WORKSPACES); },
+                floatRightAvatars: policiesAvatars,
             },
             {
                 translationKey: 'common.profile',
@@ -182,6 +183,7 @@ class InitialSettingsPage extends React.Component {
                 badgeText={this.getWalletBalance(isPaymentItem)}
                 fallbackIcon={item.fallbackIcon}
                 brickRoadIndicator={item.brickRoadIndicator}
+                floatRightAvatars={item.floatRightAvatars}
             />
         );
     }
