@@ -33,7 +33,7 @@ module.exports = () => {
                 } else {
                     resolve();
                 }
-            }, 5000); // give the device some time to finish writing the file
+            }, 1000); // give the device some time to finish writing the file
         });
     };
 };
