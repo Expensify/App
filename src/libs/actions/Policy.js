@@ -13,6 +13,7 @@ import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
 import * as ReportUtils from '../ReportUtils';
+import Log from '../Log';
 
 const allPolicies = {};
 Onyx.connect({
@@ -763,8 +764,11 @@ function generatePolicyID() {
 
 /**
  * Optimistically creates a new workspace and default workspace chats
+ *
+ * @param {String} [ownerEmail] Optional, the email of the account to make the owner of the policy
+ * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  */
-function createWorkspace() {
+function createWorkspace(ownerEmail = '', makeMeAdmin = false) {
     const policyID = generatePolicyID();
     const workspaceName = generateDefaultWorkspaceName();
 
@@ -785,6 +789,8 @@ function createWorkspace() {
         announceChatReportID,
         adminsChatReportID,
         expenseChatReportID,
+        ownerEmail,
+        makeMeAdmin,
         policyName: workspaceName,
         type: CONST.POLICY.TYPE.FREE,
     },
@@ -939,10 +945,20 @@ function createWorkspace() {
 }
 
 function openWorkspaceReimburseView(policyID) {
+    if (!policyID) {
+        Log.warn('openWorkspaceReimburseView invalid params', {policyID});
+        return;
+    }
+
     API.read('OpenWorkspaceReimburseView', {policyID});
 }
 
 function openWorkspaceMembersPage(policyID, clientMemberEmails) {
+    if (!policyID || !clientMemberEmails) {
+        Log.warn('openWorkspaceMembersPage invalid params', {policyID, clientMemberEmails});
+        return;
+    }
+
     API.read('OpenWorkspaceMembersPage', {
         policyID,
         clientMemberEmails: JSON.stringify(clientMemberEmails),
@@ -950,6 +966,11 @@ function openWorkspaceMembersPage(policyID, clientMemberEmails) {
 }
 
 function openWorkspaceInvitePage(policyID, clientMemberEmails) {
+    if (!policyID || !clientMemberEmails) {
+        Log.warn('openWorkspaceInvitePage invalid params', {policyID, clientMemberEmails});
+        return;
+    }
+
     API.read('OpenWorkspaceInvitePage', {
         policyID,
         clientMemberEmails: JSON.stringify(clientMemberEmails),

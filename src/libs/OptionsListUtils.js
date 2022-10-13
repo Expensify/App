@@ -282,6 +282,8 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
     let hasMultipleParticipants = personalDetailList.length > 1;
     let subtitle;
 
+    result.participantsList = personalDetailList;
+
     if (report) {
         result.isChatRoom = ReportUtils.isChatRoom(report);
         result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
@@ -354,10 +356,9 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
 
     const reportName = ReportUtils.getReportName(report, personalDetailMap, policies);
     result.text = reportName;
-    result.subtitle = subtitle;
-    result.participantsList = personalDetailList;
-    result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
     result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
+    result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
+    result.subtitle = subtitle;
 
     return result;
 }
@@ -505,7 +506,7 @@ function getOptions(reports, personalDetails, {
 
     if (sortPersonalDetailsByAlphaAsc) {
         // PersonalDetails should be ordered Alphabetically by default - https://github.com/Expensify/App/issues/8220#issuecomment-1104009435
-        allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [personalDetail => personalDetail.text.toLowerCase()], 'asc');
+        allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [personalDetail => personalDetail.text && personalDetail.text.toLowerCase()], 'asc');
     }
 
     // Always exclude already selected options and the currently logged in user
