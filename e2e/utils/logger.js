@@ -11,6 +11,7 @@ const setLogLevelVerbose = (value) => {
 const LOGGER_PROGRESS_REFRESH_RATE = process.env.LOGGER_PROGRESS_REFRESH_RATE || 250;
 const COLOR_DIM = '\x1b[2m';
 const COLOR_RESET = '\x1b[0m';
+const COLOR_YELLOW = '\x1b[33m';
 
 const log = (...args) => {
     if (isVerbose) {
@@ -64,9 +65,16 @@ const info = (...args) => {
     log(...args);
 };
 
+const warn = (...args) => {
+    const lines = [`${COLOR_YELLOW}⚠️`, ...args, `${COLOR_RESET}`];
+    console.debug(...lines);
+    log(...lines);
+};
+
 module.exports = {
     log,
     info,
+    warn,
     progressInfo,
     setLogLevelVerbose,
 };
