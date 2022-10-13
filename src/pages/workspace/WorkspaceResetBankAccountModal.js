@@ -33,7 +33,7 @@ const WorkspaceResetBankAccountModal = (props) => {
     const isInOpenState = lodashGet(props.reimbursementAccount, 'achData.state') === BankAccount.STATE.OPEN;
     const bankAccountID = lodashGet(props.reimbursementAccount, 'achData.bankAccountID');
     const account = _.find(props.bankAccountList, bankAccount => bankAccount.bankAccountID === bankAccountID);
-    const bankShortName = account ? `${account.addressName} ${account.accountNumber.slice(-4)}` : '';
+    const bankShortName = account ? `${lodashGet(account, 'addressName', '')} ${lodashGet(account, 'accountNumber', '').slice(-4)}` : '';
     return (
         <ConfirmModal
             title={props.translate('workspace.bankAccount.areYouSure')}

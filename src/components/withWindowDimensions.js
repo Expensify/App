@@ -1,6 +1,5 @@
 /* eslint-disable react/no-unused-state */
 import React, {forwardRef, createContext} from 'react';
-import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {Dimensions} from 'react-native';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
@@ -30,14 +29,7 @@ class WindowDimensionsProvider extends React.Component {
     constructor(props) {
         super(props);
 
-        // Using debounce here as a temporary fix for a bug in react-native
-        // https://github.com/facebook/react-native/issues/29290
-        // When the app is sent to background on iPads, onDimensionChange callback is called with
-        // swapped window dimensions before it was called with correct dimensions within miliseconds, then
-        // drawer is being positioned incorrectly due to animation issues in react-navigation.
-        // Adding debounce here slows down window dimension changes to let
-        // react-navigation to complete the positioning of elements properly.
-        this.onDimensionChange = _.debounce(this.onDimensionChange.bind(this), 100);
+        this.onDimensionChange = this.onDimensionChange.bind(this);
 
         const initialDimensions = Dimensions.get('window');
         const isSmallScreenWidth = initialDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
