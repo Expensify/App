@@ -5,3 +5,6 @@ defaults:
     values:
       layout: "default"
 exclude: [README.md, TEMPLATE.md]
+
+plugins:
+  - jekyll-seo-tag
