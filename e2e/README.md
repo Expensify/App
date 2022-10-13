@@ -4,7 +4,7 @@ This directory contains the scripts and configuration files for running the
 performance regression tests. These tests are called E2E tests because they
 run the app on a real device (physical or emulated).
 
-![Example of a e2e test run](./example.gif)
+![Example of a e2e test run](https://raw.githubusercontent.com/hannojg/expensify-app/5f945c25e2a0650753f47f3f541b984f4d114f6d/e2e/example.gif)
 
 To run the e2e tests:
 
