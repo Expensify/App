@@ -31,6 +31,7 @@ import Banner from '../../components/Banner';
 import withLocalize from '../../components/withLocalize';
 import reportPropTypes from '../reportPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -122,9 +123,7 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        const previousReportID = prevProps.route.params.reportID;
-        const newReportID = this.props.route.params.reportID;
-        if (previousReportID === newReportID) {
+        if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
         }
 
@@ -150,9 +149,14 @@ class ReportScreen extends React.Component {
      * @returns {Boolean}
      */
     shouldShowLoader() {
+        const reportIDFromPath = getReportID(this.props.route);
+
         // This means there are no reportActions at all to display, but it is still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
-        return !getReportID(this.props.route) || isLoadingInitialReportActions || !this.props.report.reportID;
+
+        // This is necessary so that when we are retrieving the next report data from Onyx the ReportActionsView will remount completely
+        const isTransitioning = this.props.report && this.props.report.reportID !== reportIDFromPath;
+        return !reportIDFromPath || isLoadingInitialReportActions || !this.props.report.reportID || isTransitioning;
     }
 
     fetchReportIfNeeded() {
@@ -207,11 +211,17 @@ class ReportScreen extends React.Component {
         const reportID = getReportID(this.props.route);
         const addWorkspaceRoomPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom');
         const addWorkspaceRoomErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom');
-        const isReportLoaded = this.props.report && this.props.report.reportID === reportID;
-        const isTransitioning = !isReportLoaded;
         return (
             <Freeze
                 freeze={this.props.isSmallScreenWidth && this.props.isDrawerOpen}
+                placeholder={(
+                    <ScreenWrapper
+                        style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
+                    >
+                        <ReportHeaderSkeletonView />
+                        <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
+                    </ScreenWrapper>
+                )}
             >
                 <ScreenWrapper
                     style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
@@ -254,9 +264,7 @@ class ReportScreen extends React.Component {
                             style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                             onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
                         >
-                            {/* The isTransitioning variable here is necessary so that when we are retrieving the next report data
-                            from Onyx the ReportActionsView will remount completely */}
-                            {(this.shouldShowLoader() || isTransitioning)
+                            {this.shouldShowLoader()
                                 ? (
                                     <ReportActionsSkeletonView
                                         containerHeight={this.state.skeletonViewContainerHeight}
