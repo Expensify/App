@@ -13,7 +13,7 @@ module.exports = (command) => {
         Logger.log('Output of command:', command);
         process = exec(command, {
             encoding: 'utf8',
-            maxBuffer: 1024 * 1024 * 10, // increase max buffer to 10MB, to avoid errors
+            maxBuffer: 1024 * 1024 * 10, // Increase max buffer to 10MB, to avoid errors
         }, (error, stdout) => {
             if (error) {
                 if (error && error.killed) {

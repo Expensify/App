@@ -1,7 +1,7 @@
 const _ = require('underscore');
 const {DROP_WORST} = require('../config');
 
-// simple outlier removal, where we remove at the head and tail entries
+// Simple outlier removal, where we remove at the head and tail entries
 const filterOutliers = (data) => {
     // Copy the values, rather than operating on references to existing values
     const values = [...data].sort();

@@ -34,12 +34,12 @@ const args = process.argv.slice(2);
 
 const baselineBranch = process.env.baseline || DEFAULT_BASELINE_BRANCH;
 
-// clear all files from previous jobs
+// Clear all files from previous jobs
 try {
     fs.rmSync(OUTPUT_DIR, {recursive: true, force: true});
     fs.mkdirSync(OUTPUT_DIR);
 } catch (error) {
-    // do nothing
+    // Do nothing
     console.error(error);
 }
 
@@ -51,7 +51,7 @@ const restartApp = async () => {
 };
 
 const runTestsOnBranch = async (branch, baselineOrCompare) => {
-    // switch branch and install dependencies
+    // Switch branch and install dependencies
     const progress = Logger.progressInfo(`Preparing ${baselineOrCompare} tests on branch '${branch}'`);
     await execAsync(`git switch ${branch}`);
 
@@ -60,28 +60,28 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
         await execAsync('npm i');
     }
 
-    // build app
+    // Build app
     if (!args.includes('--skipBuild')) {
         progress.updateText(`Preparing ${baselineOrCompare} tests on branch '${branch}' - building app`);
         await execAsync('npm run android-build-e2e');
     }
     progress.done();
 
-    // install app and reverse ports
+    // Install app and reverse ports
     let progressLog = Logger.progressInfo('Installing app');
     await installApp('android');
     Logger.log('Reversing port (for connecting to testing server) …');
     await reversePort();
     progressLog.done();
 
-    // start the HTTP server
+    // Start the HTTP server
     const server = createServerInstance();
     await server.start();
 
-    // create a dict in which we will store the run durations for all tests
+    // Create a dict in which we will store the run durations for all tests
     const durationsByTestName = {};
 
-    // collect results while tests are being executed
+    // Collect results while tests are being executed
     server.addTestResultListener((testResult) => {
         if (testResult.error != null) {
             throw new Error(`Test '${testResult.name}' failed with error: ${testResult.error}`);
@@ -94,7 +94,7 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
         durationsByTestName[testResult.name] = (durationsByTestName[testResult.name] || []).concat(testResult.duration);
     });
 
-    // run the tests
+    // Run the tests
     const numOfTests = _.values(TESTS_CONFIG).length;
     for (let testIndex = 0; testIndex < numOfTests; testIndex++) {
         const config = _.values(TESTS_CONFIG)[testIndex];
@@ -127,7 +127,7 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
 
             await restartApp();
 
-            // wait for a test to finish by waiting on its done call to the http server
+            // Wait for a test to finish by waiting on its done call to the http server
             try {
                 await withFailTimeout(new Promise((resolve) => {
                     const cleanup = server.addTestDoneListener(() => {
@@ -138,16 +138,16 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
                 }), progressText);
                 await stopVideoRecording(false);
             } catch (e) {
-                // when we fail due to a timeout it's interesting to take a screenshot of the emulator to see whats going on
+                // When we fail due to a timeout it's interesting to take a screenshot of the emulator to see whats going on
                 await stopVideoRecording(true);
                 testLog.done();
-                throw e; // rethrow to abort execution
+                throw e; // Rethrow to abort execution
             }
         }
         testLog.done();
     }
 
-    // calculate statistics and write them to our work file
+    // Calculate statistics and write them to our work file
     progressLog = Logger.progressInfo('Calculating statics and writing results');
     const outputFileName = `${OUTPUT_DIR}/${baselineOrCompare}.json`;
     for (const testName of _.keys(durationsByTestName)) {
@@ -162,7 +162,6 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
     }
     progressLog.done();
 
-    // close server
     await server.stop();
 };
 
@@ -170,10 +169,10 @@ const runTests = async () => {
     Logger.info('Running e2e tests');
 
     try {
-        // run tests on baseline branch
+        // Run tests on baseline branch
         await runTestsOnBranch(baselineBranch, 'baseline');
 
-        // run tests on current branch
+        // Run tests on current branch
         await runTestsOnBranch('-', 'compare');
 
         await compare();
@@ -182,7 +181,7 @@ const runTests = async () => {
     } catch (e) {
         Logger.info('\n\nE2E test suite failed due to error:', e, '\nPrinting full logs:\n\n');
 
-        // write logcat, meminfo, emulator info to file as well:
+        // Write logcat, meminfo, emulator info to file as well:
         require('node:child_process').execSync(`adb logcat -d > ${OUTPUT_DIR}/logcat.txt`);
         require('node:child_process').execSync(`adb shell "cat /proc/meminfo" > ${OUTPUT_DIR}/meminfo.txt`);
         require('node:child_process').execSync(`cat ~/.android/avd/${process.env.AVD_NAME || 'test'}.avd/config.ini > ${OUTPUT_DIR}/emulator-config.ini`);

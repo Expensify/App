@@ -6,8 +6,8 @@ const setLogLevelVerbose = (value) => {
     isVerbose = value;
 };
 
-// on CI systems when using .progressInfo, the current line won't reset but a new line gets added
-// which can flood the logs. You can increase this rate to mitigate this effect.
+// On CI systems when using .progressInfo, the current line won't reset but a new line gets added
+// Which can flood the logs. You can increase this rate to mitigate this effect.
 const LOGGER_PROGRESS_REFRESH_RATE = process.env.LOGGER_PROGRESS_REFRESH_RATE || 250;
 const COLOR_DIM = '\x1b[2m';
 const COLOR_RESET = '\x1b[0m';
@@ -18,7 +18,7 @@ const log = (...args) => {
         console.debug(...args);
     }
 
-    // write to log file
+    // Write to log file
     if (!fs.existsSync(LOG_FILE)) {
         fs.writeFileSync(LOG_FILE, '');
     }
