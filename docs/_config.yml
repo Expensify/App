@@ -9,6 +9,7 @@ defaults:
       description: The Community is a great place for Expensify users and experts to help one another, access training and implementation advice, discuss best practice approaches and contribute their feature and functionality ideas.
       url: help.expensify.com
       author: Expensify
+      logo: /assets/images/expensify-help.svg
 exclude: [README.md, TEMPLATE.md]
 
 plugins:
