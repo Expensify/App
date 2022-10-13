@@ -579,10 +579,10 @@ function navigateToDetailsPage(report) {
  * In a test of 500M reports (28 years of reports at our current max rate) we got 20-40 collisions meaning that
  * this is more than random enough for our needs.
  *
- * @returns {Number}
+ * @returns {String}
  */
 function generateReportID() {
-    return (Math.floor(Math.random() * (2 ** 21)) * (2 ** 32)) + Math.floor(Math.random() * (2 ** 32));
+    return String((Math.floor(Math.random() * (2 ** 21)) * (2 ** 32)) + Math.floor(Math.random() * (2 ** 32)));
 }
 
 /**
