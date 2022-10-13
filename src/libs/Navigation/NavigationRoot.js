@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
-import * as Navigation from './Navigation';
+import Navigation, {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
@@ -28,16 +28,6 @@ const propTypes = {
 };
 
 class NavigationRoot extends Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            currentPath: '',
-        };
-
-        this.parseAndLogRoute = this.parseAndLogRoute.bind(this);
-    }
-
     /**
      * Intercept navigation state changes and log it
      * @param {NavigationState} state
@@ -57,8 +47,7 @@ class NavigationRoot extends Component {
         }
 
         UnreadIndicatorUpdater.throttledUpdatePageTitleAndUnreadCount();
-
-        this.setState({currentPath});
+        Navigation.setIsNavigationReady();
     }
 
     render() {
@@ -73,13 +62,13 @@ class NavigationRoot extends Component {
                 onStateChange={this.parseAndLogRoute}
                 onReady={this.props.onReady}
                 theme={navigationTheme}
-                ref={Navigation.navigationRef}
+                ref={navigationRef}
                 linking={linkingConfig}
                 documentTitle={{
                     enabled: false,
                 }}
             >
-                <AppNavigator authenticated={this.props.authenticated} currentPath={this.state.currentPath} />
+                <AppNavigator authenticated={this.props.authenticated} />
             </NavigationContainer>
         );
     }

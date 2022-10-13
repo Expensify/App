@@ -2,7 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View, findNodeHandle} from 'react-native';
+import {View} from 'react-native';
 import Button from '../Button';
 import FixedFooter from '../FixedFooter';
 import OptionsList from '../OptionsList';
@@ -14,6 +14,7 @@ import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import {propTypes as optionsSelectorPropTypes, defaultProps as optionsSelectorDefaultProps} from './optionsSelectorPropTypes';
+import setSelection from '../../libs/setSelection';
 
 const propTypes = {
     /** Whether we should wait before focusing the TextInput, useful when using transitions on Android */
@@ -41,10 +42,6 @@ class BaseOptionsSelector extends Component {
         this.state = {
             allOptions,
             focusedIndex: this.props.shouldTextInputAppearBelowOptions ? allOptions.length : 0,
-            selection: {
-                start: this.props.value.length,
-                end: this.props.value.length,
-            },
         };
     }
 
@@ -92,7 +89,7 @@ class BaseOptionsSelector extends Component {
         }
 
         if (this.props.shouldDelayFocus) {
-            setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
+            this.focusTimeout = setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
         } else {
             this.textInput.focus();
         }
@@ -125,6 +122,10 @@ class BaseOptionsSelector extends Component {
     }
 
     componentWillUnmount() {
+        if (this.focusTimeout) {
+            clearTimeout(this.focusTimeout);
+        }
+
         if (this.unsubscribeEnter) {
             this.unsubscribeEnter();
         }
@@ -206,8 +207,8 @@ class BaseOptionsSelector extends Component {
     selectRow(option, ref) {
         if (this.props.shouldFocusOnSelectRow) {
             // Input is permanently focused on native platforms, so we always highlight the text inside of it
-            this.setState({selection: {start: 0, end: this.props.value.length}});
-            if (this.relatedTarget && ref === findNodeHandle(this.relatedTarget)) {
+            setSelection(this.textInput, 0, this.props.value.length);
+            if (this.relatedTarget && ref === this.relatedTarget) {
                 this.textInput.focus();
             }
             this.relatedTarget = null;
@@ -246,8 +247,6 @@ class BaseOptionsSelector extends Component {
                 }}
                 selectTextOnFocus
                 blurOnSubmit={Boolean(this.state.allOptions.length)}
-                selection={this.state.selection}
-                onSelectionChange={e => this.setState({selection: e.nativeEvent.selection})}
             />
         );
         const optionsList = this.props.shouldShowOptions ? (

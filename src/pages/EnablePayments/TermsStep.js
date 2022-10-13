@@ -1,8 +1,6 @@
 import React from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -17,6 +15,7 @@ import ShortTermsForm from './TermsPage/ShortTermsForm';
 import LongTermsForm from './TermsPage/LongTermsForm';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import walletTermsPropTypes from './walletTermsPropTypes';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     /** Comes from Onyx. Information about the terms for the wallet */
@@ -61,8 +60,7 @@ class TermsStep extends React.Component {
     }
 
     render() {
-        const errors = lodashGet(this.props, 'walletTerms.errors', {});
-        const errorMessage = this.state.error ? this.props.translate('common.error.acceptedTerms') : (_.last(_.values(errors)) || '');
+        const errorMessage = this.state.error ? this.props.translate('common.error.acceptedTerms') : (ErrorUtils.getLatestErrorMessage(this.props.walletTerms) || '');
         return (
             <>
                 <HeaderWithCloseButton
@@ -123,7 +121,7 @@ class TermsStep extends React.Component {
                             });
                         }}
                         message={errorMessage}
-                        isAlertVisible={this.state.error || !_.isEmpty(errors)}
+                        isAlertVisible={this.state.error || Boolean(errorMessage)}
                         containerStyles={[styles.mh0, styles.mv4]}
                     />
                 </ScrollView>

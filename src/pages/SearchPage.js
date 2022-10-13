@@ -18,6 +18,7 @@ import CONST from '../CONST';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
+import reportPropTypes from './reportPropTypes';
 
 const propTypes = {
     /* Onyx Props */
@@ -29,10 +30,7 @@ const propTypes = {
     personalDetails: personalDetailsPropType.isRequired,
 
     /** All reports shared with the user */
-    reports: PropTypes.shape({
-        reportID: PropTypes.number,
-        reportName: PropTypes.string,
-    }).isRequired,
+    reports: PropTypes.objectOf(reportPropTypes).isRequired,
 
     /** Session of currently logged in user */
     session: PropTypes.shape({
