@@ -14,11 +14,11 @@ import Button from './Button';
 const propTypes = {
     /** The chatReport which the transaction is associated with */
     /* eslint-disable-next-line react/no-unused-prop-types */
-    chatReportID: PropTypes.number.isRequired,
+    chatReportID: PropTypes.string.isRequired,
 
     /** ID for the IOU report */
     /* eslint-disable-next-line react/no-unused-prop-types */
-    iouReportID: PropTypes.number.isRequired,
+    iouReportID: PropTypes.string.isRequired,
 
     /** The report action which we are displaying */
     action: PropTypes.shape(reportActionPropTypes).isRequired,

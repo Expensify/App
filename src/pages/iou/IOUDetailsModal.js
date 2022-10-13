@@ -49,7 +49,7 @@ const propTypes = {
     /** IOU Report data object */
     iouReport: PropTypes.shape({
         /** ID for the chatReport that this IOU is linked to */
-        chatReportID: PropTypes.number,
+        chatReportID: PropTypes.string,
 
         /** Manager is the person who currently owes money */
         managerEmail: PropTypes.string,
@@ -121,15 +121,15 @@ class IOUDetailsModal extends Component {
                 {reportIsLoading ? <ActivityIndicator color={themeColors.text} /> : (
                     <View style={[styles.flex1, styles.justifyContentBetween]}>
                         <ScrollView contentContainerStyle={styles.iouDetailsContainer}>
-                            <IOUPreview
+                        <IOUPreview
                                 iou={this.props.iouReport}
-                                chatReportID={Number(this.props.route.params.chatReportID)}
-                                iouReportID={Number(this.props.route.params.iouReportID)}
+                                chatReportID={this.props.route.params.chatReportID}
+                                iouReportID={this.props.route.params.iouReportID}
                                 shouldHidePayButton
                             />
                             <IOUTransactions
-                                chatReportID={Number(this.props.route.params.chatReportID)}
-                                iouReportID={Number(this.props.route.params.iouReportID)}
+                                chatReportID={this.props.route.params.chatReportID}
+                                iouReportID={this.props.route.params.iouReportID}
                                 isIOUSettled={this.props.iouReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED}
                                 userEmail={sessionEmail}
                             />

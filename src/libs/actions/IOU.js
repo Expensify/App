@@ -239,24 +239,20 @@ function rejectTransaction({
 }
 
 /**
- * Cancels a transaction in iouReport. Declining and cancelling transactions are done via the same Auth command.
+ * Cancels or declines a transaction in iouReport.
+ * Declining and cancelling transactions are done via the same Auth command.
  *
- * @param {Object} params
- * @param {Number} params.reportID
- * @param {String} params.transactionID
+ * @param {Object} report
+ * @param {String} iouReportID
+ * @param {String} transactionID
  */
- function cancelMoneyRequest(iouReportID, transactionID) {
+function cancelMoneyRequest(report, iouReportID, transactionID) {
     const chatReport = lodashGet(report, 'reportID', null) ? report : ReportUtils.buildOptimisticChatReport(participants);
-    Onyx.merge(ONYXKEYS.TRANSACTIONS_BEING_REJECTED, {
-        [transactionID]: true,
-    });
     let iouReport;
-    if (chatReport.hasOutstandingIOU) {
-        iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`];
-        iouReport.total += amount;
-    } else {
-        iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, 'en');
-    }
+    // if (chatReport.hasOutstandingIOU) {
+    iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`];
+    iouReport.total -= amount;
+    // }
     const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
     chatReport.maxSequenceNumber = newSequenceNumber;
     const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
@@ -278,7 +274,7 @@ function rejectTransaction({
             value: {
                 [optimisticReportAction.sequenceNumber]: {
                     ...optimisticReportAction,
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 },
             },
         },
