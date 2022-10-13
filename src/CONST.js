@@ -11,6 +11,7 @@ const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const CONST = {
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
+    ANIMATED_TRANSITION_FROM_VALUE: 100,
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
@@ -88,6 +89,10 @@ const CONST = {
         },
         REGEX: {
             US_ACCOUNT_NUMBER: /^[0-9]{4,17}$/,
+
+            // If the account number length is from 4 to 13 digits, we show the last 4 digits and hide the rest with X
+            // If the length is longer than 13 digits, we show the first 6 and last 4 digits, hiding the rest with X
+            MASKED_US_ACCOUNT_NUMBER: /^[X]{0,9}[0-9]{4}$|^[0-9]{6}[X]{4,7}[0-9]{4}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
         },
         VERIFICATION_MAX_ATTEMPTS: 7,
@@ -803,6 +808,7 @@ const CONST = {
     },
     BRICK_ROAD_INDICATOR_STATUS: {
         ERROR: 'error',
+        INFO: 'info',
     },
     REPORT_DETAILS_MENU_ITEM: {
         MEMBERS: 'member',
@@ -841,6 +847,8 @@ const CONST = {
         WRITE: 'write',
         MAKE_REQUEST_WITH_SIDE_EFFECTS: 'makeRequestWithSideEffects',
     },
+
+    TFA_CODE_LENGTH: 6,
 };
 
 export default CONST;

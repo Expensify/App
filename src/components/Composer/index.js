@@ -135,6 +135,7 @@ class Composer extends React.Component {
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
+        this.shouldCallUpdateNumberOfLines = this.shouldCallUpdateNumberOfLines.bind(this);
     }
 
     componentDidMount() {
@@ -169,7 +170,9 @@ class Composer extends React.Component {
             this.setState({numberOfLines: 1});
             this.props.onClear();
         }
-        if (prevProps.defaultValue !== this.props.defaultValue
+
+        if (prevProps.value !== this.props.value
+            || prevProps.defaultValue !== this.props.defaultValue
             || prevProps.isComposerFullSize !== this.props.isComposerFullSize) {
             this.updateNumberOfLines();
         }
@@ -340,6 +343,18 @@ class Composer extends React.Component {
     }
 
     /**
+     * We want to call updateNumberOfLines only when the parent doesn't provide value in props
+     * as updateNumberOfLines is already being called when value changes in componentDidUpdate
+     */
+    shouldCallUpdateNumberOfLines() {
+        if (!_.isEmpty(this.props.value)) {
+            return;
+        }
+
+        this.updateNumberOfLines();
+    }
+
+    /**
      * Check the current scrollHeight of the textarea (minus any padding) and
      * divide by line height to get the total number of rows for the textarea.
      */
@@ -373,9 +388,7 @@ class Composer extends React.Component {
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
                 selection={this.state.selection}
-                onChange={() => {
-                    this.updateNumberOfLines();
-                }}
+                onChange={this.shouldCallUpdateNumberOfLines}
                 onSelectionChange={this.onSelectionChange}
                 numberOfLines={this.state.numberOfLines}
                 style={propStyles}

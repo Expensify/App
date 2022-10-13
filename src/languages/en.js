@@ -994,7 +994,6 @@ export default {
         renamedRoomAction: ({oldName, newName}) => ` renamed this room from ${oldName} to ${newName}`,
         social: 'social',
         selectAWorkspace: 'Select a workspace',
-        growlMessageOnError: 'Unable to create policy room, please check your connection and try again.',
         growlMessageOnRenameError: 'Unable to rename policy room, please check your connection and try again.',
         visibilityOptions: {
             restricted: 'Restricted',
