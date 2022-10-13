@@ -5,9 +5,11 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import * as IOU from '../libs/actions/IOU';
+import * as ReportActions from '../libs/actions/ReportActions';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import ReportActionItemSingle from '../pages/home/report/ReportActionItemSingle';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
+import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import Text from './Text';
 import Button from './Button';
 
@@ -40,29 +42,16 @@ class ReportTransaction extends Component {
     constructor(props) {
         super(props);
 
-        this.rejectTransaction = this.rejectTransaction.bind(this);
+        this.cancelMoneyRequest = this.cancelMoneyRequest.bind(this);
     }
 
-    rejectTransaction() {
-        IOU.rejectTransaction({
-            reportID: this.props.iouReportID,
-            chatReportID: this.props.chatReportID,
-            transactionID: this.props.action.originalMessage.IOUTransactionID,
-            comment: '',
-        });
-    }
-
-    /**
-     * Checks if current IOUTransactionID is being rejected.
-     * @returns {boolean} Returns `true` if current IOUtransactionID is being rejected, else `false`.
-     */
-    isBeingRejected() {
-        const IOUTransactionID = lodashGet(this.props.action, 'originalMessage.IOUTransactionID', '');
-        const transactionsBeingRejected = lodashGet(this.props, 'transactionsBeingRejected', {});
-        if (_.isEmpty(transactionsBeingRejected)) {
-            return false;
-        }
-        return _.has(transactionsBeingRejected, IOUTransactionID);
+    cancelMoneyRequest() {
+        IOU.cancelMoneyRequest(
+            this.props.chatReportID,
+            this.props.iouReportID,
+            this.props.rejectButtonType,
+            this.props.action
+        );
     }
 
     render() {
@@ -82,7 +71,7 @@ class ReportTransaction extends Component {
                             small
                             text={this.props.translate(`common.${this.props.rejectButtonType}`)}
                             style={[styles.mb3, styles.chatItemComposeSecondaryRowOffset]}
-                            onPress={this.rejectTransaction}
+                            onPress={this.cancelMoneyRequest}
                         />
                     </View>
                 )}

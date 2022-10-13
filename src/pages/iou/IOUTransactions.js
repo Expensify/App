@@ -59,7 +59,7 @@ class IOUTransactions extends Component {
             .map(rejectedAction => lodashGet(rejectedAction, 'originalMessage.IOUTransactionID', ''))
             .compact()
             .value();
-
+        
         return _.chain(actionsForIOUReport)
             .filter(action => action.originalMessage.type === 'create')
             .filter(action => !_.contains(rejectedTransactionIDs, action.originalMessage.IOUTransactionID))
@@ -72,7 +72,6 @@ class IOUTransactions extends Component {
         return (
             <View style={[styles.mt3]}>
                 {_.map(this.props.reportActions, (reportAction) => {
-                    // iouReportIDs should be strings, but we still have places that send them as ints so we convert them both to Numbers for comparison
                     if (!reportAction.originalMessage || Number(reportAction.originalMessage.IOUReportID) !== Number(this.props.iouReportID)) {
                         return;
                     }
