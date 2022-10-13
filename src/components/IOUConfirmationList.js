@@ -214,35 +214,6 @@ class IOUConfirmationList extends Component {
     }
 
     /**
-     * Gets splits for the transaction
-     * @returns {Array|null}
-     */
-    getSplits() {
-        // There can only be splits when there are multiple participants, so return early when there are not
-        // multiple participants
-        if (!this.props.hasMultipleParticipants) {
-            return null;
-        }
-        const selectedParticipants = this.getSelectedParticipants();
-        const splits = _.map(selectedParticipants, participant => ({
-            email: OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login),
-
-            // We should send in cents to API
-            // Cents is temporary and there must be support for other currencies in the future
-            amount: IOUUtils.calculateAmount(selectedParticipants, this.props.iouAmount),
-        }));
-
-        splits.push({
-            email: OptionsListUtils.addSMSDomainIfPhoneNumber(this.props.currentUserPersonalDetails.login),
-
-            // The user is default and we should send in cents to API
-            // USD is temporary and there must be support for other currencies in the future
-            amount: IOUUtils.calculateAmount(selectedParticipants, this.props.iouAmount, true),
-        });
-        return splits;
-    }
-
-    /**
      * Returns selected options -- there is checkmark for every row in List for split flow
      * @returns {Array}
      */
@@ -295,7 +266,7 @@ class IOUConfirmationList extends Component {
             Log.info(`[IOU] Sending money via: ${paymentMethod}`);
             this.props.onSendMoney(paymentMethod);
         } else {
-            this.props.onConfirm(this.getSplits());
+            this.props.onConfirm();
         }
     }
 
