@@ -8,8 +8,6 @@ import CONST from '../CONST';
 
 // NetInfo.addEventListener() returns a function used to unsubscribe the
 // listener so we must create a reference to it and call it in stopListeningForReconnect()
-let unsubscribeFromNetInfo;
-let unsubscribeFromAppState;
 let isOffline = false;
 let hasPendingNetworkCheck = false;
 
@@ -67,7 +65,7 @@ function subscribeToNetInfo() {
 
     // Subscribe to the state change event via NetInfo so we can update
     // whether a user has internet connectivity or not.
-    unsubscribeFromNetInfo = NetInfo.addEventListener((state) => {
+    NetInfo.addEventListener((state) => {
         Log.info('[NetworkConnection] NetInfo state change', false, state);
         setOfflineStatus(state.isInternetReachable === false);
     });
@@ -76,7 +74,7 @@ function subscribeToNetInfo() {
 function listenForReconnect() {
     Log.info('[NetworkConnection] listenForReconnect called');
 
-    unsubscribeFromAppState = AppStateMonitor.addBecameActiveListener(() => {
+    AppStateMonitor.addBecameActiveListener(() => {
         triggerReconnectionCallbacks('app became active');
     });
 }
@@ -111,7 +109,6 @@ function recheckNetworkConnection() {
 export default {
     setOfflineStatus,
     listenForReconnect,
-    stopListeningForReconnect,
     onReconnect,
     triggerReconnectionCallbacks,
     recheckNetworkConnection,
