@@ -1856,6 +1856,10 @@ const styles = {
         fontSize: 15,
     },
 
+    blockingViewContainer: {
+        paddingBottom: variables.contentHeaderHeight,
+    },
+
     defaultModalContainer: {
         backgroundColor: themeColors.componentBG,
         borderColor: colors.transparent,
@@ -2225,6 +2229,15 @@ const styles = {
 
     growlNotificationTranslateY: y => ({
         transform: [{translateY: y}],
+    }),
+
+    makeSlideInTranslation: (translationType, fromValue) => ({
+        from: {
+            [translationType]: fromValue,
+        },
+        to: {
+            [translationType]: 0,
+        },
     }),
 
     growlNotificationBox: {
