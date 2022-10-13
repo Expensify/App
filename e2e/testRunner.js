@@ -6,6 +6,7 @@
  * base (e.g. a new feature branch).
  */
 
+/* eslint-disable @lwc/lwc/no-async-await,no-restricted-syntax,no-await-in-loop */
 const fs = require('fs');
 const _ = require('underscore');
 const {
@@ -42,140 +43,127 @@ try {
     console.error(error);
 }
 
-const restartApp = () => {
-    Logger.log('Relaunching app …');
-    return killApp().then(launchApp);
+const restartApp = async () => {
+    Logger.log('Killing app …');
+    await killApp('android');
+    Logger.log('Launching app …');
+    await launchApp('android');
 };
 
-const runTestsOnBranch = (branch, baselineOrCompare) => {
+const runTestsOnBranch = async (branch, baselineOrCompare) => {
+    // switch branch and install dependencies
     const progress = Logger.progressInfo(`Preparing ${baselineOrCompare} tests on branch '${branch}'`);
+    await execAsync(`git switch ${branch}`);
 
-    const installDeps = () => {
-        if (args.includes('--skipInstallDeps')) {
+    if (!args.includes('--skipInstallDeps')) {
+        progress.updateText(`Preparing ${baselineOrCompare} tests on branch '${branch}' - npm install`);
+        await execAsync('npm i');
+    }
+
+    // build app
+    if (!args.includes('--skipBuild')) {
+        progress.updateText(`Preparing ${baselineOrCompare} tests on branch '${branch}' - building app`);
+        await execAsync('npm run android-build-e2e');
+    }
+    progress.done();
+
+    // install app and reverse ports
+    let progressLog = Logger.progressInfo('Installing app');
+    await installApp('android');
+    Logger.log('Reversing port (for connecting to testing server) …');
+    await reversePort();
+    progressLog.done();
+
+    // start the HTTP server
+    const server = createServerInstance();
+    await server.start();
+
+    // create a dict in which we will store the run durations for all tests
+    const durationsByTestName = {};
+
+    // collect results while tests are being executed
+    server.addTestResultListener((testResult) => {
+        if (testResult.error != null) {
+            throw new Error(`Test '${testResult.name}' failed with error: ${testResult.error}`);
+        }
+        if (testResult.duration < 0) {
             return;
         }
-        progress.updateText(`Preparing ${baselineOrCompare} tests on branch '${branch}' - npm install`);
-        return execAsync('npm i');
-    };
 
-    const buildApp = () => {
-        if (!args.includes('--skipBuild')) {
-            progress.updateText(`Preparing ${baselineOrCompare} tests on branch '${branch}' - building app`);
-            return execAsync('npm run android-build-e2e');
+        Logger.log(`[LISTENER] Test '${testResult.name}' took ${testResult.duration}ms`);
+        durationsByTestName[testResult.name] = (durationsByTestName[testResult.name] || []).concat(testResult.duration);
+    });
+
+    // run the tests
+    const numOfTests = _.values(TESTS_CONFIG).length;
+    for (let testIndex = 0; testIndex < numOfTests; testIndex++) {
+        const config = _.values(TESTS_CONFIG)[testIndex];
+        server.setTestConfig(config);
+
+        const warmupLogs = Logger.progressInfo(`Running test '${config.name}'`);
+        for (let warmUpRuns = 0; warmUpRuns < WARM_UP_RUNS; warmUpRuns++) {
+            const progressText = `(${testIndex + 1}/${numOfTests}) Warmup for test '${config.name}' (iteration ${warmUpRuns + 1}/${WARM_UP_RUNS})`;
+            warmupLogs.updateText(progressText);
+
+            await restartApp();
+
+            await withFailTimeout(new Promise((resolve) => {
+                const cleanup = server.addTestDoneListener(() => {
+                    Logger.log(`Warmup ${warmUpRuns + 1} done!`);
+                    cleanup();
+                    resolve();
+                });
+            }), progressText);
         }
-        progress.done();
-    };
+        warmupLogs.done();
 
-    const installAppAndReversePorts = () => {
-        const progressLog = Logger.progressInfo('Installing app');
-        return installApp('android')
-            .then(() => {
-                Logger.log('Reversing port (for connecting to testing server) …');
-                return reversePort().then(progressLog.done);
-            });
-    };
+        // We run each test multiple time to average out the results
+        const testLog = Logger.progressInfo('');
+        for (let i = 0; i < RUNS; i++) {
+            const progressText = `(${testIndex + 1}/${numOfTests}) Running test '${config.name}' (iteration ${i + 1}/${RUNS})`;
+            testLog.updateText(progressText);
 
-    const switchBranch = execAsync(`git switch ${branch}`);
-    switchBranch
-        .then(installDeps)
-        .then(buildApp)
-        .then(installAppAndReversePorts)
-        .then(() => {
-            // start the HTTP server
-            const server = createServerInstance();
-            return server.start().then(() => {
-                // create a dict in which we will store the run durations for all tests
-                const durationsByTestName = {};
+            const stopVideoRecording = startRecordingVideo();
 
-                // collect results while tests are being executed
-                server.addTestResultListener((testResult) => {
-                    if (testResult.error != null) {
-                        throw new Error(`Test '${testResult.name}' failed with error: ${testResult.error}`);
-                    }
-                    if (testResult.duration < 0) {
-                        return;
-                    }
+            await restartApp();
 
-                    Logger.log(`[LISTENER] Test '${testResult.name}' took ${testResult.duration}ms`);
-                    durationsByTestName[testResult.name] = (durationsByTestName[testResult.name] || []).concat(testResult.duration);
-                });
-
-                // Generate an array of functions, where each function is ar promise for a test run
-                const numOfTests = _.values(TESTS_CONFIG).length;
-                const testTasks = _.map([...Array(numOfTests).keys()], testIndex => () => {
-                    const config = _.values(TESTS_CONFIG)[testIndex];
-                    server.setTestConfig(config);
-
-                    const warmupLogs = Logger.progressInfo(`Running test '${config.name}'`);
-                    const warmupTasks = _.map([...Array(WARM_UP_RUNS).keys()], runIndex => () => {
-                        const progressText = `(${testIndex + 1}/${numOfTests}) Warmup for test '${config.name}' (iteration ${runIndex + 1}/${WARM_UP_RUNS})`;
-                        warmupLogs.updateText(progressText);
-
-                        return restartApp().then(() => withFailTimeout(new Promise((resolve) => {
-                            const cleanup = server.addTestDoneListener(() => {
-                                Logger.log(`Warmup ${runIndex + 1} done!`);
-                                cleanup();
-                                resolve();
-                            });
-                        }), progressText));
+            // wait for a test to finish by waiting on its done call to the http server
+            try {
+                await withFailTimeout(new Promise((resolve) => {
+                    const cleanup = server.addTestDoneListener(() => {
+                        Logger.log(`Test iteration ${i + 1} done!`);
+                        cleanup();
+                        resolve();
                     });
+                }), progressText);
+                await stopVideoRecording(false);
+            } catch (e) {
+                // when we fail due to a timeout it's interesting to take a screenshot of the emulator to see whats going on
+                await stopVideoRecording(true);
+                testLog.done();
+                throw e; // rethrow to abort execution
+            }
+        }
+        testLog.done();
+    }
 
-                    const warmup = () => _.reduce(warmupTasks, (promise, task) => promise.then(task), Promise.resolve())
-                        .then(warmupLogs.done);
+    // calculate statistics and write them to our work file
+    progressLog = Logger.progressInfo('Calculating statics and writing results');
+    const outputFileName = `${OUTPUT_DIR}/${baselineOrCompare}.json`;
+    for (const testName of _.keys(durationsByTestName)) {
+        const stats = math.getStats(durationsByTestName[testName]);
+        await writeTestStats(
+            {
+                name: testName,
+                ...stats,
+            },
+            outputFileName,
+        );
+    }
+    progressLog.done();
 
-                    const testLog = Logger.progressInfo('');
-
-                    // We run each test multiple time to average out the results
-                    const testRunTasks = _.map([...Array(RUNS)], runIndex => () => {
-                        const progressText = `(${testIndex + 1}/${numOfTests}) Running test '${config.name}' (iteration ${runIndex + 1}/${RUNS})`;
-                        testLog.updateText(progressText);
-
-                        const stopVideoRecording = startRecordingVideo();
-
-                        return restartApp().then(() => withFailTimeout(new Promise((resolve) => {
-                            // wait for a test to finish by waiting on its done call to the http server
-                            const cleanup = server.addTestDoneListener(() => {
-                                Logger.log(`Test iteration ${runIndex + 1} done!`);
-                                cleanup();
-                                resolve();
-                            });
-                        }), progressText).then(() => stopVideoRecording(false))).catch((e) => {
-                            stopVideoRecording(true);
-                            testLog.done();
-                            throw e;
-                        });
-                    });
-
-                    const tests = () => _.reduce(testRunTasks, (promise, task) => promise.then(task), Promise.resolve())
-                        .then(testLog.done);
-
-                    return warmup().then(tests);
-                });
-
-                // run the test tasks in serial
-                return _.reduce(testTasks, (promise, task) => promise.then(task), Promise.resolve()).then(() => {
-                    // calculate statistics and write them to our work file
-                    const progressLog = Logger.progressInfo('Calculating statics and writing results');
-                    const outputFileName = `${OUTPUT_DIR}/${baselineOrCompare}.json`;
-
-                    const testNames = _.keys(durationsByTestName);
-                    const writeTasks = _.map(testNames, testName => () => {
-                        const stats = math.getStats(durationsByTestName[testName]);
-                        return writeTestStats(
-                            {
-                                name: testName,
-                                ...stats,
-                            },
-                            outputFileName,
-                        );
-                    });
-                    const write = () => _.reduce(writeTasks, (promise, task) => promise.then(task), Promise.resolve())
-                        .then(progressLog.done);
-
-                    return write().then(server.stop);
-                });
-            });
-        });
+    // close server
+    await server.stop();
 };
 
 const runTests = async () => {
