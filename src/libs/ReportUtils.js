@@ -58,11 +58,11 @@ Onyx.connect({
     },
 });
 
-let reports;
+let allReports;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
-    callback: val => reports = val,
+    callback: val => allReports = val,
 });
 
 /**
@@ -89,11 +89,11 @@ function isReportMessageAttachment({text, html}) {
 /**
  * Given a collection of reports returns them sorted by last visited
  *
- * @param {Object} reportsToSort
+ * @param {Object} reports
  * @returns {Array}
  */
-function sortReportsByLastVisited(reportsToSort) {
-    return _.chain(reportsToSort)
+function sortReportsByLastVisited(reports) {
+    return _.chain(reports)
         .toArray()
         .filter(report => report && report.reportID)
         .sortBy('lastVisitedTimestamp')
@@ -231,13 +231,13 @@ function hasExpensifyGuidesEmails(emails) {
 /**
  * Given a collection of reports returns the most recently accessed one
  *
- * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reportsToSearch
+ * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
  * @param {Boolean} [ignoreDefaultRooms]
  * @param {Object} policies
  * @returns {Object}
  */
-function findLastAccessedReport(reportsToSearch, ignoreDefaultRooms, policies) {
-    let sortedReports = sortReportsByLastVisited(reportsToSearch);
+function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
+    let sortedReports = sortReportsByLastVisited(reports);
 
     if (ignoreDefaultRooms) {
         sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report)
@@ -978,7 +978,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
  */
 function getChatByParticipants(newParticipantList) {
     newParticipantList.sort();
-    return _.find(reports, (report) => {
+    return _.find(allReports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
         if (!report || !report.participants) {
             return false;
