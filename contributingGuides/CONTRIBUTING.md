@@ -47,7 +47,7 @@ This is the most common scenario for contributors. The Expensify team posts new 
 
 #### Proposing a job that Expensify hasn't posted
 
-It’s possible that you found a bug or enhancement that we haven’t posted to the [GitHub repository](https://github.com/Expensify/App/issues?q=is%3Aissue). This is an opportunity to propose a job, and (optionally) a solution. If it's a valid job proposal that we choose to implement by deploying it to production — either internally or via an external contributor — then we will compensate you $250 for identifying and proposing the improvement.
+It’s possible that you found a bug or enhancement that we haven’t posted to the [GitHub repository](https://github.com/Expensify/App/issues?q=is%3Aissue). This is an opportunity to propose a job, and (optionally) a solution. If it's a valid job proposal that we choose to implement by deploying it to production — either internally or via an external contributor — then we will compensate you $250 for identifying and proposing the improvement. If the bug is fixed by a PR that is not associated with your bug report, the contributor is not eligible for compensation unless they can find the PR that fixed the bug then show their bug report preceded the one associated with the PR.
 - Note: If you get assigned the job you proposed **and** you complete the job, this $250 for identifying the improvement is *in addition to* the reward you will be paid for completing the job.
 - Note about proposed improvements: Expensify has the right not to pay the $250 reward if the suggested improvement is already planned. Currently, Expensify plans to implement all features of the old Expensify app in New Expensify.
 
