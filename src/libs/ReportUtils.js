@@ -674,8 +674,7 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = 0) {
-    const currency = lodashGet(currentUserPersonalDetails, 'localCurrencyCode');
+ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = '', debtorEmail = '') {
     const IOUTransactionID = existingIOUTransactionID || NumberUtils.rand64();
     const IOUReportID = existingIOUReportID || generateReportID();
     const originalMessage = {
@@ -686,6 +685,34 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, p
         IOUReportID,
         type,
     };
+    const formattedTotal = NumberFormatUtils.format('en',
+        amount / 100, {
+            style: 'currency',
+            currency,
+        });
+    let message;
+    if (type === CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
+        message = [{
+            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+            isEdited: false,
+            html: comment ? `Requested ${formattedTotal} from ${debtorEmail} for ${comment}` : `Requested ${formattedTotal} from ${debtorEmail}`,
+            text: comment ? `Requested ${formattedTotal} from ${debtorEmail} for ${comment}` : `Requested ${formattedTotal} from ${debtorEmail}`,
+        }];
+    } else if (type === CONST.IOU.REPORT_ACTION_TYPE.CANCEL) {
+        message = [{
+            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+            isEdited: false,
+            html: comment ? `Cancelled the ${formattedTotal} for ${comment}` : `Cancelled the ${formattedTotal} from ${debtorEmail}`,
+            text: comment ? `Cancelled the ${formattedTotal} for ${comment}` : `Cancelled the ${formattedTotal} from ${debtorEmail}`,
+        }];
+    } else if (type === CONST.IOU.REPORT_ACTION_TYPE.DECLINE) {
+        message = [{
+            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+            isEdited: false,
+            html: comment ? `Declined the ${formattedTotal} for ${comment}` : `Declined the ${formattedTotal} from ${debtorEmail}`,
+            text: comment ? `Declined the ${formattedTotal} for ${comment}` : `Declined the ${formattedTotal} from ${debtorEmail}`,
+        }];
+    }
 
     // We store amount, comment, currency in IOUDetails when type = pay
     if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
@@ -704,6 +731,7 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, p
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
         clientID: NumberUtils.generateReportActionClientID(),
         isAttachment: false,
+        message,
         originalMessage,
         person: [{
             style: 'strong',

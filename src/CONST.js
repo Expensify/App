@@ -654,6 +654,9 @@ const CONST = {
         },
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
+            CREATE: 'create',
+            DECLINE: 'decline',
+            CANCEL: 'cancel',
         },
         AMOUNT_MAX_LENGTH: 10,
     },

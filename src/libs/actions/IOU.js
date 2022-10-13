@@ -9,7 +9,27 @@ import Navigation from '../Navigation/Navigation';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import asyncOpenURL from '../asyncOpenURL';
-import Log from '../Log';
+import * as API from '../API';
+import * as ReportUtils from '../ReportUtils';
+
+let chatReports;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: val => chatReports = val,
+});
+
+const iouReports = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_IOUS,
+    callback: (iouReport, key) => {
+        if (!iouReport || !key || !iouReport.ownerEmail) {
+            return;
+        }
+
+        iouReports[key] = iouReport;
+    },
+});
 
 /**
  * Gets the IOU Reports for new transaction
@@ -201,98 +221,66 @@ function createIOUSplitGroup(params) {
 }
 
 /**
- * Reject an iouReport transaction. Declining and cancelling transactions are done via the same Auth command.
- *
- * @param {Object} params
- * @param {Number} params.reportID
- * @param {Number} params.chatReportID
- * @param {String} params.transactionID
- * @param {String} params.comment
- */
-function rejectTransaction({
-    reportID, chatReportID, transactionID, comment,
-}) {
-    Onyx.merge(ONYXKEYS.TRANSACTIONS_BEING_REJECTED, {
-        [transactionID]: true,
-    });
-    DeprecatedAPI.RejectTransaction({
-        reportID,
-        transactionID,
-        comment,
-    })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                Log.hmmm('Error rejecting transaction', {error: response.error});
-                return;
-            }
-
-            const chatReport = response.reports[chatReportID];
-            const iouReport = response.reports[reportID];
-            Report.syncChatAndIOUReports(chatReport, iouReport);
-        })
-        .finally(() => {
-            // Setting as null deletes the transactionID
-            Onyx.merge(ONYXKEYS.TRANSACTIONS_BEING_REJECTED, {
-                [transactionID]: null,
-            });
-        });
-}
-
-/**
  * Cancels or declines a transaction in iouReport.
  * Declining and cancelling transactions are done via the same Auth command.
  *
- * @param {Object} report
+ * @param {String} chatReportID
  * @param {String} iouReportID
- * @param {String} transactionID
+ * @param {String} type - cancel|decline
+ * @param {Object} moneyRequestAction - the create IOU action we are cancelling
  */
-function cancelMoneyRequest(report, iouReportID, transactionID) {
-    const chatReport = lodashGet(report, 'reportID', null) ? report : ReportUtils.buildOptimisticChatReport(participants);
-    let iouReport;
-    // if (chatReport.hasOutstandingIOU) {
-    iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`];
+function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction) {
+    const chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
+    const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`];
+
+    // Get the amount we are cancelling
+    const amount = moneyRequestAction.originalMessage.amount;
     iouReport.total -= amount;
-    // }
+
+    if (iouReport.total == 0) {
+        chatReport.hasOutstandingIOU = false;
+    }
+
     const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
     chatReport.maxSequenceNumber = newSequenceNumber;
     const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
         newSequenceNumber,
-        'create',
+        type,
         amount,
-        currency,
-        comment,
+        moneyRequestAction.originalMessage.currency,
+        moneyRequestAction.originalMessage.comment,
         '',
-        '',
+        moneyRequestAction.originalMessage.IOUTransactionID,
         iouReport.reportID,
-        debtorEmail,
+        '',
     );
 
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
             value: {
                 [optimisticReportAction.sequenceNumber]: {
                     ...optimisticReportAction,
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
             value: chatReport,
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
             value: iouReport,
         },
     ];
     const successData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
             value: {
                 [optimisticReportAction.sequenceNumber]: {
                     pendingAction: null,
@@ -303,7 +291,7 @@ function cancelMoneyRequest(report, iouReportID, transactionID) {
     const failureData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
             value: {
                 [optimisticReportAction.sequenceNumber]: {
                     ...optimisticReportAction,
@@ -320,7 +308,7 @@ function cancelMoneyRequest(report, iouReportID, transactionID) {
         clientID: optimisticReportAction.sequenceNumber,
         cancelMoneyRequestReportActionID: optimisticReportAction.reportActionID,
     }, {optimisticData, successData, failureData});
-    Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
+    Navigation.navigate(ROUTES.getReportRoute(chatReportID));
 }
 
 /**
@@ -410,7 +398,6 @@ export {
     createIOUTransaction,
     createIOUSplit,
     createIOUSplitGroup,
-    rejectTransaction,
     payIOUReport,
     setIOUSelectedCurrency,
 };
