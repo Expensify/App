@@ -357,6 +357,8 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, lo
         transactionID: groupData.transactionID,
         reportActionID: groupData.reportActionID,
     }, onyxData);
+
+    Navigation.dismissModal();
 }
 
 /**
