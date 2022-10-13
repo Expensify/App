@@ -18,7 +18,7 @@ jobs:
           ruby-version: '2.7'
           bundler-cache: true
 
-      #region: Improve emulator startup time, see https://github.com/marketplace/actions/android-emulator-runner
+      # Improve emulator startup time, see https://github.com/marketplace/actions/android-emulator-runner
       - name: Gradle cache
         uses: gradle/gradle-build-action@v2
 
@@ -42,7 +42,6 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: false
           script: echo "Generated AVD snapshot for caching."
-      #endregion
 
 #     Note: if the android build fails the logs can be incomplete. It can help to run the build once manually to get a full log
       - name: Preheat build system
