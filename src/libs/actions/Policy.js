@@ -743,8 +743,7 @@ function generateDefaultWorkspaceName() {
     // Check if this name already exists in the policies
     let suffix = 0;
     _.forEach(allPolicies, (policy) => {
-        // Get the name of the policy
-        const {name} = policy;
+        const name = lodashGet(policy, 'name', '');
 
         if (name.toLowerCase().includes(defaultWorkspaceName.toLowerCase())) {
             suffix += 1;
