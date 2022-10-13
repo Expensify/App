@@ -27,15 +27,6 @@ const propTypes = {
 const backgroundStyle = StyleUtils.getLoginPagePromoStyle();
 
 const SignInPageLayout = (props) => {
-    const content = (
-        <SignInPageContent
-            welcomeText={props.welcomeText}
-            shouldShowWelcomeText={props.shouldShowWelcomeText}
-        >
-            {props.children}
-        </SignInPageContent>
-    );
-
     const hasRedirect = !_.isEmpty(backgroundStyle.redirectUri);
 
     const graphicLayout = (
@@ -75,7 +66,13 @@ const SignInPageLayout = (props) => {
         <View style={containerStyles}>
             {isLongMediumScreenWidth && graphicLayout}
             <View style={contentContainerStyles}>
-                {content}
+                <SignInPageContent
+                    welcomeText={props.welcomeText}
+                    shouldShowWelcomeText={props.shouldShowWelcomeText}
+                >
+                    {props.children}
+                </SignInPageContent>
+
                 {!props.isSmallScreenWidth && !isLongMediumScreenWidth && graphicLayout}
             </View>
         </View>
