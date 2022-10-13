@@ -1,4 +1,3 @@
-/* eslint-disable @lwc/lwc/no-async-await */
 const execAsync = require('./execAsync');
 const {OUTPUT_DIR} = require('../config');
 
@@ -16,13 +15,15 @@ module.exports = () => {
                 resolve();
                 return;
             }
-            setTimeout(async () => {
+            setTimeout(() => {
                 if (save) {
-                    await execAsync('adb pull /sdcard/video.mp4');
-                    await execAsync(`mv video.mp4 ${OUTPUT_DIR}/video.mp4`);
-                    await execAsync('adb shell rm /sdcard/video.mp4');
+                    const getVideo = () => execAsync('adb pull /sdcard/video.mp4');
+                    const moveVideo = () => execAsync(`mv video.mp4 ${OUTPUT_DIR}/video.mp4`);
+                    const cleanupVideo = () => execAsync('adb shell rm /sdcard/video.mp4');
+                    getVideo().then(moveVideo).then(cleanupVideo).then(resolve);
+                } else {
+                    resolve();
                 }
-                resolve();
             }, 5000); // give the device some time to finish writing the file
         });
     };

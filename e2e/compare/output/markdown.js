@@ -78,8 +78,8 @@ const buildMarkdown = (data) => {
     }
 
     result += '\n\n### Significant Changes To Duration';
-    result += `\n${buildSummaryTable(data.significant)}`;
-    result += `\n${buildDetailsTable(data.significant)}`;
+    result += `\n${buildSummaryTable(data.significance)}`;
+    result += `\n${buildDetailsTable(data.significance)}`;
     result += '\n\n### Meaningless Changes To Duration';
     result += `\n${buildSummaryTable(data.meaningless, true)}`;
     result += `\n${buildDetailsTable(data.meaningless)}`;

@@ -1,9 +1,11 @@
-/* eslint-disable @lwc/lwc/no-async-await,rulesdir/no-negated-variables */
 const fs = require('fs/promises');
 const fsSync = require('fs');
 const _ = require('underscore');
 const {OUTPUT_DIR} = require('../config');
-const {computeProbability, computeZ} = require('./math');
+const {
+    computeProbability,
+    computeZ,
+} = require('./math');
 const printToConsole = require('./output/console');
 const writeToMarkdown = require('./output/markdown');
 
@@ -18,7 +20,7 @@ const writeToMarkdown = require('./output/markdown');
 /**
  * Probability threshold for considering given difference significant.
  */
-const PROBABILITY_CONSIDERED_SIGNIFICANT = 0.02;
+const PROBABILITY_CONSIDERED_SIGNIFICANCE = 0.02;
 
 /**
  * Duration threshold (in ms) for treating given difference as significant.
@@ -27,20 +29,19 @@ const PROBABILITY_CONSIDERED_SIGNIFICANT = 0.02;
  * This is additional filter, in addition to probability threshold above.
  * Too small duration difference might be result of measurement grain of 1 ms.
  */
-const DURATION_DIFF_THRESHOLD_SIGNIFICANT = 50;
+const DURATION_DIFF_THRESHOLD_SIGNIFICANCE = 50;
 
-const loadFile = async (path) => {
-    const data = await fs.readFile(path, 'utf8');
+const loadFile = path => fs.readFile(path, 'utf8')
+    .then((data) => {
+        const entries = JSON.parse(data);
 
-    const entries = JSON.parse(data);
+        const result = {};
+        entries.forEach((entry) => {
+            result[entry.name] = entry;
+        });
 
-    const result = {};
-    entries.forEach((entry) => {
-        result[entry.name] = entry;
+        return result;
     });
-
-    return result;
-};
 
 /**
  *
@@ -56,7 +57,7 @@ function buildCompareEntry(name, compare, baseline) {
     const z = computeZ(baseline.mean, baseline.stdev, compare.mean, compare.runs);
     const prob = computeProbability(z);
 
-    const isDurationDiffSignificant = prob < PROBABILITY_CONSIDERED_SIGNIFICANT && Math.abs(diff) >= DURATION_DIFF_THRESHOLD_SIGNIFICANT;
+    const isDurationDiffOfSignificance = prob < PROBABILITY_CONSIDERED_SIGNIFICANCE && Math.abs(diff) >= DURATION_DIFF_THRESHOLD_SIGNIFICANCE;
 
     return {
         name,
@@ -64,7 +65,7 @@ function buildCompareEntry(name, compare, baseline) {
         current: compare,
         diff,
         relativeDurationDiff,
-        isDurationDiffSignificant,
+        isDurationDiffOfSignificance,
     };
 }
 
@@ -90,18 +91,24 @@ function compareResults(compareEntries, baselineEntries) {
         if (baseline && current) {
             compared.push(buildCompareEntry(name, current, baseline));
         } else if (current) {
-            added.push({name, current});
+            added.push({
+                name,
+                current,
+            });
         } else if (baseline) {
-            removed.push({name, baseline});
+            removed.push({
+                name,
+                baseline,
+            });
         }
     });
 
-    const significant = _.chain(compared)
-        .filter(item => item.isDurationDiffSignificant)
+    const significance = _.chain(compared)
+        .filter(item => item.isDurationDiffOfSignificance)
         .sort((a, b) => b.diff - a.diff)
         .value();
     const meaningless = _.chain(compared)
-        .filter(item => !item.isDurationDiffSignificant)
+        .filter(item => !item.isDurationDiffOfSignificance)
         .sort((a, b) => b.diff - a.diff)
         .value();
 
@@ -109,14 +116,14 @@ function compareResults(compareEntries, baselineEntries) {
     removed.sort((a, b) => b.baseline.mean - a.baseline.mean);
 
     return {
-        significant,
+        significance,
         meaningless,
         added,
         removed,
     };
 }
 
-module.exports = async (
+module.exports = (
     baselineFile = `${OUTPUT_DIR}/baseline.json`,
     compareFile = `${OUTPUT_DIR}/compare.json`,
     outputFormat = 'all',
@@ -127,18 +134,24 @@ module.exports = async (
             `Baseline results files "${baselineFile}" does not exists.`,
         );
     }
-    const baseline = await loadFile(baselineFile);
+    return loadFile(baselineFile)
+        .then((baseline) => {
+            const hasCompareFile = fsSync.existsSync(compareFile);
+            if (!hasCompareFile) {
+                throw new Error(
+                    `Compare results files "${compareFile}" does not exists.`,
+                );
+            }
+            return loadFile(compareFile)
+                .then((compare) => {
+                    const outputData = compareResults(compare, baseline);
 
-    const hasCompareFile = fsSync.existsSync(compareFile);
-    if (!hasCompareFile) {
-        throw new Error(
-            `Compare results files "${compareFile}" does not exists.`,
-        );
-    }
-    const compare = await loadFile(compareFile);
-
-    const outputData = compareResults(compare, baseline);
-
-    if (outputFormat === 'console' || outputFormat === 'all') { printToConsole(outputData); }
-    if (outputFormat === 'markdown' || outputFormat === 'all') { await writeToMarkdown(`${OUTPUT_DIR}/output.md`, outputData); }
+                    if (outputFormat === 'console' || outputFormat === 'all') {
+                        printToConsole(outputData);
+                    }
+                    if (outputFormat === 'markdown' || outputFormat === 'all') {
+                        return writeToMarkdown(`${OUTPUT_DIR}/output.md`, outputData);
+                    }
+                });
+        });
 };

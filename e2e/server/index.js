@@ -1,4 +1,3 @@
-/* eslint-disable @lwc/lwc/no-async-await */
 const {createServer} = require('http');
 const Routes = require('./routes');
 const Logger = require('../utils/logger');
@@ -6,7 +5,7 @@ const {SERVER_PORT} = require('../config');
 
 const PORT = process.env.PORT || SERVER_PORT;
 
-// gets the request data as a string
+// Gets the request data as a string
 const getReqData = (req) => {
     let data = '';
     req.on('data', (chunk) => {
@@ -20,22 +19,23 @@ const getReqData = (req) => {
     });
 };
 
-// expects a POST request with JSON data. Returns parsed JSON data.
-const getPostJSONRequestData = async (req, res) => {
+// Expects a POST request with JSON data. Returns parsed JSON data.
+const getPostJSONRequestData = (req, res) => {
     if (req.method !== 'POST') {
         res.statusCode = 400;
         res.end('Unsupported method');
         return;
     }
 
-    const data = await getReqData(req);
-    try {
-        return JSON.parse(data);
-    } catch (e) {
-        Logger.info('❌ Failed to parse request data', data);
-        res.statusCode = 400;
-        res.end('Invalid JSON');
-    }
+    return getReqData(req).then((data) => {
+        try {
+            return JSON.parse(data);
+        } catch (e) {
+            Logger.info('❌ Failed to parse request data', data);
+            res.statusCode = 400;
+            res.end('Invalid JSON');
+        }
+    });
 };
 
 const createListenerState = () => {
@@ -91,7 +91,7 @@ const createServerInstance = () => {
         activeTestConfig = testConfig;
     };
 
-    const server = createServer(async (req, res) => {
+    const server = createServer((req, res) => {
         res.statusCode = 200;
         switch (req.url) {
             case Routes.testConfig: {
@@ -103,17 +103,19 @@ const createServerInstance = () => {
             }
 
             case Routes.testResults: {
-                const data = await getPostJSONRequestData(req, res);
-                if (data == null) {
-                    // the getPostJSONRequestData function already handled the response
-                    return;
-                }
+                getPostJSONRequestData(req, res).then((data) => {
+                    if (data == null) {
+                        // The getPostJSONRequestData function already handled the response
+                        return;
+                    }
 
-                testResultListeners.forEach((listener) => {
-                    listener(data);
+                    testResultListeners.forEach((listener) => {
+                        listener(data);
+                    });
+
+                    res.end('ok');
                 });
-
-                return res.end('ok');
+                break;
             }
 
             case Routes.testDone: {
