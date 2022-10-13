@@ -53,6 +53,21 @@ Copy the [template](https://github.com/Expensify/App/blob/main/docs/TEMPLATE.md)
 
 The sections of the article will be filled and nested automatically in the LHN, just ensure to use the [heading markdown tags](https://www.markdownguide.org/cheat-sheet/) correctly.
 
+## Add meta-description tags for SEO
+
+At the top of template file we're going to find a few variables that will help us to define the meta-description of the article for SEO:
+
+```
+---
+description: A short description of the page's content
+image: URL to an image associated with the post, page, or document (e.g., /assets/page-pic.jpg)
+author: Page-, post-, or document-specific author information.
+locale: Page-, post-, or document-specific locale information. Takes priority over existing front matter attribute lang.
+---
+```
+
+Just update the content for each variable accordingly or remove it if the information is not available. More details [here](https://github.com/jekyll/jekyll-seo-tag/blob/master/docs/usage.md#usage).
+
 ## Add a new entry in the hub page
 
 There are 3 main components in the hub page: 1. Stage title, 2. Row of Card buttons and 3. Card buttons.
