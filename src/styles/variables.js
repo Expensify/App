@@ -11,6 +11,7 @@ export default {
     avatarSizeLarge: 80,
     avatarSizeNormal: 40,
     avatarSizeSmall: 28,
+    avatarSizeSmaller: 24,
     avatarSizeSubscript: 20,
     avatarSizeSmallSubscript: 14,
     fontSizeOnlyEmojis: 30,
