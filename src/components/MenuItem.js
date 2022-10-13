@@ -16,6 +16,8 @@ import menuItemPropTypes from './menuItemPropTypes';
 import SelectCircle from './SelectCircle';
 import colors from '../styles/colors';
 import variables from '../styles/variables';
+import themeColors from '../styles/themes/default';
+import MultipleAvatars from './MultipleAvatars';
 
 const propTypes = {
     ...menuItemPropTypes,
@@ -47,6 +49,7 @@ const defaultProps = {
     interactive: true,
     fallbackIcon: Expensicons.FallbackAvatar,
     brickRoadIndicator: '',
+    floatRightAvatars: [],
 };
 
 const MenuItem = (props) => {
@@ -219,6 +222,16 @@ const MenuItem = (props) => {
                                     width={variables.iconSizeSmall}
                                 />
                             </View>
+                        )}
+                        {!_.isEmpty(props.floatRightAvatars) && (
+                            <MultipleAvatars
+                                icons={props.floatRightAvatars}
+                                size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                secondAvatarStyle={[
+                                    StyleUtils.getBackgroundAndBorderStyle(themeColors.sidebar),
+                                ]}
+                                fallbackIcon={Expensicons.Workspace}
+                            />
                         )}
                         {Boolean(props.shouldShowRightIcon) && (
                             <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled]}>
