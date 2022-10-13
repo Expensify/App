@@ -150,10 +150,7 @@ function createIOUTransaction(params) {
  */
 function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale) {
     const currentUserEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
-
-    // getChatByParticipants should be created in this PR https://github.com/Expensify/App/pull/11439/files
-    // const existingGroupChatReport = ReportUtils.getChatByParticipants(participants);
-    const existingGroupChatReport = false;
+    const existingGroupChatReport = ReportUtils.getChatByParticipants(participants);
     const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(_.pluck(participants, 'login'));
     const groupCreatedReportAction = existingGroupChatReport ? {} : ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
     const groupIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
@@ -227,9 +224,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             return;
         }
 
-        // getChatByParticipants should be created in this PR https://github.com/Expensify/App/pull/11439/files
-        // const existingOneOnOneChatReport = ReportUtils.getChatByParticipants([currentUserEmail, email]);
-        const existingOneOnOneChatReport = false;
+        const existingOneOnOneChatReport = ReportUtils.getChatByParticipants([email]);
         const oneOnOneChatReport = existingOneOnOneChatReport || ReportUtils.buildOptimisticChatReport([email]);
         let oneOnOneIOUReport;
         if (oneOnOneChatReport.iouReportID) {
