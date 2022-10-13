@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import * as Animatable from 'react-native-animatable';
 import CONST from '../CONST';
+import styles from '../styles/styles';
 
 const propTypes = {
     /** Children to wrap in AnimatedStep. */
@@ -25,9 +26,9 @@ const AnimatedStep = (props) => {
         let animationStyle;
 
         if (direction === 'in') {
-            animationStyle = 'slideInRight';
+            animationStyle = styles.makeSlideInTranslation('translateX', CONST.ANIMATED_TRANSITION_FROM_VALUE);
         } else if (direction === 'out') {
-            animationStyle = 'slideInLeft';
+            animationStyle = styles.makeSlideInTranslation('translateX', -CONST.ANIMATED_TRANSITION_FROM_VALUE);
         }
         return animationStyle;
     }
