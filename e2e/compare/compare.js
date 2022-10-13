@@ -24,7 +24,6 @@ const PROBABILITY_CONSIDERED_SIGNIFICANCE = 0.02;
 
 /**
  * Duration threshold (in ms) for treating given difference as significant.
- * // TODO: for different scenarios this must have different values i feel (its currently fine tuned for tti)
  *
  * This is additional filter, in addition to probability threshold above.
  * Too small duration difference might be result of measurement grain of 1 ms.
