@@ -790,13 +790,13 @@ function clearDeleteWorkspaceError(policyID) {
 }
 
 /**
-* Checks if we have any errors stored within the POLICY_MEMBER_LIST.  Determines whether we should show a red brick road error or not
- * Data structure: {email: {role:'bla', errors: []}, email2: {role:'bla', errors: [{1231312313: 'Unable to do X'}]}, ...}
- * @param {Object} policyMemberList
- * @returns {Boolean}
+ * Generate a policy name based on an email and policy list.
+ * @param {String} email Optional, the email to base the workspace name on. If not passed, will use
+ *                       the logged in user's email instead
+ * @returns {String}
  */
 function generateDefaultWorkspaceName(email = '') {
-    const emailParts = email ? email.split ('@') : sessionEmail.split('@');
+    const emailParts = email ? email.split('@') : sessionEmail.split('@');
     let defaultWorkspaceName = '';
     if (!emailParts || emailParts.length !== 2) {
         return defaultWorkspaceName;
