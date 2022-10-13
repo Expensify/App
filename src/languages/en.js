@@ -719,7 +719,8 @@ export default {
         headerTitle: 'Enable payments',
         activatedTitle: 'Wallet activated!',
         activatedMessage: 'Congrats, your wallet is set up and ready to make payments.',
-        checkBackLater: 'We\'re still reviewing your information. Please check back later.',
+        checkBackLaterTitle: 'Just a minute...',
+        checkBackLaterMessage: 'We\'re still reviewing your information. Please check back later.',
         continueToPayment: 'Continue to payment',
         continueToTransfer: 'Continue to transfer',
     },
@@ -991,7 +992,6 @@ export default {
         renamedRoomAction: ({oldName, newName}) => ` renamed this room from ${oldName} to ${newName}`,
         social: 'social',
         selectAWorkspace: 'Select a workspace',
-        growlMessageOnError: 'Unable to create policy room, please check your connection and try again.',
         growlMessageOnRenameError: 'Unable to rename policy room, please check your connection and try again.',
         visibilityOptions: {
             restricted: 'Restricted',

@@ -5,17 +5,22 @@
 
 ### Fixed Issues
 <!---
-Please replace GH_LINK with the link to the GitHub issue this Pull Request is fixing.
+1. Please replace GH_LINK with a URL link to the GitHub issue this Pull Request is fixing.
+2. Please replace PROPOSAL: GH_LINK_ISSUE(COMMENT) with a URL link to your GitHub comment, which contains the approved proposal (i.e. the proposal that was approved by Expensify).
+
 Do NOT add the special GH keywords like `fixed` etc, we have our own process of managing the flow.
-It MUST be an entire link to the issue; otherwise, the linking will not work as expected.
+It MUST be an entire link to the github issue and your comment proposal ; otherwise, the linking will not work as expected.
 
 Make sure this section looks similar to this (you can link multiple issues using the same formatting, just add a new line):
 
 $ https://github.com/Expensify/App/issues/<number-of-the-issue>
+$ https://github.com/Expensify/App/issues/<number-of-the-issue(comment)>
 
 Do NOT only link the issue number like this: $ #<number-of-the-issue>
 --->
-$ GH_LINK
+$ GH_LINK   
+PROPOSAL: GH_LINK_ISSUE(COMMENT)
+
 
 ### Tests
 <!---
@@ -35,7 +40,7 @@ For example:
 <!--
 This is a checklist for PR authors & reviewers. Please make sure to complete all tasks and check them off once you do, or else Expensify has the right not to merge your PR!
 -->
-#### Contributor (PR Author) Checklist
+#### PR Author Checklist
 - [ ] I linked the correct issue in the `### Fixed Issues` section above
 - [ ] I wrote clear testing steps that cover the changes made in this PR
     - [ ] I added steps for local testing in the `Tests` section
@@ -67,7 +72,6 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
 - [ ] If a new component is created I verified that:
     - [ ] A similar component doesn't exist in the codebase
     - [ ] All props are defined accurately and each prop has a `/** comment above it */`
-    - [ ] Any functional components have the `displayName` property
     - [ ] The file is named correctly
     - [ ] The component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone
     - [ ] The only data being stored in the state is data necessary for rendering and nothing else
@@ -85,7 +89,7 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
 <details>
 <summary><h4>PR Reviewer Checklist</h4>
 
-The Contributor+ will copy/paste it into a new comment and complete it after the author checklist is completed
+The reviewer will copy/paste it into a new comment and complete it after the author checklist is completed
 </summary>
 
 - [ ] I have verified the author checklist is complete (all boxes are checked off).
@@ -96,6 +100,7 @@ The Contributor+ will copy/paste it into a new comment and complete it after the
     - [ ] I verified the steps cover any possible failure scenarios (i.e. verify an input displays the correct error message if the entered data is not correct)
     - [ ] I turned off my network connection and tested it while offline to ensure it matches the expected behavior (i.e. verify the default avatar icon is displayed if app is offline)
 - [ ] I checked that screenshots or videos are included for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
+- [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I verified tests pass on **all platforms** & I tested again on:
     - [ ] iOS / native
     - [ ] Android / native
@@ -120,7 +125,6 @@ The Contributor+ will copy/paste it into a new comment and complete it after the
 - [ ] If a new component is created I verified that:
     - [ ] A similar component doesn't exist in the codebase
     - [ ] All props are defined accurately and each prop has a `/** comment above it */`
-    - [ ] Any functional components have the `displayName` property
     - [ ] The file is named correctly
     - [ ] The component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone
     - [ ] The only data being stored in the state is data necessary for rendering and nothing else
