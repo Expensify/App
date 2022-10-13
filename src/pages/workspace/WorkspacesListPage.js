@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -19,6 +20,8 @@ import MenuItem from '../../components/MenuItem';
 import * as Policy from '../../libs/actions/Policy';
 import policyMemberPropType from '../policyMemberPropType';
 import Permissions from '../../libs/Permissions';
+import Button from '../../components/Button';
+import FixedFooter from '../../components/FixedFooter';
 
 const propTypes = {
     /* Onyx Props */
@@ -159,7 +162,16 @@ class WorkspacesListPage extends Component {
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                {_.map(this.getMenuItemsList(), (item, index) => this.getMenuItem(item, index))}
+                <ScrollView style={styles.flex1}>
+                    {_.map(this.getMenuItemsList(), (item, index) => this.getMenuItem(item, index))}
+                </ScrollView>
+                <FixedFooter style={[styles.flexGrow0]}>
+                    <Button
+                        success
+                        text={this.props.translate('workspace.new.newWorkspace')}
+                        onPress={Policy.createWorkspace}
+                    />
+                </FixedFooter>
             </ScreenWrapper>
         );
     }
