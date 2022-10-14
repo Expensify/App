@@ -1702,6 +1702,38 @@ const styles = {
         width: variables.avatarSizeSmall,
     },
 
+    horizontalStackedAvatars: {
+        height: 24,
+        width: 28,
+        backgroundColor: colors.white,
+        borderRadius: 33,
+    },
+
+    horizontalStackedAvatar1: {
+        right: 27,
+        top: 7,
+    },
+
+    horizontalStackedAvatar2: {
+        right: 7,
+        top: -17,
+    },
+
+    horizontalStackedAvatar3: {
+        left: 13,
+        top: -41,
+    },
+
+    horizontalStackedAvatar4: {
+        top: -67,
+        left: 33,
+        height: 28,
+        width: 28,
+        borderWidth: 2,
+        borderStyle: 'solid',
+        borderColor: colors.white,
+    },
+
     modalViewContainer: {
         alignItems: 'center',
         flex: 1,
