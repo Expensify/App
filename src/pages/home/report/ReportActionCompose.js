@@ -384,7 +384,7 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(newComment, shouldDebounceSaveComment) {
-        const isCommentEmpty = !!newComment.match(CONST.REGEX.IS_COMMENT_EMPTY);
+        const isCommentEmpty = Boolean(newComment.match(CONST.REGEX.IS_COMMENT_EMPTY));
         if (this.state.isCommentEmpty !== isCommentEmpty) {
             this.setState({isCommentEmpty});
         }
