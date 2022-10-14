@@ -2704,7 +2704,7 @@ const styles = {
         overflow: 'hidden',
         paddingVertical: 2,
         flexShrink: 1,
-        fontSize: variables.fontSizeLabel,
+        fontSize: variables.fontSizeSmall,
         ...spacing.ph2,
     },
 };
