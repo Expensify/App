@@ -228,9 +228,6 @@ const MenuItem = (props) => {
                             <MultipleAvatars
                                 icons={props.floatRightAvatars}
                                 size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
-                                secondAvatarStyle={[
-                                    StyleUtils.getBackgroundAndBorderStyle(themeColors.sidebar),
-                                ]}
                                 fallbackIcon={Expensicons.Workspace}
                                 shouldStackHorizontally={props.shouldStackHorizontally}
                             />
