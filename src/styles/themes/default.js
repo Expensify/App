@@ -33,6 +33,7 @@ export default {
     online: colors.green,
     offline: colors.gray3,
     sidebarButtonBG: 'rgba(198, 201, 202, 0.25)',
+    testColor: 'rgba(011, 027, 052, 0.64)',
     modalBackdrop: colors.gray3,
     modalBackground: colors.gray2,
     badgeDangerBG: colors.red,
