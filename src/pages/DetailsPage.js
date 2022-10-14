@@ -77,7 +77,7 @@ class DetailsPage extends React.PureComponent {
     }
 
     render() {
-        const details = this.props.personalDetails[lodashGet(this.props.route.params, 'login')];
+        const details = lodashGet(this.props.personalDetails, lodashGet(this.props.route.params, 'login'));
         if (!details) {
             // Personal details have not loaded yet
             return <FullscreenLoadingIndicator />;
