@@ -19,6 +19,7 @@ import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
 import reportPropTypes from '../../reportPropTypes';
+import addEmojiToComposerTextInput from '../../../libs/addEmojiToComposerTextInput';
 
 const propTypes = {
     /** All the data of the action */
@@ -154,15 +155,15 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        const newComment = this.draft.slice(0, this.selection.start)
-            + emoji + this.draft.slice(this.selection.end, this.draft.length);
-        this.selection = {
-            start: this.selection.start + emoji.length,
-            end: this.selection.start + emoji.length,
-        };
+        const {newText, newSelection} = addEmojiToComposerTextInput({
+            emoji,
+            text: this.draft,
+            textInput: this.textInput,
+            selection: this.selection,
+        });
 
-        this.textInput.setTextAndSelection(newComment, this.selection.start, this.selection.end);
-        this.updateDraft(newComment);
+        this.selection = newSelection;
+        this.updateDraft(newText);
     }
 
     /**

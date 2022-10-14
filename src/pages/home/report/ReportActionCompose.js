@@ -1,7 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-    InteractionManager, Platform, TouchableOpacity, View,
+    View,
+    TouchableOpacity,
+    InteractionManager,
 } from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -44,6 +46,7 @@ import OfflineIndicator from '../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import withNavigationFocus from '../../../components/withNavigationFocus';
 import reportPropTypes from '../../reportPropTypes';
+import addEmojiToComposerTextInput from '../../../libs/addEmojiToComposerTextInput';
 
 const propTypes = {
     /** Beta features list */
@@ -314,24 +317,14 @@ class ReportActionCompose extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        const hasRangeSelected = this.selection.start !== this.selection.end;
-        if (Platform.OS === 'android' && hasRangeSelected) {
-            // Android: when we have a range selected setTextAndSelection
-            // won't remove the highlight, so we manually set the cursor
-            // to a selection range of 0 (so there won't be any selection highlight).
-            this.textInput.setSelection(this.selection.start, this.selection.start);
-        }
-
-        const newComment = this.comment.slice(0, this.selection.start)
-            + emoji + this.comment.slice(this.selection.end, this.comment.length);
-        const newSelection = this.selection.start + emoji.length;
-        this.selection = {
-            start: newSelection,
-            end: newSelection,
-        };
-
-        this.textInput.setTextAndSelection(newComment, this.selection.start, this.selection.end);
-        this.updateComment(newComment, true);
+        const {newText, newSelection} = addEmojiToComposerTextInput({
+            emoji,
+            text: this.comment,
+            textInput: this.textInput,
+            selection: this.selection,
+        });
+        this.selection = newSelection;
+        this.updateComment(newText, true);
     }
 
     /**
