@@ -263,6 +263,8 @@ function getOptionData(reportID) {
         result.alternateText = lastMessageText || subtitle;
     } else {
         if (hasMultipleParticipants && !lastMessageText) {
+            // Here we get the beginning of chat history message and append the display name for each user, adding pronouns if there are any.
+            // We also add a fullstop after the final name, the word "and" before the final name and commas between all previous names.
             lastMessageText = Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistory')
                 + _.map(displayNamesWithTooltips, ({displayName, pronouns}, index) => {
                     const formattedText = _.isEmpty(pronouns) ? displayName : `${displayName} (${pronouns})`;
