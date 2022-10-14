@@ -747,16 +747,16 @@ function generateDefaultWorkspaceName(email = '') {
     }
 
     // Check if this name already exists in the policies
-    let suffix = 0;
+    let count = 0;
     _.forEach(allPolicies, (policy) => {
         const name = lodashGet(policy, 'name', '');
 
         if (name.toLowerCase().includes(defaultWorkspaceName.toLowerCase())) {
-            suffix += 1;
+            count += 1;
         }
     });
 
-    return suffix > 0 ? `${defaultWorkspaceName} ${suffix}` : defaultWorkspaceName;
+    return count > 0 ? `${defaultWorkspaceName} ${count + 1}` : defaultWorkspaceName;
 }
 
 /**
