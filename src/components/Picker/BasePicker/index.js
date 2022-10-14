@@ -25,8 +25,8 @@ class BasePicker extends React.Component {
         this.setDefaultValue();
     }
 
-    /** set default value only if number of items is one */
     setDefaultValue() {
+        // set default value only if number of items is one
         if (this.props.value || !this.props.items || this.props.items.length !== 1 || !this.props.onInputChange) {
             return;
         }
