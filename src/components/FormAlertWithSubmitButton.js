@@ -28,7 +28,7 @@ const propTypes = {
     message: PropTypes.string,
 
     /** Callback fired when the "fix the errors" link is pressed */
-    onFixTheErrorsPressed: PropTypes.func,
+    onFixTheErrorsLinkPressed: PropTypes.func,
 
     /** Submit function */
     onSubmit: PropTypes.func.isRequired,
@@ -43,7 +43,7 @@ const defaultProps = {
     isMessageHtml: false,
     containerStyles: [],
     isLoading: false,
-    onFixTheErrorsPressed: () => {},
+    onFixTheErrorsLinkPressed: () => {},
     enabledWhenOffline: false,
 };
 
@@ -53,7 +53,7 @@ const FormAlertWithSubmitButton = props => (
         isAlertVisible={props.isAlertVisible}
         isMessageHtml={props.isMessageHtml}
         message={props.message}
-        onFixTheErrorsPressed={props.onFixTheErrorsPressed}
+        onFixTheErrorsLinkPressed={props.onFixTheErrorsLinkPressed}
     >
         {isOffline => ((isOffline && !props.enabledWhenOffline) ? (
             <Button

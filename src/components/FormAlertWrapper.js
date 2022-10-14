@@ -35,7 +35,7 @@ const propTypes = {
     network: networkPropTypes.isRequired,
 
     /** Callback fired when the "fix the errors" link is pressed */
-    onFixTheErrorsPressed: PropTypes.func,
+    onFixTheErrorsLinkPressed: PropTypes.func,
 
     ...withLocalizePropTypes,
 };
@@ -45,7 +45,7 @@ const defaultProps = {
     isAlertVisible: false,
     isMessageHtml: false,
     message: '',
-    onFixTheErrorsPressed: () => {},
+    onFixTheErrorsLinkPressed: () => {},
 };
 
 // The FormAlertWrapper offers a standardized way of showing error messages and offline functionality.
@@ -69,7 +69,7 @@ const FormAlertWrapper = props => (
                             </Text>
                             <TextLink
                                 style={styles.label}
-                                onPress={props.onFixTheErrorsPressed}
+                                onPress={props.onFixTheErrorsLinkPressed}
                             >
                                 {props.translate('common.fixTheErrors')}
                             </TextLink>
