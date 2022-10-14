@@ -1576,6 +1576,14 @@ const styles = {
         borderRadius: 24,
     },
 
+    horizontalStackedAvatar: {
+        height: 28,
+        width: 28,
+        backgroundColor: colors.white,
+        borderRadius: 33,
+        paddingTop: 2,
+    },
+
     singleSubscript: {
         height: variables.iconSizeNormal,
         width: variables.iconSizeNormal,
@@ -1706,43 +1714,35 @@ const styles = {
         width: variables.avatarSizeSmall,
     },
 
-    horizontalStackedAvatars: {
-        height: 24,
-        width: 28,
-        backgroundColor: colors.white,
-        borderRadius: 33,
-    },
-
     horizontalStackedAvatar1: {
         right: 27,
-        top: 7,
+        top: 5,
     },
 
     horizontalStackedAvatar2: {
         right: 7,
-        top: -17,
+        top: -23,
     },
 
     horizontalStackedAvatar3: {
         left: 13,
-        top: -41,
+        top: -51,
     },
 
     horizontalStackedAvatar4: {
-        top: -67,
+        top: -79,
         left: 33,
+    },
+
+    horizontalStackedAvatar4Overlay: {
+        top: -107,
         height: 28,
         width: 28,
         borderWidth: 2,
         borderStyle: 'solid',
         borderColor: colors.white,
         backgroundColor: themeColors.testColor,
-        // background: 'rgba(011, 027, 052, 0.64)',
         borderRadius: 24,
-    },
-
-    horizontalStackedAvatar4Overlay: {
-        top: -95,
     },
 
     modalViewContainer: {

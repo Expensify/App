@@ -1,6 +1,6 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {Image, View} from 'react-native';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import Avatar from './Avatar';
@@ -9,8 +9,6 @@ import Text from './Text';
 import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 import CONST from '../CONST';
-import defaultTheme from '../styles/themes/default';
-import RoomHeaderAvatars from './RoomHeaderAvatars';
 
 const propTypes = {
     /** Array of avatar URLs or icons */
@@ -76,11 +74,11 @@ const MultipleAvatars = (props) => {
                         _.map([...props.icons].splice(0, 4), (icon, index) => (
                             <>
                                 <View
-                                    style={[styles.horizontalStackedAvatars, styles.alignItemsCenter, horizontalStyles[index]]}
+                                    style={[styles.horizontalStackedAvatar, styles.alignItemsCenter, horizontalStyles[index]]}
                                 >
                                     <Avatar
                                         source={icon || props.fallbackIcon}
-                                        fill={defaultTheme.iconSuccessFill}
+                                        fill={themeColors.iconSuccessFill}
                                         size={CONST.AVATAR_SIZE.SMALLER}
                                     />
                                 </View>
@@ -102,11 +100,9 @@ const MultipleAvatars = (props) => {
                     style={singleAvatarStyles}
                 >
                     <Tooltip text={props.avatarTooltips[0]} absolute>
-                        <Avatar
-                            imageStyles={[singleAvatarStyles]}
-                            source={props.icons[0] || props.fallbackIcon}
-                            fill={defaultTheme.iconSuccessFill}
-                            size={CONST.AVATAR_SIZE.SMALL}
+                        <Image
+                            source={{uri: props.icons[0]}}
+                            style={singleAvatarStyles}
                         />
                     </Tooltip>
                     <View
@@ -114,11 +110,9 @@ const MultipleAvatars = (props) => {
                     >
                         {props.icons.length === 2 ? (
                             <Tooltip text={props.avatarTooltips[1]} absolute>
-                                <Avatar
-                                    imageStyles={[singleAvatarStyles]}
-                                    source={props.icons[1] || props.fallbackIcon}
-                                    fill={defaultTheme.iconSuccessFill}
-                                    size={CONST.AVATAR_SIZE.SMALL}
+                                <Image
+                                    source={{uri: props.icons[1]}}
+                                    style={singleAvatarStyles}
                                 />
                             </Tooltip>
                         ) : (
