@@ -229,7 +229,6 @@ class ReportScreen extends React.Component {
             >
                 <ScreenWrapper
                     style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
-                    keyboardAvoidingViewBehavior={Platform.OS === 'android' ? '' : 'padding'}
                 >
                     <FullPageNotFoundView
                         shouldShow={!this.props.report.reportID}

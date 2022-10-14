@@ -59,7 +59,7 @@ const SignInPageContent = props => (
                 >
                     <KeyboardAvoidingView
                         behavior="position"
-                        contentContainerStyle={[
+                        style={[
                             props.isSmallScreenWidth ? styles.signInPageNarrowContentMargin : {},
                             !props.isMediumScreenWidth || (props.isMediumScreenWidth && props.windowHeight < variables.minHeightToShowGraphics) ? styles.signInPageWideLeftContentMargin : {},
                             styles.mb3,
