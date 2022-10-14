@@ -1716,22 +1716,26 @@ const styles = {
 
     horizontalStackedAvatar1: {
         right: 27,
-        top: 5,
+        top: -79,
+        zIndex: 2,
     },
 
     horizontalStackedAvatar2: {
         right: 7,
-        top: -23,
+        top: -51,
+        zIndex: 3,
     },
 
     horizontalStackedAvatar3: {
         left: 13,
-        top: -51,
+        top: -23,
+        zIndex: 4,
     },
 
     horizontalStackedAvatar4: {
-        top: -79,
+        top: 5,
         left: 33,
+        zIndex: 5,
     },
 
     horizontalStackedAvatar4Overlay: {
@@ -1743,6 +1747,7 @@ const styles = {
         borderColor: colors.white,
         backgroundColor: themeColors.testColor,
         borderRadius: 24,
+        zIndex: 6,
     },
 
     modalViewContainer: {

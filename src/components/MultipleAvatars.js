@@ -24,8 +24,10 @@ const propTypes = {
     /** Tooltip for the Avatar */
     avatarTooltips: PropTypes.arrayOf(PropTypes.string),
 
+    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: PropTypes.func,
 
+    /** Prop to identify if we should load avatars vertically instead of diagonally */
     shouldStackHorizontally: PropTypes.bool,
 };
 
@@ -45,14 +47,13 @@ const MultipleAvatars = (props) => {
         props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSmall : styles.secondAvatar,
         ...props.secondAvatarStyle,
     ];
-    const shouldStackHorizontally = props.shouldStackHorizontally && props.icons.length > 1;
-    const horizontalStyles = [styles.horizontalStackedAvatar1, styles.horizontalStackedAvatar2, styles.horizontalStackedAvatar3, styles.horizontalStackedAvatar4];
+    const horizontalStyles = [styles.horizontalStackedAvatar4, styles.horizontalStackedAvatar3, styles.horizontalStackedAvatar2, styles.horizontalStackedAvatar1];
 
     if (!props.icons.length) {
         return null;
     }
 
-    if (props.icons.length === 1) {
+    if (props.icons.length === 1 && !props.shouldStackHorizontally) {
         return (
             <View style={avatarContainerStyles}>
                 <Tooltip text={props.avatarTooltips[0]}>
@@ -68,10 +69,10 @@ const MultipleAvatars = (props) => {
 
     return (
         <View style={avatarContainerStyles}>
-            {shouldStackHorizontally ? (
+            {props.shouldStackHorizontally ? (
                 <>
                     {
-                        _.map([...props.icons].splice(0, 4), (icon, index) => (
+                        _.map([...props.icons].splice(0, 4).reverse(), (icon, index) => (
                             <>
                                 <View
                                     style={[styles.horizontalStackedAvatar, styles.alignItemsCenter, horizontalStyles[index]]}
@@ -82,7 +83,7 @@ const MultipleAvatars = (props) => {
                                         size={CONST.AVATAR_SIZE.SMALLER}
                                     />
                                 </View>
-                                {index === 3 && (
+                                {index === 3 && props.icons.length > 4 && (
                                     <View
                                         style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.horizontalStackedAvatar4, styles.horizontalStackedAvatar4Overlay]}
                                     >
