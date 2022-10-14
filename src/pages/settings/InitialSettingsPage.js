@@ -126,7 +126,7 @@ class InitialSettingsPage extends React.Component {
         return ([
             {
                 translationKey: 'common.workspaces',
-                icon: Expensicons.Workspace,
+                icon: Expensicons.Building,
                 action: () => { Navigation.navigate(ROUTES.SETTINGS_WORKSPACES); },
                 floatRightAvatars: policiesAvatars,
                 shouldStackHorizontally: true,
