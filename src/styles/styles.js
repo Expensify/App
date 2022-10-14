@@ -494,6 +494,10 @@ const styles = {
         backgroundColor: themeColors.activeComponentBG,
     },
 
+    fontWeightBold: {
+        fontWeight: fontWeightBold,
+    },
+
     touchableButtonImage: {
         alignItems: 'center',
         height: variables.componentSizeNormal,
@@ -1732,6 +1736,13 @@ const styles = {
         borderWidth: 2,
         borderStyle: 'solid',
         borderColor: colors.white,
+        backgroundColor: themeColors.testColor,
+        // background: 'rgba(011, 027, 052, 0.64)',
+        borderRadius: 24,
+    },
+
+    horizontalStackedAvatar4Overlay: {
+        top: -95,
     },
 
     modalViewContainer: {
