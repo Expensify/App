@@ -76,7 +76,7 @@ const propTypes = {
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: PropTypes.func,
 
-    /** Test */
+    /** Avatars to show on the right of the menu item */
     floatRightAvatars: PropTypes.arrayOf(PropTypes.string),
 
     /** The type of brick road indicator to show. */
