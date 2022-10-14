@@ -1,6 +1,6 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
-import {Image, View} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import Avatar from './Avatar';
@@ -9,9 +9,8 @@ import Text from './Text';
 import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 import CONST from '../CONST';
-import * as Expensicons from './Icon/Expensicons';
 import defaultTheme from '../styles/themes/default';
-import Icon from './Icon';
+import RoomHeaderAvatars from './RoomHeaderAvatars';
 
 const propTypes = {
     /** Array of avatar URLs or icons */
@@ -28,6 +27,8 @@ const propTypes = {
     avatarTooltips: PropTypes.arrayOf(PropTypes.string),
 
     fallbackIcon: PropTypes.func,
+
+    shouldStackHorizontally: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -36,6 +37,7 @@ const defaultProps = {
     secondAvatarStyle: [StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG)],
     avatarTooltips: [],
     fallbackIcon: undefined,
+    shouldStackHorizontally: false,
 };
 
 const MultipleAvatars = (props) => {
@@ -45,6 +47,8 @@ const MultipleAvatars = (props) => {
         props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSmall : styles.secondAvatar,
         ...props.secondAvatarStyle,
     ];
+    const shouldStackHorizontally = props.shouldStackHorizontally && props.icons.length > 1;
+    const horizontalStyles = [styles.horizontalStackedAvatar1, styles.horizontalStackedAvatar2, styles.horizontalStackedAvatar3, styles.horizontalStackedAvatar4];
 
     if (!props.icons.length) {
         return null;
@@ -66,44 +70,78 @@ const MultipleAvatars = (props) => {
 
     return (
         <View style={avatarContainerStyles}>
-            <View
-                style={singleAvatarStyles}
-            >
-                <Tooltip text={props.avatarTooltips[0]} absolute>
-                    <Avatar
-                        imageStyles={[singleAvatarStyles]}
-                        source={props.icons[0] || Expensicons.Workspace}
-                        fill={defaultTheme.iconSuccessFill}
-                        size={CONST.AVATAR_SIZE.SMALLER}
-                    />
-                </Tooltip>
+            {shouldStackHorizontally ? (
+                <>
+                    {
+                        _.map([...props.icons].splice(0, 4), (icon, index) => (
+                            <>
+                                {index !== 3 ? (
+                                    <View
+                                        style={[styles.horizontalStackedAvatars, styles.alignItemsCenter, horizontalStyles[index]]}
+                                    >
+                                        <Avatar
+                                            source={icon || props.fallbackIcon}
+                                            fill={defaultTheme.iconSuccessFill}
+                                            size={CONST.AVATAR_SIZE.SMALLER}
+                                        />
+                                    </View>
+                                ) : (
+                                    <View
+                                        style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter, styles.horizontalStackedAvatar4]}
+                                    >
+                                        <Text style={props.size === CONST.AVATAR_SIZE.SMALL
+                                            ? styles.avatarInnerTextSmall
+                                            : styles.avatarInnerText}
+                                        >
+                                            {`+${props.icons.length - 3}`}
+                                        </Text>
+                                    </View>
+                                )}
+                            </>
+                        ))
+                    }
+                </>
+            ) : (
                 <View
-                    style={secondAvatarStyles}
+                    style={singleAvatarStyles}
                 >
-                    {props.icons.length === 2 ? (
-                        <Tooltip text={props.avatarTooltips[1]} absolute>
-                            <Avatar
-                                imageStyles={[singleAvatarStyles]}
-                                source={props.icons[1]}
-                                fallbackIcon={props.fallbackIcon}
-                            />
-                        </Tooltip>
-                    ) : (
-                        <Tooltip text={props.avatarTooltips.slice(1).join(', ')} absolute>
-                            <View
-                                style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}
-                            >
-                                <Text style={props.size === CONST.AVATAR_SIZE.SMALL
-                                    ? styles.avatarInnerTextSmall
-                                    : styles.avatarInnerText}
+                    <Tooltip text={props.avatarTooltips[0]} absolute>
+                        <Avatar
+                            imageStyles={[singleAvatarStyles]}
+                            source={props.icons[0] || props.fallbackIcon}
+                            fill={defaultTheme.iconSuccessFill}
+                            size={CONST.AVATAR_SIZE.SMALL}
+                        />
+                    </Tooltip>
+                    <View
+                        style={secondAvatarStyles}
+                    >
+                        {props.icons.length === 2 ? (
+                            <Tooltip text={props.avatarTooltips[1]} absolute>
+                                <Avatar
+                                    imageStyles={[singleAvatarStyles]}
+                                    source={props.icons[1] || props.fallbackIcon}
+                                    fill={defaultTheme.iconSuccessFill}
+                                    size={CONST.AVATAR_SIZE.SMALL}
+                                />
+                            </Tooltip>
+                        ) : (
+                            <Tooltip text={props.avatarTooltips.slice(1).join(', ')} absolute>
+                                <View
+                                    style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}
                                 >
-                                    {`+${props.icons.length - 1}`}
-                                </Text>
-                            </View>
-                        </Tooltip>
-                    )}
+                                    <Text style={props.size === CONST.AVATAR_SIZE.SMALL
+                                        ? styles.avatarInnerTextSmall
+                                        : styles.avatarInnerText}
+                                    >
+                                        {`+${props.icons.length - 1}`}
+                                    </Text>
+                                </View>
+                            </Tooltip>
+                        )}
+                    </View>
                 </View>
-            </View>
+            )}
         </View>
     );
 };
