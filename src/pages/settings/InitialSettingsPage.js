@@ -29,7 +29,6 @@ import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import cardPropTypes from '../../components/cardPropTypes';
 import * as Wallet from '../../libs/actions/Wallet';
 import walletTermsPropTypes from '../EnablePayments/walletTermsPropTypes';
-import lodashGet from 'lodash/get';
 
 const propTypes = {
     /* Onyx Props */
@@ -181,6 +180,7 @@ class InitialSettingsPage extends React.Component {
                 icon: Expensicons.Workspace,
                 action: () => { Navigation.navigate(ROUTES.SETTINGS_WORKSPACES); },
                 floatRightAvatars: policiesAvatars,
+                shouldStackHorizontally: true,
             },
             {
                 translationKey: 'common.profile',
@@ -234,6 +234,7 @@ class InitialSettingsPage extends React.Component {
                 fallbackIcon={item.fallbackIcon}
                 brickRoadIndicator={item.brickRoadIndicator}
                 floatRightAvatars={item.floatRightAvatars}
+                shouldStackHorizontally={item.shouldStackHorizontally}
             />
         );
     }
