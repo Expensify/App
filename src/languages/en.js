@@ -953,8 +953,8 @@ export default {
         },
         error: {
             phoneNumberExtension: 'Please enter a valid phone extension number',
-            firstName: 'Please provide your first name so our guides know how to address you!',
-            lastName: 'Please provide your last name so our guides know how to address you!',
+            firstName: 'Please provide your first name!',
+            lastName: 'Please provide your last name!',
             firstNameLength: 'First name shouldn\'t be longer than 50 characters',
             lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
         },
