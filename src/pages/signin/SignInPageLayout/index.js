@@ -72,7 +72,6 @@ const SignInPageLayout = (props) => {
                 >
                     {props.children}
                 </SignInPageContent>
-
                 {!props.isSmallScreenWidth && !isLongMediumScreenWidth && graphicLayout}
             </View>
         </View>
