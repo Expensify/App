@@ -16,7 +16,6 @@ import menuItemPropTypes from './menuItemPropTypes';
 import SelectCircle from './SelectCircle';
 import colors from '../styles/colors';
 import variables from '../styles/variables';
-import themeColors from '../styles/themes/default';
 import MultipleAvatars from './MultipleAvatars';
 
 const propTypes = {
