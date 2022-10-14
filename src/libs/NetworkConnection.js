@@ -6,8 +6,6 @@ import * as NetworkActions from './actions/Network';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 
-// NetInfo.addEventListener() returns a function used to unsubscribe the
-// listener so we must create a reference to it and call it in stopListeningForReconnect()
 let isOffline = false;
 let hasPendingNetworkCheck = false;
 
