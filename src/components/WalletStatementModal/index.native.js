@@ -23,7 +23,7 @@ class WalletStatementModal extends React.Component {
     /**
      * Handles in-app navigation for webview links
      *
-     * @param {Object} params
+     * @param {String} params.type
      * @param {String} params.url
      */
     navigate({type, url}) {
