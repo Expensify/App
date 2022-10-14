@@ -265,26 +265,50 @@ class ReportScreen extends React.Component {
                                 shouldShowCloseButton
                             />
                         )}
-                    {(isArchivedRoom || hideComposer) && (
-                        <View style={[styles.chatFooter]}>
-                            {isArchivedRoom && (
-                                <ArchivedReportFooter
-                                    reportClosedAction={reportClosedAction}
-                                    report={this.props.report}
-                                />
-                            )}
-                        <ReportFooter
-                            errors={errors}
-                            pendingActions={pendingAction}
-                            isOffline={this.props.network.isOffline}
-                            reportActions={this.props.reportActions}
-                            report={this.props.report}
-                            isComposerFullSize={this.props.isComposerFullSize}
-                            onSubmitComment={this.onSubmitComment}
-                        />
-                    </View>
-                </FullPageNotFoundView>
-            </ScreenWrapper>
+                        <View
+                            nativeID={CONST.REPORT.DROP_NATIVE_ID}
+                            style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                            onLayout={(event) => {
+                                const skeletonViewContainerHeight = event.nativeEvent.layout.height;
+
+                                // The height can be 0 if the component unmounts - we are not interested in this value and want to know how much space it
+                                // takes up so we can set the skeleton view container height.
+                                if (skeletonViewContainerHeight === 0) {
+                                    return;
+                                }
+
+                                reportActionsListViewHeight = skeletonViewContainerHeight;
+                                this.setState({skeletonViewContainerHeight});
+                            }}
+                        >
+                            {this.shouldShowLoader()
+                                ? (
+                                    <ReportActionsSkeletonView
+                                        containerHeight={this.state.skeletonViewContainerHeight}
+                                    />
+                                )
+                                : (
+                                    <ReportActionsView
+                                        reportActions={this.props.reportActions}
+                                        report={this.props.report}
+                                        session={this.props.session}
+                                        isComposerFullSize={this.props.isComposerFullSize}
+                                        isDrawerOpen={this.props.isDrawerOpen}
+                                    />
+                                )}
+                            <ReportFooter
+                                errors={addWorkspaceRoomOrChatErrors}
+                                pendingAction={addWorkspaceRoomOrChatPendingAction}
+                                isOffline={this.props.network.isOffline}
+                                reportActions={this.props.reportActions}
+                                report={this.props.report}
+                                isComposerFullSize={this.props.isComposerFullSize}
+                                onSubmitComment={this.onSubmitComment}
+                            />
+                        </View>
+                    </FullPageNotFoundView>
+                </ScreenWrapper>
+            </Freeze>
         );
     }
 }
