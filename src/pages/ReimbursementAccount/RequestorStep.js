@@ -184,9 +184,27 @@ class RequestorStep extends React.Component {
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 {shouldShowOnfido ? (
-                    <RequestorOnfidoStep
-                        onComplete={this.setOnfidoAsComplete}
-                    />
+                    <ScrollView contentContainerStyle={styles.flex1}>
+                        <Onfido
+                            sdkToken={this.props.onfidoToken}
+                            onUserExit={() => {
+                                BankAccounts.clearOnfidoToken();
+                                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
+                            }}
+                            onError={() => {
+                            // In case of any unexpected error we log it to the server, show a growl, and return the user back to the company step so they can try again.
+                                Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
+                                BankAccounts.clearOnfidoToken();
+                                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
+                            }}
+                            onSuccess={(onfidoData) => {
+                                this.setState({
+                                    onfidoData,
+                                    isOnfidoSetupComplete: true,
+                                }, this.submitOnfidoVerification);
+                            }}
+                        />
+                    </ScrollView>
                 ) : (
                     <ReimbursementAccountForm
                         onSubmit={this.submit}
