@@ -59,6 +59,9 @@ window.addEventListener('DOMContentLoaded', () => {
             scrollSmoothOffset: -80,
             scrollSmooth: true,
 
+            // If there is a fixed article scroll container, set to calculate titles' offset
+            scrollContainer: 'content-area',
+
             // onclick function to apply to all links in toc. will be called with
             // the event as the first parameter, and this can be used to stop,
             // propagation, prevent default or perform action
