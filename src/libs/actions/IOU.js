@@ -626,12 +626,13 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
 function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction) {
     const chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
     const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`];
+    const transactionID = moneyRequestAction.originalMessage.IOUTransactionID;
 
     // Get the amount we are cancelling
     const amount = moneyRequestAction.originalMessage.amount;
     iouReport.total -= amount;
 
-    if (iouReport.total == 0) {
+    if (iouReport.total === 0) {
         chatReport.hasOutstandingIOU = false;
     }
 
@@ -644,7 +645,7 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
         moneyRequestAction.originalMessage.currency,
         moneyRequestAction.originalMessage.comment,
         '',
-        moneyRequestAction.originalMessage.IOUTransactionID,
+        transactionID,
         iouReport.reportID,
         '',
     );
