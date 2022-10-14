@@ -214,12 +214,13 @@ class ReportScreen extends React.Component {
         const reportID = getReportID(this.props.route);
         const addWorkspaceRoomPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom');
         const addWorkspaceRoomErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom');
+        const screenWrapperStyle = [styles.appContent, {marginTop: this.state.viewportOffsetTop}];
         return (
             <Freeze
                 freeze={this.props.isSmallScreenWidth && this.props.isDrawerOpen}
                 placeholder={(
                     <ScreenWrapper
-                        style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
+                        style={screenWrapperStyle}
                     >
                         <ReportHeaderSkeletonView />
                         <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
@@ -227,7 +228,7 @@ class ReportScreen extends React.Component {
                 )}
             >
                 <ScreenWrapper
-                    style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
+                    style={screenWrapperStyle}
                     keyboardAvoidingViewBehavior={Platform.OS === 'android' ? '' : 'padding'}
                 >
                     <FullPageNotFoundView
