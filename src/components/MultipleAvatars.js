@@ -75,24 +75,20 @@ const MultipleAvatars = (props) => {
                     {
                         _.map([...props.icons].splice(0, 4), (icon, index) => (
                             <>
-                                {index !== 3 ? (
+                                <View
+                                    style={[styles.horizontalStackedAvatars, styles.alignItemsCenter, horizontalStyles[index]]}
+                                >
+                                    <Avatar
+                                        source={icon || props.fallbackIcon}
+                                        fill={defaultTheme.iconSuccessFill}
+                                        size={CONST.AVATAR_SIZE.SMALLER}
+                                    />
+                                </View>
+                                {index === 3 && (
                                     <View
-                                        style={[styles.horizontalStackedAvatars, styles.alignItemsCenter, horizontalStyles[index]]}
+                                        style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.horizontalStackedAvatar4, styles.horizontalStackedAvatar4Overlay]}
                                     >
-                                        <Avatar
-                                            source={icon || props.fallbackIcon}
-                                            fill={defaultTheme.iconSuccessFill}
-                                            size={CONST.AVATAR_SIZE.SMALLER}
-                                        />
-                                    </View>
-                                ) : (
-                                    <View
-                                        style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter, styles.horizontalStackedAvatar4]}
-                                    >
-                                        <Text style={props.size === CONST.AVATAR_SIZE.SMALL
-                                            ? styles.avatarInnerTextSmall
-                                            : styles.avatarInnerText}
-                                        >
+                                        <Text style={[styles.avatarInnerTextSmall, styles.fontWeightBold]}>
                                             {`+${props.icons.length - 3}`}
                                         </Text>
                                     </View>
