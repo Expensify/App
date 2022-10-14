@@ -706,16 +706,16 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, 
             message = [{
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 isEdited: false,
-                html: comment ? `Cancelled the ${formattedTotal} for ${comment}` : `Cancelled the ${formattedTotal} from ${debtorEmail}`,
-                text: comment ? `Cancelled the ${formattedTotal} for ${comment}` : `Cancelled the ${formattedTotal} from ${debtorEmail}`,
+                html: comment ? `Cancelled the ${formattedTotal} for ${comment}` : `Cancelled the ${formattedTotal} request`,
+                text: comment ? `Cancelled the ${formattedTotal} for ${comment}` : `Cancelled the ${formattedTotal} request`,
             }];
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.DECLINE:
             message = [{
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 isEdited: false,
-                html: comment ? `Requested ${formattedTotal} from ${debtorEmail} for ${comment}` : `Requested ${formattedTotal} from ${debtorEmail}`,
-                text: comment ? `Requested ${formattedTotal} from ${debtorEmail} for ${comment}` : `Requested ${formattedTotal} from ${debtorEmail}`,
+                html: comment ? `Declined the ${formattedTotal} for ${comment}` : `Declined the ${formattedTotal} request`,
+                text: comment ? `Declined the ${formattedTotal} for ${comment}` : `Declined the ${formattedTotal} request`,
             }];
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:

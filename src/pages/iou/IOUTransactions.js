@@ -8,6 +8,7 @@ import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import reportActionPropTypes from '../home/report/reportActionPropTypes';
 import ReportTransaction from '../../components/ReportTransaction';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Actions from the ChatReport */
@@ -51,8 +52,8 @@ class IOUTransactions extends Component {
         }
 
         const actionsForIOUReport = _.filter(this.props.reportActions, action => action.originalMessage
-            && action.originalMessage.type && action.originalMessage.IOUReportID === this.props.iouReportID);
-
+            && action.originalMessage.type && action.originalMessage.IOUReportID === Number(this.props.iouReportID));
+        console.log('actionsForIOUReport: ', actionsForIOUReport);
         const rejectedTransactionIDs = _.chain(actionsForIOUReport)
             .filter(action => _.contains(['cancel', 'decline'], action.originalMessage.type))
             .map(rejectedAction => lodashGet(rejectedAction, 'originalMessage.IOUTransactionID', ''))
@@ -86,7 +87,7 @@ class IOUTransactions extends Component {
                             action={reportAction}
                             key={reportAction.sequenceNumber}
                             canBeRejected={canBeRejected}
-                            rejectButtonType={isCurrentUserTransactionCreator ? 'cancel' : 'decline'}
+                            rejectButtonType={isCurrentUserTransactionCreator ? CONST.IOU.REPORT_ACTION_TYPE.CANCEL : CONST.IOU.REPORT_ACTION_TYPE.DECLINE}
                         />
                     );
                 })}

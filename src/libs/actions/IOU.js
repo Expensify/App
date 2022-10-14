@@ -31,6 +31,22 @@ Onyx.connect({
     },
 });
 
+// const reportActions = {};
+// Onyx.connect({
+//     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+//     waitForCollectionCallback: true,
+//     callback: val => reportActions = val,
+
+    // callback: (actions, key) => {
+    //     if (!key || !actions) {
+    //         return;
+    //     }
+    //     const reportID = CollectionUtils.extractCollectionItemID(key);
+    //     lastReportActions[reportID] = _.last(_.toArray(actions));
+    //     reportActions[key] = actions;
+    // },
+// });
+
 /**
  * Gets the IOU Reports for new transaction
  *
@@ -232,15 +248,11 @@ function createIOUSplitGroup(params) {
 function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction) {
     const chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
     const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`];
+    console.log("iouReport ", iouReport);
     const transactionID = moneyRequestAction.originalMessage.IOUTransactionID;
 
     // Get the amount we are cancelling
     const amount = moneyRequestAction.originalMessage.amount;
-    iouReport.total -= amount;
-
-    if (iouReport.total === 0) {
-        chatReport.hasOutstandingIOU = false;
-    }
 
     const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
     chatReport.maxSequenceNumber = newSequenceNumber;
@@ -252,9 +264,33 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
         moneyRequestAction.originalMessage.comment,
         '',
         transactionID,
-        iouReport.reportID,
+        iouReportID,
         '',
     );
+
+    const currentUserEmail = optimisticReportAction.actorEmail;
+
+    // The owner of the iou report is the person who is owed money
+    // Hence is current user is the owner, cancelling a request will lower the total and vice versa for declining
+    // or if the current user is not an owner of the report.
+    if (currentUserEmail === iouReport.ownerEmail) {
+        iouReport.total += type === CONST.IOU.REPORT_ACTION_TYPE.CANCEL ? -amount : amount;
+    } else {
+        iouReport.total += type === CONST.IOU.REPORT_ACTION_TYPE.CANCEL ? amount : -amount;
+    }
+
+    // If we are cancelling the
+    if (iouReport.total === 0) {
+        chatReport.hasOutstandingIOU = false;
+    } else if (iouReport.total < 0) {
+        // The total sign  has changed and hence we need to flip the manager and owner of the report.
+        const oldOwnerEmail = iouReport.ownerEmail;
+        iouReport.ownerEmail = iouReport.managerEmail;
+        iouReport.managerEmail = oldOwnerEmail;
+        iouReport.total = -iouReport.total;
+    }
+
+    console.log("Optimistic action added: ", optimisticReportAction);
 
     const optimisticData = [
         {
