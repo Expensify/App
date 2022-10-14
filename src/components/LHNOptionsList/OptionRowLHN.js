@@ -70,8 +70,8 @@ const OptionRowLHN = (props) => {
         ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact]
         : [styles.optionDisplayName, ...textUnreadStyle], props.style);
     const textPillStyle = props.isFocused
-        ? [styles.ml2, StyleUtils.getBackgroundColorStyle(themeColors.iconLight)]
-        : [styles.ml2];
+        ? [styles.ml1, StyleUtils.getBackgroundColorStyle(themeColors.iconLight)]
+        : [styles.ml1];
     const alternateTextStyle = StyleUtils.combineStyles(props.viewMode === CONST.OPTION_MODE.COMPACT
         ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2]
         : [textStyle, styles.optionAlternateText, styles.textLabelSupporting], props.style);
