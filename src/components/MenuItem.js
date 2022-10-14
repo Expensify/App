@@ -49,6 +49,7 @@ const defaultProps = {
     fallbackIcon: Expensicons.FallbackAvatar,
     brickRoadIndicator: '',
     floatRightAvatars: [],
+    shouldStackHorizontally: false,
 };
 
 const MenuItem = (props) => {
@@ -171,6 +172,7 @@ const MenuItem = (props) => {
                                     StyleUtils.getBackgroundAndBorderStyle(themeColors.sidebar),
                                 ]}
                                 fallbackIcon={Expensicons.Workspace}
+                                shouldStackHorizontally={props.shouldStackHorizontally}
                             />
                         )}
                         {Boolean(props.shouldShowRightIcon) && (
