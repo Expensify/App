@@ -78,6 +78,7 @@ class Composer extends React.Component {
         if (!this.props.forwardedRef || !_.isFunction(this.props.forwardedRef)) {
             return;
         }
+
         // We want this to be an available method on the ref for parent components
         this.textInput.setTextAndSelection = this.setTextAndSelection;
 
