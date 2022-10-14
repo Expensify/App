@@ -297,8 +297,8 @@ class ReportScreen extends React.Component {
                                     />
                                 )}
                             <ReportFooter
-                                addWorkspaceRoomOrChatErrors={addWorkspaceRoomOrChatErrors}
-                                addWorkspaceRoomOrChatPendingAction={addWorkspaceRoomOrChatPendingAction}
+                                errors={addWorkspaceRoomOrChatErrors}
+                                pendingAction={addWorkspaceRoomOrChatPendingAction}
                                 isOffline={this.props.network.isOffline}
                                 reportActions={this.props.reportActions}
                                 report={this.props.report}
