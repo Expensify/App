@@ -61,9 +61,9 @@ At the top of template file we're going to find a few variables that will help u
 ---
 title: The title of the post, page, or document
 description: A short description of the page's content
-image: URL to an image associated with the post, page, or document (e.g., /assets/page-pic.jpg)
-author: Page-, post-, or document-specific author information.
-locale: Page-, post-, or document-specific locale information. Takes priority over existing front matter attribute lang.
+image: (Optional) URL to an image associated with the post, page, or document (e.g., /assets/page-pic.jpg)
+author: (Optional) Page-, post-, or document-specific author information.
+locale: (Optional) Page-, post-, or document-specific locale information. Takes priority over existing front matter attribute lang.
 ---
 ```
 
