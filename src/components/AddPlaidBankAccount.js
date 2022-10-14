@@ -63,6 +63,7 @@ const defaultProps = {
         bankAccounts: [],
         isLoading: false,
         error: '',
+        errors: {},
     },
     selectedPlaidAccountID: '',
     plaidLinkToken: '',
@@ -123,9 +124,9 @@ class AddPlaidBankAccount extends React.Component {
                             <ActivityIndicator color={themeColors.spinner} size="large" />
                         </View>
                     )}
-                    {Boolean(this.props.plaidData.error) && (
+                    {(Boolean(this.props.plaidData.error) || Boolean(this.props.plaidData.errors)) && (
                         <Text style={[styles.formError, styles.mh5]}>
-                            {this.props.plaidData.error}
+                            {this.props.plaidData.errors ? Object.values(this.props.plaidData.errors)[0] : this.props.plaidData.error}
                         </Text>
                     )}
                     {Boolean(token) && (
