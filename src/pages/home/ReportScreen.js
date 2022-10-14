@@ -230,15 +230,8 @@ class ReportScreen extends React.Component {
             <ScreenWrapper
                 style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
             >
-                <HeaderView
-                    reportID={reportID}
-                    onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-                />
-
-                <View
-                    nativeID={CONST.REPORT.DROP_NATIVE_ID}
-                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                    onLayout={event => this.setState({skeletonViewContainerHeight: event.nativeEvent.layout.height})}
+                <ScreenWrapper
+                    style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
                 >
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
