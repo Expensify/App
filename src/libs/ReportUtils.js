@@ -244,17 +244,12 @@ function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
 /**
  * Whether the provided report is an archived room
  * @param {Object} report
- * @param {String} report.chatType
  * @param {Number} report.stateNum
  * @param {Number} report.statusNum
  * @returns {Boolean}
  */
 function isArchivedRoom(report) {
-    if (!isChatRoom(report) && !isPolicyExpenseChat(report)) {
-        return false;
-    }
-
-    return report.statusNum === CONST.REPORT.STATUS.CLOSED && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
+    return lodashGet(report, ['statusNum']) === CONST.REPORT.STATUS.CLOSED && lodashGet(report, ['stateNum']) === CONST.REPORT.STATE_NUM.SUBMITTED;
 }
 
 /**
@@ -925,6 +920,8 @@ function hasOutstandingIOU(report, currentUserLogin, iouReports) {
  * @returns {boolean}
  */
 function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies) {
+    const isInDefaultMode = !isInGSDMode;
+
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
     if (!report || !report.reportID || !report.participants || _.isEmpty(report.participants)) {
@@ -950,17 +947,14 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
         return true;
     }
 
-    // Exclude reports that don't have any comments
-    // User created policy rooms are OK to show when the don't have any comments, only if they aren't archived.
-    const hasNoComments = report.lastMessageTimestamp === 0;
-    if (hasNoComments && (isArchivedRoom(report) || !isUserCreatedPolicyRoom(report))) {
-        return false;
-    }
-
-    // Include unread reports when in GSD mode
-    // GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
+    // All unread chats (even archived ones) in GSD mode will be shown. This is because GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
     if (isInGSDMode) {
         return isUnread(report);
+    }
+
+    // Archived reports should always be shown when in default (most recent) mode. This is because you should still be able to access and search for the chats to find them.
+    if (isInDefaultMode && isArchivedRoom(report)) {
+        return true;
     }
 
     // Include default rooms for free plan policies
