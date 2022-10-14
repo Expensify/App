@@ -1,15 +1,14 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import {View} from 'react-native';
-import _ from 'underscore';
 import styles from '../styles/styles';
+import CONST from '../CONST';
 import * as IOU from '../libs/actions/IOU';
 import * as ReportActions from '../libs/actions/ReportActions';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import ReportActionItemSingle from '../pages/home/report/ReportActionItemSingle';
-import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import OfflineWithFeedback from '../components/OfflineWithFeedback';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import OfflineWithFeedback from './OfflineWithFeedback';
 import Text from './Text';
 import Button from './Button';
 
@@ -50,7 +49,7 @@ class ReportTransaction extends Component {
             this.props.chatReportID,
             this.props.iouReportID,
             this.props.rejectButtonType,
-            this.props.action
+            this.props.action,
         );
     }
 
@@ -59,9 +58,9 @@ class ReportTransaction extends Component {
             <OfflineWithFeedback
                 onClose={() => {
                     if (this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                        ReportActions.deleteOptimisticReportAction(chatReportID, this.props.action.clientID);
+                        ReportActions.deleteOptimisticReportAction(this.props.chatReportID, this.props.action.clientID);
                     } else {
-                        ReportActions.clearReportActionErrors(chatReportID, this.props.action.sequenceNumber);
+                        ReportActions.clearReportActionErrors(this.props.chatReportID, this.props.action.sequenceNumber);
                     }
                 }}
                 pendingAction={this.props.action.pendingAction}

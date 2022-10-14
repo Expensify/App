@@ -667,14 +667,16 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
  * @param {Number} sequenceNumber - Caller is responsible for providing a best guess at what the next sequenceNumber will be.
  * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay).
  * @param {Number} amount - IOU amount in cents.
+ * @param {String} currency
  * @param {String} comment - User comment for the IOU.
  * @param {String} paymentType - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
  * @param {String} existingIOUTransactionID - Only required if the IOUReportAction type is oneOf(cancel, decline). Generates a randomID as default.
  * @param {Number} existingIOUReportID - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
+ * @param {String} debtorEmail
  *
  * @returns {Object}
  */
- function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = '', debtorEmail = '') {
+function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = '', debtorEmail = '') {
     const IOUTransactionID = existingIOUTransactionID || NumberUtils.rand64();
     const IOUReportID = existingIOUReportID || generateReportID();
     const originalMessage = {
