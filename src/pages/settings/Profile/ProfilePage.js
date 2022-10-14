@@ -78,6 +78,8 @@ class ProfilePage extends Component {
         this.getLogins = this.getLogins.bind(this);
         this.validate = this.validate.bind(this);
         this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
+        this.setPronouns = this.setPronouns.bind(this);
+        this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
     }
 
     componentDidUpdate(prevProps) {
@@ -94,6 +96,36 @@ class ProfilePage extends Component {
 
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState(stateToUpdate);
+    }
+
+    /**
+     * @param {String} pronouns
+     */
+    setPronouns(pronouns) {
+        const hasSelfSelectedPronouns = pronouns === CONST.PRONOUNS.SELF_SELECT;
+        this.pronouns = hasSelfSelectedPronouns ? '' : pronouns;
+
+        if (this.state.hasSelfSelectedPronouns === hasSelfSelectedPronouns) {
+            return;
+        }
+
+        this.setState({hasSelfSelectedPronouns});
+    }
+
+    /**
+     * Update the timezone picker's value to guessed timezone
+     * @param {Boolean} isAutomaticTimezone
+     */
+    setAutomaticTimezone(isAutomaticTimezone) {
+        if (!isAutomaticTimezone) {
+            this.setState({isAutomaticTimezone});
+            return;
+        }
+
+        this.setState({
+            selectedTimezone: moment.tz.guess(),
+            isAutomaticTimezone,
+        });
     }
 
     /**
@@ -166,14 +198,6 @@ class ProfilePage extends Component {
             [values.firstName, values.lastName, values.pronouns],
         );
 
-        const hasSelfSelectedPronouns = values.pronouns === CONST.PRONOUNS.SELF_SELECT;
-        this.pronouns = hasSelfSelectedPronouns ? '' : values.pronouns;
-        this.setState({
-            hasSelfSelectedPronouns,
-            isAutomaticTimezone: values.isAutomaticTimezone,
-            selectedTimezone: values.isAutomaticTimezone ? moment.tz.guess() : values.timezone,
-        });
-
         if (hasFirstNameError) {
             errors.firstName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
         }
@@ -211,6 +235,7 @@ class ProfilePage extends Component {
                     validate={this.validate}
                     onSubmit={this.updatePersonalDetails}
                     submitButtonText={this.props.translate('common.save')}
+                    enabledWhenOffline
                 >
                     <OfflineWithFeedback
                         pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
@@ -261,6 +286,7 @@ class ProfilePage extends Component {
                                 label: this.props.translate('profilePage.selectYourPronouns'),
                             }}
                             defaultValue={pronounsPickerValue}
+                            onValueChange={this.setPronouns}
                         />
                         {this.state.hasSelfSelectedPronouns && (
                             <View style={styles.mt2}>
@@ -290,14 +316,15 @@ class ProfilePage extends Component {
                             label={this.props.translate('profilePage.timezone')}
                             items={timezones}
                             isDisabled={this.state.isAutomaticTimezone}
-                            defaultValue={this.state.selectedTimezone}
                             value={this.state.selectedTimezone}
+                            onValueChange={selectedTimezone => this.setState({selectedTimezone})}
                         />
                     </View>
                     <CheckboxWithLabel
                         inputID="isAutomaticTimezone"
                         label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
                         defaultValue={this.state.isAutomaticTimezone}
+                        onValueChange={this.setAutomaticTimezone}
                     />
                 </Form>
             </ScreenWrapper>
