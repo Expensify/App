@@ -1,5 +1,6 @@
 const {APP_PACKAGE} = require('../config');
 const execAsync = require('./execAsync');
+const Logger = require('./Logger');
 
 const APP_PATH_FROM_ROOT = 'android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk';
 
@@ -15,5 +16,8 @@ module.exports = function (platform = 'android') {
     }
 
     // Uninstall first, then install
-    return execAsync(`adb uninstall ${APP_PACKAGE}`).finally(() => execAsync(`adb install ${APP_PATH_FROM_ROOT}`));
+    return execAsync(`adb uninstall ${APP_PACKAGE}`).catch((e) => {
+        // Ignore errors
+        Logger.warn('Failed to uninstall app:', e);
+    }).finally(() => execAsync(`adb install ${APP_PATH_FROM_ROOT}`));
 };
