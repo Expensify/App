@@ -45,6 +45,7 @@ class ReportTransaction extends Component {
     }
 
     cancelMoneyRequest() {
+        console.log("Cancel button pressed");
         IOU.cancelMoneyRequest(
             this.props.chatReportID,
             this.props.iouReportID,
