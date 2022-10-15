@@ -14,20 +14,21 @@ class Trie {
     * @param {Boolean} [allowEmptyWords] - empty word doesn't have any char, you shouldn't pass a true value for it because we are disallowing adding an empty word
     */
     add(word, metaData = {}, node = this.root, allowEmptyWords = false) {
+        const newWord = word.toLowerCase();
         const newNode = node;
-        if (word.length === 0 && !allowEmptyWords) {
+        if (newWord.length === 0 && !allowEmptyWords) {
             throw new Error('Cannot insert empty word into Trie');
         }
-        if (word.length === 0) {
-            newNode.isLeaf = true;
+        if (newWord.length === 0) {
+            newNode.isEndOfWord = true;
             newNode.metaData = metaData;
             return;
         }
-        if (!newNode.children[word[0]]) {
-            newNode.children[word[0]] = new TrieNode();
-            this.add(word.substring(1), metaData, newNode.children[word[0]], true);
+        if (!newNode.children[newWord[0]]) {
+            newNode.children[newWord[0]] = new TrieNode();
+            this.add(newWord.substring(1), metaData, newNode.children[newWord[0]], true);
         }
-        this.add(word.substring(1), metaData, newNode.children[word[0]], true);
+        this.add(newWord.substring(1), metaData, newNode.children[newWord[0]], true);
     }
 
     /**
@@ -36,16 +37,17 @@ class Trie {
     * @returns {Object|null} – the node for the word if it's found, or null if it's not found
     */
     search(word) {
-        let newWord = word;
+        let newWord = word.toLowerCase();
         let node = this.root;
         while (newWord.length > 1) {
             if (!node.children[newWord[0]]) {
                 return null;
             }
             node = node.children[newWord[0]];
+
             newWord = newWord.substring(1);
         }
-        return node.children[newWord] && node.children[newWord].isLeaf ? node.children[newWord] : null;
+        return node.children[newWord] && node.children[newWord].isEndOfWord ? node.children[newWord] : null;
     }
 
     /**
@@ -54,9 +56,12 @@ class Trie {
     * @param {Object} metaData
     */
     update(word, metaData) {
-        let newWord = word;
+        let newWord = word.toLowerCase();
         let node = this.root;
         while (newWord.length > 1) {
+            if (!node.children[newWord[0]]) {
+                throw new Error('Word does not exist in the Trie');
+            }
             node = node.children[newWord[0]];
             newWord = newWord.substring(1);
         }
@@ -69,13 +74,14 @@ class Trie {
     * @param {Number} [limit] - matching words limit
     * @returns {Array}
     */
-    getAllMatchingWords(substr, limit = 4) {
+    getAllMatchingWords(substr, limit = 5) {
+        const newSubstr = substr.toLowerCase();
         let node = this.root;
         let prefix = '';
-        for (let i = 0; i < substr.length; i++) {
-            prefix += substr[i];
-            if (node.children[substr[i]]) {
-                node = node.children[substr[i]];
+        for (let i = 0; i < newSubstr.length; i++) {
+            prefix += newSubstr[i];
+            if (node.children[newSubstr[i]]) {
+                node = node.children[newSubstr[i]];
             } else {
                 return [];
             }
@@ -93,10 +99,10 @@ class Trie {
     */
     getChildMatching(node, prefix, limit, words = []) {
         const matching = words;
-        if (matching.length > limit) {
+        if (matching.length >= limit) {
             return matching;
         }
-        if (node.isLeaf) {
+        if (node.isEndOfWord) {
             matching.unshift({name: prefix, metaData: node.metaData});
         }
         const children = _.keys(node.children);
