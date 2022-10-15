@@ -66,9 +66,7 @@ const OptionRowLHN = (props) => {
         : styles.sidebarLinkText;
     const textUnreadStyle = optionItem.isUnread
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
-    const displayNameStyle = StyleUtils.combineStyles(props.viewMode === CONST.OPTION_MODE.COMPACT
-        ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact]
-        : [styles.optionDisplayName, ...textUnreadStyle], props.style);
+    const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, ...textUnreadStyle], props.style);
     const textPillStyle = props.isFocused
         ? [styles.ml1, StyleUtils.getBackgroundColorStyle(themeColors.iconLight)]
         : [styles.ml1];
@@ -159,7 +157,7 @@ const OptionRowLHN = (props) => {
                                 )
                             }
                             <View style={contentContainerStyles}>
-                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                     <DisplayNames
                                         accessibilityLabel="Chat user display names"
                                         fullTitle={optionItem.text}
@@ -170,9 +168,11 @@ const OptionRowLHN = (props) => {
                                         shouldUseFullTitle={optionItem.isChatRoom || optionItem.isPolicyExpenseChat}
                                     />
                                     {optionItem.isChatRoom && (
-                                        <TextPill style={textPillStyle} accessibilityLabel="Chat room name">
-                                            {optionItem.subtitle}
-                                        </TextPill>
+                                        <TextPill
+                                            style={textPillStyle}
+                                            accessibilityLabel="Chat room name"
+                                            text={optionItem.subtitle}
+                                        />
                                     )}
                                 </View>
                                 {optionItem.alternateText ? (
