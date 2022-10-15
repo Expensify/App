@@ -1186,14 +1186,11 @@ const styles = {
         fontFamily: fontFamily.GTA,
         height: 20,
         lineHeight: 20,
-        ...whiteSpace.noWrap,
-    },
-
-    optionDisplayNameCompact: {
         minWidth: 'auto',
         flexBasis: 'auto',
         flexGrow: 0,
         flexShrink: 0,
+        ...whiteSpace.noWrap,
     },
 
     displayNameTooltipEllipsis: {
