@@ -2,7 +2,6 @@ import {KeyboardAvoidingView, View} from 'react-native';
 import React from 'react';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import _ from 'underscore';
-import Onyx from 'react-native-onyx';
 import CONST from '../../CONST';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -18,6 +17,7 @@ import withWindowDimensions from '../withWindowDimensions';
 import ONYXKEYS from '../../ONYXKEYS';
 import {withNetwork} from '../OnyxProvider';
 import {propTypes, defaultProps} from './propTypes';
+import onyxSubscribe from '../../libs/onyxSubscribe';
 
 class BaseScreenWrapper extends React.Component {
     constructor(props) {
@@ -31,8 +31,7 @@ class BaseScreenWrapper extends React.Component {
     componentDidMount() {
         let willAlertModalBecomeVisible = false;
 
-        // TODO: move to lib, note: i think this whole thing with the keyboard could be moved to another place?
-        this.onyxConnectionId = Onyx.connect({
+        this.unsubscribeOnyx = onyxSubscribe({
             key: ONYXKEYS.MODAL,
             callback: (object) => {
                 willAlertModalBecomeVisible = object.willAlertModalBecomeVisible;
@@ -61,8 +60,8 @@ class BaseScreenWrapper extends React.Component {
         if (this.unsubscribeTransitionEnd) {
             this.unsubscribeTransitionEnd();
         }
-        if (this.onyxConnectionId) {
-            Onyx.disconnect(this.onyxConnectionId);
+        if (this.unsubscribeOnyx) {
+            this.unsubscribeOnyx();
         }
     }
 
@@ -119,11 +118,5 @@ BaseScreenWrapper.defaultProps = defaultProps;
 export default compose(
     withNavigation,
     withWindowDimensions,
-
-    // withOnyx({
-    //     modal: {
-    //         key: ONYXKEYS.MODAL,
-    //     },
-    // }),
     withNetwork(),
 )(BaseScreenWrapper);
