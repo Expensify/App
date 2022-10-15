@@ -1,5 +1,9 @@
 import emojis from '../../assets/emojis';
 import Trie from './Trie';
+import Timing from './actions/Timing';
+import CONST from '../CONST';
+
+Timing.start(CONST.TIMING.TRIE_INITIALIZATION);
 
 // Create a Trie object
 const emojisTrie = new Trie();
@@ -27,5 +31,6 @@ for (let i = 0; i < emojis.length; i++) {
         }
     }
 }
+Timing.end(CONST.TIMING.TRIE_INITIALIZATION);
 
 export default emojisTrie;

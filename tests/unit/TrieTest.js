@@ -9,6 +9,7 @@ describe('Trie', () => {
         wordTrie.add('rofl', {code: '🤣'});
         expect(wordTrie.search('eyes')).toBeNull();
         expect(wordTrie.search('joy').metaData).toEqual({code: '😂'});
+        expect(wordTrie.search('gRiN').metaData).toEqual({code: '😁'});
     });
 
     it('Test finding all leaf nodes starting with a substring', () => {
@@ -18,11 +19,12 @@ describe('Trie', () => {
         wordTrie.add('Robertson', {code: '👨🏽', suggestions: []});
         wordTrie.add('Rock', {code: '👨🏼', suggestions: []});
         const expected = [
-            {name: 'Rock', metaData: {code: '👨🏼', suggestions: []}},
-            {name: 'Robertson', metaData: {code: '👨🏽', suggestions: []}},
-            {name: 'Robert', metaData: {code: '👨🏾', suggestions: []}},
+            {name: 'rock', metaData: {code: '👨🏼', suggestions: []}},
+            {name: 'robertson', metaData: {code: '👨🏽', suggestions: []}},
+            {name: 'robert', metaData: {code: '👨🏾', suggestions: []}},
         ];
         expect(wordTrie.getAllMatchingWords('Ro')).toEqual(expected);
+        expect(wordTrie.getAllMatchingWords('ro')).toEqual(expected);
     });
 
     it('Test finding only the first 5 matching words', () => {
@@ -57,5 +59,19 @@ describe('Trie', () => {
         expect(() => {
             wordTrie.add('');
         }).toThrow('Cannot insert empty word into Trie');
+    });
+
+    it('Test updating a Trie node', () => {
+        const wordTrie = new Trie();
+        wordTrie.add('John', {code: '👨🏼'});
+        wordTrie.update('John', {code: '👨🏻'});
+        expect(wordTrie.search('John').metaData).toEqual({code: '👨🏻'});
+    });
+
+    it('Test throwing an error when try to update a word that does not exist in the Trie.', () => {
+        const wordTrie = new Trie();
+        expect(() => {
+            wordTrie.update('smile');
+        }).toThrow('Word does not exist in the Trie');
     });
 });

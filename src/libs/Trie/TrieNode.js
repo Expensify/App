@@ -1,7 +1,7 @@
 class TrieNode {
     constructor() {
         this.children = {};
-        this.isLeaf = false;
+        this.isEndOfWord = false;
         this.metaData = {};
     }
 }

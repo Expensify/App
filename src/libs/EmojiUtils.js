@@ -208,7 +208,9 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
 function replaceEmojis(text) {
     let newText = text;
     const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
-    if (!emojiData || emojiData.length === 0) { return text; }
+    if (!emojiData || emojiData.length === 0) {
+        return text;
+    }
     for (let i = 0; i < emojiData.length; i++) {
         const checkEmoji = emojisTrie.search(emojiData[i].slice(1, -1));
         if (checkEmoji && checkEmoji.metaData.code) {
