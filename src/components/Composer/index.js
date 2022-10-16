@@ -110,6 +110,7 @@ const IMAGE_EXTENSIONS = {
 };
 
 const COPY_DROP_EFFECT = 'copy';
+const NONE_DROP_EFFECT = 'none';
 
 /**
  * Enable Markdown parsing.
@@ -132,6 +133,8 @@ class Composer extends React.Component {
         };
         this.dragNDropListener = this.dragNDropListener.bind(this);
         this.paste = this.paste.bind(this);
+        this.dropZone = document.getElementById(CONST.REPORT.DROP_NATIVE_ID);
+        this.dropZoneDragEnterCount = 0;
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
@@ -202,23 +205,30 @@ class Composer extends React.Component {
      * @param {Object} e native Event
      */
     dragNDropListener(e) {
+        e.preventDefault();
         let isOriginComposer = false;
         const handler = () => {
             // Setting dropEffect for dragover is required for '+' icon on certain platforms/browsers (eg. Safari)
             switch (e.type) {
                 case 'dragover':
-                    e.preventDefault();
                     e.dataTransfer.dropEffect = COPY_DROP_EFFECT;
                     this.props.onDragOver(e, isOriginComposer);
                     break;
                 case 'dragenter':
                     e.dataTransfer.dropEffect = COPY_DROP_EFFECT;
-                    this.props.onDragEnter(e, isOriginComposer);
+                    this.dropZoneDragEnterCount++;
+                    if (this.dropZoneDragEnterCount === 1) {
+                        this.props.onDragEnter(e, isOriginComposer);
+                    }
                     break;
                 case 'dragleave':
-                    this.props.onDragLeave(e, isOriginComposer);
+                    this.dropZoneDragEnterCount--;
+                    if (this.dropZoneDragEnterCount === 0) {
+                        this.props.onDragLeave(e, isOriginComposer);
+                    }
                     break;
                 case 'drop':
+                    this.dropZoneDragEnterCount = 0;
                     this.props.onDrop(e, isOriginComposer);
                     break;
                 default: break;
@@ -229,11 +239,10 @@ class Composer extends React.Component {
         if (this.textInput.contains(e.target)) {
             isOriginComposer = true;
             handler();
-            return;
-        }
-
-        if (document.getElementById(CONST.REPORT.DROP_NATIVE_ID).contains(e.target)) {
+        } else if (this.dropZone.contains(e.target)) {
             handler();
+        } else {
+            e.dataTransfer.dropEffect = NONE_DROP_EFFECT;
         }
     }
 

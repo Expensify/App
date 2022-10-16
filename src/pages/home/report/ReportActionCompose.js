@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Fragment} from 'react';
 import PropTypes from 'prop-types';
 import {
     View,
@@ -6,6 +6,7 @@ import {
     InteractionManager,
 } from 'react-native';
 import _ from 'underscore';
+import {createPortal} from 'react-dom';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import lodashIntersection from 'lodash/intersection';
@@ -46,6 +47,7 @@ import OfflineIndicator from '../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import withNavigationFocus from '../../../components/withNavigationFocus';
 import reportPropTypes from '../../reportPropTypes';
+import Text from '../../../components/Text';
 
 const propTypes = {
     /** Beta features list */
@@ -616,18 +618,10 @@ class ReportActionCompose extends React.Component {
                                         placeholderTextColor={themeColors.placeholderText}
                                         onChangeText={comment => this.updateComment(comment, true)}
                                         onKeyPress={this.triggerHotkeyActions}
-                                        onDragEnter={(e, isOriginComposer) => {
-                                            if (!isOriginComposer) {
-                                                return;
-                                            }
-
+                                        onDragEnter={() => {
                                             this.setState({isDraggingOver: true});
                                         }}
-                                        onDragOver={(e, isOriginComposer) => {
-                                            if (!isOriginComposer) {
-                                                return;
-                                            }
-
+                                        onDragOver={() => {
                                             this.setState({isDraggingOver: true});
                                         }}
                                         onDragLeave={() => this.setState({isDraggingOver: false})}
@@ -701,10 +695,69 @@ class ReportActionCompose extends React.Component {
                     <ReportTypingIndicator reportID={this.props.reportID} />
                     <ExceededCommentLength commentLength={this.comment.length} />
                 </View>
+                {this.state.isDraggingOver ? (
+                    <DraggingOverOverlay>
+                        <UploadOverlay>
+                            <Text numberOfLines={2} style={[styles.headerText, styles.textMedium]}>
+                                {this.props.translate('reportActionCompose.dropToUpload')}
+                            </Text>
+                        </UploadOverlay>
+                    </DraggingOverOverlay>
+                ) : null}
             </View>
         );
     }
 }
+
+const UploadOverlayPropTypes = {
+    children: PropTypes.node,
+};
+
+const UploadOverlayDefaultProps = {
+    children: Fragment,
+};
+
+const UploadOverlay = props => (
+    <View style={{
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(255,255,255, 0.9)',
+        zIndex: 2,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+    }}
+    >
+        <View style={{alignItems: 'center', justifyContent: 'center'}}>
+            <View style={{
+                borderRadius: '50%',
+                width: 75,
+                height: 75,
+                backgroundColor: themeColors.buttonSuccessBG,
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginBottom: 8,
+            }}
+            >
+                <Icon src={Expensicons.Plus} fill={themeColors.componentBG} />
+            </View>
+            {props.children}
+        </View>
+    </View>
+);
+
+UploadOverlay.propTypes = UploadOverlayPropTypes;
+UploadOverlay.defaultProps = UploadOverlayDefaultProps;
+
+const DraggingOverOverlay = ({children}) => createPortal(
+    children,
+    document.getElementById(CONST.REPORT.DROP_NATIVE_ID),
+);
 
 ReportActionCompose.propTypes = propTypes;
 ReportActionCompose.defaultProps = defaultProps;
