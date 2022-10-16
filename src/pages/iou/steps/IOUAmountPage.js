@@ -77,7 +77,6 @@ class IOUAmountPage extends React.Component {
     }
 
     componentWillUnmount() {
-        // Cleanup event listeners
         this.unsubscribeNavFocus();
     }
 
