@@ -69,13 +69,16 @@ class IOUAmountPage extends React.Component {
 
     componentDidMount() {
         this.focusTextInput();
-        this.unsubscribe = this.props.navigation.addListener('focus', () => {
+
+        // Focus automatically after navigating back from currency selector
+        this.unsubscribeNavFocus = this.props.navigation.addListener('focus', () => {
             this.focusTextInput();
         });
     }
 
     componentWillUnmount() {
-        this.unsubscribe();
+        // Cleanup event listeners
+        this.unsubscribeNavFocus();
     }
 
     /**
