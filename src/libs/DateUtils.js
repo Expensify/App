@@ -9,7 +9,6 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
-import * as PersonalDetails from './actions/PersonalDetails';
 import * as CurrentDate from './actions/CurrentDate';
 
 let currentUserEmail;
@@ -139,14 +138,6 @@ function getCurrentTimezone() {
     return timezone;
 }
 
-/*
- * Updates user's timezone, if their timezone is set to automatic and
- * is different from current timezone
- */
-function updateTimezone() {
-    PersonalDetails.setPersonalDetails({timezone: getCurrentTimezone()});
-}
-
 // Used to throttle updates to the timezone when necessary
 let lastUpdatedTimezoneTime = moment();
 
@@ -177,7 +168,6 @@ const DateUtils = {
     timestampToRelative,
     timestampToDateTime,
     startCurrentDateUpdater,
-    updateTimezone,
     getLocalMomentFromTimestamp,
     getCurrentTimezone,
     canUpdateTimezone,

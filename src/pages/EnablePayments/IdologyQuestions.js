@@ -4,15 +4,19 @@ import PropTypes from 'prop-types';
 import {
     View,
 } from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import RadioButtons from '../../components/RadioButtons';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
-import CONST from '../../CONST';
 import Text from '../../components/Text';
 import TextLink from '../../components/TextLink';
 import FormScrollView from '../../components/FormScrollView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
+import compose from '../../libs/compose';
+import ONYXKEYS from '../../ONYXKEYS';
+import OfflineIndicator from '../../components/OfflineIndicator';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const MAX_SKIP = 1;
 const SKIP_QUESTION_TEXT = 'Skip Question';
@@ -30,11 +34,23 @@ const propTypes = {
 
     /** ID from Idology, referencing those questions */
     idNumber: PropTypes.string,
+
+    walletAdditionalDetails: PropTypes.shape({
+        /** Are we waiting for a response? */
+        isLoading: PropTypes.bool,
+
+        /** Any additional error message to show */
+        errors: PropTypes.objectOf(PropTypes.string),
+
+        /** What error do we need to handle */
+        errorCode: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
     questions: [],
     idNumber: '',
+    walletAdditionalDetails: {},
 };
 
 class IdologyQuestions extends React.Component {
@@ -54,9 +70,6 @@ class IdologyQuestions extends React.Component {
 
             /** Any error message */
             errorMessage: '',
-
-            /** Did the user just submitted all his answers? */
-            isLoading: false,
         };
     }
 
@@ -103,13 +116,8 @@ class IdologyQuestions extends React.Component {
                     }
                 }
 
-                BankAccounts.activateWallet(CONST.WALLET.STEP.ADDITIONAL_DETAILS, {
-                    idologyAnswers: {
-                        answers,
-                        idNumber: this.props.idNumber,
-                    },
-                });
-                return {answers, isLoading: true};
+                BankAccounts.answerQuestionsForWallet(answers, this.props.idNumber);
+                return {answers};
             }
 
             // Else, show next question
@@ -134,6 +142,8 @@ class IdologyQuestions extends React.Component {
             };
         }));
 
+        const errorMessage = ErrorUtils.getLatestErrorMessage(this.props.walletAdditionalDetails) || this.state.errorMessage;
+
         return (
             <View style={[styles.flex1]}>
                 <View style={[styles.ph5]}>
@@ -150,20 +160,22 @@ class IdologyQuestions extends React.Component {
                         <Text style={[styles.textStrong, styles.mb5]}>{question.prompt}</Text>
                         <RadioButtons
                             items={possibleAnswers}
+                            key={questionIndex}
                             onPress={answer => this.chooseAnswer(questionIndex, answer)}
                         />
                     </View>
 
                     <FormAlertWithSubmitButton
-                        isAlertVisible={Boolean(this.state.errorMessage)}
+                        isAlertVisible={Boolean(errorMessage)}
                         onSubmit={this.submitAnswers}
                         onFixTheErrorsLinkPressed={() => {
                             this.form.scrollTo({y: 0, animated: true});
                         }}
-                        message={this.state.errorMessage}
-                        isLoading={this.state.isLoading}
+                        message={errorMessage}
+                        isLoading={this.props.walletAdditionalDetails.isLoading}
                         buttonText={this.props.translate('common.saveAndContinue')}
                     />
+                    <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
                 </FormScrollView>
             </View>
         );
@@ -172,4 +184,11 @@ class IdologyQuestions extends React.Component {
 
 IdologyQuestions.propTypes = propTypes;
 IdologyQuestions.defaultProps = defaultProps;
-export default withLocalize(IdologyQuestions);
+export default compose(
+    withLocalize,
+    withOnyx({
+        walletAdditionalDetails: {
+            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+        },
+    }),
+)(IdologyQuestions);

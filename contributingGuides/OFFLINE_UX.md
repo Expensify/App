@@ -60,7 +60,7 @@ This is the pattern where we queue the request to be sent when the user is onlin
 - the user should be given instant feedback and
 - the user does not need to know when the change is done on the server in the background
 
-**How to implement:** Use [`API.write()`](https://github.com/Expensify/App/blob/3493f3ca3a1dc6cdbf9cb8bd342866fcaf45cf1d/src/libs/API.js#L7-L28) to implement this pattern. For this pattern we should only put `optimisticData` in the options. We don't need successData or failureData as we don't care what response comes back at all.
+**How to implement:** Use [`API.write()`](https://github.com/Expensify/App/blob/3493f3ca3a1dc6cdbf9cb8bd342866fcaf45cf1d/src/libs/API.js#L7-L28) to implement this pattern. For this pattern we should only put `optimisticData` in the options. We don't need `successData` or `failureData` as we don't care what response comes back at all.
 
 **Example:** Pinning a chat.
 
@@ -78,6 +78,10 @@ When the user is offline:
 - Use API.write() to implement this pattern 
 - Optimistic data should include `pendingAction` ([with these possible values](https://github.com/Expensify/App/blob/15f7fa622805ee2971808d6bc67181c4715f0c62/src/CONST.js#L775-L779))
 - To ensure the UI is shown as described above, you should enclose the components that contain the data that was added/updated/deleted with the OfflineWithFeedback component
+- Include this data in the action call:
+    - `optimisticData` - always include this object when using the Pattern B
+    - `successData` - include this if the action is `update` or `delete`. You do not have to include this if the action is `add` (same data was already passed using the `optimisticData` object)
+    - `failureData` - always include this object. In case of `add` action, you will want to add some generic error which covers some unexpected failures which were not handled in the backend
 
 **Handling errors:**
 - The [OfflineWithFeedback component](https://github.com/Expensify/App/blob/main/src/components/OfflineWithFeedback.js) already handles showing errors too, as long as you pass the error field in the [errors prop](https://github.com/Expensify/App/blob/128ea378f2e1418140325c02f0b894ee60a8e53f/src/components/OfflineWithFeedback.js#L29-L31)
@@ -141,9 +145,5 @@ If you're making a new feature, think about whether any data would need to be re
 5. Can the server response be anticipated?
   - Answer NO if there is data coming back from the server that we can't know (example: a list of bank accounts from Plaid, input validation that the server must perform). Answer YES if we can know what the response from the server would be.
 
-6. Is there validation done on the server that can't be done on the front end?
-  - If there is some validation happening on the server that needs to happen before the feature can work, then we answer YES to this question. Remember, this is referring to validation that cannot happen on the front end (e.g. reusing an existing password when resetting a password). For example, if we want to set up a bank account then our answer to this question is YES (because we can’t suggest to the user that their request succeeded when really it hasn’t been sent yet–their card wouldn’t work!)
-  - This question can be tricky, so if you're unsure, please ask a question in the #expensify-open-source slack room and tag @contributor-management-engineering.
-
-7. Does the user need to know if the action was successful?
+6. Does the user need to know if the action was successful?
   - Think back to the pinning example from above: the user doesn’t need to know that their pinned report's NVP has been updated. To them the impact of clicking the pin button is that their chat is at the top of the LHN. It makes no difference to them if the server has been updated or not, so the answer would be NO. Now let’s consider sending a payment request to another user. In this example, the user needs to know if their request was actually sent, so our answer is YES.

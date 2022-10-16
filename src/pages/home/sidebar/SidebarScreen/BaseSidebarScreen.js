@@ -18,6 +18,7 @@ import * as Policy from '../../../../libs/actions/Policy';
 import Performance from '../../../../libs/Performance';
 import * as Welcome from '../../../../libs/actions/Welcome';
 import {sidebarPropTypes, sidebarDefaultProps} from './sidebarPropTypes';
+import withDrawerState from '../../../../components/withDrawerState';
 
 const propTypes = {
 
@@ -26,6 +27,9 @@ const propTypes = {
 
     /* Callback function before the menu is hidden */
     onHideCreateMenu: PropTypes.func,
+
+    /** reportID in the current navigation state */
+    reportIDFromRoute: PropTypes.string,
 
     ...sidebarPropTypes,
 };
@@ -110,6 +114,8 @@ class BaseSidebarScreen extends Component {
                                 insets={insets}
                                 onAvatarClick={this.navigateToSettings}
                                 isSmallScreenWidth={this.props.isSmallScreenWidth}
+                                isDrawerOpen={this.props.isDrawerOpen}
+                                reportIDFromRoute={this.props.reportIDFromRoute}
                             />
                             <FAB
                                 accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
@@ -170,7 +176,7 @@ class BaseSidebarScreen extends Component {
                                         iconHeight: 40,
                                         text: this.props.translate('workspace.new.newWorkspace'),
                                         description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
-                                        onSelected: () => Policy.createAndNavigate(),
+                                        onSelected: () => Policy.createWorkspace(),
                                     },
                                 ] : []),
                             ]}
@@ -185,4 +191,4 @@ class BaseSidebarScreen extends Component {
 BaseSidebarScreen.propTypes = propTypes;
 BaseSidebarScreen.defaultProps = defaultProps;
 
-export default BaseSidebarScreen;
+export default withDrawerState(BaseSidebarScreen);

@@ -18,6 +18,7 @@ import compose from '../../../libs/compose';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** All the data of the action */
@@ -27,7 +28,7 @@ const propTypes = {
     draftMessage: PropTypes.string.isRequired,
 
     /** ReportID that holds the comment we're editing */
-    reportID: PropTypes.number.isRequired,
+    reportID: PropTypes.string.isRequired,
 
     /** Position index of the report action in the overall report FlatList view */
     index: PropTypes.number.isRequired,
@@ -36,10 +37,8 @@ const propTypes = {
     forwardedRef: PropTypes.func,
 
     /** The report currently being looked at */
-    report: PropTypes.shape({
-        /** Participants associated with current report */
-        participants: PropTypes.arrayOf(PropTypes.string),
-    }),
+    // eslint-disable-next-line react/no-unused-prop-types
+    report: reportPropTypes,
 
     // Whether or not the emoji picker is disabled
     shouldDisableEmojiPicker: PropTypes.bool,
@@ -97,7 +96,6 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} newDraft
      */
     updateDraft(newDraft) {
-        this.textInput.setNativeProps({text: newDraft});
         this.setState({draft: newDraft});
 
         // This component is rendered only when draft is set to a non-empty string. In order to prevent component

@@ -26,6 +26,12 @@ import * as ReportUtils from '../libs/ReportUtils';
 import variables from '../styles/variables';
 
 const propTypes = {
+    /** The accessibility hint for the entire option row. Primarily used for unit testing to identify the component */
+    accessibilityHint: PropTypes.string,
+
+    /** The accessibility hint for alternative text label. Primarily used for unit testing to identify the component */
+    alternateTextAccessibilityLabel: PropTypes.string,
+
     /** Background Color of the Option Row */
     backgroundColor: PropTypes.string,
 
@@ -69,6 +75,8 @@ const propTypes = {
 };
 
 const defaultProps = {
+    accessibilityHint: '',
+    alternateTextAccessibilityLabel: '',
     backgroundColor: colors.white,
     hoverStyle: styles.sidebarLinkHover,
     hideAdditionalOptionStates: false,
@@ -128,7 +136,10 @@ const OptionRow = (props) => {
                 <TouchableOpacity
                     ref={el => touchableRef = el}
                     onPress={(e) => {
-                        e.preventDefault();
+                        if (e) {
+                            e.preventDefault();
+                        }
+
                         props.onSelectRow(props.option, touchableRef);
                     }}
                     disabled={props.isDisabled}
@@ -145,7 +156,7 @@ const OptionRow = (props) => {
                         props.isDisabled && styles.cursorDisabled,
                     ]}
                 >
-                    <View style={sidebarInnerRowStyle}>
+                    <View accessibilityHint={props.accessibilityHint} style={sidebarInnerRowStyle}>
                         <View
                             style={[
                                 styles.flexRow,
@@ -183,6 +194,7 @@ const OptionRow = (props) => {
                             }
                             <View style={contentContainerStyles}>
                                 <DisplayNames
+                                    accessibilityLabel="Chat user display names"
                                     fullTitle={props.option.text}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled={props.showTitleTooltip}
@@ -192,6 +204,7 @@ const OptionRow = (props) => {
                                 />
                                 {props.option.alternateText ? (
                                     <Text
+                                        accessibilityLabel={props.alternateTextAccessibilityLabel}
                                         style={alternateTextStyle}
                                         numberOfLines={1}
                                     >

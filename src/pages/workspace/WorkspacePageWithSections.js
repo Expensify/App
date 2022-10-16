@@ -15,7 +15,7 @@ import * as BankAccounts from '../../libs/actions/BankAccounts';
 import BankAccount from '../../libs/models/BankAccount';
 import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import userPropTypes from '../settings/userPropTypes';
-import withFullPolicy from './withFullPolicy';
+import withPolicy from './withPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 
@@ -104,6 +104,7 @@ class WorkspacePageWithSections extends React.Component {
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 <ScrollView
+                    keyboardShouldPersistTaps="handled"
                     style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
                 >
                     <View style={[styles.w100, styles.flex1]}>
@@ -131,6 +132,6 @@ export default compose(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
-    withFullPolicy,
+    withPolicy,
     withNetwork(),
 )(WorkspacePageWithSections);
