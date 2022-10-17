@@ -9,7 +9,7 @@
     </h1>
 </div>
 
-#### Table of Contents
+#### Table of Contents 📕
 * [Local Development](#local-development)
 * [Running The Tests](#running-the-tests)
 * [Debugging](#debugging)
