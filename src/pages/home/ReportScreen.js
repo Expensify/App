@@ -297,8 +297,8 @@ class ReportScreen extends React.Component {
                                             isDrawerOpen={this.props.isDrawerOpen}
                                         />
                                         <ReportFooter
-                                            addWorkspaceRoomErrors={addWorkspaceRoomErrors}
-                                            addWorkspaceRoomPendingAction={addWorkspaceRoomPendingAction}
+                                            errors={addWorkspaceRoomOrChatErrors}
+                                            pendingAction={addWorkspaceRoomOrChatPendingAction}
                                             isOffline={this.props.network.isOffline}
                                             reportActions={this.props.reportActions}
                                             report={this.props.report}
