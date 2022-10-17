@@ -1,5 +1,7 @@
 const path = require('path');
-const {IgnorePlugin, DefinePlugin, ProvidePlugin} = require('webpack');
+const {
+    IgnorePlugin, DefinePlugin, ProvidePlugin, EnvironmentPlugin,
+} = require('webpack');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
@@ -18,6 +20,7 @@ const includeModules = [
     'react-native-gesture-handler',
     'react-native-flipper',
     'react-native-google-places-autocomplete',
+    '@react-navigation/drawer',
 ].join('|');
 
 /**
@@ -30,9 +33,10 @@ const includeModules = [
 const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
     mode: 'production',
     devtool: 'source-map',
-    entry: {
-        app: './index.js',
-    },
+    entry: [
+        'babel-polyfill',
+        './index.js',
+    ],
     output: {
         filename: '[name]-[contenthash].bundle.js',
         path: path.resolve(__dirname, '../../dist'),
@@ -66,12 +70,14 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 {from: 'node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
             ],
         }),
+        new EnvironmentPlugin({JEST_WORKER_ID: null}),
         new IgnorePlugin({
             resourceRegExp: /^\.\/locale$/,
             contextRegExp: /moment$/,
         }),
         ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
         new DefinePlugin({
+            ...(platform === 'desktop' ? {} : {process: {env: {}}}),
             __REACT_WEB_CONFIG__: JSON.stringify(
                 dotenv.config({path: envFile}).parsed,
             ),

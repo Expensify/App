@@ -141,6 +141,7 @@ function addPersonalBankAccount(account, password) {
                 value: {
                     isLoading: true,
                     errors: null,
+                    plaidAccountID: account.plaidAccountID,
                 },
             },
         ],
