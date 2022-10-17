@@ -126,7 +126,7 @@ class AddPlaidBankAccount extends React.Component {
                     )}
                     {(Boolean(this.props.plaidData.error) || Boolean(this.props.plaidData.errors)) && (
                         <Text style={[styles.formError, styles.mh5]}>
-                            {this.props.plaidData.errors ? Object.values(this.props.plaidData.errors)[0] : this.props.plaidData.error}
+                            {this.props.plaidData.errors ? _.chain(this.props.plaidData.errors).values().first().value() : this.props.plaidData.error}
                         </Text>
                     )}
                     {Boolean(token) && (
