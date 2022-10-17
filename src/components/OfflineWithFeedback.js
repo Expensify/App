@@ -88,6 +88,7 @@ const OfflineWithFeedback = (props) => {
     const needsOpacity = (isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError;
     const needsStrikeThrough = props.network.isOffline && props.pendingAction === 'delete';
     const hideChildren = !props.network.isOffline && props.pendingAction === 'delete' && !hasErrors;
+    const showErrorMessages = props.shouldShowErrorMessages && hasErrors && !_.isEmpty(props.errors);
     let children = props.children;
 
     // Apply strikethrough to children if needed, but skip it if we are not going to render them
@@ -101,7 +102,7 @@ const OfflineWithFeedback = (props) => {
                     {children}
                 </View>
             )}
-            {(hasErrors && props.shouldShowErrorMessages) && (
+            {showErrorMessages && (
                 <View style={StyleUtils.combineStyles(styles.offlineFeedback.error, props.errorRowStyles)}>
                     <DotIndicatorMessage messages={props.errors} type="error" />
                     <Tooltip text={props.translate('common.close')}>
