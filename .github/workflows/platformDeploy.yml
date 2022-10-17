@@ -211,9 +211,7 @@ jobs:
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Setup Cloudflare CLI
-        run: |
-          pip3 install wheel # need wheel before cloudflare, this is the only way to ensure order.
-          pip3 install cloudflare
+        run: pip3 install cloudflare
 
       - name: Configure AWS Credentials
         # Version: 1.5.5
