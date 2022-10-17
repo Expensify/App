@@ -1,6 +1,6 @@
 const {APP_PACKAGE} = require('../config');
 const execAsync = require('./execAsync');
-const Logger = require('./Logger');
+const Logger = require('./logger');
 
 const APP_PATH_FROM_ROOT = 'android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk';
 
