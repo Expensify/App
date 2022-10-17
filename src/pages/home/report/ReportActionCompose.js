@@ -696,13 +696,13 @@ class ReportActionCompose extends React.Component {
                     <ExceededCommentLength commentLength={this.comment.length} />
                 </View>
                 {this.state.isDraggingOver ? (
-                    <DropZoneOverlay>
+                    <DropZone>
                         <UploadOverlay>
                             <Text numberOfLines={2} style={[styles.headerText, styles.textMedium]}>
                                 {this.props.translate('reportActionCompose.dropToUpload')}
                             </Text>
                         </UploadOverlay>
-                    </DropZoneOverlay>
+                    </DropZone>
                 ) : null}
             </View>
         );
@@ -754,7 +754,7 @@ const UploadOverlay = props => (
 UploadOverlay.propTypes = UploadOverlayPropTypes;
 UploadOverlay.defaultProps = UploadOverlayDefaultProps;
 
-const DropZoneOverlay = ({children}) => createPortal(
+const DropZone = ({children}) => createPortal(
     children,
     document.getElementById(CONST.REPORT.DROP_NATIVE_ID),
 );
