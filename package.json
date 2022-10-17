@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.2.17-0",
+  "version": "1.2.17-1",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -24,6 +24,7 @@
     "desktop-build-staging": "scripts/build-desktop.sh staging",
     "ios-build": "fastlane ios build",
     "android-build": "fastlane android build",
+    "android-build-e2e": "bundle exec fastlane android build_e2e",
     "test": "jest",
     "lint": "eslint . --max-warnings=0",
     "print-version": "echo $npm_package_version",
@@ -34,7 +35,8 @@
     "analyze-packages": "ANALYZE_BUNDLE=true webpack --config config/webpack/webpack.common.js --env envFile=.env.production",
     "check-metro-bundler-port": "node config/checkMetroBundlerPort.js",
     "symbolicate:android": "npx metro-symbolicate android/app/build/generated/sourcemaps/react/release/index.android.bundle.map",
-    "symbolicate:ios": "npx metro-symbolicate main.jsbundle.map"
+    "symbolicate:ios": "npx metro-symbolicate main.jsbundle.map",
+    "test:e2e": "node ./e2e/testRunner.js"
   },
   "dependencies": {
     "@expensify/react-native-web": "0.18.9",
