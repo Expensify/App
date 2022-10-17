@@ -15,6 +15,9 @@ apply from: file("../node_modules/@react-native-community/cli-platform-android/n
 include ':app'
 includeBuild('../node_modules/react-native-gradle-plugin')
 
+include(":react-native-quick-sqlite")
+project(":react-native-quick-sqlite").projectDir = file('../borrowed_modules/react-native-quick-sqlite/android')
+
 if (settings.hasProperty("newArchEnabled") && settings.newArchEnabled == "true") {
     include(":ReactAndroid")
     project(":ReactAndroid").projectDir = file('../node_modules/react-native/ReactAndroid')

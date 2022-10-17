@@ -22,6 +22,7 @@ import java.util.List;
 import com.facebook.react.modules.i18nmanager.I18nUtil;
 
 import com.facebook.react.bridge.JSIModulePackage;
+import com.reactnativequicksqlite.SequelPackage;
 import com.swmansion.reanimated.ReanimatedJSIModulePackage;
 
 public class MainApplication extends MultiDexApplication implements ReactApplication {
@@ -41,6 +42,7 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
           // packages.add(new MyReactNativePackage());
           packages.add(new BootSplashPackage());
           packages.add(new ExpensifyAppPackage());
+          packages.add(new SequelPackage());
 
           return packages;
         }
