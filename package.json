@@ -7,7 +7,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "postinstall": "cd desktop && npm install",
+    "postinstall": "npx patch-package && cd desktop && npm install",
     "clean": "npx react-native clean-project-auto",
     "android": "npm run check-metro-bundler-port && scripts/set-pusher-suffix.sh && npx react-native run-android",
     "ios": "npm run check-metro-bundler-port && scripts/set-pusher-suffix.sh && npx react-native run-ios",

@@ -1,0 +1,13 @@
+diff --git a/node_modules/@react-navigation/drawer/package.json b/node_modules/@react-navigation/drawer/package.json
+index e34e53f..821a033 100644
+--- a/node_modules/@react-navigation/drawer/package.json
++++ b/node_modules/@react-navigation/drawer/package.json
+@@ -65,7 +65,7 @@
+     "react": "*",
+     "react-native": "*",
+     "react-native-gesture-handler": ">= 1.0.0",
+-    "react-native-reanimated": ">= 1.0.0",
++    "react-native-reanimated": "*",
+     "react-native-safe-area-context": ">= 3.0.0",
+     "react-native-screens": ">= 3.0.0"
+   },
