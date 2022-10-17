@@ -125,7 +125,7 @@ class AddPlaidBankAccount extends React.Component {
                             <ActivityIndicator color={themeColors.spinner} size="large" />
                         </View>
                     )}
-                    {(Boolean(this.props.plaidData.error) || Boolean(this.props.plaidData.errors)) && (
+                    {Boolean(plaidDataErrorMessage) && (
                         <Text style={[styles.formError, styles.mh5]}>
                             {plaidDataErrorMessage}
                         </Text>
