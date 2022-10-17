@@ -55,7 +55,7 @@ class IOUTransactions extends Component {
         }
 
         const actionsForIOUReport = _.filter(this.props.reportActions, action => action.originalMessage
-            && action.originalMessage.type && action.originalMessage.IOUReportID === this.props.iouReportID);
+            && action.originalMessage.type && Number(action.originalMessage.IOUReportID) === Number(this.props.iouReportID));
 
         const rejectedTransactionIDs = _.chain(actionsForIOUReport)
             .filter(action => _.contains(['cancel', 'decline'], action.originalMessage.type))
