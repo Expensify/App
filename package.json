@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.2.17-1",
+  "version": "1.2.17-2",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -9,10 +9,10 @@
   "scripts": {
     "postinstall": "cd desktop && npm install",
     "clean": "npx react-native clean-project-auto",
-    "android": "npm run check-metro-bundler-port && scripts/set-pusher-suffix.sh && npx react-native run-android",
-    "ios": "npm run check-metro-bundler-port && scripts/set-pusher-suffix.sh && npx react-native run-ios",
-    "ipad": "npm run check-metro-bundler-port && npx react-native run-ios --simulator=\"iPad Pro (12.9-inch) (4th generation)\"",
-    "ipad-sm": "npm run check-metro-bundler-port && npx react-native run-ios --simulator=\"iPad Pro (9.7-inch)\"",
+    "android": "scripts/set-pusher-suffix.sh && npx react-native run-android --port=8083",
+    "ios": "scripts/set-pusher-suffix.sh && npx react-native run-ios --port=8082",
+    "ipad": "npx react-native run-ios --port=8082 --simulator=\"iPad Pro (12.9-inch) (4th generation)\"",
+    "ipad-sm": "npx react-native run-ios --port=8082 --simulator=\"iPad Pro (9.7-inch)\"",
     "start": "npx react-native start",
     "web": "scripts/set-pusher-suffix.sh && concurrently npm:web-proxy npm:web-server",
     "web-proxy": "node web/proxy.js",
@@ -33,7 +33,6 @@
     "gh-actions-build": "./.github/scripts/buildActions.sh",
     "gh-actions-validate": "./.github/scripts/validateActionsAndWorkflows.sh",
     "analyze-packages": "ANALYZE_BUNDLE=true webpack --config config/webpack/webpack.common.js --env envFile=.env.production",
-    "check-metro-bundler-port": "node config/checkMetroBundlerPort.js",
     "symbolicate:android": "npx metro-symbolicate android/app/build/generated/sourcemaps/react/release/index.android.bundle.map",
     "symbolicate:ios": "npx metro-symbolicate main.jsbundle.map",
     "test:e2e": "node ./e2e/testRunner.js"
