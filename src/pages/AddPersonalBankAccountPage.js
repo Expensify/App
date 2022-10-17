@@ -69,6 +69,20 @@ class AddPersonalBankAccountPage extends React.Component {
         BankAccounts.clearPersonalBankAccount();
     }
 
+    componentDidUpdate() {
+        if (!this.state.selectedPlaidAccountID) {
+            return;
+        }
+        const selectedPlaidBankAccount = _.findWhere(lodashGet(this.props.plaidData, 'bankAccounts', []), {
+            plaidAccountID: this.state.selectedPlaidAccountID,
+        });
+
+        if (selectedPlaidBankAccount) {
+            return;
+        }
+        this.setState({selectedPlaidAccountID: ''});
+    }
+
     /**
      * @param {Object} values - form input values passed by the Form component
      * @param {Object} values.password The password of the user adding the bank account, for security.
