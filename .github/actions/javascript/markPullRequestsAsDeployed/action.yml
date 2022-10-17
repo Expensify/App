@@ -28,5 +28,5 @@ inputs:
         description: "Web job result ('success', 'failure', 'cancelled', or 'skipped')"
         required: true
 runs:
-    using: "node12"
+    using: "node16"
     main: "./index.js"
