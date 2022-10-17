@@ -17,6 +17,8 @@ Onyx.connect({
         }
 
         const reportID = CollectionUtils.extractCollectionItemID(key);
+        //console.log('aaabbbcccddd msg', actions);
+        console.log('aaabbbcccddd key', key, actions);
         allReportActions[reportID] = actions;
     },
 });

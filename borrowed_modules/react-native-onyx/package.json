@@ -1,0 +1,122 @@
+{
+  "name": "react-native-onyx",
+  "version": "1.0.17",
+  "author": "Expensify, Inc.",
+  "homepage": "https://expensify.com",
+  "description": "State management for React Native",
+  "license": "MIT",
+  "private": false,
+  "keywords": [
+    "React Native",
+    "React",
+    "Persistant storage",
+    "Pub/Sub"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Expensify/react-native-onyx.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Expensify/react-native-onyx/issues"
+  },
+  "files": [
+    "dist/**/*",
+    "lib/**/*",
+    "native.js",
+    "web.js",
+    "API.md",
+    "README.md",
+    "LICENSE.md"
+  ],
+  "react-native": "native.js",
+  "main": "native.js",
+  "browser": "web.js",
+  "scripts": {
+    "lint": "eslint .",
+    "lint-tests": "eslint tests/**",
+    "test": "jest",
+    "build": "webpack --config webpack.config.js",
+    "build:docs": "node buildDocs.js"
+  },
+  "dependencies": {
+    "ascii-table": "0.0.9",
+    "lodash": "^4.17.21",
+    "underscore": "^1.13.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.17.10",
+    "@babel/plugin-proposal-class-properties": "^7.16.7",
+    "@babel/runtime": "^7.11.2",
+    "@react-native-async-storage/async-storage": "^1.15.5",
+    "@react-native-community/eslint-config": "^2.0.0",
+    "@testing-library/jest-native": "^3.4.2",
+    "@testing-library/react-native": "^7.0.2",
+    "babel-eslint": "^10.1.0",
+    "babel-jest": "^26.2.2",
+    "babel-loader": "^8.2.5",
+    "babel-plugin-module-resolver": "^4.0.0",
+    "babel-plugin-react-native-web": "^0.13.5",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "eslint": "^7.6.0",
+    "eslint-config-expensify": "^2.0.24",
+    "expensify-common": "git+https://github.com/Expensify/expensify-common.git#427295da130a4eacc184d38693664280d020dffd",
+    "jest": "^26.5.2",
+    "jest-cli": "^26.5.2",
+    "jsdoc-to-markdown": "^7.1.0",
+    "localforage": "^1.10.0",
+    "metro-react-native-babel-preset": "^0.61.0",
+    "prop-types": "^15.7.2",
+    "react": "^17.0.2",
+    "react-native": "0.64.1",
+    "react-native-performance": "^2.0.0",
+    "react-test-renderer": "16.13.1",
+    "webpack": "^5.72.1",
+    "webpack-cli": "^4.9.2",
+    "webpack-merge": "^5.8.0"
+  },
+  "peerDependencies": {
+    "@react-native-async-storage/async-storage": "^1.15.5",
+    "expensify-common": ">=1",
+    "localforage": "^1.10.0",
+    "react": ">=17.0.2",
+    "react-native-performance": "^2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react-native-performance": {
+      "optional": true
+    },
+    "@react-native-async-storage/async-storage": {
+      "optional": true
+    },
+    "localforage": {
+      "optional": true
+    }
+  },
+  "jest": {
+    "preset": "react-native",
+    "transform": {
+      "^.+\\.jsx?$": "babel-jest"
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!react-native)/"
+    ],
+    "testPathIgnorePatterns": [
+      "<rootDir>/node_modules/",
+      "<rootDir>/tests/unit/mocks/"
+    ],
+    "testMatch": [
+      "**/tests/unit/**/*.[jt]s?(x)",
+      "**/?(*.)+(spec|test).[jt]s?(x)"
+    ],
+    "globals": {
+      "__DEV__": true,
+      "WebSocket": {}
+    },
+    "timers": "fake",
+    "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": [
+      "@testing-library/jest-native/extend-expect"
+    ]
+  },
+  "sideEffects": false
+}

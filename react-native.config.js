@@ -1,7 +1,8 @@
 module.exports = {
-    project: {
-        ios: {},
-        android: {},
-    },
     assets: ['./assets/fonts/'],
+    dependencies: {
+        'react-native-quick-sqlite': {
+            root: './borrowed_modules/react-native-quick-sqlite',
+        },
+    },
 };

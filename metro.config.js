@@ -4,6 +4,7 @@
  */
 
 const {getDefaultConfig} = require('metro-config');
+const path = require('path');
 const _ = require('underscore');
 
 /* eslint arrow-body-style: 0 */
@@ -24,6 +25,7 @@ module.exports = (() => {
                     }),
                     babelTransformerPath: require.resolve('react-native-svg-transformer'),
                 },
+                watchFolders: [path.resolve('./borrowed_modules')],
             };
         });
 })();

@@ -1,0 +1,103 @@
+{
+  "name": "react-native-quick-sqlite",
+  "version": "5.0.1",
+  "description": "Fast SQLite for react-native",
+  "main": "lib/commonjs/index",
+  "module": "lib/module/index",
+  "types": "lib/typescript/index.d.ts",
+  "react-native": "src/index",
+  "source": "src/index",
+  "files": [
+    "src",
+    "lib",
+    "android",
+    "ios",
+    "cpp",
+    "react-native-quick-sqlite.podspec",
+    "!lib/typescript/example",
+    "!android/build",
+    "!android/.cxx",
+    "!ios/build",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__"
+  ],
+  "scripts": {
+    "test": "jest",
+    "typescript": "tsc --noEmit",
+    "prepare": "bob build",
+    "release": "release-it",
+    "example": "yarn --cwd example",
+    "pods": "cd example && pod-install --quiet",
+    "bootstrap": "yarn example && yarn && yarn pods",
+    "bump": "./bump-version.sh"
+  },
+  "keywords": [
+    "react-native",
+    "ios",
+    "android"
+  ],
+  "repository": "https://github.com/ospfranco/react-native-quick-sqlite",
+  "author": "Oscar Franco <ospfranco@protonmail.com> (https://github.com/ospfranco)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ospfranco/react-native-quick-sqlite/issues"
+  },
+  "homepage": "https://github.com/ospfranco/react-native-quick-sqlite#readme",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.0",
+    "@types/react": "17.0.2",
+    "@types/react-native": "0.67.4",
+    "husky": "^6.0.0",
+    "react": "17.0.2",
+    "react-native": "0.67.4",
+    "react-native-builder-bob": "^0.18.2",
+    "release-it": "^14.2.2",
+    "typescript": "^4.5.2"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*"
+  },
+  "release-it": {
+    "git": {
+      "commitMessage": "chore: release ${version}",
+      "tagName": "v${version}"
+    },
+    "npm": {
+      "publish": true
+    },
+    "github": {
+      "release": true
+    },
+    "plugins": {
+      "@release-it/conventional-changelog": {
+        "preset": "angular"
+      }
+    }
+  },
+  "prettier": {
+    "quoteProps": "consistent",
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5",
+    "useTabs": false
+  },
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "lib",
+    "targets": [
+      "commonjs",
+      "module",
+      [
+        "typescript",
+        {
+          "project": "tsconfig.build.json"
+        }
+      ]
+    ]
+  }
+}

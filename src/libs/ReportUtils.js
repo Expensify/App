@@ -55,6 +55,7 @@ Onyx.connect({
     callback: (val) => {
         currentUserPersonalDetails = lodashGet(val, currentUserEmail);
         allPersonalDetails = val;
+        //console.log('aaabbbccc pers size', Object.keys(allPersonalDetails).length);
     },
 });
 

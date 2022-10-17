@@ -1,0 +1,322 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+import java.nio.file.Paths
+import groovy.json.JsonSlurper
+
+buildscript {
+  repositories {
+    google()
+    jcenter()
+    mavenCentral()
+  }
+
+  dependencies {
+    classpath 'com.android.tools.build:gradle:4.2.2'
+    classpath 'de.undercouch:gradle-download-task:4.1.2'
+  }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'de.undercouch.download'
+
+def getExtOrDefault(name) {
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties['Sequel_' + name]
+}
+
+def getExtOrIntegerDefault(name) {
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties['Sequel_' + name]).toInteger()
+}
+
+static def findNodeModules(baseDir) {
+  def basePath = baseDir.toPath().normalize()
+  // Node's module resolution algorithm searches up to the root directory,
+  // after which the base path will be null
+  while (basePath) {
+    def nodeModulesPath = Paths.get(basePath.toString(), "node_modules")
+    def reactNativePath = Paths.get(nodeModulesPath.toString(), "react-native")
+    if (nodeModulesPath.toFile().exists() && reactNativePath.toFile().exists()) {
+      return nodeModulesPath.toString()
+    }
+    basePath = basePath.getParent()
+  }
+  throw new GradleException("react-native-quick-sqlite: Failed to find node_modules/ path!")
+}
+
+def nodeModules = findNodeModules(projectDir);
+logger.warn("react-native-quick-sqlite: node_modules/ found at: ${nodeModules}");
+
+def reactNative = new File("$nodeModules/react-native")
+def reactNativeManifest = file("$reactNative/package.json")
+def reactNativeManifestAsJson = new JsonSlurper().parseText(reactNativeManifest.text)
+def reactNativeVersion = reactNativeManifestAsJson.version as String
+def (major, minor, patch) = reactNativeVersion.tokenize('.')
+def rnMinorVersion = Integer.parseInt(minor)
+
+def downloadsDir = new File("$buildDir/downloads")
+def thirdPartyNdkDir = new File("$buildDir/third-party-ndk")
+
+def reactProperties = new Properties()
+file("$nodeModules/react-native/ReactAndroid/gradle.properties").withInputStream { reactProperties.load(it) }
+def REACT_NATIVE_VERSION = reactProperties.getProperty("VERSION_NAME").split("\\.")[1].toInteger()
+def SQLITE_FLAGS = rootProject.properties['quickSqliteFlags']
+def FOLLY_VERSION = reactProperties.getProperty("FOLLY_VERSION")
+def BOOST_VERSION = reactProperties.getProperty("BOOST_VERSION")
+def DOUBLE_CONVERSION_VERSION = reactProperties.getProperty("DOUBLE_CONVERSION_VERSION")
+
+def isDebugModeOn() {
+  return project.hasProperty("NATIVE_DEBUG_ON") && project.NATIVE_DEBUG_ON == "TRUE"
+}
+
+// inspired by react-native-v8
+def debugNativeLibraries = isDebugModeOn();
+
+android {
+  
+  compileSdkVersion getExtOrIntegerDefault('compileSdkVersion')
+  buildToolsVersion getExtOrDefault('buildToolsVersion')
+  
+  defaultConfig {
+    minSdkVersion 21 
+    targetSdkVersion getExtOrIntegerDefault('targetSdkVersion')
+    versionCode 1
+    versionName "1.0"
+    
+    externalNativeBuild {
+        cmake {
+            cppFlags "-O2", "-fexceptions", "-frtti", "-std=c++1y", "-DONANDROID"
+            abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
+            arguments '-DANDROID_STL=c++_shared',
+              "-DREACT_NATIVE_VERSION=${REACT_NATIVE_VERSION}",
+              "-DNODE_MODULES_DIR=${nodeModules}",
+              "-DNATIVE_DEBUG=${debugNativeLibraries}",
+              "-DSQLITE_FLAGS='${SQLITE_FLAGS ? SQLITE_FLAGS : ''}'"
+        }
+    }
+    
+  }
+  
+  externalNativeBuild {
+      cmake {
+          path "CMakeLists.txt"
+      }
+  }
+
+  packagingOptions {
+    doNotStrip debugNativeLibraries ? "**/**/*.so" : ''
+    // Exclude all Libraries that are already present in the user's app (through React Native or by him installing REA)
+    excludes = ["**/libc++_shared.so", "**/libfbjni.so", "**/libjsi.so", "**/libreactnativejni.so", "**/libfolly_json.so", "**/libjscexecutor.so", "**/libhermes.so"]
+    exclude "META-INF/**"
+  }
+  
+  buildTypes {
+    release {
+      minifyEnabled false
+    }
+  }
+  lintOptions {
+    disable 'GradleCompatible'
+  }
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+  }
+
+  configurations {
+    extractHeaders
+    extractJNI
+  }
+}
+
+repositories {
+  mavenCentral()
+  google()
+
+  def found = false
+  def defaultDir = null
+  def androidSourcesName = 'React Native sources'
+
+  if (rootProject.ext.has('reactNativeAndroidRoot')) {
+    defaultDir = rootProject.ext.get('reactNativeAndroidRoot')
+  } else {
+    defaultDir = file("$nodeModules/react-native/android")
+  }
+
+  if (defaultDir.exists()) {
+    maven {
+      url defaultDir.toString()
+      name androidSourcesName
+    }
+
+    logger.info(":${project.name}:reactNativeAndroidRoot ${defaultDir.canonicalPath}")
+    found = true
+  } else {
+    def parentDir = rootProject.projectDir
+
+    1.upto(5, {
+      if (found) return true
+      parentDir = parentDir.parentFile
+
+      def androidSourcesDir = new File(
+              parentDir,
+              'node_modules/react-native'
+      )
+
+      def androidPrebuiltBinaryDir = new File(
+              parentDir,
+              'node_modules/react-native/android'
+      )
+
+      if (androidPrebuiltBinaryDir.exists()) {
+        maven {
+          url androidPrebuiltBinaryDir.toString()
+          name androidSourcesName
+        }
+
+        logger.info(":${project.name}:reactNativeAndroidRoot ${androidPrebuiltBinaryDir.canonicalPath}")
+        found = true
+      } else if (androidSourcesDir.exists()) {
+        maven {
+          url androidSourcesDir.toString()
+          name androidSourcesName
+        }
+
+        logger.info(":${project.name}:reactNativeAndroidRoot ${androidSourcesDir.canonicalPath}")
+        found = true
+      }
+    })
+  }
+
+  if (!found) {
+    throw new GradleException(
+            "${project.name}: unable to locate React Native android sources. " +
+                    "Ensure you have you installed React Native as a dependency in your project and try again."
+    )
+  }
+}
+
+
+dependencies {
+  // noinspection GradleDynamicVersion
+  api 'com.facebook.react:react-native:+'
+
+  //noinspection GradleDynamicVersion
+  extractHeaders("com.facebook.fbjni:fbjni:+:headers")
+  //noinspection GradleDynamicVersion
+  extractJNI("com.facebook.fbjni:fbjni:+")
+
+  def buildType = "debug"
+  tasks.all({ task ->
+    if (task.name == "buildCMakeRelease") {
+      buildType = "release"
+    }
+  })
+  def rnAarMatcher = "**/react-native/**/*${buildType}.aar"
+  if (rnMinorVersion < 69) {
+      rnAarMatcher = "**/**/*.aar"
+  }
+  def rnAAR = fileTree("$reactNative/android").matching({ it.include rnAarMatcher }).singleFile
+  def jscAAR = fileTree("${nodeModules}/jsc-android/dist/org/webkit/android-jsc").matching({ it.include "**/**/*.aar" }).singleFile
+
+  extractJNI(files(rnAAR, jscAAR))
+}
+
+task createNativeDepsDirectories {
+  downloadsDir.mkdirs()
+  thirdPartyNdkDir.mkdirs()
+  doLast {
+    downloadsDir.mkdirs()
+  }
+}
+
+
+task extractAARHeaders {
+  doLast {
+    configurations.extractHeaders.files.each {
+      def file = it.absoluteFile
+      copy {
+        from zipTree(file)
+        into "$buildDir/$file.name"
+        include "**/*.h"
+      }
+    }
+  }
+}
+
+extractAARHeaders.mustRunAfter createNativeDepsDirectories
+
+task extractJNIFiles {
+  doLast {
+    configurations.extractJNI.files.each {
+      def file = it.absoluteFile
+
+      copy {
+        from zipTree(file)
+        into "$buildDir/$file.name"
+        include "jni/**/*"
+      }
+    }
+  }
+}
+
+task downloadBoost(dependsOn: createNativeDepsDirectories, type: Download) {
+  src("https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VERSION.replace("_", ".")}/source/boost_${BOOST_VERSION}.tar.gz")
+  onlyIfNewer(true)
+  overwrite(false)
+  dest(new File(downloadsDir, "boost_${BOOST_VERSION}.tar.gz"))
+}
+
+task prepareBoost(dependsOn: [downloadBoost], type: Copy) {
+  from(tarTree(resources.gzip(downloadBoost.dest)))
+  include("boost_${BOOST_VERSION}/boost/**/*.hpp", "boost/boost/**/*.hpp")
+  includeEmptyDirs = false
+  into("$thirdPartyNdkDir/boost")
+  doLast {
+    // file("$thirdPartyNdkDir/boost/boost").renameTo("$thirdPartyNdkDir/boost/boost_${BOOST_VERSION}")
+    file("$thirdPartyNdkDir/boost/boost_${BOOST_VERSION}").renameTo("$thirdPartyNdkDir/boost/boost")
+  }
+}
+
+task downloadDoubleConversion(dependsOn: createNativeDepsDirectories, type: Download) {
+  src("https://github.com/google/double-conversion/archive/v${DOUBLE_CONVERSION_VERSION}.tar.gz")
+  onlyIfNewer(true)
+  overwrite(false)
+  dest(new File(downloadsDir, "double-conversion-${DOUBLE_CONVERSION_VERSION}.tar.gz"))
+}
+
+task prepareDoubleConversion(dependsOn: [downloadDoubleConversion], type: Copy) {
+  from(tarTree(downloadDoubleConversion.dest))
+  from("src/main/jni/third-party/double-conversion/")
+  include("double-conversion-${DOUBLE_CONVERSION_VERSION}/src/**/*", "Android.mk", "CMakeLists.txt")
+  filesMatching("*/src/**/*", { fname -> fname.path = "double-conversion/${fname.name}" })
+  includeEmptyDirs = false
+  into("$thirdPartyNdkDir/double-conversion")
+}
+
+task downloadFolly(dependsOn: createNativeDepsDirectories, type: Download) {
+  src("https://github.com/facebook/folly/archive/v${FOLLY_VERSION}.tar.gz")
+  onlyIfNewer(true)
+  overwrite(false)
+  dest(new File(downloadsDir, "folly-${FOLLY_VERSION}.tar.gz"))
+}
+
+task prepareFolly(dependsOn: [downloadFolly], type: Copy) {
+  from(tarTree(downloadFolly.dest))
+  from("src/main/jni/third-party/folly/")
+  include("folly-${FOLLY_VERSION}/folly/**/*", "Android.mk", "CMakeLists.txt")
+  eachFile { fname -> fname.path = (fname.path - "folly-${FOLLY_VERSION}/") }
+  includeEmptyDirs = false
+  into("$thirdPartyNdkDir/folly")
+}
+
+extractJNIFiles.mustRunAfter extractAARHeaders
+
+// pre-native build pipeline
+
+tasks.whenTaskAdded { task ->
+  if (!task.name.contains('Clean') && (task.name.contains('externalNative') || task.name.contains('CMake'))) {
+    task.dependsOn(extractAARHeaders)
+    task.dependsOn(extractJNIFiles)
+    task.dependsOn(prepareFolly)
+    task.dependsOn(prepareDoubleConversion)
+    task.dependsOn(prepareBoost)
+  }
+}
