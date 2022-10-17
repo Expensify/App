@@ -319,6 +319,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             chatReportID: oneOnOneChatReport.reportID,
             transactionID: oneOnOneIOUReportAction.originalMessage.IOUTransactionID,
             reportActionID: oneOnOneIOUReportAction.reportActionID,
+            clientID: oneOnOneIOUReportAction.sequenceNumber,
         });
     });
 
@@ -327,6 +328,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             chatReportID: groupChatReport.reportID,
             transactionID: groupIOUReportAction.originalMessage.IOUTransactionID,
             reportActionID: groupIOUReportAction.reportActionID,
+            clientID: groupIOUReportAction.sequenceNumber,
         },
         splits,
         onyxData: {optimisticData, successData, failureData},
@@ -352,6 +354,7 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, lo
         comment,
         transactionID: groupData.transactionID,
         reportActionID: groupData.reportActionID,
+        clientID: groupData.sequenceNumber,
     }, onyxData);
 
     Navigation.dismissModal();
@@ -376,6 +379,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
         comment,
         transactionID: groupData.transactionID,
         reportActionID: groupData.reportActionID,
+        clientID: groupData.clientID,
     }, onyxData);
 
     Navigation.navigate(ROUTES.getReportRoute(groupData.chatReportID));
