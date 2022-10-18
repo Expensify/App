@@ -214,7 +214,7 @@ class ReportScreen extends React.Component {
         const reportID = getReportID(this.props.route);
         const addWorkspaceRoomPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom');
         const addWorkspaceRoomErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom');
-        const screenWrapperStyle = [styles.appContent, {marginTop: this.state.viewportOffsetTop}];
+        const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}];
         return (
             <Freeze
                 freeze={this.props.isSmallScreenWidth && this.props.isDrawerOpen}
@@ -228,7 +228,7 @@ class ReportScreen extends React.Component {
                 )}
             >
                 <ScreenWrapper
-                    style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
+                    style={screenWrapperStyle}
                 >
                     <FullPageNotFoundView
                         shouldShow={!this.props.report.reportID}
