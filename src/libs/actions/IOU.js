@@ -15,15 +15,22 @@ import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
 import * as NumberUtils from '../NumberUtils';
 
-const iouReports = {};
+let iouReports;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_IOUS,
-    callback: (iouReport, key) => {
-        if (!iouReport || !key || !iouReport.ownerEmail) {
+    waitForCollectionCallback: true,
+    callback: val => iouReports = val,
+});
+
+let preferredLocale = CONST.DEFAULT_LOCALE;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: (val) => {
+        if (!val) {
             return;
         }
 
-        iouReports[key] = iouReport;
+        preferredLocale = val;
     },
 });
 
@@ -133,7 +140,7 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
         iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`];
         iouReport.total += amount;
     } else {
-        iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, 'en');
+        iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, preferredLocale);
     }
     const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
     chatReport.maxSequenceNumber = newSequenceNumber;
@@ -147,6 +154,7 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
         '',
         iouReport.reportID,
         debtorEmail,
+        preferredLocale,
     );
     const optimisticData = [
         {
