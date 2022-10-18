@@ -170,6 +170,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             value: {
                 ...groupChatReport,
                 maxSequenceNumber: groupChatReportMaxSequenceNumber + 1,
+                lastReadSequenceNumber: groupChatReportMaxSequenceNumber + 1,
                 pendingFields: {
                     createChat: existingGroupChatReport ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
@@ -207,6 +208,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             key: `${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`,
             value: {
                 maxSequenceNumber: groupChatReportMaxSequenceNumber,
+                lastReadSequenceNumber: groupChatReportMaxSequenceNumber,
                 pendingFields: {createChat: null},
             },
         },
@@ -245,6 +247,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 currency,
                 locale,
             );
+            oneOnOneChatReport.hasOutstandingIOU = true;
+            oneOnOneChatReport.iouReportID = oneOnOneIOUReport.reportID;
         }
 
         const oneOnOneCreatedReportAction = existingOneOnOneChatReport ? {} : ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
@@ -267,6 +271,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 value: {
                     ...oneOnOneChatReport,
                     maxSequenceNumber: oneOnOneChatReportMaxSequenceNumber + 1,
+                    lastReadSequenceNumber: oneOnOneChatReportMaxSequenceNumber + 1,
                     pendingFields: {
                         createChat: existingOneOnOneChatReport ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
@@ -309,6 +314,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
                 value: {
                     maxSequenceNumber: oneOnOneChatReportMaxSequenceNumber,
+                    lastReadSequenceNumber: oneOnOneChatReportMaxSequenceNumber,
                     pendingFields: {createChat: null},
                 },
             },
