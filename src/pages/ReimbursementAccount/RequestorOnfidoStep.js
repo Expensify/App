@@ -11,12 +11,15 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import Growl from '../../libs/Growl';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import reimbursementAccountDraftPropTypes from './reimbursementAccountDraftPropTypes';
 import CONST from '../../CONST';
 
 const propTypes = {
     /** Bank account currently in setup */
     /* eslint-disable-next-line react/no-unused-prop-types */
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
     onfidoToken: PropTypes.string,
     onComplete: PropTypes.func.isRequired,
     ...withLocalizePropTypes,
