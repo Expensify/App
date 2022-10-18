@@ -207,6 +207,14 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
                 },
             },
         },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                ...chatReport,
+                pendingFields: null,
+            },
+        },
     ];
     API.write('RequestMoney', {
         debtorEmail,
