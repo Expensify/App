@@ -26,6 +26,7 @@ import CONFIG from '../../CONFIG';
 import ROUTES from '../../ROUTES';
 import Button from '../../components/Button';
 import plaidDataPropTypes from './plaidDataPropTypes';
+import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 
 const propTypes = {
     /** Contains plaid data */
@@ -36,6 +37,10 @@ const propTypes = {
 
     /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
     plaidLinkOAuthToken: PropTypes.string,
+
+    /** The bank account currently in setup */
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    reimbursementAccount: reimbursementAccountPropTypes,
 
     /** Object with various information about the user */
     user: PropTypes.shape({
@@ -52,6 +57,7 @@ const defaultProps = {
     plaidData: {
         isPlaidDisabled: false,
     },
+    reimbursementAccount: {},
     user: {},
 };
 
