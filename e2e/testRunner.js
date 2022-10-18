@@ -173,7 +173,7 @@ const runTests = async () => {
         await runTestsOnBranch(baselineBranch, 'baseline');
 
         // Run tests on current branch
-        await runTestsOnBranch(process.env.github.ref || process.env.github.ref_name, 'compare');
+        await runTestsOnBranch(process.env.branch, 'compare');
 
         await compare();
 

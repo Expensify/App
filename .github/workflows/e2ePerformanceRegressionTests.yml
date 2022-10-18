@@ -58,6 +58,7 @@ jobs:
           INTERACTION_TIMEOUT: 120000 # 2 minutes
           # when logging progresses only refresh the _log_ every 30 seconds
           LOGGER_PROGRESS_REFRESH_RATE: 30000
+          branch: ${{ github.event.pull_request.head.ref }}
         with:
           api-level: 28
           ram-size: 3072M
