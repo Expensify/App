@@ -5,7 +5,7 @@ defaults:
     values:
       layout: "default"
       title: Expensify Help
-      tagline: Find all the answers to all your Expensify questions, as well as support for user and admin questions from the Expensify Community
+      tagline: Find all the answers to all your Expensify questions, or get expert help through Concierge.
       description: The Community is a great place for Expensify users and experts to help one another, access training and implementation advice, discuss best practice approaches and contribute their feature and functionality ideas.
       url: help.expensify.com
       author: Expensify
