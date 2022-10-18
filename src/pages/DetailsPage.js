@@ -40,12 +40,17 @@ const propTypes = {
     /* Onyx Props */
 
     /** The personal details of the person who is logged in */
-    personalDetails: personalDetailsPropType.isRequired,
+    personalDetails: personalDetailsPropType,
 
     /** Route params */
     route: matchType.isRequired,
 
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    // The case when open other profile deep link before login
+    personalDetails: {},
 };
 
 /**
@@ -202,6 +207,7 @@ class DetailsPage extends React.PureComponent {
 }
 
 DetailsPage.propTypes = propTypes;
+DetailsPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
