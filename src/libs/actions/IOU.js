@@ -310,8 +310,9 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     const existingGroupChatReport = ReportUtils.getChatByParticipants(participantLogins);
     const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(_.pluck(participants, 'login'));
     const groupCreatedReportAction = existingGroupChatReport ? {} : ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
+    const groupChatReportMaxSequenceNumber = lodashGet(groupChatReport, 'maxSequenceNumber', 0);
     const groupIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
-        lodashGet(groupChatReport, 'maxSequenceNumber', 0) + 1,
+        groupChatReportMaxSequenceNumber + 1,
         CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
         Math.round(amount * 100),
         comment,
@@ -324,6 +325,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             key: `${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`,
             value: {
                 ...groupChatReport,
+                maxSequenceNumber: groupChatReportMaxSequenceNumber + 1,
                 pendingFields: {
                     createChat: existingGroupChatReport ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
@@ -359,7 +361,10 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`,
-            value: {pendingFields: {createChat: null}},
+            value: {
+                maxSequenceNumber: groupChatReportMaxSequenceNumber,
+                pendingFields: {createChat: null},
+            },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -399,8 +404,9 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         }
 
         const oneOnOneCreatedReportAction = existingOneOnOneChatReport ? {} : ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
+        const oneOnOneChatReportMaxSequenceNumber = lodashGet(oneOnOneChatReport, 'maxSequenceNumber', 0);
         const oneOnOneIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
-            lodashGet(oneOnOneChatReport, 'maxSequenceNumber', 0) + 1,
+            oneOnOneChatReportMaxSequenceNumber + 1,
             CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             splitAmount,
             comment,
@@ -416,6 +422,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
                 value: {
                     ...oneOnOneChatReport,
+                    maxSequenceNumber: oneOnOneChatReportMaxSequenceNumber + 1,
                     pendingFields: {
                         createChat: existingOneOnOneChatReport ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
@@ -456,7 +463,10 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
-                value: {pendingFields: {createChat: null}},
+                value: {
+                    maxSequenceNumber: oneOnOneChatReportMaxSequenceNumber,
+                    pendingFields: {createChat: null},
+                },
             },
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
