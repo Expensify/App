@@ -344,7 +344,7 @@ class IOUModal extends Component {
         }
 
         IOU.requestMoney(this.props.report,
-            this.participants,
+            this.state.participants,
             Math.round(this.state.amount * 100),
             this.props.iou.selectedCurrencyCode,
             this.props.currentUserPersonalDetails.login,
