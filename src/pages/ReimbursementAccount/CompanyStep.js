@@ -27,7 +27,7 @@ import ReimbursementAccountForm from './ReimbursementAccountForm';
 import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
-import reimbursementAccountDraftPropTypes from './reimbursementAccountDraftPropTypes';
+import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 
 const propTypes = {
     /** The bank account currently in setup */

@@ -11,7 +11,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import Growl from '../../libs/Growl';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
-import reimbursementAccountDraftPropTypes from './reimbursementAccountDraftPropTypes';
+import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import CONST from '../../CONST';
 
 const propTypes = {
