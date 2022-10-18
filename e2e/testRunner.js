@@ -33,6 +33,7 @@ const startRecordingVideo = require('./utils/startRecordingVideo');
 const args = process.argv.slice(2);
 
 const baselineBranch = process.env.baseline || DEFAULT_BASELINE_BRANCH;
+const compareBranch = process.env.compare || DEFAULT_BASELINE_BRANCH;
 
 // Clear all files from previous jobs
 try {
@@ -173,7 +174,7 @@ const runTests = async () => {
         await runTestsOnBranch(baselineBranch, 'baseline');
 
         // Run tests on current branch
-        await runTestsOnBranch(process.env.branch, 'compare');
+        await runTestsOnBranch(compareBranch, 'compare');
 
         await compare();
 

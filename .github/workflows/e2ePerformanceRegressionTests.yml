@@ -9,7 +9,7 @@ jobs:
     if: ${{ github.event.label.name == 'e2e' }}
     name: "Run e2e performance regression tests"
     # Although the tests will run on an android emulator, using macOS as its more performant
-    runs-on: linux
+    runs-on: ubuntu-20.04-64core
     steps:
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
@@ -58,7 +58,7 @@ jobs:
           INTERACTION_TIMEOUT: 120000 # 2 minutes
           # when logging progresses only refresh the _log_ every 30 seconds
           LOGGER_PROGRESS_REFRESH_RATE: 30000
-          branch: ${{ github.event.pull_request.head.ref }}
+          compare: ${{ github.event.pull_request.head.ref }}
         with:
           api-level: 28
           ram-size: 3072M

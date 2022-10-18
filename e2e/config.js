@@ -21,6 +21,8 @@ module.exports = {
 
     DEFAULT_BASELINE_BRANCH: 'main',
 
+    DEFAULT_COMPARE_BRANCH: 'main',
+
     // The amount of outliers to remove from a dataset before calculating the average
     DROP_WORST: 8,
 
