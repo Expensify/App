@@ -670,8 +670,6 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
 function getIOUReportActionMessage(type, total, participants, comment, currency) {
     const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
 
-    // @TODO: we should get the display name for the participant, but that doesn't seem to be stored in the participants object
-    // so I'm using text instead
     const displayNames = _.map(participants, participant => lodashGet(participant, 'text', participant.login));
     const from = displayNames.length < 3
         ? displayNames.join(' and ')
