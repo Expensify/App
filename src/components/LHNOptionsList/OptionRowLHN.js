@@ -205,7 +205,7 @@ const OptionRowLHN = (props) => {
                         {optionItem.hasDraftComment && (
                             <View
                                 style={styles.ml2}
-                                accessibilityLabel="Has draft message"
+                                accessibilityLabel="Drafted message"
                             >
                                 <Icon src={Expensicons.Pencil} height={16} width={16} />
                             </View>
