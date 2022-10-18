@@ -227,8 +227,8 @@ function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
-                    error: '',
-                    loading: true,
+                    errors: null,
+                    isLoading: true,
                 },
             },
         ],
@@ -237,7 +237,7 @@ function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
-                    loading: false,
+                    isLoading: false,
                 },
             },
         ],
@@ -246,7 +246,7 @@ function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
-                    loading: false,
+                    isLoading: false,
                 },
             },
         ],
