@@ -198,6 +198,38 @@ function onSubmit(values) {
 </Form>
 ```
 
+`Form.js` also works with inputs component that's nested on a component that doesn't wrap with any HOC.
+
+```jsx
+const BankAccountForm = () => (
+    <>
+        <View>
+            <TextInput
+                label="Routing number"
+                inputID="routingNumber"
+                maxLength={8}
+                shouldSaveDraft
+            />
+        </View>
+        <TextInput
+            label="Account number"
+            inputID="accountNumber"
+            containerStyles={[styles.mt4]}
+        />
+    </>
+);
+
+// ...
+<Form
+    formID="testForm"
+    submitButtonText="Submit"
+    validate={this.validate}
+    onSubmit={this.onSubmit}
+>
+    <BankAccountForm />
+</Form>
+```
+
 ### Props provided to Form inputs
 
 The following prop is available to form inputs:
