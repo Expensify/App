@@ -20,6 +20,7 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import reimbursementAccountDraftPropTypes from './reimbursementAccountDraftPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import * as Link from '../../libs/actions/Link';
 import RequestorOnfidoStep from './RequestorOnfidoStep';
@@ -27,6 +28,8 @@ import RequestorOnfidoStep from './RequestorOnfidoStep';
 const propTypes = {
     /** Bank account currently in setup */
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
     onfidoToken: PropTypes.string,
     ...withLocalizePropTypes,
 };
