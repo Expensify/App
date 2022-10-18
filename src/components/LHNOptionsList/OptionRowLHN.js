@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -20,7 +19,6 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Text from '../Text';
 import SubscriptAvatar from '../SubscriptAvatar';
 import CONST from '../../CONST';
-import * as ReportUtils from '../../libs/ReportUtils';
 import variables from '../../styles/variables';
 import themeColors from '../../styles/themes/default';
 import SidebarUtils from '../../libs/SidebarUtils';
@@ -94,11 +92,8 @@ const OptionRowLHN = (props) => {
         ? props.hoverStyle.backgroundColor
         : themeColors.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const isMultipleParticipant = lodashGet(optionItem, 'participantsList.length', 0) > 1;
 
-    // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((optionItem.participantsList || []).slice(0, 10), isMultipleParticipant);
-    const avatarTooltips = !optionItem.isChatRoom && !optionItem.isArchivedRoom ? _.pluck(displayNamesWithTooltips, 'tooltip') : undefined;
+    const avatarTooltips = !optionItem.isChatRoom && !optionItem.isArchivedRoom ? _.pluck(optionItem.displayNamesWithTooltips, 'tooltip') : undefined;
 
     return (
         <OfflineWithFeedback
@@ -169,7 +164,7 @@ const OptionRowLHN = (props) => {
                                     <DisplayNames
                                         accessibilityLabel="Chat user display names"
                                         fullTitle={optionItem.text}
-                                        displayNamesWithTooltips={displayNamesWithTooltips}
+                                        displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
                                         tooltipEnabled
                                         numberOfLines={1}
                                         textStyles={displayNameStyle}
@@ -193,14 +188,14 @@ const OptionRowLHN = (props) => {
                                     </View>
                                 ) : null}
                                 {optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
-                                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
-                                    <Icon
-                                        src={Expensicons.DotIndicator}
-                                        fill={colors.red}
-                                        height={variables.iconSizeSmall}
-                                        width={variables.iconSizeSmall}
-                                    />
-                                </View>
+                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                        <Icon
+                                            src={Expensicons.DotIndicator}
+                                            fill={colors.red}
+                                            height={variables.iconSizeSmall}
+                                            width={variables.iconSizeSmall}
+                                        />
+                                    </View>
                                 )}
                             </View>
                         </View>
