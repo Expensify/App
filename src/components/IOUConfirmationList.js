@@ -342,7 +342,6 @@ class IOUConfirmationList extends Component {
                 autoFocus
                 shouldDelayFocus
                 shouldTextInputAppearBelowOptions
-                shouldShowOfflineMessage={false}
                 optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
                 footerContent={shouldShowSettlementButton
                     ? (

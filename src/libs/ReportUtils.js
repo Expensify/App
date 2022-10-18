@@ -628,7 +628,7 @@ function buildOptimisticReportAction(sequenceNumber, text, file) {
  * Builds an optimistic IOU report with a randomly generated reportID
  *
  * @param {String} ownerEmail - Email of the person generating the IOU.
- * @param {String} recipientEmail - Email of the person receiving the IOU.
+ * @param {String} userEmail - Email of the other person participating in the IOU.
  * @param {Number} total - IOU amount in cents.
  * @param {String} chatReportID - Report ID of the chat where the IOU is.
  * @param {String} currency - IOU currency.
@@ -636,7 +636,7 @@ function buildOptimisticReportAction(sequenceNumber, text, file) {
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportID, currency, locale) {
+function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, currency, locale) {
     const formattedTotal = NumberFormatUtils.format(locale,
         total, {
             style: 'currency',
@@ -647,7 +647,7 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
         chatReportID,
         currency,
         hasOutstandingIOU: true,
-        managerEmail: recipientEmail,
+        managerEmail: userEmail,
         ownerEmail,
         reportID: generateReportID(),
         state: CONST.REPORT.STATE.SUBMITTED,
@@ -669,10 +669,11 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
  * @param {String} existingIOUTransactionID - Only required if the IOUReportAction type is oneOf(cancel, decline). Generates a randomID as default.
  * @param {String} existingIOUReportID - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
  * @param {String} debtorEmail - Email of the user that has to pay
+ * @param {String} locale - Locale of the user
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = '', debtorEmail = '') {
+function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = '', debtorEmail = '', locale = 'en') {
     const IOUTransactionID = existingIOUTransactionID || NumberUtils.rand64();
     const IOUReportID = existingIOUReportID || generateReportID();
     const originalMessage = {
@@ -683,7 +684,7 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, 
         IOUReportID,
         type,
     };
-    const formattedTotal = NumberFormatUtils.format('en',
+    const formattedTotal = NumberFormatUtils.format(locale,
         amount / 100, {
             style: 'currency',
             currency,
