@@ -319,7 +319,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             chatReportID: oneOnOneChatReport.reportID,
             transactionID: oneOnOneIOUReportAction.originalMessage.IOUTransactionID,
             reportActionID: oneOnOneIOUReportAction.reportActionID,
-            clientID: oneOnOneIOUReportAction.clientID,
+            clientID: oneOnOneIOUReportAction.clientID.toString(),
         });
     });
 
@@ -328,7 +328,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             chatReportID: groupChatReport.reportID,
             transactionID: groupIOUReportAction.originalMessage.IOUTransactionID,
             reportActionID: groupIOUReportAction.reportActionID,
-            clientID: groupIOUReportAction.clientID,
+            clientID: groupIOUReportAction.clientID.toString(),
         },
         splits,
         onyxData: {optimisticData, successData, failureData},
