@@ -49,15 +49,15 @@ jobs:
 
       - name: Check if merged pull request was an automated PR
         id: isAutomatedPullRequest
-        run: echo "::set-output name=IS_AUTOMATED_PR::${{ github.actor == 'OSBotify' }}"
+        run: echo "IS_AUTOMATED_PR=${{ github.actor == 'OSBotify' }}" >> "$GITHUB_OUTPUT"
 
       - name: Check if merged pull request has `CP Staging` label
         id: hasCherryPickLabel
-        run: echo "::set-output name=HAS_CP_LABEL::${{ contains(steps.getMergedPullRequest.outputs.labels, 'CP Staging') }}"
+        run: echo "HAS_CP_LABEL=${{ contains(steps.getMergedPullRequest.outputs.labels, 'CP Staging') }}" >> "$GITHUB_OUTPUT"
 
       - name: Check if merged pull request should trigger a deploy
         id: shouldDeploy
-        run: echo "::set-output name=SHOULD_DEPLOY::${{ fromJSON(steps.hasCherryPickLabel.outputs.HAS_CP_LABEL) || (!fromJSON(steps.isStagingDeployLocked.outputs.IS_LOCKED) && !fromJSON(steps.isAutomatedPullRequest.outputs.IS_AUTOMATED_PR)) }}"
+        run: echo "SHOULD_DEPLOY=${{ fromJSON(steps.hasCherryPickLabel.outputs.HAS_CP_LABEL) || (!fromJSON(steps.isStagingDeployLocked.outputs.IS_LOCKED) && !fromJSON(steps.isAutomatedPullRequest.outputs.IS_AUTOMATED_PR)) }}" >> "$GITHUB_OUTPUT"
 
   skipDeploy:
     runs-on: ubuntu-latest
@@ -125,7 +125,7 @@ jobs:
 
       - name: Find open StagingDeployCash
         id: getStagingDeployCash
-        run: echo "::set-output name=STAGING_DEPLOY_CASH::$(gh issue list --label StagingDeployCash --json number --jq '.[0].number')"
+        run: echo "STAGING_DEPLOY_CASH=$(gh issue list --label StagingDeployCash --json number --jq '.[0].number')" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 

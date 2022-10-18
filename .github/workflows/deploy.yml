@@ -20,7 +20,7 @@ jobs:
 
       - name: Check if merged pull request was an automatic version bump PR
         id: isAutomatedPullRequest
-        run: echo "::set-output name=IS_AUTOMERGE_PR::${{ steps.getMergedPullRequest.outputs.author == 'OSBotify' }}"
+        run: echo "IS_AUTOMERGE_PR=${{ steps.getMergedPullRequest.outputs.author == 'OSBotify' }}" >> "$GITHUB_OUTPUT"
 
   deployStaging:
     runs-on: ubuntu-latest
