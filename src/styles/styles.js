@@ -18,6 +18,7 @@ import visibility from './utilities/visibility';
 import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
+import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
 
 const picker = {
@@ -1746,6 +1747,8 @@ const styles = {
 
     pointerEventsNone,
 
+    pointerEventsAuto,
+
     headerBar: {
         overflow: 'hidden',
         justifyContent: 'center',
@@ -2228,6 +2231,15 @@ const styles = {
 
     growlNotificationTranslateY: y => ({
         transform: [{translateY: y}],
+    }),
+
+    makeSlideInTranslation: (translationType, fromValue) => ({
+        from: {
+            [translationType]: fromValue,
+        },
+        to: {
+            [translationType]: 0,
+        },
     }),
 
     growlNotificationBox: {
