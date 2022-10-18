@@ -165,13 +165,14 @@ const AvatarCropModal = (props) => {
     }, [imageContainerSize, scale, clamp]);
 
     /**
-     * Calculate newScale value
      * @param {Number} newSliderValue
+     * @param {Number} containerSize
      * @returns {Number}
      */
-    const newScaleValue = newSliderValue => ((newSliderValue / sliderContainerSize)
-                * (CONST.AVATAR_CROP_MODAL.MAX_SCALE - CONST.AVATAR_CROP_MODAL.MIN_SCALE))
-                + CONST.AVATAR_CROP_MODAL.MIN_SCALE;
+    const newScaleValue = useWorkletCallback((newSliderValue, containerSize) => {
+        const {MAX_SCALE, MIN_SCALE} = CONST.AVATAR_CROP_MODAL;
+        return ((newSliderValue / containerSize) * (MAX_SCALE - MIN_SCALE)) + MIN_SCALE;
+    });
 
     /**
      * Calculates new x & y image translate value on image panning
@@ -208,7 +209,7 @@ const AvatarCropModal = (props) => {
         },
         onActive: (event, context) => {
             const newSliderValue = clamp(event.translationX + context.translateSliderX, [0, sliderContainerSize]);
-            const newScale = newScaleValue(newSliderValue);
+            const newScale = newScaleValue(newSliderValue, sliderContainerSize);
 
             const differential = newScale / scale.value;
 
@@ -272,6 +273,18 @@ const AvatarCropModal = (props) => {
             });
     }, [props.imageUri, props.imageName, imageContainerSize]);
 
+    /**
+     * @param {Event} event
+     */
+    const sliderOnPress = (event) => {
+        if (!isPressableEnabled.value) {
+            return;
+        }
+        const newScale = newScaleValue(event.nativeEvent.locationX, sliderContainerSize);
+        translateSlider.value = event.nativeEvent.locationX;
+        scale.value = newScale;
+    };
+
     return (
         <Modal
             onClose={props.onClose}
@@ -308,12 +321,7 @@ const AvatarCropModal = (props) => {
                                 <Pressable
                                     style={[styles.mh5, styles.flex1]}
                                     onLayout={initializeSliderContainer}
-                                    onPressIn={(e) => {
-                                        if (!isPressableEnabled.value) { return; }
-                                        const newScale = newScaleValue(e.nativeEvent.locationX);
-                                        translateSlider.value = e.nativeEvent.locationX;
-                                        scale.value = newScale;
-                                    }}
+                                    onPressIn={sliderOnPress}
                                 >
                                     <Slider sliderValue={translateSlider} onGesture={panSliderGestureEventHandler} />
                                 </Pressable>
