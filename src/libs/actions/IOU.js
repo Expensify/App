@@ -134,7 +134,6 @@ function startLoadingAndResetError() {
  */
 function requestMoney(report, participants, amount, currency, recipientEmail, debtorEmail, comment) {
     const chatReport = lodashGet(report, 'reportID', null) ? report : ReportUtils.buildOptimisticChatReport(participants);
-    const optimisticTransactionID = NumberUtils.rand64();
     let iouReport;
     if (chatReport.hasOutstandingIOU) {
         iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`];
@@ -146,7 +145,7 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
     chatReport.maxSequenceNumber = newSequenceNumber;
     const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
         newSequenceNumber,
-        'create',
+        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         amount,
         currency,
         comment,
@@ -161,16 +160,16 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimisticReportAction.sequenceNumber]: {
-                    ...optimisticReportAction,
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
+                [optimisticReportAction.sequenceNumber]: optimisticReportAction,
             },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: chatReport,
+            value: {
+                ...chatReport,
+                pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -186,6 +185,13 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
                 [optimisticReportAction.sequenceNumber]: {
                     pendingAction: null,
                 },
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                pendingFields: null,
             },
         },
     ];
@@ -209,7 +215,7 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
         comment,
         iouReportID: iouReport.reportID,
         chatReportID: chatReport.reportID,
-        transactionID: optimisticTransactionID,
+        transactionID: NumberUtils.rand64(),
         reportActionID: optimisticReportAction.reportActionID,
         clientID: optimisticReportAction.sequenceNumber,
     }, {optimisticData, successData, failureData});
