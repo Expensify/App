@@ -55,7 +55,7 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         env:
           JAVA_HOME: ${{ env.JAVA_HOME_11_X64 }}
-          INTERACTION_TIMEOUT: 120000 # 2 minutes
+          INTERACTION_TIMEOUT: 300000 # 5 minutes
           # when logging progresses only refresh the _log_ every 30 seconds
           LOGGER_PROGRESS_REFRESH_RATE: 30000
           compare: ${{ github.event.pull_request.head.ref }}
