@@ -120,8 +120,8 @@
     "urbanairship-react-native": "^11.0.2"
   },
   "devDependencies": {
-    "@actions/core": "^1.2.6",
-    "@actions/github": "5.0.3",
+    "@actions/core": "1.10.0",
+    "@actions/github": "5.1.1",
     "@babel/core": "^7.11.1",
     "@babel/plugin-proposal-class-properties": "^7.12.1",
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",

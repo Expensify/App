@@ -5,201 +5,176 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 2759:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ 2850:
+/***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
 
+const core = __nccwpck_require__(2186);
+const github = __nccwpck_require__(5438);
 const _ = __nccwpck_require__(3571);
-const lodashGet = __nccwpck_require__(6908);
-const core = __nccwpck_require__(2186);
-const {context} = __nccwpck_require__(5438);
-const ActionUtils = __nccwpck_require__(970);
-const GithubUtils = __nccwpck_require__(7999);
+const GitHubUtils = __nccwpck_require__(7999);
 
-const prList = ActionUtils.getJSONInput('PR_LIST', {required: true});
-const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true});
-const version = core.getInput('DEPLOY_VERSION', {required: true});
+/* eslint-disable max-len */
+const completedAuthorChecklist = `- [x] I linked the correct issue in the \`### Fixed Issues\` section above
+- [x] I wrote clear testing steps that cover the changes made in this PR
+    - [x] I added steps for local testing in the \`Tests\` section
+    - [x] I added steps for Staging and/or Production testing in the \`QA steps\` section
+    - [x] I added steps to cover failure scenarios (i.e. verify an input displays the correct error message if the entered data is not correct)
+    - [x] I turned off my network connection and tested it while offline to ensure it matches the expected behavior (i.e. verify the default avatar icon is displayed if app is offline)
+- [x] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
+- [x] I ran the tests on **all platforms** & verified they passed on:
+    - [x] iOS / native
+    - [x] Android / native
+    - [x] iOS / Safari
+    - [x] Android / Chrome
+    - [x] MacOS / Chrome
+    - [x] MacOS / Desktop
+- [x] I verified there are no console errors (if there's a console error not related to the PR, report it or open an issue for it to be fixed)
+- [x] I followed proper code patterns (see [Reviewing the code](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
+    - [x] I verified that any callback methods that were added or modified are named for what the method does and never what callback they handle (i.e. \`toggleReport\` and not \`onIconClick\`)
+    - [x] I verified that comments were added to code that is not self explanatory
+    - [x] I verified that any new or modified comments were clear, correct English, and explained "why" the code was doing something instead of only explaining "what" the code was doing.
+    - [x] I verified any copy / text shown in the product was added in all \`src/languages/*\` files
+    - [x] I verified any copy / text that was added to the app is correct English and approved by marketing by tagging the marketing team on the original GH to get the correct copy.
+    - [x] I verified proper file naming conventions were followed for any new files or renamed files. All non-platform specific files are named after what they export and are not named "index.js". All platform-specific files are named for the platform the code supports as outlined in the README.
+    - [x] I verified the JSDocs style guidelines (in [\`STYLE.md\`](https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md#jsdocs)) were followed
+- [x] If a new code pattern is added I verified it was agreed to be used by multiple Expensify engineers
+- [x] I followed the guidelines as stated in the [Review Guidelines](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md)
+- [x] I tested other components that can be impacted by my changes (i.e. if the PR modifies a shared library or component like \`Avatar\`, I verified the components using \`Avatar\` are working as expected)
+- [x] I verified all code is DRY (the PR doesn't include any logic written more than once, with the exception of tests)
+- [x] I verified any variables that can be defined as constants (ie. in CONST.js or at the top of the file that uses the constant) are defined as such
+- [x] If a new component is created I verified that:
+    - [x] A similar component doesn't exist in the codebase
+    - [x] All props are defined accurately and each prop has a \`/** comment above it */\`
+    - [x] The file is named correctly
+    - [x] The component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone
+    - [x] The only data being stored in the state is data necessary for rendering and nothing else
+    - [x] For Class Components, any internal methods passed to components event handlers are bound to \`this\` properly so there are no scoping issues (i.e. for \`onClick={this.submit}\` the method \`this.submit\` should be bound to \`this\` in the constructor)
+    - [x] Any internal methods bound to \`this\` are necessary to be bound (i.e. avoid \`this.submit = this.submit.bind(this);\` if \`this.submit\` is never passed to a component event handler like \`onClick\`)
+    - [x] All JSX used for rendering exists in the render method
+    - [x] The component has the minimum amount of code necessary for its purpose, and it is broken down into smaller components in order to separate concerns and functions
+- [x] If a new CSS style is added I verified that:
+    - [x] A similar style doesn't already exist
+    - [x] The style can't be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/StyleUtils.js) function (i.e. \`StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG\`)
+- [x] If the PR modifies a generic component, I tested and verified that those changes do not break usages of that component in the rest of the App (i.e. if a shared library or component like \`Avatar\` is modified, I verified that \`Avatar\` is working as expected in all cases)
+- [x] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
+- [x] I have checked off every checkbox in the PR author checklist, including those that don't apply to this PR.`;
 
-/**
- * Return a nicely formatted message for the table based on the result of the GitHub action job
- *
- * @param {String} platformResult
- * @returns {String}
- */
-function getDeployTableMessage(platformResult) {
-    switch (platformResult) {
-        case 'success':
-            return `${platformResult} ✅`;
-        case 'cancelled':
-            return `${platformResult} 🔪`;
-        case 'skipped':
-            return `${platformResult} 🚫`;
-        case 'failure':
-        default:
-            return `${platformResult} ❌`;
-    }
+const completedReviewerChecklist = `- [x] I have verified the author checklist is complete (all boxes are checked off).
+- [x] I verified the correct issue is linked in the \`### Fixed Issues\` section above
+- [x] I verified testing steps are clear and they cover the changes made in this PR
+    - [x] I verified the steps for local testing are in the \`Tests\` section
+    - [x] I verified the steps for Staging and/or Production testing are in the \`QA steps\` section
+    - [x] I verified the steps cover any possible failure scenarios (i.e. verify an input displays the correct error message if the entered data is not correct)
+    - [x] I turned off my network connection and tested it while offline to ensure it matches the expected behavior (i.e. verify the default avatar icon is displayed if app is offline)
+- [x] I checked that screenshots or videos are included for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
+- [x] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
+- [x] I verified tests pass on **all platforms** & I tested again on:
+    - [x] iOS / native
+    - [x] Android / native
+    - [x] iOS / Safari
+    - [x] Android / Chrome
+    - [x] MacOS / Chrome
+    - [x] MacOS / Desktop
+- [x] If there are any errors in the console that are unrelated to this PR, I either fixed them (preferred) or linked to where I reported them in Slack
+- [x] I verified proper code patterns were followed (see [Reviewing the code](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
+    - [x] I verified that any callback methods that were added or modified are named for what the method does and never what callback they handle (i.e. \`toggleReport\` and not \`onIconClick\`).
+    - [x] I verified that comments were added to code that is not self explanatory
+    - [x] I verified that any new or modified comments were clear, correct English, and explained "why" the code was doing something instead of only explaining "what" the code was doing.
+    - [x] I verified any copy / text shown in the product was added in all \`src/languages/*\` files
+    - [x] I verified any copy / text that was added to the app is correct English and approved by marketing by tagging the marketing team on the original GH to get the correct copy.
+    - [x] I verified proper file naming conventions were followed for any new files or renamed files. All non-platform specific files are named after what they export and are not named "index.js". All platform-specific files are named for the platform the code supports as outlined in the README.
+    - [x] I verified the JSDocs style guidelines (in [\`STYLE.md\`](https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md#jsdocs)) were followed
+- [x] If a new code pattern is added I verified it was agreed to be used by multiple Expensify engineers
+- [x] I verified that this PR follows the guidelines as stated in the [Review Guidelines](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md)
+- [x] I verified other components that can be impacted by these changes have been tested, and I retested again (i.e. if the PR modifies a shared library or component like \`Avatar\`, I verified the components using \`Avatar\` have been tested & I retested again)
+- [x] I verified all code is DRY (the PR doesn't include any logic written more than once, with the exception of tests)
+- [x] I verified any variables that can be defined as constants (ie. in CONST.js or at the top of the file that uses the constant) are defined as such
+- [x] If a new component is created I verified that:
+    - [x] A similar component doesn't exist in the codebase
+    - [x] All props are defined accurately and each prop has a \`/** comment above it */\`
+    - [x] The file is named correctly
+    - [x] The component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone
+    - [x] The only data being stored in the state is data necessary for rendering and nothing else
+    - [x] For Class Components, any internal methods passed to components event handlers are bound to \`this\` properly so there are no scoping issues (i.e. for \`onClick={this.submit}\` the method \`this.submit\` should be bound to \`this\` in the constructor)
+    - [x] Any internal methods bound to \`this\` are necessary to be bound (i.e. avoid \`this.submit = this.submit.bind(this);\` if \`this.submit\` is never passed to a component event handler like \`onClick\`)
+    - [x] All JSX used for rendering exists in the render method
+    - [x] The component has the minimum amount of code necessary for its purpose, and it is broken down into smaller components in order to separate concerns and functions
+- [x] If a new CSS style is added I verified that:
+    - [x] A similar style doesn't already exist
+    - [x] The style can't be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/StyleUtils.js) function (i.e. \`StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG\`)
+- [x] If the PR modifies a generic component, I tested and verified that those changes do not break usages of that component in the rest of the App (i.e. if a shared library or component like \`Avatar\` is modified, I verified that \`Avatar\` is working as expected in all cases)
+- [x] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
+- [x] I have checked off every checkbox in the PR reviewer checklist, including those that don't apply to this PR.`;
+
+// True if we are validating an author checklist, otherwise we are validating a reviewer checklist
+const verifyingAuthorChecklist = core.getInput('CHECKLIST', {required: true}) === 'contributor';
+const issue = github.context.payload.issue ? github.context.payload.issue.number : github.context.payload.pull_request.number;
+const combinedData = [];
+
+function getPullRequestBody() {
+    return GitHubUtils.octokit.pulls.get({
+        owner: GitHubUtils.GITHUB_OWNER,
+        repo: GitHubUtils.APP_REPO,
+        pull_number: issue,
+    }).then(({data: pullRequestComment}) => pullRequestComment.body);
 }
 
-const androidResult = getDeployTableMessage(core.getInput('ANDROID', {required: true}));
-const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', {required: true}));
-const iOSResult = getDeployTableMessage(core.getInput('IOS', {required: true}));
-const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}));
-
-const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}`
-    + `/actions/runs/${process.env.GITHUB_RUN_ID}`;
-
-/**
- * @param {String} deployer
- * @param {String} deployVerb
- * @param {String} prTitle
- * @returns {String}
- */
-function getDeployMessage(deployer, deployVerb, prTitle) {
-    let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
-    message += ` by @${deployer} in version: ${version} 🚀`;
-    message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResult} \n🖥 desktop 🖥|${desktopResult}`;
-    message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
-
-    if (deployVerb === 'Cherry-picked' && !(/no qa/gi).test(prTitle)) {
-        // eslint-disable-next-line max-len
-        message += '\n\n@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.';
-    }
-
-    return message;
-}
-
-/**
- * Comment Single PR
- *
- * @param {Number} PR
- * @param {String} message
- * @returns {Promise<void>}
- */
-function commentPR(PR, message) {
-    return GithubUtils.createComment(context.repo.repo, PR, message)
-        .then(() => console.log(`Comment created on #${PR} successfully 🎉`))
-        .catch((err) => {
-            console.log(`Unable to write comment on #${PR} 😞`);
-            core.setFailed(err.message);
-        });
-}
-
-const run = function () {
-    if (isProd) {
-        // First find the deployer (who closed the last deploy checklist)?
-        return GithubUtils.octokit.issues.listForRepo({
-            owner: GithubUtils.GITHUB_OWNER,
-            repo: GithubUtils.APP_REPO,
-            labels: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
-            state: 'closed',
-        })
-            .then(({data}) => _.first(data).number)
-            .then(lastDeployChecklistNumber => GithubUtils.getActorWhoClosedIssue(lastDeployChecklistNumber))
-            .then((actor) => {
-                // Create comment on each pull request (one after another to avoid throttling issues)
-                const deployMessage = getDeployMessage(actor, 'Deployed');
-                _.reduce(prList, (promise, pr) => promise.then(() => commentPR(pr, deployMessage)), Promise.resolve());
-            });
-    }
-
-    // First find out if this is a normal staging deploy or a CP by looking at the commit message on the tag
-    return GithubUtils.octokit.repos.listTags({
-        owner: GithubUtils.GITHUB_OWNER,
-        repo: GithubUtils.APP_REPO,
+function getAllReviewComments() {
+    return GitHubUtils.paginate(GitHubUtils.octokit.pulls.listReviews, {
+        owner: GitHubUtils.GITHUB_OWNER,
+        repo: GitHubUtils.APP_REPO,
+        pull_number: issue,
         per_page: 100,
-    })
-        .then(({data}) => {
-            const tagSHA = _.find(data, tag => tag.name === version).commit.sha;
-            return GithubUtils.octokit.git.getCommit({
-                owner: GithubUtils.GITHUB_OWNER,
-                repo: GithubUtils.APP_REPO,
-                commit_sha: tagSHA,
-            });
-        })
-        .then(({data}) => {
-            const isCP = /Merge pull request #\d+ from Expensify\/.*-?cherry-pick-staging-\d+/.test(data.message);
-            _.reduce(prList, (promise, PR) => promise
-
-                // Then, for each PR, find out who merged it and determine the deployer
-                .then(() => GithubUtils.octokit.pulls.get({
-                    owner: GithubUtils.GITHUB_OWNER,
-                    repo: GithubUtils.APP_REPO,
-                    pull_number: PR,
-                }))
-                .then((response) => {
-                    /*
-                     * The deployer for staging deploys is:
-                     *   1. For regular staging deploys, the person who merged the PR.
-                     *   2. For automatic CPs (using the label), the person who merged the PR.
-                     *   3. For manual CPs (using the GH UI), the person who triggered the workflow
-                     *      (reflected in the branch name).
-                     */
-                    let deployer = lodashGet(response, 'data.merged_by.login', '');
-                    const issueTitle = lodashGet(response, 'data.title', '');
-                    const CPActorMatches = data.message
-                        .match(/Merge pull request #\d+ from Expensify\/(.+)-cherry-pick-staging-\d+/);
-                    if (_.isArray(CPActorMatches) && CPActorMatches.length === 2 && CPActorMatches[1] !== 'OSBotify') {
-                        deployer = CPActorMatches[1];
-                    }
-
-                    // Finally, comment on the PR
-                    const deployMessage = getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', issueTitle);
-                    return commentPR(PR, deployMessage);
-                }),
-            Promise.resolve());
-        });
-};
-
-if (require.main === require.cache[eval('__filename')]) {
-    run();
+    }, response => _.map(response.data, review => review.body));
 }
 
-module.exports = run;
-
-
-/***/ }),
-
-/***/ 970:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const core = __nccwpck_require__(2186);
-
-/**
- * Safely parse a JSON input to a GitHub Action.
- *
- * @param {String} name - The name of the input.
- * @param {Object} options - Options to pass to core.getInput
- * @param {*} [defaultValue] - A default value to provide for the input.
- *                             Not required if the {required: true} option is given in the second arg to this function.
- * @returns {any}
- */
-function getJSONInput(name, options, defaultValue = undefined) {
-    const input = core.getInput(name, options);
-    if (input) {
-        return JSON.parse(input);
-    }
-    return defaultValue;
+function getAllComments() {
+    return GitHubUtils.paginate(GitHubUtils.octokit.issues.listComments, {
+        owner: GitHubUtils.GITHUB_OWNER,
+        repo: GitHubUtils.APP_REPO,
+        issue_number: issue,
+        per_page: 100,
+    }, response => _.map(response.data, comment => comment.body));
 }
 
-/**
- * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
- *
- * @param {String} name
- * @param {Object} options
- * @param {*} [defaultValue]
- * @returns {string|undefined}
- */
-function getStringInput(name, options, defaultValue = undefined) {
-    const input = core.getInput(name, options);
-    if (!input) {
-        return defaultValue;
-    }
-    return input;
-}
+getPullRequestBody()
+    .then(pullRequestBody => combinedData.push(pullRequestBody))
+    .then(() => getAllReviewComments())
+    .then(reviewComments => combinedData.push(...reviewComments))
+    .then(() => getAllComments())
+    .then(comments => combinedData.push(...comments))
+    .then(() => {
+        let authorChecklistComplete = false;
+        let reviewerChecklistComplete = false;
 
-module.exports = {
-    getJSONInput,
-    getStringInput,
-};
+        // Once we've gathered all the data, loop through each comment and look to see if it contains a completed checklist
+        for (let i = 0; i < combinedData.length; i++) {
+            const whitespace = /([\n\r])/gm;
+            const comment = combinedData[i].replace(whitespace, '');
+
+            if (comment.includes(completedAuthorChecklist.replace(whitespace, ''))) {
+                authorChecklistComplete = true;
+            }
+
+            if (comment.includes(completedReviewerChecklist.replace(whitespace, ''))) {
+                reviewerChecklistComplete = true;
+            }
+        }
+
+        if (verifyingAuthorChecklist && !authorChecklistComplete) {
+            console.log('Make sure you are using the most up to date checklist found here: https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md');
+            core.setFailed('PR Author Checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+            return;
+        }
+
+        if (!verifyingAuthorChecklist && !reviewerChecklistComplete) {
+            console.log('Make sure you are using the most up to date checklist found here: https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md');
+            core.setFailed('PR Reviewer Checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+            return;
+        }
+
+        console.log(`${verifyingAuthorChecklist ? 'PR Author' : 'PR Reviewer'} checklist is complete 🎉`);
+    });
 
 
 /***/ }),
@@ -696,7 +671,7 @@ class GithubUtils {
      * @returns {Promise<String>}
      */
     static getActorWhoClosedIssue(issueNumber) {
-        return this.octokit.paginate(this.octokit.issues.listEvents, {
+        return this.paginate(this.octokit.issues.listEvents, {
             owner: GITHUB_OWNER,
             repo: APP_REPO,
             issue_number: issueNumber,
@@ -15897,6 +15872,6 @@ module.exports = require("zlib");;
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(2759);
+/******/ 	return __nccwpck_require__(2850);
 /******/ })()
 ;
