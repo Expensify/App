@@ -11,7 +11,6 @@ class BasePicker extends React.Component {
         super(props);
 
         this.executeOnCloseAndOnBlur = this.executeOnCloseAndOnBlur.bind(this);
-        this.setDefaultValue = this.setDefaultValue.bind(this);
     }
 
     componentDidMount() {
@@ -26,7 +25,8 @@ class BasePicker extends React.Component {
     }
 
     setDefaultValue() {
-        // set default value only if number of items is one
+        // When there is only 1 element in the selector, we do the user a favor and automatically select it for them
+        // so they don't have to spend extra time selecting the only possible value.
         if (this.props.value || !this.props.items || this.props.items.length !== 1 || !this.props.onInputChange) {
             return;
         }
