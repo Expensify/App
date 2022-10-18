@@ -75,7 +75,7 @@ class IOUTransactions extends Component {
         return (
             <View style={[styles.mt3]}>
                 {_.map(this.props.reportActions, (reportAction) => {
-                    if (!reportAction.originalMessage || reportAction.originalMessage.IOUReportID !== this.props.iouReportID) {
+                    if (!reportAction.originalMessage || Number(reportAction.originalMessage.IOUReportID) !== Number(this.props.iouReportID)) {
                         return;
                     }
 
