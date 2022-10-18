@@ -51,37 +51,33 @@ class ReportTypingIndicator extends React.Component {
         const numUsersTyping = _.size(this.state.usersTyping);
 
         // If we are offline, the user typing statuses are not up-to-date so do not show them
-        if (this.props.network.isOffline) {
+        // Or if there is no user typing, we do not show the indicator
+        if (this.props.network.isOffline || numUsersTyping === 0) {
             return null;
         }
 
         // Decide on the Text element that will hold the display based on the number of users that are typing.
-        switch (numUsersTyping) {
-            case 0:
-                return null;
 
-            case 1:
-                return (
-                    <TextWithEllipsis
-                        leadingText={PersonalDetails.getDisplayName(this.state.usersTyping[0])}
-                        trailingText={` ${this.props.translate('reportTypingIndicator.isTyping')}`}
-                        textStyle={[styles.chatItemComposeSecondaryRowSubText]}
-                        wrapperStyle={[styles.chatItemComposeSecondaryRow]}
-                        leadingTextParentStyle={styles.chatItemComposeSecondaryRowOffset}
-                    />
-                );
+        let leadingText = '';
+        let trailingText = '';
 
-            default:
-                return (
-                    <TextWithEllipsis
-                        leadingText={this.props.translate('reportTypingIndicator.multipleUsers')}
-                        trailingText={` ${this.props.translate('reportTypingIndicator.areTyping')}`}
-                        textStyle={[styles.chatItemComposeSecondaryRowSubText]}
-                        wrapperStyle={[styles.chatItemComposeSecondaryRow]}
-                        leadingTextParentStyle={styles.chatItemComposeSecondaryRowOffset}
-                    />
-                );
+        if (numUsersTyping === 1) {
+            leadingText = PersonalDetails.getDisplayName(this.state.usersTyping[0]);
+            trailingText = ` ${this.props.translate('reportTypingIndicator.isTyping')}`;
+        } else {
+            leadingText = this.props.translate('reportTypingIndicator.multipleUsers');
+            trailingText = ` ${this.props.translate('reportTypingIndicator.areTyping')}`;
         }
+
+        return (
+            <TextWithEllipsis
+                leadingText={leadingText}
+                trailingText={trailingText}
+                textStyle={[styles.chatItemComposeSecondaryRowSubText]}
+                wrapperStyle={[styles.chatItemComposeSecondaryRow]}
+                leadingTextParentStyle={styles.chatItemComposeSecondaryRowOffset}
+            />
+        );
     }
 }
 
