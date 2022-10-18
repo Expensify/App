@@ -20,7 +20,7 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
-import reimbursementAccountDraftPropTypes from './reimbursementAccountDraftPropTypes';
+import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import * as Link from '../../libs/actions/Link';
 import RequestorOnfidoStep from './RequestorOnfidoStep';
