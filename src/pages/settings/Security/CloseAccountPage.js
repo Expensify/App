@@ -31,7 +31,7 @@ const propTypes = {
         error: PropTypes.string,
 
         /** Error message keyed by microtime if previous attempt to close account was unsuccessful */
-        errors: PropTypes.object,
+        errors: PropTypes.objectOf(PropTypes.any),
 
         /** Is account currently being closed? */
         isLoading: PropTypes.bool,
