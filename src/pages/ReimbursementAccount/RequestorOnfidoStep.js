@@ -18,16 +18,21 @@ const propTypes = {
     /** Bank account currently in setup */
     /* eslint-disable-next-line react/no-unused-prop-types */
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+
+    /** The draft values of the bank account being setup */
     /* eslint-disable-next-line react/no-unused-prop-types */
     reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
-    onfidoToken: PropTypes.string,
+
+    /** The token required to initialize the Onfido SDK */
+    onfidoToken: PropTypes.string.isRequired,
+
+    /** A callback to call once the user completes the Onfido flow */
     onComplete: PropTypes.func.isRequired,
+
     ...withLocalizePropTypes,
 };
 
-const defaultProps = {
-    onfidoToken: '',
-};
+const defaultProps = {};
 
 class RequestorOnfidoStep extends React.Component {
     constructor(props) {
