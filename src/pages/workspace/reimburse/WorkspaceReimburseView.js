@@ -132,11 +132,10 @@ class WorkspaceReimburseView extends React.Component {
     setRate(value) {
         const isInvalidRateValue = value !== '' && !CONST.REGEX.RATE_VALUE.test(value);
 
-        this.setState(prevState => ({
-            rateValue: !isInvalidRateValue ? value : prevState.rateValue,
-        }), () => {
+        const updatedValue = !isInvalidRateValue ? this.getRateDisplayValue(value) : this.state.unitRateValue;
+        this.setState({unitRateValue: value}, () => {
             // Set the corrected value with a delay and sync to the server
-            this.updateRateValueDebounced(this.state.rateValue);
+            this.updateRateValueDebounced(updatedValue);
         });
     }
 
@@ -290,16 +289,39 @@ class WorkspaceReimburseView extends React.Component {
                         <View style={[styles.mv4]}>
                             <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
                         </View>
-                        <Button
-                            text={this.props.translate('workspace.common.bankAccount')}
-                            onPress={() => ReimbursementAccount.navigateToBankAccountRoute(this.props.policy.id)}
-                            icon={Expensicons.Bank}
-                            style={[styles.mt4]}
-                            iconStyles={[styles.buttonCTAIcon]}
-                            shouldShowRightIcon
-                            large
-                            success
-                        />
+                        <OfflineWithFeedback
+                            errors={{
+                                ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'errors'], {}),
+                                ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'errors'], {}),
+                            }}
+                            pendingAction={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'pendingAction'])
+                                || lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'pendingAction'])}
+                            onClose={() => Policy.clearCustomUnitErrors(this.props.policy.id, this.state.unitID, this.state.unitRateID)}
+                        >
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mv2]}>
+                                <View style={[styles.rateCol]}>
+                                    <TextInput
+                                        label={this.props.translate('workspace.reimburse.trackDistanceRate')}
+                                        placeholder={this.state.outputCurrency}
+                                        onChangeText={value => this.setRate(value)}
+                                        value={this.state.unitRateValue}
+                                        autoCompleteType="off"
+                                        autoCorrect={false}
+                                        keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+                                        onKeyPress={this.debounceUpdateOnCursorMove}
+                                        maxLength={12}
+                                    />
+                                </View>
+                                <View style={[styles.unitCol]}>
+                                    <Picker
+                                        label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
+                                        items={this.unitItems}
+                                        value={this.state.unitValue}
+                                        onInputChange={value => this.setUnit(value)}
+                                    />
+                                </View>
+                            </View>
+                        </OfflineWithFeedback>
                     </Section>
                 )}
             </>
