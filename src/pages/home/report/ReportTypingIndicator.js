@@ -51,7 +51,7 @@ class ReportTypingIndicator extends React.Component {
         const numUsersTyping = _.size(this.state.usersTyping);
 
         // If we are offline, the user typing statuses are not up-to-date so do not show them
-        // Or if there is no user typing, we do not show the indicator
+        // If there is no user typing or the device is offline, do not show the indicator.
         if (this.props.network.isOffline || numUsersTyping === 0) {
             return null;
         }
