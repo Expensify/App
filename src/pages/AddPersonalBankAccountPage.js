@@ -59,6 +59,7 @@ class AddPersonalBankAccountPage extends React.Component {
 
         this.validate = this.validate.bind(this);
         this.submit = this.submit.bind(this);
+        this.getSelectedPlaidAccount = this.getSelectedPlaidAccount.bind(this);
 
         this.state = {
             selectedPlaidAccountID: this.props.personalBankAccount.plaidAccountID,
@@ -69,18 +70,10 @@ class AddPersonalBankAccountPage extends React.Component {
         BankAccounts.clearPersonalBankAccount();
     }
 
-    componentDidUpdate() {
-        if (!this.state.selectedPlaidAccountID) {
-            return;
-        }
-        const selectedPlaidBankAccount = _.findWhere(lodashGet(this.props.plaidData, 'bankAccounts', []), {
+    getSelectedPlaidAccount() {
+        return _.findWhere(lodashGet(this.props.plaidData, 'bankAccounts', []), {
             plaidAccountID: this.state.selectedPlaidAccountID,
         });
-
-        if (selectedPlaidBankAccount) {
-            return;
-        }
-        this.setState({selectedPlaidAccountID: ''});
     }
 
     /**
@@ -103,15 +96,13 @@ class AddPersonalBankAccountPage extends React.Component {
      * @param {Object} values.password The password of the user adding the bank account, for security.
      */
     submit(values) {
-        const selectedPlaidBankAccount = _.findWhere(lodashGet(this.props.plaidData, 'bankAccounts', []), {
-            plaidAccountID: this.state.selectedPlaidAccountID,
-        });
-
+        const selectedPlaidBankAccount = this.getSelectedPlaidAccount();
         BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount, values.password);
     }
 
     render() {
         const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
+        const isPlaidBankAccountSelected = Boolean(this.state.selectedPlaidAccountID) && !_.isEmpty(this.getSelectedPlaidAccount());
 
         return (
             <ScreenWrapper>
@@ -152,7 +143,7 @@ class AddPersonalBankAccountPage extends React.Component {
                 ) : (
                     <Form
                         formID={ONYXKEYS.PERSONAL_BANK_ACCOUNT}
-                        isSubmitButtonVisible={Boolean(this.state.selectedPlaidAccountID)}
+                        isSubmitButtonVisible={isPlaidBankAccountSelected}
                         submitButtonText={this.props.translate('common.saveAndContinue')}
                         onSubmit={this.submit}
                         validate={this.validate}
@@ -167,7 +158,7 @@ class AddPersonalBankAccountPage extends React.Component {
                                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                                 selectedPlaidAccountID={this.state.selectedPlaidAccountID}
                             />
-                            {Boolean(this.state.selectedPlaidAccountID) && (
+                            {isPlaidBankAccountSelected && (
                             <TextInput
                                 inputID="password"
                                 label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
