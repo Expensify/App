@@ -135,11 +135,10 @@ class WorkspaceReimburseView extends React.Component {
         const rateValueRegex = RegExp(String.raw`^\d{1,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,3})?$`, 'i');
         const isInvalidRateValue = value !== '' && !rateValueRegex.test(value);
 
-        this.setState(prevState => ({
-            unitRateValue: !isInvalidRateValue ? this.getRateDisplayValue(value) : prevState.unitRateValue,
-        }), () => {
+        const updatedValue = !isInvalidRateValue ? this.getRateDisplayValue(value) : this.state.unitRateValue;
+        this.setState({unitRateValue: value}, () => {
             // Set the corrected value with a delay and sync to the server
-            this.updateRateValueDebounced(this.state.unitRateValue);
+            this.updateRateValueDebounced(updatedValue);
         });
     }
 
@@ -242,6 +241,7 @@ class WorkspaceReimburseView extends React.Component {
                                         autoCorrect={false}
                                         keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                                         onKeyPress={this.debounceUpdateOnCursorMove}
+                                        maxLength={12}
                                     />
                                 </View>
                                 <View style={[styles.unitCol]}>
