@@ -92,7 +92,7 @@ runs:
           --label "automerge" \
           --base ${{ inputs.TARGET_BRANCH }}
         sleep 5
-        echo "::set-output name=PR_NUMBER::$(gh pr view --json 'number' --jq '.number')"
+        echo "PR_NUMBER=$(gh pr view --json 'number' --jq '.number')" >> "$GITHUB_OUTPUT"
       env:
         GITHUB_TOKEN: ${{ inputs.OS_BOTIFY_TOKEN }}
 
