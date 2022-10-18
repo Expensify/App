@@ -6,7 +6,7 @@ import CONST from '../../CONST';
  * Clear CloseAccount error message to hide modal
  */
 function clearError() {
-    Onyx.merge(ONYXKEYS.CLOSE_ACCOUNT, {error: ''});
+    Onyx.merge(ONYXKEYS.CLOSE_ACCOUNT, {error: '', errors: {}});
 }
 
 /**
