@@ -74,7 +74,6 @@ class WorkspaceSettingsPage extends React.Component {
         return (
             <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)}>
                 <WorkspacePageWithSections
-                    shouldNotUseScrollView
                     headerText={this.props.translate('workspace.common.settings')}
                     route={this.props.route}
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_SETTINGS}
