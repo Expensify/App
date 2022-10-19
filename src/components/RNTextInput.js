@@ -16,7 +16,7 @@ const defaultProps = {
 const RNTextInput = props => (
     <TextInput
         ref={(ref) => {
-            if (!_.isFunction(props.forwardedRef) || !ref) {
+            if (!_.isFunction(props.forwardedRef)) {
                 return;
             }
 
