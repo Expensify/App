@@ -1717,26 +1717,26 @@ const styles = {
     },
 
     horizontalStackedAvatar1: {
-        right: 27,
+        left: -19,
         top: -79,
         zIndex: 2,
     },
 
     horizontalStackedAvatar2: {
-        right: 7,
+        left: 1,
         top: -51,
         zIndex: 3,
     },
 
     horizontalStackedAvatar3: {
-        left: 13,
+        left: 21,
         top: -23,
         zIndex: 4,
     },
 
     horizontalStackedAvatar4: {
         top: 5,
-        left: 33,
+        left: 41,
         zIndex: 5,
     },
 
