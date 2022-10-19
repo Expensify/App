@@ -180,7 +180,7 @@ class ACHContractStep extends React.Component {
                     shouldShowBackButton
                 />
                 <Form
-                    formID="test"
+                    formID={ONYXKEYS.FORMS.ACH_CONTRACT_FORM}
                     validate={() => {}}
                     onSubmit={() => {}}
                     submitButtonText="Save"

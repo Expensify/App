@@ -175,6 +175,7 @@ export default {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
         REQUEST_CALL_FORM: 'requestCallForm',
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
+        ACH_CONTRACT_FORM: 'ACHContractForm',
     },
 
     // Whether we should show the compose input or not
