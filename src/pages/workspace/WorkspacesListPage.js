@@ -122,6 +122,7 @@ class WorkspacesListPage extends Component {
                 dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
                 disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             }))
+            .sortBy(policy => policy.title)
             .value();
     }
 
@@ -155,7 +156,7 @@ class WorkspacesListPage extends Component {
     }
 
     render() {
-        const menuList = this.getMenuItemsList();
+        const menuItemsList = this.getMenuItemsList();
 
         return (
             <ScreenWrapper>
@@ -165,7 +166,7 @@ class WorkspacesListPage extends Component {
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                {_.isEmpty(menuList) ? (
+                {_.isEmpty(menuItemsList) ? (
                     <BlockingView
                         icon={Expensicons.Building}
                         title={this.props.translate('workspace.emptyWorkspace.title')}
@@ -173,7 +174,7 @@ class WorkspacesListPage extends Component {
                     />
                 ) : (
                     <ScrollView style={styles.flex1}>
-                        {_.map(this.getMenuItemsList(), (item, index) => this.getMenuItem(item, index))}
+                        {_.map(menuItemsList, (item, index) => this.getMenuItem(item, index))}
                     </ScrollView>
                 )}
                 <FixedFooter style={[styles.flexGrow0]}>
