@@ -22,6 +22,7 @@ import policyMemberPropType from '../policyMemberPropType';
 import Permissions from '../../libs/Permissions';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
+import BlockingView from '../../components/BlockingViews/BlockingView';
 
 const propTypes = {
     /* Onyx Props */
@@ -154,6 +155,8 @@ class WorkspacesListPage extends Component {
     }
 
     render() {
+        const menuList = this.getMenuItemsList();
+
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -162,9 +165,17 @@ class WorkspacesListPage extends Component {
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                <ScrollView style={styles.flex1}>
-                    {_.map(this.getMenuItemsList(), (item, index) => this.getMenuItem(item, index))}
-                </ScrollView>
+                {_.isEmpty(menuList) ? (
+                    <BlockingView
+                        icon={Expensicons.Building}
+                        title={this.props.translate('workspace.emptyWorkspace.title')}
+                        subtitle={this.props.translate('workspace.emptyWorkspace.subtitle')}
+                    />
+                ) : (
+                    <ScrollView style={styles.flex1}>
+                        {_.map(this.getMenuItemsList(), (item, index) => this.getMenuItem(item, index))}
+                    </ScrollView>
+                )}
                 <FixedFooter style={[styles.flexGrow0]}>
                     <Button
                         success
