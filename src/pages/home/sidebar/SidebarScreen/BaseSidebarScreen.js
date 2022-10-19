@@ -19,9 +19,6 @@ import Performance from '../../../../libs/Performance';
 import * as Welcome from '../../../../libs/actions/Welcome';
 import {sidebarPropTypes, sidebarDefaultProps} from './sidebarPropTypes';
 import withDrawerState from '../../../../components/withDrawerState';
-import {withNetwork} from '../../../../components/OnyxProvider';
-import compose from '../../../../libs/compose';
-import networkPropTypes from '../../../../components/networkPropTypes';
 
 const propTypes = {
 
