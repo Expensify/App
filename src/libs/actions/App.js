@@ -188,14 +188,31 @@ function setUpPoliciesAndNavigate(session) {
     const url = new URL(currentUrl);
     const exitTo = url.searchParams.get('exitTo');
 
+    // Approved Accountants and Guides can enter a flow where they make a workspace for other users,
+    // and those are passed as a search parameter when using transition links
+    const ownerEmail = url.searchParams.get('ownerEmail');
+    const makeMeAdmin = url.searchParams.get('makeMeAdmin');
+
     const shouldCreateFreePolicy = !isLoggingInAsNewUser
                         && Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
                         && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        Policy.createWorkspace();
+        Policy.createWorkspace(ownerEmail, makeMeAdmin);
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
+        if (Navigation.isDrawerRoute(exitTo)) {
+            // The drawer navigation is only created after we have fetched reports from the server.
+            // Thus, if we use the standard navigation and try to navigate to a drawer route before
+            // the reports have been fetched, we will fail to navigate.
+            Navigation.isDrawerReady()
+                .then(() => {
+                    // We must call dismissModal() to remove the /transition route from history
+                    Navigation.dismissModal();
+                    Navigation.navigate(exitTo);
+                });
+            return;
+        }
         Navigation.isNavigationReady()
             .then(() => {
                 // We must call dismissModal() to remove the /transition route from history

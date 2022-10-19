@@ -93,6 +93,10 @@ export default {
         marginRight: -20,
     },
 
+    mlAuto: {
+        marginLeft: 'auto',
+    },
+
     ml1: {
         marginLeft: 4,
     },
@@ -352,5 +356,9 @@ export default {
 
     pb10Percentage: {
         paddingBottom: '10%',
+    },
+
+    gap1: {
+        gap: 4,
     },
 };
