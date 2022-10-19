@@ -12,26 +12,33 @@ import PopoverMenu from '../../../../components/PopoverMenu';
 import CONST from '../../../../CONST';
 import FAB from '../../../../components/FAB';
 import compose from '../../../../libs/compose';
-import withLocalize from '../../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import withWindowDimensions from '../../../../components/withWindowDimensions';
 import ONYXKEYS from '../../../../ONYXKEYS';
-import {sidebarPropTypes, sidebarDefaultProps} from './sidebarPropTypes';
 
-const popoverModalBasePropTypes = {
+const propTypes = {
     /* Callback function when the menu is shown */
     onShowCreateMenu: PropTypes.func,
 
     /* Callback function before the menu is hidden */
     onHideCreateMenu: PropTypes.func,
-};
-const propTypes = {
-    ...popoverModalBasePropTypes,
-    ...sidebarPropTypes,
+
+    /** The list of policies the user has access to. */
+    allPolicies: PropTypes.shape({
+        /** The policy name */
+        name: PropTypes.string,
+    }),
+
+    /* Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
+    ...withLocalizePropTypes,
 };
 const defaultProps = {
     onHideCreateMenu: () => {},
     onShowCreateMenu: () => {},
-    ...sidebarDefaultProps,
+    allPolicies: {},
+    betas: [],
 };
 
 /**
@@ -149,7 +156,6 @@ class PopoverModal extends React.Component {
 PopoverModal.propTypes = propTypes;
 PopoverModal.defaultProps = defaultProps;
 
-export {popoverModalBasePropTypes};
 export default compose(
     withLocalize,
     withWindowDimensions,
