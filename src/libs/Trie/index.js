@@ -80,11 +80,10 @@ class Trie {
         let prefix = '';
         for (let i = 0; i < newSubstr.length; i++) {
             prefix += newSubstr[i];
-            if (node.children[newSubstr[i]]) {
-                node = node.children[newSubstr[i]];
-            } else {
+            if (!node.children[newSubstr[i]]) {
                 return [];
             }
+            node = node.children[newSubstr[i]];
         }
         return this.getChildMatching(node, prefix, limit, []);
     }

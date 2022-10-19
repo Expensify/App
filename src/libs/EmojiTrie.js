@@ -5,7 +5,6 @@ import CONST from '../CONST';
 
 Timing.start(CONST.TIMING.TRIE_INITIALIZATION);
 
-// Create a Trie object
 const emojisTrie = new Trie();
 
 // Inserting all emojis into the Trie object
