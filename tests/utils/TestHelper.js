@@ -108,9 +108,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                         {
                             onyxMethod: CONST.ONYX.METHOD.MERGE,
                             key: ONYXKEYS.BETAS,
-                            value: {
-                                betas: ['all'],
-                            },
+                            value: ['all'],
                         },
                     ],
                     jsonCode: 200,
