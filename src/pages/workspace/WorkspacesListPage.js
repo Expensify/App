@@ -84,7 +84,7 @@ class WorkspacesListPage extends Component {
         super(props);
 
         this.getWalletBalance = this.getWalletBalance.bind(this);
-        this.getMenuItemsList = this.getMenuItemsList.bind(this);
+        this.getWorkspaces = this.getWorkspaces.bind(this);
         this.getMenuItem = this.getMenuItem.bind(this);
     }
 
@@ -104,7 +104,7 @@ class WorkspacesListPage extends Component {
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
      * @returns {Array} the menu item list
      */
-    getMenuItemsList() {
+    getWorkspaces() {
         return _.chain(this.props.policies)
             .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
             .map(policy => ({
@@ -126,6 +126,13 @@ class WorkspacesListPage extends Component {
             .value();
     }
 
+    /**
+     * Gets the menu item for each workspace
+     *
+     * @param {Object} item
+     * @param {Number} index
+     * @returns {JSX}
+     */
     getMenuItem(item, index) {
         const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
         const isPaymentItem = item.translationKey === 'common.payments';
@@ -156,7 +163,7 @@ class WorkspacesListPage extends Component {
     }
 
     render() {
-        const menuItemsList = this.getMenuItemsList();
+        const workspaces = this.getWorkspaces();
 
         return (
             <ScreenWrapper>
@@ -166,7 +173,7 @@ class WorkspacesListPage extends Component {
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                {_.isEmpty(menuItemsList) ? (
+                {_.isEmpty(workspaces) ? (
                     <BlockingView
                         icon={Expensicons.Building}
                         title={this.props.translate('workspace.emptyWorkspace.title')}
@@ -174,7 +181,7 @@ class WorkspacesListPage extends Component {
                     />
                 ) : (
                     <ScrollView style={styles.flex1}>
-                        {_.map(menuItemsList, (item, index) => this.getMenuItem(item, index))}
+                        {_.map(workspaces, (item, index) => this.getMenuItem(item, index))}
                     </ScrollView>
                 )}
                 <FixedFooter style={[styles.flexGrow0]}>
