@@ -133,7 +133,7 @@ function startLoadingAndResetError() {
  * @param {String} comment
  */
 function requestMoney(report, participants, amount, currency, recipientEmail, debtorEmail, comment) {
-    let chatReport = report;
+    let chatReport = lodashGet(report, 'reportID', null) ? report : null;
     let isNewChat = false;
     if (!chatReport) {
         chatReport = ReportUtils.getChatByParticipants([debtorEmail]);
