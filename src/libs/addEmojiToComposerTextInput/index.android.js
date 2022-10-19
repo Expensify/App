@@ -1,4 +1,4 @@
-import addEmojiToComposerTextInput from './addEmojiToComposerTextInput';
+import addEmojiToComposerTextInputImpl from './addEmojiToComposerTextInput';
 
 /**
  * Takes a text and adds an emoji at the place of selection.
@@ -8,7 +8,7 @@ import addEmojiToComposerTextInput from './addEmojiToComposerTextInput';
  * @param {AddEmojiToComposerTextInputParams} params
  * @return {AddEmojiToComposerTextInputReturnType}
  */
-export default (params) => {
+function addEmojiToComposerTextInput(params) {
     const {prevSelection, textInput} = params;
     const hasRangeSelected = prevSelection.start !== prevSelection.end;
     if (hasRangeSelected) {
@@ -18,5 +18,7 @@ export default (params) => {
         textInput.setSelection(prevSelection.start, prevSelection.start);
     }
 
-    return addEmojiToComposerTextInput(params);
-};
+    return addEmojiToComposerTextInputImpl(params);
+}
+
+export default addEmojiToComposerTextInput;

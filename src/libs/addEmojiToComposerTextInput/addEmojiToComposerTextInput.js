@@ -23,12 +23,12 @@
  * @param {AddEmojiToComposerTextInputParams} params
  * @return {AddEmojiToComposerTextInputReturnType}
  */
-const addEmojiToComposerTextInput = ({
+function addEmojiToComposerTextInput({
     text,
     emoji,
     textInput,
     selection,
-}) => {
+}) {
     const newText = text.slice(0, selection.start) + emoji + text.slice(selection.end, text.length);
     const newSelectionStart = selection.start + emoji.length;
     const newSelection = {
@@ -42,5 +42,6 @@ const addEmojiToComposerTextInput = ({
         newText,
         newSelection,
     };
-};
+}
+
 export default addEmojiToComposerTextInput;
