@@ -198,7 +198,7 @@ function onSubmit(values) {
 </Form>
 ```
 
-`Form.js` also works with inputs component that's nested on a component that doesn't wrap with any HOC.
+`Form.js` also works with inputs from a nested component. The only exception is that the nested component shouldn't be wrapped around any HoC.
 
 ```jsx
 const BankAccountForm = () => (
