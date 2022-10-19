@@ -19,8 +19,14 @@ import TextInput from '../../components/TextInput';
 import * as Session from '../../libs/actions/Session';
 import PasswordConfirmationScreen from './PasswordConfirmationScreen';
 import * as ErrorUtils from '../../libs/ErrorUtils';
+import {withNetwork} from '../../components/OnyxProvider';
+import networkPropTypes from '../../components/networkPropTypes';
 
 const propTypes = {
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
+
     /* Onyx Props */
 
     /** Holds information about the users account that is logging in */
@@ -220,6 +226,7 @@ class PasswordPage extends Component {
                                     isLoading={this.props.account.isLoading}
                                     text={this.props.translate('common.save')}
                                     onPress={this.submit}
+                                    isDisabled={this.props.network.isOffline}
                                 />
                             </FixedFooter>
                         </>
@@ -234,6 +241,7 @@ PasswordPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNetwork(),
     withOnyx({
         account: {
             key: ONYXKEYS.ACCOUNT,
