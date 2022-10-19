@@ -9,6 +9,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import Text from '../../../components/Text';
 import TextWithEllipsis from '../../../components/TextWithEllipsis';
 
 const propTypes = {
@@ -51,33 +52,40 @@ class ReportTypingIndicator extends React.Component {
         const numUsersTyping = _.size(this.state.usersTyping);
 
         // If we are offline, the user typing statuses are not up-to-date so do not show them
-        // If there is no user typing or the device is offline, do not show the indicator.
-        if (this.props.network.isOffline || numUsersTyping === 0) {
+        if (this.props.network.isOffline) {
             return null;
         }
 
         // Decide on the Text element that will hold the display based on the number of users that are typing.
+        switch (numUsersTyping) {
+            case 0:
+                return null;
 
-        let leadingText = '';
-        let trailingText = '';
+            case 1:
+                return (
+                    <TextWithEllipsis
+                        leadingText={PersonalDetails.getDisplayName(this.state.usersTyping[0])}
+                        trailingText={` ${this.props.translate('reportTypingIndicator.isTyping')}`}
+                        textStyle={[styles.chatItemComposeSecondaryRowSubText]}
+                        wrapperStyle={[styles.chatItemComposeSecondaryRow]}
+                        leadingTextParentStyle={styles.chatItemComposeSecondaryRowOffset}
+                    />
+                );
 
-        if (numUsersTyping === 1) {
-            leadingText = PersonalDetails.getDisplayName(this.state.usersTyping[0]);
-            trailingText = ` ${this.props.translate('reportTypingIndicator.isTyping')}`;
-        } else {
-            leadingText = this.props.translate('reportTypingIndicator.multipleUsers');
-            trailingText = ` ${this.props.translate('reportTypingIndicator.areTyping')}`;
+            default:
+                return (
+                    <Text
+                        style={[
+                            styles.chatItemComposeSecondaryRowSubText,
+                            styles.chatItemComposeSecondaryRowOffset,
+                        ]}
+                        numberOfLines={1}
+                    >
+                        {this.props.translate('reportTypingIndicator.multipleUsers')}
+                        {` ${this.props.translate('reportTypingIndicator.areTyping')}`}
+                    </Text>
+                );
         }
-
-        return (
-            <TextWithEllipsis
-                leadingText={leadingText}
-                trailingText={trailingText}
-                textStyle={[styles.chatItemComposeSecondaryRowSubText]}
-                wrapperStyle={[styles.chatItemComposeSecondaryRow]}
-                leadingTextParentStyle={styles.chatItemComposeSecondaryRowOffset}
-            />
-        );
     }
 }
 
