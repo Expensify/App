@@ -133,7 +133,7 @@ function startLoadingAndResetError() {
  * @param {String} comment
  */
 function requestMoney(report, participants, amount, currency, recipientEmail, debtorEmail, comment) {
-    const chatReport = lodashGet(report, 'reportID', null) ? report : ReportUtils.buildOptimisticChatReport(participants);
+    const chatReport = lodashGet(report, 'reportID', null) ? report : ReportUtils.getOrCreateChatReport([recipientEmail, debtorEmail]);
     let iouReport;
     if (chatReport.hasOutstandingIOU) {
         iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`];
