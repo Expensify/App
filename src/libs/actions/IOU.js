@@ -14,6 +14,7 @@ import Log from '../Log';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
 import * as NumberUtils from '../NumberUtils';
+import * as DateUtils from '../DateUtils';
 
 let iouReports;
 Onyx.connect({
@@ -165,9 +166,11 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
     );
     let optimisticData = [];
     let successData = [];
+    let failureData = [];
 
     // First, let's add the data we need just when we are creating a new chat report
     if (isNewChat) {
+        const optimisticCreateAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
         optimisticData = [
             {
                 onyxMethod: CONST.ONYX.METHOD.SET,
@@ -177,16 +180,30 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
                     isLoadingReportActions: true,
                     lastVisitedTimestamp: Date.now(),
                     pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                    isOptimisticReport: true,
                 },
             },
             {
                 onyxMethod: CONST.ONYX.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-                value: ReportUtils.buildOptimisticCreatedReportAction(recipientEmail),
+                value: optimisticCreateAction,
             },
         ];
 
         successData = [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                value: {
+                    pendingFields: null,
+                    isLoadingReportActions: false,
+                    isOptimisticReport: false,
+                    errorFields: null,
+                },
+            },
+        ];
+
+        failureData = [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
@@ -224,7 +241,7 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
             },
         },
     ]);
-    const failureData = [
+    failureData = _.union(failureData, [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
@@ -232,11 +249,13 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
                 [optimisticReportAction.sequenceNumber]: {
                     ...optimisticReportAction,
                     pendingAction: null,
-                    error: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                    errors: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                    },
                 },
             },
         },
-    ];
+    ]);
     API.write('RequestMoney', {
         debtorEmail,
         amount,
