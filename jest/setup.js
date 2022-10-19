@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler/jestSetup';
 
-require('react-native-reanimated/lib/reanimated2/jestUtils').setUpTests();
+require('react-native-reanimated/src/reanimated2/jestUtils').setUpTests();
 
 // Silence the warning: Animated: `useNativeDriver` is not supported because the native animated module is missing
 jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
