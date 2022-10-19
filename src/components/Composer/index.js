@@ -187,10 +187,13 @@ class Composer extends React.Component {
         this.textInput.removeEventListener('wheel', this.handleWheel);
     }
 
-    /*
+    /**
+     * Imperatively set the text and the selection of the text input.
+     *
      * @param {String} text
      * @param {Number} start selection start index
      * @param {Number} end   selection end index
+     */
     setTextAndSelection(text, start, end) {
         this.textInput.value = text;
         this.textInput.setSelectionRange(start, end);
