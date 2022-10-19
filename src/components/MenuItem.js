@@ -153,8 +153,18 @@ const MenuItem = (props) => {
                                 </Text>
                             </View>
                         )}
+                        {!_.isEmpty(props.floatRightAvatars) && (
+                            <View style={[styles.justifyContentCenter, (props.brickRoadIndicator ? styles.mr4 : styles.mr3)]}>
+                                <MultipleAvatars
+                                    icons={props.floatRightAvatars}
+                                    size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                    fallbackIcon={Expensicons.Workspace}
+                                    shouldStackHorizontally={props.shouldStackHorizontally}
+                                />
+                            </View>
+                        )}
                         {Boolean(props.brickRoadIndicator) && (
-                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.l4]}>
                                 <Icon
                                     src={Expensicons.DotIndicator}
                                     fill={props.brickRoadIndicator === 'error' ? colors.red : colors.green}
@@ -162,14 +172,6 @@ const MenuItem = (props) => {
                                     width={variables.iconSizeSmall}
                                 />
                             </View>
-                        )}
-                        {!_.isEmpty(props.floatRightAvatars) && (
-                            <MultipleAvatars
-                                icons={props.floatRightAvatars}
-                                size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
-                                fallbackIcon={Expensicons.Workspace}
-                                shouldStackHorizontally={props.shouldStackHorizontally}
-                            />
                         )}
                         {Boolean(props.shouldShowRightIcon) && (
                             <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled]}>
