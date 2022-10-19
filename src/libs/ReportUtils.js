@@ -1006,24 +1006,6 @@ function getChatByParticipants(newParticipantList) {
     });
 }
 
-/**
- * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
- *
- * @param {Array} userLogins list of user logins.
- */
-function getOrCreateChatReport(userLogins) {
-    const formattedUserLogins = _.map(userLogins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
-    let newChat = {};
-    const chat = this.getChatByParticipants(formattedUserLogins);
-    if (!chat) {
-        newChat = this.buildOptimisticChatReport(formattedUserLogins);
-    }
-    const reportID = chat ? chat.reportID : newChat.reportID;
-    Report.openReport(reportID, newChat.participants, newChat);
-    Navigation.navigate(ROUTES.getReportRoute(reportID));
-    return newChat;
-}
-
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,

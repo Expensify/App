@@ -133,7 +133,15 @@ function startLoadingAndResetError() {
  * @param {String} comment
  */
 function requestMoney(report, participants, amount, currency, recipientEmail, debtorEmail, comment) {
-    const chatReport = lodashGet(report, 'reportID', null) ? report : ReportUtils.getOrCreateChatReport([recipientEmail, debtorEmail]);
+    let chatReport = lodashGet(report, 'reportID', null);
+    let isNewChat = false;
+    if (!chatReport) {
+        chatReport = ReportUtils.getChatByParticipants([debtorEmail]);
+    }
+    if (!chatReport) {
+        chatReport = ReportUtils.buildOptimisticChatReport([debtorEmail]);
+        isNewChat = true;
+    }
     let iouReport;
     if (chatReport.hasOutstandingIOU) {
         iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`];
