@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import Text from './Text';
 import styles from '../styles/styles';
 import stylePropTypes from '../styles/stylePropTypes';
+import * as StyleUtils from '../styles/StyleUtils';
 
 const propTypes = {
     text: PropTypes.string.isRequired,
@@ -17,7 +17,7 @@ const defaultProps = {
 };
 
 const TextPill = (props) => {
-    const propsStyle = _.isArray(props.style) ? props.style : [props.style];
+    const propsStyle = StyleUtils.parseStyleAsArray(props.style);
 
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <Text {...props} style={[styles.textPill, ...propsStyle]} numberOfLines={1}>{props.text}</Text>;
