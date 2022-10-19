@@ -133,7 +133,7 @@ function startLoadingAndResetError() {
  * @param {String} comment
  */
 function requestMoney(report, participants, amount, currency, recipientEmail, debtorEmail, comment) {
-    let chatReport = lodashGet(report, 'reportID', null);
+    let chatReport = report;
     let isNewChat = false;
     if (!chatReport) {
         chatReport = ReportUtils.getChatByParticipants([debtorEmail]);
@@ -163,7 +163,42 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
         debtorEmail,
         preferredLocale,
     );
-    const optimisticData = [
+    let optimisticData = [];
+    let successData = [];
+
+    // First, let's add the data we need just when we are creating a new chat report
+    if (isNewChat) {
+        optimisticData = [
+            {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                value: {
+                    ...chatReport,
+                    isLoadingReportActions: true,
+                    lastVisitedTimestamp: Date.now(),
+                    pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                },
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                value: ReportUtils.buildOptimisticCreatedReportAction(recipientEmail),
+            },
+        ];
+
+        successData = [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                value: {
+                    pendingFields: null,
+                },
+            },
+        ];
+    }
+
+    // Add Data that will be used in all cases
+    optimisticData = _.union(optimisticData, [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
@@ -173,19 +208,12 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: {
-                ...chatReport,
-                pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
-            },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReport.reportID}`,
             value: iouReport,
         },
-    ];
-    const successData = [
+    ]);
+
+    successData = _.union(successData, [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
@@ -195,14 +223,7 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
                 },
             },
         },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: {
-                pendingFields: null,
-            },
-        },
-    ];
+    ]);
     const failureData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -213,14 +234,6 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
                     pendingAction: null,
                     error: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
                 },
-            },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: {
-                ...chatReport,
-                pendingFields: null,
             },
         },
     ];

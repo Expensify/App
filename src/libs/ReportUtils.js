@@ -1047,5 +1047,4 @@ export {
     buildOptimisticReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
-    getOrCreateChatReport,
 };
