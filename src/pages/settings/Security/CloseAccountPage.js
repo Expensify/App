@@ -31,7 +31,7 @@ const propTypes = {
         error: PropTypes.string,
 
         /** Error message keyed by microtime if previous attempt to close account was unsuccessful */
-        errors: PropTypes.objectOf(PropTypes.any),
+        errors: PropTypes.objectOf(PropTypes.string),
 
         /** Is account currently being closed? */
         isLoading: PropTypes.bool,
@@ -144,7 +144,7 @@ class CloseAccountPage extends Component {
                         </Text>
                     )}
                     onConfirm={CloseAccount.clearError}
-                    isVisible={Boolean(this.props.closeAccount.error) || Boolean(this.props.closeAccount.errors)}
+                    isVisible={Boolean(this.props.closeAccount.error) || Boolean(!_isEmpty(this.props.closeAccount.errors))}
                     shouldShowCancelButton={false}
                 />
             </ScreenWrapper>
