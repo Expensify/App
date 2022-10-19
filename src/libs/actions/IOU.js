@@ -16,16 +16,11 @@ import * as ReportUtils from '../ReportUtils';
 import * as IOUUtils from '../IOUUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 
-const iouReports = {};
+let iouReports;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_IOUS,
-    callback: (iouReport, key) => {
-        if (!iouReport || !key || !iouReport.ownerEmail) {
-            return;
-        }
-
-        iouReports[key] = iouReport;
-    },
+    waitForCollectionCallback: true,
+    callback: val => iouReports = val,
 });
 
 /**
@@ -141,7 +136,7 @@ function createIOUTransaction(params) {
 /**
  * @param {Array} participants
  * @param {String} currentUserLogin
- * @param {Int} amount
+ * @param {Number} amount
  * @param {String} comment
  * @param {String} currency
  * @param {String} locale
@@ -354,7 +349,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
 /**
  * @param {Array} participants
  * @param {String} currentUserLogin
- * @param {Int} amount
+ * @param {Number} amount
  * @param {String} comment
  * @param {String} currency
  * @param {String} locale
@@ -379,7 +374,7 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, lo
 /**
  * @param {Array} participants
  * @param {String} currentUserLogin
- * @param {Int} amount
+ * @param {Number} amount
  * @param {String} comment
  * @param {String} currency
  * @param {String} locale
