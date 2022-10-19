@@ -158,8 +158,9 @@ class ReimbursementAccountPage extends React.Component {
         // We can specify a step to navigate to by using route params when the component mounts.
         // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
         const stepToOpen = this.getStepToOpenFromRouteParams();
-        const subStep = lodashGet(store.getReimbursementAccountInSetup(), 'subStep', '');
-        const localCurrentStep = lodashGet(store.getReimbursementAccountInSetup(), 'currentStep', '');
+        const reimbursementAccount = store.getReimbursementAccountInSetup();
+        const subStep = reimbursementAccount.subStep || '';
+        const localCurrentStep = reimbursementAccount.currentStep || '';
         BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep);
     }
 
