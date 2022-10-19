@@ -5,6 +5,8 @@ const ELECTRON_EVENTS = {
     SHOW_KEYBOARD_SHORTCUTS_MODAL: 'show-keyboard-shortcuts-modal',
     START_UPDATE: 'start-update',
     UPDATE_DOWNLOADED: 'update-downloaded',
+    FOCUS: 'focus',
+    BLUR: 'blur',
 };
 
 module.exports = ELECTRON_EVENTS;

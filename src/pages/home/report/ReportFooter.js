@@ -90,6 +90,8 @@ class ReportFooter extends React.Component {
                         <SwipeableView onSwipeDown={Keyboard.dismiss}>
                             <OfflineWithFeedback
                                 pendingAction={this.props.addWorkspaceRoomPendingAction}
+                                style={this.props.isComposerFullSize ? styles.chatItemFullComposeRow : {}}
+                                contentContainerStyle={this.props.isComposerFullSize ? styles.flex1 : {}}
                             >
                                 <ReportActionCompose
                                     onSubmit={this.props.onSubmitComment}

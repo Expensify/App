@@ -11,6 +11,7 @@ const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const CONST = {
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
+    ANIMATED_TRANSITION_FROM_VALUE: 100,
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
@@ -418,6 +419,7 @@ const CONST = {
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
+    DEFAULT_CLOSE_ACCOUNT_DATA: {error: '', success: '', isLoading: false},
     APP_STATE: {
         ACTIVE: 'active',
         BACKGROUND: 'background',

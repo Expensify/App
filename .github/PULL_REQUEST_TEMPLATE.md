@@ -5,23 +5,42 @@
 
 ### Fixed Issues
 <!---
-Please replace GH_LINK with the link to the GitHub issue this Pull Request is fixing.
+1. Please replace GH_LINK with a URL link to the GitHub issue this Pull Request is fixing.
+2. Please replace PROPOSAL: GH_LINK_ISSUE(COMMENT) with a URL link to your GitHub comment, which contains the approved proposal (i.e. the proposal that was approved by Expensify).
+
 Do NOT add the special GH keywords like `fixed` etc, we have our own process of managing the flow.
-It MUST be an entire link to the issue; otherwise, the linking will not work as expected.
+It MUST be an entire link to the github issue and your comment proposal ; otherwise, the linking will not work as expected.
 
 Make sure this section looks similar to this (you can link multiple issues using the same formatting, just add a new line):
 
 $ https://github.com/Expensify/App/issues/<number-of-the-issue>
+$ https://github.com/Expensify/App/issues/<number-of-the-issue(comment)>
 
 Do NOT only link the issue number like this: $ #<number-of-the-issue>
 --->
-$ GH_LINK
+$ GH_LINK   
+PROPOSAL: GH_LINK_ISSUE(COMMENT)
+
 
 ### Tests
 <!---
 Add a numbered list of manual tests you performed that validates your changes work on all platforms, and that there are no regressions present.
 Add any additional test steps if test steps are unique to a particular platform.
 Manual test steps should be written so that your reviewer can repeat and verify one or more expected outcomes in the development environment.
+
+For example:
+1. Click on the text input to bring it into focus
+2. Upload an image via copy paste
+3. Verify a modal appears displaying a preview of that image
+--->
+
+- [ ] Verify that no errors appear in the JS console
+
+### QA Steps
+<!---
+Add a numbered list of manual tests that can be performed by our QA engineers on the staging environment to validate that your changes work on all platforms, and that there are no regressions present.
+Add any additional QA steps if test steps are unique to a particular platform.
+Manual test steps should be written so that the QA engineer can repeat and verify one or more expected outcomes in the staging environment.
 
 For example:
 1. Click on the text input to bring it into focus
@@ -95,6 +114,7 @@ The reviewer will copy/paste it into a new comment and complete it after the aut
     - [ ] I verified the steps cover any possible failure scenarios (i.e. verify an input displays the correct error message if the entered data is not correct)
     - [ ] I turned off my network connection and tested it while offline to ensure it matches the expected behavior (i.e. verify the default avatar icon is displayed if app is offline)
 - [ ] I checked that screenshots or videos are included for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
+- [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I verified tests pass on **all platforms** & I tested again on:
     - [ ] iOS / native
     - [ ] Android / native
@@ -134,20 +154,6 @@ The reviewer will copy/paste it into a new comment and complete it after the aut
 - [ ] I have checked off every checkbox in the PR reviewer checklist, including those that don't apply to this PR.
 
 </details>
-
-### QA Steps
-<!---
-Add a numbered list of manual tests that can be performed by our QA engineers on the staging environment to validate that your changes work on all platforms, and that there are no regressions present.
-Add any additional QA steps if test steps are unique to a particular platform.
-Manual test steps should be written so that the QA engineer can repeat and verify one or more expected outcomes in the staging environment.
-
-For example:
-1. Click on the text input to bring it into focus
-2. Upload an image via copy paste
-3. Verify a modal appears displaying a preview of that image
---->
-
-- [ ] Verify that no errors appear in the JS console
 
 ### Screenshots
 <!-- Add screenshots for all platforms tested. Pull requests won't be merged unless the screenshots show the app was tested on all platforms.-->
