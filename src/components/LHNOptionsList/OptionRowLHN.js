@@ -66,9 +66,9 @@ const OptionRowLHN = (props) => {
         : styles.sidebarLinkText;
     const textUnreadStyle = optionItem.isUnread
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
-    const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, ...textUnreadStyle], props.style);
+    const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, ...textUnreadStyle], props.style);
     const textPillStyle = props.isFocused
-        ? [styles.ml1, StyleUtils.getBackgroundColorStyle(themeColors.iconLight)]
+        ? [styles.ml1, StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.icon, 0.5)]
         : [styles.ml1];
     const alternateTextStyle = StyleUtils.combineStyles(props.viewMode === CONST.OPTION_MODE.COMPACT
         ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2]
@@ -170,7 +170,7 @@ const OptionRowLHN = (props) => {
                                     {optionItem.isChatRoom && (
                                         <TextPill
                                             style={textPillStyle}
-                                            accessibilityLabel="Chat room name"
+                                            accessibilityLabel="Workspace name"
                                             text={optionItem.subtitle}
                                         />
                                     )}
