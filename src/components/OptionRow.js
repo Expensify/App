@@ -240,7 +240,7 @@ const OptionRow = (props) => {
                             {props.option.hasDraftComment && (
                                 <View
                                     style={styles.ml2}
-                                    accessibilityLabel="Drafted message"
+                                    accessibilityLabel={props.translate('sidebarScreen.draftedMessage')}
                                 >
                                     <Icon src={Expensicons.Pencil} height={16} width={16} />
                                 </View>
@@ -251,7 +251,7 @@ const OptionRow = (props) => {
                             {props.option.isPinned && (
                                 <View
                                     style={styles.ml2}
-                                    accessibilityLabel="Chat pinned"
+                                    accessibilityLabel={props.translate('sidebarScreen.chatPinned')}
                                 >
                                     <Icon src={Expensicons.Pin} height={16} width={16} />
                                 </View>
