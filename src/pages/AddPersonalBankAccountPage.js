@@ -27,10 +27,20 @@ import ROUTES from '../ROUTES';
 
 const propTypes = {
     ...withLocalizePropTypes,
+
+    /** The details about the Personal bank account we are adding saved in Onyx */
     personalBankAccount: PropTypes.shape({
+        /** An error message to display to the user */
         error: PropTypes.string,
+
+        /** Whether we should show the view that the bank account was successfully added */
         shouldShowSuccess: PropTypes.bool,
+
+        /** Whether the form is loading */
         isLoading: PropTypes.bool,
+
+        /** The account ID of the selected bank account from Plaid */
+        plaidAccountID: PropTypes.string,
     }),
 };
 
@@ -39,6 +49,7 @@ const defaultProps = {
         error: '',
         shouldShowSuccess: false,
         isLoading: false,
+        plaidAccountID: '',
     },
 };
 
@@ -50,7 +61,7 @@ class AddPersonalBankAccountPage extends React.Component {
         this.submit = this.submit.bind(this);
 
         this.state = {
-            selectedPlaidBankAccount: undefined,
+            selectedPlaidAccountID: this.props.personalBankAccount.plaidAccountID,
         };
     }
 
@@ -60,7 +71,8 @@ class AddPersonalBankAccountPage extends React.Component {
 
     /**
      * @param {Object} values - form input values passed by the Form component
-     * @returns {Ojbect}
+     * @param {Object} values.password The password of the user adding the bank account, for security.
+     * @returns {Object}
      */
     validate(values) {
         const errors = {};
@@ -74,9 +86,14 @@ class AddPersonalBankAccountPage extends React.Component {
 
     /**
      * @param {Object} values - form input values passed by the Form component
+     * @param {Object} values.password The password of the user adding the bank account, for security.
      */
     submit(values) {
-        BankAccounts.addPersonalBankAccount(this.state.selectedPlaidBankAccount, values.password);
+        const selectedPlaidBankAccount = _.findWhere(lodashGet(this.props.plaidData, 'bankAccounts', []), {
+            plaidAccountID: this.state.selectedPlaidAccountID,
+        });
+
+        BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount, values.password);
     }
 
     render() {
@@ -121,7 +138,7 @@ class AddPersonalBankAccountPage extends React.Component {
                 ) : (
                     <Form
                         formID={ONYXKEYS.PERSONAL_BANK_ACCOUNT}
-                        isSubmitButtonVisible={!_.isUndefined(this.state.selectedPlaidBankAccount)}
+                        isSubmitButtonVisible={Boolean(this.state.selectedPlaidAccountID)}
                         submitButtonText={this.props.translate('common.saveAndContinue')}
                         onSubmit={this.submit}
                         validate={this.validate}
@@ -129,15 +146,14 @@ class AddPersonalBankAccountPage extends React.Component {
                     >
                         <>
                             <AddPlaidBankAccount
-                                onSelect={(params) => {
-                                    this.setState({
-                                        selectedPlaidBankAccount: params.selectedPlaidBankAccount,
-                                    });
+                                onSelect={(selectedPlaidAccountID) => {
+                                    this.setState({selectedPlaidAccountID});
                                 }}
                                 onExitPlaid={Navigation.goBack}
                                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
+                                selectedPlaidAccountID={this.state.selectedPlaidAccountID}
                             />
-                            {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
+                            {Boolean(this.state.selectedPlaidAccountID) && (
                             <TextInput
                                 inputID="password"
                                 label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
@@ -164,6 +180,9 @@ export default compose(
     withOnyx({
         personalBankAccount: {
             key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+        },
+        plaidData: {
+            key: ONYXKEYS.PLAID_DATA,
         },
     }),
 )(AddPersonalBankAccountPage);
