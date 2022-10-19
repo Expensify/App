@@ -5,8 +5,13 @@ import addEmojiToComposerTextInputImpl from './addEmojiToComposerTextInput';
  * It will then update the text of the given TextInput using its `setTextAndSelection` method.
  * `setTextAndSelection` method is usually available on TextInput refs from the composer component.
  *
- * @param {AddEmojiToComposerTextInputParams} params
- * @return {AddEmojiToComposerTextInputReturnType}
+ * @param {Object} params
+ * @param {String} params.text The text where the emoji should be added
+ * @param {String} params.emoji The emoji to add
+ * @param {Object} params.textInput
+ * @param {{start: Number, end: Number}} params.selection
+ *
+ * @return {{ newSelection: {start: Number, end: Number}, newText: String }} results
  */
 function addEmojiToComposerTextInput(params) {
     const {prevSelection, textInput} = params;
