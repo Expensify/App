@@ -673,15 +673,15 @@ function getIOUReportActionMessage(type, total, participants, comment, currency)
     const displayNames = _.map(participants, participant => lodashGet(participant, 'text', participant.login));
     const from = displayNames.length < 3
         ? displayNames.join(' and ')
-        : `${displayNames.slice(0, -1).join(', ')}, ${Localize.translateLocal('common.and')} ${_.last(displayNames)}`;
+        : `${displayNames.slice(0, -1).join(', ')}, and ${_.last(displayNames)}`;
 
     let iouMessage;
     switch (type) {
         case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
-            iouMessage = Localize.translateLocal('iou.requestedFrom', {amount, from, comment});
+            iouMessage = `Requested ${amount} from ${from}${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.SPLIT:
-            iouMessage = Localize.translateLocal('iou.splitWith', {amount, from, comment});
+            iouMessage = `Split ${amount} with ${from}${comment && ` for ${comment}`}`;
             break;
         default:
             break;
