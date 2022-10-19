@@ -1409,9 +1409,10 @@ const styles = {
     }, 0),
 
     textInputFullCompose: {
-        alignSelf: 'flex-end',
+        alignSelf: 'stretch',
         flex: 1,
         maxHeight: '100%',
+        textAlignVertical: 'top',
     },
 
     editInputComposeSpacing: {
