@@ -184,14 +184,14 @@ class ACHContractStep extends React.Component {
                     validate={() => {}}
                     onSubmit={() => {}}
                     submitButtonText="Save"
+                    style={[styles.mh5, styles.flexGrow1]}
                 >
                     <Text style={[styles.mb5]}>
                         <Text>{this.props.translate('beneficialOwnersStep.checkAllThatApply')}</Text>
                     </Text>
                     <CheckboxWithLabel
+                        inputID="ownsMoreThan25Percent"
                         style={[styles.mb2]}
-                        isChecked={this.state.ownsMoreThan25Percent}
-                        onInputChange={() => this.toggleCheckbox('ownsMoreThan25Percent')}
                         LabelComponent={() => (
                             <Text>
                                 {this.props.translate('beneficialOwnersStep.iOwnMoreThan25Percent')}
@@ -200,21 +200,8 @@ class ACHContractStep extends React.Component {
                         )}
                     />
                     <CheckboxWithLabel
+                        inputID="hasOtherBeneficialOwners"
                         style={[styles.mb2]}
-                        isChecked={this.state.hasOtherBeneficialOwners}
-                        onInputChange={() => {
-                            this.setState((prevState) => {
-                                const hasOtherBeneficialOwners = !prevState.hasOtherBeneficialOwners;
-                                const newState = {
-                                    hasOtherBeneficialOwners,
-                                    beneficialOwners: hasOtherBeneficialOwners && _.isEmpty(prevState.beneficialOwners)
-                                        ? [{}]
-                                        : prevState.beneficialOwners,
-                                };
-                                BankAccounts.updateReimbursementAccountDraft(newState);
-                                return newState;
-                            });
-                        }}
                         LabelComponent={() => (
                             <Text>
                                 {this.props.translate('beneficialOwnersStep.someoneOwnsMoreThan25Percent')}
@@ -263,9 +250,8 @@ class ACHContractStep extends React.Component {
                         {this.props.translate('beneficialOwnersStep.agreement')}
                     </Text>
                     <CheckboxWithLabel
+                        inputID="acceptTermsAndConditions"
                         style={[styles.mt4]}
-                        isChecked={this.state.acceptTermsAndConditions}
-                        onInputChange={() => this.toggleCheckbox('acceptTermsAndConditions')}
                         LabelComponent={() => (
                             <View style={[styles.flexRow]}>
                                 <Text>{this.props.translate('common.iAcceptThe')}</Text>
@@ -274,17 +260,14 @@ class ACHContractStep extends React.Component {
                                 </TextLink>
                             </View>
                         )}
-                        errorText={this.getErrorText('acceptTermsAndConditions')}
                         hasError={this.getErrors().acceptTermsAndConditions}
                     />
                     <CheckboxWithLabel
+                        inputID="certifyTrueInformation"
                         style={[styles.mt4]}
-                        isChecked={this.state.certifyTrueInformation}
-                        onInputChange={() => this.toggleCheckbox('certifyTrueInformation')}
                         LabelComponent={() => (
                             <Text>{this.props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}</Text>
                         )}
-                        errorText={this.getErrorText('certifyTrueInformation')}
                     />
                 </Form>
             </>
