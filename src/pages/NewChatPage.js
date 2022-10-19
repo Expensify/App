@@ -8,6 +8,7 @@ import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import * as Report from '../libs/actions/Report';
+import * as ReportUtils from '../libs/ReportUtils';
 import CONST from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -18,6 +19,7 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Whether screen is used to create group chat */
@@ -127,6 +129,23 @@ class NewChatPage extends Component {
         }
 
         return sections;
+    }
+
+    /**
+     * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
+     *
+     * @param {Array} userLogins list of user logins.
+     */
+    getOrCreateChatReport(userLogins) {
+        const formattedUserLogins = _.map(userLogins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+        let newChat = {};
+        const chat = ReportUtils.getChatByParticipants(formattedUserLogins);
+        if (!chat) {
+            newChat = ReportUtils.buildOptimisticChatReport(formattedUserLogins);
+        }
+        const reportID = chat ? chat.reportID : newChat.reportID;
+        Report.openReport(reportID, newChat.participants, newChat);
+        Navigation.navigate(ROUTES.getReportRoute(reportID));
     }
 
     /**
