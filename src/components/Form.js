@@ -149,8 +149,7 @@ class Form extends React.Component {
                 });
             }
 
-            // Drill down the component that have a role as form wrapper
-            // e.g usage of AddressForm or IdentityForm
+            // Look for any inputs nested in a custom component, e.g AddressForm or IdentityForm
             if (_.isFunction(child.type)) {
                 const nestedChildren = new child.type(child.props);
 
