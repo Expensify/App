@@ -31,9 +31,6 @@ const propTypes = {
     /** Callback function before the menu is hidden */
     onHideCreateMenu: PropTypes.func,
 
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
     /** reportID in the current navigation state */
     reportIDFromRoute: PropTypes.string,
 
@@ -161,7 +158,7 @@ class BaseSidebarScreen extends Component {
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_SEND),
                                     },
                                 ] : []),
-                                ...(Permissions.canUseIOU(this.props.betas) && !this.props.network.isOffline ? [
+                                ...(Permissions.canUseIOU(this.props.betas) ? [
                                     {
                                         icon: Expensicons.MoneyCircle,
                                         text: this.props.translate('iou.requestMoney'),
@@ -197,7 +194,4 @@ class BaseSidebarScreen extends Component {
 BaseSidebarScreen.propTypes = propTypes;
 BaseSidebarScreen.defaultProps = defaultProps;
 
-export default compose(
-    withDrawerState,
-    withNetwork(),
-)(BaseSidebarScreen);
+export default withDrawerState(BaseSidebarScreen);
