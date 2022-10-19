@@ -1,5 +1,5 @@
 import React from 'react';
-import {sidebarPropTypes, sidebarDefaultProps} from './sidebarPropTypes';
+import sidebarPropTypes from './sidebarPropTypes';
 import BaseSidebarScreen from './BaseSidebarScreen';
 import PopoverModal from './PopoverModal';
 
@@ -14,7 +14,6 @@ const SidebarScreen = props => (
 );
 
 SidebarScreen.propTypes = sidebarPropTypes;
-SidebarScreen.defaultProps = sidebarDefaultProps;
 SidebarScreen.displayName = 'SidebarScreen';
 
 export default SidebarScreen;

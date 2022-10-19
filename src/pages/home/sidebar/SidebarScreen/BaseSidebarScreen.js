@@ -1,7 +1,6 @@
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import styles from '../../../../styles/styles';
 import SidebarLinks from '../SidebarLinks';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
@@ -14,16 +13,11 @@ import * as Welcome from '../../../../libs/actions/Welcome';
 import withDrawerState from '../../../../components/withDrawerState';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import compose from '../../../../libs/compose';
+import sidebarPropTypes from './sidebarPropTypes';
 
 const propTypes = {
-    /** reportID in the current navigation state */
-    reportIDFromRoute: PropTypes.string,
-
+    ...sidebarPropTypes,
     ...windowDimensionsPropTypes,
-};
-
-const defaultProps = {
-    reportIDFromRoute: '',
 };
 
 class BaseSidebarScreen extends Component {
@@ -83,7 +77,6 @@ class BaseSidebarScreen extends Component {
 }
 
 BaseSidebarScreen.propTypes = propTypes;
-BaseSidebarScreen.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
