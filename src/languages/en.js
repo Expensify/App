@@ -813,6 +813,10 @@ export default {
             growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
             unavailable: 'Unavailable workspace',
         },
+        emptyWorkspace: {
+            title: 'Create a New Workspace',
+            subtitle: 'Workspaces are a one-stop shop for managing your settings, reimbursing receipts, managing cards, sending invoices, paying bills, and more.',
+        },
         new: {
             newWorkspace: 'New workspace',
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
