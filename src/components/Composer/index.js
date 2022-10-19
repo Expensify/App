@@ -192,6 +192,10 @@ class Composer extends React.Component {
     setTextAndSelection(text, start, end) {
         this.textInput.value = text;
         this.textInput.setSelectionRange(start, end);
+
+        // immediately update number of lines (otherwise we'd wait
+        // for "onChange" callback which gets called "too late"):
+        this.updateNumberOfLines();
     }
 
     /**
