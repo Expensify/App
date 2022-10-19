@@ -70,7 +70,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    defaultValue: undefined,
+    defaultValue: '',
     maxLines: -1,
     onPasteFile: () => {},
     shouldClear: false,
@@ -109,13 +109,9 @@ class Composer extends React.Component {
     constructor(props) {
         super(props);
 
-        this.initialValue = props.defaultValue
-            ? `${props.defaultValue}`
-            : `${props.value || ''}`;
-
         this.selection = {
-            start: this.initialValue.length,
-            end: this.initialValue.length,
+            start: props.defaultValue.length,
+            end: props.defaultValue.length,
         };
 
         this.state = {
@@ -156,7 +152,7 @@ class Composer extends React.Component {
             this.textInput.addEventListener('paste', this.handlePaste);
             this.textInput.addEventListener('wheel', this.handleWheel);
 
-            this.textInput.value = this.initialValue;
+            // selection will always be at 0,0 - so we need to update it to be at the end of the defaultValue text
             this.textInput.setSelectionRange(this.selection.start, this.selection.end);
         }
     }
@@ -381,7 +377,7 @@ class Composer extends React.Component {
     render() {
         const propStyles = StyleSheet.flatten(this.props.style);
         propStyles.outline = 'none';
-        const propsToPass = _.omit(this.props, 'style', 'defaultValue');
+        const propsWithoutStyles = _.omit(this.props, 'style');
         return (
             <RNTextInput
                 autoComplete="off"
@@ -391,7 +387,7 @@ class Composer extends React.Component {
                 numberOfLines={this.state.numberOfLines}
                 style={propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...propsToPass}
+                {...propsWithoutStyles}
                 disabled={this.props.isDisabled}
             />
         );
