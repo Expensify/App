@@ -19,7 +19,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
-import ReimbursementAccountForm from './ReimbursementAccountForm';
+import Form from '../../components/Form';
 
 const propTypes = {
     /** Name of the company */
@@ -179,9 +179,11 @@ class ACHContractStep extends React.Component {
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
                 />
-                <ReimbursementAccountForm
-                    reimbursementAccount={this.props.reimbursementAccount}
-                    onSubmit={this.submit}
+                <Form
+                    formID="test"
+                    validate={() => {}}
+                    onSubmit={() => {}}
+                    submitButtonText="Save"
                 >
                     <Text style={[styles.mb5]}>
                         <Text>{this.props.translate('beneficialOwnersStep.checkAllThatApply')}</Text>
@@ -284,7 +286,7 @@ class ACHContractStep extends React.Component {
                         )}
                         errorText={this.getErrorText('certifyTrueInformation')}
                     />
-                </ReimbursementAccountForm>
+                </Form>
             </>
         );
     }
