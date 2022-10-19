@@ -94,11 +94,25 @@ class Composer extends React.Component {
         this.props.onClear();
     }
 
+    /**
+     * Handler for when the text of the text input changes.
+     * Will also propagate change to parent component, via
+     * onChangeText prop.
+     *
+     * @param {String} text
+     */
     onChangeText(text) {
         this.setState({value: text});
         this.props.onChangeText(text);
     }
 
+    /**
+     * Imperatively set the text and the selection of the text input.
+     *
+     * @param {String} text
+     * @param {Number} start selection start index
+     * @param {Number} end   selection end index
+     */
     setTextAndSelection(text, start, end) {
         this.setState({value: text}, () => {
             this.textInput.setSelection(start, end);
