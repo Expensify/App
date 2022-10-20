@@ -64,8 +64,8 @@ function handleDownload(url, fileName) {
                 mimeType: null,
             }, 'Download', attachmentPath);
         }).then(() => {
-            FileUtils.showSuccessAlert();
             RNFetchBlob.fs.unlink(attachmentPath);
+            FileUtils.showSuccessAlert();
         }).catch(() => {
             FileUtils.showGeneralErrorAlert();
         }).finally(() => resolve());
