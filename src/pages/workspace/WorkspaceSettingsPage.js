@@ -64,7 +64,7 @@ class WorkspaceSettingsPage extends React.Component {
 
     validate(values) {
         const errors = {};
-        if (!values.name.trim().length) {
+        if (!values.name || !values.name.trim().length) {
             errors.name = this.props.translate('workspace.editor.nameIsRequiredError');
         }
         return errors;
