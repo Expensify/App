@@ -46,7 +46,7 @@ To access your workspace settings, click your profile icon and then on your work
 
 This menu allows you to manage your workspace members, issue additional Expensify Cards, and utilize this plan’s various bill pay and payment options.
 
-#FAQs
+# FAQs
 **_Do I need a business bank account to use the Free Plan?_**
 
 You will need a US business checking account if you want to enable the Expensify Card and set up direct ACH reimbursement.
