@@ -213,11 +213,11 @@ class RequestCallPage extends Component {
     validate(values) {
         const errors = {};
 
-        if (_.isEmpty(values.firstName)) {
+        if (_.isEmpty(values.firstName.trim())) {
             errors.firstName = this.props.translate('requestCallPage.error.firstName');
         }
 
-        if (_.isEmpty(values.lastName)) {
+        if (_.isEmpty(values.lastName.trim())) {
             errors.lastName = this.props.translate('requestCallPage.error.lastName');
         }
 
