@@ -200,6 +200,7 @@ class InitialSettingsPage extends React.Component {
                 dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
                 disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             }))
+            .sortBy(policy => policy.title)
             .value();
         menuItems.push(...this.getDefaultMenuItems());
 

@@ -40,12 +40,17 @@ const propTypes = {
     /* Onyx Props */
 
     /** The personal details of the person who is logged in */
-    personalDetails: personalDetailsPropType.isRequired,
+    personalDetails: personalDetailsPropType,
 
     /** Route params */
     route: matchType.isRequired,
 
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    // When opening someone else's profile (via deep link) before login, this is empty
+    personalDetails: {},
 };
 
 /**
@@ -77,7 +82,7 @@ class DetailsPage extends React.PureComponent {
     }
 
     render() {
-        const details = this.props.personalDetails[lodashGet(this.props.route.params, 'login')];
+        const details = lodashGet(this.props.personalDetails, lodashGet(this.props.route.params, 'login'));
         if (!details) {
             // Personal details have not loaded yet
             return <FullscreenLoadingIndicator />;
@@ -202,6 +207,7 @@ class DetailsPage extends React.PureComponent {
 }
 
 DetailsPage.propTypes = propTypes;
+DetailsPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
