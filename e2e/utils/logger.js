@@ -1,7 +1,7 @@
 const fs = require('fs');
 const {LOG_FILE} = require('../config');
 
-let isVerbose = false;
+let isVerbose = true;
 const setLogLevelVerbose = (value) => {
     isVerbose = value;
 };

@@ -196,4 +196,4 @@ const runTests = async () => {
     }
 };
 
-runTests();
+runTests().then(() => Logger.info('Done!'));
