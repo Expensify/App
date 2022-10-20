@@ -164,7 +164,6 @@ class WorkspacesListPage extends Component {
 
     render() {
         const workspaces = this.getWorkspaces();
-
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
