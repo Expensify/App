@@ -88,7 +88,7 @@ const MultipleAvatars = (props) => {
                                         style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.horizontalStackedAvatar4, styles.horizontalStackedAvatar4Overlay]}
                                     >
                                         <Text style={styles.avatarInnerTextSmall}>
-                                            {`+${props.icons.length - 3}`}
+                                            {`+${props.icons.length - 4}`}
                                         </Text>
                                     </View>
                                 )}
