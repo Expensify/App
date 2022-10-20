@@ -166,6 +166,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 ...groupChatReport,
                 maxSequenceNumber: groupChatReportMaxSequenceNumber + 1,
                 lastReadSequenceNumber: groupChatReportMaxSequenceNumber + 1,
+                lastVisitedTimestamp: Date.now(),
                 pendingFields: {
                     createChat: existingGroupChatReport ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
@@ -185,7 +186,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`,
-            value: {pendingFields: {createChat: null}},
+            value: null,
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -202,8 +203,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`,
             value: {
-                maxSequenceNumber: groupChatReportMaxSequenceNumber,
-                lastReadSequenceNumber: groupChatReportMaxSequenceNumber,
                 pendingFields: {createChat: null},
             },
         },
@@ -308,8 +307,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
                 value: {
-                    maxSequenceNumber: oneOnOneChatReportMaxSequenceNumber,
-                    lastReadSequenceNumber: oneOnOneChatReportMaxSequenceNumber,
                     pendingFields: {createChat: null},
                 },
             },
