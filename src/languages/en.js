@@ -236,6 +236,8 @@ export default {
         buttonSearch: 'Search',
         buttonMySettings: 'My settings',
         fabNewChat: 'New chat(Floating Action)',
+        chatPinned: 'Chat pinned',
+        draftedMessage: 'Drafted message',
     },
     iou: {
         amount: 'Amount',
