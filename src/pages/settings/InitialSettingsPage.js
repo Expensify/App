@@ -120,6 +120,7 @@ class InitialSettingsPage extends React.Component {
     getDefaultMenuItems() {
         const policiesAvatars = _.chain(this.props.policies)
             .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
+            .sortBy(policy => policy.name)
             .pluck('avatar')
             .value();
 
