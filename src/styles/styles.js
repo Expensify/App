@@ -1716,19 +1716,19 @@ const styles = {
 
     horizontalStackedAvatar1: {
         left: -19,
-        top: -79,
+        top: -107,
         zIndex: 2,
     },
 
     horizontalStackedAvatar2: {
         left: 1,
-        top: -51,
+        top: -79,
         zIndex: 3,
     },
 
     horizontalStackedAvatar3: {
         left: 21,
-        top: -23,
+        top: -51,
         zIndex: 4,
     },
 
@@ -1739,7 +1739,7 @@ const styles = {
     },
 
     horizontalStackedAvatar4Overlay: {
-        top: -107,
+        top: -28,
         height: 28,
         width: 28,
         borderWidth: 2,

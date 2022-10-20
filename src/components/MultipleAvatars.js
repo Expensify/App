@@ -73,9 +73,9 @@ const MultipleAvatars = (props) => {
                 <>
                     {
                         _.map([...props.icons].splice(0, 4).reverse(), (icon, index) => (
-                            <span key={`MultipleAvatars-${index}`}>
+                            <View key={`stackedAvatars-${index}`} style={horizontalStyles[index]}>
                                 <View
-                                    style={[styles.horizontalStackedAvatar, styles.alignItemsCenter, horizontalStyles[index]]}
+                                    style={[styles.horizontalStackedAvatar, styles.alignItemsCenter]}
                                 >
                                     <Avatar
                                         source={icon || props.fallbackIcon}
@@ -83,16 +83,16 @@ const MultipleAvatars = (props) => {
                                         size={CONST.AVATAR_SIZE.SMALLER}
                                     />
                                 </View>
-                                {index === 3 && props.icons.length > 4 && (
+                                {index === 0 && props.icons.length > 4 && (
                                     <View
-                                        style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.horizontalStackedAvatar4, styles.horizontalStackedAvatar4Overlay]}
+                                        style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.horizontalStackedAvatar4Overlay]}
                                     >
                                         <Text style={styles.avatarInnerTextSmall}>
                                             {`+${props.icons.length - 4}`}
                                         </Text>
                                     </View>
                                 )}
-                            </span>
+                            </View>
                         ))
                     }
                 </>
