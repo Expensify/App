@@ -50,23 +50,22 @@ function handleDownload(url, fileName) {
             },
         }).fetch('GET', url);
 
+        let attachmentPath;
+
         // Resolving the fetched attachment
         fetchedAttachment.then((attachment) => {
             if (!attachment || !attachment.info()) {
                 return;
             }
-
-            RNFetchBlob.MediaCollection.copyToMediaStore({
+            attachmentPath = attachment.path();
+            return RNFetchBlob.MediaCollection.copyToMediaStore({
                 name: attachmentName,
                 parentFolder: 'Expensify',
                 mimeType: null,
-            }, 'Download', attachment.path()).then(() => {
-                RNFetchBlob.fs.unlink(attachment.path());
-                FileUtils.showSuccessAlert();
-            }).catch(() => {
-                RNFetchBlob.fs.unlink(attachment.path());
-                FileUtils.showGeneralErrorAlert();
-            });
+            }, 'Download', attachmentPath);
+        }).then(() => {
+            FileUtils.showSuccessAlert();
+            RNFetchBlob.fs.unlink(attachmentPath);
         }).catch(() => {
             FileUtils.showGeneralErrorAlert();
         }).finally(() => resolve());
