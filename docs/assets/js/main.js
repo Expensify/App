@@ -11,14 +11,14 @@ function toggleHeaderMenu() {
         lhnContent.className = '';
         barsIcon.classList.remove('hide');
         anguleUpIcon.classList.add('hide');
-        document.body.classList.remove('hide-scrollbar');
+        document.body.classList.remove('disable-scrollbar');
     } else {
         // Expand the LHN in mobile
         lhn.className = 'expanded';
         lhnContent.className = 'expanded';
         barsIcon.classList.add('hide');
         anguleUpIcon.classList.remove('hide');
-        document.body.classList.add('hide-scrollbar');
+        document.body.classList.add('disable-scrollbar');
     }
 }
 
