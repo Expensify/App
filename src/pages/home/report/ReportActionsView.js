@@ -1,7 +1,6 @@
 import React from 'react';
 import {
     Keyboard,
-    AppState,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -67,9 +66,9 @@ class ReportActionsView extends React.Component {
     constructor(props) {
         super(props);
 
-        this.appStateChangeListener = null;
-
         this.didLayout = false;
+
+        this.unsubscribeVisibilityListener = null;
 
         this.state = {
             isFloatingMessageCounterVisible: false,
@@ -90,7 +89,7 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
-        this.appStateChangeListener = AppState.addEventListener('change', () => {
+        this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
             if (!this.getIsReportFullyVisible()) {
                 return;
             }
@@ -242,8 +241,8 @@ class ReportActionsView extends React.Component {
             this.keyboardEvent.remove();
         }
 
-        if (this.appStateChangeListener) {
-            this.appStateChangeListener.remove();
+        if (this.unsubscribeVisibilityListener) {
+            this.unsubscribeVisibilityListener();
         }
 
         Report.unsubscribeFromReportChannel(this.props.report.reportID);
