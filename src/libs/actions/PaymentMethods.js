@@ -115,6 +115,61 @@ function openPaymentsPage() {
     }, onyxData);
 }
 
+function getBankAccountList() {
+    const onyxData = {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
+                value: true,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
+                value: false,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
+                value: false,
+            },
+        ],
+    };
+
+    return API.read('GetBankAccountList', {}, onyxData);
+}
+function getCardList() {
+    const onyxData = {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
+                value: true,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
+                value: false,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
+                value: false,
+            },
+        ],
+    };
+
+    return API.read('GetCardList', {}, onyxData);
+}
+
 /**
  *
  * @param {Number} bankAccountID
@@ -399,4 +454,6 @@ export {
     clearAddPaymentMethodError,
     clearWalletError,
     clearWalletTermsError,
+    getCardList,
+    getBankAccountList,
 };

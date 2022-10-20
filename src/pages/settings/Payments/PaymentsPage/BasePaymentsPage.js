@@ -200,7 +200,8 @@ class BasePaymentsPage extends React.Component {
     }
 
     fetchData() {
-        PaymentMethods.openPaymentsPage();
+        PaymentMethods.getBankAccountList();
+        PaymentMethods.getCardList();
     }
 
     /**
