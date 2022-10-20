@@ -55,7 +55,7 @@ function handleDownload(url, fileName) {
         // Resolving the fetched attachment
         fetchedAttachment.then((attachment) => {
             if (!attachment || !attachment.info()) {
-                return;
+                return Promise.reject();
             }
             attachmentPath = attachment.path();
             return RNFetchBlob.MediaCollection.copyToMediaStore({
