@@ -49,7 +49,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    // The case when open other profile deep link before login
+    // When opening someone else's profile (via deep link) before login, this is empty
     personalDetails: {},
 };
 
