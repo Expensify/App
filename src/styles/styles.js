@@ -1745,7 +1745,7 @@ const styles = {
         borderWidth: 2,
         borderStyle: 'solid',
         borderColor: colors.white,
-        backgroundColor: themeColors.testColor,
+        backgroundColor: themeColors.opaqueAvatar,
         borderRadius: 24,
         zIndex: 6,
     },
