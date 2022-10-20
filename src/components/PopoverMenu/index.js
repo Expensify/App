@@ -1,30 +1,36 @@
-import React from 'react';
+import React, {Component} from 'react';
 import BasePopoverMenu from './BasePopoverMenu';
 import {propTypes, defaultProps} from './popoverMenuPropTypes';
 
-/**
- * The web implementation of the menu needs to trigger actions before the popup closes
- * When the modal is closed it's elements are destroyed
- * Some browser will ignore interactions on elements that were removed or if the
- * the action is not triggered immediately after a click
- * This is a precaution against malicious scripts
- *
- * @param {Object} props
- * @returns {React.ReactElement}
- */
-const PopoverMenu = (props) => {
-    // Trigger the item's `onSelect` action as soon as clicked
-    const selectItem = (item) => {
-        item.onSelected();
-        props.onItemSelected(item);
-    };
+class PopoverMenu extends Component {
+    /**
+     * Set the item's `onSelected` action to fire after the menu popup closes
+     * @param {{onSelected: function}} item
+     */
+    selectItem(item) {
+        this.onMenuHide = () => {
+            item.onSelected();
 
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    return <BasePopoverMenu {...props} onItemSelected={selectItem} />;
-};
+            // Clean up: open and immediately cancel should not re-trigger the last action
+            this.onMenuHide = () => {};
+        };
+
+        this.props.onItemSelected(item);
+    }
+
+    render() {
+        return (
+            <BasePopoverMenu
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...this.props}
+                onMenuHide={this.onMenuHide}
+                onItemSelected={item => this.selectItem(item)}
+            />
+        );
+    }
+}
 
 PopoverMenu.propTypes = propTypes;
 PopoverMenu.defaultProps = defaultProps;
-PopoverMenu.displayName = 'PopoverMenu';
 
 export default PopoverMenu;
