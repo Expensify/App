@@ -73,7 +73,7 @@ const MultipleAvatars = (props) => {
                 <>
                     {
                         _.map([...props.icons].splice(0, 4).reverse(), (icon, index) => (
-                            <View key={`MultipleAvatars-${index}`}>
+                            <span key={`MultipleAvatars-${index}`}>
                                 <View
                                     style={[styles.horizontalStackedAvatar, styles.alignItemsCenter, horizontalStyles[index]]}
                                 >
@@ -92,7 +92,7 @@ const MultipleAvatars = (props) => {
                                         </Text>
                                     </View>
                                 )}
-                            </View>
+                            </span>
                         ))
                     }
                 </>
