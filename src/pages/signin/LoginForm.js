@@ -163,6 +163,7 @@ class LoginForm extends React.Component {
                         autoCompleteType="username"
                         textContentType="username"
                         nativeID="username"
+                        testID="username"
                         name="username"
                         onChangeText={this.onTextInput}
                         onSubmitEditing={this.validateAndSubmitForm}

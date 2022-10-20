@@ -1,7 +1,7 @@
 /* eslint-disable rulesdir/prefer-onyx-connect-in-libs */
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../../ONYXKEYS';
-import * as Session from '../../actions/Session';
+import ONYXKEYS from '../../../src/ONYXKEYS';
+import * as Session from '../../../src/libs/actions/Session';
 
 /**
  * Command for e2e test to automatically sign in a user.

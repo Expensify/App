@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import E2ELogin from '../actions/e2eLogin';
-import Performance from '../../Performance';
-import E2EClient from '../client';
+import Performance from '../../../src/libs/Performance';
+import E2EClient from '../../../src/libs/E2E/client';
 
 const test = () => {
     const email = 'applausetester+perf2@applause.expensifail.com';
