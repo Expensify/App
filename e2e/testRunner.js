@@ -101,22 +101,22 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
         const config = _.values(TESTS_CONFIG)[testIndex];
         server.setTestConfig(config);
 
-        const warmupLogs = Logger.progressInfo(`Running test '${config.name}'`);
-        for (let warmUpRuns = 0; warmUpRuns < WARM_UP_RUNS; warmUpRuns++) {
-            const progressText = `(${testIndex + 1}/${numOfTests}) Warmup for test '${config.name}' (iteration ${warmUpRuns + 1}/${WARM_UP_RUNS})`;
-            warmupLogs.updateText(progressText);
-
-            await restartApp();
-
-            await withFailTimeout(new Promise((resolve) => {
-                const cleanup = server.addTestDoneListener(() => {
-                    Logger.log(`Warmup ${warmUpRuns + 1} done!`);
-                    cleanup();
-                    resolve();
-                });
-            }), progressText);
-        }
-        warmupLogs.done();
+        // const warmupLogs = Logger.progressInfo(`Running test '${config.name}'`);
+        // for (let warmUpRuns = 0; warmUpRuns < WARM_UP_RUNS; warmUpRuns++) {
+        //     const progressText = `(${testIndex + 1}/${numOfTests}) Warmup for test '${config.name}' (iteration ${warmUpRuns + 1}/${WARM_UP_RUNS})`;
+        //     warmupLogs.updateText(progressText);
+        //
+        //     await restartApp();
+        //
+        //     await withFailTimeout(new Promise((resolve) => {
+        //         const cleanup = server.addTestDoneListener(() => {
+        //             Logger.log(`Warmup ${warmUpRuns + 1} done!`);
+        //             cleanup();
+        //             resolve();
+        //         });
+        //     }), progressText);
+        // }
+        // warmupLogs.done();
 
         // We run each test multiple time to average out the results
         const testLog = Logger.progressInfo('');
