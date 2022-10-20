@@ -56,7 +56,17 @@ function handleDownload(url, fileName) {
                 return;
             }
 
-            FileUtils.showSuccessAlert();
+            RNFetchBlob.MediaCollection.copyToMediaStore({
+                name: attachmentName,
+                parentFolder: 'Expensify',
+                mimeType: null,
+            }, 'Download', attachment.path()).then(() => {
+                RNFetchBlob.fs.unlink(attachment.path());
+                FileUtils.showSuccessAlert();
+            }).catch(() => {
+                RNFetchBlob.fs.unlink(attachment.path());
+                FileUtils.showGeneralErrorAlert();
+            });
         }).catch(() => {
             FileUtils.showGeneralErrorAlert();
         }).finally(() => resolve());
