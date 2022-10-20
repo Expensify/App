@@ -110,7 +110,7 @@ function openApp() {
  * Refreshes data when the app reconnects
  */
 function reconnectApp() {
-    API.read('ReconnectApp', {policyIDList}, {
+    API.write('ReconnectApp', {policyIDListExcludingWorkspacesCreatedOffline}, {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
