@@ -38,7 +38,7 @@ module.exports = {
     LOG_FILE: `${OUTPUT_DIR}/debug.log`,
 
     // The time in milliseconds after which an operation fails due to timeout
-    INTERACTION_TIMEOUT: 30_000,
+    INTERACTION_TIMEOUT: 300000,
 
     TEST_NAMES,
 
