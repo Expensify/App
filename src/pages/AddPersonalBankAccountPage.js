@@ -103,7 +103,7 @@ class AddPersonalBankAccountPage extends React.Component {
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={this.props.translate('bankAccount.addBankAccount')}
-                    onCloseButtonPress={Navigation.goBack}
+                    onCloseButtonPress={Navigation.dismissModal}
                     shouldShowBackButton
                     onBackButtonPress={Navigation.goBack}
                 />
