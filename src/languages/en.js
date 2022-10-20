@@ -816,8 +816,8 @@ export default {
             unavailable: 'Unavailable workspace',
         },
         emptyWorkspace: {
-            title: 'Create a New Workspace',
-            subtitle: 'Workspaces are a one-stop shop for managing your settings, reimbursing receipts, managing cards, sending invoices, paying bills, and more.',
+            title: 'Create a new workspace',
+            subtitle: 'Workspaces are where you\'ll chat with your team, reimburse expenses, issue cards, send invoices, pay bills, and more — all in one place.',
         },
         new: {
             newWorkspace: 'New workspace',
