@@ -546,3 +546,9 @@ button {
         }
     }
 }
+
+.hide-scrollbar {
+    @media screen and (max-width: $breakpoint-tablet) {
+        overflow: hidden;
+    }
+}
