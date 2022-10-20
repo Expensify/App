@@ -134,6 +134,16 @@ function createIOUTransaction(params) {
 }
 
 /**
+ * Build the Onyx data and IOU split necessary for splitting a bill with 3+ users.
+ * 1. Build the optimistic Onyx data for the group chat, i.e. chatReport and iouReportAction creating the former if it doesn't yet exist.
+ * 2. Loop over the group chat participant list, building optimistic or updating existing chatReports, iouReports and iouReportActions between the user and each participant.
+ * We build both Onyx data and the IOU split that is sent as a request param and is used by Auth to create the chatReports, iouReports and iouReportActions in the database.
+ * The IOU split has the following shape:
+ *  [
+ *      {email: 'currentUser', amount: 100},
+ *      {email: 'user2', amount: 100, iouReportID: '123', chatReportID: '123', transactionID: '123', reportActionID: '123', clientID: '123'},
+ *      {email: 'user3', amount: 100, iouReportID: '123', chatReportID: '123', transactionID: '123', reportActionID: '123', clientID: '123'}
+ *  ]
  * @param {Array} participants
  * @param {String} currentUserLogin
  * @param {Number} amount
