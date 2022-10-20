@@ -76,8 +76,11 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
     progressLog.done();
 
     // Start the HTTP server
+    Logger.log('Creating server instance');
     const server = createServerInstance();
+    Logger.log('Starting server instance');
     await server.start();
+    Logger.log('Server instance running');
 
     // Create a dict in which we will store the run durations for all tests
     const durationsByTestName = {};

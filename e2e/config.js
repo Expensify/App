@@ -14,7 +14,7 @@ module.exports = {
     APP_PACKAGE: 'com.expensify.chat',
 
     // The port of the testing server that communicates with the app
-    SERVER_PORT: 3000,
+    SERVER_PORT: 4723,
 
     // The amount of times a test should be executed for average performance metrics
     RUNS: 30,
