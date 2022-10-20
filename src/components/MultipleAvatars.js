@@ -73,28 +73,25 @@ const MultipleAvatars = (props) => {
                 <>
                     {
                         _.map([...props.icons].splice(0, 4).reverse(), (icon, index) => (
-                            <View key={`stackedAvatars-${index}`} style={horizontalStyles[index]}>
-                                <View
-                                    style={[styles.horizontalStackedAvatar, styles.alignItemsCenter]}
-                                >
-                                    <Avatar
-                                        source={icon || props.fallbackIcon}
-                                        fill={themeColors.iconSuccessFill}
-                                        size={CONST.AVATAR_SIZE.SMALLER}
-                                    />
-                                </View>
-                                {index === 0 && props.icons.length > 4 && (
-                                    <View
-                                        style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.horizontalStackedAvatar4Overlay]}
-                                    >
-                                        <Text style={styles.avatarInnerTextSmall}>
-                                            {`+${props.icons.length - 4}`}
-                                        </Text>
-                                    </View>
-                                )}
+                            <View
+                                key={`stackedAvatars-${index}`}
+                                style={[styles.horizontalStackedAvatar, styles.alignItemsCenter, horizontalStyles[index]]}
+                            >
+                                <Avatar
+                                    source={icon || props.fallbackIcon}
+                                    fill={themeColors.iconSuccessFill}
+                                    size={CONST.AVATAR_SIZE.SMALLER}
+                                />
                             </View>
                         ))
                     }
+                    {props.icons.length > 4 && (
+                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.horizontalStackedAvatar4Overlay]}>
+                            <Text style={styles.avatarInnerTextSmall}>
+                                {`+${props.icons.length - 4}`}
+                            </Text>
+                        </View>
+                    )}
                 </>
             ) : (
                 <View
