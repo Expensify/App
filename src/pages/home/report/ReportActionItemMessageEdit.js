@@ -20,6 +20,7 @@ import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu'
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
 import reportPropTypes from '../../reportPropTypes';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** All the data of the action */
@@ -179,6 +180,9 @@ class ReportActionItemMessageEdit extends React.Component {
         }
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
+            if (this.state.draft.length > CONST.MAX_COMMENT_LENGTH) {
+                return;
+            }
             this.publishDraft();
         } else if (e.key === 'Escape') {
             e.preventDefault();
@@ -187,6 +191,7 @@ class ReportActionItemMessageEdit extends React.Component {
     }
 
     render() {
+        const hasExceededMaxCommentLength = this.state.draft.length > CONST.MAX_COMMENT_LENGTH;
         return (
             <View style={styles.chatItemMessage}>
                 <View style={[styles.chatItemComposeBox, styles.flexRow, styles.chatItemComposeBoxColor]}>
@@ -236,6 +241,7 @@ class ReportActionItemMessageEdit extends React.Component {
                     <Button
                         small
                         success
+                        isDisabled={hasExceededMaxCommentLength}
                         nativeID={this.saveButtonID}
                         style={[styles.mr2]}
                         onPress={this.publishDraft}
