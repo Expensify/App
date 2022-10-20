@@ -32,6 +32,7 @@ const EmojiPickerButton = (props) => {
             ])}
             disabled={props.isDisabled}
             onPress={() => EmojiPickerAction.showEmojiPicker(props.onModalHide, props.onEmojiSelected, emojiPopoverAnchor)}
+            nativeID={props.nativeID}
         >
             {({hovered, pressed}) => (
                 <Tooltip text={props.translate('reportActionCompose.emoji')}>
