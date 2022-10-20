@@ -155,9 +155,6 @@ export default {
     // Is report data loading?
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
 
-    // Is policy data loading?
-    IS_LOADING_POLICY_DATA: 'isLoadingPolicyData',
-
     // Is Keyboard shortcuts modal open?
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
 
