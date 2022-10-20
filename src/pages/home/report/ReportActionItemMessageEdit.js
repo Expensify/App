@@ -18,7 +18,8 @@ import compose from '../../../libs/compose';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
-import * as EmojiUtils from '../../../libs/EmojiUtils';
+import reportPropTypes from '../../reportPropTypes';
+import ExceededCommentLength from '../../../components/ExceededCommentLength';
 
 const propTypes = {
     /** All the data of the action */
@@ -242,6 +243,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         onPress={this.publishDraft}
                         text={this.props.translate('common.saveChanges')}
                     />
+                    <ExceededCommentLength commentLength={this.state.draft.length} />
                 </View>
             </View>
         );
