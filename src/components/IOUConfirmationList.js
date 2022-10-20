@@ -292,6 +292,7 @@ class IOUConfirmationList extends Component {
                 hideAdditionalOptionStates
                 forceTextUnreadStyle
                 autoFocus
+                shouldDelayFocus
                 shouldTextInputAppearBelowOptions
                 optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
                 footerContent={shouldShowSettlementButton

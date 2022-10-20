@@ -26,9 +26,18 @@ import AddressForm from './AddressForm';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
-import * as FormActions from '../../libs/actions/FormActions';
+import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 
 const propTypes = {
+    /** The bank account currently in setup */
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+
+    /** The draft values of the bank account being setup */
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -312,9 +321,6 @@ export default compose(
         },
         reimbursementAccountDraft: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
-        },
-        reimbursementAccountDraftValues: {
-            key: FormActions.getDraftValuesKey(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM),
         },
         session: {
             key: ONYXKEYS.SESSION,
