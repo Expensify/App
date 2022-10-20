@@ -133,7 +133,11 @@ class Composer extends React.Component {
         };
         this.dragNDropListener = this.dragNDropListener.bind(this);
         this.paste = this.paste.bind(this);
-        this.dropZone = document.getElementById(CONST.REPORT.DROP_NATIVE_ID);
+        if (document) {
+            this.dropZone = document.getElementById(CONST.REPORT.DROP_NATIVE_ID);
+            this.dropZoneDragHandler = this.dropZoneDragHandler.bind(this);
+            this.dropZoneDragState = 'dragleave';
+        }
         this.dropZoneDragEnterCount = 0;
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
@@ -200,47 +204,59 @@ class Composer extends React.Component {
     }
 
     /**
+     * DragEvent
+     *
+     * @param {Object} e native Event
+     */
+    dropZoneDragHandler = (e) => {
+        // Setting dropEffect for dragover is required for '+' icon on certain platforms/browsers (eg. Safari)
+        switch (e.type) {
+            case 'dragover':
+                // Continuous event -> can hurt performance, be careful when subscribing
+                e.dataTransfer.dropEffect = COPY_DROP_EFFECT;
+                this.dropZoneDragState = 'dragover';
+                this.props.onDragOver(e);
+                break;
+            case 'dragenter':
+                // Avoid reporting onDragEnter for children views -> not performant
+                if (this.dropZoneDragState === 'dragleave') {
+                    e.dataTransfer.dropEffect = COPY_DROP_EFFECT;
+                    this.dropZoneDragState = 'dragenter';
+                    this.props.onDragEnter(e);
+                }
+                break;
+            case 'drop':
+                this.dropZoneDragState = 'drop';
+                this.props.onDrop(e);
+                break;
+            default: break;
+        }
+    };
+
+    /**
      * Handles all types of drag-N-drop events on the composer
      *
      * @param {Object} e native Event
      */
     dragNDropListener(e) {
+        if (!this.dropZone) {
+            return;
+        }
         e.preventDefault();
-        let isOriginComposer = false;
-        const handler = () => {
-            // Setting dropEffect for dragover is required for '+' icon on certain platforms/browsers (eg. Safari)
-            switch (e.type) {
-                case 'dragover':
-                    e.dataTransfer.dropEffect = COPY_DROP_EFFECT;
-                    this.props.onDragOver(e, isOriginComposer);
-                    break;
-                case 'dragenter':
-                    e.dataTransfer.dropEffect = COPY_DROP_EFFECT;
-                    this.dropZoneDragEnterCount++;
-                    if (this.dropZoneDragEnterCount === 1) {
-                        this.props.onDragEnter(e, isOriginComposer);
-                    }
-                    break;
-                case 'dragleave':
-                    this.dropZoneDragEnterCount--;
-                    if (this.dropZoneDragEnterCount === 0) {
-                        this.props.onDragLeave(e, isOriginComposer);
-                    }
-                    break;
-                case 'drop':
-                    this.dropZoneDragEnterCount = 0;
-                    this.props.onDrop(e, isOriginComposer);
-                    break;
-                default: break;
-            }
-        };
+        if (e.screenX === 0 && e.screenY === 0 && e.type === 'dragleave' && this.dropZoneDragState !== 'dragleave') {
+            /* We left window - necessary since report screen the latest dragleave might be from the child of dropZone which will not be detected as dropZoneLeave
+            in order to avoid sending burst of events */
+            e.dataTransfer.dropEffect = NONE_DROP_EFFECT;
+            this.dropZoneDragState = 'dragleave';
+            this.props.onDragLeave();
+        }
 
-        // We first check if drop target is composer so that it can be highlighted
-        if (this.textInput.contains(e.target)) {
-            isOriginComposer = true;
-            handler();
-        } else if (this.dropZone.contains(e.target)) {
-            handler();
+        if (this.dropZone.contains(e.target)) {
+            this.dropZoneDragHandler(e);
+        } else if ((e.type === 'dragenter' || e.type === 'dragover') && this.dropZoneDragState !== 'dragleave') {
+            // We left dropZone and entered other elements
+            this.dropZoneDragState = 'dragleave';
+            this.props.onDragLeave();
         } else {
             e.dataTransfer.dropEffect = NONE_DROP_EFFECT;
         }
