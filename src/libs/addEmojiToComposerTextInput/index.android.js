@@ -14,13 +14,13 @@ import addEmojiToComposerTextInputImpl from './addEmojiToComposerTextInput';
  * @return {{ newSelection: {start: Number, end: Number}, newText: String }} results
  */
 function addEmojiToComposerTextInput(params) {
-    const {prevSelection, textInput} = params;
-    const hasRangeSelected = prevSelection.start !== prevSelection.end;
+    const {selection, textInput} = params;
+    const hasRangeSelected = selection.start !== selection.end;
     if (hasRangeSelected) {
         // Android: when we have a range selected setSelection
         // won't remove the highlight, so we manually set the cursor
         // to a selection range of 0 (so there won't be any selection highlight).
-        textInput.setSelection(prevSelection.start, prevSelection.start);
+        textInput.setSelection(selection.start, selection.start);
     }
 
     return addEmojiToComposerTextInputImpl(params);
