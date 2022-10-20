@@ -941,7 +941,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
     }
 
     // Include default rooms unless you're on the default room beta, unless you have an assigned guide
-    if (isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas) && !this.hasExpensifyGuidesEmails(lodashGet(report, ['participants'], []))) {
+    if (isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas) && !hasExpensifyGuidesEmails(lodashGet(report, ['participants'], []))) {
         return false;
     }
 
