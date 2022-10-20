@@ -15,9 +15,9 @@ Performance.markEnd('regularAppStart');
 import E2EConfig from '../../../e2e/config';
 import E2EClient from './client';
 
-console.debug('==========================');
-console.debug('==== Running e2e test ====');
-console.debug('==========================');
+console.log('==========================');
+console.log('==== Running e2e test ====');
+console.log('==========================');
 
 // import your test here, define its name and config first in e2e/config.js
 const tests = {
@@ -35,6 +35,7 @@ const appReady = new Promise((resolve) => {
     });
 });
 
+console.log('[E2E] Sending get test config request');
 E2EClient.getTestConfig().then((config) => {
     const test = tests[config.name];
     if (!test) {
@@ -44,10 +45,10 @@ E2EClient.getTestConfig().then((config) => {
             error: `Test '${config.name}' not found`,
         });
     }
-    console.debug(`[E2E] Configured for test ${config.name}. Waiting for app to become ready`);
+    console.log(`[E2E] Configured for test ${config.name}. Waiting for app to become ready`);
 
     appReady.then(() => {
-        console.debug('[E2E] App is ready, running test…');
+        console.log('[E2E] App is ready, running test…');
         Performance.measureFailSafe('appStartedToReady', 'regularAppStart');
         test();
     });

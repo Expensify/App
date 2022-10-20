@@ -127,7 +127,7 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
             const progressText = `(${testIndex + 1}/${numOfTests}) Running test '${config.name}' (iteration ${i + 1}/${RUNS})`;
             testLog.updateText(progressText);
 
-            const stopVideoRecording = startRecordingVideo();
+            // const stopVideoRecording = startRecordingVideo();
 
             await restartApp();
 
@@ -140,10 +140,10 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
                         resolve();
                     });
                 }), progressText);
-                await stopVideoRecording(false);
+                // await stopVideoRecording(false);
             } catch (e) {
                 // When we fail due to a timeout it's interesting to take a screenshot of the emulator to see whats going on
-                await stopVideoRecording(true);
+                // await stopVideoRecording(true);
                 testLog.done();
                 throw e; // Rethrow to abort execution
             }
