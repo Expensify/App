@@ -198,27 +198,27 @@ button {
 
     #lhn-content {
         overflow: auto;
-        -ms-overflow-style: none;
-        /* IE and Edge */
-        scrollbar-width: none;
-        /* Firefox */
-        &::-webkit-scrollbar {
-            display: none;
-        }
+        display: none;
+        height: calc(100% - 100px);
+        padding: 0 24px 24px 24px;
 
         .in-this-article {
             padding-top: 40px;
             display: block;
         }
 
-        display: none;
-        height: calc(100% - 100px);
-        padding: 0 24px 24px 24px;
-
         @include breakpoint($breakpoint-tablet) {
             display: block;
             height: calc(100% - 150px);
             padding: 0 44px 44px 44px;
+            -ms-overflow-style: none;
+            /* IE and Edge */
+            scrollbar-width: none;
+            /* Firefox */
+            &::-webkit-scrollbar {
+                display: none;
+            }
+
         }
 
         &.expanded {
@@ -547,7 +547,7 @@ button {
     }
 }
 
-.hide-scrollbar {
+.disable-scrollbar {
     @media screen and (max-width: $breakpoint-tablet) {
         overflow: hidden;
     }
