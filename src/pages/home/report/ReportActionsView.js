@@ -1,7 +1,6 @@
 import React from 'react';
 import {
     Keyboard,
-    AppState,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -30,24 +29,13 @@ import CopySelectionHelper from '../../../components/CopySelectionHelper';
 import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /* Onyx Props */
 
     /** The report currently being looked at */
-    report: PropTypes.shape({
-        /** The ID of the report actions will be created for */
-        reportID: PropTypes.number.isRequired,
-
-        /** The largest sequenceNumber on this report */
-        maxSequenceNumber: PropTypes.number,
-
-        /** Whether there is an outstanding amount in IOU */
-        hasOutstandingIOU: PropTypes.bool,
-
-        /** Are we loading more report actions? */
-        isLoadingMoreReportActions: PropTypes.bool,
-    }).isRequired,
+    report: reportPropTypes.isRequired,
 
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
@@ -78,9 +66,9 @@ class ReportActionsView extends React.Component {
     constructor(props) {
         super(props);
 
-        this.appStateChangeListener = null;
-
         this.didLayout = false;
+
+        this.unsubscribeVisibilityListener = null;
 
         this.state = {
             isFloatingMessageCounterVisible: false,
@@ -100,7 +88,7 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
-        this.appStateChangeListener = AppState.addEventListener('change', () => {
+        this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
             if (!this.getIsReportFullyVisible()) {
                 return;
             }
@@ -252,8 +240,8 @@ class ReportActionsView extends React.Component {
             this.keyboardEvent.remove();
         }
 
-        if (this.appStateChangeListener) {
-            this.appStateChangeListener.remove();
+        if (this.unsubscribeVisibilityListener) {
+            this.unsubscribeVisibilityListener();
         }
 
         Report.unsubscribeFromReportChannel(this.props.report.reportID);
@@ -364,7 +352,10 @@ class ReportActionsView extends React.Component {
                             loadMoreChats={this.loadMoreChats}
                             newMarkerSequenceNumber={this.state.newMarkerSequenceNumber}
                         />
-                        <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
+                        <PopoverReportActionContextMenu
+                            ref={ReportActionContextMenu.contextMenuRef}
+                            isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
+                        />
                     </>
                 )}
                 <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />

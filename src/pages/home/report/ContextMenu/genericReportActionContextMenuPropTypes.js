@@ -3,7 +3,7 @@ import reportActionPropTypes from '../reportActionPropTypes';
 
 const propTypes = {
     /** The ID of the report this report action is attached to. */
-    reportID: PropTypes.number.isRequired,
+    reportID: PropTypes.string.isRequired,
 
     /** The report action this context menu is attached to. */
     reportAction: PropTypes.shape(reportActionPropTypes).isRequired,

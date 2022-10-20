@@ -44,7 +44,7 @@ function updatePlaidData(plaidData) {
     Onyx.merge(ONYXKEYS.PLAID_DATA, plaidData);
 }
 
-function clearOnfido() {
+function clearOnfidoToken() {
     Onyx.merge(ONYXKEYS.ONFIDO_TOKEN, '');
 }
 
@@ -140,7 +140,8 @@ function addPersonalBankAccount(account, password) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: true,
-                    error: '',
+                    errors: null,
+                    plaidAccountID: account.plaidAccountID,
                 },
             },
         ],
@@ -150,7 +151,7 @@ function addPersonalBankAccount(account, password) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
-                    error: '',
+                    errors: null,
                     shouldShowSuccess: true,
                 },
             },
@@ -161,7 +162,9 @@ function addPersonalBankAccount(account, password) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
-                    error: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                    errors: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                    },
                 },
             },
         ],
@@ -242,6 +245,54 @@ function validateBankAccount(bankAccountID, validateCode) {
 }
 
 /**
+ * Updates the bank account in the database with the company step data
+ *
+ * @param {Object} bankAccount
+ * @param {Number} [bankAccount.bankAccountID]
+ *
+ * Fields from BankAccount step
+ * @param {String} [bankAccount.routingNumber]
+ * @param {String} [bankAccount.accountNumber]
+ * @param {String} [bankAccount.bankName]
+ * @param {String} [bankAccount.plaidAccountID]
+ * @param {String} [bankAccount.plaidAccessToken]
+ * @param {Boolean} [bankAccount.isSavings]
+ *
+ * Fields from Company step
+ * @param {String} [bankAccount.companyName]
+ * @param {String} [bankAccount.addressStreet]
+ * @param {String} [bankAccount.addressCity]
+ * @param {String} [bankAccount.addressState]
+ * @param {String} [bankAccount.addressZipCode]
+ * @param {String} [bankAccount.companyPhone]
+ * @param {String} [bankAccount.website]
+ * @param {String} [bankAccount.companyTaxID]
+ * @param {String} [bankAccount.incorporationType]
+ * @param {String} [bankAccount.incorporationState]
+ * @param {String} [bankAccount.incorporationDate]
+ * @param {Boolean} [bankAccount.hasNoConnectionToCannabis]
+ */
+function updateCompanyInformationForBankAccount(bankAccount) {
+    API.write('UpdateCompanyInformationForBankAccount', bankAccount, getVBBADataForOnyx());
+}
+
+/**
+ * Add beneficial owners for the bank account, accept the ACH terms and conditions and verify the accuracy of the information provided
+ *
+ * @param {Object} params
+ *
+ * // ACH Contract Step
+ * @param {Boolean} [params.ownsMoreThan25Percent]
+ * @param {Boolean} [params.hasOtherBeneficialOwners]
+ * @param {Boolean} [params.acceptTermsAndConditions]
+ * @param {Boolean} [params.certifyTrueInformation]
+ * @param {String}  [params.beneficialOwners]
+ */
+function updateBeneficialOwnersForBankAccount(params) {
+    API.write('UpdateBeneficialOwnersForBankAccount', {...params}, getVBBADataForOnyx());
+}
+
+/**
  * Create the bank account with manually entered data.
  *
  * @param {String} [bankAccountID]
@@ -265,9 +316,11 @@ export {
     deletePaymentBankAccount,
     clearPersonalBankAccount,
     clearPlaid,
-    clearOnfido,
+    clearOnfidoToken,
     updatePersonalInformationForBankAccount,
     validateBankAccount,
+    updateCompanyInformationForBankAccount,
+    updateBeneficialOwnersForBankAccount,
     connectBankAccountWithPlaid,
     updatePlaidData,
 };

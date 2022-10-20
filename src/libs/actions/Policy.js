@@ -6,17 +6,14 @@ import Str from 'expensify-common/lib/str';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
-import Growl from '../Growl';
-import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
-import * as Report from './Report';
-import * as Pusher from '../Pusher/pusher';
 import DateUtils from '../DateUtils';
 import * as ReportUtils from '../ReportUtils';
+import Log from '../Log';
 
 const allPolicies = {};
 Onyx.connect({
@@ -29,6 +26,13 @@ Onyx.connect({
         allPolicies[key] = val;
     },
 });
+
+let lastAccessedWorkspacePolicyID = null;
+Onyx.connect({
+    key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
+    callback: value => lastAccessedWorkspacePolicyID = value,
+});
+
 let sessionEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -88,6 +92,14 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
 }
 
 /**
+ * Stores in Onyx the policy ID of the last workspace that was accessed by the user
+ * @param {String|null} policyID
+ */
+function updateLastAccessedWorkspace(policyID) {
+    Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
+}
+
+/**
  * Used to update ALL of the policies at once. If a policy is present locally, but not in the policies object passed here it will be removed.
  * @param {Object} policyCollection - object of policy key and partial policy object
  */
@@ -111,8 +123,9 @@ function updateAllPolicies(policyCollection) {
  * Delete the workspace
  *
  * @param {String} policyID
+ * @param {Array<Object>} reports
  */
-function deleteWorkspace(policyID) {
+function deleteWorkspace(policyID, reports) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -122,13 +135,37 @@ function deleteWorkspace(policyID) {
                 errors: null,
             },
         },
+        ..._.map(reports, ({reportID}) => ({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS.CLOSED,
+            },
+        })),
+    ];
+
+    // Restore the old report stateNum and statusNum
+    const failureData = [
+        ..._.map(reports, ({reportID, stateNum, statusNum}) => ({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                stateNum,
+                statusNum,
+            },
+        })),
     ];
 
     // We don't need success data since the push notification will update
     // the onyxData for all connected clients.
-    const failureData = [];
     const successData = [];
     API.write('DeleteWorkspace', {policyID}, {optimisticData, successData, failureData});
+
+    // Reset the lastAccessedWorkspacePolicyID
+    if (policyID === lastAccessedWorkspacePolicyID) {
+        updateLastAccessedWorkspace(null);
+    }
 }
 
 /**
@@ -209,29 +246,21 @@ function removeMembers(members, policyID) {
     if (members.length === 0) {
         return;
     }
-
-    const employeeListUpdate = {};
-    _.each(members, login => employeeListUpdate[login] = null);
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, employeeListUpdate);
-
-    // Make the API call to remove a login from the policy
-    DeprecatedAPI.Policy_Employees_Remove({
+    const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`;
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: membersListKey,
+        value: _.object(members, Array(members.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})),
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: membersListKey,
+        value: _.object(members, Array(members.length).fill({errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.people.error.genericRemove')}})),
+    }];
+    API.write('DeleteMembersFromWorkspace', {
         emailList: members.join(','),
         policyID,
-    })
-        .then((data) => {
-            if (data.jsonCode === 200) {
-                return;
-            }
-
-            // Rollback removal on failure
-            _.each(members, login => employeeListUpdate[login] = {});
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, employeeListUpdate);
-
-            // Show the user feedback that the removal failed
-            const errorMessage = data.jsonCode === 666 ? data.message : Localize.translateLocal('workspace.people.genericFailureMessage');
-            Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);
-        });
+    }, {optimisticData, failureData});
 }
 
 /**
@@ -646,39 +675,6 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
 }
 
 /**
- * Stores in Onyx the policy ID of the last workspace that was accessed by the user
- * @param {String} policyID
- */
-function updateLastAccessedWorkspace(policyID) {
-    Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
-}
-
-/**
- * Subscribe to public-policyEditor-[policyID] events.
- */
-function subscribeToPolicyEvents() {
-    _.each(allPolicies, (policy) => {
-        const pusherChannelName = `public-policyEditor-${policy.id}${CONFIG.PUSHER.SUFFIX}`;
-        Pusher.subscribe(pusherChannelName, 'policyEmployeeRemoved', ({removedEmails, policyExpenseChatIDs, defaultRoomChatIDs}) => {
-            // Refetch the policy expense chats to update their state and their actions to get the archive reason
-            if (!_.isEmpty(policyExpenseChatIDs)) {
-                Report.fetchChatReportsByIDs(policyExpenseChatIDs);
-                _.each(policyExpenseChatIDs, (reportID) => {
-                    Report.reconnect(reportID);
-                });
-            }
-
-            // Remove the default chats if we are one of the users getting removed
-            if (removedEmails.includes(sessionEmail) && !_.isEmpty(defaultRoomChatIDs)) {
-                _.each(defaultRoomChatIDs, (chatID) => {
-                    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatID}`, null);
-                });
-            }
-        });
-    });
-}
-
-/**
  * Removes an error after trying to delete a member
  *
  * @param {String} policyID
@@ -719,10 +715,11 @@ function clearDeleteWorkspaceError(policyID) {
 
 /**
  * Generate a policy name based on an email and policy list.
+ * @param {String} [email] the email to base the workspace name on. If not passed, will use the logged in user's email instead
  * @returns {String}
  */
-function generateDefaultWorkspaceName() {
-    const emailParts = sessionEmail.split('@');
+function generateDefaultWorkspaceName(email = '') {
+    const emailParts = email ? email.split('@') : sessionEmail.split('@');
     let defaultWorkspaceName = '';
     if (!emailParts || emailParts.length !== 2) {
         return defaultWorkspaceName;
@@ -747,8 +744,7 @@ function generateDefaultWorkspaceName() {
     // Check if this name already exists in the policies
     let suffix = 0;
     _.forEach(allPolicies, (policy) => {
-        // Get the name of the policy
-        const {name} = policy;
+        const name = lodashGet(policy, 'name', '');
 
         if (name.toLowerCase().includes(defaultWorkspaceName.toLowerCase())) {
             suffix += 1;
@@ -768,10 +764,13 @@ function generatePolicyID() {
 
 /**
  * Optimistically creates a new workspace and default workspace chats
+ *
+ * @param {String} [ownerEmail] Optional, the email of the account to make the owner of the policy
+ * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  */
-function createWorkspace() {
+function createWorkspace(ownerEmail = '', makeMeAdmin = false) {
     const policyID = generatePolicyID();
-    const workspaceName = generateDefaultWorkspaceName();
+    const workspaceName = generateDefaultWorkspaceName(ownerEmail);
 
     const {
         announceChatReportID,
@@ -790,6 +789,8 @@ function createWorkspace() {
         announceChatReportID,
         adminsChatReportID,
         expenseChatReportID,
+        ownerEmail,
+        makeMeAdmin,
         policyName: workspaceName,
         type: CONST.POLICY.TYPE.FREE,
     },
@@ -944,10 +945,20 @@ function createWorkspace() {
 }
 
 function openWorkspaceReimburseView(policyID) {
+    if (!policyID) {
+        Log.warn('openWorkspaceReimburseView invalid params', {policyID});
+        return;
+    }
+
     API.read('OpenWorkspaceReimburseView', {policyID});
 }
 
 function openWorkspaceMembersPage(policyID, clientMemberEmails) {
+    if (!policyID || !clientMemberEmails) {
+        Log.warn('openWorkspaceMembersPage invalid params', {policyID, clientMemberEmails});
+        return;
+    }
+
     API.read('OpenWorkspaceMembersPage', {
         policyID,
         clientMemberEmails: JSON.stringify(clientMemberEmails),
@@ -955,6 +966,11 @@ function openWorkspaceMembersPage(policyID, clientMemberEmails) {
 }
 
 function openWorkspaceInvitePage(policyID, clientMemberEmails) {
+    if (!policyID || !clientMemberEmails) {
+        Log.warn('openWorkspaceInvitePage invalid params', {policyID, clientMemberEmails});
+        return;
+    }
+
     API.read('OpenWorkspaceInvitePage', {
         policyID,
         clientMemberEmails: JSON.stringify(clientMemberEmails),
@@ -974,7 +990,6 @@ export {
     updateWorkspaceCustomUnit,
     updateCustomUnitRate,
     updateLastAccessedWorkspace,
-    subscribeToPolicyEvents,
     clearDeleteMemberError,
     clearAddMemberError,
     clearDeleteWorkspaceError,

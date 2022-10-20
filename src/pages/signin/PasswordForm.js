@@ -69,7 +69,7 @@ class PasswordForm extends React.Component {
         this.inputPassword.focus();
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps, prevState) {
         if (!prevProps.isVisible && this.props.isVisible) {
             this.inputPassword.focus();
         }
@@ -78,6 +78,9 @@ class PasswordForm extends React.Component {
         }
         if (!prevProps.account.requiresTwoFactorAuth && this.props.account.requiresTwoFactorAuth) {
             this.input2FA.focus();
+        }
+        if (prevState.twoFactorAuthCode !== this.state.twoFactorAuthCode && this.state.twoFactorAuthCode.length === CONST.TFA_CODE_LENGTH) {
+            this.validateAndSubmitForm();
         }
     }
 
@@ -122,7 +125,7 @@ class PasswordForm extends React.Component {
         }
 
         if (!ValidationUtils.isValidPassword(this.state.password)) {
-            this.setState({formError: 'passwordForm.error.incorrectLoginOrPassword'});
+            this.setState({formError: 'passwordForm.error.incorrectPassword'});
             return;
         }
 
@@ -180,6 +183,7 @@ class PasswordForm extends React.Component {
                             onSubmitEditing={this.validateAndSubmitForm}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             blurOnSubmit={false}
+                            maxLength={CONST.TFA_CODE_LENGTH}
                         />
                     </View>
                 )}

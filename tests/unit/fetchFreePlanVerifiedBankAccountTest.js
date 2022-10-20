@@ -9,7 +9,7 @@ describe('getCurrentStep', () => {
         const achData = {};
 
         // WHEN we get the current step
-        const currentStep = fetchFreePlanVerifiedBankAccount.getCurrentStep('', '', achData, nullBankAccount, false);
+        const currentStep = fetchFreePlanVerifiedBankAccount.getCurrentStep('', achData, nullBankAccount, false);
 
         // THEN it will be the BankAccountStep
         expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
@@ -28,7 +28,7 @@ describe('getCurrentStep', () => {
         };
 
         // WHEN we get the current step
-        const currentStep = fetchFreePlanVerifiedBankAccount.getCurrentStep('', '', achData, nullBankAccount, false);
+        const currentStep = fetchFreePlanVerifiedBankAccount.getCurrentStep('', achData, nullBankAccount, false);
 
         // THEN it will be the BankAccountStep
         expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
@@ -41,7 +41,7 @@ describe('getCurrentStep', () => {
         const stepToOpen = CONST.BANK_ACCOUNT.STEP.COMPANY;
 
         // WHEN we get the current step
-        const currentStep = fetchFreePlanVerifiedBankAccount.getCurrentStep(stepToOpen, '', achData, nullBankAccount, false);
+        const currentStep = fetchFreePlanVerifiedBankAccount.getCurrentStep(stepToOpen, achData, nullBankAccount, false);
 
         // THEN it will be whatever we set the stepToOpen to be
         expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.COMPANY);
@@ -54,7 +54,7 @@ describe('getCurrentStep', () => {
         const stepToOpen = '';
 
         // WHEN we get the current step
-        const currentStep = fetchFreePlanVerifiedBankAccount.getCurrentStep(stepToOpen, '', achData, bankAccount, false);
+        const currentStep = fetchFreePlanVerifiedBankAccount.getCurrentStep(stepToOpen, achData, bankAccount, false);
 
         // THEN it will be the logical next step
         expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
@@ -71,7 +71,7 @@ describe('getCurrentStep', () => {
         const stepToOpen = '';
 
         // WHEN we get the current step
-        const currentStep = fetchFreePlanVerifiedBankAccount.getCurrentStep(stepToOpen, '', achData, bankAccount, false);
+        const currentStep = fetchFreePlanVerifiedBankAccount.getCurrentStep(stepToOpen, achData, bankAccount, false);
 
         // THEN we will stay on the requestor step
         expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
@@ -86,7 +86,7 @@ describe('getCurrentStep', () => {
         const stepToOpen = '';
 
         // WHEN we get the current step
-        const currentStep = fetchFreePlanVerifiedBankAccount.getCurrentStep(stepToOpen, '', achData, bankAccount, false);
+        const currentStep = fetchFreePlanVerifiedBankAccount.getCurrentStep(stepToOpen, achData, bankAccount, false);
 
         // THEN it will be the validation step
         expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.VALIDATION);
@@ -101,7 +101,7 @@ describe('getCurrentStep', () => {
         const stepToOpen = '';
 
         // WHEN we get the current step
-        const currentStep = fetchFreePlanVerifiedBankAccount.getCurrentStep(stepToOpen, '', achData, bankAccount, false);
+        const currentStep = fetchFreePlanVerifiedBankAccount.getCurrentStep(stepToOpen, achData, bankAccount, false);
 
         // THEN it will be the validation step
         expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.VALIDATION);
@@ -127,7 +127,7 @@ describe('getCurrentStep', () => {
         const stepToOpen = '';
 
         // WHEN we get the current step
-        const currentStep = fetchFreePlanVerifiedBankAccount.getCurrentStep(stepToOpen, '', achData, bankAccount, true);
+        const currentStep = fetchFreePlanVerifiedBankAccount.getCurrentStep(stepToOpen, achData, bankAccount, true);
 
         // THEN it will be the enable step
         expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.ENABLE);
@@ -142,7 +142,7 @@ describe('getCurrentStep', () => {
         const stepToOpen = '';
 
         // WHEN we get the current step
-        const currentStep = fetchFreePlanVerifiedBankAccount.getCurrentStep(stepToOpen, '', achData, bankAccount, true);
+        const currentStep = fetchFreePlanVerifiedBankAccount.getCurrentStep(stepToOpen, achData, bankAccount, true);
 
         // THEN it will be the bank account step
         expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
