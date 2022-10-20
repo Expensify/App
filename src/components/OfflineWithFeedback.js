@@ -28,9 +28,6 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     errors: PropTypes.object,
 
-    /** Predetermine whether there are errors, so that we don't have to pass all the errors if we aren't rendering them */
-    hasErrors: PropTypes.bool,
-
     /** Whether we should show the error messages */
     shouldShowErrorMessages: PropTypes.bool,
 
@@ -55,7 +52,6 @@ const propTypes = {
 const defaultProps = {
     pendingAction: null,
     errors: null,
-    hasErrors: false,
     shouldShowErrorMessages: true,
     onClose: () => {},
     style: [],
@@ -81,14 +77,13 @@ function applyStrikeThrough(children) {
 }
 
 const OfflineWithFeedback = (props) => {
-    const hasErrors = props.hasErrors || !_.isEmpty(props.errors);
+    const hasErrors = !_.isEmpty(props.errors);
     const isOfflinePendingAction = props.network.isOffline && props.pendingAction;
     const isUpdateOrDeleteError = hasErrors && (props.pendingAction === 'delete' || props.pendingAction === 'update');
     const isAddError = hasErrors && props.pendingAction === 'add';
     const needsOpacity = (isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError;
     const needsStrikeThrough = props.network.isOffline && props.pendingAction === 'delete';
     const hideChildren = !props.network.isOffline && props.pendingAction === 'delete' && !hasErrors;
-    const showErrorMessages = props.shouldShowErrorMessages && hasErrors && !_.isEmpty(props.errors);
     let children = props.children;
 
     // Apply strikethrough to children if needed, but skip it if we are not going to render them
@@ -102,7 +97,7 @@ const OfflineWithFeedback = (props) => {
                     {children}
                 </View>
             )}
-            {showErrorMessages && (
+            {(props.shouldShowErrorMessages && hasErrors) && (
                 <View style={StyleUtils.combineStyles(styles.offlineFeedback.error, props.errorRowStyles)}>
                     <DotIndicatorMessage messages={props.errors} type="error" />
                     <Tooltip text={props.translate('common.close')}>
