@@ -590,6 +590,7 @@ class ReportActionCompose extends React.Component {
                                                 </Tooltip>
                                             </View>
                                             <PopoverMenu
+                                                animationInTiming={100}
                                                 isVisible={this.state.isMenuVisible}
                                                 onClose={() => this.setMenuVisibility(false)}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
