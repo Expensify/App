@@ -109,11 +109,6 @@ class Composer extends React.Component {
     constructor(props) {
         super(props);
 
-        this.selection = {
-            start: props.defaultValue.length,
-            end: props.defaultValue.length,
-        };
-
         this.state = {
             numberOfLines: 1,
         };
