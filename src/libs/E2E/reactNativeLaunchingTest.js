@@ -21,7 +21,7 @@ console.log('==========================');
 
 // import your test here, define its name and config first in e2e/config.js
 const tests = {
-    [E2EConfig.TEST_NAMES.AppStartTime]: require('../../../tests/e2e/tests/appStartTimeTest.e2e').default,
+    [E2EConfig.TEST_NAMES.AppStartTime]: require('./tests/appStartTimeTest.e2e').default,
 };
 
 // Once we receive the TII measurement we know that the app is initialized and ready to be used:
