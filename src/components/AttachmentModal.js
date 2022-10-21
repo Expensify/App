@@ -251,7 +251,7 @@ class AttachmentModal extends PureComponent {
                         shouldShowBorderBottom
                         shouldShowDownloadButton={this.props.allowDownload}
                         onDownloadButtonPress={() => {
-                            fileDownload(sourceURL, this.props.originalFileName)
+                            fileDownload(sourceURL, this.props.originalFileName);
                             Keyboard.dismiss();
                         }}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
