@@ -210,15 +210,8 @@ jobs:
     steps:
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
-      - name: Setup python
-        run: sudo apt-get install python3-setuptools
-
       - name: Setup Cloudflare CLI
-        run: |
-          # Pip 21 doesn't support python 3.5, so use the version before it
-          sudo python3 -m pip install --upgrade pip==20.3.4
-          pip3 install wheel # need wheel before cloudflare, this is the only way to ensure order.
-          pip3 install cloudflare
+        run: pip3 install cloudflare
 
       - name: Configure AWS Credentials
         # Version: 1.5.5
@@ -290,7 +283,7 @@ jobs:
               channel: '#announce',
               attachments: [{
                 color: 'good',
-                text: `🎉️ Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'staging' }} 🎉️`,
+                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ env.VERSION }}|${{ env.VERSION }}> to ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'staging' }} 🎉️`,
               }]
             }
         env:
@@ -306,7 +299,7 @@ jobs:
               channel: '#deployer',
               attachments: [{
                 color: 'good',
-                text: `🎉️ Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'staging' }} 🎉️`,
+                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ env.VERSION }}|${{ env.VERSION }}> to ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'staging' }} 🎉️`,
               }]
             }
         env:
@@ -323,7 +316,7 @@ jobs:
               channel: '#expensify-open-source',
               attachments: [{
                 color: 'good',
-                text: `🎉️ Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to production 🎉️`,
+                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ env.VERSION }}|${{ env.VERSION }}> to production 🎉️`,
               }]
             }
         env:
