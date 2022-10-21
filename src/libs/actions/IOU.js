@@ -270,8 +270,8 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
 
     const currentUserEmail = optimisticReportAction.actorEmail;
 
-    // The owner of the iou report is the person who is owed money
-    // Hence is current user is the owner, cancelling a request will lower the total and vice versa for declining
+    // The owner of the IOU report is the account who is owed money,
+    // hence if current user is the owner, cancelling a request will lower the total and vice versa for declining
     // or if the current user is not an owner of the report.
     if (currentUserEmail === iouReport.ownerEmail) {
         iouReport.total += type === CONST.IOU.REPORT_ACTION_TYPE.CANCEL ? -amount : amount;
@@ -283,14 +283,12 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
     if (iouReport.total === 0) {
         chatReport.hasOutstandingIOU = false;
     } else if (iouReport.total < 0) {
-        // The total sign  has changed and hence we need to flip the manager and owner of the report.
+        // The total sign has changed and hence we need to flip the manager and owner of the report.
         const oldOwnerEmail = iouReport.ownerEmail;
         iouReport.ownerEmail = iouReport.managerEmail;
         iouReport.managerEmail = oldOwnerEmail;
         iouReport.total = -iouReport.total;
     }
-
-    console.log("Optimistic action added: ", optimisticReportAction);
 
     const optimisticData = [
         {
