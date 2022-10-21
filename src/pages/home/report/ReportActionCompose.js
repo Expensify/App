@@ -574,8 +574,10 @@ class ReportActionCompose extends React.Component {
                                                 )}
                                                 <Tooltip text={this.props.translate('reportActionCompose.addAction')}>
                                                     <TouchableOpacity
+                                                        ref={el => this.actionButton = el}
                                                         onPress={(e) => {
                                                             e.preventDefault();
+                                                            this.actionButton.blur(); // Drop focus to avoid blue focus ring.
                                                             this.setMenuVisibility(true);
                                                         }}
                                                         style={styles.chatItemAttachButton}
