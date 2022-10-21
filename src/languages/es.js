@@ -81,7 +81,7 @@ export default {
         error: {
             invalidAmount: 'Monto no válido',
             acceptedTerms: 'Debes aceptar los Términos de servicio para continuar',
-            phoneNumber: `Ingresa un teléfono válido, incluyendo el código de país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+            phoneNumber: `Ingresa un teléfono válido, incluyendo el código de país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
         please: 'Por favor',
         contactUs: 'contáctenos',
@@ -210,7 +210,7 @@ export default {
         beginningOfChatHistory: 'Aquí comienza tu historial de conversaciones con ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: '¡La colaboración entre ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
-        beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! :tada: Este es el lugar donde chatear, pedir dinero y pagar.',
+        beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! 🎉 Este es el lugar donde chatear, pedir dinero y pagar.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
     },
     newMessages: 'Mensajes nuevos',
@@ -235,6 +235,8 @@ export default {
         buttonSearch: 'Buscar',
         buttonMySettings: 'Mi configuración',
         fabNewChat: 'Nuevo chat',
+        chatPinned: 'Chat fijado',
+        draftedMessage: 'Mensaje borrador',
     },
     iou: {
         amount: 'Importe',
@@ -413,7 +415,7 @@ export default {
             notOwnerOfFund: 'Ha ocurrido un error al establecer esta tarjeta de crédito como tu método de pago predeterminado.',
             setDefaultFailure: 'No se pudo configurar el método de pago.',
         },
-        addBankAccountFailure: 'Y ocurrió un error inesperado al intentar agregar su cuenta bancaria. Inténtalo de nuevo.',
+        addBankAccountFailure: 'Ocurrió un error inesperado al intentar agregar su cuenta bancaria. Inténtalo de nuevo.',
     },
     transferAmountPage: {
         transfer: ({amount}) => `Transferir${amount ? ` ${amount}` : ''}`,
@@ -956,8 +958,8 @@ export default {
         },
         error: {
             phoneNumberExtension: 'Por favor, introduzca una extensión telefónica válida',
-            firstName: 'Por favor ingresa tu nombre!',
-            lastName: 'Por favor ingresa tu apellido!',
+            firstName: 'Por favor ingresa tu nombre',
+            lastName: 'Por favor ingresa tu apellido',
             firstNameLength: 'El nombre no debe tener más de 50 caracteres',
             lastNameLength: 'El apellido no debe tener más de 50 caracteres',
         },

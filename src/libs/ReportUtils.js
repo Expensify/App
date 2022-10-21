@@ -58,6 +58,13 @@ Onyx.connect({
     },
 });
 
+let allReports;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: val => allReports = val,
+});
+
 /**
  * Returns the concatenated title for the PrimaryLogins of a report
  *
@@ -984,8 +991,8 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
         return true;
     }
 
-    // Include default rooms unless you're on the default room beta
-    if (isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas)) {
+    // Include default rooms unless you're on the default room beta, unless you have an assigned guide
+    if (isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas) && !hasExpensifyGuidesEmails(lodashGet(report, ['participants'], []))) {
         return false;
     }
 
@@ -1000,6 +1007,22 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
     }
 
     return true;
+}
+
+/**
+ * Attempts to find a report in onyx with the provided list of participants
+ * @param {Array} newParticipantList
+ * @returns {Array|undefined}
+ */
+function getChatByParticipants(newParticipantList) {
+    newParticipantList.sort();
+    return _.find(allReports, (report) => {
+        // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
+        if (!report || !report.participants) {
+            return false;
+        }
+        return _.isEqual(newParticipantList, report.participants.sort());
+    });
 }
 
 export {
@@ -1042,4 +1065,5 @@ export {
     buildOptimisticIOUReportAction,
     buildOptimisticReportAction,
     shouldReportBeInOptionList,
+    getChatByParticipants,
 };

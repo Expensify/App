@@ -689,39 +689,67 @@ function addComment(reportID, text) {
 
 /**
  * Gets the latest page of report actions and updates the last read message
+ * If a chat with the passed reportID is not found, we will create a chat based on the passed participantList
  *
  * @param {String} reportID
+ * @param {Array} participantList The list of users that are included in a new chat, not including the user creating it
+ * @param {Object} newReportObject The optimistic report object created when making a new chat, saved as optimistic data
  */
-function openReport(reportID) {
+function openReport(reportID, participantList = [], newReportObject = {}) {
+    const onyxData = {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                isLoadingReportActions: true,
+                lastVisitedTimestamp: Date.now(),
+                lastReadSequenceNumber: getMaxSequenceNumber(reportID),
+            },
+        }],
+        successData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                isLoadingReportActions: false,
+                pendingFields: {
+                    createChat: null,
+                },
+                errorFields: {
+                    createChat: null,
+                },
+                isOptimisticReport: false,
+            },
+        }],
+    };
+
+    // If we are creating a new report, we need to add the optimistic report data and a report action
+    if (!_.isEmpty(newReportObject)) {
+        onyxData.optimisticData[0].value = {
+            ...onyxData.optimisticData[0].value,
+            ...newReportObject,
+            pendingFields: {
+                createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+            isOptimisticReport: true,
+        };
+
+        // Change the method to set for new reports because it doesn't exist yet, is faster,
+        // and we need the data to be available when we navigate to the chat page
+        onyxData.optimisticData[0].onyxMethod = CONST.ONYX.METHOD.SET;
+
+        // Also create a report action so that the page isn't endlessly loading
+        onyxData.optimisticData[1] = {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail),
+        };
+    }
     API.write('OpenReport',
         {
             reportID,
+            emailList: participantList ? participantList.join(',') : '',
         },
-        {
-            optimisticData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    isLoadingReportActions: true,
-                    lastVisitedTimestamp: Date.now(),
-                    lastReadSequenceNumber: getMaxSequenceNumber(reportID),
-                },
-            }],
-            successData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    isLoadingReportActions: false,
-                },
-            }],
-            failureData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    isLoadingReportActions: false,
-                },
-            }],
-        });
+        onyxData);
 }
 
 /**
@@ -1271,7 +1299,7 @@ function addPolicyReport(policy, reportName, visibility) {
 /**
  * @param {String} reportID The reportID of the policy report (workspace room)
  */
-function navigateToConciergeChatAndDeletePolicyReport(reportID) {
+function navigateToConciergeChatAndDeleteReport(reportID) {
     navigateToConciergeChat();
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, null);
@@ -1483,7 +1511,7 @@ export {
     navigateToConciergeChat,
     setReportWithDraft,
     addPolicyReport,
-    navigateToConciergeChatAndDeletePolicyReport,
+    navigateToConciergeChatAndDeleteReport,
     setIsComposerFullSize,
     markCommentAsUnread,
     readNewestAction,
