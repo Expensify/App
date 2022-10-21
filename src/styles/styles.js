@@ -259,10 +259,6 @@ const styles = {
         fontSize: variables.fontSizeLarge,
     },
 
-    textMedium: {
-        fontSize: variables.fontSizeMedium,
-    },
-
     textXXLarge: {
         fontSize: variables.fontSizeXXLarge,
     },
