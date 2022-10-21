@@ -108,7 +108,7 @@ const ReportWelcomeText = (props) => {
                         displayName, pronouns, tooltip,
                     }, index) => (
                         <Text key={`${displayName}${pronouns}${index}`}>
-                            <Tooltip text={tooltip}>
+                            <Tooltip text={tooltip} containerStyles={[styles.dInline]}>
                                 <Text style={[styles.textStrong]} onPress={() => Navigation.navigate(ROUTES.getDetailsRoute(participants[index]))}>
                                     {displayName}
                                 </Text>
