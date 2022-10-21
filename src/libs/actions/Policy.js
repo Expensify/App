@@ -746,17 +746,14 @@ function generateDefaultWorkspaceName(email = '') {
         return defaultWorkspaceName;
     }
 
-    // Check if this name already exists in the policies
-    let count = 0;
-    _.forEach(allPolicies, (policy) => {
-        const name = lodashGet(policy, 'name', '');
-
-        if (name.toLowerCase().includes(defaultWorkspaceName.toLowerCase())) {
-            count += 1;
-        }
-    });
-
-    return count > 0 ? `${defaultWorkspaceName} ${count + 1}` : defaultWorkspaceName;
+    // find default named workspaces and increment the last number
+    const numberRegEx = new RegExp(`${defaultWorkspaceName} ?(\\d*)`, 'i');
+    const defaultWorkspaceNumbers = _.chain(allPolicies)
+        .filter(policy => policy.name && numberRegEx.test(policy.name))
+        .map(policy => parseInt(numberRegEx.exec(policy.name)[1] || 1, 10)) // parse the number at the end
+        .value();
+    const lastNumber = defaultWorkspaceNumbers.sort().pop();
+    return lastNumber ? `${defaultWorkspaceName} ${lastNumber + 1}` : defaultWorkspaceName;
 }
 
 /**
