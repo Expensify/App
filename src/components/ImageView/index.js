@@ -25,6 +25,8 @@ class ImageView extends PureComponent {
         this.onContainerPress = this.onContainerPress.bind(this);
         this.imageLoadingStart = this.imageLoadingStart.bind(this);
         this.imageLoadingEnd = this.imageLoadingEnd.bind(this);
+        this.onMouseUp = this.onMouseUp.bind(this);
+        this.trackMovement = this.trackMovement.bind(this);
         this.state = {
             isLoading: false,
             containerHeight: 0,
@@ -49,7 +51,8 @@ class ImageView extends PureComponent {
         if (this.canUseTouchScreen) {
             return;
         }
-        document.addEventListener('mousemove', this.trackMovement.bind(this));
+        document.addEventListener('mousemove', this.trackMovement);
+        document.addEventListener('mouseup', this.onMouseUp);
     }
 
     componentWillUnmount() {
@@ -57,7 +60,8 @@ class ImageView extends PureComponent {
             return;
         }
 
-        document.removeEventListener('mousemove', this.trackMovement.bind(this));
+        document.removeEventListener('mousemove', this.trackMovement);
+        document.removeEventListener('mouseup', this.onMouseUp);
     }
 
     /**
@@ -113,6 +117,14 @@ class ImageView extends PureComponent {
                 this.scrollableRef.scrollTop = scrollY;
                 this.scrollableRef.scrollLeft = scrollX;
             });
+        }
+    }
+
+    onMouseUp(e) {
+        const isInside = this.scrollableRef.contains(e.nativeEvent.target);
+
+        if (!isInside && this.state.isZoomed && this.state.isDragging && this.state.isMouseDown) {
+            this.setState({isDragging: false, isMouseDown: false});
         }
     }
 
