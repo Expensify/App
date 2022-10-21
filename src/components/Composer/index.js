@@ -142,7 +142,6 @@ class Composer extends React.Component {
             }
         }
 
-        this.dropZoneDragEnterCount = 0;
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
