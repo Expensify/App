@@ -135,9 +135,13 @@ class Composer extends React.Component {
         this.paste = this.paste.bind(this);
         if (document) {
             this.dropZone = document.getElementById(CONST.REPORT.DROP_NATIVE_ID);
-            this.dropZoneDragHandler = this.dropZoneDragHandler.bind(this);
-            this.dropZoneDragState = 'dragleave';
+            if (this.dropZone) {
+                this.dropZoneDragHandler = this.dropZoneDragHandler.bind(this);
+                this.dropZoneDragListener = this.dropZoneDragListener.bind(this);
+                this.dropZoneDragState = 'dragleave';
+            }
         }
+
         this.dropZoneDragEnterCount = 0;
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
@@ -234,18 +238,18 @@ class Composer extends React.Component {
     };
 
     /**
-     * Handles all types of drag-N-drop events on the composer
+     * Handles all types of drag-N-drop events on the drop zone associated with composer
      *
      * @param {Object} e native Event
      */
-    dragNDropListener(e) {
+    dropZoneDragListener(e) {
         if (!this.dropZone) {
             return;
         }
         e.preventDefault();
         if (e.screenX === 0 && e.screenY === 0 && e.type === 'dragleave' && this.dropZoneDragState !== 'dragleave') {
-            /* We left window - necessary since report screen the latest dragleave might be from the child of dropZone which will not be detected as dropZoneLeave
-            in order to avoid sending burst of events */
+            /* We left window - necessary since the latest dragleave might be from the child of drop zone which will not be detected as dropZoneLeave
+            in order to avoid sending burst of events on every child leave */
             e.dataTransfer.dropEffect = NONE_DROP_EFFECT;
             this.dropZoneDragState = 'dragleave';
             this.props.onDragLeave();
@@ -260,6 +264,15 @@ class Composer extends React.Component {
         } else {
             e.dataTransfer.dropEffect = NONE_DROP_EFFECT;
         }
+    }
+
+    /**
+     * Handles all types of drag-N-drop events on the composer and associated drop zone if it exists
+     *
+     * @param {Object} e native Event
+     */
+    dragNDropListener(e) {
+        this.dropZoneDragListener(e);
     }
 
     /**

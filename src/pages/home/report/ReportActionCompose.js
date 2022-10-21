@@ -618,12 +618,9 @@ class ReportActionCompose extends React.Component {
                                         onChangeText={comment => this.updateComment(comment, true)}
                                         onKeyPress={this.triggerHotkeyActions}
                                         onDragEnter={() => {
-                                            console.log('dragenter');
                                             this.setState({isDraggingOver: true});
                                         }}
                                         onDragLeave={() => {
-                                            console.log('dragleave');
-
                                             this.setState({isDraggingOver: false});
                                         }}
                                         onDrop={(e) => {
