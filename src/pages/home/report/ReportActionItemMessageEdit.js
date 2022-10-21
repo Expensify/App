@@ -97,6 +97,15 @@ class ReportActionItemMessageEdit extends React.Component {
      */
     updateDraft(draft) {
         const newDraft = EmojiUtils.replaceEmojis(draft);
+
+        // When the draft has changed after replacing emojis we need to update the text in the input
+        if (newDraft !== draft) {
+            const lengthDiff = newDraft.length - draft.length;
+
+            // we assume that at the last position of our text a emoji has been added, thus we have to add a offset of 1
+            this.textInput.setTextAndSelection(newDraft, this.selection.start + lengthDiff + 1, this.selection.end + lengthDiff + 1);
+        }
+
         this.draft = newDraft;
 
         // This component is rendered only when draft is set to a non-empty string. In order to prevent component
