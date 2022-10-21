@@ -1,4 +1,4 @@
-import CONST from "../CONST";
+import CONST from '../CONST';
 
 /**
  * Calculates the amount per user given a list of participants
