@@ -85,8 +85,7 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
     // Run the tests
     const numOfTests = _.values(TESTS_CONFIG).length;
     for (let testIndex = 0; testIndex < numOfTests; testIndex++) {
-        // const config = _.values(TESTS_CONFIG)[testIndex];
-        // server.setTestConfig(config);
+        const config = _.values(TESTS_CONFIG)[testIndex];
 
         // const warmupLogs = Logger.progressInfo(`Running test '${config.name}'`);
         // for (let warmUpRuns = 0; warmUpRuns < WARM_UP_RUNS; warmUpRuns++) {
