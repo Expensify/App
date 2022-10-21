@@ -1,7 +1,9 @@
+import CONST from "../CONST";
+
 /**
  * Calculates the amount per user given a list of participants
  * @param {Array} participants
- * @param {Int} total
+ * @param {Number} total
  * @param {Boolean} isDefaultUser
  * @returns {Number}
  */
@@ -23,7 +25,39 @@ function calculateAmount(participants, total, isDefaultUser = false) {
     return iouAmount !== sumAmount ? (amountPerPerson + difference) : amountPerPerson;
 }
 
+/**
+ * The owner of the IOU report is the account who is owed money and the manager is the one who owes money!
+ * We need to update the owner and the report total in case the owner/manager swap.
+ * For example: if user1 owes user2 $10, then we have: {ownerEmail: user2, managerEmail: user1, total: $10 (owed to user2)}
+ * If user1 requests $17 from user2, then we have: {ownerEmail: user1, managerEmail: user2, total: $7 (owed to user1)}
+ *
+ * @param {Object} iouReport
+ * @param {String} actorEmail
+ * @param {Number} amount
+ * @param {String} type
+ * @returns {Object}
+ */
+function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, type = CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
+    const iouReportUpdate = {...iouReport};
+
+    if (actorEmail === iouReport.ownerEmail) {
+        iouReportUpdate.total += type === CONST.IOU.REPORT_ACTION_TYPE.CANCEL ? -amount : amount;
+    } else {
+        iouReportUpdate.total += type === CONST.IOU.REPORT_ACTION_TYPE.CANCEL ? amount : -amount;
+    }
+
+    if (iouReportUpdate.total < 0) {
+        // The total sign has changed and hence we need to flip the manager and owner of the report.
+        const oldOwnerEmail = iouReport.ownerEmail;
+        iouReportUpdate.ownerEmail = iouReport.managerEmail;
+        iouReportUpdate.managerEmail = oldOwnerEmail;
+        iouReportUpdate.total = -iouReportUpdate.total;
+    }
+
+    return iouReportUpdate;
+}
+
 export {
-    // eslint-disable-next-line import/prefer-default-export
     calculateAmount,
+    updateIOUOwnerAndTotal,
 };

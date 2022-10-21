@@ -240,8 +240,12 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         const oneOnOneChatReport = existingOneOnOneChatReport || ReportUtils.buildOptimisticChatReport([email]);
         let oneOnOneIOUReport;
         if (oneOnOneChatReport.iouReportID) {
-            oneOnOneIOUReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneChatReport.iouReportID}`];
-            oneOnOneIOUReport.total += splitAmount;
+            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(
+                iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneChatReport.iouReportID}`],
+                currentUserEmail,
+                splitAmount,
+            );
+            oneOnOneChatReport.hasOutstandingIOU = oneOnOneIOUReport.total !== 0;
         } else {
             oneOnOneIOUReport = ReportUtils.buildOptimisticIOUReport(
                 currentUserEmail,
