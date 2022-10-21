@@ -126,14 +126,13 @@ function startLoadingAndResetError() {
  * Request money from another user
  *
  * @param {Object} report
- * @param {Array}  participants
  * @param {Number} amount
  * @param {String} currency
  * @param {String} recipientEmail
  * @param {String} debtorEmail
  * @param {String} comment
  */
-function requestMoney(report, participants, amount, currency, recipientEmail, debtorEmail, comment) {
+function requestMoney(report, amount, currency, recipientEmail, debtorEmail, comment) {
     let chatReport = lodashGet(report, 'reportID', null) ? report : null;
     let isNewChat = false;
     if (!chatReport) {
@@ -173,18 +172,16 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
         const optimisticCreateAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
         optimisticData = [
             {
-                onyxMethod: CONST.ONYX.METHOD.SET,
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
                 value: {
                     ...chatReport,
-                    isLoadingReportActions: true,
                     lastVisitedTimestamp: Date.now(),
                     pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
-                    isOptimisticReport: true,
                 },
             },
             {
-                onyxMethod: CONST.ONYX.METHOD.SET,
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
                 value: optimisticCreateAction,
             },
@@ -196,9 +193,16 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
                 key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
                 value: {
                     pendingFields: null,
-                    isLoadingReportActions: false,
-                    isOptimisticReport: false,
                     errorFields: null,
+                },
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                value: {
+                    0: {
+                        pendingAction: null,
+                    },
                 },
             },
         ];
@@ -209,6 +213,15 @@ function requestMoney(report, participants, amount, currency, recipientEmail, de
                 key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
                 value: {
                     pendingFields: null,
+                },
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                value: {
+                    0: {
+                        pendingAction: null,
+                    },
                 },
             },
         ];
