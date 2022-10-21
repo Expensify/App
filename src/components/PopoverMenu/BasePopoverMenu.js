@@ -36,7 +36,6 @@ class BasePopoverMenu extends PureComponent {
                 animationIn={this.props.animationIn}
                 animationOut={this.props.animationOut}
                 animationInTiming={this.props.animationInTiming}
-                animationOutTiming={this.props.animationOutTiming}
                 disableAnimation={this.props.disableAnimation}
                 fromSidebarMediumScreen={this.props.fromSidebarMediumScreen}
             >
