@@ -2662,6 +2662,11 @@ const styles = {
         userSelect: 'text',
     },
 
+    userSelectNone: {
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+    },
+
     screenCenteredContainer: {
         flex: 1,
         justifyContent: 'center',
