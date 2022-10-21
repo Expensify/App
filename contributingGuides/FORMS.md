@@ -198,6 +198,38 @@ function onSubmit(values) {
 </Form>
 ```
 
+`Form.js` also works with inputs nested in a custom component, e.g. [AddressForm](https://github.com/Expensify/App/blob/86579225ff30b21dea507347735259637a2df461/src/pages/ReimbursementAccount/AddressForm.js). The only exception is that the nested component shouldn't be wrapped around any HoC.
+
+```jsx
+const BankAccountForm = () => (
+    <>
+        <View>
+            <TextInput
+                label="Routing number"
+                inputID="routingNumber"
+                maxLength={8}
+                shouldSaveDraft
+            />
+        </View>
+        <TextInput
+            label="Account number"
+            inputID="accountNumber"
+            containerStyles={[styles.mt4]}
+        />
+    </>
+);
+
+// ...
+<Form
+    formID="testForm"
+    submitButtonText="Submit"
+    validate={this.validate}
+    onSubmit={this.onSubmit}
+>
+    <BankAccountForm />
+</Form>
+```
+
 ### Props provided to Form inputs
 
 The following prop is available to form inputs:
