@@ -3,7 +3,13 @@ import * as EmojiUtils from '../../src/libs/EmojiUtils';
 describe('EmojiCode', () => {
     it('Test replacing emoji codes with emojis inside a text', () => {
         const text = 'Hi :smile:';
-        expect(EmojiUtils.replaceEmojis(text)).toBe('Hi 😄');
+        const {newText, lastReplacedSelection} = EmojiUtils.replaceEmojis(text);
+        expect(newText).toBe('Hi 😄');
+        expect(lastReplacedSelection).toEqual({
+            start: 3,
+            end: 10,
+            newEmojiEnd: 5,
+        });
     });
 
     it('Test suggesting emojis when typing emojis prefix after colon', () => {

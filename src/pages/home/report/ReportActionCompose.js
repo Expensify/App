@@ -378,7 +378,9 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(comment, shouldDebounceSaveComment) {
-        const newComment = EmojiUtils.replaceEmojis(comment);
+        const emojiReplaceResults = EmojiUtils.replaceEmojis(comment);
+        const newComment = emojiReplaceResults.newText;
+
         const isCommentEmpty = Boolean(newComment.match(CONST.REGEX.IS_COMMENT_EMPTY));
         if (this.state.isCommentEmpty !== isCommentEmpty) {
             this.setState({isCommentEmpty});
@@ -386,10 +388,8 @@ class ReportActionCompose extends React.Component {
 
         // When the comment has changed after replacing emojis we need to update the text in the input
         if (newComment !== comment) {
-            const lengthDiff = newComment.length - comment.length;
-
-            // we assume that at the last position of our text a emoji has been added, thus we have to add a offset of 1
-            this.textInput.setTextAndSelection(newComment, this.selection.start + lengthDiff + 1, this.selection.end + lengthDiff + 1);
+            const cursorPosition = emojiReplaceResults.lastReplacedSelection.newSelectionEnd;
+            this.textInput.setTextAndSelection(newComment, cursorPosition, cursorPosition);
         }
 
         // Indicate that draft has been created.

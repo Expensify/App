@@ -203,21 +203,37 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
 /**
  * Replace any emoji name in a text with the emoji icon
  * @param {String} text
- * @returns {String}
+ * @returns {{ newText: String, lastReplacedSelection: { start: Number, end: Number, newSelectionEnd: Number } }}
  */
 function replaceEmojis(text) {
     let newText = text;
     const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
+
+    const lastReplacedSelection = {
+        start: 0,
+        end: 0,
+        newSelectionEnd: 0,
+    };
+
     if (!emojiData || emojiData.length === 0) {
-        return text;
+        return {newText, lastReplacedSelection};
     }
     for (let i = 0; i < emojiData.length; i++) {
-        const checkEmoji = emojisTrie.search(emojiData[i].slice(1, -1));
+        const match = emojiData[i];
+        const checkEmoji = emojisTrie.search(match.slice(1, -1));
         if (checkEmoji && checkEmoji.metaData.code) {
-            newText = newText.replace(emojiData[i], checkEmoji.metaData.code);
+            const emojiCode = checkEmoji.metaData.code;
+
+            lastReplacedSelection.start = newText.indexOf(match);
+            lastReplacedSelection.end = lastReplacedSelection.start + match.length;
+            lastReplacedSelection.newSelectionEnd = lastReplacedSelection.start + emojiCode.length;
+
+            newText = newText.substr(0, lastReplacedSelection.start)
+                + emojiCode
+                + newText.substr(lastReplacedSelection.end);
         }
     }
-    return newText;
+    return {newText, lastReplacedSelection};
 }
 
 /**
