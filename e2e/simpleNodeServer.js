@@ -30,6 +30,10 @@ const startServer = async () => {
         console.log(`[LISTENER] Test '${testResult.name}' took ${testResult.duration}ms`);
         durationsByTestName[testResult.name] = (durationsByTestName[testResult.name] || []).concat(testResult.duration);
     });
+
+    server.addTestDoneListener(() => {
+        console.log(`Test iteration done!`);
+    });
 };
 
 // eslint-disable-next-line no-console
