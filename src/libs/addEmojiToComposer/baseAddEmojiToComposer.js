@@ -14,7 +14,7 @@
  *
  * @return {{ newSelection: {start: Number, end: Number}, newText: String }} results
  */
-function addEmojiToComposerTextInput({
+function baseAddEmojiToComposer({
     text,
     emoji,
     textInput,
@@ -35,4 +35,4 @@ function addEmojiToComposerTextInput({
     };
 }
 
-export default addEmojiToComposerTextInput;
+export default baseAddEmojiToComposer;

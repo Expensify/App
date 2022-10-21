@@ -1,4 +1,4 @@
-import addEmojiToComposerTextInputImpl from './addEmojiToComposerTextInput';
+import baseAddEmojiToComposer from './baseAddEmojiToComposer';
 
 /**
  * Takes a text and adds an emoji at the place of selection.
@@ -23,7 +23,7 @@ function addEmojiToComposerTextInput(params) {
         textInput.setSelection(selection.start, selection.start);
     }
 
-    return addEmojiToComposerTextInputImpl(params);
+    return baseAddEmojiToComposer(params);
 }
 
 export default addEmojiToComposerTextInput;

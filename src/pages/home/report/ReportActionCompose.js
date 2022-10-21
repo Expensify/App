@@ -47,7 +47,7 @@ import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import withNavigationFocus from '../../../components/withNavigationFocus';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import reportPropTypes from '../../reportPropTypes';
-import addEmojiToComposerTextInput from '../../../libs/addEmojiToComposerTextInput';
+import addEmojiToComposer from '../../../libs/addEmojiToComposer';
 
 const propTypes = {
     /** Beta features list */
@@ -318,7 +318,7 @@ class ReportActionCompose extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        const {newText, newSelection} = addEmojiToComposerTextInput({
+        const {newText, newSelection} = addEmojiToComposer({
             emoji,
             text: this.comment,
             textInput: this.textInput,

@@ -20,7 +20,7 @@ import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu'
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import reportPropTypes from '../../reportPropTypes';
-import addEmojiToComposerTextInput from '../../../libs/addEmojiToComposerTextInput';
+import addEmojiToComposer from '../../../libs/addEmojiToComposer';
 
 const propTypes = {
     /** All the data of the action */
@@ -165,7 +165,7 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        const {newText, newSelection} = addEmojiToComposerTextInput({
+        const {newText, newSelection} = addEmojiToComposer({
             emoji,
             text: this.draft,
             textInput: this.textInput,
