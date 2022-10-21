@@ -188,6 +188,7 @@ function getOptionData(reportID) {
         text: null,
         alternateText: null,
         pendingAction: null,
+        allReportErrors: null,
         brickRoadIndicator: null,
         icons: null,
         tooltipText: null,
@@ -222,6 +223,7 @@ function getOptionData(reportID) {
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom : null;
+    result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     result.brickRoadIndicator = OptionsListUtils.getBrickRoadIndicatorStatusForReport(report, reportActions);
     result.ownerEmail = report.ownerEmail;
     result.reportID = report.reportID;

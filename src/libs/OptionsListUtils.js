@@ -283,6 +283,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         text: null,
         alternateText: null,
         pendingAction: null,
+        allReportErrors: null,
         brickRoadIndicator: null,
         icons: null,
         tooltipText: null,
@@ -323,6 +324,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
         result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
+        result.allReportErrors = getAllReportErrors(report, reportActions);
         result.brickRoadIndicator = getBrickRoadIndicatorStatusForReport(report, reportActions);
         result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom : null;
         result.ownerEmail = report.ownerEmail;
