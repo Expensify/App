@@ -18,6 +18,7 @@ import compose from '../../../libs/compose';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
+import * as EmojiUtils from '../../../libs/EmojiUtils';
 import reportPropTypes from '../../reportPropTypes';
 import addEmojiToComposerTextInput from '../../../libs/addEmojiToComposerTextInput';
 
@@ -92,9 +93,10 @@ class ReportActionItemMessageEdit extends React.Component {
     /**
      * Update the value of the draft in Onyx
      *
-     * @param {String} newDraft
+     * @param {String} draft
      */
-    updateDraft(newDraft) {
+    updateDraft(draft) {
+        const newDraft = EmojiUtils.replaceEmojis(draft);
         this.draft = newDraft;
 
         // This component is rendered only when draft is set to a non-empty string. In order to prevent component

@@ -357,6 +357,7 @@ const CONST = {
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         TOOLTIP_SENSE: 1000,
         SPINNER_TIMEOUT: 15 * 1000,
+        TRIE_INITIALIZATION: 'trie_initialization',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -740,6 +741,8 @@ const CONST = {
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
         IS_COMMENT_EMPTY: /^(\s|`)*$/,
+        EMOJI_NAME: /:[\w+-]+:/g,
+        EMOJI_SUGGESTIONS: /:[a-zA-Z]{1,20}(\s[a-zA-Z]{0,20})?$/,
     },
 
     PRONOUNS: {
