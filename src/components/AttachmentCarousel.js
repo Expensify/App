@@ -24,13 +24,13 @@ const propTypes = {
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** Callback to update the parent modal's state with a sourceUrl and name from the attachments array */
-    onArrowPress: PropTypes.func,
+    onNavigate: PropTypes.func,
 };
 
 const defaultProps = {
     sourceURL: '',
     reportActions: {},
-    onArrowPress: () => {},
+    onNavigate: () => {},
 };
 
 class AttachmentCarousel extends React.Component {
@@ -128,7 +128,7 @@ class AttachmentCarousel extends React.Component {
         this.setState(({attachments, page}) => {
             const nextIndex = page + deltaSlide;
             const {sourceURL, file} = this.getAttachment(attachments[nextIndex]);
-            this.props.onArrowPress({sourceURL, file});
+            this.props.onNavigate({sourceURL, file});
             return {
                 page: nextIndex,
                 sourceURL,
@@ -178,9 +178,9 @@ class AttachmentCarousel extends React.Component {
                     canSwipeLeft={!this.state.isBackDisabled}
                     canSwipeRight={!this.state.isForwardDisabled}
                     onPress={() => this.canUseTouchScreen && this.onShowArrow(!this.state.showArrows)}
-                    onSwipe={this.cycleThroughAttachments}
+                    onCycleThroughAttachments={this.cycleThroughAttachments}
                 >
-                    <AttachmentView onPDFPress={() => this.onShowArrow(!this.state.showArrows)} sourceURL={this.state.sourceURL} file={this.state.file} />
+                    <AttachmentView onPress={() => this.onShowArrow(!this.state.showArrows)} sourceURL={this.state.sourceURL} file={this.state.file} />
                 </Carousel>
 
             </View>

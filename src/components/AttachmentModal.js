@@ -12,10 +12,10 @@ import AttachmentView from './AttachmentView';
 import AttachmentCarousel from './AttachmentCarousel';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
+import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
 import themeColors from '../styles/themes/default';
 import compose from '../libs/compose';
-import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import Button from './Button';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
@@ -91,7 +91,7 @@ class AttachmentModal extends PureComponent {
 
         this.submitAndClose = this.submitAndClose.bind(this);
         this.closeConfirmModal = this.closeConfirmModal.bind(this);
-        this.onArrowPress = this.onArrowPress.bind(this);
+        this.onNavigate = this.onNavigate.bind(this);
         this.validateAndDisplayFileToUpload = this.validateAndDisplayFileToUpload.bind(this);
         this.updateConfirmButtonVisibility = this.updateConfirmButtonVisibility.bind(this);
     }
@@ -115,10 +115,10 @@ class AttachmentModal extends PureComponent {
 
     /**
      * Helps to navigate between next/previous attachments
-     * @param {Object} {sourceURL, file}
+     * @param {Object} param
      */
-    onArrowPress({sourceURL, file}) {
-        this.setState({sourceURL, file});
+    onNavigate(param) {
+        this.setState(param);
     }
 
     /**
@@ -294,7 +294,7 @@ class AttachmentModal extends PureComponent {
                             <AttachmentCarousel
                                 showArrows={this.state.showArrows}
                                 reportId={this.state.reportId}
-                                onArrowPress={this.onArrowPress}
+                                onNavigate={this.onNavigate}
                                 sourceURL={this.props.sourceURL}
                             />
                         ) : (this.state.sourceURL

@@ -8,7 +8,7 @@ const propTypes = {
     children: PropTypes.element.isRequired,
 
     /** Callback to fire when swiping left or right */
-    onSwipe: PropTypes.func,
+    onCycleThroughAttachments: PropTypes.func,
 
     /** Callback to handle a press event because PanResponder will intercept all gestures */
     onPress: PropTypes.func,
@@ -19,7 +19,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    onSwipe: () => {},
+    onCycleThroughAttachments: () => {},
     onPress: () => {},
     canSwipeLeft: false,
     canSwipeRight: false,
@@ -38,7 +38,6 @@ class Carousel extends Component {
             }], {useNativeDriver: false})(event, gestureState),
 
             onPanResponderRelease: (event, gestureState) => {
-                // For swiping through images, I needed to catch a single press to hide the arrows
                 if (gestureState.dx === 0 && gestureState.dy === 0) {
                     return this.props.onPress();
                 }
@@ -55,7 +54,7 @@ class Carousel extends Component {
                         return;
                     }
 
-                    this.props.onSwipe(deltaSlide);
+                    this.props.onCycleThroughAttachments(deltaSlide);
                     this.pan.setValue(slideLength);
                     Animated.timing(this.pan, {useNativeDriver: false, duration: 100, toValue: 0}).start();
                 });

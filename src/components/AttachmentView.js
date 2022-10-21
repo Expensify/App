@@ -28,8 +28,8 @@ const propTypes = {
     /** Flag to show the loading indicator */
     shouldShowLoadingSpinnerIcon: PropTypes.bool,
 
-    /** Function for native pdf to handle toggling arrows */
-    onPDFPress: PropTypes.func,
+    /** Function for handle on press */
+    onPress: PropTypes.func,
 
     /** Notify parent that the UI should be modified to accommodate keyboard */
     onToggleKeyboard: PropTypes.func,
@@ -43,7 +43,7 @@ const defaultProps = {
     },
     shouldShowDownloadIcon: false,
     shouldShowLoadingSpinnerIcon: false,
-    onPDFPress: () => {},
+    onPress: () => {},
     onToggleKeyboard: () => {},
 };
 
@@ -54,7 +54,7 @@ const AttachmentView = (props) => {
         || (props.file && Str.isPDF(props.file.name || props.translate('attachmentView.unknownFilename')))) {
         return (
             <PDFView
-                onPress={props.onPDFPress}
+                onPress={props.onPress}
                 sourceURL={props.sourceURL}
                 style={styles.imageModalPDF}
                 onToggleKeyboard={props.onToggleKeyboard}

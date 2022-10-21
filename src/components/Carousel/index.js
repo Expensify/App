@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Pressable} from 'react-native';
-import canUseTouchScreen from '../../libs/canUseTouchscreen';
 
 const propTypes = {
     /** handles onPress events with a callback  */
@@ -30,21 +29,14 @@ class Carousel extends React.Component {
     constructor(props) {
         super(props);
 
-        this.canUseTouchScreen = canUseTouchScreen();
         this.handleKeyPress = this.handleKeyPress.bind(this);
     }
 
     componentDidMount() {
-        if (this.canUseTouchScreen) {
-            return;
-        }
         document.addEventListener('keydown', this.handleKeyPress);
     }
 
     componentWillUnmount() {
-        if (this.canUseTouchScreen) {
-            return;
-        }
         document.removeEventListener('keydown', this.handleKeyPress);
     }
 
