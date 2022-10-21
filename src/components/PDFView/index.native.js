@@ -139,6 +139,7 @@ class PDFView extends Component {
                             onError={this.initiatePasswordChallenge}
                             password={this.state.password}
                             onLoadComplete={this.finishPdfLoad}
+                            onPageSingleTap={this.props.onPress}
                         />
                     </TouchableWithoutFeedback>
                 )}

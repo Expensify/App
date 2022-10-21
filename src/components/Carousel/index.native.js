@@ -3,7 +3,6 @@ import {PanResponder, Dimensions, Animated} from 'react-native';
 import PropTypes from 'prop-types';
 
 import styles from '../../styles/styles';
-import CONST from '../../CONST';
 
 const propTypes = {
     children: PropTypes.element.isRequired,
@@ -32,12 +31,8 @@ class Carousel extends Component {
         this.pan = new Animated.Value(0);
 
         this.panResponder = PanResponder.create({
-            onMoveShouldSetPanResponderCapture: (_event, gestureState) => {
-                if (gestureState.dy < CONST.COMPOSER_MAX_HEIGHT) { return; }
-                return true;
-            },
-
             onStartShouldSetPanResponder: () => true,
+
             onPanResponderMove: (event, gestureState) => Animated.event([null, {
                 dx: this.pan,
             }], {useNativeDriver: false})(event, gestureState),
@@ -59,6 +54,7 @@ class Carousel extends Component {
                     if (!finished) {
                         return;
                     }
+
                     this.props.onSwipe(deltaSlide);
                     this.pan.setValue(slideLength);
                     Animated.timing(this.pan, {useNativeDriver: false, duration: 100, toValue: 0}).start();

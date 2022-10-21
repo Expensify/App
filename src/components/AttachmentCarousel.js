@@ -178,7 +178,7 @@ class AttachmentCarousel extends React.Component {
                     canSwipeLeft={!this.state.isBackDisabled}
                     canSwipeRight={!this.state.isForwardDisabled}
                     onPress={() => this.canUseTouchScreen && this.onShowArrow(!this.state.showArrows)}
-                    onCycleThroughAttachments={this.cycleThroughAttachments}
+                    onSwipe={this.cycleThroughAttachments}
                 >
                     <AttachmentView onPDFPress={() => this.onShowArrow(!this.state.showArrows)} sourceURL={this.state.sourceURL} file={this.state.file} />
                 </Carousel>
