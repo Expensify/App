@@ -1,4 +1,6 @@
 ---
+title: The title of the post, page, or document
+description: A short description of the page's content
 ---
 <!-- The lines above are required by Jekyll to process the .md file -->
 

@@ -13,6 +13,7 @@ import LoginForm from './LoginForm';
 import PasswordForm from './PasswordForm';
 import ResendValidationForm from './ResendValidationForm';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import Performance from '../../libs/Performance';
 
 const propTypes = {
     /* Onyx Props */
@@ -46,6 +47,7 @@ class SignInPage extends Component {
         // Always reset the unread counter to zero on this page
         // NOTE: We need to wait for the next tick to ensure that the unread indicator is updated
         setTimeout(() => updateUnread(0), 0);
+        Performance.measureTTI();
     }
 
     render() {
