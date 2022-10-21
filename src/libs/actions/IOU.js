@@ -14,7 +14,7 @@ import Log from '../Log';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
 import * as NumberUtils from '../NumberUtils';
-import * as DateUtils from '../DateUtils';
+import DateUtils from '../DateUtils';
 
 let iouReports;
 Onyx.connect({
