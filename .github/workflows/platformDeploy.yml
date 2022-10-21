@@ -93,7 +93,7 @@ jobs:
     name: Build and deploy Desktop
     needs: validateActor
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
-    runs-on: macos-11
+    runs-on: macos-12
     steps:
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
@@ -128,7 +128,7 @@ jobs:
     name: Build and deploy iOS
     needs: validateActor
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
-    runs-on: macos-11
+    runs-on: macos-12
     steps:
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 

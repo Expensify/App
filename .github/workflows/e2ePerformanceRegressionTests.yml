@@ -9,7 +9,7 @@ jobs:
     if: ${{ github.event.label.name == 'e2e' }}
     name: "Run e2e performance regression tests"
     # Although the tests will run on an android emulator, using macOS as its more performant
-    runs-on: macos-11
+    runs-on: macos-12
     steps:
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
