@@ -75,34 +75,18 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
     await reversePort();
     progressLog.done();
 
-    // Start the HTTP server
-    Logger.log('Creating server instance');
-    const server = createServerInstance();
-    Logger.log('Starting server instance');
-    await server.start();
-    Logger.log('Server instance running');
-
-    // Create a dict in which we will store the run durations for all tests
-    const durationsByTestName = {};
-
-    // Collect results while tests are being executed
-    server.addTestResultListener((testResult) => {
-        if (testResult.error != null) {
-            throw new Error(`Test '${testResult.name}' failed with error: ${testResult.error}`);
-        }
-        if (testResult.duration < 0) {
-            return;
-        }
-
-        Logger.log(`[LISTENER] Test '${testResult.name}' took ${testResult.duration}ms`);
-        durationsByTestName[testResult.name] = (durationsByTestName[testResult.name] || []).concat(testResult.duration);
-    });
+    // // Start the HTTP server
+    // Logger.log('Creating server instance');
+    // const server = createServerInstance();
+    // Logger.log('Starting server instance');
+    // await server.start();
+    // Logger.log('Server instance running');
 
     // Run the tests
     const numOfTests = _.values(TESTS_CONFIG).length;
     for (let testIndex = 0; testIndex < numOfTests; testIndex++) {
-        const config = _.values(TESTS_CONFIG)[testIndex];
-        server.setTestConfig(config);
+        // const config = _.values(TESTS_CONFIG)[testIndex];
+        // server.setTestConfig(config);
 
         // const warmupLogs = Logger.progressInfo(`Running test '${config.name}'`);
         // for (let warmUpRuns = 0; warmUpRuns < WARM_UP_RUNS; warmUpRuns++) {
@@ -134,11 +118,11 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
             // Wait for a test to finish by waiting on its done call to the http server
             try {
                 await withFailTimeout(new Promise((resolve) => {
-                    const cleanup = server.addTestDoneListener(() => {
-                        Logger.log(`Test iteration ${i + 1} done!`);
-                        cleanup();
-                        resolve();
-                    });
+                    // const cleanup = server.addTestDoneListener(() => {
+                    //     Logger.log(`Test iteration ${i + 1} done!`);
+                    //     cleanup();
+                    //     resolve();
+                    // });
                 }), progressText);
                 // await stopVideoRecording(false);
             } catch (e) {
@@ -166,7 +150,7 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
     }
     progressLog.done();
 
-    await server.stop();
+    // await server.stop();
 };
 
 const runTests = async () => {
