@@ -1,18 +1,17 @@
 const _ = require('underscore');
-const Logger = require('./utils/logger');
 const createServerInstance = require('./server');
 const {TESTS_CONFIG} = require('./config');
 
 // eslint-disable-next-line @lwc/lwc/no-async-await
 const startServer = async () => {
 // Start the HTTP server
-    Logger.log('Creating server instance');
+    console.log('Creating server instance');
     const server = createServerInstance();
-    Logger.log('Starting server instance');
+    console.log('Starting server instance');
     await server.start();
-    Logger.log('Server instance running');
+    console.log('Server instance running');
 
-    Logger.log('Setting config');
+    console.log('Setting config');
     const config = _.values(TESTS_CONFIG)[0];
     server.setTestConfig(config);
 
@@ -28,7 +27,7 @@ const startServer = async () => {
             return;
         }
 
-        Logger.log(`[LISTENER] Test '${testResult.name}' took ${testResult.duration}ms`);
+        console.log(`[LISTENER] Test '${testResult.name}' took ${testResult.duration}ms`);
         durationsByTestName[testResult.name] = (durationsByTestName[testResult.name] || []).concat(testResult.duration);
     });
 };
