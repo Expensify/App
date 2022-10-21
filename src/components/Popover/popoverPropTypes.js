@@ -13,6 +13,12 @@ const propTypes = {
         left: PropTypes.number,
     }),
 
+    /** A react-native-animatable animation timing for the modal display animation. */
+    animationInTiming: PropTypes.number,
+
+    /** A react-native-animatable animation timing for the modal hide animation. */
+    animationOutTiming: PropTypes.number,
+
     /** Whether disable the animations */
     disableAnimation: PropTypes.bool,
 };
@@ -22,6 +28,8 @@ const defaultProps = {
 
     animationIn: 'fadeIn',
     animationOut: 'fadeOut',
+    animationInTiming: 300,
+    animationOutTiming: 300,
 
     // Anchor position is optional only because it is not relevant on mobile
     anchorPosition: {},
