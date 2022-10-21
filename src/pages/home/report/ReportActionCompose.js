@@ -383,6 +383,9 @@ class ReportActionCompose extends React.Component {
         if (this.state.isCommentEmpty !== isCommentEmpty) {
             this.setState({isCommentEmpty});
         }
+        if (newComment !== comment) {
+            this.textInput.setTextAndSelection(newComment, this.selection.start, this.selection.end);
+        }
 
         // Indicate that draft has been created.
         if (this.comment.length === 0 && newComment.length !== 0) {
