@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {View, Pressable} from 'react-native';
+import {View, Pressable, Appearance} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -81,6 +81,9 @@ const HeaderView = (props) => {
     const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+    const colorScheme = Appearance.getColorScheme();
+    const background = colorScheme === 'dark' ? styles.bgDark : styles.bgTransparent; 
+
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
@@ -106,7 +109,7 @@ const HeaderView = (props) => {
                     >
                         <Pressable
                             onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.flex1, background]}
                         >
                             {shouldShowSubscript ? (
                                 <SubscriptAvatar
@@ -165,7 +168,7 @@ const HeaderView = (props) => {
                                     onPress={() => Report.togglePinnedState(props.report)}
                                     style={[styles.touchableButtonImage, styles.mr0]}
                                 >
-                                    <Icon src={Expensicons.Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
+                                    <Icon src={Expensicons.Pin} fill={colorScheme === 'dark' ? themeColors.dark : themeColors.borderFocus} />
                                 </Pressable>
                             </Tooltip>
                         </View>
