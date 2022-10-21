@@ -134,7 +134,7 @@ const OptionRow = (props) => {
     return (
         <OfflineWithFeedback
             pendingAction={props.option.pendingAction}
-            hasErrors={!_.isEmpty(props.option.brickRoadIndicator)}
+            errors={props.option.allReportErrors}
             shouldShowErrorMessages={false}
         >
             <Hoverable>
