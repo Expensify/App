@@ -1,19 +1,68 @@
-import React, {forwardRef} from 'react';
+import React, {Component, forwardRef} from 'react';
+import {Keyboard} from 'react-native';
+import _ from 'underscore';
 import BaseOptionsList from './BaseOptionsList';
 import withWindowDimensions from '../withWindowDimensions';
+import canUseTouchscreen from '../../libs/canUseTouchscreen';
 import {propTypes, defaultProps} from './optionsListPropTypes';
 
-const OptionsList = forwardRef((props, ref) => (
-    <BaseOptionsList
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        ref={ref}
-        keyboardDismissMode={props.isSmallScreenWidth ? 'on-drag' : 'none'}
-    />
-));
+class OptionsList extends Component {
+    constructor(props) {
+        super(props);
 
-OptionsList.propTypes = propTypes;
+        this.userTouchStart = this.userTouchStart.bind(this);
+        this.userTouchEnd = this.userTouchEnd.bind(this);
+    }
+
+    componentDidMount() {
+        if (!canUseTouchscreen()) {
+            return;
+        }
+
+        document.addEventListener('touchstart', this.userTouchStart);
+        document.addEventListener('touchend', this.userTouchEnd);
+    }
+
+    componentWillUnmount() {
+        if (!canUseTouchscreen()) {
+            return;
+        }
+
+        document.removeEventListener('touchstart', this.userTouchStart);
+        document.removeEventListener('touchend', this.userTouchEnd);
+    }
+
+    userTouchStart() {
+        this.isUserScreenTouched = true;
+    }
+
+    userTouchEnd() {
+        this.isUserScreenTouched = false;
+    }
+
+    render() {
+        return (
+            <BaseOptionsList
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {..._.omit(this.props, 'innerRef')}
+                ref={this.props.innerRef}
+                onScroll={() => {
+                    if (!this.isUserScreenTouched) {
+                        return;
+                    }
+                    Keyboard.dismiss();
+                }}
+            />
+        );
+    }
+}
+
+OptionsList.propTypes = {
+    ...propTypes,
+};
 OptionsList.defaultProps = defaultProps;
-OptionsList.displayName = 'OptionsList';
 
-export default withWindowDimensions(OptionsList);
+export default withWindowDimensions(forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <OptionsList innerRef={ref} {...props} />
+)));
