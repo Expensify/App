@@ -241,29 +241,6 @@ function getAllReportErrors(report, reportActions) {
 }
 
 /**
- * If the report or the report actions have errors, return
- * CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, otherwise an empty string.
- *
- * @param {Object} report
- * @param {Object} reportActions
- * @returns {String}
- */
-function getBrickRoadIndicatorStatusForReport(report, reportActions) {
-    const reportErrors = report.errors || {};
-    const reportErrorFields = report.errorFields || {};
-    const reportID = report.reportID;
-    const reportsActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] || {};
-
-    const hasReportFieldErrors = _.some(reportErrorFields, fieldErrors => !_.isEmpty(fieldErrors));
-    const hasReportActionErrors = _.some(reportsActions, action => !_.isEmpty(action.errors));
-
-    if (_.isEmpty(reportErrors) && !hasReportFieldErrors && !hasReportActionErrors) {
-        return '';
-    }
-    return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-}
-
-/**
  * Creates a report list option
  *
  * @param {Array<String>} logins
@@ -839,5 +816,4 @@ export {
     getIOUConfirmationOptionsFromParticipants,
     getSearchText,
     getAllReportErrors,
-    getBrickRoadIndicatorStatusForReport,
 };
