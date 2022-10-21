@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -148,6 +149,19 @@ class Form extends React.Component {
                 });
             }
 
+            // Look for any inputs nested in a custom component, e.g AddressForm or IdentityForm
+            if (_.isFunction(child.type)) {
+                const nestedChildren = new child.type(child.props);
+
+                if (!React.isValidElement(nestedChildren) || !lodashGet(nestedChildren, 'props.children')) {
+                    return child;
+                }
+
+                return React.cloneElement(nestedChildren, {
+                    children: this.childrenWrapperWithProps(lodashGet(nestedChildren, 'props.children')),
+                });
+            }
+
             // We check if the child has the inputID prop.
             // We don't want to pass form props to non form components, e.g. View, Text, etc
             if (!child.props.inputID) {
@@ -237,7 +251,7 @@ export default compose(
             key: props => props.formID,
         },
         draftValues: {
-            key: props => `${props.formID}DraftValues`,
+            key: props => `${props.formID}Draft`,
         },
     }),
 )(Form);
