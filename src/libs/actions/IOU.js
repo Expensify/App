@@ -165,7 +165,7 @@ function requestMoney(report, amount, currency, recipientEmail, debtorEmail, com
     );
 
     // First, add Data that will be used in all cases
-    let optimisticData = [
+    const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
@@ -190,7 +190,7 @@ function requestMoney(report, amount, currency, recipientEmail, debtorEmail, com
         },
     ];
 
-    let successData = [
+    const successData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
@@ -201,7 +201,7 @@ function requestMoney(report, amount, currency, recipientEmail, debtorEmail, com
             },
         },
     ];
-    let failureData = [
+    const failureData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
