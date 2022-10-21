@@ -209,6 +209,38 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
 }
 
 /**
+ * Get an object of error messages keyed by microtime by combining all error objects related to the report.
+ * @param {Object} report
+ * @param {Object} reportActions
+ * @returns {Object}
+ */
+function getAllReportErrors(report, reportActions) {
+    const reportErrors = report.errors || {};
+    const reportErrorFields = report.errorFields || {};
+    const reportID = report.reportID;
+    const reportsActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] || {};
+    const reportActionErrors = {};
+    _.chain(reportsActions)
+        .filter(action => !_.isEmpty(action.errors))
+        .map(action => _.extend(reportActionErrors, action.errors));
+
+    // All error objects related to the report. Each value in the sources contains error messages keyed by microtime
+    const errorSources = {
+        reportErrors,
+        ...reportErrorFields,
+        reportActionErrors,
+    };
+
+    // Combine all error messages keyed by microtime into one object
+    const allReportErrors = {};
+    _.chain(errorSources)
+        .filter(errors => !_.isEmpty(errors))
+        .map(errors => _.extend(allReportErrors, errors));
+
+    return allReportErrors;
+}
+
+/**
  * If the report or the report actions have errors, return
  * CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, otherwise an empty string.
  *
@@ -804,5 +836,6 @@ export {
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
     getSearchText,
+    getAllReportErrors,
     getBrickRoadIndicatorStatusForReport,
 };
