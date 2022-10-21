@@ -296,17 +296,17 @@ class ReportScreen extends React.Component {
                                             isComposerFullSize={this.props.isComposerFullSize}
                                             isDrawerOpen={this.props.isDrawerOpen}
                                         />
-                                        <ReportFooter
-                                            errors={addWorkspaceRoomOrChatErrors}
-                                            pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                            isOffline={this.props.network.isOffline}
-                                            reportActions={this.props.reportActions}
-                                            report={this.props.report}
-                                            isComposerFullSize={this.props.isComposerFullSize}
-                                            onSubmitComment={this.onSubmitComment}
-                                        />
                                     </>
                                 )}
+                            <ReportFooter
+                                errors={addWorkspaceRoomOrChatErrors}
+                                pendingAction={addWorkspaceRoomOrChatPendingAction}
+                                isOffline={this.props.network.isOffline}
+                                reportActions={this.props.reportActions}
+                                report={this.props.report}
+                                isComposerFullSize={this.props.isComposerFullSize}
+                                onSubmitComment={this.onSubmitComment}
+                            />
                         </View>
                     </FullPageNotFoundView>
                 </ScreenWrapper>
