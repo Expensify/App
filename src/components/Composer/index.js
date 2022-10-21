@@ -152,7 +152,7 @@ class Composer extends React.Component {
             this.textInput.addEventListener('paste', this.handlePaste);
             this.textInput.addEventListener('wheel', this.handleWheel);
 
-            // selection will be at start (0,0) - so we need to update it to be at the
+            // Selection will be at start (0,0) - so we need to update it to be at the
             // end of the text
             const defaultValue = this.props.defaultValue;
             this.textInput.setSelectionRange(defaultValue.length, defaultValue.length);
