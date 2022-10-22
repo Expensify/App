@@ -69,7 +69,7 @@ class DatePicker extends React.Component {
     render() {
         return (
             <TextInput
-                forceActiveLabel={!canUseTouchScreen()}
+                forceActiveLabel={true}
                 ref={(el) => {
                     this.inputRef = el;
 
