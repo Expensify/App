@@ -2564,7 +2564,6 @@ const styles = {
     },
 
     keyboardShortcutModalContainer: {
-        maxWidth: 600,
         maxHeight: '100%',
         flex: '0 0 auto',
     },
