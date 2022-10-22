@@ -133,6 +133,11 @@ class ReportActionItemMessageEdit extends React.Component {
      * the new content.
      */
     publishDraft() {
+        // Do nothing if draft exceed the character limit
+        if (this.state.draft.length > CONST.MAX_COMMENT_LENGTH) {
+            return;
+        }
+
         // To prevent re-mount after user saves edit before debounce duration (example: within 1 second), we cancel
         // debounce here.
         this.debouncedSaveDraft.cancel();
@@ -180,9 +185,6 @@ class ReportActionItemMessageEdit extends React.Component {
         }
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            if (this.state.draft.length > CONST.MAX_COMMENT_LENGTH) {
-                return;
-            }
             this.publishDraft();
         } else if (e.key === 'Escape') {
             e.preventDefault();
