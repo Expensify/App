@@ -33,7 +33,7 @@ jobs:
     steps:
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
-      - uses: ruby/setup-ruby@08245253a76fa4d1e459b7809579c62bd9eb718a
+      - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
         with:
           ruby-version: '2.7'
           bundler-cache: true
@@ -132,7 +132,7 @@ jobs:
     steps:
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
-      - uses: ruby/setup-ruby@08245253a76fa4d1e459b7809579c62bd9eb718a
+      - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
         with:
           ruby-version: '2.7'
           bundler-cache: true
@@ -269,7 +269,7 @@ jobs:
     if: ${{ success() }}
     needs: [android, desktop, iOS, web]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
 
       - name: Set version
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
