@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
-      - uses: ruby/setup-ruby@08245253a76fa4d1e459b7809579c62bd9eb718a
+      - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
         with:
           ruby-version: '2.7'
           bundler-cache: true
