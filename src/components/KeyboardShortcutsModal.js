@@ -8,6 +8,7 @@ import Text from './Text';
 import Modal from './Modal';
 import CONST from '../CONST';
 import styles from '../styles/styles';
+import * as StyleUtils from '../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
@@ -78,7 +79,7 @@ class KeyboardShortcutsModal extends React.Component {
             <Modal
                 isVisible={this.props.isShortcutsModalOpen}
                 type={modalType}
-                containerStyle={styles.keyboardShortcutModalContainer}
+                containerStyle={{...styles.keyboardShortcutModalContainer, ...StyleUtils.getKeyboardShortcutsModalWidth(this.props.isSmallScreenWidth)}}
                 onClose={KeyboardShortcutsActions.hideKeyboardShortcutModal}
             >
                 <HeaderWithCloseButton title={this.props.translate('keyboardShortcutModal.title')} onCloseButtonPress={KeyboardShortcutsActions.hideKeyboardShortcutModal} />
