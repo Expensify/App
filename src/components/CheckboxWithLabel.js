@@ -69,7 +69,7 @@ class CheckboxWithLabel extends React.Component {
     constructor(props) {
         super(props);
 
-        this.isChecked = props.defaultValue || props.isChecked;
+        this.isChecked = props.value || props.defaultValue || props.isChecked;
         this.LabelComponent = props.LabelComponent;
         this.defaultStyles = [styles.flexRow, styles.alignItemsCenter];
         this.wrapperStyles = _.isArray(props.style) ? [...this.defaultStyles, ...props.style] : [...this.defaultStyles, props.style];
