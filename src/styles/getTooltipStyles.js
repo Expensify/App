@@ -29,7 +29,7 @@ const POINTER_WIDTH = 12;
  *                                         and a negative value shifts it to the left.
  * @returns {Number}
  */
-function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWidth, manualShiftHorizontal) {
+function computeHorizontalShift (windowWidth, xOffset, componentWidth, tooltipWidth, manualShiftHorizontal) {
     // First find the left and right edges of the tooltip (by default, it is centered on the component).
     const componentCenter = xOffset + (componentWidth / 2) + manualShiftHorizontal;
     const tooltipLeftEdge = componentCenter - (tooltipWidth / 2);
@@ -71,7 +71,7 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  *                                       A positive value shifts it down, and a negative value shifts it up.
  * @returns {Object}
  */
-export default function getTooltipStyles(
+export default function getTooltipStyles (
     currentSize,
     windowWidth,
     xOffset,
@@ -103,6 +103,10 @@ export default function getTooltipStyles(
     const wrapperWidth = tooltipTextWidth && tooltipTextWidth < maxWidth
         ? tooltipTextWidth + (spacing.ph2.paddingHorizontal * 2) + 1
         : maxWidth;
+
+    // We get the tooltip WhiteSpace style by determining which type of tooltip it is.
+    const tooltipWhiteSpace = componentWidth && componentWidth < maxWidth ? 'nowrap' : 'normal'
+    const tooltipWrap = componentWidth && componentWidth < maxWidth ? 'normal' : 'break-word'
 
     return {
         animationStyle: {
@@ -156,9 +160,9 @@ export default function getTooltipStyles(
             color: themeColors.textReversed,
             fontFamily: fontFamily.GTA,
             fontSize: tooltipFontSize,
-            overflowWrap: 'normal',
-            overflow: 'hidden',
-            whiteSpace: 'nowrap',
+            overflowWrap: tooltipWrap,
+            whiteSpace: tooltipWhiteSpace,
+            left: '1px',
         },
         pointerWrapperStyle: {
             position: 'fixed',

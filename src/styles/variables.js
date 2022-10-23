@@ -43,6 +43,7 @@ export default {
     safeInsertPercentage: 0.7,
     sideBarWidth: 375,
     pdfPageMaxWidth: 992,
+    tooltipWidth: 300,
     tooltipzIndex: 10050,
     gutterWidth: 16,
     popoverMenuShadow: '0px 4px 12px 0px rgba(0, 0, 0, 0.06)',

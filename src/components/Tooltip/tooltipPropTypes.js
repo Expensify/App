@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import {windowDimensionsPropTypes} from '../withWindowDimensions';
+import { windowDimensionsPropTypes } from '../withWindowDimensions';
 import variables from '../../styles/variables';
 import CONST from '../../CONST';
 
@@ -40,7 +40,7 @@ const defaultProps = {
     shiftVertical: 0,
     containerStyles: [],
     text: '',
-    maxWidth: variables.sideBarWidth,
+    maxWidth: variables.tooltipWidth,
     numberOfLines: CONST.TOOLTIP_MAX_LINES,
 };
 
