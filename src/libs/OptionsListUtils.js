@@ -190,11 +190,9 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
         }
     }
     if (report) {
-        // split doesnt have array length?
         Array.prototype.push.apply(searchTerms, reportName.split(/[,\s]/));
 
         if (isChatRoomOrPolicyExpenseChat) {
-            //problem?
             const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report, policies);
 
             // When running tests, chatRoomSubtitle can be undefined due to the Localize() stuff being mocked in the tests.
