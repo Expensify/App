@@ -253,15 +253,8 @@ class SidebarLinks extends React.Component {
         if (_.isEmpty(this.props.personalDetails)) {
             return null;
         }
-
-        const activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
-        const sections = [{
-            title: '',
-            indexOffset: 0,
-            data: this.state.orderedReports || [],
-            shouldShow: true,
-        }];
-
+        console.log('!!!render', this.props.policies);
+        const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
         return (
             <View style={[styles.flex1, styles.h100]}>
                 <View
@@ -342,9 +335,34 @@ export default compose(
         // with 10,000 withOnyx() connections, it would have unknown performance implications.
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
+            selector: report => ({
+                reportID: report.reportID,
+                participants: report.participants,
+                hasDraft: report.hasDraft,
+                isPinned: report.isPinned,
+                errorFields: {
+                    addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
+                },
+                lastMessageTimestamp: report.lastMessageTimestamp,
+                iouReportID: report.iouReportID,
+                hasOutstandingIOU: report.hasOutstandingIOU,
+                statusNum: report.statusNum,
+                stateNum: report.stateNum,
+                chatType: report.chatType,
+                policyID: report.policyID,
+            }),
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+            selector: personalDetails => _.reduce(personalDetails, (finalPersonalDetails, personalData, login) => {
+                finalPersonalDetails[login] = {
+                    login: personalData.login,
+                    displayName: personalData.displayName,
+                    firstName: personalData.firstName,
+                    avatar: personalData.avatar,
+                };
+                return finalPersonalDetails;
+            }, {}),
         },
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
@@ -354,9 +372,16 @@ export default compose(
         },
         reportActions: {
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+            selector: reportActions => _.map(reportActions, reportAction => ({
+                errors: reportAction.errors,
+            })),
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+            selector: policy => ({
+                type: policy.type,
+                name: policy.name,
+            }),
         },
         preferredLocale: {
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
