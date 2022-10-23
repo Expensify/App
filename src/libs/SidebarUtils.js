@@ -143,7 +143,15 @@ function getOrderedReportIDs(reportIDFromRoute) {
     // - Regardless of mode, all archived reports should remain at the bottom
     const orderedReports = _.sortBy(filteredReportsWithReportName, (report) => {
         if (ReportUtils.isArchivedRoom(report)) {
-            return isInDefaultMode ? -Infinity : 'ZZZZZZZZZZZZZ';
+            return isInDefaultMode
+
+                // -Infinity is used here because there is no chance that a report will ever have an older timestamp than -Infinity and it ensures that archived reports
+                // will always be listed last
+                ? -Infinity
+
+                // Similar logic is used for 'ZZZZZZZZZZZZZ' to reasonably assume that no report will ever have a report name that will be listed alphabetically after this, ensuring that
+                // archived reports will be listed last
+                : 'ZZZZZZZZZZZZZ';
         }
 
         return isInDefaultMode ? report.lastMessageTimestamp : report.reportDisplayName;
@@ -256,6 +264,9 @@ function getOptionData(reportID) {
     const hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
 
+    // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((personalDetailList || []).slice(0, 10), hasMultipleParticipants);
+
     let lastMessageTextFromReport = '';
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
         lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
@@ -281,6 +292,19 @@ function getOptionData(reportID) {
     if (result.isChatRoom || result.isPolicyExpenseChat) {
         result.alternateText = lastMessageText || subtitle;
     } else {
+        if (hasMultipleParticipants && !lastMessageText) {
+            // Here we get the beginning of chat history message and append the display name for each user, adding pronouns if there are any.
+            // We also add a fullstop after the final name, the word "and" before the final name and commas between all previous names.
+            lastMessageText = Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistory')
+                + _.map(displayNamesWithTooltips, ({displayName, pronouns}, index) => {
+                    const formattedText = _.isEmpty(pronouns) ? displayName : `${displayName} (${pronouns})`;
+
+                    if (index === displayNamesWithTooltips.length - 1) { return `${formattedText}.`; }
+                    if (index === displayNamesWithTooltips.length - 2) { return `${formattedText} ${Localize.translate(preferredLocale, 'common.and')}`; }
+                    if (index < displayNamesWithTooltips.length - 2) { return `${formattedText},`; }
+                }).join(' ');
+        }
+
         result.alternateText = lastMessageText || Str.removeSMSDomain(personalDetail.login);
     }
 
@@ -304,6 +328,7 @@ function getOptionData(reportID) {
     result.participantsList = personalDetailList;
     result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
     result.searchText = OptionsListUtils.getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
+    result.displayNamesWithTooltips = displayNamesWithTooltips;
 
     return result;
 }
