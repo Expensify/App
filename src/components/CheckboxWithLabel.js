@@ -48,13 +48,23 @@ const propTypes = {
 
     /** React ref being forwarded to the Checkbox input */
     forwardedRef: PropTypes.func,
+
+    /** The ID used to uniquely identify the input in a Form */
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    inputID: PropTypes.string,
+
+    /** eslint-disable-next-line react/no-unused-prop-types */
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    shouldSaveDraft: PropTypes.bool,
 };
 
 const defaultProps = {
+    inputID: undefined,
     style: [],
     label: undefined,
     LabelComponent: undefined,
     errorText: '',
+    shouldSaveDraft: false,
     isChecked: false,
     value: false,
     defaultValue: false,
