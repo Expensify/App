@@ -92,6 +92,19 @@ class AttachmentModal extends PureComponent {
     }
 
     /**
+     * Download the attachment
+     * /**
+     * @param {String} sourceURL
+     */
+    onDownloadButtonPress(sourceURL) {
+        fileDownload(sourceURL, this.props.originalFileName);
+
+        // If the keyboard was open before clicking on attachment, after downloading
+        // the attachment keyboard will show up, this line fixes that.
+        Keyboard.dismiss();
+    }
+
+    /**
      * If our attachment is a PDF, return the unswipeable Modal type.
      * @param {String} sourceUrl
      * @param {Object} file
@@ -110,16 +123,6 @@ class AttachmentModal extends PureComponent {
         )
             ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
             : CONST.MODAL.MODAL_TYPE.CENTERED;
-    }
-
-    /**
-     * Download the attachment
-     */
-     onDownloadButtonPress() {
-        fileDownload(sourceURL, this.props.originalFileName);
-        // If the keyboard was open before clicking on attachment, after downloading
-        // the attachment keyboard will show up, this line fixes that.
-        Keyboard.dismiss();
     }
 
     /**
@@ -261,7 +264,7 @@ class AttachmentModal extends PureComponent {
                         title={this.props.headerTitle || this.props.translate('common.attachment')}
                         shouldShowBorderBottom
                         shouldShowDownloadButton={this.props.allowDownload}
-                        onDownloadButtonPress={this.onDownloadButtonPress}
+                        onDownloadButtonPress={() => this.onDownloadButtonPress(sourceURL)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                         subtitle={fileName ? (
                             <TextWithEllipsis
