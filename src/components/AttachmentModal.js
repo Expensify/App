@@ -96,23 +96,6 @@ class AttachmentModal extends PureComponent {
         this.updateConfirmButtonVisibility = this.updateConfirmButtonVisibility.bind(this);
     }
 
-    // this prevents a bug in iOS that would show the last image before closing then opening on a new image
-    static getDerivedStateFromProps(props, state) {
-        if (state.isModalOpen && props.sourceURL && state.isModalOpen !== state.prevIsModalOpen) {
-            return {
-                prevIsModalOpen: true,
-                file: {name: lodashGet(props, 'originalFileName', '')},
-                sourceURL: props.isAuthTokenRequired ? addEncryptedAuthTokenToURL(props.sourceURL) : props.sourceURL,
-            };
-        }
-
-        if (!state.isModalOpen && state.isModalOpen !== state.prevIsModalOpen) {
-            return {prevIsModalOpen: false};
-        }
-
-        return null;
-    }
-
     /**
      * Helps to navigate between next/previous attachments
      * @param {Object} param
