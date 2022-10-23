@@ -40,17 +40,14 @@ const propTypes = {
     /** Error text to display */
     errorText: PropTypes.string,
 
+    /** Value for checkbox. This prop is intended to be set by Form.js only */
+    value: PropTypes.bool,
+
     /** The default value for the checkbox */
     defaultValue: PropTypes.bool,
 
     /** React ref being forwarded to the Checkbox input */
     forwardedRef: PropTypes.func,
-
-    /** The ID used to uniquely identify the input in a Form */
-    inputID: PropTypes.string,
-
-    /** Saves a draft of the input value when used in a form */
-    shouldSaveDraft: PropTypes.bool,
 };
 
 const defaultProps = {
