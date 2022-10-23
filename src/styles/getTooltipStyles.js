@@ -162,7 +162,6 @@ export default function getTooltipStyles (
             fontSize: tooltipFontSize,
             overflowWrap: tooltipWrap,
             whiteSpace: tooltipWhiteSpace,
-            left: '1px',
         },
         pointerWrapperStyle: {
             position: 'fixed',
