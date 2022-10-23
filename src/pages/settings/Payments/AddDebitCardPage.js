@@ -241,7 +241,6 @@ class DebitCardPage extends Component {
                             </>
                         )}
                         style={[styles.mt4]}
-                        shouldSaveDraft
                     />
                 </Form>
             </ScreenWrapper>
