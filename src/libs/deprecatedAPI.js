@@ -3,7 +3,6 @@ import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 import requireParameters from './requireParameters';
 import * as Request from './Request';
 import * as Network from './Network';
-// eslint-disable-next-line import/no-cycle
 import * as Middleware from './Middleware';
 import CONST from '../CONST';
 
@@ -527,19 +526,6 @@ function GetReportSummaryList(parameters) {
 }
 
 /**
- * @param {Object} parameters
- * @param {String} parameters.policyID
- * @param {String} parameters.reportName
- * @param {String} parameters.visibility
- * @return {Promise}
- */
-function CreatePolicyRoom(parameters) {
-    const commandName = 'CreatePolicyRoom';
-    requireParameters(['policyID', 'reportName', 'visibility'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
  * Transfer Wallet balance and takes either the bankAccoundID or fundID
  * @param {Object} parameters
  * @param {String} [parameters.bankAccountID]
@@ -570,7 +556,6 @@ export {
     ChangePassword,
     CreateChatReport,
     CreateLogin,
-    CreatePolicyRoom,
     DeleteLogin,
     Get,
     GetStatementPDF,

@@ -20,14 +20,22 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import * as Link from '../../libs/actions/Link';
 import RequestorOnfidoStep from './RequestorOnfidoStep';
 
 const propTypes = {
-    /** Bank account currently in setup */
+    /** The bank account currently in setup */
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+
+    /** The draft values of the bank account being setup */
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
+
+    /** The token required to initialize the Onfido SDK */
     onfidoToken: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 

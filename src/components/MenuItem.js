@@ -25,6 +25,8 @@ const defaultProps = {
     badgeText: undefined,
     shouldShowRightIcon: false,
     shouldShowSelectedState: false,
+    shouldShowBasicTitle: false,
+    shouldShowDescriptionOnTop: false,
     wrapperStyle: [],
     style: {},
     success: false,
@@ -50,9 +52,10 @@ const MenuItem = (props) => {
     const titleTextStyle = StyleUtils.combineStyles([
         styles.popoverMenuText,
         styles.ml3,
+        (props.shouldShowBasicTitle ? undefined : styles.textStrong),
         (props.interactive && props.disabled ? styles.disabledText : undefined),
     ], props.style);
-    const descriptionTextStyle = StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml3, styles.mt1, styles.breakAll], props.style);
+    const descriptionTextStyle = StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml3, styles.breakAll, styles.lh16], props.style);
 
     return (
         <Pressable
@@ -76,7 +79,7 @@ const MenuItem = (props) => {
         >
             {({hovered, pressed}) => (
                 <>
-                    <View style={[styles.flexRow, styles.pointerEventsNone, styles.flex1]}>
+                    <View style={[styles.flexRow, styles.pointerEventsAuto, styles.flex1, props.disabled && styles.cursorDisabled]}>
                         {(props.icon && props.iconType === CONST.ICON_TYPE_ICON) && (
                             <View
                                 style={[
@@ -108,14 +111,24 @@ const MenuItem = (props) => {
                                 />
                             </View>
                         )}
-                        <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1]}>
-                            <Text
-                                style={titleTextStyle}
-                                numberOfLines={1}
-                            >
-                                {props.title}
-                            </Text>
-                            {Boolean(props.description) && (
+                        <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1, styles.gap1]}>
+                            {Boolean(props.description) && props.shouldShowDescriptionOnTop && (
+                                <Text
+                                    style={descriptionTextStyle}
+                                    numberOfLines={2}
+                                >
+                                    {props.description}
+                                </Text>
+                            )}
+                            {Boolean(props.title) && (
+                                <Text
+                                    style={titleTextStyle}
+                                    numberOfLines={1}
+                                >
+                                    {props.title}
+                                </Text>
+                            )}
+                            {Boolean(props.description) && !props.shouldShowDescriptionOnTop && (
                                 <Text
                                     style={descriptionTextStyle}
                                     numberOfLines={2}
@@ -148,7 +161,7 @@ const MenuItem = (props) => {
                             </View>
                         )}
                         {Boolean(props.shouldShowRightIcon) && (
-                            <View style={styles.popoverMenuIcon}>
+                            <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled]}>
                                 <Icon
                                     src={props.iconRight}
                                     fill={StyleUtils.getIconFillColor(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive))}

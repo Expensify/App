@@ -283,7 +283,7 @@ describe('OptionsListUtils', () => {
         // Then the 2 personalDetails that don't have reports should be returned
         expect(results.personalDetails.length).toBe(2);
 
-        // Then all of the reports should be shown, including the one that has no message on them.
+        // Then all of the reports should be shown including the archived rooms.
         expect(results.recentReports.length).toBe(_.size(REPORTS));
 
         // When we filter again but provide a searchValue

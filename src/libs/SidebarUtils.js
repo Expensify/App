@@ -12,7 +12,7 @@ import * as CollectionUtils from './CollectionUtils';
 // keys that are connected to SidebarLinks withOnyx(). If there was a key missing from SidebarLinks and it's data was updated
 // for that key, then there would be no re-render and the options wouldn't reflect the new data because SidebarUtils.getOrderedReportIDs() wouldn't be triggered.
 // There are a couple of keys here which are OK to have stale data. iouReports for example, doesn't need to exist in withOnyx() because
-// when IOUs change, it also triggers a change on the reports collection. Having redudant subscriptions causes more re-renders which should be avoided.
+// when IOUs change, it also triggers a change on the reports collection. Having redundant subscriptions causes more re-renders which should be avoided.
 // Session also can remain stale because the only way for the current user to change is to sign out and sign in, which would clear out all the Onyx
 // data anyway and cause SidebarLinks to rerender.
 
@@ -27,12 +27,6 @@ let personalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
     callback: val => personalDetails = val,
-});
-
-let currentlyViewedReportID;
-Onyx.connect({
-    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-    callback: val => currentlyViewedReportID = val,
 });
 
 let priorityMode;
@@ -88,9 +82,10 @@ Onyx.connect({
 });
 
 /**
+ * @param {String} reportIDFromRoute
  * @returns {String[]} An array of reportIDs sorted in the proper order
  */
-function getOrderedReportIDs() {
+function getOrderedReportIDs(reportIDFromRoute) {
     let recentReportOptions = [];
     const pinnedReportOptions = [];
     const iouDebtReportOptions = [];
@@ -100,7 +95,7 @@ function getOrderedReportIDs() {
     const isInDefaultMode = !isInGSDMode;
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode, currentUserLogin, iouReports, betas, policies));
+    const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies));
 
     // Get all the display names for our reports in an easy to access property so we don't have to keep
     // re-running the logic
@@ -118,7 +113,15 @@ function getOrderedReportIDs() {
     // - Regardless of mode, all archived reports should remain at the bottom
     const orderedReports = _.sortBy(filteredReportsWithReportName, (report) => {
         if (ReportUtils.isArchivedRoom(report)) {
-            return isInDefaultMode ? -Infinity : 'ZZZZZZZZZZZZZ';
+            return isInDefaultMode
+
+                // -Infinity is used here because there is no chance that a report will ever have an older timestamp than -Infinity and it ensures that archived reports
+                // will always be listed last
+                ? -Infinity
+
+                // Similar logic is used for 'ZZZZZZZZZZZZZ' to reasonably assume that no report will ever have a report name that will be listed alphabetically after this, ensuring that
+                // archived reports will be listed last
+                : 'ZZZZZZZZZZZZZ';
         }
 
         return isInDefaultMode ? report.lastMessageTimestamp : report.reportDisplayName;
@@ -142,7 +145,7 @@ function getOrderedReportIDs() {
 
         // If the active report has a draft, we do not put it in the group of draft reports because we want it to maintain it's current position. Otherwise the report's position
         // jumps around in the LHN and it's kind of confusing to the user to see the LHN reorder when they start typing a comment on a report.
-        } else if (report.hasDraft && report.reportID !== currentlyViewedReportID) {
+        } else if (report.hasDraft && report.reportID !== reportIDFromRoute) {
             draftReportOptions.push(report);
         } else {
             recentReportOptions.push(report);
@@ -231,6 +234,9 @@ function getOptionData(reportID) {
     const hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
 
+    // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((personalDetailList || []).slice(0, 10), hasMultipleParticipants);
+
     let lastMessageTextFromReport = '';
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
         lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
@@ -256,6 +262,19 @@ function getOptionData(reportID) {
     if (result.isChatRoom || result.isPolicyExpenseChat) {
         result.alternateText = lastMessageText || subtitle;
     } else {
+        if (hasMultipleParticipants && !lastMessageText) {
+            // Here we get the beginning of chat history message and append the display name for each user, adding pronouns if there are any.
+            // We also add a fullstop after the final name, the word "and" before the final name and commas between all previous names.
+            lastMessageText = Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistory')
+                + _.map(displayNamesWithTooltips, ({displayName, pronouns}, index) => {
+                    const formattedText = _.isEmpty(pronouns) ? displayName : `${displayName} (${pronouns})`;
+
+                    if (index === displayNamesWithTooltips.length - 1) { return `${formattedText}.`; }
+                    if (index === displayNamesWithTooltips.length - 2) { return `${formattedText} ${Localize.translate(preferredLocale, 'common.and')}`; }
+                    if (index < displayNamesWithTooltips.length - 2) { return `${formattedText},`; }
+                }).join(' ');
+        }
+
         result.alternateText = lastMessageText || Str.removeSMSDomain(personalDetail.login);
     }
 
@@ -279,6 +298,7 @@ function getOptionData(reportID) {
     result.participantsList = personalDetailList;
     result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
     result.searchText = OptionsListUtils.getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
+    result.displayNamesWithTooltips = displayNamesWithTooltips;
 
     return result;
 }
