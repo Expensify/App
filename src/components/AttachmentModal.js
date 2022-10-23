@@ -83,6 +83,8 @@ class AttachmentModal extends PureComponent {
         this.submitAndClose = this.submitAndClose.bind(this);
         this.closeConfirmModal = this.closeConfirmModal.bind(this);
         this.validateAndDisplayFileToUpload = this.validateAndDisplayFileToUpload.bind(this);
+        this.onDownloadButtonPress = this.onDownloadButtonPress.bind(this);
+        this.updateConfirmButtonVisibility = this.updateConfirmButtonVisibility.bind(this);
     }
 
     /**
@@ -107,16 +109,13 @@ class AttachmentModal extends PureComponent {
     }
 
     /**
-     * Returns the filename split into fileName and fileExtension
-     *
-     * @param {String} fullFileName
-     * @returns {Object}
+     * Download the attachment
      */
-    splitExtensionFromFileName(fullFileName) {
-        const fileName = fullFileName.trim();
-        const splitFileName = fileName.split('.');
-        const fileExtension = splitFileName.pop();
-        return {fileName, fileExtension};
+     onDownloadButtonPress() {
+        fileDownload(sourceURL, this.props.originalFileName);
+        // If the keyboard was open before clicking on attachment, after downloading
+        // the attachment keyboard will show up, this line fixes that.
+        Keyboard.dismiss();
     }
 
     /**
@@ -233,10 +232,7 @@ class AttachmentModal extends PureComponent {
                         title={this.props.headerTitle || this.props.translate('common.attachment')}
                         shouldShowBorderBottom
                         shouldShowDownloadButton={this.props.allowDownload}
-                        onDownloadButtonPress={() => {
-                            fileDownload(sourceURL, this.props.originalFileName);
-                            Keyboard.dismiss();
-                        }}
+                        onDownloadButtonPress={this.onDownloadButtonPress}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                         subtitle={fileName ? (
                             <TextWithEllipsis

@@ -167,10 +167,11 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
         });
     }
     if (report) {
-        searchTerms.push(...reportName);
-        searchTerms.push(..._.map(reportName.split(','), name => name.trim()));
+        // split doesnt have array length?
+        Array.prototype.push.apply(searchTerms, reportName.split(/[,\s]/));
 
         if (isChatRoomOrPolicyExpenseChat) {
+            //problem?
             const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report, policies);
             searchTerms.push(...chatRoomSubtitle);
             searchTerms.push(..._.map(chatRoomSubtitle.split(','), name => name.trim()));
