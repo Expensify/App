@@ -53,7 +53,7 @@ const propTypes = {
     /* eslint-disable-next-line react/no-unused-prop-types */
     inputID: PropTypes.string,
 
-    /** eslint-disable-next-line react/no-unused-prop-types */
+    /** Saves a draft of the input value when used in a form */
     /* eslint-disable-next-line react/no-unused-prop-types */
     shouldSaveDraft: PropTypes.bool,
 };
