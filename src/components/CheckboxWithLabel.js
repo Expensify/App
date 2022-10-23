@@ -92,8 +92,6 @@ class CheckboxWithLabel extends React.Component {
                         label={this.props.label}
                         hasError={Boolean(this.props.errorText)}
                         forwardedRef={this.props.forwardedRef}
-                        inputID={this.props.inputID}
-                        shouldSaveDraft={this.props.shouldSaveDraft}
                     />
                     <TouchableOpacity
                         focusable={false}
