@@ -51,13 +51,12 @@ const propTypes = {
 };
 
 const defaultProps = {
-    inputID: undefined,
     style: [],
     label: undefined,
     LabelComponent: undefined,
     errorText: '',
-    shouldSaveDraft: false,
     isChecked: false,
+    value: false,
     defaultValue: false,
     forwardedRef: () => {},
 };
