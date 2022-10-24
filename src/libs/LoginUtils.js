@@ -45,7 +45,7 @@ function convertLoginListToObject(loginList = {}) {
         return loginList;
     }
 
-    return _.reduce(response.loginList, (allLogins, login) => {
+    return _.reduce(loginList, (allLogins, login) => {
         allLogins[login.partnerUserID] = login;
         return allLogins;
     }, {});
