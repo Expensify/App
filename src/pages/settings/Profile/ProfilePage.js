@@ -29,21 +29,27 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import Form from '../../../components/Form';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 
+const loginPropTypes = PropTypes.shape({
+    /** Value of partner name */
+    partnerName: PropTypes.string,
+
+    /** Phone/Email associated with user */
+    partnerUserID: PropTypes.string,
+
+    /** Date of when login was validated */
+    validatedDate: PropTypes.string,
+});
+
 const propTypes = {
     /* Onyx Props */
 
     /** Login list for the user that is signed in */
-    loginList: PropTypes.objectOf(PropTypes.shape({
-
-        /** Value of partner name */
-        partnerName: PropTypes.string,
-
-        /** Phone/Email associated with user */
-        partnerUserID: PropTypes.string,
-
-        /** Date of when login was validated */
-        validatedDate: PropTypes.string,
-    })),
+    loginList: PropTypes.oneOfType([
+        PropTypes.objectOf(loginPropTypes),
+        // TODO: remove this once this closes:
+        // https://github.com/Expensify/App/issues/10960
+        PropTypes.arrayOf(loginPropTypes),
+    ]),
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
