@@ -27,7 +27,8 @@ const ReportDropUI = props => (
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: theme.overlayBackgroundColor,
+            backgroundColor: theme.dragAndDropBackground,
+            opacity: 0.96,
             zIndex: 2,
         }, styles.alignItemsCenter, styles.justifyContentCenter]}
         >

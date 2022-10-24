@@ -18,5 +18,4 @@ export default {
     redDisabled: '#fea29a',
     yellow: '#fed607',
     transparent: 'transparent',
-    translucentWhite: 'rgba(255,255,255, 0.96)',
 };
