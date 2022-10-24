@@ -33,8 +33,19 @@ const defaultProps = {
 const TextLink = (props) => {
     const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
 
-    const handlePress = (e) => {
-        e.preventDefault();
+    /**
+     * Checking Function on open TextLink identify whether Clicked or Entered key press
+     *
+     * @param {Event} event
+     * @returns {Function} Returns onPress function.
+     */
+
+    const openLink = (event) => {
+        if (event.key !== 'Enter' && event.type !== 'click') {
+            return;
+        }
+
+        event.preventDefault();
         if (props.onPress) {
             props.onPress();
             return;
@@ -48,14 +59,8 @@ const TextLink = (props) => {
             style={[styles.link, ...additionalStyles]}
             accessibilityRole="link"
             href={props.href}
-            onPress={handlePress}
-            onKeyDown={(e) => {
-                if (e.key !== 'Enter') {
-                    return;
-                }
-
-                handlePress(e);
-            }}
+            onPress={openLink}
+            onKeyDown={openLink}
         >
             {props.children}
         </Text>
