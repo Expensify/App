@@ -25,7 +25,7 @@ The free plan is ideal for start-ups and small businesses to manage expenses. Wi
 
 Once you’ve created your Workspace, you should receive a message from Concierge encouraging you to chat with your Setup Specialist.
 
-<img class="image" width="400" src="/assets/images/chat-with-concierge-setup.png">
+<img class="image" width="800" src="/assets/images/chat-with-concierge-setup.png">
 
 - Click the link sent to you by Concierge, and your designated Setup Specialist will guide you through how to configure your company setup.
 
