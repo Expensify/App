@@ -55,7 +55,7 @@ function convertLoginListToObject(loginList = {}) {
  * Filter out all non-Expensify partners from login list
  *
  * @param {Object} loginList 
- * @returns 
+ * @returns {Object}
  */
 function keepExpensifyPartners(loginList = {}) {
     return _.pick(loginList, (login) => {
@@ -72,8 +72,7 @@ function keepExpensifyPartners(loginList = {}) {
  * @returns {Object}
  */
 function cleanLoginListServerResponse(loginList = {}) {
-    let loginList = convertLoginListToObject(loginList);
-    return keepExpensifyPartners(loginList);
+    return keepExpensifyPartners(convertLoginListToObject(loginList));
 }
 
 export {
