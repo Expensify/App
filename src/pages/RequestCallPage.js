@@ -31,15 +31,22 @@ import networkPropTypes from '../components/networkPropTypes';
 import RequestCallConfirmationScreen from './RequestCallConfirmationScreen';
 import Form from '../components/Form';
 
+const loginPropType = PropTypes.shape({
+    /** Phone/Emails associated with user */
+    partnerUserID: PropTypes.string,
+});
+
 const propTypes = {
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 
     /** Login list for the user that is signed in */
-    loginList: PropTypes.objectOf(PropTypes.shape({
-        /** Phone/Emails associated with user */
-        partnerUserID: PropTypes.string,
-    })),
+    loginList: PropTypes.oneOfType([
+        PropTypes.objectOf(loginPropType),
+        // TODO: remove this once this closes:
+        // https://github.com/Expensify/App/issues/10960
+        PropTypes.arrayOf(loginPropType),
+    ]),
 
     /** The policies which the user has access to */
     policies: PropTypes.shape({
