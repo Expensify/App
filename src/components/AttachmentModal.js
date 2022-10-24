@@ -117,8 +117,8 @@ class AttachmentModal extends PureComponent {
     downloadAttachment(sourceURL) {
         fileDownload(sourceURL, this.props.originalFileName);
 
-        // At ios if the keyboard was open while opening the attachment, then after downloading
-        // the attachment the keyboard will show up, so we need to dismiss it.
+        // At ios, if the keyboard is open while opening the attachment, then after downloading
+        // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
         Keyboard.dismiss();
     }
 
