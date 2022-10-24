@@ -31,7 +31,8 @@ import Banner from '../../components/Banner';
 import withLocalize from '../../components/withLocalize';
 import reportPropTypes from '../reportPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
+
+// import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -224,8 +225,19 @@ class ReportScreen extends React.Component {
                     <ScreenWrapper
                         style={screenWrapperStyle}
                     >
-                        <ReportHeaderSkeletonView />
+                        <HeaderView
+                            reportID={reportID}
+                            onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                            personalDetails={this.props.personalDetails}
+                            report={this.props.report}
+                            policies={this.props.policies}
+                        />
                         <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
+                        <ReportFooter
+                            isOffline={this.props.network.isOffline}
+                            report={this.props.report}
+                            isComposerFullSize={this.props.isComposerFullSize}
+                        />
                     </ScreenWrapper>
                 )}
             >
@@ -298,16 +310,17 @@ class ReportScreen extends React.Component {
                                         />
                                     </>
                                 )}
-                            <ReportFooter
-                                errors={addWorkspaceRoomOrChatErrors}
-                                pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                isOffline={this.props.network.isOffline}
-                                reportActions={this.props.reportActions}
-                                report={this.props.report}
-                                isComposerFullSize={this.props.isComposerFullSize}
-                                onSubmitComment={this.onSubmitComment}
-                            />
+
                         </View>
+                        <ReportFooter
+                            errors={addWorkspaceRoomOrChatErrors}
+                            pendingAction={addWorkspaceRoomOrChatPendingAction}
+                            isOffline={this.props.network.isOffline}
+                            reportActions={this.props.reportActions}
+                            report={this.props.report}
+                            isComposerFullSize={this.props.isComposerFullSize}
+                            onSubmitComment={this.onSubmitComment}
+                        />
                     </FullPageNotFoundView>
                 </ScreenWrapper>
             </Freeze>
