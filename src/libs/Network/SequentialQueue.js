@@ -58,18 +58,21 @@ function flush() {
         resolveIsReadyPromise = resolve;
     });
 
-    // Ensure persistedRequests are read from storage before proceeding with the queue
-    const connectionID = Onyx.connect({
-        key: ONYXKEYS.PERSISTED_REQUESTS,
-        callback: () => {
-            Onyx.disconnect(connectionID);
-            process()
-                .finally(() => {
-                    isSequentialQueueRunning = false;
-                    resolveIsReadyPromise();
-                    currentRequest = null;
-                });
-        },
+    return new Promise((resolve) => {
+        // Ensure persistedRequests are read from storage before proceeding with the queue
+        const connectionID = Onyx.connect({
+            key: ONYXKEYS.PERSISTED_REQUESTS,
+            callback: () => {
+                Onyx.disconnect(connectionID);
+                process()
+                    .finally(() => {
+                        isSequentialQueueRunning = false;
+                        resolve();
+                        resolveIsReadyPromise();
+                        currentRequest = null;
+                    });
+            },
+        });
     });
 }
 
