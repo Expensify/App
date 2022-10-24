@@ -869,6 +869,12 @@ const styles = {
         marginBottom: 8,
     },
 
+    formHelpMessage: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+
     formHelp: {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeLabel,

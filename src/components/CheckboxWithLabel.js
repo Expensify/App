@@ -5,7 +5,7 @@ import _ from 'underscore';
 import styles from '../styles/styles';
 import Checkbox from './Checkbox';
 import Text from './Text';
-import InlineErrorText from './InlineErrorText';
+import FormHelpMessage from './FormHelpMessage';
 
 const requiredPropsCheck = (props) => {
     if (!props.label && !props.LabelComponent) {
@@ -117,9 +117,7 @@ class CheckboxWithLabel extends React.Component {
                         {this.LabelComponent && (<this.LabelComponent />)}
                     </TouchableOpacity>
                 </View>
-                <InlineErrorText styles={[styles.ml8]}>
-                    {this.props.errorText}
-                </InlineErrorText>
+                <FormHelpMessage>{this.props.errorText}</FormHelpMessage>
             </>
         );
     }
