@@ -181,8 +181,10 @@ function setSecondaryLoginAndNavigate(login, password) {
         password,
     }).then((response) => {
         if (response.jsonCode === 200) {
-            const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
-            Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
+            const loginList = LoginUtils.convertLoginListToObject(response.loginList);
+            Onyx.set(ONYXKEYS.LOGIN_LIST, _.pick(loginList, (login) => {
+                return login.partnerName === 'expensify.com';
+            }));
             Navigation.navigate(ROUTES.SETTINGS_PROFILE);
             return;
         }
