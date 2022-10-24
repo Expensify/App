@@ -28,7 +28,7 @@ let loginList;
 Onyx.connect({
     key: ONYXKEYS.LOGIN_LIST,
     callback: (val) => {
-        loginList = LoginUtils.convertLoginListToObject(loginList);
+        loginList = LoginUtils.convertLoginListToObject(val);
     },
 });
 
