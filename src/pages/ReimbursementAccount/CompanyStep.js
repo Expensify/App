@@ -26,8 +26,18 @@ import AddressForm from './AddressForm';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
+import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 
 const propTypes = {
+    /** The bank account currently in setup */
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+
+    /** The draft values of the bank account being setup */
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -156,24 +166,18 @@ class CompanyStep extends React.Component {
             return;
         }
 
-        const incorporationDate = moment(this.state.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING);
-        BankAccounts.setupWithdrawalAccount({
-            bankAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
+        const bankAccount = {
+            // Fields from BankAccount step
+            ...ReimbursementAccountUtils.getBankAccountFields(this.props, ['bankAccountID', 'routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
 
-            // Fields from bankAccount step
-            routingNumber: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'routingNumber'),
-            accountNumber: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'accountNumber'),
-            bankName: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankName'),
-            plaidAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidAccountID'),
-            isSavings: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'isSavings'),
-            plaidAccessToken: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidAccessToken'),
-
-            // Fields from company step
+            // Fields from Company step
             ...this.state,
-            incorporationDate,
+            incorporationDate: moment(this.state.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING),
             companyTaxID: this.state.companyTaxID.replace(CONST.REGEX.NON_NUMERIC, ''),
             companyPhone: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(this.state.companyPhone),
-        });
+        };
+
+        BankAccounts.updateCompanyInformationForBankAccount(bankAccount);
     }
 
     render() {
@@ -204,6 +208,7 @@ class CompanyStep extends React.Component {
                         errorText={this.getErrorText('companyName')}
                     />
                     <AddressForm
+                        translate={this.props.translate}
                         streetTranslationKey="common.companyAddress"
                         values={{
                             street: this.state.addressStreet,
@@ -261,7 +266,7 @@ class CompanyStep extends React.Component {
                             label={this.props.translate('companyStep.companyType')}
                             items={_.map(this.props.translate('companyStep.incorporationTypes'), (label, value) => ({value, label}))}
                             onInputChange={value => this.clearErrorAndSetValue('incorporationType', value)}
-                            defaultValue={this.state.incorporationType}
+                            value={this.state.incorporationType}
                             placeholder={{value: '', label: '-'}}
                             errorText={this.getErrorText('incorporationType')}
                         />
@@ -280,7 +285,7 @@ class CompanyStep extends React.Component {
                         <StatePicker
                             label={this.props.translate('companyStep.incorporationState')}
                             onInputChange={value => this.clearErrorAndSetValue('incorporationState', value)}
-                            defaultValue={this.state.incorporationState}
+                            value={this.state.incorporationState}
                             errorText={this.getErrorText('incorporationState')}
                         />
                     </View>

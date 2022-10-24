@@ -81,7 +81,7 @@ export default {
         error: {
             invalidAmount: 'Monto no válido',
             acceptedTerms: 'Debes aceptar los Términos de servicio para continuar',
-            phoneNumber: `Ingresa un teléfono válido, incluyendo el código de país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+            phoneNumber: `Ingresa un teléfono válido, incluyendo el código de país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
         please: 'Por favor',
         contactUs: 'contáctenos',
@@ -210,7 +210,8 @@ export default {
         beginningOfChatHistory: 'Aquí comienza tu historial de conversaciones con ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: '¡La colaboración entre ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
-        beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! :tada: Este es el lugar donde chatear, pedir dinero y pagar.',
+        beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! 🎉 Este es el lugar donde chatear, pedir dinero y pagar.',
+        chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
     },
     newMessages: 'Mensajes nuevos',
     reportTypingIndicator: {
@@ -234,6 +235,8 @@ export default {
         buttonSearch: 'Buscar',
         buttonMySettings: 'Mi configuración',
         fabNewChat: 'Nuevo chat',
+        chatPinned: 'Chat fijado',
+        draftedMessage: 'Mensaje borrador',
     },
     iou: {
         amount: 'Importe',
@@ -411,7 +414,7 @@ export default {
             notOwnerOfFund: 'Ha ocurrido un error al establecer esta tarjeta de crédito como tu método de pago predeterminado.',
             setDefaultFailure: 'No se pudo configurar el método de pago.',
         },
-        addBankAccountFailure: 'Y ocurrió un error inesperado al intentar agregar su cuenta bancaria. Inténtalo de nuevo.',
+        addBankAccountFailure: 'Ocurrió un error inesperado al intentar agregar su cuenta bancaria. Inténtalo de nuevo.',
     },
     transferAmountPage: {
         transfer: ({amount}) => `Transferir${amount ? ` ${amount}` : ''}`,
@@ -524,6 +527,7 @@ export default {
         iouReportNotFound: 'Los detalles del pago que estás buscando no se pudieron encontrar.',
         notHere: 'Hmm… no está aquí',
         pageNotFound: 'La página que buscas no existe.',
+        noAccess: 'No tienes acceso a este chat',
     },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
@@ -719,7 +723,8 @@ export default {
         headerTitle: 'Habilitar pagos',
         activatedTitle: '¡Billetera  activada!',
         activatedMessage: 'Felicidades, tu Billetera está configurada y lista para hacer pagos.',
-        checkBackLater: 'Todavía estamos revisando tu información. Por favor, vuelva más tarde.',
+        checkBackLaterTitle: 'Un momento...',
+        checkBackLaterMessage: 'Todavía estamos revisando tu información. Por favor, vuelva más tarde.',
         continueToPayment: 'Continuar al pago',
         continueToTransfer: 'Continuar a la transferencia',
     },
@@ -806,7 +811,6 @@ export default {
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
             settlementFrequency: 'Frecuencia de liquidación',
-            growlMessageOnSave: '¡La configuración del espacio de trabajo se ha guardado correctamente!',
             growlMessageOnDelete: 'Espacio de trabajo eliminado',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             growlMessageOnDeleteError: 'No se puede eliminar el espacio de trabajo porque tiene informes que están siendo procesados',
@@ -822,7 +826,9 @@ export default {
             removeMembersTitle: 'Eliminar miembros',
             selectAll: 'Seleccionar todo',
             error: {
+                genericAdd: 'Ha ocurrido un problema al agregar el miembro al espacio de trabajo',
                 cannotRemove: 'No puedes eliminarte ni a ti mismo ni al dueño del espacio de trabajo.',
+                genericRemove: 'Ha ocurrido un problema al eliminar al miembro del espacio de trabajo.',
             },
         },
         card: {
@@ -951,8 +957,8 @@ export default {
         },
         error: {
             phoneNumberExtension: 'Por favor, introduzca una extensión telefónica válida',
-            firstName: 'Por favor ingresa tu nombre!',
-            lastName: 'Por favor ingresa tu apellido!',
+            firstName: 'Por favor ingresa tu nombre',
+            lastName: 'Por favor ingresa tu apellido',
             firstNameLength: 'El nombre no debe tener más de 50 caracteres',
             lastNameLength: 'El apellido no debe tener más de 50 caracteres',
         },
@@ -990,7 +996,6 @@ export default {
         renamedRoomAction: ({oldName, newName}) => ` cambió el nombre de la sala de ${oldName} a ${newName}`,
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
-        growlMessageOnError: 'No se pudo crear el espacio de trabajo, por favor comprueba tu conexión e inténtalo de nuevo.',
         growlMessageOnRenameError: 'No se pudo cambiar el nomdre del espacio de trabajo, por favor comprueba tu conexión e inténtalo de nuevo.',
         visibilityOptions: {
             restricted: 'Restringida',

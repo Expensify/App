@@ -59,9 +59,9 @@ const propTypes = {
 };
 
 const defaultProps = {
-    userWallet: {},
     bankAccountList: {},
     cardList: {},
+    userWallet: {},
     walletTransfer: {},
 };
 
@@ -115,8 +115,6 @@ class TransferBalancePage extends React.Component {
         const paymentMethods = PaymentUtils.formatPaymentMethods(
             this.props.bankAccountList,
             this.props.cardList,
-            '',
-            this.props.userWallet,
         );
 
         const defaultAccount = _.find(paymentMethods, method => method.isDefault);
@@ -138,8 +136,6 @@ class TransferBalancePage extends React.Component {
         const combinedPaymentMethods = PaymentUtils.formatPaymentMethods(
             this.props.bankAccountList,
             this.props.cardList,
-            '',
-            this.props.userWallet,
         );
 
         const filteredMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === filterPaymentMethodType);

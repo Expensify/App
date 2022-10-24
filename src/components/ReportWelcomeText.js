@@ -13,6 +13,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import Tooltip from './Tooltip';
+import reportPropTypes from '../pages/reportPropTypes';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -28,7 +29,7 @@ const personalDetailsPropTypes = PropTypes.shape({
 
 const propTypes = {
     /** The report currently being looked at */
-    report: PropTypes.oneOfType([PropTypes.object]),
+    report: reportPropTypes,
 
     /* Onyx Props */
 
@@ -106,8 +107,8 @@ const ReportWelcomeText = (props) => {
                     {_.map(displayNamesWithTooltips, ({
                         displayName, pronouns, tooltip,
                     }, index) => (
-                        <Text key={displayName}>
-                            <Tooltip text={tooltip}>
+                        <Text key={`${displayName}${pronouns}${index}`}>
+                            <Tooltip text={tooltip} containerStyles={[styles.dInline]}>
                                 <Text style={[styles.textStrong]} onPress={() => Navigation.navigate(ROUTES.getDetailsRoute(participants[index]))}>
                                     {displayName}
                                 </Text>

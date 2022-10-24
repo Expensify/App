@@ -20,22 +20,15 @@ import KeyboardShortcut from '../../KeyboardShortcut';
 import Navigation from '../Navigation';
 import * as User from '../../actions/User';
 import * as Modal from '../../actions/Modal';
-import * as Policy from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
-
-// Main drawer navigator
-import MainDrawerNavigator from './MainDrawerNavigator';
 
 // Modal Stack Navigators
 import * as ModalStackNavigators from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
-import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
 import * as Session from '../../actions/Session';
-import LogOutPreviousUserPage from '../../../pages/LogOutPreviousUserPage';
-import ConciergePage from '../../../pages/ConciergePage';
 
 let currentUserEmail;
 Onyx.connect({
@@ -106,7 +99,6 @@ class AuthScreens extends React.Component {
             authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=AuthenticatePusher`,
         }).then(() => {
             User.subscribeToUserEvents();
-            Policy.subscribeToPolicyEvents();
         });
 
         // Listen for report changes and fetch some data we need on initialization
@@ -189,7 +181,10 @@ class AuthScreens extends React.Component {
                             height: '100%',
                         },
                     }}
-                    component={MainDrawerNavigator}
+                    getComponent={() => {
+                        const MainDrawerNavigator = require('./MainDrawerNavigator').default;
+                        return MainDrawerNavigator;
+                    }}
                 />
                 <RootStack.Screen
                     name="ValidateLogin"
@@ -197,17 +192,26 @@ class AuthScreens extends React.Component {
                         headerShown: false,
                         title: 'New Expensify',
                     }}
-                    component={ValidateLoginPage}
+                    getComponent={() => {
+                        const ValidateLoginPage = require('../../../pages/ValidateLoginPage').default;
+                        return ValidateLoginPage;
+                    }}
                 />
                 <RootStack.Screen
                     name={SCREENS.TRANSITION_FROM_OLD_DOT}
                     options={defaultScreenOptions}
-                    component={LogOutPreviousUserPage}
+                    getComponent={() => {
+                        const LogOutPreviousUserPage = require('../../../pages/LogOutPreviousUserPage').default;
+                        return LogOutPreviousUserPage;
+                    }}
                 />
                 <RootStack.Screen
                     name="Concierge"
                     options={defaultScreenOptions}
-                    component={ConciergePage}
+                    getComponent={() => {
+                        const ConciergePage = require('../../../pages/ConciergePage').default;
+                        return ConciergePage;
+                    }}
                 />
 
                 {/* These are the various modal routes */}

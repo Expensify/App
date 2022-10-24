@@ -2,6 +2,7 @@ import React from 'react';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import BankAccountManualStep from './BankAccountManualStep';
 import BankAccountPlaidStep from './BankAccountPlaidStep';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -24,13 +25,22 @@ import getPlaidDesktopMessage from '../../libs/getPlaidDesktopMessage';
 import CONFIG from '../../CONFIG';
 import ROUTES from '../../ROUTES';
 import Button from '../../components/Button';
+import plaidDataPropTypes from './plaidDataPropTypes';
+import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 
 const propTypes = {
+    /** Contains plaid data */
+    plaidData: plaidDataPropTypes,
+
     /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
     receivedRedirectURI: PropTypes.string,
 
     /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
     plaidLinkOAuthToken: PropTypes.string,
+
+    /** The bank account currently in setup */
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    reimbursementAccount: reimbursementAccountPropTypes,
 
     /** Object with various information about the user */
     user: PropTypes.shape({
@@ -44,21 +54,28 @@ const propTypes = {
 const defaultProps = {
     receivedRedirectURI: null,
     plaidLinkOAuthToken: '',
+    plaidData: {
+        isPlaidDisabled: false,
+    },
+    reimbursementAccount: {},
     user: {},
 };
 
 const BankAccountStep = (props) => {
-    const shouldReinitializePlaidLink = props.plaidLinkOAuthToken && props.receivedRedirectURI && props.achData.subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
-    const subStep = shouldReinitializePlaidLink ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID : props.achData.subStep;
+    let subStep = lodashGet(props, 'reimbursementAccount.achData.subStep', '');
+    const shouldReinitializePlaidLink = props.plaidLinkOAuthToken && props.receivedRedirectURI && subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
+    if (shouldReinitializePlaidLink) {
+        subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
+    }
     const plaidDesktopMessage = getPlaidDesktopMessage();
     const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}`;
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
-        return <BankAccountManualStep achData={props.achData} />;
+        return <BankAccountManualStep />;
     }
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
-        return <BankAccountPlaidStep achData={props.achData} />;
+        return <BankAccountPlaidStep />;
     }
 
     return (
@@ -101,7 +118,7 @@ const BankAccountStep = (props) => {
                         BankAccounts.clearPlaid();
                         BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
                     }}
-                    disabled={props.isPlaidDisabled || !props.user.validated}
+                    disabled={props.plaidData.isPlaidDisabled || !props.user.validated}
                     style={[styles.mt5, styles.buttonCTA]}
                     iconStyles={[styles.buttonCTAIcon]}
                     shouldShowRightIcon
@@ -160,6 +177,12 @@ export default compose(
     withOnyx({
         user: {
             key: ONYXKEYS.USER,
+        },
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        plaidData: {
+            key: ONYXKEYS.PLAID_DATA,
         },
     }),
 )(BankAccountStep);

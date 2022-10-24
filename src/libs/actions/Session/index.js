@@ -16,7 +16,6 @@ import * as Localize from '../../Localize';
 import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
 import Timers from '../../Timers';
 import * as Pusher from '../../Pusher/pusher';
-import NetworkConnection from '../../NetworkConnection';
 import * as User from '../User';
 import * as Authentication from '../../Authentication';
 import * as Welcome from '../Welcome';
@@ -41,10 +40,10 @@ Onyx.connect({
 function setSuccessfulSignInData(data) {
     PushNotification.register(data.accountID);
     Onyx.merge(ONYXKEYS.SESSION, {
-        shouldShowComposeInput: true,
         errors: null,
         ..._.pick(data, 'authToken', 'accountID', 'email', 'encryptedAuthToken'),
     });
+    Onyx.set(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, true);
 }
 
 /**
@@ -373,7 +372,6 @@ function clearSignInData() {
  */
 function cleanupSession() {
     // We got signed out in this tab or another so clean up any subscriptions and timers
-    NetworkConnection.stopListeningForReconnect();
     UnreadIndicatorUpdater.stopListeningForReportChanges();
     PushNotification.deregister();
     PushNotification.clearNotifications();
@@ -385,7 +383,8 @@ function cleanupSession() {
 function clearAccountMessages() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {
         success: '',
-        errors: [],
+        errors: null,
+        message: null,
         isLoading: false,
     });
 }
@@ -422,72 +421,6 @@ function changePasswordAndSignIn(authToken, password) {
             }
             Onyx.merge(ONYXKEYS.SESSION, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('setPasswordPage.passwordNotSet')}});
         });
-}
-
-/**
- * Validates new user login, sets a new password and authenticates them
- * @param {Number} accountID
- * @param {String} validateCode
- * @param {String} password
- */
-function setPasswordForNewAccountAndSignin(accountID, validateCode, password) {
-    const optimisticData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: true,
-                errors: null,
-            },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.SESSION,
-            value: {
-                errors: null,
-            },
-        },
-    ];
-
-    const successData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                errors: null,
-            },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.SESSION,
-            value: {
-                errors: null,
-            },
-        },
-    ];
-
-    const failureData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.SESSION,
-            value: {
-                errors: {
-                    [DateUtils.getMicroseconds()]: Localize.translateLocal('setPasswordPage.passwordNotSet'),
-                },
-            },
-        },
-    ];
-    API.write('SetPasswordForNewAccountAndSignin', {
-        accountID, validateCode, password,
-    }, {optimisticData, successData, failureData});
 }
 
 /**
@@ -632,16 +565,8 @@ function authenticatePusher(socketID, channelName, callback) {
     });
 }
 
-/**
- * @param {Boolean} shouldShowComposeInput
- */
-function setShouldShowComposeInput(shouldShowComposeInput) {
-    Onyx.merge(ONYXKEYS.SESSION, {shouldShowComposeInput});
-}
-
 export {
     beginSignIn,
-    setPasswordForNewAccountAndSignin,
     updatePasswordAndSignin,
     signIn,
     signInWithShortLivedToken,
@@ -656,7 +581,6 @@ export {
     validateEmail,
     authenticatePusher,
     reauthenticatePusher,
-    setShouldShowComposeInput,
     changePasswordAndSignIn,
     invalidateCredentials,
     invalidateAuthToken,

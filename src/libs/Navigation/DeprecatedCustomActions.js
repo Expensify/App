@@ -5,6 +5,7 @@ import {
 import lodashGet from 'lodash/get';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
+import SCREENS from '../../SCREENS';
 
 /**
  * @returns {Object}
@@ -102,24 +103,41 @@ function pushDrawerRoute(route) {
         const screenRoute = {type: 'route', name: newScreenName};
         const history = _.map(state.history ? [...state.history] : [screenRoute], () => screenRoute);
 
-        // Force drawer to close
-        // https://github.com/react-navigation/react-navigation/blob/94ab791cae5061455f036cd3f6bc7fa63167e7c7/packages/routers/src/DrawerRouter.tsx#L142
-        const hasDrawerhistory = _.find(state.history || [], h => h.type === 'drawer');
-        if (!hasDrawerhistory || currentState.type !== 'drawer') {
+        const drawerHistoryItem = _.find(state.history || [], h => h.type === 'drawer');
+        const isDrawerClosed = drawerHistoryItem && drawerHistoryItem.status === 'closed';
+        if (!drawerHistoryItem || currentState.type !== 'drawer') {
+            // Add the drawer item to the navigation history to control if the drawer should be in open or closed state
             history.push({
                 type: 'drawer',
 
-                // If current state is not from drawer navigator then always use closed status to close the drawer
+                // If current state is not from drawer navigator then always force the drawer to close by using closed status
+                // https://github.com/react-navigation/react-navigation/blob/94ab791cae5061455f036cd3f6bc7fa63167e7c7/packages/routers/src/DrawerRouter.tsx#L142
                 status: currentState.type !== 'drawer' || currentState.default === 'open' ? 'closed' : 'open',
             });
+        } else if (isDrawerClosed) {
+            // Keep the drawer closed if it's already closed
+            history.push({
+                type: 'drawer',
+                status: 'closed',
+            });
+        }
+
+        const routes = [{
+            name: newScreenName,
+            params: newScreenParams,
+        }];
+
+        // Keep the same key so the ReportScreen does not completely re-mount
+        if (newScreenName === SCREENS.REPORT) {
+            const prevReportRoute = getRouteFromState(getActiveState());
+            if (prevReportRoute.key) {
+                routes[0].key = prevReportRoute.key;
+            }
         }
 
         return CommonActions.reset({
             ...state,
-            routes: [{
-                name: newScreenName,
-                params: newScreenParams,
-            }],
+            routes,
             history,
         });
     };

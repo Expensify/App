@@ -26,16 +26,12 @@ import RequestorStep from './RequestorStep';
 import ValidationStep from './ValidationStep';
 import ACHContractStep from './ACHContractStep';
 import EnableStep from './EnableStep';
-import plaidDataPropTypes from './plaidDataPropTypes';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
 
 const propTypes = {
-    /** Contains plaid data */
-    plaidData: plaidDataPropTypes,
-
     /** Plaid SDK token to use to initialize the widget */
     plaidLinkToken: PropTypes.string,
 
@@ -68,9 +64,6 @@ const defaultProps = {
         isLoading: true,
     },
     plaidLinkToken: '',
-    plaidData: {
-        isPlaidDisabled: false,
-    },
     route: {
         params: {
             stepToOpen: '',
@@ -220,17 +213,15 @@ class ReimbursementAccountPage extends React.Component {
             <ScreenWrapper>
                 {currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && (
                     <BankAccountStep
-                        achData={achData}
-                        isPlaidDisabled={this.props.plaidData.isPlaidDisabled}
                         receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                         plaidLinkOAuthToken={this.props.plaidLinkToken}
                     />
                 )}
                 {currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && (
-                    <CompanyStep achData={achData} />
+                    <CompanyStep />
                 )}
                 {currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR && (
-                    <RequestorStep achData={achData} />
+                    <RequestorStep />
                 )}
                 {currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && (
                     <ACHContractStep companyName={achData.companyName} />
@@ -239,9 +230,7 @@ class ReimbursementAccountPage extends React.Component {
                     <ValidationStep />
                 )}
                 {currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE && (
-                    <EnableStep
-                        achData={achData}
-                    />
+                    <EnableStep />
                 )}
                 <WorkspaceResetBankAccountModal />
             </ScreenWrapper>
@@ -260,9 +249,6 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        plaidData: {
-            key: ONYXKEYS.PLAID_DATA,
         },
         plaidLinkToken: {
             key: ONYXKEYS.PLAID_LINK_TOKEN,

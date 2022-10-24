@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import {Keyboard} from 'react-native';
 import {DrawerActions, getPathFromState, StackActions} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
@@ -15,7 +16,14 @@ const navigationIsReadyPromise = new Promise((resolve) => {
     resolveNavigationIsReadyPromise = resolve;
 });
 
+let resolveDrawerIsReadyPromise;
+const drawerIsReadyPromise = new Promise((resolve) => {
+    resolveDrawerIsReadyPromise = resolve;
+});
+
 let isLoggedIn = false;
+let pendingRoute = null;
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: val => isLoggedIn = Boolean(val && val.authToken),
@@ -124,17 +132,22 @@ function isDrawerRoute(route) {
  */
 function navigate(route = ROUTES.HOME) {
     if (!canNavigate('navigate', {route})) {
+        // Store intended route if the navigator is not yet available,
+        // we will try again after the NavigationContainer is ready
+        Log.hmmm(`[Navigation] Container not yet ready, storing route as pending: ${route}`);
+        pendingRoute = route;
         return;
     }
 
     if (route === ROUTES.HOME) {
-        if (isLoggedIn) {
+        if (isLoggedIn && pendingRoute === null) {
             openDrawer();
             return;
         }
 
         // If we're navigating to the signIn page while logged out, pop whatever screen is on top
         // since it's guaranteed that the sign in page will be underneath (since it's the initial route).
+        // Also, if we're coming from a link to validate login (pendingRoute is not null), we want to pop the loading screen.
         navigationRef.current.dispatch(StackActions.pop());
         return;
     }
@@ -178,6 +191,19 @@ function getActiveRoute() {
 }
 
 /**
+ * @returns {String}
+ */
+function getReportIDFromRoute() {
+    if (!navigationRef.current) {
+        return '';
+    }
+
+    const drawerState = lodashGet(navigationRef.current.getState(), ['routes', 0, 'state']);
+    const reportRoute = lodashGet(drawerState, ['routes', 0]);
+    return lodashGet(reportRoute, ['params', 'reportID'], '');
+}
+
+/**
  * Check whether the passed route is currently Active or not.
  *
  * Building path with getPathFromState since navigationRef.current.getCurrentRoute().path
@@ -192,6 +218,19 @@ function isActiveRoute(routePath) {
 }
 
 /**
+ * Navigate to the route that we originally intended to go to
+ * but the NavigationContainer was not ready when navigate() was called
+ */
+function goToPendingRoute() {
+    if (pendingRoute === null) {
+        return;
+    }
+    Log.hmmm(`[Navigation] Container now ready, going to pending route: ${pendingRoute}`);
+    navigate(pendingRoute);
+    pendingRoute = null;
+}
+
+/**
  * @returns {Promise}
  */
 function isNavigationReady() {
@@ -199,7 +238,19 @@ function isNavigationReady() {
 }
 
 function setIsNavigationReady() {
+    goToPendingRoute();
     resolveNavigationIsReadyPromise();
+}
+
+/**
+ * @returns {Promise}
+ */
+function isDrawerReady() {
+    return drawerIsReadyPromise;
+}
+
+function setIsDrawerReady() {
+    resolveDrawerIsReadyPromise();
 }
 
 export default {
@@ -214,6 +265,10 @@ export default {
     setDidTapNotification,
     isNavigationReady,
     setIsNavigationReady,
+    getReportIDFromRoute,
+    isDrawerReady,
+    setIsDrawerReady,
+    isDrawerRoute,
 };
 
 export {
