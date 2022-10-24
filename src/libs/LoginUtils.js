@@ -37,7 +37,8 @@ function getPhoneNumberWithoutUSCountryCodeAndSpecialChars(phone) {
  * TODO: remove this once the server is always sending back the correct format!
  * https://github.com/Expensify/App/issues/10960
  *
- * @param {Array|Object} loginList 
+ * @param {Array|Object} loginList
+ * @return {Object}
  */
 function convertLoginListToObject(loginList = {}) {
     if (!_.isArray(loginList)) {
@@ -50,9 +51,35 @@ function convertLoginListToObject(loginList = {}) {
     }, {});
 }
 
+/**
+ * Filter out all non-Expensify partners from login list
+ *
+ * @param {Object} loginList 
+ * @returns 
+ */
+function keepExpensifyPartners(loginList = {}) {
+    return _.pick(loginList, (login) => {
+        return login.partnerName === 'expensify.com';
+    });
+}
+
+/**
+ * Cleans login list that came from the server by doing two steps:
+ * 1. Converts login list to an object (in case it came as an array)
+ * 2. Only keeps logins with Expensify partner name
+ *
+ * @param {Array|Object} loginList 
+ * @returns {Object}
+ */
+function cleanLoginListServerResponse(loginList = {}) {
+    let loginList = convertLoginListToObject(loginList);
+    return keepExpensifyPartners(loginList);
+}
+
 export {
     getEmailWithoutMergedAccountPrefix,
     getPhoneNumberWithoutSpecialChars,
     getPhoneNumberWithoutUSCountryCodeAndSpecialChars,
     convertLoginListToObject,
+    cleanLoginListServerResponse,
 };
