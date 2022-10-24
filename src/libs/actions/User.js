@@ -18,7 +18,7 @@ import * as Link from './Link';
 import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
 import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
-import LoginUtils from '../LoginUtils';
+import * as LoginUtils from '../LoginUtils';
 
 let currentUserAccountID = '';
 Onyx.connect({
