@@ -188,11 +188,15 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
  * @param {Object} reportActions
  * @returns {Object}
  */
-function getBrickRoadIndicatorStatusForReport(report, reportActions) {
-    const reportErrors = lodashGet(report, 'errors', {});
-    const reportErrorFields = lodashGet(report, 'errorFields', {});
-    const reportID = lodashGet(report, 'reportID');
-    const reportsActions = lodashGet(reportActions, `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {});
+function getAllReportErrors(report, reportActions) {
+    const reportErrors = report.errors || {};
+    const reportErrorFields = report.errorFields || {};
+    const reportID = report.reportID;
+    const reportsActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] || {};
+    const reportActionErrors = {};
+    _.chain(reportsActions)
+        .filter(action => !_.isEmpty(action.errors))
+        .each(action => _.extend(reportActionErrors, action.errors));
 
     // All error objects related to the report. Each value in the sources contains error messages keyed by microtime
     const errorSources = {
@@ -205,7 +209,7 @@ function getBrickRoadIndicatorStatusForReport(report, reportActions) {
     const allReportErrors = {};
     _.chain(errorSources)
         .filter(errors => !_.isEmpty(errors))
-        .map(errors => _.extend(allReportErrors, errors));
+        .each(errors => _.extend(allReportErrors, errors));
 
     return allReportErrors;
 }
