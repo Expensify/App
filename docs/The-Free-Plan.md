@@ -44,7 +44,7 @@ Once you’ve completed your company setup, you should have done the following:
 # Managing the Free Plan
 To access your workspace settings, click your profile icon and then on your workspace name:
 
-<img class="image" width="400" src="/assets/images/profile-settings.png"></br></br>
+<img class="image" width="400" src="/assets/images/profile-settings.png">
 <img class="image" width="400" src="/assets/images/workspace-settings.png">
 
 This menu allows you to manage your workspace members, issue additional Expensify Cards, and utilize this plan’s various bill pay and payment options.
