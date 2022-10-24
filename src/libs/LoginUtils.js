@@ -46,6 +46,7 @@ function convertLoginListToObject(loginList = {}) {
     }
 
     return _.reduce(loginList, (allLogins, login) => {
+        // eslint-disable-next-line no-param-reassign
         allLogins[login.partnerUserID] = login;
         return allLogins;
     }, {});
@@ -54,13 +55,11 @@ function convertLoginListToObject(loginList = {}) {
 /**
  * Filter out all non-Expensify partners from login list
  *
- * @param {Object} loginList 
+ * @param {Object} loginList
  * @returns {Object}
  */
 function keepExpensifyPartners(loginList = {}) {
-    return _.pick(loginList, (login) => {
-        return login.partnerName === 'expensify.com';
-    });
+    return _.pick(loginList, login => login.partnerName === 'expensify.com');
 }
 
 /**
@@ -68,7 +67,7 @@ function keepExpensifyPartners(loginList = {}) {
  * 1. Converts login list to an object (in case it came as an array)
  * 2. Only keeps logins with Expensify partner name
  *
- * @param {Array|Object} loginList 
+ * @param {Array|Object} loginList
  * @returns {Object}
  */
 function cleanLoginListServerResponse(loginList = {}) {
