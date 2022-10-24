@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Linking, ScrollView} from 'react-native';
+import {Linking, ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -13,12 +13,14 @@ import ScreenWrapper from '../../../components/ScreenWrapper';
 import TextInput from '../../../components/TextInput';
 import Button from '../../../components/Button';
 import Text from '../../../components/Text';
-import FixedFooter from '../../../components/FixedFooter';
 import ConfirmModal from '../../../components/ConfirmModal';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import * as CloseAccount from '../../../libs/actions/CloseAccount';
 import ONYXKEYS from '../../../ONYXKEYS';
+import OfflineIndicator from '../../../components/OfflineIndicator';
+import {withNetwork} from '../../../components/OnyxProvider';
+import networkPropTypes from '../../../components/networkPropTypes';
 
 const propTypes = {
     /** Onyx Props */
@@ -29,7 +31,7 @@ const propTypes = {
         error: PropTypes.string,
 
         /** Is account currently being closed? */
-        isLoading: PropTypes.bool.isRequired,
+        isLoading: PropTypes.bool,
     }),
 
     /** Session of currently logged in user */
@@ -37,6 +39,9 @@ const propTypes = {
         /** Email address */
         email: PropTypes.string.isRequired,
     }).isRequired,
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
@@ -73,47 +78,50 @@ class CloseAccountPage extends Component {
                         styles.p5,
                     ]}
                 >
-                    <Text>{this.props.translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
-                    <TextInput
-                        multiline
-                        numberOfLines={6}
-                        textAlignVertical="top"
-                        value={this.state.reasonForLeaving}
-                        onChangeText={reasonForLeaving => this.setState({reasonForLeaving})}
-                        label={this.props.translate('closeAccountPage.enterMessageHere')}
-                        containerStyles={[styles.mt5, styles.closeAccountMessageInput]}
-                    />
-                    <Text style={[styles.mt5]}>
-                        <Text style={[styles.textStrong]}>
-                            {this.props.translate('closeAccountPage.closeAccountWarning')}
+                    <View style={[styles.flexGrow1]}>
+                        <Text>{this.props.translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
+                        <TextInput
+                            multiline
+                            numberOfLines={6}
+                            textAlignVertical="top"
+                            value={this.state.reasonForLeaving}
+                            onChangeText={reasonForLeaving => this.setState({reasonForLeaving})}
+                            label={this.props.translate('closeAccountPage.enterMessageHere')}
+                            containerStyles={[styles.mt5, styles.closeAccountMessageInput]}
+                        />
+                        <Text style={[styles.mt5]}>
+                            <Text style={[styles.textStrong]}>
+                                {this.props.translate('closeAccountPage.closeAccountWarning')}
+                            </Text>
+                            {' '}
+                            {this.props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
                         </Text>
-                        {' '}
-                        {this.props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
-                    </Text>
-                    <Text textBreakStrategy="simple" style={[styles.mt5]}>
-                        <Text style={[styles.textStrong]}>
-                            {this.props.translate('closeAccountPage.defaultContact')}
+                        <Text textBreakStrategy="simple" style={[styles.mt5]}>
+                            <Text style={[styles.textStrong]}>
+                                {this.props.translate('closeAccountPage.defaultContact')}
+                            </Text>
+                            {' '}
+                            {userEmailOrPhone}
                         </Text>
-                        {' '}
-                        {userEmailOrPhone}
-                    </Text>
-                    <TextInput
-                        autoCapitalize="none"
-                        value={this.state.phoneOrEmail}
-                        onChangeText={phoneOrEmail => this.setState({phoneOrEmail: phoneOrEmail.toLowerCase()})}
-                        label={this.props.translate('closeAccountPage.enterDefaultContact')}
-                        containerStyles={[styles.mt5]}
-                    />
-                </ScrollView>
-                <FixedFooter>
+                        <TextInput
+                            autoCapitalize="none"
+                            value={this.state.phoneOrEmail}
+                            onChangeText={phoneOrEmail => this.setState({phoneOrEmail: phoneOrEmail.toLowerCase()})}
+                            label={this.props.translate('closeAccountPage.enterDefaultContact')}
+                            containerStyles={[styles.mt5]}
+                        />
+                    </View>
                     <Button
                         danger
                         text={this.props.translate('closeAccountPage.closeAccount')}
                         isLoading={this.props.closeAccount.isLoading}
                         onPress={() => User.closeAccount(this.state.reasonForLeaving)}
-                        isDisabled={Str.removeSMSDomain(userEmailOrPhone).toLowerCase() !== this.state.phoneOrEmail.toLowerCase()}
+                        isDisabled={Str.removeSMSDomain(userEmailOrPhone).toLowerCase() !== this.state.phoneOrEmail.toLowerCase() || this.props.network.isOffline}
+                        style={[styles.mt5]}
                     />
-                </FixedFooter>
+                    {!this.props.isSmallScreenWidth
+                        && <OfflineIndicator containerStyles={[styles.mt2]} />}
+                </ScrollView>
                 <ConfirmModal
                     title={this.props.translate('closeAccountPage.closeAccountError')}
                     success
@@ -147,10 +155,10 @@ CloseAccountPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
+    withNetwork(),
     withOnyx({
         closeAccount: {
             key: ONYXKEYS.CLOSE_ACCOUNT,
-            initWithStoredValues: {error: '', isLoading: false},
         },
         session: {
             key: ONYXKEYS.SESSION,

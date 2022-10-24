@@ -1,7 +1,8 @@
-import React, {Component} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
-import * as Navigation from './Navigation';
+import {useFlipper} from '@react-navigation/devtools';
+import Navigation, {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
@@ -27,63 +28,52 @@ const propTypes = {
     onReady: PropTypes.func.isRequired,
 };
 
-class NavigationRoot extends Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            currentPath: '',
-        };
-
-        this.parseAndLogRoute = this.parseAndLogRoute.bind(this);
+/**
+ * Intercept navigation state changes and log it
+ * @param {NavigationState} state
+ */
+function parseAndLogRoute(state) {
+    if (!state) {
+        return;
     }
 
-    /**
-     * Intercept navigation state changes and log it
-     * @param {NavigationState} state
-     */
-    parseAndLogRoute(state) {
-        if (!state) {
-            return;
-        }
+    const currentPath = getPathFromState(state, linkingConfig.config);
 
-        const currentPath = getPathFromState(state, linkingConfig.config);
-
-        // Don't log the route transitions from OldDot because they contain authTokens
-        if (currentPath.includes('/transition')) {
-            Log.info('Navigating from transition link from OldDot using short lived authToken');
-        } else {
-            Log.info('Navigating to route', false, {path: currentPath});
-        }
-
-        UnreadIndicatorUpdater.throttledUpdatePageTitleAndUnreadCount();
-
-        this.setState({currentPath});
+    // Don't log the route transitions from OldDot because they contain authTokens
+    if (currentPath.includes('/transition')) {
+        Log.info('Navigating from transition link from OldDot using short lived authToken');
+    } else {
+        Log.info('Navigating to route', false, {path: currentPath});
     }
 
-    render() {
-        return (
-            <NavigationContainer
-                fallback={(
-                    <FullScreenLoadingIndicator
-                        logDetail={{name: 'Navigation Fallback Loader', authenticated: this.props.authenticated}}
-                        style={styles.navigatorFullScreenLoading}
-                    />
-                )}
-                onStateChange={this.parseAndLogRoute}
-                onReady={this.props.onReady}
-                theme={navigationTheme}
-                ref={Navigation.navigationRef}
-                linking={linkingConfig}
-                documentTitle={{
-                    enabled: false,
-                }}
-            >
-                <AppNavigator authenticated={this.props.authenticated} currentPath={this.state.currentPath} />
-            </NavigationContainer>
-        );
-    }
+    UnreadIndicatorUpdater.throttledUpdatePageTitleAndUnreadCount();
+    Navigation.setIsNavigationReady();
 }
 
+const NavigationRoot = (props) => {
+    useFlipper(navigationRef);
+    return (
+        <NavigationContainer
+            fallback={(
+                <FullScreenLoadingIndicator
+                    logDetail={{name: 'Navigation Fallback Loader', authenticated: props.authenticated}}
+                    style={styles.navigatorFullScreenLoading}
+                />
+            )}
+            onStateChange={parseAndLogRoute}
+            onReady={props.onReady}
+            theme={navigationTheme}
+            ref={navigationRef}
+            linking={linkingConfig}
+            documentTitle={{
+                enabled: false,
+            }}
+        >
+            <AppNavigator authenticated={props.authenticated} />
+        </NavigationContainer>
+    );
+};
+
+NavigationRoot.displayName = 'NavigationRoot';
 NavigationRoot.propTypes = propTypes;
 export default NavigationRoot;

@@ -20,6 +20,7 @@ import RoomNameInput from '../components/RoomNameInput';
 import Picker from '../components/Picker';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
+import reportPropTypes from './reportPropTypes';
 
 const propTypes = {
     /** Route params */
@@ -35,37 +36,7 @@ const propTypes = {
     /* Onyx Props */
 
     /** The active report */
-    report: PropTypes.shape({
-        /** The list of icons */
-        icons: PropTypes.arrayOf(PropTypes.string),
-
-        /** The report name */
-        reportName: PropTypes.string,
-
-        /** ID of the report */
-        reportID: PropTypes.number,
-
-        /** The current user's notification preference for this report */
-        notificationPreference: PropTypes.string,
-
-        /** Access setting e.g. whether the report is "restricted" */
-        visibility: PropTypes.string,
-
-        /** Linked policy's ID */
-        policyID: PropTypes.string,
-    }).isRequired,
-
-    /** All reports shared with the user */
-    reports: PropTypes.objectOf(PropTypes.shape({
-        /** The report name */
-        reportName: PropTypes.string,
-
-        /** The report type */
-        type: PropTypes.string,
-
-        /** ID of the policy */
-        policyID: PropTypes.string,
-    })).isRequired,
+    report: reportPropTypes.isRequired,
 
     /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({
@@ -112,11 +83,6 @@ class ReportSettingsPage extends Component {
      */
     resetToPreviousName() {
         this.setState({newRoomName: this.props.report.reportName});
-
-        // Reset the input's value back to the previously saved report name
-        if (this.roomNameInputRef) {
-            this.roomNameInputRef.setNativeProps({text: this.props.report.reportName.replace(CONST.POLICY.ROOM_PREFIX, '')});
-        }
         Report.clearPolicyRoomNameErrors(this.props.report.reportID);
     }
 
@@ -130,14 +96,14 @@ class ReportSettingsPage extends Component {
     validate() {
         const errors = {};
 
+        // When the report name is not changed, skip the form submission. Added check here to keep the code clean
+        if (this.state.newRoomName === this.props.report.reportName) {
+            return false;
+        }
+
         // We error if the user doesn't enter a room name or left blank
         if (!this.state.newRoomName || this.state.newRoomName === CONST.POLICY.ROOM_PREFIX) {
             errors.newRoomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
-        }
-
-        // We error if the room name already exists. We don't error if the room name matches same as previous.
-        if (ValidationUtils.isExistingRoomName(this.state.newRoomName, this.props.reports, this.props.report.policyID) && this.state.newRoomName !== this.props.report.reportName) {
-            errors.newRoomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
         }
 
         // Certain names are reserved for default rooms and should not be used for policy rooms.
@@ -216,7 +182,7 @@ class ReportSettingsPage extends Component {
                                             : (
                                                 <RoomNameInput
                                                     ref={el => this.roomNameInputRef = el}
-                                                    initialValue={this.state.newRoomName}
+                                                    value={this.state.newRoomName}
                                                     policyID={linkedWorkspace && linkedWorkspace.id}
                                                     errorText={this.state.errors.newRoomName}
                                                     onChangeText={newRoomName => this.clearErrorAndSetValue('newRoomName', newRoomName)}
@@ -230,7 +196,7 @@ class ReportSettingsPage extends Component {
                                             success={!shouldDisableRename}
                                             text={this.props.translate('common.save')}
                                             onPress={this.validateAndUpdatePolicyRoomName}
-                                            style={[styles.ml2, styles.flex1]}
+                                            style={[styles.ml2, styles.mnw25]}
                                             textStyles={[styles.label]}
                                             innerStyles={[styles.ph5]}
                                             isDisabled={shouldDisableRename}
@@ -283,9 +249,6 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
         },
     }),
 )(ReportSettingsPage);

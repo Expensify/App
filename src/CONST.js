@@ -11,6 +11,7 @@ const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const CONST = {
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
+    ANIMATED_TRANSITION_FROM_VALUE: 100,
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
@@ -24,6 +25,8 @@ const CONST = {
     },
 
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
+
+    AVATAR_ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'bmp'],
 
     // Minimum width and height size in px for a selected image
     AVATAR_MIN_WIDTH_PX: 80,
@@ -52,8 +55,6 @@ const CONST = {
             MAX_ROUTING_NUMBER: '402 Maximum Size Exceeded routingNumber',
             MISSING_INCORPORATION_STATE: '402 Missing incorporationState in additionalData',
             MISSING_INCORPORATION_TYPE: '402 Missing incorporationType in additionalData',
-            MAX_VALIDATION_ATTEMPTS_REACHED: 'Validation for this bank account has been disabled due to too many incorrect attempts. Please contact us.',
-            INCORRECT_VALIDATION_AMOUNTS: 'The validate code you entered is incorrect, please try again.',
         },
         STEP: {
             // In the order they appear in the VBA flow
@@ -69,9 +70,6 @@ const CONST = {
         },
         VERIFICATIONS: {
             ERROR_MESSAGE: 'verifications.errorMessage',
-            EXTERNAL_API_RESPONSES: 'verifications.externalApiResponses',
-            REQUESTOR_IDENTITY_ID: 'verifications.externalApiResponses.requestorIdentityID',
-            REQUESTOR_IDENTITY_ONFIDO: 'verifications.externalApiResponses.requestorIdentityOnfido',
             THROTTLED: 'verifications.throttled',
         },
         FIELDS_TYPE: {
@@ -91,12 +89,17 @@ const CONST = {
         },
         REGEX: {
             US_ACCOUNT_NUMBER: /^[0-9]{4,17}$/,
+
+            // If the account number length is from 4 to 13 digits, we show the last 4 digits and hide the rest with X
+            // If the length is longer than 13 digits, we show the first 6 and last 4 digits, hiding the rest with X
+            MASKED_US_ACCOUNT_NUMBER: /^[X]{0,9}[0-9]{4}$|^[0-9]{6}[X]{4,7}[0-9]{4}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
         },
         VERIFICATION_MAX_ATTEMPTS: 7,
         STATE: {
             VERIFYING: 'VERIFYING',
             PENDING: 'PENDING',
+            OPEN: 'OPEN',
         },
         MAX_LENGTH: {
             SSN: 4,
@@ -312,7 +315,8 @@ const CONST = {
         RESERVED_ROOM_NAMES: ['#admins', '#announce'],
         MAX_PREVIEW_AVATARS: 4,
         MAX_ROOM_NAME_LENGTH: 80,
-        LAST_MESSAGE_TEXT_MAX_LENGTH: 80,
+        LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
+        OWNER_EMAIL_FAKE: '__FAKE__',
     },
     COMPOSER: {
         MAX_LINES: 16,
@@ -349,11 +353,11 @@ const CONST = {
         HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
         SWITCH_REPORT: 'switch_report',
         SIDEBAR_LOADED: 'sidebar_loaded',
-        PERSONAL_DETAILS_FORMATTED: 'personal_details_formatted',
         COLD: 'cold',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         TOOLTIP_SENSE: 1000,
         SPINNER_TIMEOUT: 15 * 1000,
+        TRIE_INITIALIZATION: 'trie_initialization',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -415,7 +419,8 @@ const CONST = {
         FREQUENTLY_USED_EMOJIS: 'expensify_frequentlyUsedEmojis',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
-    DEFAULT_ACCOUNT_DATA: {error: '', success: '', loading: false},
+    DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
+    DEFAULT_CLOSE_ACCOUNT_DATA: {error: '', success: '', isLoading: false},
     APP_STATE: {
         ACTIVE: 'active',
         BACKGROUND: 'background',
@@ -457,6 +462,7 @@ const CONST = {
         NUMBER_PAD: 'number-pad',
         DECIMAL_PAD: 'decimal-pad',
         VISIBLE_PASSWORD: 'visible-password',
+        EMAIL_ADDRESS: 'email-address',
     },
 
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
@@ -677,6 +683,7 @@ const CONST = {
         },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
+        OWNER_EMAIL_FAKE: '_FAKE_',
     },
 
     CUSTOM_UNITS: {
@@ -724,7 +731,6 @@ const CONST = {
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
-        RATE_VALUE: /^\d{1,8}(\.\d*)?$/,
 
         // Adapted from: https://gist.github.com/dperini/729294
         // eslint-disable-next-line max-len
@@ -734,6 +740,8 @@ const CONST = {
         EMOJIS: /(?:\uD83D(?:\uDC41\u200D\uD83D\uDDE8|\uDC68\u200D\uD83D[\uDC68\uDC69]\u200D\uD83D(?:\uDC66(?:\u200D\uD83D\uDC66)?|\uDC67(?:\u200D\uD83D[\uDC66\uDC67])?)|\uDC69\u200D\uD83D\uDC69\u200D\uD83D(?:\uDC66(?:\u200D\uD83D\uDC66)?|\uDC67(?:\u200D\uD83D[\uDC66\uDC67])?))|[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|[\ud83c\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|[\ud83c\ude32-\ude3a]|[\ud83c\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26FF]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])/g,
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
+        EMOJI_NAME: /:[\w+-]+:/g,
+        EMOJI_SUGGESTIONS: /:[a-zA-Z]{1,20}(\s[a-zA-Z]{0,20})?$/,
     },
 
     PRONOUNS: {
@@ -802,6 +810,7 @@ const CONST = {
     },
     BRICK_ROAD_INDICATOR_STATUS: {
         ERROR: 'error',
+        INFO: 'info',
     },
     REPORT_DETAILS_MENU_ITEM: {
         MEMBERS: 'member',
@@ -828,6 +837,20 @@ const CONST = {
             INCORRECT_PASSWORD: 2,
         },
     },
+    TESTING: {
+        SCREEN_SIZE: {
+            SMALL: {
+                width: 300, height: 700, scale: 1, fontScale: 1,
+            },
+        },
+    },
+    API_REQUEST_TYPE: {
+        READ: 'read',
+        WRITE: 'write',
+        MAKE_REQUEST_WITH_SIDE_EFFECTS: 'makeRequestWithSideEffects',
+    },
+
+    TFA_CODE_LENGTH: 6,
 };
 
 export default CONST;

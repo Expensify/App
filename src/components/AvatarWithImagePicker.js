@@ -20,6 +20,7 @@ import CONST from '../CONST';
 import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAnimation';
 import Tooltip from './Tooltip';
 import stylePropTypes from '../styles/stylePropTypes';
+import * as FileUtils from '../libs/fileDownload/FileUtils';
 
 const propTypes = {
     /** Avatar URL to display */
@@ -125,6 +126,17 @@ class AvatarWithImagePicker extends React.Component {
     }
 
     /**
+     * Check if the attachment extension is allowed.
+     *
+     * @param {Object} image
+     * @returns {Boolean}
+     */
+    isValidExtension(image) {
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(image, 'name', ''));
+        return _.contains(CONST.AVATAR_ALLOWED_EXTENSIONS, fileExtension.toLowerCase());
+    }
+
+    /**
      * Check if the attachment size is less than allowed size.
      *
      * @param {Object} image
@@ -154,6 +166,13 @@ class AvatarWithImagePicker extends React.Component {
      * @param {Object} image
      */
     showAvatarCropModal(image) {
+        if (!this.isValidExtension(image)) {
+            this.showErrorModal(
+                this.props.translate('avatarWithImagePicker.imageUploadFailed'),
+                this.props.translate('avatarWithImagePicker.notAllowedExtension', {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS}),
+            );
+            return;
+        }
         if (!this.isValidSize(image)) {
             this.showErrorModal(
                 this.props.translate('avatarWithImagePicker.imageUploadFailed'),

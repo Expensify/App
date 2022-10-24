@@ -57,12 +57,13 @@ const policyPropTypes = {
         errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
-    /** The policy member list for the current route */
+    /** The employee list of this policy */
     policyMemberList: PropTypes.objectOf(policyMemberPropType),
 };
 
 const policyDefaultProps = {
     policy: {},
+    policyMemberList: {},
 };
 
 /*
@@ -103,7 +104,7 @@ export default function (WrappedComponent) {
 
     WithPolicy.propTypes = propTypes;
     WithPolicy.defaultProps = defaultProps;
-    WithPolicy.displayName = `withFullPolicy(${getComponentDisplayName(WrappedComponent)})`;
+    WithPolicy.displayName = `withPolicy(${getComponentDisplayName(WrappedComponent)})`;
     const withPolicy = React.forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
         <WithPolicy {...props} forwardedRef={ref} />

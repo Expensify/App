@@ -8,6 +8,7 @@ import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import * as Report from '../libs/actions/Report';
+import * as ReportUtils from '../libs/ReportUtils';
 import CONST from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -17,6 +18,8 @@ import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
+import reportPropTypes from './reportPropTypes';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Whether screen is used to create group chat */
@@ -29,10 +32,7 @@ const propTypes = {
     personalDetails: personalDetailsPropType.isRequired,
 
     /** All reports shared with the user */
-    reports: PropTypes.shape({
-        reportID: PropTypes.number,
-        reportName: PropTypes.string,
-    }).isRequired,
+    reports: PropTypes.objectOf(reportPropTypes).isRequired,
 
     /** Session of currently logged in user */
     session: PropTypes.shape({
@@ -132,6 +132,23 @@ class NewChatPage extends Component {
     }
 
     /**
+     * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
+     *
+     * @param {Array} userLogins list of user logins.
+     */
+    getOrCreateChatReport(userLogins) {
+        const formattedUserLogins = _.map(userLogins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+        let newChat = {};
+        const chat = ReportUtils.getChatByParticipants(formattedUserLogins);
+        if (!chat) {
+            newChat = ReportUtils.buildOptimisticChatReport(formattedUserLogins);
+        }
+        const reportID = chat ? chat.reportID : newChat.reportID;
+        Report.openReport(reportID, newChat.participants, newChat);
+        Navigation.navigate(ROUTES.getReportRoute(reportID));
+    }
+
+    /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      * @param {Object} option
      */
@@ -181,10 +198,7 @@ class NewChatPage extends Component {
      * @param {Object} option
      */
     createChat(option) {
-        Report.fetchOrCreateChatReport([
-            this.props.session.email,
-            option.login,
-        ]);
+        this.getOrCreateChatReport([option.login]);
     }
 
     /**
@@ -196,8 +210,7 @@ class NewChatPage extends Component {
         if (userLogins.length < 1) {
             return;
         }
-
-        Report.fetchOrCreateChatReport([this.props.session.email, ...userLogins]);
+        this.getOrCreateChatReport(userLogins);
     }
 
     render() {
@@ -210,7 +223,7 @@ class NewChatPage extends Component {
             maxParticipantsReached,
         );
         return (
-            <ScreenWrapper keyboardAvoidingViewBehavior="height">
+            <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
                     <>
                         <HeaderWithCloseButton

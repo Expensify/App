@@ -31,6 +31,7 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
+import * as Expensicons from '../../components/Icon/Expensicons';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -267,7 +268,7 @@ class WorkspaceMembersPage extends React.Component {
                                 }}
                             />
                         </View>
-                        {this.props.session.email === item.login && (
+                        {(this.props.session.email === item.login || item.role === 'admin') && (
                             <View style={styles.peopleRowCell}>
                                 <View style={[styles.badge, styles.peopleBadge]}>
                                     <Text style={[styles.peopleBadgeText]}>
@@ -283,14 +284,20 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     render() {
-        const policyMemberList = _.keys(lodashGet(this.props, 'policyMemberList', {}));
-        const removableMembers = _.without(policyMemberList, this.props.session.email, this.props.policy.owner);
-        const data = _.chain(policyMemberList)
-            .map(email => this.props.personalDetails[email])
-            .filter()
-            .sortBy(person => person.displayName.toLowerCase())
-            .map(person => ({...person})) // TODO: here we will add the pendingAction and errors prop
-            .value();
+        const policyMemberList = lodashGet(this.props, 'policyMemberList', {});
+        const removableMembers = [];
+        let data = [];
+        _.each(policyMemberList, (policyMember, email) => {
+            if (email !== this.props.session.email && email !== this.props.policy.owner) {
+                removableMembers.push(email);
+            }
+            const details = this.props.personalDetails[email] || {displayName: email, login: email, avatar: Expensicons.FallbackAvatar};
+            data.push({
+                ...policyMember,
+                ...details,
+            });
+        });
+        data = _.sortBy(data, value => value.displayName.toLowerCase());
         const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyName = lodashGet(this.props.policy, 'name');
 

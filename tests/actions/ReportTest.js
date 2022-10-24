@@ -74,7 +74,7 @@ describe('actions/Report', () => {
             callback: val => reportActions = val,
         });
 
-        let sequenceNumber;
+        let clientID;
 
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
@@ -92,8 +92,8 @@ describe('actions/Report', () => {
             .then(() => {
                 const resultAction = _.first(_.values(reportActions));
 
-                // Store the generated sequenceNumber so that we can send it with our mock Pusher update
-                sequenceNumber = resultAction.sequenceNumber;
+                // Store the generated clientID so that we can send it with our mock Pusher update
+                clientID = resultAction.clientID;
                 expect(resultAction.message).toEqual(REPORT_ACTION.message);
                 expect(resultAction.person).toEqual(REPORT_ACTION.person);
                 expect(resultAction.pendingAction).toEqual(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -120,7 +120,7 @@ describe('actions/Report', () => {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         value: {
-                            [sequenceNumber]: null,
+                            [clientID]: null,
                             [ACTION_ID]: actionWithoutLoading,
                         },
                     },
@@ -348,9 +348,9 @@ describe('actions/Report', () => {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         value: {
-                            [_.toArray(reportActions)[1].sequenceNumber]: null,
-                            [_.toArray(reportActions)[2].sequenceNumber]: null,
-                            [_.toArray(reportActions)[3].sequenceNumber]: null,
+                            [_.toArray(reportActions)[1].clientID]: null,
+                            [_.toArray(reportActions)[2].clientID]: null,
+                            [_.toArray(reportActions)[3].clientID]: null,
                             2: {
                                 ...USER_1_BASE_ACTION,
                                 message: [{type: 'COMMENT', html: 'Current User Comment 1', text: 'Current User Comment 1'}],
@@ -374,7 +374,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // If the user deletes a comment that is before the last read
-                Report.deleteReportComment(REPORT_ID, reportActions[2]);
+                Report.deleteReportComment(REPORT_ID, {...reportActions[2], sequenceNumber: 2, clientID: null});
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -392,7 +392,7 @@ describe('actions/Report', () => {
                 expect(report.lastReadSequenceNumber).toBe(2);
 
                 // If the user deletes the last comment after the last read the lastMessageText will reflect the new last comment
-                Report.deleteReportComment(REPORT_ID, reportActions[4]);
+                Report.deleteReportComment(REPORT_ID, {...reportActions[4], sequenceNumber: 4, clientID: null});
                 return waitForPromisesToResolve();
             })
             .then(() => {

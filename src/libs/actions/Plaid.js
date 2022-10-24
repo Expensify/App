@@ -31,7 +31,7 @@ function openPlaidBankAccountSelector(publicToken, bankName, allowDebit) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PLAID_DATA,
             value: {
-                loading: true,
+                isLoading: true,
                 error: '',
                 bankName,
             },
@@ -40,7 +40,7 @@ function openPlaidBankAccountSelector(publicToken, bankName, allowDebit) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PLAID_DATA,
             value: {
-                loading: false,
+                isLoading: false,
                 error: '',
             },
         }],
@@ -48,7 +48,7 @@ function openPlaidBankAccountSelector(publicToken, bankName, allowDebit) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PLAID_DATA,
             value: {
-                loading: false,
+                isLoading: false,
                 error: Localize.translateLocal('bankAccount.error.noBankAccountAvailable'),
             },
         }],
