@@ -260,6 +260,7 @@ export default {
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
+            errorSplittingBill: 'Error splitting bill.',
         },
     },
     notificationPreferences: {

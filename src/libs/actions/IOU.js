@@ -15,6 +15,7 @@ import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
 import * as IOUUtils from '../IOUUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
+import DateUtils from '../DateUtils';
 
 let iouReports;
 Onyx.connect({
@@ -214,6 +215,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             key: `${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`,
             value: {
                 pendingFields: {createChat: null},
+                errorFields: {
+                    createChat: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.errorSplittingBill'),
+                    },
+                },
             },
         },
         {
@@ -322,6 +328,13 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
                 value: {
                     pendingFields: {createChat: null},
+                    hasOutstandingIOU: false,
+                    iouReportID: null,
+                    errorFields: {
+                        createChat: {
+                            [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.errorSplittingBill'),
+                        },
+                    },
                 },
             },
             {
@@ -329,8 +342,13 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
                 value: {
                     0: {pendingAction: null},
-                    [oneOnOneIOUReportAction.sequenceNumber]: {pendingAction: null},
+                    [oneOnOneIOUReportAction.sequenceNumber]: null,
                 },
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneIOUReport.reportID}`,
+                value: null,
             },
         );
 

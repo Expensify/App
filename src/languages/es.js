@@ -260,6 +260,7 @@ export default {
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
+            errorSplittingBill: 'Error al dividir la cuenta.',
         },
     },
     notificationPreferences: {
