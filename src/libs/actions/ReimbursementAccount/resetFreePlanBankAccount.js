@@ -18,14 +18,6 @@ function resetFreePlanBankAccount() {
         throw new Error('Missing credentials when attempting to reset free plan bank account');
     }
 
-    const achData = {
-        useOnfido: true,
-        policyID: '',
-        isInSetup: true,
-        domainLimit: 0,
-        currentStep: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
-    };
-
     API.write('RestartBankAccountSetup',
         {
             bankAccountID,
@@ -33,18 +25,38 @@ function resetFreePlanBankAccount() {
         },
         {
             optimisticData: [{
-                onyxMethod: 'merge',
+                onyxMethod: 'set',
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {achData, shouldShowResetModal: false},
+                value: {
+                    achData: {},
+                    shouldShowResetModal: false,
+                    isResettingReimbursementAccount: true,
+                },
             },
             {
                 onyxMethod: 'set',
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
                 value: null,
             }],
+            successData: [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    value: {
+                        isResettingReimbursementAccount: false,
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    value: {
+                        isResettingReimbursementAccount: false,
+                    },
+                },
+            ],
         });
-
-    Navigation.navigate(ROUTES.getBankAccountRoute());
 }
 
 export default resetFreePlanBankAccount;
