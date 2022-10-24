@@ -5,18 +5,9 @@ import _ from 'underscore';
 
 require('react-native-reanimated/lib/reanimated2/jestUtils').setUpTests();
 
-jest.mock('react-native-blob-util', () => ({}));
-
-// These two mocks are required as per setup instructions for react-navigation testing
+// This mock is required as per setup instructions for react-navigation testing
 // https://reactnavigation.org/docs/testing/#mocking-native-modules
 jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
-jest.mock('react-native-reanimated', () => {
-    const Reanimated = require('react-native-reanimated/mock');
-    Reanimated.default.call = () => {};
-    return Reanimated;
-});
-
-jest.mock('react-native-blob-util', () => ({}));
 
 // Turn off the console logs for timing events. They are not relevant for unit tests and create a lot of noise
 jest.spyOn(console, 'debug').mockImplementation((...params) => {
