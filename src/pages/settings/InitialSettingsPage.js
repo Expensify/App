@@ -119,11 +119,14 @@ class InitialSettingsPage extends React.Component {
      * @returns {Array} the default menu items
      */
     getDefaultMenuItems() {
-        const policies = _.chain(this.props.policies)
-            .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
+        const policiesAvatars = _.chain(this.props.policies)
+            .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .sortBy(policy => policy.name)
             .value();
-        const policiesAvatars = _.pluck(policies, 'avatar');
+        const policyBrickRoadIndicator = _.chain(this.props.policies)
+            .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
+            .find(policy => PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers))
+            .value() ? 'error' : null;
 
         return ([
             {
@@ -132,7 +135,7 @@ class InitialSettingsPage extends React.Component {
                 action: () => { Navigation.navigate(ROUTES.SETTINGS_WORKSPACES); },
                 floatRightAvatars: policiesAvatars,
                 shouldStackHorizontally: true,
-                brickRoadIndicator: _.find(policies, policy => PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers)) ? 'error' : null,
+                brickRoadIndicator: policyBrickRoadIndicator,
             },
             {
                 translationKey: 'common.profile',
