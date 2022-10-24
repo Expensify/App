@@ -32,6 +32,8 @@ Onyx.connect({
     callback: val => reimbursementAccount = val,
 });
 
+jest.mock('../../src/libs/Log');
+
 beforeAll(() => Onyx.init());
 
 beforeEach(() => Onyx.clear()
