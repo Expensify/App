@@ -270,30 +270,26 @@ class RequestCallPage extends Component {
                                 icon={Illustrations.ConciergeExclamation}
                                 containerStyles={[styles.p0]}
                             >
-                                <Text style={styles.mb4}>
+                                <Text>
                                     {this.props.translate('requestCallPage.description')}
                                 </Text>
                             </Section>
-                            <View style={[styles.flexRow, styles.mb4]}>
-                                <View style={styles.flex1}>
-                                    <TextInput
-                                        inputID="firstName"
-                                        defaultValue={firstName}
-                                        label={this.props.translate('common.firstName')}
-                                        name="fname"
-                                        placeholder={this.props.translate('profilePage.john')}
-                                    />
-                                </View>
-                                <View style={[styles.flex1, styles.ml2]}>
-                                    <TextInput
-                                        inputID="lastName"
-                                        defaultValue={lastName}
-                                        label={this.props.translate('common.lastName')}
-                                        name="lname"
-                                        placeholder={this.props.translate('profilePage.doe')}
-                                    />
-                                </View>
-                            </View>
+                            <TextInput
+                                inputID="firstName"
+                                defaultValue={firstName}
+                                label={this.props.translate('common.firstName')}
+                                name="fname"
+                                placeholder={this.props.translate('profilePage.john')}
+                                containerStyles={[styles.mt4]}
+                            />
+                            <TextInput
+                                inputID="lastName"
+                                defaultValue={lastName}
+                                label={this.props.translate('common.lastName')}
+                                name="lname"
+                                placeholder={this.props.translate('profilePage.doe')}
+                                containerStyles={[styles.mt4]}
+                            />
                             <TextInput
                                 inputID="phoneNumber"
                                 defaultValue={this.getPhoneNumber(this.props.loginList)}
@@ -302,6 +298,7 @@ class RequestCallPage extends Component {
                                 keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                                 autoCorrect={false}
                                 placeholder="2109400803"
+                                containerStyles={[styles.mt4]}
                             />
                             <TextInput
                                 inputID="phoneNumberExtension"

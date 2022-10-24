@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.2.18-4",
+  "version": "1.2.18-8",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -58,7 +58,7 @@
     "@react-native-firebase/crashlytics": "^12.3.0",
     "@react-native-firebase/perf": "^12.3.0",
     "@react-native-picker/picker": "^2.4.3",
-    "@react-navigation/drawer": "6.5.0",
+    "@react-navigation/drawer": "git@github.com:Expensify/react-navigation.git#react-navigation-drawer-v6.5.0-gitpkg",
     "@react-navigation/native": "6.0.13",
     "@react-navigation/stack": "6.3.1",
     "babel-plugin-transform-remove-console": "^6.9.4",
