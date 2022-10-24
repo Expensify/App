@@ -215,11 +215,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             key: `${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`,
             value: {
                 pendingFields: {createChat: null},
-                errorFields: {
-                    createChat: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.errorSplittingBill'),
-                    },
-                },
             },
         },
         {
@@ -330,11 +325,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                     pendingFields: {createChat: null},
                     hasOutstandingIOU: false,
                     iouReportID: null,
-                    errorFields: {
-                        createChat: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.errorSplittingBill'),
-                        },
-                    },
                 },
             },
             {
