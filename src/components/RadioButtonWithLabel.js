@@ -75,7 +75,7 @@ const RadioButtonWithLabel = (props) => {
                     {LabelComponent && (<LabelComponent />)}
                 </TouchableOpacity>
             </View>
-            <FormHelpMessage>{props.errorText}</FormHelpMessage>
+            <FormHelpMessage message={props.errorText} />
         </>
     );
 };

@@ -95,7 +95,7 @@ class Picker extends PureComponent {
                         onInputChange={this.onInputChange}
                     />
                 </View>
-                <FormHelpMessage>{this.props.errorText}</FormHelpMessage>
+                <FormHelpMessage message={this.props.errorText} />
             </>
         );
     }

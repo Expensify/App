@@ -9,7 +9,9 @@ import colors from '../styles/colors';
 import Text from './Text';
 
 const propTypes = {
-    children: PropTypes.node.isRequired,
+    message: PropTypes.node,
+
+    children: PropTypes.node,
 
     isError: PropTypes.bool,
 
@@ -18,27 +20,31 @@ const propTypes = {
 };
 
 const defaultProps = {
+    message: null,
+    children: null,
     isError: true,
     style: [],
 };
 
 const FormHelpMessage = (props) => {
-    if (_.isEmpty(props.children)) {
+    if (_.isEmpty(props.message) && _.isEmpty(props.children)) {
         return null;
     }
 
     return (
         <View style={[styles.formHelpMessage, styles.mt1, styles.mb1, ...props.style]}>
             {props.isError && <Icon src={Expensicons.DotIndicator} fill={colors.red} />}
-            <Text style={[props.isError ? styles.formError : styles.formHelp, styles.flex1, styles.mb0, styles.ml2]}>
-                {props.children}
-            </Text>
+            {!_.isEmpty(props.message) ? (
+                <Text style={[props.isError ? styles.formError : styles.formHelp, styles.flex1, styles.mb0, styles.ml2]}>
+                    {props.message}
+                </Text>
+            ) : <View style={[styles.flex1, styles.ml2]}>{props.children}</View>}
         </View>
     );
 };
 
 FormHelpMessage.propTypes = propTypes;
 FormHelpMessage.defaultProps = defaultProps;
-FormHelpMessage.displayName = 'DotIndicatorMessage';
+FormHelpMessage.displayName = 'FormHelpMessage';
 
 export default FormHelpMessage;
