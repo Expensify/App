@@ -2,10 +2,9 @@ import 'react-native-gesture-handler/jestSetup';
 
 require('react-native-reanimated/src/reanimated2/jestUtils').setUpTests();
 
-// Silence the warning: Animated: `useNativeDriver` is not supported because the native animated module is missing
+// This mock is required as per setup instructions for react-navigation testing
+// https://reactnavigation.org/docs/testing/#mocking-native-modules
 jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
-
-jest.mock('react-native-blob-util', () => ({}));
 
 // Turn off the console logs for timing events. They are not relevant for unit tests and create a lot of noise
 jest.spyOn(console, 'debug').mockImplementation((...params) => {
