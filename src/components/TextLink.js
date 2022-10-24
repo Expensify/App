@@ -37,7 +37,6 @@ const TextLink = (props) => {
      * Checking Function on open TextLink identify whether Clicked or Entered key press
      *
      * @param {Event} event
-     * @returns {Function} Returns onPress function.
      */
 
     const openLink = (event) => {
