@@ -222,7 +222,7 @@ function getAllReportErrors(report, reportActions) {
     const reportActionErrors = {};
     _.chain(reportsActions)
         .filter(action => !_.isEmpty(action.errors))
-        .map(action => _.extend(reportActionErrors, action.errors));
+        .each(action => _.extend(reportActionErrors, action.errors));
 
     // All error objects related to the report. Each value in the sources contains error messages keyed by microtime
     const errorSources = {
@@ -235,7 +235,7 @@ function getAllReportErrors(report, reportActions) {
     const allReportErrors = {};
     _.chain(errorSources)
         .filter(errors => !_.isEmpty(errors))
-        .map(errors => _.extend(allReportErrors, errors));
+        .each(errors => _.extend(allReportErrors, errors));
 
     return allReportErrors;
 }
