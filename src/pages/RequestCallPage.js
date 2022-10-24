@@ -164,12 +164,12 @@ class RequestCallPage extends Component {
     /**
      * Gets the user's phone number from their secondary login.
      * Returns null if it doesn't exist.
-     * @param {Object} loginList
      *
+     * @param {Array|Object} loginList
      * @returns {String|null}
      */
     getPhoneNumber(loginList) {
-        const secondaryLogin = _.find(_.values(loginList), login => Str.isSMSLogin(login.partnerUserID));
+        const secondaryLogin = _.find(_.values(LoginUtils.convertLoginListToObject(loginList)), login => Str.isSMSLogin(login.partnerUserID));
         return secondaryLogin ? Str.removeSMSDomain(secondaryLogin.partnerUserID) : '';
     }
 
