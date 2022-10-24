@@ -193,9 +193,15 @@ const OptionRowLHN = (props) => {
                             )}
                         </View>
                     </View>
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                    <View
+                        style={[styles.flexRow, styles.alignItemsCenter]}
+                        accessible={false}
+                    >
                         {optionItem.hasDraftComment && (
-                            <View style={styles.ml2}>
+                            <View
+                                style={styles.ml2}
+                                accessibilityLabel={props.translate('sidebarScreen.draftedMessage')}
+                            >
                                 <Icon src={Expensicons.Pencil} height={16} width={16} />
                             </View>
                         )}
@@ -203,7 +209,10 @@ const OptionRowLHN = (props) => {
                             <IOUBadge iouReportID={optionItem.iouReportID} />
                         )}
                         {optionItem.isPinned && (
-                            <View style={styles.ml2}>
+                            <View
+                                style={styles.ml2}
+                                accessibilityLabel={props.translate('sidebarScreen.chatPinned')}
+                            >
                                 <Icon src={Expensicons.Pin} height={16} width={16} />
                             </View>
                         )}
