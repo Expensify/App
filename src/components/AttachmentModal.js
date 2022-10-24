@@ -87,21 +87,7 @@ class AttachmentModal extends PureComponent {
         this.submitAndClose = this.submitAndClose.bind(this);
         this.closeConfirmModal = this.closeConfirmModal.bind(this);
         this.validateAndDisplayFileToUpload = this.validateAndDisplayFileToUpload.bind(this);
-        this.onDownloadButtonPress = this.onDownloadButtonPress.bind(this);
         this.updateConfirmButtonVisibility = this.updateConfirmButtonVisibility.bind(this);
-    }
-
-    /**
-     * Download the attachment
-     * /**
-     * @param {String} sourceURL
-     */
-    onDownloadButtonPress(sourceURL) {
-        fileDownload(sourceURL, this.props.originalFileName);
-
-        // If the keyboard was open before clicking on attachment, after downloading
-        // the attachment keyboard will show up, this line fixes that.
-        Keyboard.dismiss();
     }
 
     /**
@@ -123,6 +109,17 @@ class AttachmentModal extends PureComponent {
         )
             ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
             : CONST.MODAL.MODAL_TYPE.CENTERED;
+    }
+
+    /**
+     * @param {String} sourceURL
+     */
+    downloadAttachment(sourceURL) {
+        fileDownload(sourceURL, this.props.originalFileName);
+
+        // At ios if the keyboard was open while opening the attachment, then after downloading
+        // the attachment the keyboard will show up, so we need to dismiss it.
+        Keyboard.dismiss();
     }
 
     /**
@@ -264,7 +261,7 @@ class AttachmentModal extends PureComponent {
                         title={this.props.headerTitle || this.props.translate('common.attachment')}
                         shouldShowBorderBottom
                         shouldShowDownloadButton={this.props.allowDownload}
-                        onDownloadButtonPress={() => this.onDownloadButtonPress(sourceURL)}
+                        onDownloadButtonPress={() => this.downloadAttachment(sourceURL)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                         subtitle={fileName ? (
                             <TextWithEllipsis
