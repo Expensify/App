@@ -18,6 +18,7 @@ import * as Link from './Link';
 import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
 import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
+import LoginUtils from '../LoginUtils';
 
 let currentUserAccountID = '';
 Onyx.connect({
@@ -107,19 +108,8 @@ function getUserDetails() {
             const validatedStatus = lodashGet(response, 'account.validated', false);
             Onyx.merge(ONYXKEYS.USER, {isSubscribedToNewsletter: !!isSubscribedToNewsletter, validated: !!validatedStatus});
             
-            // TODO: remove this once the server is always sending back the correct format!
-            // https://github.com/Expensify/App/issues/10960
-            let loginList;
-            // _.where(response.loginList, {partnerName: 'expensify.com'});
-            if (_.isArray(response.loginList)) {
-                loginList = _.reduce(response.loginList, (allLogins, login) => {
-                    allLogins[login.partnerUserID] = login;
-                    return allLogins;
-                }, {});
-            } else {
-                loginList = response.loginList;
-            }
-            // Only keep logins where partner name is 'expensify.com'
+            // Update login list, only keep logins where partner name is 'expensify.com'
+            const loginList = LoginUtils.convertLoginListToObject(response.loginList);
             Onyx.set(ONYXKEYS.LOGIN_LIST, _.pick(loginList, (login) => {
                 return login.partnerName === 'expensify.com';
             }));
