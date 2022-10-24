@@ -2,21 +2,25 @@ import React from 'react';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import styles from '../styles/styles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import colors from '../styles/colors';
 import Text from './Text';
+import colors from '../styles/colors';
+import styles from '../styles/styles';
+import stylePropTypes from '../styles/stylePropTypes';
 
 const propTypes = {
+    /** Error or hint text */
     message: PropTypes.node,
 
+    /** Children to render next to dot indicator. Ignored when message is not empty */
     children: PropTypes.node,
 
+    /** Indicates whether to show error or hint */
     isError: PropTypes.bool,
 
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.arrayOf(PropTypes.object),
+    /** Container style props */
+    style: stylePropTypes,
 };
 
 const defaultProps = {
@@ -32,7 +36,7 @@ const FormHelpMessage = (props) => {
     }
 
     return (
-        <View style={[styles.formHelpMessage, styles.mt1, styles.mb1, ...props.style]}>
+        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.mt1, styles.mb1, ...props.style]}>
             {props.isError && <Icon src={Expensicons.DotIndicator} fill={colors.red} />}
             {!_.isEmpty(props.message) ? (
                 <Text style={[props.isError ? styles.formError : styles.formHelp, styles.flex1, styles.mb0, styles.ml2]}>
