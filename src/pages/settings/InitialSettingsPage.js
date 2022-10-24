@@ -29,6 +29,7 @@ import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import cardPropTypes from '../../components/cardPropTypes';
 import * as Wallet from '../../libs/actions/Wallet';
 import walletTermsPropTypes from '../EnablePayments/walletTermsPropTypes';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -169,11 +170,11 @@ class InitialSettingsPage extends React.Component {
      * @returns {Array} the default menu items
      */
     getDefaultMenuItems() {
-        const policiesAvatars = _.chain(this.props.policies)
+        const policies = _.chain(this.props.policies)
             .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
             .sortBy(policy => policy.name)
-            .pluck('avatar')
             .value();
+        const policiesAvatars = _.pluck(policies, 'avatar');
 
         return ([
             {
@@ -182,6 +183,7 @@ class InitialSettingsPage extends React.Component {
                 action: () => { Navigation.navigate(ROUTES.SETTINGS_WORKSPACES); },
                 floatRightAvatars: policiesAvatars,
                 shouldStackHorizontally: true,
+                brickRoadIndicator: _.find(policies, policy => PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers)) ? 'error' : null,
             },
             {
                 translationKey: 'common.profile',
@@ -307,6 +309,9 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        policyMembers: {
+            key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
