@@ -46,6 +46,7 @@ const propTypes = {
     /** Login list for the user that is signed in */
     loginList: PropTypes.oneOfType([
         PropTypes.objectOf(loginPropTypes),
+
         // TODO: remove this once this closes:
         // https://github.com/Expensify/App/issues/10960
         PropTypes.arrayOf(loginPropTypes),

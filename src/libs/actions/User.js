@@ -107,7 +107,7 @@ function getUserDetails() {
             const isSubscribedToNewsletter = lodashGet(response, 'account.subscribed', true);
             const validatedStatus = lodashGet(response, 'account.validated', false);
             Onyx.merge(ONYXKEYS.USER, {isSubscribedToNewsletter: !!isSubscribedToNewsletter, validated: !!validatedStatus});
-            
+
             // Update login list
             const loginList = LoginUtils.cleanLoginListServerResponse(response.loginList);
             Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
