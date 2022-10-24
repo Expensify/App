@@ -5,7 +5,6 @@ import RenameActiveClientsKey from './migrations/RenameActiveClientsKey';
 import RenamePriorityModeKey from './migrations/RenamePriorityModeKey';
 import MoveToIndexedDB from './migrations/MoveToIndexedDB';
 import RenameExpensifyNewsStatus from './migrations/RenameExpensifyNewsStatus';
-import ReformatLoginList from './migrations/ReformatLoginList';
 
 export default function () {
     const startTime = Date.now();
