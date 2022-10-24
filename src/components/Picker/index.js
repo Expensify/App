@@ -5,8 +5,7 @@ import PropTypes from 'prop-types';
 import BasePicker from './BasePicker';
 import Text from '../Text';
 import styles from '../../styles/styles';
-import InlineErrorText from '../InlineErrorText';
-import * as FormUtils from '../../libs/FormUtils';
+import FormHelpMessage from '../FormHelpMessage';
 
 const propTypes = {
     /** Picker label */
@@ -96,9 +95,7 @@ class Picker extends PureComponent {
                         onInputChange={this.onInputChange}
                     />
                 </View>
-                <InlineErrorText styles={[styles.mh3]}>
-                    {this.props.errorText}
-                </InlineErrorText>
+                <FormHelpMessage>{this.props.errorText}</FormHelpMessage>
             </>
         );
     }
