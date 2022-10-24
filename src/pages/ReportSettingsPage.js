@@ -21,6 +21,7 @@ import Picker from '../components/Picker';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import reportPropTypes from './reportPropTypes';
+import withReportOrNavigateHome from './home/report/withReportOrNavigateHome';
 
 const propTypes = {
     /** Route params */
@@ -245,10 +246,8 @@ ReportSettingsPage.displayName = 'ReportSettingsPage';
 
 export default compose(
     withLocalize,
+    withReportOrNavigateHome,
     withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-        },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
         },

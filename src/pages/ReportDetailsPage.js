@@ -22,6 +22,7 @@ import MenuItem from '../components/MenuItem';
 import Text from '../components/Text';
 import CONST from '../CONST';
 import reportPropTypes from './reportPropTypes';
+import withReportOrNavigateHome from './home/report/withReportOrNavigateHome';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -177,10 +178,8 @@ ReportDetailsPage.propTypes = propTypes;
 
 export default compose(
     withLocalize,
+    withReportOrNavigateHome,
     withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
         },
