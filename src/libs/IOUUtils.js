@@ -2,9 +2,9 @@ import CONST from '../CONST';
 
 /**
  * Calculates the amount per user given a list of participants
- * @param {Array} participants list of logins for the participants in the chat. It should not include the current user's login.
- * @param {Number} total the IOU total amount
- * @param {Boolean} isDefaultUser whether we are calculating the amount for the current user
+ * @param {Array} participants - List of logins for the participants in the chat. It should not include the current user's login.
+ * @param {Number} total - IOU total amount
+ * @param {Boolean} isDefaultUser - Whether we are calculating the amount for the current user
  * @returns {Number}
  */
 function calculateAmount(participants, total, isDefaultUser = false) {
@@ -29,9 +29,9 @@ function calculateAmount(participants, total, isDefaultUser = false) {
 
 /**
  * The owner of the IOU report is the account who is owed money and the manager is the one who owes money!
- * We need to update the owner and the report total in case the owner/manager swap.
- * For example: if user1 owes user2 $10, then we have: {ownerEmail: user2, managerEmail: user1, total: $10 (owed to user2)}
- * If user1 requests $17 from user2, then we have: {ownerEmail: user1, managerEmail: user2, total: $7 (owed to user1)}
+ * In case the owner/manager swap, we need to update the owner of the IOU report and the report total, since it is always positive.
+ * For example: if user1 owes user2 $10, then we have: {ownerEmail: user2, managerEmail: user1, total: $10 (a positive amount, owed to user2)}
+ * If user1 requests $17 from user2, then we have: {ownerEmail: user1, managerEmail: user2, total: $7 (still a positive amount, but now owed to user1)}
  *
  * @param {Object} iouReport
  * @param {String} actorEmail
@@ -50,9 +50,8 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, type = CONST.IOU.
 
     if (iouReportUpdate.total < 0) {
         // The total sign has changed and hence we need to flip the manager and owner of the report.
-        const oldOwnerEmail = iouReport.ownerEmail;
         iouReportUpdate.ownerEmail = iouReport.managerEmail;
-        iouReportUpdate.managerEmail = oldOwnerEmail;
+        iouReportUpdate.managerEmail = iouReport.ownerEmail;
         iouReportUpdate.total = -iouReportUpdate.total;
     }
 
