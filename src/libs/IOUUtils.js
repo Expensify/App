@@ -2,9 +2,9 @@ import CONST from '../CONST';
 
 /**
  * Calculates the amount per user given a list of participants
- * @param {Array} participants
- * @param {Number} total
- * @param {Boolean} isDefaultUser
+ * @param {Array} participants list of logins for the participants in the chat. It should not include the current user's login.
+ * @param {Number} total the IOU total amount
+ * @param {Boolean} isDefaultUser whether we are calculating the amount for the current user
  * @returns {Number}
  */
 function calculateAmount(participants, total, isDefaultUser = false) {
@@ -17,7 +17,9 @@ function calculateAmount(participants, total, isDefaultUser = false) {
     const totalParticipants = participants.length + 1;
     const amountPerPerson = Math.round(iouAmount / totalParticipants);
 
-    if (!isDefaultUser) { return amountPerPerson; }
+    if (!isDefaultUser) {
+        return amountPerPerson;
+    }
 
     const sumAmount = amountPerPerson * totalParticipants;
     const difference = iouAmount - sumAmount;
