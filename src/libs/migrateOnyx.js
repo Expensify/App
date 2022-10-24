@@ -19,7 +19,6 @@ export default function () {
             RenamePriorityModeKey,
             AddEncryptedAuthToken,
             RenameExpensifyNewsStatus,
-            ReformatLoginList,
         ];
 
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the
