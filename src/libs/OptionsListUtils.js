@@ -409,7 +409,7 @@ function isCurrentUser(userDetails) {
     }
 
     // Check if userDetails login exists in loginList
-    return Object.keys(loginList).some((login) => {
+    return _.some(_.keys(loginList), (login) => {
         return login.toLowerCase() === userDetailsLogin.toLowerCase();
     });
 }
