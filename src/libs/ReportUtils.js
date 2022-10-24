@@ -667,6 +667,14 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
     };
 }
 
+/**
+ * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
+ * @param {Number} total - IOU total in cents
+ * @param {Array} participants - List of logins for the IOU participants, excluding the current user login
+ * @param {String} comment - IOU comment
+ * @param {String} currency - IOU currency
+ * @returns {Array}
+ */
 function getIOUReportActionMessage(type, total, participants, comment, currency) {
     const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
 

@@ -141,8 +141,8 @@ function createIOUTransaction(params) {
  * The IOU split has the following shape:
  *  [
  *      {email: 'currentUser', amount: 100},
- *      {email: 'user2', amount: 100, iouReportID: '123', chatReportID: '123', transactionID: '123', reportActionID: '123', clientID: '123'},
- *      {email: 'user3', amount: 100, iouReportID: '123', chatReportID: '123', transactionID: '123', reportActionID: '123', clientID: '123'}
+ *      {email: 'user2', amount: 100, iouReportID: '100', chatReportID: '110', transactionID: '120', reportActionID: '130', clientID: '140'},
+ *      {email: 'user3', amount: 100, iouReportID: '200', chatReportID: '210', transactionID: '220', reportActionID: '230', clientID: '240'}
  *  ]
  * @param {Array} participants
  * @param {String} currentUserLogin
