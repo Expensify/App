@@ -199,11 +199,13 @@ class ReportActionItemMessageEdit extends React.Component {
         const hasExceededMaxCommentLength = this.state.draft.length > CONST.MAX_COMMENT_LENGTH;
         return (
             <View style={styles.chatItemMessage}>
-                <View style={[
-                    styles.chatItemComposeBox,
-                    styles.flexRow,
-                    this.state.isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
-                    hasExceededMaxCommentLength && styles.borderColorDanger]}
+                <View
+                    style={[
+                        styles.chatItemComposeBox,
+                        styles.flexRow,
+                        this.state.isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
+                        hasExceededMaxCommentLength && styles.borderColorDanger,
+                    ]}
                 >
                     <Composer
                         multiline
