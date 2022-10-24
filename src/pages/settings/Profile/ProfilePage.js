@@ -28,6 +28,7 @@ import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import * as LoginUtils from '../../../libs/LoginUtils';
 
 const loginPropTypes = PropTypes.shape({
     /** Value of partner name */
@@ -74,16 +75,10 @@ class ProfilePage extends Component {
 
         const currentUserDetails = this.props.currentUserPersonalDetails || {};
         this.state = {
-            firstName: currentUserDetails.firstName || '',
-            hasFirstNameError: false,
-            lastName: currentUserDetails.lastName || '',
-            hasLastNameError: false,
-            pronouns: currentUserDetails.pronouns || '',
-            hasPronounError: false,
-            hasSelfSelectedPronouns: !_.isEmpty(currentUserDetails.pronouns) && !currentUserDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
-            selectedTimezone: lodashGet(currentUserDetails, 'timezone.selected', CONST.DEFAULT_TIME_ZONE.selected),
-            isAutomaticTimezone: lodashGet(currentUserDetails, 'timezone.automatic', CONST.DEFAULT_TIME_ZONE.automatic),
-            logins: this.getLogins(props.loginList),
+            logins: this.getLogins(LoginUtils.convertLoginListToObject(props.loginList)),
+            selectedTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
+            isAutomaticTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
+            hasSelfSelectedPronouns: !_.isEmpty(props.currentUserPersonalDetails.pronouns) && !props.currentUserPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
         };
 
         this.getLogins = this.getLogins.bind(this);
@@ -96,8 +91,10 @@ class ProfilePage extends Component {
         let stateToUpdate = {};
 
         // Recalculate logins if loginList has changed
-        if (_.keys(this.props.loginList).length !== _.keys(prevProps.loginList).length) {
-            stateToUpdate = {...stateToUpdate, logins: this.getLogins(this.props.loginList)};
+        const currentLoginList = LoginUtils.convertLoginListToObject(this.props.loginList);
+        const prevLoginList = LoginUtils.convertLoginListToObject(prevProps.loginList);
+        if (_.keys(currentLoginList).length !== _.keys(prevLoginList).length) {
+            stateToUpdate = {...stateToUpdate, logins: this.getLogins(currentLoginList)};
         }
 
         if (_.isEmpty(stateToUpdate)) {
