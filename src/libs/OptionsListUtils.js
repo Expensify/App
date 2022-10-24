@@ -33,7 +33,7 @@ Onyx.connect({
             loginList = loginList.reduce((allLogins, login) => {
                 allLogins[login.partnerUserID] = login;
                 return allLogins;
-            }, {})
+            }, {});
         } else {
             loginList = _.isEmpty(loginList) ? {} : val;
         }
@@ -400,26 +400,25 @@ function isSearchStringMatch(searchValue, searchText, participantNames = new Set
 
 /**
  * Checks if the given userDetails is currentUser or not.
+ *
  * @param {Object} userDetails
  * @returns {Boolean}
  */
-
 function isCurrentUser(userDetails) {
     if (!userDetails) {
         return false;
     }
 
-    // If user login is mobile number, append sms domain if not appended already.
+    // If user login is a mobile number, append sms domain if not appended already.
     const userDetailsLogin = addSMSDomainIfPhoneNumber(userDetails.login);
 
-    // Initial check with currentUserLogin
     if (currentUserLogin.toLowerCase() === userDetailsLogin.toLowerCase()) {
         return true;
     }
 
     // Check if userDetails login exists in loginList
     return Object.keys(loginList).some((login) => {
-        return login.partnerUserID.toLowerCase() === userDetailsLogin.toLowerCase();
+        return login.toLowerCase() === userDetailsLogin.toLowerCase();
     });
 }
 
