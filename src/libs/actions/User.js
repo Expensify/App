@@ -108,11 +108,9 @@ function getUserDetails() {
             const validatedStatus = lodashGet(response, 'account.validated', false);
             Onyx.merge(ONYXKEYS.USER, {isSubscribedToNewsletter: !!isSubscribedToNewsletter, validated: !!validatedStatus});
             
-            // Update login list, only keep logins where partner name is 'expensify.com'
-            const loginList = LoginUtils.convertLoginListToObject(response.loginList);
-            Onyx.set(ONYXKEYS.LOGIN_LIST, _.pick(loginList, (login) => {
-                return login.partnerName === 'expensify.com';
-            }));
+            // Update login list
+            const loginList = LoginUtils.cleanLoginListServerResponse(response.loginList);
+            Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
 
             // Update the nvp_payPalMeAddress NVP
             const payPalMeAddress = lodashGet(response, `nameValuePairs.${CONST.NVP.PAYPAL_ME_ADDRESS}`, '');
@@ -181,10 +179,8 @@ function setSecondaryLoginAndNavigate(login, password) {
         password,
     }).then((response) => {
         if (response.jsonCode === 200) {
-            const loginList = LoginUtils.convertLoginListToObject(response.loginList);
-            Onyx.set(ONYXKEYS.LOGIN_LIST, _.pick(loginList, (login) => {
-                return login.partnerName === 'expensify.com';
-            }));
+            const loginList = LoginUtils.cleanLoginListServerResponse(response.loginList);
+            Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
             Navigation.navigate(ROUTES.SETTINGS_PROFILE);
             return;
         }
