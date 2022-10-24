@@ -1376,7 +1376,6 @@ const styles = {
     },
 
     chatFooter: {
-        marginBottom: 5,
         paddingLeft: 20,
         paddingRight: 20,
         display: 'flex',
