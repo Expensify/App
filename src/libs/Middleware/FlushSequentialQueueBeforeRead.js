@@ -1,4 +1,5 @@
 import * as SequentialQueue from '../Network/SequentialQueue';
+import CONST from '../../CONST';
 
 /**
  * ... TODO
@@ -7,7 +8,7 @@ import * as SequentialQueue from '../Network/SequentialQueue';
  * @returns {Promise}
  */
 function FlushSequentialQueueBeforeRead(response, request) {
-    if (request.apiRequestType !== 'read') {
+    if (request.apiRequestType !== CONST.API_REQUEST_TYPE.READ) {
         return response;
     }
     return SequentialQueue.flush().then((() => response));
