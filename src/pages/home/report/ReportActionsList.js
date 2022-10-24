@@ -10,8 +10,7 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
 import ReportActionItem from './ReportActionItem';
-
-// import ReportActionsSkeletonView from '../../../components/ReportActionsSkeletonView';
+import ReportActionsSkeletonView from '../../../components/ReportActionsSkeletonView';
 import variables from '../../../styles/variables';
 import participantPropTypes from '../../../components/participantPropTypes';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
@@ -188,7 +187,13 @@ class ReportActionsList extends React.Component {
                     initialNumToRender={this.calculateInitialNumToRender()}
                     onEndReached={this.props.loadMoreChats}
                     onEndReachedThreshold={0.75}
-                    ListFooterComponent={this.props.isLoadingMoreReportActions}
+                    ListFooterComponent={this.props.isLoadingMoreReportActions
+                        ? (
+                            <ReportActionsSkeletonView
+                                containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3}
+                            />
+                        )
+                        : null}
                     keyboardShouldPersistTaps="handled"
                     onLayout={this.props.onLayout}
                     onScroll={this.props.onScroll}

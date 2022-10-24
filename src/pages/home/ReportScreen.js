@@ -32,8 +32,6 @@ import withLocalize from '../../components/withLocalize';
 import reportPropTypes from '../reportPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 
-// import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
-
 const propTypes = {
     /** Navigation route context info provided by react navigation */
     route: PropTypes.shape({
