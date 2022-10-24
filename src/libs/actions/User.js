@@ -103,11 +103,26 @@ function getUserDetails() {
     })
         .then((response) => {
             // Update the User onyx key
-            const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             const isSubscribedToNewsletter = lodashGet(response, 'account.subscribed', true);
             const validatedStatus = lodashGet(response, 'account.validated', false);
             Onyx.merge(ONYXKEYS.USER, {isSubscribedToNewsletter: !!isSubscribedToNewsletter, validated: !!validatedStatus});
-            Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
+            
+            // TODO: remove this once the server is always sending back the correct format!
+            // https://github.com/Expensify/App/issues/10960
+            let loginList;
+            // _.where(response.loginList, {partnerName: 'expensify.com'});
+            if (_.isArray(response.loginList)) {
+                loginList = _.reduce(response.loginList, (allLogins, login) => {
+                    allLogins[login.partnerUserID] = login;
+                    return allLogins;
+                }, {});
+            } else {
+                loginList = response.loginList;
+            }
+            // Only keep logins where partner name is 'expensify.com'
+            Onyx.set(ONYXKEYS.LOGIN_LIST, _.pick(loginList, (login) => {
+                return login.partnerName === 'expensify.com';
+            }));
 
             // Update the nvp_payPalMeAddress NVP
             const payPalMeAddress = lodashGet(response, `nameValuePairs.${CONST.NVP.PAYPAL_ME_ADDRESS}`, '');
