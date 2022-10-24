@@ -196,7 +196,7 @@ class ReportSettingsPage extends Component {
                                             success={!shouldDisableRename}
                                             text={this.props.translate('common.save')}
                                             onPress={this.validateAndUpdatePolicyRoomName}
-                                            style={[styles.ml2, styles.flex1]}
+                                            style={[styles.ml2, styles.mnw25]}
                                             textStyles={[styles.label]}
                                             innerStyles={[styles.ph5]}
                                             isDisabled={shouldDisableRename}
