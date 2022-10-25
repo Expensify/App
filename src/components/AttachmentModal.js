@@ -209,11 +209,7 @@ class AttachmentModal extends PureComponent {
             ? addEncryptedAuthTokenToURL(this.state.sourceURL)
             : this.state.sourceURL;
 
-        const attachmentViewStyles = this.props.isSmallScreenWidth || this.props.isMediumScreenWidth
-            ? [styles.imageModalImageCenterContainer]
-            : [styles.imageModalImageCenterContainer, styles.p5];
-
-        const {fileName, fileExtension} = this.splitExtensionFromFileName(this.props.originalFileName || lodashGet(this.state, 'file.name', ''));
+        const {fileName, fileExtension} = FileUtils.splitExtensionFromFileName(this.props.originalFileName || lodashGet(this.state, 'file.name', ''));
 
         return (
             <>
@@ -243,7 +239,7 @@ class AttachmentModal extends PureComponent {
                             />
                         ) : ''}
                     />
-                    <View style={attachmentViewStyles}>
+                    <View style={styles.imageModalImageCenterContainer}>
                         {this.state.sourceURL && (
                             <AttachmentView sourceURL={sourceURL} file={this.state.file} />
                         )}

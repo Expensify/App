@@ -59,15 +59,15 @@ const SignInPageContent = props => (
                 >
                     <KeyboardAvoidingView
                         behavior="position"
-                        style={[
-                            props.isSmallScreenWidth ? styles.signInPageNarrowContentMargin : {},
-                            !props.isMediumScreenWidth || (props.isMediumScreenWidth && props.windowHeight < variables.minHeightToShowGraphics) ? styles.signInPageWideLeftContentMargin : {},
-                            styles.mb3,
+                        contentContainerStyle={[
                             StyleUtils.getModalPaddingStyles({
                                 shouldAddBottomSafeAreaPadding: true,
                                 modalContainerStylePaddingBottom: 20,
                                 safeAreaPaddingBottom: props.insets.bottom,
                             }),
+                            props.isSmallScreenWidth ? styles.signInPageNarrowContentMargin : {},
+                            !props.isMediumScreenWidth || (props.isMediumScreenWidth && props.windowHeight < variables.minHeightToShowGraphics) ? styles.signInPageWideLeftContentMargin : {},
+                            styles.mb3,
                         ]}
                     >
                         <View style={[
