@@ -1,5 +1,5 @@
 import 'react-native-gesture-handler/jestSetup';
-import * as reanimatedJestUtils from 'react-native-reanimated/lib/reanimated2/jestUtils';
+import * as reanimatedJestUtils from 'react-native-reanimated/src/reanimated2/jestUtils';
 import setupMockImages from './setupMockImages';
 
 setupMockImages();
