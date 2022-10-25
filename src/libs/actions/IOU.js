@@ -150,7 +150,6 @@ function requestMoney(report, amount, currency, recipientEmail, debtorEmail, com
             recipientEmail,
             amount,
         );
-        iouReport.total += amount;
     } else {
         iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, preferredLocale);
     }
