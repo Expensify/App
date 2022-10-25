@@ -1426,6 +1426,7 @@ function viewNewReportAction(reportID, action) {
 
     // Don't show a notification if no comment exists
     if (!_.some(action.message, f => f.type === 'COMMENT')) {
+        Log.info('[LOCAL_NOTIFICATION] No notification because no comments exist for the current report');
         return;
     }
 
