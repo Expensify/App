@@ -15,6 +15,8 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
     let animationIn;
     let animationOut;
     let hideBackdrop = false;
+    let shouldAddBottomSafeAreaMargin = false;
+    let shouldAddTopSafeAreaMargin = false;
     let shouldAddBottomSafeAreaPadding = false;
     let shouldAddTopSafeAreaPadding = false;
 
@@ -83,6 +85,8 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             swipeDirection = ['down', 'right'];
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
             animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
+            shouldAddTopSafeAreaMargin = !isSmallScreenWidth;
+            shouldAddBottomSafeAreaMargin = !isSmallScreenWidth;
             shouldAddTopSafeAreaPadding = isSmallScreenWidth;
             shouldAddBottomSafeAreaPadding = false;
             break;
@@ -115,6 +119,8 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             swipeDirection = undefined;
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
             animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
+            shouldAddTopSafeAreaMargin = !isSmallScreenWidth;
+            shouldAddBottomSafeAreaMargin = !isSmallScreenWidth;
             shouldAddTopSafeAreaPadding = isSmallScreenWidth;
             shouldAddBottomSafeAreaPadding = false;
             break;
@@ -217,6 +223,8 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
         animationIn,
         animationOut,
         hideBackdrop,
+        shouldAddTopSafeAreaMargin,
+        shouldAddBottomSafeAreaMargin,
         shouldAddBottomSafeAreaPadding,
         shouldAddTopSafeAreaPadding,
     };
