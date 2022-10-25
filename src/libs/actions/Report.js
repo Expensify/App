@@ -1424,7 +1424,7 @@ function viewNewReportAction(reportID, action) {
         return;
     }
 
-    // Don't attempt to show a notification if no comment exists
+    // Don't show a notification if no comment exists
     if (!_.some(action.message, f => f.type === 'COMMENT')) {
         return;
     }
