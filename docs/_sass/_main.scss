@@ -317,6 +317,14 @@ button {
         display: block;
         margin-left: auto;
         margin-right: auto;
+        padding-bottom: 20px;
+        max-width: -webkit-fill-available;
+    }
+
+    .img-wrap {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
     }
 }
 
