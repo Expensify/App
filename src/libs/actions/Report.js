@@ -925,6 +925,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 isLoadingReportActions: true,
+                isLoadingMoreReportActions: false,
                 lastVisitedTimestamp: Date.now(),
                 lastReadSequenceNumber: getMaxSequenceNumber(reportID),
             },
@@ -989,6 +990,7 @@ function reconnect(reportID) {
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     isLoadingReportActions: true,
+                    isLoadingMoreReportActions: false,
                 },
             }],
             successData: [{
