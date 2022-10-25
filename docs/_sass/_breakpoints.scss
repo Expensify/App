@@ -6,7 +6,7 @@ $breakpoint-wide: 1600px;
   @media screen and (min-width: $breakpoint) {
     @content
   }
-};
+}
 
 @mixin maxBreakpoint($breakpoint) {
   @media screen and (max-width: $breakpoint) {
