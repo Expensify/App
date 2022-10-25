@@ -2574,7 +2574,6 @@ const styles = {
     },
 
     keyboardShortcutModalContainer: {
-        maxWidth: 600,
         maxHeight: '100%',
         flex: '0 0 auto',
     },
@@ -2673,6 +2672,11 @@ const styles = {
 
     userSelectText: {
         userSelect: 'text',
+    },
+
+    userSelectNone: {
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
     },
 
     screenCenteredContainer: {

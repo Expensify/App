@@ -137,7 +137,11 @@ const OptionRow = (props) => {
             errors={props.option.allReportErrors}
             shouldShowErrorMessages={false}
         >
-            <Hoverable>
+            <Hoverable
+                containerStyles={[
+                    props.isDisabled ? styles.userSelectNone : null,
+                ]}
+            >
                 {hovered => (
                     <TouchableOpacity
                         ref={el => touchableRef = el}
