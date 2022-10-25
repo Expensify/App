@@ -108,6 +108,11 @@ function dismissWorkspaceError(policyID, pendingAction) {
         Policy.clearDeleteWorkspaceError(policyID);
         return;
     }
+
+    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        Policy.removeWorkspace(policyID);
+        return;
+    }
     throw new Error('Not implemented');
 }
 
@@ -185,21 +190,23 @@ class InitialSettingsPage extends React.Component {
     getMenuItemsList() {
         const menuItems = _.chain(this.props.policies)
             .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
-            .map(policy => ({
-                title: policy.name,
-                icon: policy.avatar ? policy.avatar : Expensicons.Building,
-                iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
-                iconStyles: policy.avatar ? [] : [styles.popoverMenuIconEmphasized],
-                iconFill: themeColors.iconReversed,
-                fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
-                pendingAction: policy.pendingAction,
-                isPolicy: true,
-                errors: policy.errors,
-                dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
-                disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            }))
+            .map(policy => {
+                return {
+                    title: policy.name,
+                    icon: policy.avatar ? policy.avatar : Expensicons.Building,
+                    iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                    action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
+                    iconStyles: policy.avatar ? [] : [styles.popoverMenuIconEmphasized],
+                    iconFill: themeColors.iconReversed,
+                    fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                    brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
+                    pendingAction: policy.pendingAction,
+                    isPolicy: true,
+                    errors: policy.errors,
+                    dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
+                    disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                }
+            })
             .sortBy(policy => policy.title)
             .value();
         menuItems.push(...this.getDefaultMenuItems());
