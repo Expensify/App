@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -66,10 +67,10 @@ class Form extends React.Component {
 
         this.state = {
             errors: {},
+            inputValues: {},
         };
 
         this.inputRefs = {};
-        this.inputValues = {};
         this.touchedInputs = {};
 
         this.setTouchedInput = this.setTouchedInput.bind(this);
@@ -101,12 +102,12 @@ class Form extends React.Component {
         ));
 
         // Validate form and return early if any errors are found
-        if (!_.isEmpty(this.validate(this.inputValues))) {
+        if (!_.isEmpty(this.validate(this.state.inputValues))) {
             return;
         }
 
         // Call submit handler
-        this.props.onSubmit(this.inputValues);
+        this.props.onSubmit(this.state.inputValues);
     }
 
     /**
@@ -148,6 +149,19 @@ class Form extends React.Component {
                 });
             }
 
+            // Look for any inputs nested in a custom component, e.g AddressForm or IdentityForm
+            if (_.isFunction(child.type)) {
+                const nestedChildren = new child.type(child.props);
+
+                if (!React.isValidElement(nestedChildren) || !lodashGet(nestedChildren, 'props.children')) {
+                    return child;
+                }
+
+                return React.cloneElement(nestedChildren, {
+                    children: this.childrenWrapperWithProps(lodashGet(nestedChildren, 'props.children')),
+                });
+            }
+
             // We check if the child has the inputID prop.
             // We don't want to pass form props to non form components, e.g. View, Text, etc
             if (!child.props.inputID) {
@@ -159,30 +173,38 @@ class Form extends React.Component {
             const defaultValue = this.props.draftValues[inputID] || child.props.defaultValue;
 
             // We want to initialize the input value if it's undefined
-            if (_.isUndefined(this.inputValues[inputID])) {
-                this.inputValues[inputID] = defaultValue;
+            if (_.isUndefined(this.state.inputValues[inputID])) {
+                this.state.inputValues[inputID] = defaultValue;
+            }
+
+            if (!_.isUndefined(child.props.value)) {
+                this.state.inputValues[inputID] = child.props.value;
             }
 
             return React.cloneElement(child, {
                 ref: node => this.inputRefs[inputID] = node,
-                defaultValue,
+                value: this.state.inputValues[inputID],
                 errorText: this.state.errors[inputID] || '',
                 onBlur: () => {
                     this.setTouchedInput(inputID);
-                    this.validate(this.inputValues);
+                    this.validate(this.state.inputValues);
                 },
                 onInputChange: (value, key) => {
                     const inputKey = key || inputID;
-                    this.inputValues[inputKey] = value;
-                    const inputRef = this.inputRefs[inputKey];
+                    this.setState(prevState => ({
+                        inputValues: {
+                            ...prevState.inputValues,
+                            [inputKey]: value,
+                        },
+                    }), () => this.validate(this.state.inputValues));
 
-                    if (key && inputRef && _.isFunction(inputRef.setNativeProps)) {
-                        inputRef.setNativeProps({value});
-                    }
                     if (child.props.shouldSaveDraft) {
                         FormActions.setDraftValues(this.props.formID, {[inputKey]: value});
                     }
-                    this.validate(this.inputValues);
+
+                    if (child.props.onValueChange) {
+                        child.props.onValueChange(value);
+                    }
                 },
             });
         });
@@ -229,7 +251,7 @@ export default compose(
             key: props => props.formID,
         },
         draftValues: {
-            key: props => `${props.formID}DraftValues`,
+            key: props => `${props.formID}Draft`,
         },
     }),
 )(Form);
