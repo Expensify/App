@@ -29,7 +29,7 @@ Once you’ve created your Workspace, you should receive a message from Concierg
 
 - Click the link sent to you by Concierge, and your designated Setup Specialist will guide you through how to configure your company setup.
 
-<img class="image" width="400" src="/assets/images/chat-with-setup-specialist.png">
+<img class="image" width="800" src="/assets/images/chat-with-setup-specialist.png">
 
 Once you’ve completed your company setup, you should have done the following:
 
@@ -44,8 +44,10 @@ Once you’ve completed your company setup, you should have done the following:
 # Managing the Free Plan
 To access your workspace settings, click your profile icon and then on your workspace name:
 
-<img class="image" width="400" src="/assets/images/profile-settings.png">
-<img class="image" width="400" src="/assets/images/workspace-settings.png">
+<div class="img-wrap">
+    <img class="image" width="400" src="/assets/images/profile-settings.png">
+    <img class="image" width="400" src="/assets/images/workspace-settings.png">
+</div>
 
 This menu allows you to manage your workspace members, issue additional Expensify Cards, and utilize this plan’s various bill pay and payment options.
 
