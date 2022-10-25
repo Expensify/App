@@ -14,11 +14,15 @@ const propTypes = {
     /** Flag to disable the emoji picker button */
     isDisabled: PropTypes.bool,
 
+    /** Id to use for this button */
+    nativeID: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     isDisabled: false,
+    nativeID: '',
 };
 
 const EmojiPickerButton = (props) => {
