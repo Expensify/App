@@ -14,6 +14,7 @@ import Log from '../Log';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
 import * as NumberUtils from '../NumberUtils';
+import * as IOUUtils from '../IOUUtils';
 import DateUtils from '../DateUtils';
 
 let iouReports;
@@ -144,7 +145,11 @@ function requestMoney(report, amount, currency, recipientEmail, debtorEmail, com
     }
     let iouReport;
     if (chatReport.hasOutstandingIOU) {
-        iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`];
+        iouReport = IOUUtils.updateIOUOwnerAndTotal(
+            iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`],
+            recipientEmail,
+            amount,
+        );
         iouReport.total += amount;
     } else {
         iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, preferredLocale);
