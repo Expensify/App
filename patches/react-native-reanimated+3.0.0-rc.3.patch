@@ -1,0 +1,32 @@
+diff --git a/node_modules/react-native-reanimated/ios/REAModule.mm b/node_modules/react-native-reanimated/ios/REAModule.mm
+index e1cd2f4..8ba248d 100644
+--- a/node_modules/react-native-reanimated/ios/REAModule.mm
++++ b/node_modules/react-native-reanimated/ios/REAModule.mm
+@@ -52,6 +52,7 @@ @implementation REAModule {
+ #ifdef DEBUG
+   SingleInstanceChecker<REAModule> singleInstanceChecker_;
+ #endif
++  bool hasListeners;
+ }
+ 
+ RCT_EXPORT_MODULE(ReanimatedModule);
+@@ -291,4 +292,19 @@ - (void)eventDispatcherWillDispatchEvent:(id<RCTEvent>)event
+   [_nodesManager dispatchEvent:event];
+ }
+ 
++- (void)startObserving {
++    hasListeners = YES;
++}
++
++- (void)stopObserving {
++    hasListeners = NO;
++}
++
++- (void)sendEventWithName:(NSString *)eventName body:(id)body
++{
++    if (hasListeners) {
++        [super sendEventWithName:eventName body:body];
++    }
++}
++
+ @end
