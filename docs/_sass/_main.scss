@@ -318,7 +318,18 @@ button {
         margin-left: auto;
         margin-right: auto;
         padding-bottom: 20px;
-        max-width: -webkit-fill-available;
+
+        @include maxBreakpoint($breakpoint-tablet) {
+            width: 100%;
+            height: 100%;
+            max-width: auto;
+            max-height: auto;
+        }
+
+        @include breakpoint($breakpoint-tablet) {
+            max-width: -webkit-fill-available;
+            max-height: -webkit-fill-available;
+        }
     }
 
     .img-wrap {
