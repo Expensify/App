@@ -695,7 +695,7 @@ class ReportActionCompose extends React.Component {
                     <ReportTypingIndicator reportID={this.props.reportID} />
                     <ExceededCommentLength commentLength={this.comment.length} />
                 </View>
-                {this.state.isDraggingOver ? <ReportDropUI /> : null}
+                {this.state.isDraggingOver && <ReportDropUI />}
             </View>
         );
     }

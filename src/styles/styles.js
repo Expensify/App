@@ -2694,6 +2694,19 @@ const styles = {
         maxWidth: 450,
         alignSelf: 'center',
     },
+
+    dragAndDropOverlay: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: themeColors.dragAndDropBackground,
+        opacity: 0.96,
+        zIndex: 2,
+    },
 };
 
 export default styles;
