@@ -45,28 +45,22 @@ Onyx.connect({
     },
 });
 
-let policyIDList = [];
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (policies) => {
-        policyIDList = _.compact(_.pluck(policies, 'id'));
-    },
-});
-
 // When we reconnect the app, we don't want to fetch workspaces created optimistically while offline since they don't exist yet in the back-end.
 // If we fetched them then they'd return as empty objects which would clear out the optimistic policy values initially created locally.
 // Once the re-queued call to CreateWorkspace returns, the full contents of the workspace excluded here should be correctly saved into Onyx.
 let policyIDListExcludingWorkspacesCreatedOffline = [];
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (policies) => {
-        const policiesExcludingWorkspacesCreatedOffline = _.reject(policies,
-            policy => lodashGet(policy, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
-            && lodashGet(policy, 'type', null) === CONST.POLICY.TYPE.FREE);
-        policyIDListExcludingWorkspacesCreatedOffline = _.compact(_.pluck(policiesExcludingWorkspacesCreatedOffline, 'id'));
-    },
+const policyIDListExcludingWorkspacesCreatedOfflineLoaded = new Promise((resolve) => {
+    Onyx.connect({
+        key: ONYXKEYS.COLLECTION.POLICY,
+        waitForCollectionCallback: true,
+        callback: (policies) => {
+            const policiesExcludingWorkspacesCreatedOffline = _.reject(policies,
+                policy => lodashGet(policy, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
+                && lodashGet(policy, 'type', null) === CONST.POLICY.TYPE.FREE);
+            policyIDListExcludingWorkspacesCreatedOffline = _.compact(_.pluck(policiesExcludingWorkspacesCreatedOffline, 'id'));
+            resolve();
+        },
+    });
 });
 
 /**
@@ -116,22 +110,24 @@ AppState.addEventListener('change', (nextAppState) => {
  * Fetches data needed for app initialization
  */
 function openApp() {
-    API.read('OpenApp', {policyIDList}, {
-        optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-            value: true,
-        }],
-        successData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-            value: false,
-        }],
-        failureData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-            value: false,
-        }],
+    policyIDListExcludingWorkspacesCreatedOfflineLoaded.then(() => {
+        API.read('OpenApp', {policyIDList: policyIDListExcludingWorkspacesCreatedOffline}, {
+            optimisticData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                value: true,
+            }],
+            successData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                value: false,
+            }],
+            failureData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                value: false,
+            }],
+        });
     });
 }
 
@@ -139,22 +135,24 @@ function openApp() {
  * Refreshes data when the app reconnects
  */
 function reconnectApp() {
-    API.read('ReconnectApp', {policyIDListExcludingWorkspacesCreatedOffline}, {
-        optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-            value: true,
-        }],
-        successData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-            value: false,
-        }],
-        failureData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-            value: false,
-        }],
+    policyIDListExcludingWorkspacesCreatedOfflineLoaded.then(() => {
+        API.read('ReconnectApp', {policyIDList: policyIDListExcludingWorkspacesCreatedOffline}, {
+            optimisticData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                value: true,
+            }],
+            successData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                value: false,
+            }],
+            failureData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                value: false,
+            }],
+        });
     });
 }
 
