@@ -19,6 +19,11 @@ class OptionsList extends Component {
             return;
         }
 
+        // According to this https://github.com/Expensify/App/issues/11801
+        // the `keyboardDismissMode` is dismiss the keyboard when we scroll programmatically.
+        // In this listener we will set `isUserScreenTouched` if the user start/end touching the screen
+        // and `isUserScreenTouched` will be used to decide whether the scroll from touching or
+        // we scroll programmatically.
         document.addEventListener('touchstart', this.userTouchStart);
         document.addEventListener('touchend', this.userTouchEnd);
     }
@@ -47,6 +52,7 @@ class OptionsList extends Component {
                 {..._.omit(this.props, 'forwardedRef')}
                 ref={this.props.forwardedRef}
                 onScroll={() => {
+                    // Only dismiss the keyboard whenever the user scrolls the screen
                     if (!this.isUserScreenTouched) {
                         return;
                     }
