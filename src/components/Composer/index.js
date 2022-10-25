@@ -131,16 +131,18 @@ class Composer extends React.Component {
                 end: initialValue.length,
             },
         };
-        this.dragNDropListener = this.dragNDropListener.bind(this);
         this.paste = this.paste.bind(this);
-        if (document) {
-            this.dropZone = document.getElementById(CONST.REPORT.DROP_NATIVE_ID);
-            if (this.dropZone) {
-                this.dropZoneDragHandler = this.dropZoneDragHandler.bind(this);
-                this.dropZoneDragListener = this.dropZoneDragListener.bind(this);
-                this.dropZoneDragState = 'dragleave';
-            }
-        }
+
+        this.dropZone = document.getElementById(CONST.REPORT.DROP_NATIVE_ID);
+        this.dragNDropListener = this.dragNDropListener.bind(this);
+        this.dropZoneDragHandler = this.dropZoneDragHandler.bind(this);
+        this.dropZoneDragListener = this.dropZoneDragListener.bind(this);
+
+        /*
+        Last detected drag state on the dropzone -> we start with dragleave since user is not dragging initially.
+        This state is updated when drop zone is left/entered entirely(not taking the children in the account) or entire window is left
+        */
+        this.dropZoneDragState = 'dragleave';
 
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
@@ -207,71 +209,70 @@ class Composer extends React.Component {
     }
 
     /**
-     * DragEvent
-     *
-     * @param {Object} e native Event
+     * @param {Object} event native Event
      */
-    dropZoneDragHandler = (e) => {
+    dropZoneDragHandler(event) {
         // Setting dropEffect for dragover is required for '+' icon on certain platforms/browsers (eg. Safari)
-        switch (e.type) {
+        switch (event.type) {
             case 'dragover':
                 // Continuous event -> can hurt performance, be careful when subscribing
-                e.dataTransfer.dropEffect = COPY_DROP_EFFECT;
+                // eslint-disable-next-line no-param-reassign
+                event.dataTransfer.dropEffect = COPY_DROP_EFFECT;
                 this.dropZoneDragState = 'dragover';
-                this.props.onDragOver(e);
+                this.props.onDragOver(event);
                 break;
             case 'dragenter':
                 // Avoid reporting onDragEnter for children views -> not performant
                 if (this.dropZoneDragState === 'dragleave') {
-                    e.dataTransfer.dropEffect = COPY_DROP_EFFECT;
+                    // eslint-disable-next-line no-param-reassign
+                    event.dataTransfer.dropEffect = COPY_DROP_EFFECT;
                     this.dropZoneDragState = 'dragenter';
-                    this.props.onDragEnter(e);
+                    this.props.onDragEnter(event);
                 }
                 break;
             case 'drop':
                 this.dropZoneDragState = 'drop';
-                this.props.onDrop(e);
+                this.props.onDrop(event);
                 break;
             default: break;
         }
-    };
+    }
 
     /**
      * Handles all types of drag-N-drop events on the drop zone associated with composer
      *
-     * @param {Object} e native Event
+     * @param {Object} event native Event
      */
-    dropZoneDragListener(e) {
-        if (!this.dropZone) {
-            return;
-        }
-        e.preventDefault();
-        if (e.screenX === 0 && e.screenY === 0 && e.type === 'dragleave' && this.dropZoneDragState !== 'dragleave') {
+    dropZoneDragListener(event) {
+        event.preventDefault();
+        if (event.screenX === 0 && event.screenY === 0 && event.type === 'dragleave' && this.dropZoneDragState !== 'dragleave') {
             /* We left window - necessary since the latest dragleave might be from the child of drop zone which will not be detected as dropZoneLeave
             in order to avoid sending burst of events on every child leave */
-            e.dataTransfer.dropEffect = NONE_DROP_EFFECT;
+            // eslint-disable-next-line no-param-reassign
+            event.dataTransfer.dropEffect = NONE_DROP_EFFECT;
             this.dropZoneDragState = 'dragleave';
             this.props.onDragLeave();
         }
 
-        if (this.dropZone.contains(e.target)) {
-            this.dropZoneDragHandler(e);
-        } else if ((e.type === 'dragenter' || e.type === 'dragover') && this.dropZoneDragState !== 'dragleave') {
+        if (this.dropZone.contains(event.target)) {
+            this.dropZoneDragHandler(event);
+        } else if ((event.type === 'dragenter' || event.type === 'dragover') && this.dropZoneDragState !== 'dragleave') {
             // We left dropZone and entered other elements
             this.dropZoneDragState = 'dragleave';
             this.props.onDragLeave();
         } else {
-            e.dataTransfer.dropEffect = NONE_DROP_EFFECT;
+            // eslint-disable-next-line no-param-reassign
+            event.dataTransfer.dropEffect = NONE_DROP_EFFECT;
         }
     }
 
     /**
      * Handles all types of drag-N-drop events on the composer and associated drop zone if it exists
      *
-     * @param {Object} e native Event
+     * @param {Object} event native Event
      */
-    dragNDropListener(e) {
-        this.dropZoneDragListener(e);
+    dragNDropListener(event) {
+        this.dropZoneDragListener(event);
     }
 
     /**
