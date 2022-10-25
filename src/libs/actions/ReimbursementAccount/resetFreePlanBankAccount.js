@@ -2,8 +2,6 @@ import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import * as store from './store';
-import Navigation from '../../Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 import * as API from '../../API';
 
 /**
