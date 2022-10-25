@@ -239,9 +239,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         const existingOneOnOneChatReport = ReportUtils.getChatByParticipants([email]);
         const oneOnOneChatReport = existingOneOnOneChatReport || ReportUtils.buildOptimisticChatReport([email]);
         let oneOnOneIOUReport;
+        let existingIOUReport;
         if (oneOnOneChatReport.iouReportID) {
+            existingIOUReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneChatReport.iouReportID}`];
             oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(
-                iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneChatReport.iouReportID}`],
+                existingIOUReport,
                 currentUserEmail,
                 splitAmount,
             );
@@ -322,8 +324,10 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
                 value: {
                     pendingFields: {createChat: null},
-                    hasOutstandingIOU: false,
-                    iouReportID: null,
+                    hasOutstandingIOU: existingOneOnOneChatReport ? existingOneOnOneChatReport.hasOutstandingIOU : false,
+                    iouReportID: existingOneOnOneChatReport ? existingOneOnOneChatReport.iouReportID : null,
+                    maxSequenceNumber: oneOnOneChatReportMaxSequenceNumber,
+                    lastReadSequenceNumber: oneOnOneChatReportMaxSequenceNumber,
                 },
             },
             {
@@ -337,7 +341,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             {
                 onyxMethod: CONST.ONYX.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneIOUReport.reportID}`,
-                value: null,
+                value: existingOneOnOneChatReport.iouReportID ? existingIOUReport : null,
             },
         );
 
