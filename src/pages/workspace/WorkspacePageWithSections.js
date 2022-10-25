@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
 import compose from '../../libs/compose';
@@ -18,6 +19,7 @@ import userPropTypes from '../settings/userPropTypes';
 import withPolicy from './withPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
     /** Information about the network from Onyx */
@@ -98,30 +100,32 @@ class WorkspacePageWithSections extends React.Component {
 
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.headerText}
-                    subtitle={policyName}
-                    shouldShowGetAssistanceButton
-                    guidesCallTaskID={this.props.guidesCallTaskID}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
-                {this.props.shouldUseScrollView
-                    ? (
-                        <ScrollView
-                            keyboardShouldPersistTaps="handled"
-                            style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
-                        >
-                            <View style={[styles.w100, styles.flex1]}>
+                <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)}>
+                    <HeaderWithCloseButton
+                        title={this.props.headerText}
+                        subtitle={policyName}
+                        shouldShowGetAssistanceButton
+                        guidesCallTaskID={this.props.guidesCallTaskID}
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
+                        onCloseButtonPress={() => Navigation.dismissModal()}
+                    />
+                    {this.props.shouldUseScrollView
+                        ? (
+                            <ScrollView
+                                keyboardShouldPersistTaps="handled"
+                                style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
+                            >
+                                <View style={[styles.w100, styles.flex1]}>
 
-                                {this.props.children(hasVBA, policyID, isUsingECard)}
+                                    {this.props.children(hasVBA, policyID, isUsingECard)}
 
-                            </View>
-                        </ScrollView>
-                    )
-                    : this.props.children(hasVBA, policyID, isUsingECard)}
-                {this.props.footer}
+                                </View>
+                            </ScrollView>
+                        )
+                        : this.props.children(hasVBA, policyID, isUsingECard)}
+                    {this.props.footer}
+                </FullPageNotFoundView>
             </ScreenWrapper>
         );
     }
