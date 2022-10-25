@@ -20,9 +20,14 @@ import Log from './libs/Log';
 import ConfirmModal from './components/ConfirmModal';
 import compose from './libs/compose';
 import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
+import withEnvironment, {environmentPropTypes} from './components/withEnvironment';
+import {withNetwork} from './components/OnyxProvider';
+import networkPropTypes from './components/networkPropTypes';
 import * as User from './libs/actions/User';
 import NetworkConnection from './libs/NetworkConnection';
 import Navigation from './libs/Navigation/Navigation';
+import * as Network from './libs/actions/Network';
+import CONST from './CONST';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -63,6 +68,8 @@ const propTypes = {
     }),
 
     ...withLocalizePropTypes,
+    ...environmentPropTypes,
+    ...networkPropTypes,
 };
 
 const defaultProps = {
@@ -107,6 +114,11 @@ class Expensify extends PureComponent {
                 // In case of a crash that led to disconnection, we want to remove all the push notifications.
                 if (!this.isAuthenticated()) {
                     PushNotification.clearNotifications();
+                }
+
+                // Force offline mode on staging or dev if needed
+                if (_.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.DEV], this.props.environment)) {
+                    Network.setIsOffline(this.props.network.shouldForceOffline);
                 }
 
                 this.setState({isOnyxMigrated: true});
@@ -218,6 +230,8 @@ Expensify.propTypes = propTypes;
 Expensify.defaultProps = defaultProps;
 export default compose(
     withLocalize,
+    withEnvironment,
+    withNetwork(),
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
