@@ -32,7 +32,7 @@ export default {
     buttonDangerDisabledBG: colors.redDisabled,
     online: colors.darkerSuccessButton,
     offline: colors.darkerIcons,
-    sidebarButtonBG: 'rgba(198, 201, 202, 0.25)', // Icons color at 25% opacity
+    sidebarButtonBG: 'rgba(125, 139, 143, 0.25)', // Icons color at 25% opacity
     modalBackdrop: colors.darkerIcons,
     modalBackground: colors.darkerBorders,
     badgeDangerBG: colors.darkerDangerButton,
