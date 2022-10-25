@@ -749,12 +749,12 @@ function generateDefaultWorkspaceName(email = '') {
 
     // find default named workspaces and increment the last number
     const numberRegEx = new RegExp(`${escapeRegExp(defaultWorkspaceName)} ?(\\d*)`, 'i');
-    const defaultWorkspaceNumbers = _.chain(allPolicies)
+    const lastWorkspaceNumber = _.chain(allPolicies)
         .filter(policy => policy.name && numberRegEx.test(policy.name))
         .map(policy => parseInt(numberRegEx.exec(policy.name)[1] || 1, 10)) // parse the number at the end
+        .max()
         .value();
-    const lastNumber = defaultWorkspaceNumbers.sort().pop();
-    return lastNumber ? `${defaultWorkspaceName} ${lastNumber + 1}` : defaultWorkspaceName;
+    return lastWorkspaceNumber !== -Infinity ? `${defaultWorkspaceName} ${lastWorkspaceNumber + 1}` : defaultWorkspaceName;
 }
 
 /**
