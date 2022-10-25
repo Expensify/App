@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import Str from 'expensify-common/lib/str';
+import {escapeRegExp} from 'lodash';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -747,7 +748,7 @@ function generateDefaultWorkspaceName(email = '') {
     }
 
     // find default named workspaces and increment the last number
-    const numberRegEx = new RegExp(`${defaultWorkspaceName} ?(\\d*)`, 'i');
+    const numberRegEx = new RegExp(`${escapeRegExp(defaultWorkspaceName)} ?(\\d*)`, 'i');
     const defaultWorkspaceNumbers = _.chain(allPolicies)
         .filter(policy => policy.name && numberRegEx.test(policy.name))
         .map(policy => parseInt(numberRegEx.exec(policy.name)[1] || 1, 10)) // parse the number at the end
