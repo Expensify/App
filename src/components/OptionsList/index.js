@@ -44,8 +44,8 @@ class OptionsList extends Component {
         return (
             <BaseOptionsList
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {..._.omit(this.props, 'innerRef')}
-                ref={this.props.innerRef}
+                {..._.omit(this.props, 'forwardedRef')}
+                ref={this.props.forwardedRef}
                 onScroll={() => {
                     if (!this.isUserScreenTouched) {
                         return;
@@ -64,5 +64,5 @@ OptionsList.defaultProps = defaultProps;
 
 export default withWindowDimensions(forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <OptionsList innerRef={ref} {...props} />
+    <OptionsList forwardedRef={ref} {...props} />
 )));
