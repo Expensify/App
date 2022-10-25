@@ -131,7 +131,11 @@ const OptionRow = (props) => {
     const avatarTooltips = props.showTitleTooltip && !props.option.isChatRoom && !props.option.isArchivedRoom ? _.pluck(displayNamesWithTooltips, 'tooltip') : undefined;
 
     return (
-        <Hoverable>
+        <Hoverable
+            containerStyles={[
+                props.isDisabled ? styles.userSelectNone : null,
+            ]}
+        >
             {hovered => (
                 <TouchableOpacity
                     ref={el => touchableRef = el}

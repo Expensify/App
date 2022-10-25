@@ -81,7 +81,7 @@ export default {
         error: {
             invalidAmount: 'Invalid amount',
             acceptedTerms: 'You must accept the Terms of Service to continue',
-            phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+            phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
         please: 'Please',
         contactUs: 'contact us',
@@ -414,7 +414,7 @@ export default {
             notOwnerOfFund: 'There was an error setting this card as your default payment method.',
             setDefaultFailure: 'Something went wrong. Please chat with Concierge for further assistance.',
         },
-        addBankAccountFailure: 'And unexpected error occurred while trying to add your bank account. Please try again.',
+        addBankAccountFailure: 'An unexpected error occurred while trying to add your bank account. Please try again.',
     },
     transferAmountPage: {
         transfer: ({amount}) => `Transfer${amount ? ` ${amount}` : ''}`,
@@ -955,8 +955,8 @@ export default {
         },
         error: {
             phoneNumberExtension: 'Please enter a valid phone extension number',
-            firstName: 'Please provide your first name so our guides know how to address you!',
-            lastName: 'Please provide your last name so our guides know how to address you!',
+            firstName: 'Please provide your first name',
+            lastName: 'Please provide your last name',
             firstNameLength: 'First name shouldn\'t be longer than 50 characters',
             lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
         },
