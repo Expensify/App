@@ -66,6 +66,7 @@ const defaultProps = {
     userWallet: {
         currentBalance: 0,
     },
+    betas: [],
 };
 
 /**
