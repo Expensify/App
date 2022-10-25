@@ -304,10 +304,14 @@ function getModalPaddingStyles({
     safeAreaPaddingBottom,
     safeAreaPaddingLeft,
     safeAreaPaddingRight,
+    modalContainerStyleMarginTop,
+    modalContainerStyleMarginBottom,
     modalContainerStylePaddingTop,
     modalContainerStylePaddingBottom,
 }) {
     return {
+        marginTop: modalContainerStyleMarginTop ? modalContainerStyleMarginTop + safeAreaPaddingTop : 0,
+        marginBottom: modalContainerStyleMarginBottom ? modalContainerStyleMarginBottom + safeAreaPaddingBottom : 0,
         paddingTop: shouldAddTopSafeAreaPadding
             ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
             : modalContainerStylePaddingTop || 0,

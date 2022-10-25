@@ -130,6 +130,8 @@ class BaseModal extends PureComponent {
                             safeAreaPaddingRight,
                             shouldAddBottomSafeAreaPadding,
                             shouldAddTopSafeAreaPadding,
+                            modalContainerStyleMarginTop: modalContainerStyle.marginTop,
+                            modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
                             modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
                             modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
                         });

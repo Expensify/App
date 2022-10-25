@@ -83,8 +83,8 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             swipeDirection = ['down', 'right'];
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
             animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
-            shouldAddTopSafeAreaPadding = true;
-            shouldAddBottomSafeAreaPadding = true;
+            shouldAddTopSafeAreaPadding = isSmallScreenWidth;
+            shouldAddBottomSafeAreaPadding = false;
             break;
         case CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE:
             // A centered modal that cannot be dismissed with a swipe.
@@ -115,8 +115,8 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             swipeDirection = undefined;
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
             animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
-            shouldAddTopSafeAreaPadding = true;
-            shouldAddBottomSafeAreaPadding = true;
+            shouldAddTopSafeAreaPadding = isSmallScreenWidth;
+            shouldAddBottomSafeAreaPadding = false;
             break;
         case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
             modalStyle = {
