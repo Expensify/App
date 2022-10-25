@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.2.19-1",
+  "version": "1.2.19-2",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -66,7 +66,7 @@
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
     "dotenv": "^8.2.0",
-    "expensify-common": "git+https://github.com/Expensify/expensify-common.git#03a86215c0ae2bc4e7978e1ca9717fbc7fdea11b",
+    "expensify-common": "git+https://github.com/Expensify/expensify-common.git#6010b3c49a16f63ee9cecc0c720f6d10395775ef",
     "fbjs": "^3.0.2",
     "file-loader": "^6.0.0",
     "html-entities": "^1.3.1",
