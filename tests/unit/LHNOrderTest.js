@@ -143,6 +143,7 @@ const ONYXKEYS = {
         REPORT_ACTIONS: 'reportActions_',
         REPORT_IOUS: 'reportIOUs_',
     },
+    NETWORK: 'network',
 };
 
 Onyx.init({
@@ -175,6 +176,20 @@ jest.mock('../../src/components/Icon/Expensicons', () => ({
 }));
 
 describe('Sidebar', () => {
+    beforeAll(() => Onyx.init({
+        keys: ONYXKEYS,
+        registerStorageEventListener: () => {},
+    }));
+
+    // Initialize the network key for OfflineWithFeedback
+    beforeEach(() => Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false}));
+
+    // Clear out Onyx after each test so that each test starts with a clean slate
+    afterEach(() => {
+        cleanup();
+        Onyx.clear();
+    });
+
     describe('in default mode', () => {
         // Clear out Onyx after each test so that each test starts with a clean slate
         afterEach(Onyx.clear);

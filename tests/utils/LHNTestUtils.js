@@ -1,5 +1,7 @@
 import React from 'react';
 import {render} from '@testing-library/react-native';
+import ComposeProviders from '../../src/components/ComposeProviders';
+import OnyxProvider from '../../src/components/OnyxProvider';
 import {LocaleContextProvider} from '../../src/components/withLocalize';
 import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
 import CONST from '../../src/CONST';
@@ -134,7 +136,12 @@ function getDefaultRenderedSidebarLinks() {
     // and there are a lot of render warnings. It needs to be done like this because normally in
     // our app (App.js) is when the react application is wrapped in the context providers
     return render((
-        <LocaleContextProvider>
+        <ComposeProviders
+            components={[
+                OnyxProvider,
+                LocaleContextProvider,
+            ]}
+        >
             <ErrorBoundary>
                 <SidebarLinks
                     onLinkClick={() => {}}
@@ -148,7 +155,7 @@ function getDefaultRenderedSidebarLinks() {
                     isSmallScreenWidth={false}
                 />
             </ErrorBoundary>
-        </LocaleContextProvider>
+        </ComposeProviders>
     ));
 }
 
