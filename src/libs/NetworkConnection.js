@@ -1,10 +1,19 @@
 import _ from 'underscore';
+import Onyx from 'react-native-onyx';
 import NetInfo from '@react-native-community/netinfo';
 import AppStateMonitor from './AppStateMonitor';
 import Log from './Log';
 import * as NetworkActions from './actions/Network';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
+import ONYXKEYS from '../ONYXKEYS';
+
+let shouldForceOffline;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    waitForCollectionCallback: true,
+    callback: val => shouldForceOffline = val.network.shouldForceOffline,
+});
 
 let isOffline = false;
 let hasPendingNetworkCheck = false;
@@ -65,6 +74,10 @@ function subscribeToNetInfo() {
     // whether a user has internet connectivity or not.
     NetInfo.addEventListener((state) => {
         Log.info('[NetworkConnection] NetInfo state change', false, state);
+        if (shouldForceOffline) {
+            Log.info('[NetworkConnection] Not setting offline status because shouldForceOffline', false, shouldForceOffline);
+            return;
+        }
         setOfflineStatus(state.isInternetReachable === false);
     });
 }
