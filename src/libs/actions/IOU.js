@@ -341,7 +341,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             {
                 onyxMethod: CONST.ONYX.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneIOUReport.reportID}`,
-                value: existingOneOnOneChatReport.iouReportID ? existingIOUReport : null,
+                value: existingOneOnOneChatReport ? existingIOUReport.iouReportID : null,
             },
         );
 
