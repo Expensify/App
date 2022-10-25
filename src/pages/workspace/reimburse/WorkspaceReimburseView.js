@@ -17,6 +17,8 @@ import compose from '../../../libs/compose';
 import * as Policy from '../../../libs/actions/Policy';
 import CONST from '../../../CONST';
 import Button from '../../../components/Button';
+import getPermittedDecimalSeparator from '../../../libs/getPermittedDecimalSeparator';
+import {withNetwork} from '../../../components/OnyxProvider';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ReimbursementAccount from '../../../libs/actions/ReimbursementAccount';
 
@@ -175,7 +177,7 @@ class WorkspaceReimburseView extends React.Component {
                     menuItems={[
                         {
                             title: this.props.translate('workspace.reimburse.viewAllReceipts'),
-                            onPress: () => Link.openOldDotLink(`expenses?policyIDList=${this.props.policyID}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`),
+                            onPress: () => Link.openOldDotLink(`expenses?policyIDList=${this.props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`),
                             icon: Expensicons.Receipt,
                             shouldShowRightIcon: true,
                             iconRight: Expensicons.NewWindow,
@@ -202,9 +204,13 @@ class WorkspaceReimburseView extends React.Component {
                         <Text>{this.props.translate('workspace.reimburse.trackDistanceCopy')}</Text>
                     </View>
                     <OfflineWithFeedback
-                        errors={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'errors'])}
-                        pendingAction={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'pendingAction'])}
-                        onClose={() => Policy.removeUnitError(this.props.policyID, this.state.unitID)}
+                        errors={{
+                            ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'errors'], {}),
+                            ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'errors'], {}),
+                        }}
+                        pendingAction={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'pendingAction'])
+                                || lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'pendingAction'])}
+                        onClose={() => Policy.clearCustomUnitErrors(this.props.policy.id, this.state.unitID, this.state.unitRateID)}
                     >
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mv2]}>
                             <View style={[styles.rateCol]}>
@@ -212,7 +218,7 @@ class WorkspaceReimburseView extends React.Component {
                                     label={this.props.translate('workspace.reimburse.trackDistanceRate')}
                                     placeholder={this.state.outputCurrency}
                                     onChangeText={value => this.setRate(value)}
-                                    value={this.state.rateValue}
+                                    value={this.state.unitRateValue}
                                     autoCompleteType="off"
                                     autoCorrect={false}
                                     keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
@@ -232,43 +238,43 @@ class WorkspaceReimburseView extends React.Component {
                 </Section>
 
                 {!this.props.hasVBA && (
-                    <Section
-                        title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
-                        icon={Illustrations.JewelBoxGreen}
-                    >
-                        <View style={[styles.mv4]}>
-                            <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
-                        </View>
-                        <Button
-                            text={this.props.translate('workspace.common.bankAccount')}
-                            onPress={() => ReimbursementAccount.navigateToBankAccountRoute(this.props.policyID)}
-                            icon={Expensicons.Bank}
-                            style={[styles.mt4]}
-                            iconStyles={[styles.buttonCTAIcon]}
-                            shouldShowRightIcon
-                            large
-                            success
-                        />
-                    </Section>
+                <Section
+                    title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
+                    icon={Illustrations.JewelBoxGreen}
+                >
+                    <View style={[styles.mv4]}>
+                        <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
+                    </View>
+                    <Button
+                        text={this.props.translate('workspace.common.bankAccount')}
+                        onPress={() => ReimbursementAccount.navigateToBankAccountRoute(this.props.policy.id)}
+                        icon={Expensicons.Bank}
+                        style={[styles.mt4]}
+                        iconStyles={[styles.buttonCTAIcon]}
+                        shouldShowRightIcon
+                        large
+                        success
+                    />
+                </Section>
                 )}
                 {this.props.hasVBA && (
-                    <Section
-                        title={this.props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
-                        icon={Illustrations.BankUserGreen}
-                        menuItems={[
-                            {
-                                title: this.props.translate('workspace.reimburse.reimburseReceipts'),
-                                onPress: () => Link.openOldDotLink(`reports?policyID=${this.props.policyID}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`),
-                                icon: Expensicons.Bank,
-                                shouldShowRightIcon: true,
-                                iconRight: Expensicons.NewWindow,
-                            },
-                        ]}
-                    >
-                        <View style={[styles.mv4]}>
-                            <Text>{this.props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
-                        </View>
-                    </Section>
+                <Section
+                    title={this.props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
+                    icon={Illustrations.BankUserGreen}
+                    menuItems={[
+                        {
+                            title: this.props.translate('workspace.reimburse.reimburseReceipts'),
+                            onPress: () => Link.openOldDotLink(`reports?policyID=${this.props.policy.id}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`),
+                            icon: Expensicons.Bank,
+                            shouldShowRightIcon: true,
+                            iconRight: Expensicons.NewWindow,
+                        },
+                    ]}
+                >
+                    <View style={[styles.mv4]}>
+                        <Text>{this.props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
+                    </View>
+                </Section>
                 )}
             </>
         );
