@@ -17,7 +17,7 @@ const propTypes = {
     /** Called when the user begins to drag the scroll view */
     onScrollBeginDrag: PropTypes.func,
 
-    /** Called when the user start scrolling */
+    /** Callback executed on scroll */
     onScroll: PropTypes.func,
 
     ...optionsListPropTypes,
