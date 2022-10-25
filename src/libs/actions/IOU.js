@@ -196,7 +196,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`,
-            value: null,
+            value: {pendingFields: {createChat: null}},
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
