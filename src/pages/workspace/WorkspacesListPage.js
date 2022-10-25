@@ -54,6 +54,9 @@ const propTypes = {
         currentBalance: PropTypes.number,
     }),
 
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     ...withLocalizePropTypes,
 };
 
@@ -209,6 +212,9 @@ export default compose(
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(WorkspacesListPage);
