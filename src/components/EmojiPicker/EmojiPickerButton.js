@@ -14,7 +14,7 @@ const propTypes = {
     /** Flag to disable the emoji picker button */
     isDisabled: PropTypes.bool,
 
-    /** Id to use for this button */
+    /** Id to use for the emoji picker button */
     nativeID: PropTypes.string,
 
     ...withLocalizePropTypes,
