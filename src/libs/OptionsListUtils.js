@@ -219,12 +219,13 @@ function getAllReportErrors(report, reportActions) {
     const reportErrorFields = report.errorFields || {};
     const reportID = report.reportID;
     const reportsActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] || {};
-    const reportActionErrors = {};
-    _.chain(reportsActions)
-        .filter(action => !_.isEmpty(action.errors))
-        .each(action => _.extend(reportActionErrors, action.errors));
+    const reportActionErrors = _.reduce(
+        reportsActions,
+        (prevReportActionErrors, action) => (_.isEmpty(action.errors) ? prevReportActionErrors : _.extend(prevReportActionErrors, action.errors)),
+        {},
+    );
 
-    // All error objects related to the report. Each value in the sources contains error messages keyed by microtime
+    // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
     const errorSources = {
         reportErrors,
         ...reportErrorFields,
@@ -232,10 +233,11 @@ function getAllReportErrors(report, reportActions) {
     };
 
     // Combine all error messages keyed by microtime into one object
-    const allReportErrors = {};
-    _.chain(errorSources)
-        .filter(errors => !_.isEmpty(errors))
-        .each(errors => _.extend(allReportErrors, errors));
+    const allReportErrors = _.reduce(
+        errorSources,
+        (prevReportErrors, errors) => (_.isEmpty(errors) ? prevReportErrors : _.extend(prevReportErrors, errors)),
+        {},
+    );
 
     return allReportErrors;
 }
