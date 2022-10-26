@@ -1,3 +1,5 @@
+## Reviewer Checklist
+
 - [ ] I have verified the author checklist is complete (all boxes are checked off).
 - [ ] I verified the correct issue is linked in the `### Fixed Issues` section above
 - [ ] I verified testing steps are clear and they cover the changes made in this PR
@@ -44,3 +46,46 @@
 - [ ] If the PR modifies a generic component, I tested and verified that those changes do not break usages of that component in the rest of the App (i.e. if a shared library or component like `Avatar` is modified, I verified that `Avatar` is working as expected in all cases)
 - [ ] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
 - [ ] I have checked off every checkbox in the PR reviewer checklist, including those that don't apply to this PR.
+
+### Screenshots/Videos
+<details>
+<summary>Web</summary>
+
+<!-- add screenshots or videos here -->
+
+</details>
+
+<details>
+<summary>Mobile Web - Chrome</summary>
+
+<!-- add screenshots or videos here -->
+
+</details>
+
+<details>
+<summary>Mobile Web - Safari</summary>
+
+<!-- add screenshots or videos here -->
+
+</details>
+
+<details>
+<summary>Desktop</summary>
+
+<!-- add screenshots or videos here -->
+
+</details>
+
+<details>
+<summary>iOS</summary>
+
+<!-- add screenshots or videos here -->
+
+</details>
+
+<details>
+<summary>Android</summary>
+
+<!-- add screenshots or videos here -->
+
+</details>
