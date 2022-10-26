@@ -42,6 +42,15 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         path: path.resolve(__dirname, '../../dist'),
         publicPath: '/',
     },
+    stats: {
+        warningsFilter: [
+            // @react-navigation for web uses the legacy modules (related to react-native-reanimated)
+            // This results in 33 warnings with stack traces that appear during build and each time we make a change
+            // We can't do anything about the warnings, and they only get in the way, so we suppress them
+            './node_modules/@react-navigation/drawer/lib/module/views/legacy/Drawer.js',
+            './node_modules/@react-navigation/drawer/lib/module/views/legacy/Overlay.js',
+        ],
+    },
     plugins: [
         new CleanWebpackPlugin(),
         new HtmlWebpackPlugin({
