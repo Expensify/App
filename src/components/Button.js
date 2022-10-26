@@ -148,9 +148,6 @@ class Button extends Component {
     }
 
     componentDidMount() {
-        console.log('kiwi');
-        console.log(this.props.themed);
-
         if (!this.props.pressOnEnter) {
             return;
         }

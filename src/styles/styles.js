@@ -341,7 +341,7 @@ const styles = {
     },
 
     button: {
-        backgroundColor: themeColors.buttonDefaultBG,
+        backgroundColor: 'themeColors.buttonDefaultBG',
         borderRadius: variables.componentBorderRadiusNormal,
         height: variables.componentSizeLarge,
         justifyContent: 'center',
@@ -486,11 +486,11 @@ const styles = {
     },
 
     hoveredComponentBG: {
-        backgroundColor: themeColors.hoverComponentBG,
+        backgroundColor: 'themeColors.hoverComponentBG',
     },
 
     activeComponentBG: {
-        backgroundColor: themeColors.activeComponentBG,
+        backgroundColor: 'themeColors.activeComponentBG',
     },
 
     touchableButtonImage: {

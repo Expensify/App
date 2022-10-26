@@ -5,28 +5,31 @@ import * as light from "../styles/themes/default";
 
 let preferredTheme = 'darkGreen';
 
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_THEME,
-    callback: (val) => {
-        if(!val) {
-            return;
-        }
+// Onyx.connect({
+//     key: ONYXKEYS.NVP_PREFERRED_THEME,
+//     callback: (val) => {
+//         if(!val) {
+//             return;
+//         }
 
-        preferredTheme = val;
-    },
-});
+//         preferredTheme = val;
+//     },
+// });
 
 function themed(unthemedStyles, preferredTheme = darkGreen) {
     // Iterate through unthemedStyles to find instances of 'themeColors.something', and replace them with the actual value of that thing, in the current theme color. This is the hacky version :)
     const themedStyles = unthemedStyles.map(element => {
       for (const key in element) {
-        if (element[key].substring(0, 11) === 'themeColors') {
-            const desiredStyleKey = element[key].substring(12);
-            const newStyle = preferredTheme[desiredStyleKey];
-            element[key] = newStyle;
+        if(typeof element[key] === 'string') {
+            if (element[key].substring(0, 11) === 'themeColors') {
+               const desiredStyleKey = element[key].substring(12);
+               const newStyle = preferredTheme[desiredStyleKey];
+               element[key] = newStyle;
+           }
         }
       }
-      return element;
+        console.log(element);
+        return element;
     });
   
     return themedStyles;
