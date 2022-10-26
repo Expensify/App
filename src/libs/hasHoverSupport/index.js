@@ -6,7 +6,11 @@
 
 import * as Browser from '../Browser';
 
-const hasHoverSupport = () => !Browser.isMobile();
+function hasHoverSupport() {
+    if (Browser.isInternetExplorer()) {
+        return true;
+    }
+    return !window.matchMedia('(hover: none)').matches;
+}
 
 export default hasHoverSupport;
-
