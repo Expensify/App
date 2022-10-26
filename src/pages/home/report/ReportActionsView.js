@@ -7,7 +7,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import * as Report from '../../../libs/actions/Report';
 import reportActionPropTypes from './reportActionPropTypes';
-import * as CollectionUtils from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
 import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
@@ -111,6 +110,33 @@ class ReportActionsView extends React.Component {
         if (this.getIsReportFullyVisible()) {
             this.openReportIfNecessary();
         }
+
+        // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
+        // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
+        this.unsubscribeFromNewActionEvent = Report.subscribeToNewActionEvent(this.props.report.reportID, (isFromCurrentUser, currentLastSequenceNumber) => {
+            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
+            // they are now in the list.
+            if (isFromCurrentUser) {
+                ReportScrollManager.scrollToBottom();
+
+                // If the current user sends a new message in the chat we clear the new marker since they have "read" the report
+                this.setState({newMarkerSequenceNumber: 0});
+            } else if (this.getIsReportFullyVisible()) {
+                // We use the scroll position to determine whether the report should be marked as read and the new line indicator reset.
+                // If the user is scrolled up and no new line marker is set we will set it otherwise we will do nothing so the new marker
+                // stays in it's previous position.
+                if (this.currentScrollOffset === 0) {
+                    Report.readNewestAction(this.props.report.reportID);
+                    this.setState({newMarkerSequenceNumber: 0});
+                } else if (this.state.newMarkerSequenceNumber === 0) {
+                    this.setState({newMarkerSequenceNumber: currentLastSequenceNumber});
+                }
+            } else if (this.state.newMarkerSequenceNumber === 0) {
+                // The report is not in view and we received a comment from another user while the new marker is not set
+                // so we will set the new marker now.
+                this.setState({newMarkerSequenceNumber: currentLastSequenceNumber});
+            }
+        });
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -174,37 +200,6 @@ class ReportActionsView extends React.Component {
             }
         }
 
-        const previousLastSequenceNumber = lodashGet(CollectionUtils.lastItem(prevProps.reportActions), 'sequenceNumber');
-        const currentLastSequenceNumber = lodashGet(CollectionUtils.lastItem(this.props.reportActions), 'sequenceNumber');
-        const didNewReportActionAppear = previousLastSequenceNumber !== currentLastSequenceNumber;
-        if (didNewReportActionAppear) {
-            const lastAction = CollectionUtils.lastItem(this.props.reportActions);
-            const isLastActionFromCurrentUser = lodashGet(lastAction, 'actorEmail', '') === lodashGet(this.props.session, 'email', '');
-
-            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
-            // they are now in the list.
-            if (isLastActionFromCurrentUser) {
-                ReportScrollManager.scrollToBottom();
-
-                // If the current user sends a new message in the chat we clear the new marker since they have "read" the report
-                this.setState({newMarkerSequenceNumber: 0});
-            } else if (isReportFullyVisible) {
-                // We use the scroll position to determine whether the report should be marked as read and the new line indicator reset.
-                // If the user is scrolled up and no new line marker is set we will set it otherwise we will do nothing so the new marker
-                // stays in it's previous position.
-                if (this.currentScrollOffset === 0) {
-                    Report.readNewestAction(this.props.report.reportID);
-                    this.setState({newMarkerSequenceNumber: 0});
-                } else if (this.state.newMarkerSequenceNumber === 0) {
-                    this.setState({newMarkerSequenceNumber: currentLastSequenceNumber});
-                }
-            } else if (this.state.newMarkerSequenceNumber === 0) {
-                // The report is not in view and we received a comment from another user while the new marker is not set
-                // so we will set the new marker now.
-                this.setState({newMarkerSequenceNumber: currentLastSequenceNumber});
-            }
-        }
-
         // If the report was previously hidden by the side bar, or the view is expanded from mobile to desktop layout
         // we update the new marker position, mark the report as read, and fetch new report actions
         const didSidebarClose = prevProps.isDrawerOpen && !this.props.isDrawerOpen;
@@ -243,6 +238,10 @@ class ReportActionsView extends React.Component {
 
         if (this.unsubscribeVisibilityListener) {
             this.unsubscribeVisibilityListener();
+        }
+
+        if (this.unsubscribeFromNewActionEvent) {
+            this.unsubscribeFromNewActionEvent();
         }
 
         Report.unsubscribeFromReportChannel(this.props.report.reportID);
