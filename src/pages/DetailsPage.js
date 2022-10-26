@@ -160,11 +160,58 @@ const DetailsPage = (props) => {
                                         {isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
                                     </Text>
                                 )}
-                            </AttachmentModal>
-                            {details.displayName && (
-                                <Text style={[styles.displayName, styles.mb6]} numberOfLines={1}>
-                                    {isSMSLogin ? props.toLocalPhone(details.displayName) : details.displayName}
-                                </Text>
+                                {details.login ? (
+                                    <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
+                                        <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                            {this.props.translate(isSMSLogin
+                                                ? 'common.phoneNumber'
+                                                : 'common.email')}
+                                        </Text>
+                                        <CommunicationsLink
+                                            type={isSMSLogin ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL}
+                                            value={isSMSLogin ? getPhoneNumber(details) : details.login}
+                                        >
+                                            <Tooltip text={isSMSLogin ? getPhoneNumber(details) : details.login}>
+                                                <Text numberOfLines={1}>
+                                                    {isSMSLogin
+                                                        ? this.props.toLocalPhone(getPhoneNumber(details))
+                                                        : details.login}
+                                                </Text>
+                                            </Tooltip>
+                                        </CommunicationsLink>
+                                    </View>
+                                ) : null}
+                                {pronouns ? (
+                                    <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
+                                        <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                            {this.props.translate('profilePage.preferredPronouns')}
+                                        </Text>
+                                        <Text numberOfLines={1}>
+                                            {pronouns}
+                                        </Text>
+                                    </View>
+                                ) : null}
+                                {shouldShowLocalTime && details.timezone ? (
+                                    <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
+                                        <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                            {this.props.translate('detailsPage.localTime')}
+                                        </Text>
+                                        <Text numberOfLines={1}>
+                                            {timezone.format('LT')}
+                                            {' '}
+                                            {currentTime}
+                                        </Text>
+                                    </View>
+                                ) : null}
+                            </View>
+                            {details.login !== this.props.session.email && (
+                                <MenuItem
+                                    title={`${this.props.translate('common.message')}${details.displayName}`}
+                                    icon={Expensicons.ChatBubble}
+                                    onPress={() => Report.navigateToOrCreateChatReport([details.login])}
+                                    wrapperStyle={styles.breakAll}
+                                    shouldShowRightIcon
+                                />
                             )}
                             {details.login ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
