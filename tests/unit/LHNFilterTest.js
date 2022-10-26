@@ -19,6 +19,7 @@ const ONYXKEYS = {
         REPORT_IOUS: 'reportIOUs_',
         POLICY: 'policy_',
     },
+    NETWORK: 'network',
 };
 
 describe('Sidebar', () => {
@@ -26,6 +27,9 @@ describe('Sidebar', () => {
         keys: ONYXKEYS,
         registerStorageEventListener: () => {},
     }));
+
+    // Initialize the network key for OfflineWithFeedback
+    beforeEach(() => Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false}));
 
     // Cleanup (ie. unmount) all rendered components and clear out Onyx after each test so that each test starts with a clean slate
     afterEach(() => {

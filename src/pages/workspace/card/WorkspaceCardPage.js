@@ -22,6 +22,7 @@ const propTypes = {
 
 const WorkspaceCardPage = props => (
     <WorkspacePageWithSections
+        shouldUseScrollView
         headerText={props.translate('workspace.common.card')}
         route={props.route}
         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_CARD}

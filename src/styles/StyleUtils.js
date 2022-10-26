@@ -526,6 +526,19 @@ function fade(fadeAnimation) {
     };
 }
 
+/**
+ * Return width for keyboard shortcuts modal.
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {Object}
+ */
+function getKeyboardShortcutsModalWidth(isSmallScreenWidth) {
+    if (isSmallScreenWidth) {
+        return {maxWidth: '100%'};
+    }
+    return {maxWidth: 600};
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -551,6 +564,7 @@ export {
     getLoginPagePromoStyle,
     getReportActionItemStyle,
     getMiniReportActionContextMenuWrapperStyle,
+    getKeyboardShortcutsModalWidth,
     getPaymentMethodMenuWidth,
     parseStyleAsArray,
     combineStyles,
