@@ -32,7 +32,12 @@ module.exports = (env = {}) => portfinder.getPortPromise({port: BASE_PORT})
             mode: 'development',
             devtool: 'eval-source-map',
             devServer: {
-                contentBase: path.join(__dirname, '../../dist'),
+                static: {
+                    directory: path.join(__dirname, '../../dist'),
+                },
+                client: {
+                    overlay: false,
+                },
                 hot: true,
                 ...proxySettings,
                 historyApiFallback: true,
