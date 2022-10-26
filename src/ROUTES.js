@@ -22,6 +22,7 @@ export default {
     HOME: '',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
+    SETTINGS_DISPLAY_NAME: 'settings/profile/display-name',
     SETTINGS_PREFERENCES: 'settings/preferences',
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
