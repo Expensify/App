@@ -7,6 +7,7 @@ import withWindowDimensions from '../withWindowDimensions';
 import {propTypes, defaultProps} from './tooltipPropTypes';
 import TooltipSense from './TooltipSense';
 import makeCancellablePromise from '../../libs/MakeCancellablePromise';
+import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 
 class Tooltip extends PureComponent {
     constructor(props) {
@@ -31,6 +32,7 @@ class Tooltip extends PureComponent {
         this.isTooltipSenseInitiator = false;
         this.shouldStartShowAnimation = false;
         this.animation = new Animated.Value(0);
+        this.hasHoverSupport = DeviceCapabilities.hasHoverSupport();
 
         this.getWrapperPosition = this.getWrapperPosition.bind(this);
         this.showTooltip = this.showTooltip.bind(this);
@@ -140,8 +142,8 @@ class Tooltip extends PureComponent {
     }
 
     render() {
-        // Skip the tooltip and return the children, if the text is empty.
-        if (_.isEmpty(this.props.text)) {
+        // Skip the tooltip and return the children if the text is empty or the device does not support hovering
+        if (_.isEmpty(this.props.text) || !this.hasHoverSupport) {
             return this.props.children;
         }
         let child = (
