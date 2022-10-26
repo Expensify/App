@@ -286,6 +286,29 @@ function updateProfile(firstName, lastName, pronouns, timezone) {
 }
 
 /**
+ * @param {String} firstName
+ * @param {String} lastName
+ */
+function updateDisplayName(firstName, lastName) {
+    API.write('UpdateDisplayName', {firstName, lastName}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    firstName,
+                    lastName,
+                    displayName: getDisplayName(currentUserEmail, {
+                        firstName,
+                        lastName,
+                    }),
+                },
+            },
+        }],
+    });
+}
+
+/**
  * Fetches the local currency based on location and sets currency code/symbol to Onyx
  */
 function openIOUModalPage() {
@@ -397,5 +420,6 @@ export {
     getMaxCharacterError,
     extractFirstAndLastNameFromAvailableDetails,
     updateProfile,
+    updateDisplayName,
     clearAvatarErrors,
 };
