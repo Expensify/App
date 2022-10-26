@@ -367,7 +367,7 @@ const styles = {
         paddingRight: 10,
         paddingBottom: 6,
         paddingLeft: 10,
-        backgroundColor: themeColors.buttonDefaultBG,
+        backgroundColor: 'themeColors.buttonDefaultBG',
     },
 
     buttonMedium: {
@@ -377,7 +377,7 @@ const styles = {
         paddingRight: 12,
         paddingBottom: 6,
         paddingLeft: 12,
-        backgroundColor: themeColors.buttonDefaultBG,
+        backgroundColor: 'themeColors.buttonDefaultBG',
     },
 
     buttonLarge: {
@@ -387,7 +387,7 @@ const styles = {
         paddingRight: 14,
         paddingBottom: 8,
         paddingLeft: 14,
-        backgroundColor: themeColors.buttonDefaultBG,
+        backgroundColor: 'themeColors.buttonDefaultBG',
     },
 
     buttonSmallText: {
