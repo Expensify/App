@@ -19,6 +19,7 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
+import {navigateToOrCreateChatReport} from "../libs/actions/Report";
 
 const propTypes = {
     /* Onyx Props */
@@ -150,10 +151,7 @@ class SearchPage extends Component {
                 Navigation.navigate(ROUTES.getReportRoute(option.reportID));
             });
         } else {
-            Report.fetchOrCreateChatReport([
-                this.props.session.email,
-                option.login,
-            ]);
+            Report.navigateToOrCreateChatReport(option.login);
         }
     }
 
