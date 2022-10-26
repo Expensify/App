@@ -1600,6 +1600,27 @@ function setIsComposerFullSize(reportID, isComposerFullSize) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, isComposerFullSize);
 }
 
+const defaultNewActionSubscriber = {
+    reportID: '',
+    callback: () => {},
+};
+
+let newActionSubscriber = defaultNewActionSubscriber;
+
+/**
+ * Enables the Report actions file to let the ReportActionsView that a new comment has arrived in realtime for the current report
+ *
+ * @param {String} reportID
+ * @param {Function} callback
+ * @returns {Function}
+ */
+function subscribeToNewActionEvent(reportID, callback) {
+    newActionSubscriber = {callback, reportID};
+    return () => {
+        newActionSubscriber = defaultNewActionSubscriber;
+    };
+}
+
 /**
  * @param {String} reportID
  * @param {Object} action
@@ -1615,9 +1636,11 @@ function viewNewReportAction(reportID, action) {
     if (isFromCurrentUser) {
         updatedReportObject.unreadActionCount = 0;
         updatedReportObject.lastVisitedTimestamp = Date.now();
-        updatedReportObject.lastReadSequenceNumber = action.pendingAction ? lastReadSequenceNumber : action.sequenceNumber;
-    } else if (incomingSequenceNumber > lastReadSequenceNumber) {
-        updatedReportObject.unreadActionCount = getUnreadActionCount(reportID) + 1;
+        updatedReportObject.lastReadSequenceNumber = action.sequenceNumber;
+    }
+
+    if (reportID === newActionSubscriber.reportID) {
+        newActionSubscriber.callback(isFromCurrentUser, updatedReportObject.maxSequenceNumber);
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
@@ -1688,10 +1711,6 @@ Onyx.connect({
                 return;
             }
 
-            if (action.isLoading) {
-                return;
-            }
-
             if (!action.timestamp) {
                 return;
             }
@@ -1744,4 +1763,5 @@ export {
     clearPolicyRoomNameErrors,
     clearIOUError,
     getMaxSequenceNumber,
+    subscribeToNewActionEvent,
 };

@@ -136,6 +136,26 @@ function setPersonalDetails(login, accountID) {
     return waitForPromisesToResolve();
 }
 
+/**
+ * @param {String} actorEmail
+ * @param {Number} sequenceNumber
+ * @param {Number} timestamp
+ * @param {Number} actorAccountID
+ * @returns {Object}
+ */
+function buildTestReportComment(actorEmail, sequenceNumber, timestamp, actorAccountID) {
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+        actorEmail,
+        person: [{type: 'TEXT', style: 'strong', text: 'User B'}],
+        sequenceNumber,
+        timestamp,
+        message: [{type: 'COMMENT', html: `Comment ${sequenceNumber}`, text: `Comment ${sequenceNumber}`}],
+        reportActionID: NumberUtils.rand64(),
+        actorAccountID,
+    };
+}
+
 export {
     getGlobalFetchMock,
     signInWithTestUser,
