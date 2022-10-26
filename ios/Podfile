@@ -17,10 +17,13 @@ target 'NewExpensify' do
   # Flags change depending on the env values.
   flags = get_default_flags()
 
+  # ENV Variable enables/disables TurboModules
+  ENV['RCT_NEW_ARCH_ENABLED'] = '1';
+
   use_react_native!(
     :path => config[:reactNativePath],
     :hermes_enabled => true,
-    :fabric_enabled => flags[:fabric_enabled],
+    :fabric_enabled => true,
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
