@@ -18,4 +18,16 @@ export default {
     redDisabled: '#fea29a',
     yellow: '#fed607',
     transparent: 'transparent',
+
+    // Dark Mode Colors vGreen
+    darkAppBackground: '#061B09',
+    darkHighlightBackground: '#002E22',
+    darkBorders: '#1B5744',
+    darkIcons: '#8B9C8F',
+    darkSupportingText: '#C9D3C5',
+    darkText: '#FFFFFF',
+    darkDefaultButton: '#184E3D',
+    darkSuccessButton: '#03D47C',
+    darkDangerButton: '#F25730',
+    darkLink: '#8DC8FF',
 };

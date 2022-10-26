@@ -1,8 +1,10 @@
 import Onyx from "react-native-onyx";
 import ONYXKEYS from "../ONYXKEYS";
+import darkGreen from "../styles/themes/darkGreen";
+import * as light from "../styles/themes/default";
 
+let preferredTheme = 'darkGreen';
 
-let preferredTheme = 'light';
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_THEME,
     callback: (val) => {
@@ -14,9 +16,22 @@ Onyx.connect({
     },
 });
 
-function themed(theme = 'light', unthemedStyles) {
-    // Iterate through unthemedStyles to find instances of 'themeColors.something', and replace them with the actual value of that thing, in the current theme color.
-    unthemedStyles.forEach(element => {
-        
+function themed(unthemedStyles, preferredTheme = darkGreen) {
+    // Iterate through unthemedStyles to find instances of 'themeColors.something', and replace them with the actual value of that thing, in the current theme color. This is the hacky version :)
+    const themedStyles = unthemedStyles.map(element => {
+      for (const key in element) {
+        if (element[key].substring(0, 11) === 'themeColors') {
+            const desiredStyleKey = element[key].substring(12);
+            const newStyle = preferredTheme[desiredStyleKey];
+            element[key] = newStyle;
+        }
+      }
+      return element;
     });
+  
+    return themedStyles;
+}
+
+export {
+    themed,
 }

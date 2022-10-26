@@ -412,7 +412,7 @@ const styles = {
     },
 
     buttonSuccess: {
-        backgroundColor: themeColors.buttonSuccessBG,
+        backgroundColor: 'themeColors.buttonSuccessBG',
         borderWidth: 0,
     },
 
@@ -421,12 +421,12 @@ const styles = {
     },
 
     buttonSuccessHovered: {
-        backgroundColor: themeColors.buttonSuccessHoveredBG,
+        backgroundColor: 'themeColors.buttonSuccessHoveredBG',
         borderWidth: 0,
     },
 
     buttonDanger: {
-        backgroundColor: themeColors.buttonDangerBG,
+        backgroundColor: 'themeColors.buttonDangerBG',
         borderWidth: 0,
     },
 
@@ -478,11 +478,11 @@ const styles = {
     },
 
     buttonSuccessText: {
-        color: themeColors.textReversed,
+        color: 'themeColors.textReversed',
     },
 
     buttonDangerText: {
-        color: themeColors.textReversed,
+        color: 'themeColors.textReversed',
     },
 
     hoveredComponentBG: {

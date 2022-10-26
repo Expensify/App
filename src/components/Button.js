@@ -15,6 +15,8 @@ import compose from '../libs/compose';
 import * as Expensicons from './Icon/Expensicons';
 import colors from '../styles/colors';
 import withNavigationFocus from './withNavigationFocus';
+import withTheme from './withThemeColors';
+import { themed } from '../libs/Theme';
 
 const propTypes = {
     /** The text for the button label */
@@ -250,10 +252,10 @@ class Button extends Component {
                 onPressIn={this.props.onPressIn}
                 onPressOut={this.props.onPressOut}
                 disabled={this.props.isLoading || this.props.isDisabled}
-                style={[
+                style={this.props.themed([
                     this.props.isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
                     ...this.additionalStyles,
-                ]}
+                ])}
                 nativeID={this.props.nativeID}
             >
                 {({pressed, hovered}) => {
@@ -261,7 +263,7 @@ class Button extends Component {
                     return (
                         <OpacityView
                             shouldDim={pressed}
-                            style={[
+                            style={this.props.themed([
                                 styles.button,
                                 this.props.small ? styles.buttonSmall : undefined,
                                 this.props.medium ? styles.buttonMedium : undefined,
@@ -276,13 +278,13 @@ class Button extends Component {
                                 this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                                 this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
                                 ...this.props.innerStyles,
-                            ]}
+                            ])}
                         >
                             {this.renderContent()}
                             {this.props.isLoading && (
                                 <ActivityIndicator
                                     color={(this.props.success || this.props.danger) ? themeColors.textReversed : themeColors.text}
-                                    style={[styles.pAbsolute, styles.l0, styles.r0]}
+                                    style={this.props.themed([styles.pAbsolute, styles.l0, styles.r0])}
                                 />
                             )}
                         </OpacityView>
@@ -299,4 +301,5 @@ Button.defaultProps = defaultProps;
 export default compose(
     withNavigationFallback,
     withNavigationFocus,
+    withTheme,
 )(Button);
