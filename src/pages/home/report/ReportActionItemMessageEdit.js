@@ -82,6 +82,7 @@ class ReportActionItemMessageEdit extends React.Component {
                 start: draftMessage.length,
                 end: draftMessage.length,
             },
+            isFocused: false,
         };
     }
 
@@ -199,7 +200,14 @@ class ReportActionItemMessageEdit extends React.Component {
         const hasExceededMaxCommentLength = this.state.draft.length > CONST.MAX_COMMENT_LENGTH;
         return (
             <View style={styles.chatItemMessage}>
-                <View style={[styles.chatItemComposeBox, styles.flexRow, styles.chatItemComposeBoxColor, hasExceededMaxCommentLength && styles.borderColorDanger]}>
+                <View
+                    style={[
+                        styles.chatItemComposeBox,
+                        styles.flexRow,
+                        this.state.isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
+                        hasExceededMaxCommentLength && styles.borderColorDanger,
+                    ]}
+                >
                     <Composer
                         multiline
                         ref={(el) => {
@@ -212,6 +220,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         maxLines={16} // This is the same that slack has
                         style={[styles.textInputCompose, styles.flex4, styles.editInputComposeSpacing]}
                         onFocus={() => {
+                            this.setState({isFocused: true});
                             ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
                             toggleReportActionComposeView(false, VirtualKeyboard.shouldAssumeIsOpen());
                         }}
@@ -220,7 +229,7 @@ class ReportActionItemMessageEdit extends React.Component {
                             if (_.contains([this.saveButtonID, this.cancelButtonID, this.emojiButtonID], lodashGet(event, 'nativeEvent.relatedTarget.id'))) {
                                 return;
                             }
-
+                            this.setState({isFocused: false});
                             toggleReportActionComposeView(true, VirtualKeyboard.shouldAssumeIsOpen());
                         }}
                         selection={this.state.selection}
