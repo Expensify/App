@@ -127,6 +127,10 @@ function getAllComments() {
     }, response => _.map(response.data, comment => comment.body));
 }
 
+function countCheckedBoxes(string) {
+    return [...string.toLowerCase().matchAll(/\[x\]/g)].length;
+}
+
 getPullRequestBody()
     .then(pullRequestBody => combinedData.push(pullRequestBody))
     .then(() => getAllReviewComments())
@@ -137,16 +141,19 @@ getPullRequestBody()
         let authorChecklistComplete = false;
         let reviewerChecklistComplete = false;
 
+        const authorChecklistNumber = countCheckedBoxes(completedAuthorChecklist);
+        const reviewerChecklistNumber = countCheckedBoxes(completedReviewerChecklist);
+
         // Once we've gathered all the data, loop through each comment and look to see if it contains a completed checklist
         for (let i = 0; i < combinedData.length; i++) {
-            const whitespace = /([\n\r])/gm;
-            const comment = combinedData[i].replace(whitespace, '');
+            const comment = combinedData[i];
+            const commentChecklistNumber = countCheckedBoxes(comment);
 
-            if (comment.includes(completedAuthorChecklist.replace(whitespace, ''))) {
+            if (commentChecklistNumber >= authorChecklistNumber - 2 && commentChecklistNumber <= authorChecklistNumber + 2 && !comment.includes('[ ]')) {
                 authorChecklistComplete = true;
             }
 
-            if (comment.includes(completedReviewerChecklist.replace(whitespace, ''))) {
+            if (commentChecklistNumber >= reviewerChecklistNumber - 2 && commentChecklistNumber <= reviewerChecklistNumber + 2 && !comment.includes('[ ]')) {
                 reviewerChecklistComplete = true;
             }
         }
