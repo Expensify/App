@@ -3,7 +3,6 @@ import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
-import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
@@ -87,9 +86,7 @@ class ThumbnailImage extends PureComponent {
     }
 
     render() {
-        const url = this.props.isAuthTokenRequired
-            ? addEncryptedAuthTokenToURL(this.props.previewSourceURL)
-            : this.props.previewSourceURL;
+        const url = this.props.previewSourceURL;
 
         return (
             <View style={[this.props.style, styles.overflowHidden]}>
