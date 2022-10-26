@@ -40,10 +40,10 @@ const ReportActionItemCreated = (props) => {
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
     return (
         <OfflineWithFeedback
-            pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom')}
-            errors={lodashGet(props.report, 'errorFields.addWorkspaceRoom')}
+            pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}
+            errors={lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat')}
             errorRowStyles={styles.addWorkspaceRoomErrorRow}
-            onClose={() => Report.navigateToConciergeChatAndDeletePolicyReport(props.report.reportID)}
+            onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
         >
             <View
                 accessibilityLabel="Chat welcome message"
