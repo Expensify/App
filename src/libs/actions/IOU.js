@@ -144,7 +144,8 @@ function requestMoney(report, amount, currency, recipientEmail, debtorEmail, com
         isNewChat = true;
     }
     let iouReport;
-    if (chatReport.hasOutstandingIOU) {
+    const originalIOUStatus = chatReport.hasOutstandingIOU;
+    if (originalIOUStatus) {
         iouReport = IOUUtils.updateIOUOwnerAndTotal(
             iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`],
             recipientEmail,
@@ -167,7 +168,7 @@ function requestMoney(report, amount, currency, recipientEmail, debtorEmail, com
         preferredLocale,
     );
 
-    // First, add Data that will be used in all cases
+    // First, add data that will be used in all cases
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -177,7 +178,7 @@ function requestMoney(report, amount, currency, recipientEmail, debtorEmail, com
                 lastVisitedTimestamp: Date.now(),
                 lastReadSequenceNumber: newSequenceNumber,
                 maxSequenceNumber: newSequenceNumber,
-                hasOutstandingIOU: true,
+                hasOutstandingIOU: iouReport.total !== 0,
                 iouReportID: iouReport.reportID,
             },
         },
@@ -207,6 +208,13 @@ function requestMoney(report, amount, currency, recipientEmail, debtorEmail, com
         },
     ];
     const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                hasOutstandingIOU: originalIOUStatus,
+            },
+        },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
