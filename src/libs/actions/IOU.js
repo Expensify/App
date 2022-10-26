@@ -178,6 +178,8 @@ function requestMoney(report, amount, currency, recipientEmail, debtorEmail, com
                 lastVisitedTimestamp: Date.now(),
                 lastReadSequenceNumber: newSequenceNumber,
                 maxSequenceNumber: newSequenceNumber,
+                lastMessageText: optimisticReportAction.message.text,
+                lastMessageHtml: optimisticReportAction.message.html,
                 hasOutstandingIOU: iouReport.total !== 0,
                 iouReportID: iouReport.reportID,
             },
