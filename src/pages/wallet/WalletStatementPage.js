@@ -100,7 +100,8 @@ class WalletStatementPage extends React.Component {
         const month = this.yearMonth.substring(4) || moment().month();
         const monthName = moment(month, 'M').format('MMMM');
         const title = `${monthName} ${year} statement`;
-        const url = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}statement.php?period=${this.yearMonth}`;
+        const baseUrl = CONFIG.IS_IN_STAGING ? CONFIG.EXPENSIFY.STAGING_EXPENSIFY_URL : CONFIG.EXPENSIFY.EXPENSIFY_URL;
+        const url = `${baseUrl}statement.php?period=${this.yearMonth}`;
 
         return (
             <ScreenWrapper>
