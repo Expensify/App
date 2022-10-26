@@ -20,6 +20,7 @@ import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 import ROUTES from '../ROUTES';
+import {navigateToOrCreateChatReport} from "../libs/actions/Report";
 
 const propTypes = {
     /** Whether screen is used to create group chat */
@@ -132,23 +133,6 @@ class NewChatPage extends Component {
     }
 
     /**
-     * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
-     *
-     * @param {Array} userLogins list of user logins.
-     */
-    getOrCreateChatReport(userLogins) {
-        const formattedUserLogins = _.map(userLogins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
-        let newChat = {};
-        const chat = ReportUtils.getChatByParticipants(formattedUserLogins);
-        if (!chat) {
-            newChat = ReportUtils.buildOptimisticChatReport(formattedUserLogins);
-        }
-        const reportID = chat ? chat.reportID : newChat.reportID;
-        Report.openReport(reportID, newChat.participants, newChat);
-        Navigation.navigate(ROUTES.getReportRoute(reportID));
-    }
-
-    /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      * @param {Object} option
      */
@@ -198,7 +182,7 @@ class NewChatPage extends Component {
      * @param {Object} option
      */
     createChat(option) {
-        this.getOrCreateChatReport([option.login]);
+        Report.navigateToOrCreateChatReport([option.login]);
     }
 
     /**
@@ -210,7 +194,7 @@ class NewChatPage extends Component {
         if (userLogins.length < 1) {
             return;
         }
-        this.getOrCreateChatReport(userLogins);
+        Report.navigateToOrCreateChatReport(userLogins);
     }
 
     render() {

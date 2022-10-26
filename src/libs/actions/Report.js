@@ -25,6 +25,7 @@ import Growl from '../Growl';
 import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
+import * as OptionsListUtils from "../OptionsListUtils";
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -750,6 +751,23 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             emailList: participantList ? participantList.join(',') : '',
         },
         onyxData);
+}
+
+/**
+ * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
+ *
+ * @param {Array} userLogins list of user logins.
+ */
+function navigateToOrCreateChatReport(userLogins) {
+    const formattedUserLogins = _.map(userLogins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+    let newChat = {};
+    const chat = ReportUtils.getChatByParticipants(formattedUserLogins);
+    if (!chat) {
+        newChat = ReportUtils.buildOptimisticChatReport(formattedUserLogins);
+    }
+    const reportID = chat ? chat.reportID : newChat.reportID;
+    openReport(reportID, newChat.participants, newChat);
+    Navigation.navigate(ROUTES.getReportRoute(reportID));
 }
 
 /**
@@ -1523,6 +1541,7 @@ export {
     readNewestAction,
     readOldestAction,
     openReport,
+    navigateToOrCreateChatReport,
     openPaymentDetailsPage,
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
