@@ -16,7 +16,6 @@ import * as Expensicons from './Icon/Expensicons';
 import colors from '../styles/colors';
 import withNavigationFocus from './withNavigationFocus';
 import withTheme from './withThemeColors';
-import { themed } from '../libs/Theme';
 
 const propTypes = {
     /** The text for the button label */
@@ -149,6 +148,9 @@ class Button extends Component {
     }
 
     componentDidMount() {
+        console.log('kiwi');
+        console.log(this.props.themed);
+
         if (!this.props.pressOnEnter) {
             return;
         }

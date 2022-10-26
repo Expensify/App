@@ -3,11 +3,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
-import * as Localize from '../libs/Localize';
-import DateUtils from '../libs/DateUtils';
-import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
-import * as NumberFormatUtils from '../libs/NumberFormatUtils';
-import * as LocaleDigitUtils from '../libs/LocaleDigitUtils';
+import * as Theme from '../libs/Theme';
 import CONST from '../CONST';
 
 const ThemeContext = createContext(null);
@@ -17,19 +13,19 @@ const withThemePropTypes = {
     themed: PropTypes.func.isRequired,
 };
 
-const themeProviderProps = {
+const themeProviderPropTypes = {
     /** The user's preferred theme e.g. 'dark' */
-    preferredLocale: PropTypes.string,
+    preferredTheme: PropTypes.string,
 
     /* Actual content wrapped by this component */
     children: PropTypes.node.isRequired,
 };
 
 const themeProviderDefaultProps = {
-    preferredLocale: 'light',
+    preferredTheme: 'darkGreen',
 };
 
-class themeContextProvider extends React.Component {
+class ThemeContextProvider extends React.Component {
     getContextValue() {
         return {
             themed: this.themed.bind(this),
@@ -43,7 +39,7 @@ class themeContextProvider extends React.Component {
      * @returns {String}
      */
     themed(unthemedStyles) {
-        return Theme.generateStyles(this.props.preferredTheme, unthemedStyles);
+        return Theme.themed(this.props.preferredTheme, unthemedStyles);
     }
 
     render() {
@@ -58,13 +54,13 @@ class themeContextProvider extends React.Component {
 ThemeContextProvider.propTypes = themeProviderPropTypes;
 ThemeContextProvider.defaultProps = themeProviderDefaultProps;
 
-const Provider = withOnyx({
-    preferredTheme: {
-        key: ONYXKEYS.NVP_PREFERRED_THEME,
-    },
-})(ThemeContextProvider);
+// const Provider = withOnyx({
+//     preferredTheme: {
+//         key: ONYXKEYS.NVP_PREFERRED_THEME,
+//     },
+// })(ThemeContextProvider);
 
-Provider.displayName = 'withOnyx(ThemeContextProvider)';
+// Provider.displayName = 'withOnyx(ThemeContextProvider)';
 
 export default function withTheme(WrappedComponent) {
     const WithTheme = forwardRef((props, ref) => (
@@ -81,5 +77,5 @@ export default function withTheme(WrappedComponent) {
 
 export {
     withThemePropTypes,
-    Provider as ThemeContextProvider,
+    // Provider as ThemeContextProvider,
 };
