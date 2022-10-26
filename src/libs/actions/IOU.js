@@ -160,10 +160,12 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(participantLogins);
     const groupCreatedReportAction = existingGroupChatReport ? {} : ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
     const groupChatReportMaxSequenceNumber = lodashGet(groupChatReport, 'maxSequenceNumber', 0);
+    const amountInCents = Math.round(amount * 100);
+    const groupChatReportLastMessage = ReportUtils.getIOUReportActionMessage(CONST.IOU.REPORT_ACTION_TYPE.SPLIT, amountInCents, participants, comment, currency)[0];
     const groupIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         groupChatReportMaxSequenceNumber + 1,
         CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
-        Math.round(amount * 100),
+        amountInCents,
         comment,
         participants,
     );
@@ -177,6 +179,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 maxSequenceNumber: groupChatReportMaxSequenceNumber + 1,
                 lastReadSequenceNumber: groupChatReportMaxSequenceNumber + 1,
                 lastVisitedTimestamp: Date.now(),
+                lastMessageText: groupChatReportLastMessage.text,
+                lastMessageHtml: groupChatReportLastMessage.html,
                 pendingFields: {
                     createChat: existingGroupChatReport ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
@@ -238,6 +242,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
 
         const existingOneOnOneChatReport = ReportUtils.getChatByParticipants([email]);
         const oneOnOneChatReport = existingOneOnOneChatReport || ReportUtils.buildOptimisticChatReport([email]);
+        const oneOnOneChatReportLastMessage = ReportUtils.getIOUReportActionMessage(CONST.IOU.REPORT_ACTION_TYPE.CREATE, splitAmount, [participant], comment, currency)[0];
         let oneOnOneIOUReport;
         let existingIOUReport = null;
         if (oneOnOneChatReport.iouReportID) {
@@ -282,6 +287,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                     ...oneOnOneChatReport,
                     maxSequenceNumber: oneOnOneChatReportMaxSequenceNumber + 1,
                     lastReadSequenceNumber: oneOnOneChatReportMaxSequenceNumber + 1,
+                    lastMessageText: oneOnOneChatReportLastMessage.text,
+                    lastMessageHtml: oneOnOneChatReportLastMessage.html,
                     pendingFields: {
                         createChat: existingOneOnOneChatReport ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
