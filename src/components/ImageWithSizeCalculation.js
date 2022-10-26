@@ -5,6 +5,10 @@ import Log from '../libs/Log';
 import styles from '../styles/styles';
 import makeCancellablePromise from '../libs/MakeCancellablePromise';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../ONYXKEYS';
+import compose from '../libs/compose';
+import lodashGet from 'lodash/get';
 
 const propTypes = {
     /** Url for image to display */
@@ -117,7 +121,12 @@ class ImageWithSizeCalculation extends PureComponent {
                         styles.w100,
                         styles.h100,
                     ]}
-                    source={{uri: this.props.url}}
+                    source={{
+                        uri: this.props.url,
+                        headers: {
+                            'X-Chat-Img-Authorization': lodashGet(this.props.session, 'encryptedAuthToken', ''),
+                        },
+                    }}
                     resizeMode="contain"
                     onLoadStart={this.imageLoadingStart}
                     onLoadEnd={this.imageLoadingEnd}
@@ -134,4 +143,8 @@ class ImageWithSizeCalculation extends PureComponent {
 
 ImageWithSizeCalculation.propTypes = propTypes;
 ImageWithSizeCalculation.defaultProps = defaultProps;
-export default ImageWithSizeCalculation;
+export default compose(
+    withOnyx({
+        session: {key: ONYXKEYS.SESSION},
+    }),
+)(ImageWithSizeCalculation);
