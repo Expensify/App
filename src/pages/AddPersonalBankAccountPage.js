@@ -61,7 +61,7 @@ class AddPersonalBankAccountPage extends React.Component {
         this.submit = this.submit.bind(this);
 
         this.state = {
-            selectedPlaidAccountID: this.props.personalBankAccount.plaidAccountID,
+            selectedPlaidAccountID: '',
         };
     }
 

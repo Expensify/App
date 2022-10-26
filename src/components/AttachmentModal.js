@@ -1,6 +1,6 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {View, Animated} from 'react-native';
+import {View, Animated, Keyboard} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashExtend from 'lodash/extend';
@@ -123,6 +123,18 @@ class AttachmentModal extends PureComponent {
         )
             ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
             : CONST.MODAL.MODAL_TYPE.CENTERED;
+    }
+
+    /**
+     * @param {String} sourceURL
+     */
+    downloadAttachment(sourceURL) {
+        const originalFileName = lodashGet(this.state, 'file.name') || this.props.originalFileName;
+        fileDownload(sourceURL, originalFileName);
+
+        // At ios, if the keyboard is open while opening the attachment, then after downloading
+        // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
+        Keyboard.dismiss();
     }
 
     /**
@@ -261,7 +273,7 @@ class AttachmentModal extends PureComponent {
                         title={this.props.headerTitle || this.props.translate('common.attachment')}
                         shouldShowBorderBottom
                         shouldShowDownloadButton={this.props.allowDownload}
-                        onDownloadButtonPress={() => fileDownload(this.state.sourceURL, originalFileName)}
+                        onDownloadButtonPress={() => this.downloadAttachment(this.state.sourceURL)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                         subtitle={fileName ? (
                             <TextWithEllipsis
