@@ -35,6 +35,9 @@ module.exports = (env = {}) => portfinder.getPortPromise({port: BASE_PORT})
                 static: {
                     directory: path.join(__dirname, '../../dist'),
                 },
+                client: {
+                    overlay: false,
+                },
                 hot: true,
                 ...proxySettings,
                 historyApiFallback: true,

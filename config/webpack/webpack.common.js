@@ -166,11 +166,6 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             'process/browser': require.resolve('process/browser'),
         },
     },
-    devServer: {
-        client: {
-            overlay: false,
-        },
-    },
 });
 
 module.exports = webpackConfig;
