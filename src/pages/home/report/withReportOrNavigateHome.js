@@ -1,5 +1,5 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React, {Component} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import getComponentDisplayName from '../../../libs/getComponentDisplayName';
@@ -22,22 +22,26 @@ export default function (WrappedComponent) {
         report: {},
     };
 
-    const WithReportOrNavigateHome = (props) => {
-        if (_.isEmpty(props.report)) {
+    class WithReportOrNavigateHome extends Component {
+        componentDidMount() {
+            if (!_.isEmpty(this.props.report)) {
+                return;
+            }
             Navigation.dismissModal();
-            return;
         }
 
-        const rest = _.omit(props, ['forwardedRef']);
+        render() {
+            const rest = _.omit(this.props, ['forwardedRef']);
 
-        return (
-            <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...rest}
-                ref={props.forwardedRef}
-            />
-        );
-    };
+            return (
+                <WrappedComponent
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...rest}
+                    ref={this.props.forwardedRef}
+                />
+            );
+        }
+    }
 
     WithReportOrNavigateHome.propTypes = propTypes;
     WithReportOrNavigateHome.defaultProps = defaultProps;
