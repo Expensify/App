@@ -5,7 +5,7 @@ import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './datepickerPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import canUseTouchScreen from '../../libs/canUseTouchscreen';
+import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import './styles.css';
 
 const datePickerPropTypes = {
@@ -69,7 +69,7 @@ class DatePicker extends React.Component {
     render() {
         return (
             <TextInput
-                forceActiveLabel={!canUseTouchScreen()}
+                forceActiveLabel={!DeviceCapabilities.canUseTouchScreen()}
                 ref={(el) => {
                     this.inputRef = el;
 

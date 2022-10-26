@@ -40,7 +40,7 @@ import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
-import canUseTouchScreen from '../../../libs/canUseTouchscreen';
+import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
 import OfflineIndicator from '../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
@@ -663,7 +663,7 @@ class ReportActionCompose extends React.Component {
                             </>
                         )}
                     </AttachmentModal>
-                    {canUseTouchScreen() && this.props.isMediumScreenWidth ? null : (
+                    {DeviceCapabilities.canUseTouchScreen() && this.props.isMediumScreenWidth ? null : (
                         <EmojiPickerButton
                             isDisabled={isBlockedFromConcierge}
                             onModalHide={() => this.focus(true)}
