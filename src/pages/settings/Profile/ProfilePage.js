@@ -199,7 +199,14 @@ class ProfilePage extends Component {
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
+                <Form
+                    style={[styles.flexGrow1, styles.ph5]}
+                    formID={ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM}
+                    validate={this.validate}
+                    onSubmit={this.updatePersonalDetails}
+                    submitButtonText={this.props.translate('common.save')}
+                    enabledWhenOffline
+                >
                     <OfflineWithFeedback
                         pendingAction={lodashGet(currentUserDetails, 'pendingFields.avatar', null)}
                         errors={lodashGet(currentUserDetails, 'errorFields.avatar', null)}
