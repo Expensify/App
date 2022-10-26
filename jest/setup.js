@@ -3,7 +3,7 @@ import path from 'path';
 import 'react-native-gesture-handler/jestSetup';
 import _ from 'underscore';
 
-require('react-native-reanimated/lib/reanimated2/jestUtils').setUpTests();
+require('react-native-reanimated/src/reanimated2/jestUtils').setUpTests();
 
 jest.mock('react-native-blob-util', () => ({}));
 
