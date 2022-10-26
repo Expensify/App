@@ -40,7 +40,15 @@ function isMobile() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Silk|Opera Mini/i.test(navigator.userAgent);
 }
 
+/**
+ * @returns {boolean}
+ */
+function isInternetExplorer() {
+    return Boolean(window.document.documentMode);
+}
+
 export {
     getBrowser,
     isMobile,
+    isInternetExplorer,
 };
