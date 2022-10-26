@@ -3,18 +3,18 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'lodash';
-import * as Expensicons from './Icon/Expensicons';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import Button from './Button';
-import AttachmentView from './AttachmentView';
-import Carousel from './Carousel';
-import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
-import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
-import canUseTouchScreen from '../libs/canUseTouchscreen';
-import CONFIG from '../CONFIG';
-import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
+import * as Expensicons from '../Icon/Expensicons';
+import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
+import CarouselActions from './CarouselActions';
+import Button from '../Button';
+import AttachmentView from '../AttachmentView';
+import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
+import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
+import canUseTouchScreen from '../../libs/canUseTouchscreen';
+import CONFIG from '../../CONFIG';
+import CONST from '../../CONST';
+import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     /** sourceUrl is used to determine the starting index in the array of attachments */
@@ -173,7 +173,7 @@ class AttachmentCarousel extends React.Component {
                     </>
                 )}
 
-                <Carousel
+                <CarouselActions
                     styles={[styles.attachmentModalArrowsContainer]}
                     canSwipeLeft={!this.state.isBackDisabled}
                     canSwipeRight={!this.state.isForwardDisabled}
@@ -181,7 +181,7 @@ class AttachmentCarousel extends React.Component {
                     onCycleThroughAttachments={this.cycleThroughAttachments}
                 >
                     <AttachmentView onPress={() => this.onShowArrow(!this.state.showArrows)} sourceURL={this.state.sourceURL} file={this.state.file} />
-                </Carousel>
+                </CarouselActions>
 
             </View>
 
