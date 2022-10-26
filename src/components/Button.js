@@ -181,7 +181,7 @@ class Button extends Component {
         const textComponent = (
             <Text
                 selectable={false}
-                style={[
+                style={this.props.themed([
                     this.props.isLoading && styles.opacity0,
                     styles.pointerEventsNone,
                     styles.buttonText,
@@ -191,7 +191,7 @@ class Button extends Component {
                     this.props.success && styles.buttonSuccessText,
                     this.props.danger && styles.buttonDangerText,
                     ...this.props.textStyles,
-                ]}
+                ])}
             >
                 {this.props.text}
             </Text>
@@ -199,12 +199,12 @@ class Button extends Component {
 
         if (this.props.icon) {
             return (
-                <View style={[styles.justifyContentBetween, styles.flexRow]}>
-                    <View style={[styles.alignItemsCenter, styles.flexRow]}>
-                        <View style={[
+                <View style={this.props.themed([styles.justifyContentBetween, styles.flexRow])}>
+                    <View style={this.props.themed([styles.alignItemsCenter, styles.flexRow])}>
+                        <View style={this.props.themed([
                             styles.mr1,
                             ...this.props.iconStyles,
-                        ]}
+                        ])}
                         >
                             <Icon
                                 src={this.props.icon}
