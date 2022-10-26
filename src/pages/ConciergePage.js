@@ -29,8 +29,7 @@ const propTypes = {
  */
 const ConciergePage = (props) => {
     if (_.has(props.session, 'authToken')) {
-        const conciergeChat = ReportUtils.getChatByParticipants([OptionsListUtils.addSMSDomainIfPhoneNumber(props.session.email).toLowerCase(), CONST.EMAIL.CONCIERGE]);
-        Navigation.navigate(ROUTES.getReportRoute(conciergeChat.reportID));
+        Report.navigateToConciergeChat();
     } else {
         Navigation.navigate();
     }
