@@ -544,6 +544,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit) {
     API.write('UpdateWorkspaceCustomUnit', {
         policyID,
         customUnit: JSON.stringify(newCustomUnit),
+        lastModified: new Date().getTime(),
     }, {optimisticData, successData, failureData});
 }
 
@@ -617,6 +618,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
         policyID,
         customUnitID,
         customUnitRate: JSON.stringify(newCustomUnitRate),
+        lastModified: new Date().getTime(),
     }, {optimisticData, successData, failureData});
 }
 
