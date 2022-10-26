@@ -7,6 +7,9 @@ import ONYXKEYS from '../ONYXKEYS';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import Navigation from '../libs/Navigation/Navigation';
 import * as Report from '../libs/actions/Report';
+import * as ReportUtils from "../libs/ReportUtils";
+import * as OptionsListUtils from "../libs/OptionsListUtils";
+import ROUTES from "../ROUTES";
 
 const propTypes = {
     /** Session info for the currently logged in user. */
@@ -26,7 +29,8 @@ const propTypes = {
  */
 const ConciergePage = (props) => {
     if (_.has(props.session, 'authToken')) {
-        Report.fetchOrCreateChatReport([props.session.email, CONST.EMAIL.CONCIERGE]);
+        const conciergeChat = ReportUtils.getChatByParticipants([OptionsListUtils.addSMSDomainIfPhoneNumber(props.session.email).toLowerCase(), CONST.EMAIL.CONCIERGE]);
+        Navigation.navigate(ROUTES.getReportRoute(conciergeChat.reportID));
     } else {
         Navigation.navigate();
     }
