@@ -9,6 +9,7 @@ import * as ReportUtils from './ReportUtils';
 import * as Localize from './Localize';
 import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
+import Navigation from './Navigation/Navigation';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -20,18 +21,6 @@ let currentUserLogin;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: val => currentUserLogin = val && val.email,
-});
-
-let currentlyViewedReportID;
-Onyx.connect({
-    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-    callback: val => currentlyViewedReportID = val,
-});
-
-let priorityMode;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIORITY_MODE,
-    callback: val => priorityMode = val,
 });
 
 let loginList;
@@ -111,6 +100,9 @@ function addSMSDomainIfPhoneNumber(login) {
  */
 function getPersonalDetailsForLogins(logins, personalDetails) {
     const personalDetailsForLogins = {};
+    if (!personalDetails) {
+        return personalDetailsForLogins;
+    }
     _.each(logins, (login) => {
         let personalDetail = personalDetails[login];
         if (!personalDetail) {
@@ -217,26 +209,37 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
 }
 
 /**
- * If the report or the report actions have errors, return
- * CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, otherwise an empty string.
- *
+ * Get an object of error messages keyed by microtime by combining all error objects related to the report.
  * @param {Object} report
  * @param {Object} reportActions
- * @returns {String}
+ * @returns {Object}
  */
-function getBrickRoadIndicatorStatusForReport(report, reportActions) {
+function getAllReportErrors(report, reportActions) {
     const reportErrors = report.errors || {};
     const reportErrorFields = report.errorFields || {};
     const reportID = report.reportID;
     const reportsActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] || {};
+    const reportActionErrors = _.reduce(
+        reportsActions,
+        (prevReportActionErrors, action) => (_.isEmpty(action.errors) ? prevReportActionErrors : _.extend(prevReportActionErrors, action.errors)),
+        {},
+    );
 
-    const hasReportFieldErrors = _.some(reportErrorFields, fieldErrors => !_.isEmpty(fieldErrors));
-    const hasReportActionErrors = _.some(reportsActions, action => !_.isEmpty(action.errors));
+    // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
+    const errorSources = {
+        reportErrors,
+        ...reportErrorFields,
+        reportActionErrors,
+    };
 
-    if (_.isEmpty(reportErrors) && !hasReportFieldErrors && !hasReportActionErrors) {
-        return '';
-    }
-    return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    // Combine all error messages keyed by microtime into one object
+    const allReportErrors = _.reduce(
+        errorSources,
+        (prevReportErrors, errors) => (_.isEmpty(errors) ? prevReportErrors : _.extend(prevReportErrors, errors)),
+        {},
+    );
+
+    return allReportErrors;
 }
 
 /**
@@ -258,6 +261,8 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
     const result = {
         text: null,
         alternateText: null,
+        pendingAction: null,
+        allReportErrors: null,
         brickRoadIndicator: null,
         icons: null,
         tooltipText: null,
@@ -290,13 +295,17 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
     let hasMultipleParticipants = personalDetailList.length > 1;
     let subtitle;
 
+    result.participantsList = personalDetailList;
+
     if (report) {
         result.isChatRoom = ReportUtils.isChatRoom(report);
         result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
         result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
         result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
-        result.brickRoadIndicator = getBrickRoadIndicatorStatusForReport(report, reportActions);
+        result.allReportErrors = getAllReportErrors(report, reportActions);
+        result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+        result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom : null;
         result.ownerEmail = report.ownerEmail;
         result.reportID = report.reportID;
         result.isUnread = ReportUtils.isUnread(report);
@@ -362,10 +371,9 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
 
     const reportName = ReportUtils.getReportName(report, personalDetailMap, policies);
     result.text = reportName;
-    result.subtitle = subtitle;
-    result.participantsList = personalDetailList;
-    result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
     result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
+    result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
+    result.subtitle = subtitle;
 
     return result;
 }
@@ -428,12 +436,11 @@ function isCurrentUser(userDetails) {
  *
  * @param {Object} reports
  * @param {Object} personalDetails
- * @param {String} activeReportID
  * @param {Object} options
  * @returns {Object}
  * @private
  */
-function getOptions(reports, personalDetails, activeReportID, {
+function getOptions(reports, personalDetails, {
     reportActions = {},
     betas = [],
     selectedOptions = [],
@@ -451,13 +458,20 @@ function getOptions(reports, personalDetails, activeReportID, {
     sortPersonalDetailsByAlphaAsc = true,
     forcePolicyNamePreview = false,
 }) {
-    const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     let recentReportOptions = [];
     let personalDetailsOptions = [];
     const reportMapForLogins = {};
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, currentlyViewedReportID, isInGSDMode, currentUserLogin, iouReports, betas, policies));
+    const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(
+        report,
+        Navigation.getReportIDFromRoute(),
+        false,
+        currentUserLogin,
+        iouReports,
+        betas,
+        policies,
+    ));
 
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
@@ -507,7 +521,7 @@ function getOptions(reports, personalDetails, activeReportID, {
 
     if (sortPersonalDetailsByAlphaAsc) {
         // PersonalDetails should be ordered Alphabetically by default - https://github.com/Expensify/App/issues/8220#issuecomment-1104009435
-        allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [personalDetail => personalDetail.text.toLowerCase()], 'asc');
+        allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [personalDetail => personalDetail.text && personalDetail.text.toLowerCase()], 'asc');
     }
 
     // Always exclude already selected options and the currently logged in user
@@ -639,7 +653,7 @@ function getSearchOptions(
     searchValue = '',
     betas,
 ) {
-    return getOptions(reports, personalDetails, 0, {
+    return getOptions(reports, personalDetails, {
         betas,
         searchValue: searchValue.trim(),
         includeRecentReports: true,
@@ -706,7 +720,7 @@ function getNewChatOptions(
     selectedOptions = [],
     excludeLogins = [],
 ) {
-    return getOptions(reports, personalDetails, 0, {
+    return getOptions(reports, personalDetails, {
         betas,
         searchValue: searchValue.trim(),
         selectedOptions,
@@ -733,7 +747,7 @@ function getMemberInviteOptions(
     searchValue = '',
     excludeLogins = [],
 ) {
-    return getOptions([], personalDetails, 0, {
+    return getOptions([], personalDetails, {
         betas,
         searchValue: searchValue.trim(),
         excludeDefaultRooms: true,
@@ -803,5 +817,5 @@ export {
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
     getSearchText,
-    getBrickRoadIndicatorStatusForReport,
+    getAllReportErrors,
 };

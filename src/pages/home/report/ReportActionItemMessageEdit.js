@@ -18,7 +18,10 @@ import compose from '../../../libs/compose';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
+import * as EmojiUtils from '../../../libs/EmojiUtils';
 import reportPropTypes from '../../reportPropTypes';
+import ExceededCommentLength from '../../../components/ExceededCommentLength';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** All the data of the action */
@@ -68,6 +71,7 @@ class ReportActionItemMessageEdit extends React.Component {
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
         this.saveButtonID = 'saveButton';
         this.cancelButtonID = 'cancelButton';
+        this.emojiButtonID = 'emojiButton';
 
         const parser = new ExpensiMark();
         const draftMessage = parser.htmlToMarkdown(this.props.draftMessage);
@@ -93,9 +97,10 @@ class ReportActionItemMessageEdit extends React.Component {
     /**
      * Update the value of the draft in Onyx
      *
-     * @param {String} newDraft
+     * @param {String} draft
      */
-    updateDraft(newDraft) {
+    updateDraft(draft) {
+        const newDraft = EmojiUtils.replaceEmojis(draft);
         this.setState({draft: newDraft});
 
         // This component is rendered only when draft is set to a non-empty string. In order to prevent component
@@ -131,6 +136,11 @@ class ReportActionItemMessageEdit extends React.Component {
      * the new content.
      */
     publishDraft() {
+        // Do nothing if draft exceed the character limit
+        if (this.state.draft.length > CONST.MAX_COMMENT_LENGTH) {
+            return;
+        }
+
         // To prevent re-mount after user saves edit before debounce duration (example: within 1 second), we cancel
         // debounce here.
         this.debouncedSaveDraft.cancel();
@@ -186,9 +196,10 @@ class ReportActionItemMessageEdit extends React.Component {
     }
 
     render() {
+        const hasExceededMaxCommentLength = this.state.draft.length > CONST.MAX_COMMENT_LENGTH;
         return (
             <View style={styles.chatItemMessage}>
-                <View style={[styles.chatItemComposeBox, styles.flexRow, styles.chatItemComposeBoxColor]}>
+                <View style={[styles.chatItemComposeBox, styles.flexRow, styles.chatItemComposeBoxColor, hasExceededMaxCommentLength && styles.borderColorDanger]}>
                     <Composer
                         multiline
                         ref={(el) => {
@@ -206,7 +217,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         }}
                         onBlur={(event) => {
                             // Return to prevent re-render when save/cancel button is pressed which cancels the onPress event by re-rendering
-                            if (_.contains([this.saveButtonID, this.cancelButtonID], lodashGet(event, 'nativeEvent.relatedTarget.id'))) {
+                            if (_.contains([this.saveButtonID, this.cancelButtonID, this.emojiButtonID], lodashGet(event, 'nativeEvent.relatedTarget.id'))) {
                                 return;
                             }
 
@@ -220,6 +231,7 @@ class ReportActionItemMessageEdit extends React.Component {
                             isDisabled={this.props.shouldDisableEmojiPicker}
                             onModalHide={() => InteractionManager.runAfterInteractions(() => this.textInput.focus())}
                             onEmojiSelected={this.addEmojiToTextBox}
+                            nativeID={this.emojiButtonID}
                         />
                     </View>
 
@@ -235,11 +247,13 @@ class ReportActionItemMessageEdit extends React.Component {
                     <Button
                         small
                         success
+                        isDisabled={hasExceededMaxCommentLength}
                         nativeID={this.saveButtonID}
                         style={[styles.mr2]}
                         onPress={this.publishDraft}
                         text={this.props.translate('common.saveChanges')}
                     />
+                    <ExceededCommentLength commentLength={this.state.draft.length} />
                 </View>
             </View>
         );

@@ -18,6 +18,7 @@ import visibility from './utilities/visibility';
 import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
+import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
 
 const picker = {
@@ -76,12 +77,10 @@ const webViewStyles = {
 
         ul: {
             maxWidth: '100%',
-            flex: 1,
         },
 
         ol: {
             maxWidth: '100%',
-            flex: 1,
         },
 
         li: {
@@ -1122,9 +1121,7 @@ const styles = {
     },
 
     popoverMenuText: {
-        fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
-        fontWeight: fontWeightBold,
         color: themeColors.heading,
         maxWidth: 240,
     },
@@ -1375,7 +1372,6 @@ const styles = {
     },
 
     chatFooter: {
-        marginBottom: 5,
         paddingLeft: 20,
         paddingRight: 20,
         display: 'flex',
@@ -1410,9 +1406,10 @@ const styles = {
     }, 0),
 
     textInputFullCompose: {
-        alignSelf: 'flex-end',
+        alignSelf: 'stretch',
         flex: 1,
         maxHeight: '100%',
+        textAlignVertical: 'top',
     },
 
     editInputComposeSpacing: {
@@ -1755,6 +1752,8 @@ const styles = {
 
     pointerEventsNone,
 
+    pointerEventsAuto,
+
     headerBar: {
         overflow: 'hidden',
         justifyContent: 'center',
@@ -1862,6 +1861,10 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: 15,
+    },
+
+    blockingViewContainer: {
+        paddingBottom: variables.contentHeaderHeight,
     },
 
     defaultModalContainer: {
@@ -2235,6 +2238,15 @@ const styles = {
         transform: [{translateY: y}],
     }),
 
+    makeSlideInTranslation: (translationType, fromValue) => ({
+        from: {
+            [translationType]: fromValue,
+        },
+        to: {
+            [translationType]: 0,
+        },
+    }),
+
     growlNotificationBox: {
         backgroundColor: colors.dark,
         borderRadius: variables.componentBorderRadiusNormal,
@@ -2568,7 +2580,6 @@ const styles = {
     },
 
     keyboardShortcutModalContainer: {
-        maxWidth: 600,
         maxHeight: '100%',
         flex: '0 0 auto',
     },
@@ -2667,6 +2678,11 @@ const styles = {
 
     userSelectText: {
         userSelect: 'text',
+    },
+
+    userSelectNone: {
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
     },
 
     screenCenteredContainer: {
