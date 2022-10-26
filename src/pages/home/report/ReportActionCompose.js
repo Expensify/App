@@ -46,6 +46,7 @@ import OfflineIndicator from '../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import withNavigationFocus from '../../../components/withNavigationFocus';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** Beta features list */
@@ -379,10 +380,10 @@ class ReportActionCompose extends React.Component {
      * Update the value of the comment in Onyx
      *
      * @param {String} comment
+     * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(comment, shouldDebounceSaveComment) {
         const newComment = EmojiUtils.replaceEmojis(comment);
-        this.textInput.setNativeProps({text: newComment});
         this.setState({
             isCommentEmpty: !!newComment.match(/^(\s|`)*$/),
         });

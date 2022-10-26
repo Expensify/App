@@ -187,6 +187,8 @@ function getOptionData(reportID) {
     const result = {
         text: null,
         alternateText: null,
+        pendingAction: null,
+        allReportErrors: null,
         brickRoadIndicator: null,
         icons: null,
         tooltipText: null,
@@ -220,7 +222,9 @@ function getOptionData(reportID) {
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
-    result.brickRoadIndicator = OptionsListUtils.getBrickRoadIndicatorStatusForReport(report, reportActions);
+    result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom : null;
+    result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
+    result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerEmail = report.ownerEmail;
     result.reportID = report.reportID;
     result.isUnread = ReportUtils.isUnread(report);

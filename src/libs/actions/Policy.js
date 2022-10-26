@@ -105,44 +105,8 @@ function updateLastAccessedWorkspace(policyID) {
 }
 
 /**
- * Merges the passed in login into the specified policy
+ * Delete the workspace
  *
- * @param {String} [name]
- * @param {Boolean} [shouldAutomaticallyReroute]
- * @returns {Promise}
- */
-function create(name = '') {
-    let res = null;
-    return DeprecatedAPI.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                // Show the user feedback
-                const errorMessage = Localize.translateLocal('workspace.new.genericFailureMessage');
-                Growl.error(errorMessage, 5000);
-                return;
-            }
-            Growl.show(Localize.translateLocal('workspace.common.growlMessageOnCreate'), CONST.GROWL.SUCCESS, 3000);
-            res = response;
-
-            // Fetch the default reports and the policyExpenseChat reports on the policy
-            Report.fetchChatReportsByIDs([response.policy.chatReportIDAdmins, response.policy.chatReportIDAnnounce, response.ownerPolicyExpenseChatID]);
-
-            // We are awaiting this merge so that we can guarantee our policy is available to any React components connected to the policies collection before we navigate to a new route.
-            return Promise.all([
-                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
-                    id: response.policyID,
-                    type: response.policy.type,
-                    name: response.policy.name,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    outputCurrency: response.policy.outputCurrency,
-                }),
-                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${response.policyID}`, getSimplifiedEmployeeList(response.policy.employeeList)),
-            ]);
-        })
-        .then(() => Promise.resolve(lodashGet(res, 'policyID')));
-}
-
-/**
  * @param {String} policyID
  */
 function navigateToPolicy(policyID) {
@@ -181,53 +145,6 @@ function deletePolicy(policyID) {
         .then(() => {
             Navigation.goBack();
             return Promise.resolve();
-        });
-}
-
-/**
- * Fetches policy list from the API and saves a simplified version in Onyx, optionally creating a new policy first.
- *
- * More specifically, this action will:
- * 1. Optionally create a new policy.
- * 2. Fetch policy summaries.
- * 3. Optionally navigate to the new policy.
- * 4. Then fetch full policies.
- *
- * This way, we ensure that there's no race condition between creating the new policy and fetching existing ones,
- * and we also don't have to wait for full policies to load before navigating to the new policy.
- */
-function getPolicyList() {
-    Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, true);
-    DeprecatedAPI.GetPolicySummaryList()
-        .then((data) => {
-            if (data.jsonCode !== 200) {
-                Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, false);
-                return;
-            }
-
-            const policyCollection = _.reduce(data.policySummaryList, (memo, policy) => ({
-                ...memo,
-                [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy, false),
-            }), {});
-
-            if (!_.isEmpty(policyCollection)) {
-                updateAllPolicies(policyCollection);
-            }
-
-            Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, false);
-        });
-}
-
-function createAndGetPolicyList() {
-    let newPolicyID;
-    create()
-        .then((policyID) => {
-            newPolicyID = policyID;
-            return getPolicyList();
-        })
-        .then(() => {
-            Navigation.dismissModal();
-            navigateToPolicy(newPolicyID);
         });
 }
 

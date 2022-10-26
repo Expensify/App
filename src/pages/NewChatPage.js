@@ -18,6 +18,7 @@ import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
+import reportPropTypes from './reportPropTypes';
 import ROUTES from '../ROUTES';
 
 const propTypes = {

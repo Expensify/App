@@ -124,40 +124,48 @@ const OptionRow = (props) => {
     const avatarTooltips = props.showTitleTooltip && !props.option.isChatRoom && !props.option.isArchivedRoom ? _.pluck(displayNamesWithTooltips, 'tooltip') : undefined;
 
     return (
-        <Hoverable
-            containerStyles={[
-                props.isDisabled ? styles.userSelectNone : null,
-            ]}
+        <OfflineWithFeedback
+            pendingAction={props.option.pendingAction}
+            errors={props.option.allReportErrors}
+            shouldShowErrorMessages={false}
         >
-            {hovered => (
-                <TouchableOpacity
-                    ref={el => touchableRef = el}
-                    onPress={(e) => {
-                        e.preventDefault();
-                        props.onSelectRow(props.option, touchableRef);
-                    }}
-                    disabled={props.isDisabled}
-                    activeOpacity={0.8}
-                    style={[
-                        styles.flexRow,
-                        styles.alignItemsCenter,
-                        styles.justifyContentBetween,
-                        styles.sidebarLink,
-                        styles.sidebarLinkInner,
-                        StyleUtils.getBackgroundColorStyle(props.backgroundColor),
-                        props.optionIsFocused ? styles.sidebarLinkActive : null,
-                        hovered && !props.optionIsFocused ? props.hoverStyle : null,
-                        props.isDisabled && styles.cursorDisabled,
-                    ]}
-                >
-                    <View style={sidebarInnerRowStyle}>
-                        <View
-                            style={[
-                                styles.flexRow,
-                                styles.alignItemsCenter,
-                            ]}
-                        >
-                            {
+            <Hoverable
+                containerStyles={[
+                    props.isDisabled ? styles.userSelectNone : null,
+                ]}
+            >
+                {hovered => (
+                    <TouchableOpacity
+                        ref={el => touchableRef = el}
+                        onPress={(e) => {
+                            if (e) {
+                                e.preventDefault();
+                            }
+
+                            props.onSelectRow(props.option, touchableRef);
+                        }}
+                        disabled={props.isDisabled}
+                        activeOpacity={0.8}
+                        style={[
+                            styles.flexRow,
+                            styles.alignItemsCenter,
+                            styles.justifyContentBetween,
+                            styles.sidebarLink,
+                            styles.sidebarLinkInner,
+                            StyleUtils.getBackgroundColorStyle(props.backgroundColor),
+                            props.optionIsFocused ? styles.sidebarLinkActive : null,
+                            hovered && !props.optionIsFocused ? props.hoverStyle : null,
+                            props.isDisabled && styles.cursorDisabled,
+                        ]}
+                    >
+                        <View accessibilityHint={props.accessibilityHint} style={sidebarInnerRowStyle}>
+                            <View
+                                style={[
+                                    styles.flexRow,
+                                    styles.alignItemsCenter,
+                                ]}
+                            >
+                                {
                                 !_.isEmpty(props.option.icons)
                                 && (
                                     props.option.shouldShowSubscript ? (

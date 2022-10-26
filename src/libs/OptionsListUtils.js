@@ -231,8 +231,37 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
     showChatPreviewLine = false,
     forcePolicyNamePreview = false,
 }) {
-    const isChatRoom = ReportUtils.isChatRoom(report);
-    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+    const result = {
+        text: null,
+        alternateText: null,
+        pendingAction: null,
+        allReportErrors: null,
+        brickRoadIndicator: null,
+        icons: null,
+        tooltipText: null,
+        ownerEmail: null,
+        subtitle: null,
+        participantsList: null,
+        login: null,
+        reportID: null,
+        phoneNumber: null,
+        payPalMeAddress: null,
+        isUnread: null,
+        hasDraftComment: false,
+        keyForList: null,
+        searchText: null,
+        isDefaultRoom: false,
+        isPinned: false,
+        hasOutstandingIOU: false,
+        iouReportID: null,
+        isIOUReportOwner: null,
+        iouReportAmount: 0,
+        isChatRoom: false,
+        isArchivedRoom: false,
+        shouldShowSubscript: false,
+        isPolicyExpenseChat: false,
+    };
+
     const personalDetailMap = getPersonalDetailsForLogins(logins, personalDetails);
     const personalDetailList = _.values(personalDetailMap);
     const isArchivedRoom = ReportUtils.isArchivedRoom(report);
@@ -252,12 +281,76 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         : '';
     lastMessageText += report ? lastMessageTextFromReport : '';
 
-    if (isPolicyExpenseChat && isArchivedRoom) {
-        const archiveReason = lodashGet(lastReportActions[report.reportID], 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
-        lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-            displayName: lodashGet(lastActorDetails, 'displayName', report.lastActorEmail),
-            policyName: ReportUtils.getPolicyName(report, policies),
-        });
+    if (report) {
+        result.isChatRoom = ReportUtils.isChatRoom(report);
+        result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
+        result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
+        result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+        result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
+        result.allReportErrors = getAllReportErrors(report, reportActions);
+        result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+        result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom : null;
+        result.ownerEmail = report.ownerEmail;
+        result.reportID = report.reportID;
+        result.isUnread = ReportUtils.isUnread(report);
+        result.hasDraftComment = report.hasDraft;
+        result.isPinned = report.isPinned;
+        result.iouReportID = report.iouReportID;
+        result.keyForList = String(report.reportID);
+        result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participants || []);
+        result.hasOutstandingIOU = report.hasOutstandingIOU;
+
+        hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
+        subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
+
+        let lastMessageTextFromReport = '';
+        if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
+            lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
+        } else {
+            lastMessageTextFromReport = Str.htmlDecode(report ? report.lastMessageText : '');
+        }
+
+        const lastActorDetails = personalDetailMap[report.lastActorEmail] || null;
+        let lastMessageText = hasMultipleParticipants && lastActorDetails
+            ? `${lastActorDetails.displayName}: `
+            : '';
+        lastMessageText += report ? lastMessageTextFromReport : '';
+
+        if (result.isPolicyExpenseChat && result.isArchivedRoom) {
+            const archiveReason = (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason)
+                || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+            lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
+                displayName: archiveReason.displayName || report.lastActorEmail,
+                policyName: ReportUtils.getPolicyName(report, policies),
+            });
+        }
+
+        if (result.isChatRoom || result.isPolicyExpenseChat) {
+            result.alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
+                ? lastMessageText
+                : subtitle;
+        } else {
+            result.alternateText = (showChatPreviewLine && lastMessageText)
+                ? lastMessageText
+                : Str.removeSMSDomain(personalDetail.login);
+        }
+    } else {
+        result.keyForList = personalDetail.login;
+        result.alternateText = Str.removeSMSDomain(personalDetail.login);
+    }
+
+    if (result.hasOutstandingIOU) {
+        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`] || null;
+        if (iouReport) {
+            result.isIOUReportOwner = iouReport.ownerEmail === currentUserLogin;
+            result.iouReportAmount = iouReport.total;
+        }
+    }
+
+    if (!hasMultipleParticipants) {
+        result.login = personalDetail.login;
+        result.phoneNumber = personalDetail.phoneNumber;
+        result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
 
     const tooltipText = ReportUtils.getReportParticipantsTitle(lodashGet(report, ['participants'], []));
@@ -834,4 +927,6 @@ export {
     getCurrencyListForSections,
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
+    getSearchText,
+    getAllReportErrors,
 };

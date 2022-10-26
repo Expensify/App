@@ -293,6 +293,7 @@ export {
     clearOnfidoToken,
     connectBankAccountWithPlaid,
     deletePaymentBankAccount,
+    updateBeneficialOwnersForBankAccount,
     updateCompanyInformationForBankAccount,
     updatePersonalInformationForBankAccount,
     updatePlaidData,

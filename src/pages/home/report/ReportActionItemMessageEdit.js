@@ -18,6 +18,7 @@ import compose from '../../../libs/compose';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
+import * as EmojiUtils from '../../../libs/EmojiUtils';
 import reportPropTypes from '../../reportPropTypes';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import CONST from '../../../CONST';
@@ -100,7 +101,6 @@ class ReportActionItemMessageEdit extends React.Component {
      */
     updateDraft(draft) {
         const newDraft = EmojiUtils.replaceEmojis(draft);
-        this.textInput.setNativeProps({text: newDraft});
         this.setState({draft: newDraft});
 
         // This component is rendered only when draft is set to a non-empty string. In order to prevent component

@@ -38,11 +38,11 @@ const ReportActionItemCreated = (props) => {
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
 
     return (
-        <View style={[
-            styles.chatContent,
-            styles.pb8,
-            styles.p5,
-        ]}
+        <OfflineWithFeedback
+            pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}
+            errors={lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat')}
+            errorRowStyles={styles.addWorkspaceRoomErrorRow}
+            onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
         >
             <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.flex1]}>
                 <Pressable onPress={() => ReportUtils.navigateToDetailsPage(props.report)}>

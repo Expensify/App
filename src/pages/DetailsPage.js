@@ -93,40 +93,69 @@ const DetailsPage = (props) => {
         pronouns = props.translate(`pronouns.${localeKey}`);
     }
 
-    return (
-        <ScreenWrapper>
-            <HeaderWithCloseButton
-                title={props.translate('common.details')}
-                shouldShowBackButton={shouldShowBackButton}
-                onBackButtonPress={() => Navigation.goBack()}
-                onCloseButtonPress={() => Navigation.dismissModal()}
-            />
-            <View
-                pointerEvents="box-none"
-                style={[
-                    styles.containerWithSpaceBetween,
-                ]}
-            >
-                {details ? (
-                    <ScrollView>
-                        <View style={styles.pageWrapper}>
-                            <AttachmentModal
-                                headerTitle={isSMSLogin ? props.toLocalPhone(details.displayName) : details.displayName}
-                                sourceURL={details.avatar}
-                                isAuthTokenRequired
-                            >
-                                {({show}) => (
-                                    <PressableWithoutFocus
-                                        style={styles.noOutline}
-                                        onPress={show}
-                                    >
-                                        <Avatar
-                                            containerStyles={[styles.avatarLarge, styles.mb3]}
-                                            imageStyles={[styles.avatarLarge]}
-                                            source={details.avatar}
-                                            size={CONST.AVATAR_SIZE.LARGE}
-                                        />
-                                    </PressableWithoutFocus>
+    render() {
+        const details = lodashGet(this.props.personalDetails, lodashGet(this.props.route.params, 'login'));
+        if (!details) {
+            // Personal details have not loaded yet
+            return <FullscreenLoadingIndicator />;
+        }
+        const isSMSLogin = Str.isSMSLogin(details.login);
+
+        // If we have a reportID param this means that we
+        // arrived here via the ParticipantsPage and should be allowed to navigate back to it
+        const shouldShowBackButton = Boolean(this.props.route.params.reportID);
+        const timezone = DateUtils.getLocalMomentFromTimestamp(this.props.preferredLocale, null, details.timezone.selected);
+        const GMTTime = `${timezone.toString().split(/[+-]/)[0].slice(-3)} ${timezone.zoneAbbr()}`;
+        const currentTime = Number.isNaN(Number(timezone.zoneAbbr())) ? timezone.zoneAbbr() : GMTTime;
+        const shouldShowLocalTime = !ReportUtils.hasExpensifyEmails([details.login]);
+
+        let pronouns = details.pronouns;
+
+        if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
+            const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
+            pronouns = this.props.translate(`pronouns.${localeKey}`);
+        }
+
+        return (
+            <ScreenWrapper>
+                <HeaderWithCloseButton
+                    title={this.props.translate('common.details')}
+                    shouldShowBackButton={shouldShowBackButton}
+                    onBackButtonPress={() => Navigation.goBack()}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
+                />
+                <View
+                    pointerEvents="box-none"
+                    style={[
+                        styles.containerWithSpaceBetween,
+                    ]}
+                >
+                    {details ? (
+                        <ScrollView>
+                            <View style={styles.pageWrapper}>
+                                <AttachmentModal
+                                    headerTitle={isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
+                                    sourceURL={details.avatar}
+                                    isAuthTokenRequired
+                                >
+                                    {({show}) => (
+                                        <PressableWithoutFocus
+                                            style={styles.noOutline}
+                                            onPress={show}
+                                        >
+                                            <Avatar
+                                                containerStyles={[styles.avatarLarge, styles.mb3]}
+                                                imageStyles={[styles.avatarLarge]}
+                                                source={details.avatar}
+                                                size={CONST.AVATAR_SIZE.LARGE}
+                                            />
+                                        </PressableWithoutFocus>
+                                    )}
+                                </AttachmentModal>
+                                {details.displayName && (
+                                    <Text style={[styles.displayName, styles.mb6]} numberOfLines={1}>
+                                        {isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
+                                    </Text>
                                 )}
                             </AttachmentModal>
                             {details.displayName && (
@@ -195,7 +224,7 @@ const DetailsPage = (props) => {
 };
 
 DetailsPage.propTypes = propTypes;
-DetailsPage.displayName = 'DetailsPage';
+DetailsPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,

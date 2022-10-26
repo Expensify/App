@@ -972,31 +972,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             reportID,
             emailList: participantList ? participantList.join(',') : '',
         },
-        {
-            optimisticData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    isLoadingReportActions: true,
-                    lastVisitedTimestamp: Date.now(),
-                    unreadActionCount: 0,
-                },
-            }],
-            successData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    isLoadingReportActions: false,
-                },
-            }],
-            failureData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    isLoadingReportActions: false,
-                },
-            }],
-        });
+        onyxData);
 }
 
 /**
@@ -1740,7 +1716,8 @@ export {
     syncChatAndIOUReports,
     navigateToConciergeChat,
     setReportWithDraft,
-    createPolicyRoom,
+    addPolicyReport,
+    navigateToConciergeChatAndDeleteReport,
     setIsComposerFullSize,
     markCommentAsUnread,
     readNewestAction,

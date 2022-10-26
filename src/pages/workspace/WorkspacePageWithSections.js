@@ -110,6 +110,7 @@ class WorkspacePageWithSections extends React.Component {
                 {this.props.shouldUseScrollView
                     ? (
                         <ScrollView
+                            keyboardShouldPersistTaps="handled"
                             style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
                         >
                             <View style={[styles.w100, styles.flex1]}>

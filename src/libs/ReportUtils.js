@@ -707,6 +707,262 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, p
     };
 }
 
+/**
+ * Builds an optimistic chat report with a randomly generated reportID and as much information as we currently have
+ *
+ * @param {Array} participantList
+ * @param {String} reportName
+ * @param {String} chatType
+ * @param {String} policyID
+ * @param {String} ownerEmail
+ * @param {Boolean} isOwnPolicyExpenseChat
+ * @param {String} oldPolicyName
+ * @param {String} visibility
+ * @returns {Object}
+ */
+function buildOptimisticChatReport(
+    participantList,
+    reportName = 'Chat Report',
+    chatType = '',
+    policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
+    ownerEmail = CONST.REPORT.OWNER_EMAIL_FAKE,
+    isOwnPolicyExpenseChat = false,
+    oldPolicyName = '',
+    visibility = undefined,
+) {
+    return {
+        chatType,
+        hasOutstandingIOU: false,
+        isOwnPolicyExpenseChat,
+        isPinned: false,
+        lastActorEmail: '',
+        lastMessageHtml: '',
+        lastMessageText: null,
+        lastReadSequenceNumber: 0,
+        lastMessageTimestamp: 0,
+        lastVisitedTimestamp: 0,
+        maxSequenceNumber: 0,
+        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
+        oldPolicyName,
+        ownerEmail,
+        participants: participantList,
+        policyID,
+        reportID: generateReportID(),
+        reportName,
+        stateNum: 0,
+        statusNum: 0,
+        visibility,
+    };
+}
+
+/**
+ * Returns the necessary reportAction onyx data to indicate that the chat has been created optimistically
+ * @param {String} ownerEmail
+ * @returns {Object}
+ */
+function buildOptimisticCreatedReportAction(ownerEmail) {
+    return {
+        0: {
+            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            actorAccountID: currentUserAccountID,
+            message: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    style: 'strong',
+                    text: ownerEmail === currentUserEmail ? 'You' : ownerEmail,
+                },
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    style: 'normal',
+                    text: ' created this report',
+                },
+            ],
+            person: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    style: 'strong',
+                    text: lodashGet(allPersonalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+                },
+            ],
+            automatic: false,
+            sequenceNumber: 0,
+            avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
+            timestamp: moment().unix(),
+            shouldShow: true,
+        },
+    };
+}
+
+/**
+ * @param {String} policyID
+ * @param {String} policyName
+ * @returns {Object}
+ */
+function buildOptimisticWorkspaceChats(policyID, policyName) {
+    const announceChatData = buildOptimisticChatReport(
+        [currentUserEmail],
+        CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE,
+        CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+        policyID,
+        null,
+        false,
+        policyName,
+    );
+    const announceChatReportID = announceChatData.reportID;
+    const announceReportActionData = buildOptimisticCreatedReportAction(announceChatData.ownerEmail);
+
+    const adminsChatData = buildOptimisticChatReport([currentUserEmail], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, null, false, policyName);
+    const adminsChatReportID = adminsChatData.reportID;
+    const adminsReportActionData = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
+
+    const expenseChatData = buildOptimisticChatReport([currentUserEmail], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserEmail, true, policyName);
+    const expenseChatReportID = expenseChatData.reportID;
+    const expenseReportActionData = buildOptimisticCreatedReportAction(expenseChatData.ownerEmail);
+
+    return {
+        announceChatReportID,
+        announceChatData,
+        announceReportActionData,
+        adminsChatReportID,
+        adminsChatData,
+        adminsReportActionData,
+        expenseChatReportID,
+        expenseChatData,
+        expenseReportActionData,
+    };
+}
+
+/**
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isUnread(report) {
+    const lastReadSequenceNumber = report.lastReadSequenceNumber || 0;
+    const maxSequenceNumber = report.maxSequenceNumber || 0;
+    return lastReadSequenceNumber < maxSequenceNumber;
+}
+
+/**
+ * Determines if a report has an outstanding IOU that doesn't belong to the currently logged in user
+ *
+ * @param {Object} report
+ * @param {String} report.iouReportID
+ * @param {String} currentUserLogin
+ * @param {Object} iouReports
+ * @returns {boolean}
+ */
+
+function hasOutstandingIOU(report, currentUserLogin, iouReports) {
+    if (!report || !report.iouReportID || _.isUndefined(report.hasOutstandingIOU)) {
+        return false;
+    }
+
+    const iouReport = iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
+    if (!iouReport || !iouReport.ownerEmail) {
+        return false;
+    }
+
+    if (iouReport.ownerEmail === currentUserEmail) {
+        return false;
+    }
+
+    return report.hasOutstandingIOU;
+}
+
+/**
+ * Takes several pieces of data from Onyx and evaluates if a report should be shown in the option list (either when searching
+ * for reports or the reports shown in the LHN).
+ *
+ * This logic is very specific and the order of the logic is very important. It should fail quickly in most cases and also
+ * filter out the majority of reports before filtering out very specific minority of reports.
+ *
+ * @param {Object} report
+ * @param {String} reportIDFromRoute
+ * @param {Boolean} isInGSDMode
+ * @param {String} currentUserLogin
+ * @param {Object} iouReports
+ * @param {String[]} betas
+ * @param {Object} policies
+ * @returns {boolean}
+ */
+function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies) {
+    const isInDefaultMode = !isInGSDMode;
+
+    // Exclude reports that have no data because there wouldn't be anything to show in the option item.
+    // This can happen if data is currently loading from the server or a report is in various stages of being created.
+    if (!report || !report.reportID || !report.participants || _.isEmpty(report.participants)) {
+        return false;
+    }
+
+    // Include the currently viewed report. If we excluded the currently viewed report, then there
+    // would be no way to highlight it in the options list and it would be confusing to users because they lose
+    // a sense of context.
+    if (report.reportID === reportIDFromRoute) {
+        return true;
+    }
+
+    // Include reports if they have a draft, are pinned, or have an outstanding IOU
+    // These are always relevant to the user no matter what view mode the user prefers
+    if (report.hasDraft || report.isPinned || hasOutstandingIOU(report, currentUserLogin, iouReports)) {
+        return true;
+    }
+
+    // Include reports that have errors from trying to add a workspace
+    // If we excluded it, then the red-brock-road pattern wouldn't work for the user to resolve the error
+    if (report.errorFields && !_.isEmpty(report.errorFields.addWorkspaceRoom)) {
+        return true;
+    }
+
+    // All unread chats (even archived ones) in GSD mode will be shown. This is because GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
+    if (isInGSDMode) {
+        return isUnread(report);
+    }
+
+    // Archived reports should always be shown when in default (most recent) mode. This is because you should still be able to access and search for the chats to find them.
+    if (isInDefaultMode && isArchivedRoom(report)) {
+        return true;
+    }
+
+    // Include default rooms for free plan policies
+    if (isDefaultRoom(report) && getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE) {
+        return true;
+    }
+
+    // Include default rooms unless you're on the default room beta, unless you have an assigned guide
+    if (isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas) && !hasExpensifyGuidesEmails(lodashGet(report, ['participants'], []))) {
+        return false;
+    }
+
+    // Include user created policy rooms if the user isn't on the policy rooms beta
+    if (isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
+        return false;
+    }
+
+    // Include policy expense chats if the user isn't in the policy expense chat beta
+    if (isPolicyExpenseChat(report) && !Permissions.canUsePolicyExpenseChat(betas)) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Attempts to find a report in onyx with the provided list of participants
+ * @param {Array} newParticipantList
+ * @returns {Array|undefined}
+ */
+function getChatByParticipants(newParticipantList) {
+    newParticipantList.sort();
+    return _.find(allReports, (report) => {
+        // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
+        if (!report || !report.participants) {
+            return false;
+        }
+        return _.isEqual(newParticipantList, report.participants.sort());
+    });
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -738,4 +994,7 @@ export {
     generateReportID,
     hasReportNameError,
     buildOptimisticIOUReportAction,
+    buildOptimisticReportAction,
+    shouldReportBeInOptionList,
+    getChatByParticipants,
 };
