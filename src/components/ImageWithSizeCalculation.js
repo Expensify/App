@@ -121,9 +121,11 @@ class ImageWithSizeCalculation extends PureComponent {
     }
 
     render() {
-        const headers = this.props.isAuthTokenRequired ? {
-            'X-Chat-Img-Authorization': lodashGet(this.props.session, 'encryptedAuthToken', ''),
-        } : {};
+        const headers = this.props.isAuthTokenRequired ? ({
+            headers: {
+                'X-Chat-Img-Authorization': lodashGet(this.props.session, 'encryptedAuthToken', ''),
+            },
+        }) : {};
         return (
             <View
                 style={[
