@@ -45,6 +45,9 @@ module.exports = (env = {}) => portfinder.getPortPromise({port: BASE_PORT})
                     'process.env.PORT': port,
                 }),
             ],
+            cache: {
+                type: 'filesystem',
+            },
         });
 
         return speedMeasure.wrap(config);
