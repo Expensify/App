@@ -818,7 +818,6 @@ const CONST = {
         INVITE: 'invite',
         LEAVE_ROOM: 'leaveRoom',
     },
-    PROFILE_SETTINGS_FORM: 'profileSettingsForm',
 
     // These split the maximum decimal value of a signed 64-bit number (9,223,372,036,854,775,807) into parts where none of them are too big to fit into a 32-bit number, so that we can
     // generate them each with a random number generator with only 32-bits of precision.
