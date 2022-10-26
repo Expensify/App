@@ -15,6 +15,8 @@ import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
 import * as IOUUtils from '../IOUUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
+import * as NumberUtils from '../NumberUtils';
+import DateUtils from '../DateUtils';
 
 let iouReports;
 Onyx.connect({
@@ -23,114 +25,194 @@ Onyx.connect({
     callback: val => iouReports = val,
 });
 
-/**
- * Gets the IOU Reports for new transaction
- *
- * @param {Object[]} requestParams
- * @param {Number} requestParams.reportID the ID of the IOU report
- * @param {Number} requestParams.chatReportID the ID of the chat report that the IOU report belongs to
- */
-function getIOUReportsForNewTransaction(requestParams) {
-    DeprecatedAPI.Get({
-        returnValueList: 'reportStuff',
-        reportIDList: _.pluck(requestParams, 'reportID').join(','),
-        shouldLoadOptionalKeys: true,
-        includePinnedReports: true,
-    })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                Onyx.merge(ONYXKEYS.IOU, {error: true});
-                return;
-            }
+let preferredLocale = CONST.DEFAULT_LOCALE;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
 
-            const chatReportsToUpdate = {};
-            const iouReportsToUpdate = {};
-
-            _.each(response.reports, (reportData) => {
-                // First, the existing chat report needs to be updated with the details about the new IOU
-                const paramsForIOUReport = _.findWhere(requestParams, {reportID: reportData.reportID});
-                if (paramsForIOUReport && paramsForIOUReport.chatReportID) {
-                    const chatReportID = paramsForIOUReport.chatReportID;
-                    const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
-                    chatReportsToUpdate[chatReportKey] = {
-                        iouReportID: reportData.reportID,
-                        total: reportData.total,
-                        stateNum: reportData.stateNum,
-                        hasOutstandingIOU: true,
-                    };
-
-                    // Second, the IOU report needs to be updated with the new IOU details too
-                    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${reportData.reportID}`;
-                    iouReportsToUpdate[iouReportKey] = Report.getSimplifiedIOUReport(reportData, chatReportID);
-                }
-            });
-
-            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, chatReportsToUpdate);
-            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, iouReportsToUpdate);
-        })
-        .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false}));
-}
+        preferredLocale = val;
+    },
+});
 
 /**
- * Returns IOU Transaction Error Messages
+ * Request money from another user
  *
- * @param {Object} response
- * @returns {String}
+ * @param {Object} report
+ * @param {Number} amount
+ * @param {String} currency
+ * @param {String} recipientEmail
+ * @param {String} participant
+ * @param {String} comment
  */
-function getIOUErrorMessage(response) {
-    if (response && response.jsonCode) {
-        if (response.jsonCode === 405) {
-            return Localize.translateLocal('common.error.invalidAmount');
-        }
-
-        if (response.jsonCode === 404) {
-            return Localize.translateLocal('iou.error.invalidSplit');
-        }
-
-        if (response.jsonCode === 402) {
-            return Localize.translateLocal('common.error.phoneNumber');
-        }
+function requestMoney(report, amount, currency, recipientEmail, participant, comment) {
+    const debtorEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
+    let chatReport = lodashGet(report, 'reportID', null) ? report : null;
+    let isNewChat = false;
+    if (!chatReport) {
+        chatReport = ReportUtils.getChatByParticipants([debtorEmail]);
     }
-    return Localize.translateLocal('iou.error.other');
-}
+    if (!chatReport) {
+        chatReport = ReportUtils.buildOptimisticChatReport([debtorEmail]);
+        isNewChat = true;
+    }
+    let iouReport;
+    const originalIOUStatus = chatReport.hasOutstandingIOU;
+    if (originalIOUStatus) {
+        iouReport = IOUUtils.updateIOUOwnerAndTotal(
+            iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`],
+            recipientEmail,
+            amount,
+        );
+    } else {
+        iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, preferredLocale);
+    }
+    const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
 
-/**
- * @param {Object} response
- */
-function processIOUErrorResponse(response) {
-    Onyx.merge(ONYXKEYS.IOU, {
-        loading: false,
-        creatingIOUTransaction: false,
-        error: true,
-    });
-    Growl.error(getIOUErrorMessage(response));
-}
+    const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
+        newSequenceNumber,
+        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+        amount,
+        currency,
+        comment,
+        [participant],
+        '',
+        '',
+        iouReport.reportID,
+    );
 
-function startLoadingAndResetError() {
-    Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
-}
+    // First, add data that will be used in all cases
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                ...chatReport,
+                lastVisitedTimestamp: Date.now(),
+                lastReadSequenceNumber: newSequenceNumber,
+                maxSequenceNumber: newSequenceNumber,
+                lastMessageText: optimisticReportAction.message[0].text,
+                lastMessageHtml: optimisticReportAction.message[0].html,
+                hasOutstandingIOU: iouReport.total !== 0,
+                iouReportID: iouReport.reportID,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticReportAction.sequenceNumber]: optimisticReportAction,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReport.reportID}`,
+            value: iouReport,
+        },
+    ];
 
-/**
- * Creates IOUSplit Transaction
- *
- * @param {Object} params
- * @param {Number} params.amount
- * @param {String} params.comment
- * @param {String} params.currency
- * @param {String} params.debtorEmail
- */
-function createIOUTransaction(params) {
-    startLoadingAndResetError();
-    DeprecatedAPI.CreateIOUTransaction(params)
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                processIOUErrorResponse(response);
-                return;
-            }
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticReportAction.sequenceNumber]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                hasOutstandingIOU: originalIOUStatus,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticReportAction.sequenceNumber]: {
+                    ...optimisticReportAction,
+                    pendingAction: null,
+                    errors: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                    },
+                },
+            },
+        },
+    ];
 
-            getIOUReportsForNewTransaction([response]);
-            Navigation.navigate(ROUTES.getReportRoute(response.chatReportID));
-        });
+    // Now, let's add the data we need just when we are creating a new chat report
+    if (isNewChat) {
+        const optimisticCreateAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
+        optimisticData[0].value = {
+            ...optimisticData[0].value,
+            pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+        };
+        optimisticData.push(
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                value: optimisticCreateAction,
+            },
+        );
+
+        successData.push(
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                value: {
+                    pendingFields: null,
+                    errorFields: null,
+                },
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                value: {
+                    0: {
+                        pendingAction: null,
+                    },
+                },
+            },
+        );
+
+        failureData.push(
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                value: {
+                    pendingFields: null,
+                },
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                value: {
+                    0: {
+                        pendingAction: null,
+                    },
+                },
+            },
+        );
+    }
+    API.write('RequestMoney', {
+        debtorEmail,
+        amount,
+        currency,
+        comment,
+        iouReportID: iouReport.reportID,
+        chatReportID: chatReport.reportID,
+        transactionID: NumberUtils.rand64(),
+        reportActionID: optimisticReportAction.reportActionID,
+        clientID: optimisticReportAction.sequenceNumber,
+    }, {optimisticData, successData, failureData});
+    Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
 }
 
 /**
@@ -164,6 +246,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         groupChatReportMaxSequenceNumber + 1,
         CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
         Math.round(amount * 100),
+        currency,
         comment,
         participants,
     );
@@ -269,6 +352,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             oneOnOneChatReportMaxSequenceNumber + 1,
             CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             splitAmount,
+            currency,
             comment,
             [participant],
             '',
@@ -543,10 +627,10 @@ function payIOUReport({
 }
 
 export {
-    createIOUTransaction,
     splitBill,
     splitBillAndOpenReport,
     rejectTransaction,
+    requestMoney,
     payIOUReport,
     setIOUSelectedCurrency,
 };

@@ -16,10 +16,10 @@ const propTypes = {
     reportActions: PropTypes.shape(reportActionPropTypes),
 
     /** ReportID for the associated chat report */
-    chatReportID: PropTypes.number.isRequired,
+    chatReportID: PropTypes.string.isRequired,
 
     /** ReportID for the associated IOU report */
-    iouReportID: PropTypes.number.isRequired,
+    iouReportID: PropTypes.string.isRequired,
 
     /** Email for the authenticated user */
     userEmail: PropTypes.string.isRequired,

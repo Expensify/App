@@ -342,14 +342,12 @@ class IOUModal extends Component {
             return;
         }
 
-        IOU.createIOUTransaction({
-            comment: this.state.comment,
-
-            // Send in cents to API.
-            amount: Math.round(this.state.amount * 100),
-            currency: this.props.iou.selectedCurrencyCode,
-            debtorEmail: OptionsListUtils.addSMSDomainIfPhoneNumber(this.state.participants[0].login),
-        });
+        IOU.requestMoney(this.props.report,
+            Math.round(this.state.amount * 100),
+            this.props.iou.selectedCurrencyCode,
+            this.props.currentUserPersonalDetails.login,
+            this.state.participants[0],
+            this.state.comment);
     }
 
     render() {

@@ -71,6 +71,7 @@ class ReportActionItemMessageEdit extends React.Component {
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
         this.saveButtonID = 'saveButton';
         this.cancelButtonID = 'cancelButton';
+        this.emojiButtonID = 'emojiButton';
 
         const parser = new ExpensiMark();
         const draftMessage = parser.htmlToMarkdown(this.props.draftMessage);
@@ -81,6 +82,7 @@ class ReportActionItemMessageEdit extends React.Component {
                 start: draftMessage.length,
                 end: draftMessage.length,
             },
+            isFocused: false,
         };
     }
 
@@ -198,7 +200,14 @@ class ReportActionItemMessageEdit extends React.Component {
         const hasExceededMaxCommentLength = this.state.draft.length > CONST.MAX_COMMENT_LENGTH;
         return (
             <View style={styles.chatItemMessage}>
-                <View style={[styles.chatItemComposeBox, styles.flexRow, styles.chatItemComposeBoxColor, hasExceededMaxCommentLength && styles.borderColorDanger]}>
+                <View
+                    style={[
+                        styles.chatItemComposeBox,
+                        styles.flexRow,
+                        this.state.isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
+                        hasExceededMaxCommentLength && styles.borderColorDanger,
+                    ]}
+                >
                     <Composer
                         multiline
                         ref={(el) => {
@@ -211,15 +220,16 @@ class ReportActionItemMessageEdit extends React.Component {
                         maxLines={16} // This is the same that slack has
                         style={[styles.textInputCompose, styles.flex4, styles.editInputComposeSpacing]}
                         onFocus={() => {
+                            this.setState({isFocused: true});
                             ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
                             toggleReportActionComposeView(false, VirtualKeyboard.shouldAssumeIsOpen());
                         }}
                         onBlur={(event) => {
                             // Return to prevent re-render when save/cancel button is pressed which cancels the onPress event by re-rendering
-                            if (_.contains([this.saveButtonID, this.cancelButtonID], lodashGet(event, 'nativeEvent.relatedTarget.id'))) {
+                            if (_.contains([this.saveButtonID, this.cancelButtonID, this.emojiButtonID], lodashGet(event, 'nativeEvent.relatedTarget.id'))) {
                                 return;
                             }
-
+                            this.setState({isFocused: false});
                             toggleReportActionComposeView(true, VirtualKeyboard.shouldAssumeIsOpen());
                         }}
                         selection={this.state.selection}
@@ -230,6 +240,7 @@ class ReportActionItemMessageEdit extends React.Component {
                             isDisabled={this.props.shouldDisableEmojiPicker}
                             onModalHide={() => InteractionManager.runAfterInteractions(() => this.textInput.focus())}
                             onEmojiSelected={this.addEmojiToTextBox}
+                            nativeID={this.emojiButtonID}
                         />
                     </View>
 
