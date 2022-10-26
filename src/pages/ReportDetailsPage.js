@@ -67,7 +67,7 @@ class ReportDetailsPage extends Component {
             key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
             translationKey: 'common.members',
             icon: Expensicons.Users,
-            subtitle: props.report.participants.length,
+            subtitle: lodashGet(props.report, 'participants', []).length,
             action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
         });
 
