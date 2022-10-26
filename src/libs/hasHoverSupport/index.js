@@ -8,7 +8,7 @@ import * as Browser from '../Browser';
 
 function hasHoverSupport() {
     if (Browser.isInternetExplorer()) {
-        return true;
+        return !Browser.isMobile();
     }
     return !window.matchMedia('(hover: none)').matches;
 }
