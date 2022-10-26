@@ -1,14 +1,13 @@
 import React, {PureComponent} from 'react';
 import {View, Image} from 'react-native';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import Log from '../libs/Log';
 import styles from '../styles/styles';
 import makeCancellablePromise from '../libs/MakeCancellablePromise';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
-import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
-import compose from '../libs/compose';
-import lodashGet from 'lodash/get';
 
 const propTypes = {
     /** Url for image to display */
@@ -20,11 +19,25 @@ const propTypes = {
 
     /** Callback fired when the image has been measured. */
     onMeasure: PropTypes.func,
+
+    /** Does the image require an authToken? */
+    isAuthTokenRequired: PropTypes.bool,
+
+    /* Onyx props */
+    /** Session object */
+    session: PropTypes.shape({
+        /** An error message to display to the user */
+        encryptedAuthToken: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
     style: {},
     onMeasure: () => {},
+    isAuthTokenRequired: false,
+    session: {
+        encryptedAuthToken: false,
+    },
 };
 
 /**
@@ -108,6 +121,9 @@ class ImageWithSizeCalculation extends PureComponent {
     }
 
     render() {
+        const headers = this.props.isAuthTokenRequired ? {
+            'X-Chat-Img-Authorization': lodashGet(this.props.session, 'encryptedAuthToken', ''),
+        } : {};
         return (
             <View
                 style={[
@@ -123,9 +139,7 @@ class ImageWithSizeCalculation extends PureComponent {
                     ]}
                     source={{
                         uri: this.props.url,
-                        headers: {
-                            'X-Chat-Img-Authorization': lodashGet(this.props.session, 'encryptedAuthToken', ''),
-                        },
+                        ...headers,
                     }}
                     resizeMode="contain"
                     onLoadStart={this.imageLoadingStart}
@@ -143,8 +157,6 @@ class ImageWithSizeCalculation extends PureComponent {
 
 ImageWithSizeCalculation.propTypes = propTypes;
 ImageWithSizeCalculation.defaultProps = defaultProps;
-export default compose(
-    withOnyx({
-        session: {key: ONYXKEYS.SESSION},
-    }),
-)(ImageWithSizeCalculation);
+export default withOnyx({
+    session: {key: ONYXKEYS.SESSION},
+})(ImageWithSizeCalculation);

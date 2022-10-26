@@ -15,7 +15,7 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
 
-    /** Do the urls require an authToken? */
+    /** Does the image require an authToken? */
     isAuthTokenRequired: PropTypes.bool.isRequired,
 
     /** Width of the thumbnail image */
@@ -100,6 +100,7 @@ class ThumbnailImage extends PureComponent {
                     <ImageWithSizeCalculation
                         url={url}
                         onMeasure={this.updateImageSize}
+                        isAuthTokenRequired={this.props.isAuthTokenRequired}
                     />
                 </View>
             </View>
