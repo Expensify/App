@@ -975,7 +975,7 @@ PODS:
     - React-RCTText
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (3.17.0):
+  - RNScreens (3.18.2):
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
@@ -983,8 +983,8 @@ PODS:
     - React-Codegen
     - React-RCTFabric
     - ReactCommon/turbomodule/core
-    - RNScreens/common (= 3.17.0)
-  - RNScreens/common (3.17.0):
+    - RNScreens/common (= 3.18.2)
+  - RNScreens/common (3.18.2):
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
@@ -992,8 +992,14 @@ PODS:
     - React-Codegen
     - React-RCTFabric
     - ReactCommon/turbomodule/core
-  - RNSVG (12.4.4):
-    - React-Core
+  - RNSVG (13.4.0):
+    - RCT-Folly
+    - RCTRequired
+    - RCTTypeSafety
+    - React
+    - React-Codegen
+    - React-RCTFabric
+    - ReactCommon/turbomodule/core
   - SDWebImage (5.11.1):
     - SDWebImage/Core (= 5.11.1)
   - SDWebImage/Core (5.11.1)
@@ -1400,8 +1406,8 @@ SPEC CHECKSUMS:
   RNPermissions: dcdb7b99796bbeda6975a6e79ad519c41b251b1c
   RNReactNativeHapticFeedback: 1e3efeca9628ff9876ee7cdd9edec1b336913f8c
   RNReanimated: ec9d4786dfc7f7d064f5114aa8e9737d7740704e
-  RNScreens: e2cd04caa74748a6e42609a7b84f76c71d70a6ee
-  RNSVG: ecd661f380a07ba690c9c5929c475a44f432d674
+  RNScreens: 208223c783496e6d0aa92ffdf307f61d58756fc1
+  RNSVG: 8ef4c60d9378eab6996a3f006dfb5784e6dab302
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
