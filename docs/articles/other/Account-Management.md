@@ -15,7 +15,7 @@ For real-time responses and simple troubleshooting issues, you can always messag
 # How do I know if I have an account manager?
 If you are a policy or domain admin, you will hear from your account manager as soon as one gets assigned to your company. You’ll also have the option to contact them when you log in to your account and click the Concierge icon.
 
-# How do I contact my account manager?
+## How do I contact my account manager?
 You can contact your account manager by:
 - Logging in to your Expensify account, opening Concierge, and clicking the “Chat with your  Account Manager” button;
 -  Replying to or clicking the chat link on any email you get from your Account Manager;
