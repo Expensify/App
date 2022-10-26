@@ -259,6 +259,12 @@ function setPersonalDetails(details, shouldGrowl) {
         });
 }
 
+/**
+ * @param {String} firstName
+ * @param {String} lastName
+ * @param {String} pronouns
+ * @param {Array} timezone
+ */
 function updateProfile(firstName, lastName, pronouns, timezone) {
     API.write('UpdateProfile', {
         firstName,
