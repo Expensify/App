@@ -244,92 +244,6 @@ function fetchIOUReportID(debtorEmail) {
 }
 
 /**
- * Fetches chat reports when provided a list of chat report IDs.
- * If the shouldRedirectIfInaccessible flag is set, we redirect to the Concierge chat
- * when we find an inaccessible chat
- * @param {Array} chatList
- * @param {Boolean} shouldRedirectIfInaccessible
- * @returns {Promise<Object[]>} only used internally when fetchAllReports() is called
- */
-function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
-    let fetchedReports;
-    const simplifiedReports = {};
-    return DeprecatedAPI.GetReportSummaryList({reportIDList: chatList.join(',')})
-        .then(({reportSummaryList, jsonCode}) => {
-            Log.info('[Report] successfully fetched report data', false, {chatList});
-            fetchedReports = reportSummaryList;
-
-            // If we receive a 404 response while fetching a single report, treat that report as inaccessible.
-            if (jsonCode === 404 && shouldRedirectIfInaccessible) {
-                throw new Error(CONST.REPORT.ERROR.INACCESSIBLE_REPORT);
-            }
-
-            return Promise.all(_.map(fetchedReports, (chatReport) => {
-                // If there aren't any IOU actions, we don't need to fetch any additional data
-                if (!chatReport.hasIOUAction) {
-                    return;
-                }
-
-                // Group chat reports cannot and should not be associated with a specific IOU report
-                const participants = getParticipantEmailsFromReport(chatReport);
-                if (participants.length > 1) {
-                    return;
-                }
-                if (participants.length === 0) {
-                    Log.alert('[Report] Report with IOU action but does not have any participant.', {
-                        reportID: chatReport.reportID,
-                        participants,
-                    });
-                    return;
-                }
-
-                return fetchIOUReportID(participants[0])
-                    .then((iouReportID) => {
-                        if (!iouReportID) {
-                            return Promise.resolve();
-                        }
-
-                        return fetchIOUReport(iouReportID, chatReport.reportID);
-                    });
-            }));
-        })
-        .then((iouReportObjects) => {
-            // Process the reports and store them in Onyx. At the same time we'll save the simplified reports in this
-            // variable called simplifiedReports which hold the participants (minus the current user) for each report.
-            // Using this simplifiedReport we can call PersonalDetails.getFromReportParticipants to get the
-            // personal details of all the participants and even link up their avatars to report icons.
-            const reportIOUData = {};
-            _.each(fetchedReports, (report) => {
-                const simplifiedReport = getSimplifiedReportObject(report);
-                simplifiedReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = simplifiedReport;
-            });
-
-            _.each(iouReportObjects, (iouReportObject) => {
-                if (!iouReportObject) {
-                    return;
-                }
-
-                const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
-                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReportObject.chatReportID}`;
-                reportIOUData[iouReportKey] = iouReportObject;
-                simplifiedReports[reportKey].iouReportID = iouReportObject.reportID;
-                simplifiedReports[reportKey].hasOutstandingIOU = iouReportObject.stateNum
-                    === CONST.REPORT.STATE_NUM.PROCESSING && iouReportObject.total !== 0;
-            });
-
-            // We use mergeCollection such that it updates the collection in one go.
-            // Any withOnyx subscribers to this key will also receive the complete updated props just once
-            // than updating props for each report and re-rendering had merge been used.
-            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, reportIOUData);
-            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReports);
-
-            // Fetch the personal details if there are any
-            PersonalDetails.getFromReportParticipants(_.values(simplifiedReports));
-            return simplifiedReports;
-        });
-}
-
-/**
  * Given IOU object, save the data to Onyx.
  *
  * @param {Object} iouReportObject
@@ -897,7 +811,7 @@ function handleReportChanged(report) {
     // A report can be missing a name if a comment is received via pusher event
     // and the report does not yet exist in Onyx (eg. a new DM created with the logged in person)
     if (report.reportID && report.reportName === undefined) {
-        fetchChatReportsByIDs([report.reportID]);
+        openReport(report.reportID);
     }
 }
 
@@ -1428,7 +1342,6 @@ Onyx.connect({
 });
 
 export {
-    fetchChatReportsByIDs,
     fetchIOUReportByID,
     addComment,
     addAttachment,
