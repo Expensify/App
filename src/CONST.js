@@ -781,8 +781,8 @@ const CONST = {
         ];
     },
 
-    // There's a limit of 60k characters in Auth - https://github.com/Expensify/Auth/blob/198d59547f71fdee8121325e8bc9241fc9c3236a/auth/lib/Request.h#L28
-    MAX_COMMENT_LENGTH: 60000,
+    // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
+    MAX_COMMENT_LENGTH: 15000,
 
     FORM_CHARACTER_LIMIT: 50,
     AVATAR_CROP_MODAL: {
