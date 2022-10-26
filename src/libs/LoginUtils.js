@@ -59,7 +59,7 @@ function convertLoginListToObject(loginList = {}) {
  * @returns {Object}
  */
 function keepExpensifyPartners(loginList = {}) {
-    return _.pick(loginList, login => login.partnerName === 'expensify.com');
+    return _.pick(loginList, login => login.partnerName === CONST.EXPENSIFY_PARTNER_NAME);
 }
 
 /**
