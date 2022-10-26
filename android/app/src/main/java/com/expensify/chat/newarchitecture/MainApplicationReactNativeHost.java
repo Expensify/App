@@ -2,6 +2,8 @@ package com.expensify.chat.newarchitecture;
 
 import android.app.Application;
 import androidx.annotation.NonNull;
+import com.expensify.chat.bootsplash.BootSplashPackage;
+import com.expensify.chat.ExpensifyAppPackage;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactNativeHost;
@@ -51,6 +53,8 @@ public class MainApplicationReactNativeHost extends ReactNativeHost {
     //     packages.add(new TurboReactPackage() { ... });
     // If you have custom Fabric Components, their ViewManagers should also be loaded here
     // inside a ReactPackage.
+    packages.add(new BootSplashPackage());
+    packages.add(new ExpensifyAppPackage());
     return packages;
   }
 

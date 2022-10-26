@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.CursorWindow;
 import androidx.multidex.MultiDexApplication;
 import com.expensify.chat.bootsplash.BootSplashPackage;
+import com.expensify.chat.newarchitecture.MainApplicationReactNativeHost;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
 import com.reactnativecommunity.webview.RNCWebViewPackage;
@@ -48,10 +49,8 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
         }
       };
 
-  // TODO: Use this to enable new architecture.
-  // private final ReactNativeHost mNewArchitectureNativeHost =
-  //       new MainApplicationReactNativeHost(this);
-  private final ReactNativeHost mNewArchitectureNativeHost = null;
+  private final ReactNativeHost mNewArchitectureNativeHost =
+        new MainApplicationReactNativeHost(this);
 
   @Override
   public ReactNativeHost getReactNativeHost() {
