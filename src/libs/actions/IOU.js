@@ -371,6 +371,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             createChat: existingOneOnOneChatReport ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         };
 
+        // If we only have one other participant, we just need to update onyxData for the groupChatReport and add an iouReportAction of type = create
+        // If we have more participants, we need to push the new oneOnOneChaReport, the create reportAction and iouReportAction of type = create to onyxData
         if (!hasMultipleParticipants) {
             optimisticData[0].value = oneOnOneChatReport;
             optimisticData[1].value = {
@@ -450,6 +452,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             );
         }
 
+        // Regardless of the number of participants, we always want to push the iouReport update to onyxData
         optimisticData.push({
             onyxMethod: existingOneOnOneChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneIOUReport.reportID}`,
