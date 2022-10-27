@@ -218,32 +218,6 @@ function fetchIOUReport(iouReportID, chatReportID) {
 }
 
 /**
- * Given debtorEmail finds active IOU report ID via GetIOUReport API call
- *
- * @param {String} debtorEmail
- * @returns {Promise}
- */
-function fetchIOUReportID(debtorEmail) {
-    return DeprecatedAPI.GetIOUReport({
-        debtorEmail,
-    }).then((response) => {
-        const iouReportID = response.reportID || 0;
-        if (response.jsonCode !== 200) {
-            console.error(response.message);
-            return;
-        }
-        if (iouReportID === 0) {
-            // If there is no IOU report for this user then we will assume it has been paid and do nothing here.
-            // All reports are initialized with hasOutstandingIOU: false. Since the IOU report we were looking for has
-            // been settled then there's nothing more to do.
-            Log.info('GetIOUReport returned a reportID of 0, not fetching IOU report data');
-            return;
-        }
-        return iouReportID;
-    });
-}
-
-/**
  * Given IOU object, save the data to Onyx.
  *
  * @param {Object} iouReportObject
