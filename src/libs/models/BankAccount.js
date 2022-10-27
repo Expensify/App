@@ -1,17 +1,8 @@
 import _ from 'underscore';
-import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashHas from 'lodash/has';
 import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
-
-let currentUserLogin;
-
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: val => currentUserLogin = val && val.email,
-});
 
 class BankAccount {
     static STATE = {
