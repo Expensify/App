@@ -378,7 +378,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 },
             },
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: existingOneOnOneChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneIOUReport.reportID}`,
                 value: oneOnOneIOUReport,
             },
