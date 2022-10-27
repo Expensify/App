@@ -301,6 +301,11 @@ export default {
         offline: 'Desconectado',
         syncing: 'Sincronizando',
     },
+    timezonePage: {
+        timezone: 'Zona horaria',
+        isShownOnProfile: '',
+        getLocationAutomatically: '',
+    },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Agregar número de teléfono',
         addEmailAddress: 'Agregar dirección de email',
