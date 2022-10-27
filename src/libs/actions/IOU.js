@@ -245,7 +245,7 @@ function requestMoney(report, amount, currency, recipientEmail, debtorEmail, com
         };
         optimisticData.push(
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: CONST.ONYX.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
                 value: optimisticCreateAction,
             },
