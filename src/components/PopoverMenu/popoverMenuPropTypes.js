@@ -47,9 +47,6 @@ const propTypes = {
     /** A react-native-animatable animation timing for the modal display animation. */
     animationInTiming: PropTypes.number,
 
-    /** A react-native-animatable animation timing for the modal hide animation. */
-    animationOutTiming: PropTypes.number,
-
     /** Optional non-interactive text to display as a header for any create menu */
     headerText: PropTypes.string,
 
@@ -61,7 +58,6 @@ const defaultProps = {
     animationIn: 'fadeIn',
     animationOut: 'fadeOut',
     animationInTiming: 300,
-    animationOutTiming: 300,
     headerText: undefined,
     disableAnimation: true,
 };
