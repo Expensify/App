@@ -184,7 +184,7 @@ class WorkspaceReimburseView extends React.Component {
         Policy.updateCustomUnitRate(this.props.policy.id, currentCustomUnitRate, this.state.unitID, {
             ...currentCustomUnitRate,
             rate: numValue * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
-        }, this.props.policy.lastModified,);
+        }, this.props.policy.lastModified);
     }
 
     render() {
