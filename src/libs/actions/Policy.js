@@ -506,9 +506,10 @@ function hideWorkspaceAlertMessage(policyID) {
 /**
  * @param {String} policyID
  * @param {Object} currentCustomUnit
- * @param {Object} values The new custom unit values
+ * @param {Object} newCustomUnit
+ * @param {Number} lastModified
  */
-function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
+function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, lastModified) {
     const optimisticData = [
         {
             onyxMethod: 'merge',
@@ -560,34 +561,32 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, values) {
 
     API.write('UpdateWorkspaceCustomUnit', {
         policyID,
+        lastModified,
         customUnit: JSON.stringify(newCustomUnit),
-        lastModified: new Date().getTime(),
     }, {optimisticData, successData, failureData});
 }
 
 /**
  * @param {String} policyID
  * @param {String} customUnitID
- * @param {Object} values
+ * @param {Object} newCustomUnitRate
+ * @param {Number} lastModified
  */
-function setCustomUnitRate(policyID, customUnitID, values) {
-    DeprecatedAPI.Policy_CustomUnitRate_Update({
-        policyID: policyID.toString(),
-        customUnitID: customUnitID.toString(),
-        customUnitRate: JSON.stringify(values),
-        lastModified: null,
-    })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                throw new Error();
-            }
-
-            updateLocalPolicyValues(policyID, {
-                customUnit: {
-                    rate: {
-                        id: values.customUnitRateID,
-                        name: values.name,
-                        value: Number(values.rate),
+function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, newCustomUnitRate, lastModified) {
+    const optimisticData = [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnitID]: {
+                        rates: {
+                            [newCustomUnitRate.customUnitRateID]: {
+                                ...newCustomUnitRate,
+                                errors: null,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                        },
                     },
                 },
             });
@@ -639,8 +638,8 @@ function setCustomUnitRate(policyID, customUnitID, values) {
     API.write('UpdateWorkspaceCustomUnitRate', {
         policyID,
         customUnitID,
+        lastModified,
         customUnitRate: JSON.stringify(newCustomUnitRate),
-        lastModified: new Date().getTime(),
     }, {optimisticData, successData, failureData});
 }
 

@@ -52,6 +52,8 @@ const propTypes = {
             })),
         })),
         outputCurrency: PropTypes.string,
+        hasVBA: PropTypes.bool,
+        lastModified: PropTypes.number,
     }).isRequired,
 
     ...withLocalizePropTypes,
@@ -138,6 +140,7 @@ class WorkspaceReimburseView extends React.Component {
             customUnitID: this.state.unitID,
             customUnitName: this.state.unitName,
             attributes: {unit: value},
+            this.props.policy.lastModified,
         });
     }
 
@@ -156,15 +159,12 @@ class WorkspaceReimburseView extends React.Component {
             return;
         }
 
-        this.setState({
-            rateValue: numValue.toFixed(3),
-        });
-
-        Policy.setCustomUnitRate(this.props.policyID, this.state.unitID, {
-            customUnitRateID: this.state.rateID,
-            name: this.state.rateName,
-            rate: numValue.toFixed(3) * 100,
-        }, null);
+        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
+        const currentCustomUnitRate = lodashGet(distanceCustomUnit, ['rates', this.state.unitRateID], {});
+        Policy.updateCustomUnitRate(this.props.policy.id, currentCustomUnitRate, this.state.unitID, {
+            ...currentCustomUnitRate,
+            rate: numValue * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
+        }, this.props.policy.lastModified,);
     }
 
     render() {
