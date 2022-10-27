@@ -490,8 +490,9 @@ function hideWorkspaceAlertMessage(policyID) {
  * @param {String} policyID
  * @param {Object} currentCustomUnit
  * @param {Object} newCustomUnit
+ * @param {Number} lastModified
  */
-function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit) {
+function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, lastModified) {
     const optimisticData = [
         {
             onyxMethod: 'merge',
@@ -543,8 +544,8 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit) {
 
     API.write('UpdateWorkspaceCustomUnit', {
         policyID,
+        lastModified,
         customUnit: JSON.stringify(newCustomUnit),
-        lastModified: new Date().getTime(),
     }, {optimisticData, successData, failureData});
 }
 
@@ -553,8 +554,9 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit) {
  * @param {Object} currentCustomUnitRate
  * @param {String} customUnitID
  * @param {Object} newCustomUnitRate
+ * @param {Number} lastModified
  */
-function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, newCustomUnitRate) {
+function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, newCustomUnitRate, lastModified) {
     const optimisticData = [
         {
             onyxMethod: 'merge',
@@ -617,8 +619,8 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
     API.write('UpdateWorkspaceCustomUnitRate', {
         policyID,
         customUnitID,
+        lastModified,
         customUnitRate: JSON.stringify(newCustomUnitRate),
-        lastModified: new Date().getTime(),
     }, {optimisticData, successData, failureData});
 }
 
