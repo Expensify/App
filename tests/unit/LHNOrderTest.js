@@ -5,8 +5,9 @@ import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import CONST from '../../src/CONST';
 
-// Be sure to include the mocked permissions library or else the beta tests won't work
+// Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');
+jest.mock('../../src/components/Icon/Expensicons');
 
 const ONYXKEYS = {
     PERSONAL_DETAILS: 'personalDetails',
@@ -18,6 +19,7 @@ const ONYXKEYS = {
         REPORT_ACTIONS: 'reportActions_',
         REPORT_IOUS: 'reportIOUs_',
     },
+    NETWORK: 'network',
 };
 
 describe('Sidebar', () => {
@@ -25,6 +27,9 @@ describe('Sidebar', () => {
         keys: ONYXKEYS,
         registerStorageEventListener: () => {},
     }));
+
+    // Initialize the network key for OfflineWithFeedback
+    beforeEach(() => Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false}));
 
     // Clear out Onyx after each test so that each test starts with a clean slate
     afterEach(() => {

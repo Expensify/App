@@ -81,7 +81,7 @@ export default {
         error: {
             invalidAmount: 'Invalid amount',
             acceptedTerms: 'You must accept the Terms of Service to continue',
-            phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+            phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
         please: 'Please',
         contactUs: 'contact us',
@@ -261,6 +261,7 @@ export default {
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
+            genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
         },
     },
     notificationPreferences: {
@@ -956,8 +957,8 @@ export default {
         },
         error: {
             phoneNumberExtension: 'Please enter a valid phone extension number',
-            firstName: 'Please provide your first name so our guides know how to address you!',
-            lastName: 'Please provide your last name so our guides know how to address you!',
+            firstName: 'Please provide your first name',
+            lastName: 'Please provide your last name',
             firstNameLength: 'First name shouldn\'t be longer than 50 characters',
             lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
         },

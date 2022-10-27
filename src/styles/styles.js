@@ -2574,7 +2574,6 @@ const styles = {
     },
 
     keyboardShortcutModalContainer: {
-        maxWidth: 600,
         maxHeight: '100%',
         flex: '0 0 auto',
     },
@@ -2675,6 +2674,11 @@ const styles = {
         userSelect: 'text',
     },
 
+    userSelectNone: {
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+    },
+
     screenCenteredContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -2706,6 +2710,17 @@ const styles = {
         backgroundColor: themeColors.dragAndDropBackground,
         opacity: 0.96,
         zIndex: 2,
+    },
+
+    textPill: {
+        ellipsizeMode: 'end',
+        backgroundColor: colors.gray2,
+        borderRadius: 10,
+        overflow: 'hidden',
+        paddingVertical: 2,
+        flexShrink: 1,
+        fontSize: variables.fontSizeSmall,
+        ...spacing.ph2,
     },
 };
 
