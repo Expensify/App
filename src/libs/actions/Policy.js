@@ -100,6 +100,7 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
             || fullPolicyOrPolicySummary.avatarURL
             || lodashGet(fullPolicyOrPolicySummary, 'value.avatarURL', ''),
         customUnits: lodashGet(fullPolicyOrPolicySummary, 'value.customUnits', {}),
+        lastModified: lodashGet(fullPolicyOrPolicySummary, 'value.lastModified', 0),
     };
 }
 
