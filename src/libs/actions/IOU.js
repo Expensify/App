@@ -244,14 +244,10 @@ function requestMoney(report, amount, currency, recipientEmail, debtorEmail, com
             pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
         };
         optimisticData[1].onyxMethod = CONST.ONYX.METHOD.SET;
-        optimisticData.push(
-            {
-                onyxMethod: CONST.ONYX.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-                value: optimisticCreateAction,
-            },
-        );
-
+        optimisticData[1].value = {
+            ...optimisticCreateAction,
+            ...optimisticData[1].value,
+        };
         successData.push(
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
