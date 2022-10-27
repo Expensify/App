@@ -7,6 +7,7 @@ import * as CollectionUtils from '../../libs/CollectionUtils';
 
 const propTypes = {
     /** Same as FlatList can be any array of anything */
+    // eslint-disable-next-line react/forbid-prop-types
     data: PropTypes.arrayOf(PropTypes.any),
 
     /** Same as FlatList although we wrap it in a measuring helper before passing to the actual FlatList component */

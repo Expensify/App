@@ -23,6 +23,7 @@ export default {
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
     SETTINGS_PREFERENCES: 'settings/preferences',
+    SETTINGS_WORKSPACES: 'settings/workspaces',
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
     SETTINGS_PASSWORD: 'settings/security/password',
@@ -42,6 +43,10 @@ export default {
     REPORT,
     REPORT_WITH_ID: 'r/:reportID',
     getReportRoute: reportID => `r/${reportID}`,
+
+    /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
+    CONCIERGE: 'concierge',
+
     IOU_REQUEST,
     IOU_BILL,
     IOU_SEND,

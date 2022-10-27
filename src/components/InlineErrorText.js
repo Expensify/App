@@ -9,6 +9,7 @@ const propTypes = {
     children: PropTypes.string.isRequired,
 
     /** Styling for inline error text */
+    // eslint-disable-next-line react/forbid-prop-types
     styles: PropTypes.arrayOf(PropTypes.object),
 };
 

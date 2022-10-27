@@ -21,10 +21,18 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Text from './Text';
 import SelectCircle from './SelectCircle';
 import SubscriptAvatar from './SubscriptAvatar';
+import OfflineWithFeedback from './OfflineWithFeedback';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
+import variables from '../styles/variables';
 
 const propTypes = {
+    /** The accessibility hint for the entire option row. Primarily used for unit testing to identify the component */
+    accessibilityHint: PropTypes.string,
+
+    /** The accessibility hint for alternative text label. Primarily used for unit testing to identify the component */
+    alternateTextAccessibilityLabel: PropTypes.string,
+
     /** Background Color of the Option Row */
     backgroundColor: PropTypes.string,
 
@@ -68,6 +76,8 @@ const propTypes = {
 };
 
 const defaultProps = {
+    accessibilityHint: '',
+    alternateTextAccessibilityLabel: '',
     backgroundColor: colors.white,
     hoverStyle: styles.sidebarLinkHover,
     hideAdditionalOptionStates: false,
@@ -122,36 +132,48 @@ const OptionRow = (props) => {
     const avatarTooltips = props.showTitleTooltip && !props.option.isChatRoom && !props.option.isArchivedRoom ? _.pluck(displayNamesWithTooltips, 'tooltip') : undefined;
 
     return (
-        <Hoverable>
-            {hovered => (
-                <TouchableOpacity
-                    ref={el => touchableRef = el}
-                    onPress={(e) => {
-                        e.preventDefault();
-                        props.onSelectRow(props.option, touchableRef);
-                    }}
-                    disabled={props.isDisabled}
-                    activeOpacity={0.8}
-                    style={[
-                        styles.flexRow,
-                        styles.alignItemsCenter,
-                        styles.justifyContentBetween,
-                        styles.sidebarLink,
-                        styles.sidebarLinkInner,
-                        StyleUtils.getBackgroundColorStyle(props.backgroundColor),
-                        props.optionIsFocused ? styles.sidebarLinkActive : null,
-                        hovered && !props.optionIsFocused ? props.hoverStyle : null,
-                        props.isDisabled && styles.cursorDisabled,
-                    ]}
-                >
-                    <View style={sidebarInnerRowStyle}>
-                        <View
-                            style={[
-                                styles.flexRow,
-                                styles.alignItemsCenter,
-                            ]}
-                        >
-                            {
+        <OfflineWithFeedback
+            pendingAction={props.option.pendingAction}
+            errors={props.option.allReportErrors}
+            shouldShowErrorMessages={false}
+        >
+            <Hoverable
+                containerStyles={[
+                    props.isDisabled ? styles.userSelectNone : null,
+                ]}
+            >
+                {hovered => (
+                    <TouchableOpacity
+                        ref={el => touchableRef = el}
+                        onPress={(e) => {
+                            if (e) {
+                                e.preventDefault();
+                            }
+
+                            props.onSelectRow(props.option, touchableRef);
+                        }}
+                        disabled={props.isDisabled}
+                        activeOpacity={0.8}
+                        style={[
+                            styles.flexRow,
+                            styles.alignItemsCenter,
+                            styles.justifyContentBetween,
+                            styles.sidebarLink,
+                            styles.sidebarLinkInner,
+                            StyleUtils.getBackgroundColorStyle(props.backgroundColor),
+                            props.optionIsFocused ? styles.sidebarLinkActive : null,
+                            hovered && !props.optionIsFocused ? props.hoverStyle : null,
+                            props.isDisabled && styles.cursorDisabled,
+                        ]}
+                    >
+                        <View accessibilityHint={props.accessibilityHint} style={sidebarInnerRowStyle}>
+                            <View
+                                style={[
+                                    styles.flexRow,
+                                    styles.alignItemsCenter,
+                                ]}
+                            >
+                                {
                                 !_.isEmpty(props.option.icons)
                                 && (
                                     props.option.shouldShowSubscript ? (
@@ -179,55 +201,77 @@ const OptionRow = (props) => {
                                         />
                                     )
                                 )
-                            }
-                            <View style={contentContainerStyles}>
-                                <DisplayNames
-                                    fullTitle={props.option.text}
-                                    displayNamesWithTooltips={displayNamesWithTooltips}
-                                    tooltipEnabled={props.showTitleTooltip}
-                                    numberOfLines={1}
-                                    textStyles={displayNameStyle}
-                                    shouldUseFullTitle={props.option.isChatRoom || props.option.isPolicyExpenseChat}
-                                />
-                                {props.option.alternateText ? (
-                                    <Text
-                                        style={alternateTextStyle}
+                                }
+                                <View style={contentContainerStyles}>
+                                    <DisplayNames
+                                        accessibilityLabel="Chat user display names"
+                                        fullTitle={props.option.text}
+                                        displayNamesWithTooltips={displayNamesWithTooltips}
+                                        tooltipEnabled={props.showTitleTooltip}
                                         numberOfLines={1}
-                                    >
-                                        {props.option.alternateText}
-                                    </Text>
+                                        textStyles={displayNameStyle}
+                                        shouldUseFullTitle={props.option.isChatRoom || props.option.isPolicyExpenseChat}
+                                    />
+                                    {props.option.alternateText ? (
+                                        <Text
+                                            accessibilityLabel={props.alternateTextAccessibilityLabel}
+                                            style={alternateTextStyle}
+                                            numberOfLines={1}
+                                        >
+                                            {props.option.alternateText}
+                                        </Text>
+                                    ) : null}
+                                </View>
+                                {props.option.descriptiveText ? (
+                                    <View style={[styles.flexWrap]}>
+                                        <Text style={[styles.textLabel]}>
+                                            {props.option.descriptiveText}
+                                        </Text>
+                                    </View>
                                 ) : null}
+                                {props.option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
+                                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                    <Icon
+                                        src={Expensicons.DotIndicator}
+                                        fill={colors.red}
+                                        height={variables.iconSizeSmall}
+                                        width={variables.iconSizeSmall}
+                                    />
+                                </View>
+                                )}
+                                {props.showSelectedState && <SelectCircle isChecked={props.isSelected} />}
                             </View>
-                            {props.option.descriptiveText ? (
-                                <View style={[styles.flexWrap]}>
-                                    <Text style={[styles.textLabel]}>
-                                        {props.option.descriptiveText}
-                                    </Text>
-                                </View>
-                            ) : null}
-                            {props.showSelectedState && <SelectCircle isChecked={props.isSelected} />}
                         </View>
-                    </View>
-                    {!props.hideAdditionalOptionStates && (
-                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                            {props.option.hasDraftComment && (
-                                <View style={styles.ml2}>
-                                    <Icon src={Expensicons.Pencil} height={16} width={16} />
-                                </View>
-                            )}
-                            {props.option.hasOutstandingIOU && (
-                                <IOUBadge iouReportID={props.option.iouReportID} />
-                            )}
-                            {props.option.isPinned && (
-                                <View style={styles.ml2}>
-                                    <Icon src={Expensicons.Pin} height={16} width={16} />
-                                </View>
-                            )}
-                        </View>
-                    )}
-                </TouchableOpacity>
-            )}
-        </Hoverable>
+                        {!props.hideAdditionalOptionStates && (
+                            <View
+                                style={[styles.flexRow, styles.alignItemsCenter]}
+                                accessible={false}
+                            >
+                                {props.option.hasDraftComment && (
+                                    <View
+                                        style={styles.ml2}
+                                        accessibilityLabel={props.translate('sidebarScreen.draftedMessage')}
+                                    >
+                                        <Icon src={Expensicons.Pencil} height={16} width={16} />
+                                    </View>
+                                )}
+                                {props.option.hasOutstandingIOU && (
+                                    <IOUBadge iouReportID={props.option.iouReportID} />
+                                )}
+                                {props.option.isPinned && (
+                                    <View
+                                        style={styles.ml2}
+                                        accessibilityLabel={props.translate('sidebarScreen.chatPinned')}
+                                    >
+                                        <Icon src={Expensicons.Pin} height={16} width={16} />
+                                    </View>
+                                )}
+                            </View>
+                        )}
+                    </TouchableOpacity>
+                )}
+            </Hoverable>
+        </OfflineWithFeedback>
     );
 };
 
@@ -295,6 +339,10 @@ export default withLocalize(memo(OptionRow, (prevProps, nextProps) => {
     }
 
     if (prevProps.backgroundColor !== nextProps.backgroundColor) {
+        return false;
+    }
+
+    if (prevProps.option.brickRoadIndicator !== nextProps.option.brickRoadIndicator) {
         return false;
     }
 

@@ -5,6 +5,9 @@ export default {
     // Holds information about the users account that is logging in
     ACCOUNT: 'account',
 
+    // Holds the reportID for the report between the user and their account manager
+    ACCOUNT_MANAGER_REPORT_ID: 'accountManagerReportID',
+
     // Boolean flag only true when first set
     NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
 
@@ -12,30 +15,14 @@ export default {
     // which tab is the leader, and which ones are the followers
     ACTIVE_CLIENTS: 'activeClients',
 
-    // A key that is set while we are still waiting for the initial round of reports to load. Once set it should not be
-    // false unless we sign out. If there are reports in storage when the app inits this will be `true`.
-    INITIAL_REPORT_DATA_LOADED: 'initialReportDataLoaded',
-
-    // Boolean flag set whenever we are waiting for the reconnection callbacks to finish.
-    IS_LOADING_AFTER_RECONNECT: 'isLoadingAfterReconnect',
-
     // Boolean flag set whenever the sidebar has loaded
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
-
-    // Boolean flag set when workspace is being created
-    IS_CREATING_WORKSPACE: 'isCreatingWorkspace',
 
     // Note: These are Persisted Requests - not all requests in the main queue as the key name might lead one to believe
     PERSISTED_REQUESTS: 'networkRequestQueue',
 
-    // What the active route is for our navigator. Global route that determines what views to display.
-    CURRENT_URL: 'currentURL',
-
     // Stores current date
     CURRENT_DATE: 'currentDate',
-
-    // Currently viewed reportID
-    CURRENTLY_VIEWED_REPORTID: 'currentlyViewedReportID',
 
     // Credentials to authenticate the user
     CREDENTIALS: 'credentials',
@@ -80,6 +67,9 @@ export default {
     // Contains the user's payPalMe address
     NVP_PAYPAL_ME_ADDRESS: 'nvp_paypalMeAddress',
 
+    // Contains the user's payPalMe data
+    PAYPAL: 'paypal',
+
     // Contains the user preference for the LHN priority mode
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
 
@@ -92,6 +82,9 @@ export default {
     // Token needed to initialize Plaid link
     PLAID_LINK_TOKEN: 'plaidLinkToken',
 
+    // Token needed to initialize Onfido
+    ONFIDO_TOKEN: 'onfidoToken',
+
     // Collection Keys
     COLLECTION: {
         REPORT: 'report_',
@@ -101,9 +94,7 @@ export default {
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         REPORT_IOUS: 'reportIOUs_',
         POLICY: 'policy_',
-        REPORTS_WITH_DRAFT: 'reportWithDraft_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
-        IS_LOADING_REPORT_ACTIONS: 'isLoadingReportActions_',
         POLICY_MEMBER_LIST: 'policyMemberList_',
     },
 
@@ -158,29 +149,17 @@ export default {
     // Set when we are loading payment methods
     IS_LOADING_PAYMENT_METHODS: 'isLoadingPaymentMethods',
 
-    // Stores values for the request call form
-    REQUEST_CALL_FORM: 'requestCallForm',
-
     // The number of minutes a user has to wait for a call.
     INBOX_CALL_USER_WAIT_TIME: 'inboxCallUserWaitTime',
 
     // Is report data loading?
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
 
-    // Is policy data loading?
-    IS_LOADING_POLICY_DATA: 'isLoadingPolicyData',
-
-    // Are we loading the create policy room command
-    IS_LOADING_CREATE_POLICY_ROOM: 'isLoadingCratePolicyRoom',
-
-    // Are we loading the rename policy room command
-    IS_LOADING_RENAME_POLICY_ROOM: 'isLoadingRenamePolicyRoom',
-
     // Is Keyboard shortcuts modal open?
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
 
-    // Is close acount modal open?
-    IS_CLOSE_ACCOUNT_MODAL_OPEN: 'isCloseAccountModalOpen',
+    // Data related to user closing their account (loading status and error message)
+    CLOSE_ACCOUNT: 'closeAccount',
 
     // Stores information about active wallet transfer amount, selectedAccountID, status, etc
     WALLET_TRANSFER: 'walletTransfer',
@@ -188,11 +167,14 @@ export default {
     // The policyID of the last workspace whose settings were accessed by the user
     LAST_ACCESSED_WORKSPACE_POLICY_ID: 'lastAccessedWorkspacePolicyID',
 
-    // Validating Email?
-    USER_SIGN_UP: 'userSignUp',
-
     // List of Form ids
     FORMS: {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
+        REQUEST_CALL_FORM: 'requestCallForm',
+        REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
+        WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
     },
+
+    // Whether we should show the compose input or not
+    SHOULD_SHOW_COMPOSE_INPUT: 'shouldShowComposeInput',
 };

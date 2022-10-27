@@ -6,14 +6,13 @@ import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
-import Text from './Text';
+import stylePropTypes from '../styles/stylePropTypes';
 import styles from '../styles/styles';
 import Tooltip from './Tooltip';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import * as StyleUtils from '../styles/StyleUtils';
-import colors from '../styles/colors';
-import variables from '../styles/variables';
+import DotIndicatorMessage from './DotIndicatorMessage';
 
 /**
  * This component should be used when we are using the offline pattern B (offline with feedback).
@@ -29,8 +28,11 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     errors: PropTypes.object,
 
+    /** Whether we should show the error messages */
+    shouldShowErrorMessages: PropTypes.bool,
+
     /** A function to run when the X button next to the error is clicked */
-    onClose: PropTypes.func.isRequired,
+    onClose: PropTypes.func,
 
     /** The content that needs offline feedback */
     children: PropTypes.node.isRequired,
@@ -38,18 +40,26 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
-    /** Additional styles to add after local styles. Applied to Pressable portion of button */
-    style: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
+    /** Additional styles to add after local styles. Applied to the parent container */
+    style: stylePropTypes,
+
+    /** Additional styles to add after local styles. Applied to the children wrapper container */
+    contentContainerStyle: stylePropTypes,
+
+    /** Additional style object for the error row */
+    errorRowStyles: stylePropTypes,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     pendingAction: null,
     errors: null,
+    shouldShowErrorMessages: true,
+    onClose: () => {},
     style: [],
+    contentContainerStyle: [],
+    errorRowStyles: [],
 };
 
 /**
@@ -79,11 +89,6 @@ const OfflineWithFeedback = (props) => {
     const needsStrikeThrough = props.network.isOffline && props.pendingAction === 'delete';
     const hideChildren = !props.network.isOffline && props.pendingAction === 'delete' && !hasErrors;
     let children = props.children;
-    const sortedErrors = _.chain(props.errors)
-        .keys()
-        .sortBy()
-        .map(key => props.errors[key])
-        .value();
 
     // Apply strikethrough to children if needed, but skip it if we are not going to render them
     if (needsStrikeThrough && !hideChildren) {
@@ -92,20 +97,13 @@ const OfflineWithFeedback = (props) => {
     return (
         <View style={props.style}>
             {!hideChildren && (
-                <View style={needsOpacity ? styles.offlineFeedback.pending : {}}>
+                <View style={[needsOpacity ? styles.offlineFeedback.pending : {}, props.contentContainerStyle]}>
                     {children}
                 </View>
             )}
-            {hasErrors && (
-                <View style={styles.offlineFeedback.error}>
-                    <View style={styles.offlineFeedback.errorDot}>
-                        <Icon src={Expensicons.DotIndicator} fill={colors.red} height={variables.iconSizeSmall} width={variables.iconSizeSmall} />
-                    </View>
-                    <View style={styles.offlineFeedback.textContainer}>
-                        {_.map(sortedErrors, (error, i) => (
-                            <Text key={i} style={styles.offlineFeedback.text}>{error}</Text>
-                        ))}
-                    </View>
+            {(props.shouldShowErrorMessages && hasErrors) && (
+                <View style={StyleUtils.combineStyles(styles.offlineFeedback.error, props.errorRowStyles)}>
+                    <DotIndicatorMessage messages={props.errors} type="error" />
                     <Tooltip text={props.translate('common.close')}>
                         <Pressable
                             onPress={props.onClose}
@@ -124,6 +122,7 @@ const OfflineWithFeedback = (props) => {
 
 OfflineWithFeedback.propTypes = propTypes;
 OfflineWithFeedback.defaultProps = defaultProps;
+OfflineWithFeedback.displayName = 'OfflineWithFeedback';
 
 export default compose(
     withLocalize,

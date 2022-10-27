@@ -55,6 +55,9 @@ const propTypes = {
     /** Prefix character */
     prefixCharacter: PropTypes.string,
 
+    /** Whether autoCorrect functionality should enable  */
+    autoCorrect: PropTypes.bool,
+
     /** Form props */
     /** The ID used to uniquely identify the input in a Form */
     inputID: PropTypes.string,
@@ -64,6 +67,9 @@ const propTypes = {
 
     /** Callback to update the value on Form when input is used in the Form component. */
     onInputChange: PropTypes.func,
+
+    /** Whether we should wait before focusing the TextInput, useful when using transitions  */
+    shouldDelayFocus: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -76,6 +82,7 @@ const defaultProps = {
     textInputContainerStyles: [],
     inputStyle: [],
     autoFocus: false,
+    autoCorrect: true,
 
     /**
      * To be able to function as either controlled or uncontrolled component we should not
@@ -93,6 +100,7 @@ const defaultProps = {
     hint: '',
     prefixCharacter: '',
     onInputChange: () => {},
+    shouldDelayFocus: false,
 };
 
 export {propTypes, defaultProps};

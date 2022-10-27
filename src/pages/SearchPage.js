@@ -7,7 +7,6 @@ import OptionsSelector from '../components/OptionsSelector';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
-import KeyboardSpacer from '../components/KeyboardSpacer';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
@@ -19,6 +18,7 @@ import CONST from '../CONST';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
+import reportPropTypes from './reportPropTypes';
 
 const propTypes = {
     /* Onyx Props */
@@ -30,10 +30,7 @@ const propTypes = {
     personalDetails: personalDetailsPropType.isRequired,
 
     /** All reports shared with the user */
-    reports: PropTypes.shape({
-        reportID: PropTypes.number,
-        reportName: PropTypes.string,
-    }).isRequired,
+    reports: PropTypes.objectOf(reportPropTypes).isRequired,
 
     /** Session of currently logged in user */
     session: PropTypes.shape({
@@ -177,7 +174,6 @@ class SearchPage extends Component {
                         />
                         <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                             <OptionsSelector
-                                shouldDelayFocus
                                 sections={sections}
                                 value={this.state.searchValue}
                                 onSelectRow={this.selectReport}
@@ -189,7 +185,6 @@ class SearchPage extends Component {
                                 shouldShowOptions={didScreenTransitionEnd}
                             />
                         </View>
-                        <KeyboardSpacer />
                     </>
                 )}
             </ScreenWrapper>

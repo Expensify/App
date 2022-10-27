@@ -45,10 +45,12 @@ import toggleReportActionComposeView from '../../../libs/toggleReportActionCompo
 import OfflineIndicator from '../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import withNavigationFocus from '../../../components/withNavigationFocus';
+import * as EmojiUtils from '../../../libs/EmojiUtils';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** A method to call when the form is submitted */
     onSubmit: PropTypes.func.isRequired,
@@ -57,7 +59,7 @@ const propTypes = {
     comment: PropTypes.string,
 
     /** The ID of the report actions will be created for */
-    reportID: PropTypes.number.isRequired,
+    reportID: PropTypes.string.isRequired,
 
     /** Details about any modals being used */
     modal: PropTypes.shape({
@@ -69,11 +71,7 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The report currently being looked at */
-    report: PropTypes.shape({
-
-        /** participants associated with current report */
-        participants: PropTypes.arrayOf(PropTypes.string),
-    }),
+    report: reportPropTypes,
 
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
@@ -102,6 +100,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    betas: [],
     comment: '',
     modal: {},
     report: {},
@@ -144,6 +143,8 @@ class ReportActionCompose extends React.Component {
                 end: props.comment.length,
             },
             maxLines: props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES,
+            value: props.comment,
+            conciergePlaceholderRandomIndex: _.random(this.props.translate('reportActionCompose.conciergePlaceholderOptions').length - 1),
         };
     }
 
@@ -242,11 +243,15 @@ class ReportActionCompose extends React.Component {
      * @return {String}
      */
     getInputPlaceholder() {
-        if (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge)) {
-            return this.props.translate('reportActionCompose.blockedFromConcierge');
+        if (ReportUtils.chatIncludesConcierge(this.props.report)) {
+            if (User.isBlockedFromConcierge(this.props.blockedFromConcierge)) {
+                return this.props.translate('reportActionCompose.blockedFromConcierge');
+            }
+
+            return this.props.translate('reportActionCompose.conciergePlaceholderOptions')[this.state.conciergePlaceholderRandomIndex];
         }
 
-        if (_.size(this.props.reportActions) === 1) {
+        if (this.isEmptyChat()) {
             return this.props.translate('reportActionCompose.sayHello');
         }
 
@@ -303,21 +308,23 @@ class ReportActionCompose extends React.Component {
         this.setState({maxLines});
     }
 
+    isEmptyChat() {
+        return _.size(this.props.reportActions) === 1;
+    }
+
     /**
      * Callback for the emoji picker to add whatever emoji is chosen into the main input
      *
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
+        const emojiWithSpace = `${emoji} `;
         const newComment = this.comment.slice(0, this.state.selection.start)
-            + emoji + this.comment.slice(this.state.selection.end, this.comment.length);
-        this.textInput.setNativeProps({
-            text: newComment,
-        });
+            + emojiWithSpace + this.comment.slice(this.state.selection.end, this.comment.length);
         this.setState(prevState => ({
             selection: {
-                start: prevState.selection.start + emoji.length,
-                end: prevState.selection.start + emoji.length,
+                start: prevState.selection.start + emojiWithSpace.length,
+                end: prevState.selection.start + emojiWithSpace.length,
             },
         }));
         this.updateComment(newComment);
@@ -369,26 +376,32 @@ class ReportActionCompose extends React.Component {
     /**
      * Update the value of the comment in Onyx
      *
-     * @param {String} newComment
+     * @param {String} comment
+     * @param {Boolean} shouldDebounceSaveComment
      */
-    updateComment(newComment) {
-        this.textInput.setNativeProps({text: newComment});
+    updateComment(comment, shouldDebounceSaveComment) {
+        const newComment = EmojiUtils.replaceEmojis(comment);
         this.setState({
             isCommentEmpty: !!newComment.match(/^(\s|`)*$/),
+            value: newComment,
         });
 
         // Indicate that draft has been created.
         if (this.comment.length === 0 && newComment.length !== 0) {
-            Report.setReportWithDraft(this.props.reportID.toString(), true);
+            Report.setReportWithDraft(this.props.reportID, true);
         }
 
         // The draft has been deleted.
         if (newComment.length === 0) {
-            Report.setReportWithDraft(this.props.reportID.toString(), false);
+            Report.setReportWithDraft(this.props.reportID, false);
         }
 
         this.comment = newComment;
-        this.debouncedSaveReportComment(newComment);
+        if (shouldDebounceSaveComment) {
+            this.debouncedSaveReportComment(newComment);
+        } else {
+            Report.saveReportComment(this.props.reportID, newComment || '');
+        }
         if (newComment) {
             this.debouncedBroadcastUserIsTyping();
         }
@@ -444,8 +457,6 @@ class ReportActionCompose extends React.Component {
         }
         this.setState({isFullComposerAvailable: false});
 
-        // Important to reset the selection on Submit action
-        this.textInput.setNativeProps({selection: {start: 0, end: 0}});
         return trimmedComment;
     }
 
@@ -467,6 +478,11 @@ class ReportActionCompose extends React.Component {
         if (e) {
             e.preventDefault();
         }
+
+        // Since we're submitting the form here which should clear the composer
+        // We don't really care about saving the draft the user was typing
+        // We need to make sure an empty draft gets saved instead
+        this.debouncedSaveReportComment.cancel();
 
         const comment = this.prepareCommentAndResetComposer();
         if (!comment) {
@@ -496,7 +512,11 @@ class ReportActionCompose extends React.Component {
         const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
 
         return (
-            <View style={[shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow, this.props.isComposerFullSize && styles.chatItemFullComposeRow]}>
+            <View style={[
+                shouldShowReportRecipientLocalTime && !lodashGet(this.props.network, 'isOffline') && styles.chatItemComposeWithFirstRow,
+                this.props.isComposerFullSize && styles.chatItemFullComposeRow,
+            ]}
+            >
                 {shouldShowReportRecipientLocalTime
                     && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
@@ -590,13 +610,13 @@ class ReportActionCompose extends React.Component {
                                 </AttachmentPicker>
                                 <View style={styles.textInputComposeSpacing}>
                                     <Composer
-                                        autoFocus={this.shouldFocusInputOnScreenFocus || _.size(this.props.reportActions) === 1}
+                                        autoFocus={!this.props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || this.isEmptyChat())}
                                         multiline
                                         ref={this.setTextInputRef}
                                         textAlignVertical="top"
                                         placeholder={inputPlaceholder}
                                         placeholderTextColor={themeColors.placeholderText}
-                                        onChangeText={this.updateComment}
+                                        onChangeText={comment => this.updateComment(comment, true)}
                                         onKeyPress={this.triggerHotkeyActions}
                                         onDragEnter={(e, isOriginComposer) => {
                                             if (!isOriginComposer) {
@@ -625,7 +645,6 @@ class ReportActionCompose extends React.Component {
                                             this.setState({isDraggingOver: false});
                                         }}
                                         style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
-                                        defaultValue={this.props.comment}
                                         maxLines={this.state.maxLines}
                                         onFocus={() => this.setIsFocused(true)}
                                         onBlur={() => this.setIsFocused(false)}
@@ -638,6 +657,7 @@ class ReportActionCompose extends React.Component {
                                         isFullComposerAvailable={this.state.isFullComposerAvailable}
                                         setIsFullComposerAvailable={this.setIsFullComposerAvailable}
                                         isComposerFullSize={this.props.isComposerFullSize}
+                                        value={this.state.value}
                                     />
                                 </View>
                             </>
@@ -673,8 +693,13 @@ class ReportActionCompose extends React.Component {
                         </Tooltip>
                     </View>
                 </View>
-                <View style={[styles.chatItemComposeSecondaryRow, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                    <OfflineIndicator />
+                <View style={[
+                    styles.flexRow,
+                    styles.justifyContentBetween,
+                    styles.alignItemsCenter,
+                    (!this.props.isSmallScreenWidth || (this.props.isSmallScreenWidth && !this.props.network.isOffline)) && styles.chatItemComposeSecondaryRow]}
+                >
+                    {!this.props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                     <ReportTypingIndicator reportID={this.props.reportID} />
                     <ExceededCommentLength commentLength={this.comment.length} />
                 </View>

@@ -14,8 +14,6 @@ import ButtonWithMenu from './ButtonWithMenu';
 import Log from '../libs/Log';
 import SettlementButton from './SettlementButton';
 import ROUTES from '../ROUTES';
-import networkPropTypes from './networkPropTypes';
-import {withNetwork} from './OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from './withCurrentUserPersonalDetails';
 
 const propTypes = {
@@ -51,7 +49,8 @@ const propTypes = {
         keyForList: PropTypes.string,
         isPinned: PropTypes.bool,
         isUnread: PropTypes.bool,
-        reportID: PropTypes.number,
+        reportID: PropTypes.string,
+        // eslint-disable-next-line react/forbid-prop-types
         participantsList: PropTypes.arrayOf(PropTypes.object),
         payPalMeAddress: PropTypes.string,
         phoneNumber: PropTypes.string,
@@ -77,9 +76,6 @@ const propTypes = {
         // Selected Currency Code of the current IOU
         selectedCurrencyCode: PropTypes.string,
     }),
-
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
 
     /** Current user session */
     session: PropTypes.shape({
@@ -329,8 +325,7 @@ class IOUConfirmationList extends Component {
     render() {
         const selectedParticipants = this.getSelectedParticipants();
         const shouldShowSettlementButton = this.props.iouType === CONST.IOU.IOU_TYPE.SEND;
-        const shouldDisableButton = selectedParticipants.length === 0 || this.props.network.isOffline;
-        const isLoading = this.props.iou.loading && !this.props.network.isOffline;
+        const shouldDisableButton = selectedParticipants.length === 0;
         const recipient = this.state.participants[0];
         const canModifyParticipants = this.props.isIOUAttachedToExistingChatReport && this.props.hasMultipleParticipants;
         return (
@@ -351,13 +346,11 @@ class IOUConfirmationList extends Component {
                 autoFocus
                 shouldDelayFocus
                 shouldTextInputAppearBelowOptions
-                shouldShowOfflineMessage
                 optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
                 footerContent={shouldShowSettlementButton
                     ? (
                         <SettlementButton
                             isDisabled={shouldDisableButton}
-                            isLoading={isLoading}
                             onPress={this.confirm}
                             shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
                             enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
@@ -368,7 +361,6 @@ class IOUConfirmationList extends Component {
                     ) : (
                         <ButtonWithMenu
                             isDisabled={shouldDisableButton}
-                            isLoading={isLoading}
                             onPress={(_event, value) => this.confirm(value)}
                             options={this.splitOrRequestOptions}
                         />
@@ -384,7 +376,6 @@ IOUConfirmationList.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
-    withNetwork(),
     withCurrentUserPersonalDetails,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},

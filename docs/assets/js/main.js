@@ -1,14 +1,5 @@
 
 /* eslint-disable no-unused-vars */
-function navigateTo(path) {
-    window.location.href = path;
-}
-
-function navigateToHome() {
-    // TODO: Change to '/index' when the site is live
-    navigateTo('/main');
-}
-
 function toggleHeaderMenu() {
     const lhn = document.getElementById('lhn');
     const lhnContent = document.getElementById('lhn-content');
@@ -20,12 +11,14 @@ function toggleHeaderMenu() {
         lhnContent.className = '';
         barsIcon.classList.remove('hide');
         anguleUpIcon.classList.add('hide');
+        document.body.classList.remove('disable-scrollbar');
     } else {
         // Expand the LHN in mobile
         lhn.className = 'expanded';
         lhnContent.className = 'expanded';
         barsIcon.classList.add('hide');
         anguleUpIcon.classList.remove('hide');
+        document.body.classList.add('disable-scrollbar');
     }
 }
 
@@ -40,38 +33,51 @@ function navigateBack() {
     setTimeout(toggleHeaderMenu, 250);
 }
 
-if (window.tocbot) {
-    window.tocbot.init({
+window.addEventListener('DOMContentLoaded', () => {
+    if (window.tocbot) {
+        window.tocbot.init({
         // Where to render the table of contents.
-        tocSelector: '.article-toc',
+            tocSelector: '.article-toc',
 
-        // Where to grab the headings to build the table of contents.
-        contentSelector: '.article-toc-content',
+            // Where to grab the headings to build the table of contents.
+            contentSelector: '.article-toc-content',
 
-        // Disable the collapsible functionality of the library by
-        // setting the maximum number of heading levels (6)
-        collapseDepth: 6,
+            // Disable the collapsible functionality of the library by
+            // setting the maximum number of heading levels (6)
+            collapseDepth: 6,
 
-        // Main class to add to lists.
-        listClass: 'lhn-items',
+            // Main class to add to lists.
+            listClass: 'lhn-items',
 
-        // Main class to add to links.
-        linkClass: 'link',
+            // Main class to add to links.
+            linkClass: 'link',
 
-        // Class to add to active links,
-        // the link corresponding to the top most heading on the page.
-        activeLinkClass: 'selected-article',
+            // Class to add to active links,
+            // the link corresponding to the top most heading on the page.
+            activeLinkClass: 'selected-article',
 
-        // Headings offset between the headings and the top of the document (requires scrollSmooth enabled)
-        headingsOffset: 80,
-        scrollSmoothOffset: -80,
-        scrollSmooth: true,
+            // Headings offset between the headings and the top of the document (requires scrollSmooth enabled)
+            headingsOffset: 80,
+            scrollSmoothOffset: -80,
+            scrollSmooth: true,
 
-        // onclick function to apply to all links in toc. will be called with
-        // the event as the first parameter, and this can be used to stop,
-        // propagation, prevent default or perform action
-        onClick() {
-            toggleHeaderMenu();
-        },
-    });
-}
+            // If there is a fixed article scroll container, set to calculate titles' offset
+            scrollContainer: 'content-area',
+
+            // onclick function to apply to all links in toc. will be called with
+            // the event as the first parameter, and this can be used to stop,
+            // propagation, prevent default or perform action
+            onClick() {
+                toggleHeaderMenu();
+            },
+        });
+    }
+
+    document.getElementById('header-button').addEventListener('click', toggleHeaderMenu);
+
+    // Back button doesn't exist on all the pages
+    const backButton = document.getElementById('back-button');
+    if (backButton) {
+        backButton.addEventListener('click', navigateBack);
+    }
+});

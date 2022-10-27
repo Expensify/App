@@ -1,5 +1,5 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import _ from 'underscore';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import lodashGet from 'lodash/get';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import * as Report from '../../../../libs/actions/Report';
@@ -90,27 +90,30 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: (type, reportAction) => (type === CONTEXT_MENU_TYPES.REPORT_ACTION
             && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU
-            && !ReportUtils.isReportMessageAttachment(lodashGet(reportAction, ['message', 0, 'text'], ''))),
+            && !ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}])))),
 
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
-            const html = lodashGet(message, 'html', '');
-
-            const parser = new ExpensiMark();
-            const reportMarkdown = parser.htmlToMarkdown(html);
-
-            const text = selection || reportMarkdown;
+            const messageHtml = lodashGet(message, 'html', '');
 
             const isAttachment = _.has(reportAction, 'isAttachment')
                 ? reportAction.isAttachment
                 : ReportUtils.isReportMessageAttachment(message);
             if (!isAttachment) {
-                Clipboard.setString(text);
+                const content = selection || messageHtml;
+                if (content) {
+                    const parser = new ExpensiMark();
+                    if (!Clipboard.canSetHtml()) {
+                        Clipboard.setString(parser.htmlToMarkdown(content));
+                    } else {
+                        Clipboard.setHtml(content, parser.htmlToText(content));
+                    }
+                }
             } else {
-                Clipboard.setString(html);
+                Clipboard.setString(messageHtml);
             }
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
@@ -122,7 +125,15 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.copyLink',
         icon: Expensicons.LinkCopy,
-        shouldShow: (type, reportAction, betas) => Permissions.canUseCommentLinking(betas),
+        successIcon: Expensicons.Checkmark,
+        successTextTranslateKey: 'reportActionContextMenu.copied',
+        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget) => {
+            const isAttachment = ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}])));
+
+            // Only hide the copylink menu item when context menu is opened over img element.
+            const isAttachmentTarget = lodashGet(menuTarget, 'tagName') === 'IMG' && isAttachment;
+            return Permissions.canUseCommentLinking(betas) && type === CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget;
+        },
         onPress: (closePopover, {reportAction, reportID}) => {
             Environment.getEnvironmentURL()
                 .then((environmentURL) => {
@@ -151,8 +162,8 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.editComment',
         icon: Expensicons.Pencil,
-        shouldShow: (type, reportAction) => (
-            type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction)
+        shouldShow: (type, reportAction, isArchivedRoom) => (
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && !isArchivedRoom
         ),
         onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
             const editAction = () => Report.saveReportActionDraft(
@@ -175,8 +186,8 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.deleteComment',
         icon: Expensicons.Trashcan,
-        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION
-            && ReportUtils.canDeleteReportAction(reportAction),
+        shouldShow: (type, reportAction, isArchivedRoom) => type === CONTEXT_MENU_TYPES.REPORT_ACTION
+            && ReportUtils.canDeleteReportAction(reportAction) && !isArchivedRoom,
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal

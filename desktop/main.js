@@ -31,7 +31,17 @@ app.commandLine.appendSwitch('enable-network-information-downlink-max');
 
 // Initialize the right click menu
 // See https://github.com/sindresorhus/electron-context-menu
-contextMenu();
+// Add the Paste and Match Style command to the context menu
+contextMenu({
+    append: (defaultActions, parameters) => [
+        new MenuItem({
+            // Only enable the menu item for Editable context which supports paste
+            visible: parameters.isEditable && parameters.editFlags.canPaste,
+            role: 'pasteAndMatchStyle',
+            accelerator: 'CmdOrCtrl+Shift+V',
+        }),
+    ],
+});
 
 // Send all autoUpdater logs to a log file: ~/Library/Logs/new.expensify.desktop/main.log
 // See https://www.npmjs.com/package/electron-log
@@ -202,6 +212,13 @@ const mainWindow = (() => {
                 }],
             }));
 
+            // Register the custom Paste and Match Style command and place it near the default shortcut of the same role.
+            const editMenu = _.find(systemMenu.items, item => item.role === 'editmenu');
+            editMenu.submenu.insert(6, new MenuItem({
+                role: 'pasteAndMatchStyle',
+                accelerator: 'CmdOrCtrl+Shift+V',
+            }));
+
             const appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');
             appMenu.submenu.insert(1, updateAppMenuItem);
             appMenu.submenu.insert(2, keyboardShortcutsMenu);
@@ -259,6 +276,13 @@ const mainWindow = (() => {
                 if (cmd === 'browser-forward') {
                     browserWindow.webContents.goForward();
                 }
+            });
+
+            browserWindow.on(ELECTRON_EVENTS.FOCUS, () => {
+                browserWindow.webContents.send(ELECTRON_EVENTS.FOCUS);
+            });
+            browserWindow.on(ELECTRON_EVENTS.BLUR, () => {
+                browserWindow.webContents.send(ELECTRON_EVENTS.BLUR);
             });
 
             app.on('before-quit', () => quitting = true);

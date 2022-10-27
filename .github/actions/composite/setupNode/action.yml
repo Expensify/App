@@ -4,14 +4,13 @@ description: Set up Node
 runs:
   using: composite
   steps:
-    # Version: 3.0.2
-    - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+    - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
       with:
         fetch-depth: 0
 
-    - uses: actions/setup-node@09ba51f18e18a3756fea1f54d09c6745c064491d
+    - uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516
       with:
-        node-version: 14.19.3
+        node-version-file: '.nvmrc'
         cache: npm
 
     - name: Install node packages

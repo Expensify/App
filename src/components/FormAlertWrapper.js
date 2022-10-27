@@ -19,6 +19,7 @@ const propTypes = {
     children: PropTypes.func.isRequired,
 
     /** Styles for container element */
+    // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Whether to show the alert text */
@@ -34,7 +35,7 @@ const propTypes = {
     network: networkPropTypes.isRequired,
 
     /** Callback fired when the "fix the errors" link is pressed */
-    onFixTheErrorsPressed: PropTypes.func,
+    onFixTheErrorsLinkPressed: PropTypes.func,
 
     ...withLocalizePropTypes,
 };
@@ -44,7 +45,7 @@ const defaultProps = {
     isAlertVisible: false,
     isMessageHtml: false,
     message: '',
-    onFixTheErrorsPressed: () => {},
+    onFixTheErrorsLinkPressed: () => {},
 };
 
 // The FormAlertWrapper offers a standardized way of showing error messages and offline functionality.
@@ -59,24 +60,24 @@ const FormAlertWrapper = props => (
                 <View style={[styles.flexRow, styles.ml2, styles.flexWrap, styles.flex1]}>
                     {!_.isEmpty(props.message) && props.isMessageHtml && <RenderHTML html={`<muted-text>${props.message}</muted-text>`} />}
 
-                    {!_.isEmpty(props.message) && !props.isMessageHtml
-                        ? <Text style={styles.mutedTextLabel}>{props.message}</Text>
-                        : (
-                            <>
-                                <Text style={styles.mutedTextLabel}>
-                                    {`${props.translate('common.please')} `}
-                                </Text>
-                                <TextLink
-                                    style={styles.label}
-                                    onPress={props.onFixTheErrorsPressed}
-                                >
-                                    {props.translate('common.fixTheErrors')}
-                                </TextLink>
-                                <Text style={styles.mutedTextLabel}>
-                                    {` ${props.translate('common.inTheFormBeforeContinuing')}.`}
-                                </Text>
-                            </>
-                        )}
+                    {!_.isEmpty(props.message) && !props.isMessageHtml && <Text style={styles.mutedTextLabel}>{props.message}</Text>}
+
+                    {_.isEmpty(props.message) && (
+                        <>
+                            <Text style={styles.mutedTextLabel}>
+                                {`${props.translate('common.please')} `}
+                            </Text>
+                            <TextLink
+                                style={styles.label}
+                                onPress={props.onFixTheErrorsLinkPressed}
+                            >
+                                {props.translate('common.fixTheErrors')}
+                            </TextLink>
+                            <Text style={styles.mutedTextLabel}>
+                                {` ${props.translate('common.inTheFormBeforeContinuing')}.`}
+                            </Text>
+                        </>
+                    )}
                 </View>
             </View>
         )}

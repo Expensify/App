@@ -9,7 +9,6 @@ import ScreenWrapper from '../../../components/ScreenWrapper';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {withNetwork} from '../../../components/OnyxProvider';
 import compose from '../../../libs/compose';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
@@ -28,12 +27,12 @@ import * as PaymentUtils from '../../../libs/PaymentUtils';
 import cardPropTypes from '../../../components/cardPropTypes';
 import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
 import ROUTES from '../../../ROUTES';
-import OfflineIndicator from '../../../components/OfflineIndicator';
 import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
+import {withNetwork} from '../../../components/OnyxProvider';
 
 const propTypes = {
     /** User's wallet information */
-    userWallet: userWalletPropTypes.userWallet,
+    userWallet: userWalletPropTypes,
 
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(PropTypes.shape({
@@ -60,9 +59,9 @@ const propTypes = {
 };
 
 const defaultProps = {
-    userWallet: {},
     bankAccountList: {},
     cardList: {},
+    userWallet: {},
     walletTransfer: {},
 };
 
@@ -116,8 +115,6 @@ class TransferBalancePage extends React.Component {
         const paymentMethods = PaymentUtils.formatPaymentMethods(
             this.props.bankAccountList,
             this.props.cardList,
-            '',
-            this.props.userWallet,
         );
 
         const defaultAccount = _.find(paymentMethods, method => method.isDefault);
@@ -139,8 +136,6 @@ class TransferBalancePage extends React.Component {
         const combinedPaymentMethods = PaymentUtils.formatPaymentMethods(
             this.props.bankAccountList,
             this.props.cardList,
-            '',
-            this.props.userWallet,
         );
 
         const filteredMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === filterPaymentMethodType);
@@ -296,7 +291,6 @@ class TransferBalancePage extends React.Component {
                         isAlertVisible={!_.isEmpty(error)}
                     />
                 </View>
-                <OfflineIndicator containerStyles={[styles.ml5, styles.mb3]} />
             </ScreenWrapper>
         );
     }

@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import {
-    Pressable, View, Animated, StyleSheet,
+    Pressable, View, Image,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -13,12 +13,14 @@ import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import AttachmentPicker from './AttachmentPicker';
 import ConfirmModal from './ConfirmModal';
+import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import variables from '../styles/variables';
 import CONST from '../CONST';
 import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAnimation';
 import Tooltip from './Tooltip';
 import stylePropTypes from '../styles/stylePropTypes';
+import * as FileUtils from '../libs/fileDownload/FileUtils';
 
 const propTypes = {
     /** Avatar URL to display */
@@ -75,11 +77,19 @@ class AvatarWithImagePicker extends React.Component {
     constructor(props) {
         super(props);
         this.animation = new SpinningIndicatorAnimation();
-        this.setUploadLimitModalVisibility = this.setUploadLimitModalVisibility.bind(this);
+        this.hideErrorModal = this.hideErrorModal.bind(this);
+        this.showErrorModal = this.showErrorModal.bind(this);
         this.isValidSize = this.isValidSize.bind(this);
+        this.showAvatarCropModal = this.showAvatarCropModal.bind(this);
+        this.hideAvatarCropModal = this.hideAvatarCropModal.bind(this);
         this.state = {
             isMenuVisible: false,
-            isMaxUploadSizeModalOpen: false,
+            isErrorModalVisible: false,
+            errorModalPrompt: '',
+            errorModalTitle: '',
+            isAvatarCropModalOpen: false,
+            imageName: '',
+            imageUri: '',
         };
     }
 
@@ -104,20 +114,92 @@ class AvatarWithImagePicker extends React.Component {
     }
 
     /**
-     *  Toggle max upload limit modal's visibility
-     * @param {Boolean} isVisible
-    */
-    setUploadLimitModalVisibility(isVisible) {
-        this.setState({isMaxUploadSizeModalOpen: isVisible});
+     * @param {String} title
+     * @param {String} prompt
+     */
+    showErrorModal(title, prompt) {
+        this.setState({isErrorModalVisible: true, errorModalTitle: title, errorModalPrompt: prompt});
+    }
+
+    hideErrorModal() {
+        this.setState({isErrorModalVisible: false});
+    }
+
+    /**
+     * Check if the attachment extension is allowed.
+     *
+     * @param {Object} image
+     * @returns {Boolean}
+     */
+    isValidExtension(image) {
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(image, 'name', ''));
+        return _.contains(CONST.AVATAR_ALLOWED_EXTENSIONS, fileExtension.toLowerCase());
     }
 
     /**
      * Check if the attachment size is less than allowed size.
+     *
      * @param {Object} image
      * @returns {Boolean}
      */
     isValidSize(image) {
         return image && lodashGet(image, 'size', 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE;
+    }
+
+    /**
+     * Check if the attachment resolution is bigger than required.
+     *
+     * @param {String} imageUri
+     * @returns {Promise}
+     */
+    isValidResolution(imageUri) {
+        return new Promise((resolve) => {
+            Image.getSize(imageUri, (width, height) => {
+                resolve(height >= CONST.AVATAR_MIN_HEIGHT_PX && width >= CONST.AVATAR_MIN_WIDTH_PX);
+            });
+        });
+    }
+
+    /**
+     * Validates if an image has a valid resolution and opens an avatar crop modal
+     *
+     * @param {Object} image
+     */
+    showAvatarCropModal(image) {
+        if (!this.isValidExtension(image)) {
+            this.showErrorModal(
+                this.props.translate('avatarWithImagePicker.imageUploadFailed'),
+                this.props.translate('avatarWithImagePicker.notAllowedExtension', {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS}),
+            );
+            return;
+        }
+        if (!this.isValidSize(image)) {
+            this.showErrorModal(
+                this.props.translate('avatarWithImagePicker.imageUploadFailed'),
+                this.props.translate('avatarWithImagePicker.sizeExceeded', {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)}),
+            );
+            return;
+        }
+
+        this.isValidResolution(image.uri)
+            .then((isValidResolution) => {
+                if (!isValidResolution) {
+                    this.showErrorModal(
+                        this.props.translate('avatarWithImagePicker.imageUploadFailed'),
+                        this.props.translate('avatarWithImagePicker.tooSmallResolution', {
+                            minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
+                            minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
+                        }),
+                    );
+                    return;
+                }
+
+                this.setState({isAvatarCropModalOpen: true, imageUri: image.uri, imageName: image.name});
+            });
+    }
+
+    hideAvatarCropModal() {
+        this.setState({isAvatarCropModalOpen: false});
     }
 
     /**
@@ -133,13 +215,7 @@ class AvatarWithImagePicker extends React.Component {
                 text: this.props.translate('avatarWithImagePicker.uploadPhoto'),
                 onSelected: () => {
                     openPicker({
-                        onPicked: (image) => {
-                            if (!this.isValidSize(image)) {
-                                this.setUploadLimitModalVisibility(true);
-                                return;
-                            }
-                            this.props.onImageSelected(image);
-                        },
+                        onPicked: this.showAvatarCropModal,
                     });
                 },
             },
@@ -162,21 +238,10 @@ class AvatarWithImagePicker extends React.Component {
         const DefaultAvatar = this.props.DefaultAvatar;
         const additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
 
-        const indicatorStyles = [
-            styles.alignItemsCenter,
-            styles.justifyContentCenter,
-            this.props.size === CONST.AVATAR_SIZE.LARGE ? styles.statusIndicatorLarge : styles.statusIndicator,
-            styles.statusIndicatorOnline,
-            this.animation.getSyncingStyles(),
-        ];
-
-        const indicatorIconSize = this.props.size === CONST.AVATAR_SIZE.LARGE ? variables.iconSizeXXSmall : variables.iconSizeXXXSmall;
-
         return (
             <View style={[styles.alignItemsCenter, ...additionalStyles]}>
                 <Pressable
                     onPress={() => this.setState({isMenuVisible: true})}
-                    disabled={this.props.isUploading}
                 >
                     <View style={[styles.pRelative, styles.avatarLarge]}>
                         {this.props.avatarURL
@@ -195,54 +260,43 @@ class AvatarWithImagePicker extends React.Component {
                         <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
                             {({openPicker}) => (
                                 <>
-                                    {
-                                        this.props.isUploading
-                                            ? (
-                                                <Animated.View style={StyleSheet.flatten(indicatorStyles)}>
-
-                                                    <Icon
-                                                        src={Expensicons.Sync}
-                                                        fill={themeColors.textReversed}
-                                                        width={indicatorIconSize}
-                                                        height={indicatorIconSize}
-                                                    />
-                                                </Animated.View>
-                                            )
-                                            : (
-                                                <>
-                                                    <Tooltip absolute text={this.props.translate('avatarWithImagePicker.editImage')}>
-                                                        <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
-                                                            <Icon
-                                                                src={Expensicons.Camera}
-                                                                width={variables.iconSizeSmall}
-                                                                height={variables.iconSizeSmall}
-                                                                fill={themeColors.iconReversed}
-                                                            />
-                                                        </View>
-                                                    </Tooltip>
-                                                    <PopoverMenu
-                                                        isVisible={this.state.isMenuVisible}
-                                                        onClose={() => this.setState({isMenuVisible: false})}
-                                                        onItemSelected={() => this.setState({isMenuVisible: false})}
-                                                        menuItems={this.createMenuItems(openPicker)}
-                                                        anchorPosition={this.props.anchorPosition}
-                                                    />
-                                                </>
-                                            )
-                                    }
+                                    <Tooltip absolute text={this.props.translate('avatarWithImagePicker.editImage')}>
+                                        <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
+                                            <Icon
+                                                src={Expensicons.Camera}
+                                                width={variables.iconSizeSmall}
+                                                height={variables.iconSizeSmall}
+                                                fill={themeColors.iconReversed}
+                                            />
+                                        </View>
+                                    </Tooltip>
+                                    <PopoverMenu
+                                        isVisible={this.state.isMenuVisible}
+                                        onClose={() => this.setState({isMenuVisible: false})}
+                                        onItemSelected={() => this.setState({isMenuVisible: false})}
+                                        menuItems={this.createMenuItems(openPicker)}
+                                        anchorPosition={this.props.anchorPosition}
+                                    />
                                 </>
                             )}
                         </AttachmentPicker>
                     </View>
                 </Pressable>
                 <ConfirmModal
-                    title={this.props.translate('avatarWithImagePicker.imageUploadFailed')}
-                    onConfirm={() => this.setUploadLimitModalVisibility(false)}
-                    onCancel={() => this.setUploadLimitModalVisibility(false)}
-                    isVisible={this.state.isMaxUploadSizeModalOpen}
-                    prompt={this.props.translate('avatarWithImagePicker.sizeExceeded', {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)})}
+                    title={this.state.errorModalTitle}
+                    onConfirm={this.hideErrorModal}
+                    onCancel={this.hideErrorModal}
+                    isVisible={this.state.isErrorModalVisible}
+                    prompt={this.state.errorModalPrompt}
                     confirmText={this.props.translate('common.close')}
                     shouldShowCancelButton={false}
+                />
+                <AvatarCropModal
+                    onClose={this.hideAvatarCropModal}
+                    isVisible={this.state.isAvatarCropModalOpen}
+                    onSave={this.props.onImageSelected}
+                    imageUri={this.state.imageUri}
+                    imageName={this.state.imageName}
                 />
             </View>
         );

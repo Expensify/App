@@ -11,5 +11,5 @@ outputs:
   IS_MERGEABLE:
     description: Whether or not the PR is mergeable
 runs:
-  using: 'node12'
+  using: 'node16'
   main: './index.js'

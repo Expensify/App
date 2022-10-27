@@ -41,7 +41,7 @@ const AppDownloadLinksPage = (props) => {
             icon: Expensicons.Apple,
             iconRight: Expensicons.NewWindow,
             action: () => {
-                Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS);
+                Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS, true);
             },
             link: CONST.APP_DOWNLOAD_LINKS.IOS,
         },
@@ -60,7 +60,7 @@ const AppDownloadLinksPage = (props) => {
      * Show the ReportActionContextMenu modal popover.
      *
      * @param {Object} [event] - A press event.
-     * @param {string} [selection] - A copy text.
+     * @param {String} [selection] - Copied content.
      */
     const showPopover = (event, selection) => {
         ReportActionContextMenu.showContextMenu(

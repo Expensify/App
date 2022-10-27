@@ -1,10 +1,12 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import lodashHas from 'lodash/has';
 import Onyx from 'react-native-onyx';
 import * as store from './store';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
+import ROUTES from '../../../ROUTES';
+import Navigation from '../../Navigation/Navigation';
+import BankAccount from '../../models/BankAccount';
 
 const WITHDRAWAL_ACCOUNT_STEPS = [
     {
@@ -81,10 +83,6 @@ function goToWithdrawalAccountSetupStep(stepID, achData) {
     if (!newACHData.useOnfido && stepID === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
         delete newACHData.questions;
         delete newACHData.answers;
-        if (lodashHas(newACHData, CONST.BANK_ACCOUNT.VERIFICATIONS.EXTERNAL_API_RESPONSES)) {
-            delete newACHData.verifications.externalApiResponses.requestorIdentityID;
-            delete newACHData.verifications.externalApiResponses.requestorIdentityKBA;
-        }
     }
 
     // When going back to the BankAccountStep from the Company Step, show the manual form instead of Plaid
@@ -95,8 +93,25 @@ function goToWithdrawalAccountSetupStep(stepID, achData) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...newACHData, ...achData, currentStep: stepID}});
 }
 
+/**
+ * Navigate to the correct bank account route based on the bank account state and type
+ *
+ * @param {String} policyID
+ */
+function navigateToBankAccountRoute(policyID) {
+    const achData = store.getReimbursementAccountInSetup();
+    const state = lodashGet(achData, 'state');
+    const isShowPage = lodashGet(achData, 'bankAccountID') && state !== BankAccount.STATE.OPEN;
+    if (isShowPage) {
+        Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(policyID));
+    } else {
+        Navigation.navigate(ROUTES.getBankAccountRoute());
+    }
+}
+
 export {
     goToWithdrawalAccountSetupStep,
     getNextStepToComplete,
     getNextStepID,
+    navigateToBankAccountRoute,
 };

@@ -13,7 +13,6 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Policy from '../../libs/actions/Policy';
 import TextInput from '../../components/TextInput';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import OptionsSelector from '../../components/OptionsSelector';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
@@ -21,7 +20,10 @@ import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import * as Link from '../../libs/actions/Link';
 import Text from '../../components/Text';
-import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
+import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
+import {withNetwork} from '../../components/OnyxProvider';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import networkPropTypes from '../../components/networkPropTypes';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -51,11 +53,12 @@ const propTypes = {
         }),
     }).isRequired,
 
-    ...fullPolicyPropTypes,
+    ...policyPropTypes,
     ...withLocalizePropTypes,
+    ...networkPropTypes,
 };
 
-const defaultProps = fullPolicyDefaultProps;
+const defaultProps = policyDefaultProps;
 
 class WorkspaceInvitePage extends React.Component {
     constructor(props) {
@@ -85,11 +88,24 @@ class WorkspaceInvitePage extends React.Component {
 
     componentDidMount() {
         this.clearErrors();
+
+        const clientPolicyMembers = _.keys(this.props.policyMemberList);
+        Policy.openWorkspaceInvitePage(this.props.route.params.policyID, clientPolicyMembers);
+    }
+
+    componentDidUpdate(prevProps) {
+        const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
+        if (!isReconnecting) {
+            return;
+        }
+
+        const clientPolicyMembers = _.keys(this.props.policyMemberList);
+        Policy.openWorkspaceInvitePage(this.props.route.params.policyID, clientPolicyMembers);
     }
 
     getExcludedUsers() {
-        const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
-        return [...CONST.EXPENSIFY_EMAILS, ...policyEmployeeList];
+        const policyMemberList = _.keys(lodashGet(this.props, 'policyMemberList', {}));
+        return [...CONST.EXPENSIFY_EMAILS, ...policyMemberList];
     }
 
     /**
@@ -101,19 +117,6 @@ class WorkspaceInvitePage extends React.Component {
         return this.props.translate('workspace.invite.welcomeNote', {
             workspaceName: this.props.policy.name,
         });
-    }
-
-    /**
-     * @returns {String}
-     */
-    getErrorText() {
-        const errors = lodashGet(this.props.policy, 'errors', {});
-
-        if (errors.noUserSelected) {
-            return this.props.translate('workspace.invite.pleaseSelectUser');
-        }
-
-        return '';
     }
 
     /**
@@ -216,7 +219,8 @@ class WorkspaceInvitePage extends React.Component {
 
         const logins = _.map(this.state.selectedOptions, option => option.login);
         const filteredLogins = _.uniq(_.compact(_.map(logins, login => login.toLowerCase().trim())));
-        Policy.invite(filteredLogins, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
+        Policy.addMembersToWorkspace(filteredLogins, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
+        Navigation.goBack();
     }
 
     /**
@@ -244,22 +248,23 @@ class WorkspaceInvitePage extends React.Component {
         return (
             <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
-                    <KeyboardAvoidingView>
-                        <HeaderWithCloseButton
-                            title={this.props.translate('workspace.invite.invitePeople')}
-                            subtitle={policyName}
-                            onCloseButtonPress={() => {
-                                this.clearErrors();
-                                Navigation.dismissModal();
-                            }}
-                            shouldShowGetAssistanceButton
-                            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                            shouldShowBackButton
-                            onBackButtonPress={() => Navigation.goBack()}
-                        />
-                        <View style={[styles.flex1]}>
-                            {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
-                            {didScreenTransitionEnd && (
+                    <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)}>
+                        <>
+                            <HeaderWithCloseButton
+                                title={this.props.translate('workspace.invite.invitePeople')}
+                                subtitle={policyName}
+                                onCloseButtonPress={() => {
+                                    this.clearErrors();
+                                    Navigation.dismissModal();
+                                }}
+                                shouldShowGetAssistanceButton
+                                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
+                                shouldShowBackButton
+                                onBackButtonPress={() => Navigation.goBack()}
+                            />
+                            <View style={[styles.flex1]}>
+                                {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
+                                {didScreenTransitionEnd && (
                                 <OptionsSelector
                                     autoFocus={false}
                                     canSelectMultipleOptions
@@ -290,52 +295,54 @@ class WorkspaceInvitePage extends React.Component {
                                     forceTextUnreadStyle
                                     shouldFocusOnSelectRow
                                 />
-                            )}
-                        </View>
-                        <View style={[styles.flexShrink0]}>
-                            <View style={[styles.ph5, styles.pv3]}>
-                                <TextInput
-                                    label={this.props.translate('workspace.invite.personalMessagePrompt')}
-                                    autoCompleteType="off"
-                                    autoCorrect={false}
-                                    numberOfLines={4}
-                                    textAlignVertical="top"
-                                    multiline
-                                    containerStyles={[styles.workspaceInviteWelcome]}
-                                    value={this.state.welcomeNote}
-                                    onChangeText={text => this.setState({welcomeNote: text})}
-                                />
-                            </View>
-                            <FormAlertWithSubmitButton
-                                isDisabled={!this.state.selectedOptions.length}
-                                isAlertVisible={this.getShouldShowAlertPrompt()}
-                                buttonText={this.props.translate('common.invite')}
-                                onSubmit={this.inviteUser}
-                                onFixTheErrorsLinkPressed={() => {}}
-                                message={this.props.policy.alertMessage}
-                                containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                            />
-                            <Pressable
-                                onPress={(e) => {
-                                    e.preventDefault();
-                                    Link.openExternalLink(CONST.PRIVACY_URL);
-                                }}
-                                accessibilityRole="link"
-                                href={CONST.PRIVACY_URL}
-                                style={[styles.mh5, styles.mv2, styles.alignSelfStart]}
-                            >
-                                {({hovered, pressed}) => (
-                                    <View style={[styles.flexRow]}>
-                                        <Text
-                                            style={[styles.mr1, styles.label, (hovered || pressed) ? styles.linkHovered : styles.link]}
-                                        >
-                                            {this.props.translate('common.privacyPolicy')}
-                                        </Text>
-                                    </View>
                                 )}
-                            </Pressable>
-                        </View>
-                    </KeyboardAvoidingView>
+                            </View>
+                            <View style={[styles.flexShrink0]}>
+                                <View style={[styles.ph5, styles.pv3]}>
+                                    <TextInput
+                                        label={this.props.translate('workspace.invite.personalMessagePrompt')}
+                                        autoCompleteType="off"
+                                        autoCorrect={false}
+                                        numberOfLines={4}
+                                        textAlignVertical="top"
+                                        multiline
+                                        containerStyles={[styles.workspaceInviteWelcome]}
+                                        value={this.state.welcomeNote}
+                                        onChangeText={text => this.setState({welcomeNote: text})}
+                                    />
+                                </View>
+                                <FormAlertWithSubmitButton
+                                    isDisabled={!this.state.selectedOptions.length}
+                                    isAlertVisible={this.getShouldShowAlertPrompt()}
+                                    buttonText={this.props.translate('common.invite')}
+                                    onSubmit={this.inviteUser}
+                                    onFixTheErrorsLinkPressed={() => {}}
+                                    message={this.props.policy.alertMessage}
+                                    containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                                    enabledWhenOffline
+                                />
+                                <Pressable
+                                    onPress={(e) => {
+                                        e.preventDefault();
+                                        Link.openExternalLink(CONST.PRIVACY_URL);
+                                    }}
+                                    accessibilityRole="link"
+                                    href={CONST.PRIVACY_URL}
+                                    style={[styles.mh5, styles.mv2, styles.alignSelfStart]}
+                                >
+                                    {({hovered, pressed}) => (
+                                        <View style={[styles.flexRow]}>
+                                            <Text
+                                                style={[styles.mr1, styles.label, (hovered || pressed) ? styles.linkHovered : styles.link]}
+                                            >
+                                                {this.props.translate('common.privacyPolicy')}
+                                            </Text>
+                                        </View>
+                                    )}
+                                </Pressable>
+                            </View>
+                        </>
+                    </FullPageNotFoundView>
                 )}
             </ScreenWrapper>
         );
@@ -347,7 +354,8 @@ WorkspaceInvitePage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withFullPolicy,
+    withPolicy,
+    withNetwork(),
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,

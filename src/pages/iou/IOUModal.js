@@ -23,12 +23,12 @@ import AnimatedStep from '../../components/AnimatedStep';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Tooltip from '../../components/Tooltip';
 import CONST from '../../CONST';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
 import ROUTES from '../../ROUTES';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
+import reportPropTypes from '../reportPropTypes';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -41,10 +41,8 @@ const propTypes = {
     iouType: PropTypes.string,
 
     /** The report passed via the route */
-    report: PropTypes.shape({
-        /** Participants associated with current report */
-        participants: PropTypes.arrayOf(PropTypes.string),
-    }),
+    // eslint-disable-next-line react/no-unused-prop-types
+    report: reportPropTypes,
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
@@ -149,24 +147,27 @@ class IOUModal extends Component {
     }
 
     componentDidUpdate(prevProps) {
+        const wasCreatingIOUTransaction = lodashGet(prevProps, 'iou.creatingIOUTransaction');
+        const iouError = lodashGet(this.props, 'iou.error');
         if (prevProps.network.isOffline && !this.props.network.isOffline) {
             PersonalDetails.openIOUModalPage();
         }
 
         // Successfully close the modal if transaction creation has ended and there is no error
-        if (prevProps.iou.creatingIOUTransaction && !this.props.iou.creatingIOUTransaction && !this.props.iou.error) {
+        if (wasCreatingIOUTransaction && !lodashGet(this.props, 'iou.creatingIOUTransaction') && !iouError) {
             Navigation.dismissModal();
         }
 
         // If transaction fails, handling it here
-        if (prevProps.iou.creatingIOUTransaction && this.props.iou.error === true) {
+        if (wasCreatingIOUTransaction && iouError === true) {
             // Navigating to Enter Amount Page
             // eslint-disable-next-line react/no-did-update-set-state
             this.setState({currentStepIndex: 0});
         }
 
-        if (prevProps.iou.selectedCurrencyCode !== this.props.iou.selectedCurrencyCode) {
-            IOU.setIOUSelectedCurrency(this.props.iou.selectedCurrencyCode);
+        const currentSelectedCurrencyCode = lodashGet(this.props, 'iou.selectedCurrencyCode');
+        if (lodashGet(prevProps, 'iou.selectedCurrencyCode') !== currentSelectedCurrencyCode) {
+            IOU.setIOUSelectedCurrency(currentSelectedCurrencyCode);
         }
     }
 
@@ -174,7 +175,7 @@ class IOUModal extends Component {
      * Decides our animation type based on whether we're increasing or decreasing
      * our step index.
      * @returns {String}
-     */
+    */
     getDirection() {
         if (this.state.previousStepIndex < this.state.currentStepIndex) {
             return 'in';
@@ -294,7 +295,7 @@ class IOUModal extends Component {
 
         IOU.payIOUReport({
             chatReportID: lodashGet(this.props, 'route.params.reportID', ''),
-            reportID: 0,
+            reportID: '0',
             paymentMethodType,
             amount,
             currency,
@@ -342,14 +343,12 @@ class IOUModal extends Component {
             return;
         }
 
-        IOU.createIOUTransaction({
-            comment: this.state.comment,
-
-            // Send in cents to API.
-            amount: Math.round(this.state.amount * 100),
-            currency: this.props.iou.selectedCurrencyCode,
-            debtorEmail: OptionsListUtils.addSMSDomainIfPhoneNumber(this.state.participants[0].login),
-        });
+        IOU.requestMoney(this.props.report,
+            Math.round(this.state.amount * 100),
+            this.props.iou.selectedCurrencyCode,
+            this.props.currentUserPersonalDetails.login,
+            OptionsListUtils.addSMSDomainIfPhoneNumber(this.state.participants[0].login),
+            this.state.comment);
     }
 
     render() {
@@ -358,7 +357,7 @@ class IOUModal extends Component {
         return (
             <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
-                    <KeyboardAvoidingView>
+                    <>
                         <View style={[styles.headerBar]}>
                             <View style={[
                                 styles.dFlex,
@@ -451,7 +450,7 @@ class IOUModal extends Component {
                                 </>
                             )}
                         </View>
-                    </KeyboardAvoidingView>
+                    </>
                 )}
             </ScreenWrapper>
         );

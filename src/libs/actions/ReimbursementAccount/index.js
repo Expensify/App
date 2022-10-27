@@ -1,14 +1,12 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
-import validateBankAccount from './validateBankAccount';
 import setupWithdrawalAccount from './setupWithdrawalAccount';
 import fetchFreePlanVerifiedBankAccount from './fetchFreePlanVerifiedBankAccount';
 import resetFreePlanBankAccount from './resetFreePlanBankAccount';
 import deleteFromBankAccountList from './deleteFromBankAccountList';
 
-export {goToWithdrawalAccountSetupStep} from './navigation';
+export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute} from './navigation';
 export {
-    showBankAccountErrorModal,
     setBankAccountFormValidationErrors,
     setPersonalBankAccountFormValidationErrorFields,
     resetReimbursementAccount,
@@ -57,7 +55,6 @@ export {
     setupWithdrawalAccount,
     fetchFreePlanVerifiedBankAccount,
     resetFreePlanBankAccount,
-    validateBankAccount,
     setBankAccountSubStep,
     hideBankAccountErrors,
     setWorkspaceIDForReimbursementAccount,

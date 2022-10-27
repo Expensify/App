@@ -7,7 +7,6 @@ import * as StyleUtils from '../../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
 import compose from '../../compose';
-import * as Report from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
@@ -21,21 +20,15 @@ import KeyboardShortcut from '../../KeyboardShortcut';
 import Navigation from '../Navigation';
 import * as User from '../../actions/User';
 import * as Modal from '../../actions/Modal';
-import * as Policy from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
-
-// Main drawer navigator
-import MainDrawerNavigator from './MainDrawerNavigator';
 
 // Modal Stack Navigators
 import * as ModalStackNavigators from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
-import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
 import * as Session from '../../actions/Session';
-import LogOutPreviousUserPage from '../../../pages/LogOutPreviousUserPage';
 
 let currentUserEmail;
 Onyx.connect({
@@ -98,23 +91,19 @@ class AuthScreens extends React.Component {
 
     componentDidMount() {
         NetworkConnection.listenForReconnect();
+        NetworkConnection.onReconnect(() => App.reconnectApp());
         PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
             cluster: CONFIG.PUSHER.CLUSTER,
             authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=AuthenticatePusher`,
         }).then(() => {
-            Report.subscribeToUserEvents();
             User.subscribeToUserEvents();
-            Policy.subscribeToPolicyEvents();
         });
 
         // Listen for report changes and fetch some data we need on initialization
         UnreadIndicatorUpdater.listenForReportChanges();
-        App.getAppData();
-        App.openApp(this.props.allPolicies);
-
-        App.fixAccountAndReloadData();
+        App.openApp();
         App.setUpPoliciesAndNavigate(this.props.session);
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
@@ -192,7 +181,10 @@ class AuthScreens extends React.Component {
                             height: '100%',
                         },
                     }}
-                    component={MainDrawerNavigator}
+                    getComponent={() => {
+                        const MainDrawerNavigator = require('./MainDrawerNavigator').default;
+                        return MainDrawerNavigator;
+                    }}
                 />
                 <RootStack.Screen
                     name="ValidateLogin"
@@ -200,12 +192,26 @@ class AuthScreens extends React.Component {
                         headerShown: false,
                         title: 'New Expensify',
                     }}
-                    component={ValidateLoginPage}
+                    getComponent={() => {
+                        const ValidateLoginPage = require('../../../pages/ValidateLoginPage').default;
+                        return ValidateLoginPage;
+                    }}
                 />
                 <RootStack.Screen
                     name={SCREENS.TRANSITION_FROM_OLD_DOT}
                     options={defaultScreenOptions}
-                    component={LogOutPreviousUserPage}
+                    getComponent={() => {
+                        const LogOutPreviousUserPage = require('../../../pages/LogOutPreviousUserPage').default;
+                        return LogOutPreviousUserPage;
+                    }}
+                />
+                <RootStack.Screen
+                    name="Concierge"
+                    options={defaultScreenOptions}
+                    getComponent={() => {
+                        const ConciergePage = require('../../../pages/ConciergePage').default;
+                        return ConciergePage;
+                    }}
                 />
 
                 {/* These are the various modal routes */}
@@ -259,6 +265,7 @@ class AuthScreens extends React.Component {
                     name="Participants"
                     options={modalScreenOptions}
                     component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
+                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="IOU_Request"
@@ -282,6 +289,7 @@ class AuthScreens extends React.Component {
                     name="IOU_Details"
                     options={modalScreenOptions}
                     component={ModalStackNavigators.IOUDetailsModalStackNavigator}
+                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="AddPersonalBankAccount"
@@ -318,9 +326,6 @@ export default compose(
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        allPolicies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(AuthScreens);

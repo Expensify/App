@@ -28,12 +28,17 @@ export default {
             SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
             ValidateLogin: ROUTES.VALIDATE_LOGIN,
             [SCREENS.TRANSITION_FROM_OLD_DOT]: ROUTES.TRANSITION_FROM_OLD_DOT,
+            Concierge: ROUTES.CONCIERGE,
 
             // Modal Screens
             Settings: {
                 screens: {
                     Settings_Root: {
                         path: ROUTES.SETTINGS,
+                    },
+                    Settings_Workspaces: {
+                        path: ROUTES.SETTINGS_WORKSPACES,
+                        exact: true,
                     },
                     Settings_Preferences: {
                         path: ROUTES.SETTINGS_PREFERENCES,

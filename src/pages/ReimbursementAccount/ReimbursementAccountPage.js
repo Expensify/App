@@ -14,7 +14,6 @@ import CONST from '../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import getPlaidOAuthReceivedRedirectURI from '../../libs/getPlaidOAuthReceivedRedirectURI';
 import Text from '../../components/Text';
 import {withNetwork} from '../../components/OnyxProvider';
@@ -27,16 +26,12 @@ import RequestorStep from './RequestorStep';
 import ValidationStep from './ValidationStep';
 import ACHContractStep from './ACHContractStep';
 import EnableStep from './EnableStep';
-import plaidDataPropTypes from './plaidDataPropTypes';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
 
 const propTypes = {
-    /** Contains plaid data */
-    plaidData: plaidDataPropTypes,
-
     /** Plaid SDK token to use to initialize the widget */
     plaidLinkToken: PropTypes.string,
 
@@ -66,12 +61,9 @@ const propTypes = {
 
 const defaultProps = {
     reimbursementAccount: {
-        loading: true,
+        isLoading: true,
     },
     plaidLinkToken: '',
-    plaidData: {
-        isPlaidDisabled: false,
-    },
     route: {
         params: {
             stepToOpen: '',
@@ -171,7 +163,7 @@ class ReimbursementAccountPage extends React.Component {
         // next step.
         const achData = lodashGet(this.props, 'reimbursementAccount.achData', {});
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-        if (this.props.reimbursementAccount.loading) {
+        if (this.props.reimbursementAccount.isLoading) {
             const isSubmittingVerificationsData = _.contains([
                 CONST.BANK_ACCOUNT.STEP.COMPANY,
                 CONST.BANK_ACCOUNT.STEP.REQUESTOR,
@@ -219,34 +211,28 @@ class ReimbursementAccountPage extends React.Component {
         }
         return (
             <ScreenWrapper>
-                <KeyboardAvoidingView>
-                    {currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && (
-                        <BankAccountStep
-                            achData={achData}
-                            isPlaidDisabled={this.props.plaidData.isPlaidDisabled}
-                            receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
-                            plaidLinkOAuthToken={this.props.plaidLinkToken}
-                        />
-                    )}
-                    {currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && (
-                        <CompanyStep achData={achData} />
-                    )}
-                    {currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR && (
-                        <RequestorStep achData={achData} />
-                    )}
-                    {currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && (
-                        <ACHContractStep companyName={achData.companyName} />
-                    )}
-                    {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
-                        <ValidationStep />
-                    )}
-                    {currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE && (
-                        <EnableStep
-                            achData={this.props.reimbursementAccount.achData}
-                        />
-                    )}
-                    <WorkspaceResetBankAccountModal />
-                </KeyboardAvoidingView>
+                {currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && (
+                    <BankAccountStep
+                        receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
+                        plaidLinkOAuthToken={this.props.plaidLinkToken}
+                    />
+                )}
+                {currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && (
+                    <CompanyStep />
+                )}
+                {currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR && (
+                    <RequestorStep />
+                )}
+                {currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && (
+                    <ACHContractStep companyName={achData.companyName} />
+                )}
+                {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
+                    <ValidationStep />
+                )}
+                {currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE && (
+                    <EnableStep />
+                )}
+                <WorkspaceResetBankAccountModal />
             </ScreenWrapper>
         );
     }
@@ -263,9 +249,6 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        plaidData: {
-            key: ONYXKEYS.PLAID_DATA,
         },
         plaidLinkToken: {
             key: ONYXKEYS.PLAID_LINK_TOKEN,

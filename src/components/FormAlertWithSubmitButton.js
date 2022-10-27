@@ -9,6 +9,7 @@ const propTypes = {
     buttonText: PropTypes.string.isRequired,
 
     /** Styles for container element */
+    // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Whether to show the alert text */
@@ -27,10 +28,13 @@ const propTypes = {
     message: PropTypes.string,
 
     /** Callback fired when the "fix the errors" link is pressed */
-    onFixTheErrorsPressed: PropTypes.func,
+    onFixTheErrorsLinkPressed: PropTypes.func,
 
     /** Submit function */
     onSubmit: PropTypes.func.isRequired,
+
+    /** Should the button be enabled when offline */
+    enabledWhenOffline: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -39,7 +43,8 @@ const defaultProps = {
     isMessageHtml: false,
     containerStyles: [],
     isLoading: false,
-    onFixTheErrorsPressed: () => {},
+    onFixTheErrorsLinkPressed: () => {},
+    enabledWhenOffline: false,
 };
 
 const FormAlertWithSubmitButton = props => (
@@ -48,9 +53,9 @@ const FormAlertWithSubmitButton = props => (
         isAlertVisible={props.isAlertVisible}
         isMessageHtml={props.isMessageHtml}
         message={props.message}
-        onFixTheErrorsPressed={props.onFixTheErrorsPressed}
+        onFixTheErrorsLinkPressed={props.onFixTheErrorsLinkPressed}
     >
-        {isOffline => (isOffline ? (
+        {isOffline => ((isOffline && !props.enabledWhenOffline) ? (
             <Button
                 success
                 isDisabled

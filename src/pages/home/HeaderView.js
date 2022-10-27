@@ -2,10 +2,8 @@ import _ from 'underscore';
 import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
-import ONYXKEYS from '../../ONYXKEYS';
 import themeColors from '../../styles/themes/default';
 import Icon from '../../components/Icon';
 import * as Expensicons from '../../components/Icon/Expensicons';
@@ -24,6 +22,9 @@ import CONST from '../../CONST';
 import * as ReportUtils from '../../libs/ReportUtils';
 import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
+import variables from '../../styles/variables';
+import colors from '../../styles/colors';
+import reportPropTypes from '../reportPropTypes';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -32,22 +33,13 @@ const propTypes = {
     /* Onyx Props */
 
     /** The report currently being looked at */
-    report: PropTypes.shape({
-        /** Name of the report */
-        reportName: PropTypes.string,
-
-        /** List of primarylogins of participants of the report */
-        participants: PropTypes.arrayOf(PropTypes.string),
-
-        /** Value indicating if the report is pinned or not */
-        isPinned: PropTypes.bool,
-    }),
+    report: reportPropTypes,
 
     /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({
         /** Name of the policy */
         name: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -58,15 +50,11 @@ const propTypes = {
 
 const defaultProps = {
     personalDetails: {},
+    policies: {},
     report: null,
 };
 
 const HeaderView = (props) => {
-    // Waiting until ONYX variables are loaded before displaying the component
-    if (_.isEmpty(props.personalDetails)) {
-        return null;
-    }
-
     const participants = lodashGet(props.report, 'participants', []);
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
@@ -85,6 +73,7 @@ const HeaderView = (props) => {
     const avatarTooltip = isChatRoom ? undefined : _.pluck(displayNamesWithTooltips, 'tooltip');
     const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
+    const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
@@ -93,6 +82,7 @@ const HeaderView = (props) => {
                         <Pressable
                             onPress={props.onNavigationMenuButtonClicked}
                             style={[styles.LHNToggle]}
+                            accessibilityHint="Navigate back to chats list"
                         >
                             <Icon src={Expensicons.BackArrow} />
                         </Pressable>
@@ -146,6 +136,16 @@ const HeaderView = (props) => {
                                     </Text>
                                 )}
                             </View>
+                            {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
+                                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                    <Icon
+                                        src={Expensicons.DotIndicator}
+                                        fill={colors.red}
+                                        height={variables.iconSizeSmall}
+                                        width={variables.iconSizeSmall}
+                                    />
+                                </View>
+                            )}
                         </Pressable>
                         <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                             {props.report.hasOutstandingIOU && (
@@ -175,15 +175,4 @@ HeaderView.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withLocalize,
-    withOnyx({
-        report: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-    }),
 )(HeaderView);

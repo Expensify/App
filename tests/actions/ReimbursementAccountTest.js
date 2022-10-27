@@ -32,6 +32,8 @@ Onyx.connect({
     callback: val => reimbursementAccount = val,
 });
 
+jest.mock('../../src/libs/Log');
+
 beforeAll(() => Onyx.init());
 
 beforeEach(() => Onyx.clear()
@@ -61,7 +63,7 @@ describe('actions/BankAccounts', () => {
         return waitForPromisesToResolve()
             .then(() => {
                 // THEN we should expect it to stop loading and bring us to the BankAccountStep
-                expect(reimbursementAccount.loading).toBe(false);
+                expect(reimbursementAccount.isLoading).toBe(false);
                 expect(reimbursementAccount.error).toBe('');
                 expect(reimbursementAccount.achData.currentStep).toBe(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
                 expect(reimbursementAccount.achData.isInSetup).toBe(true);
@@ -83,7 +85,7 @@ describe('actions/BankAccounts', () => {
             })
             .then(() => {
                 // THEN we should advance to the CompanyStep and the enableCardAfterVerified param should be added
-                expect(reimbursementAccount.loading).toBe(false);
+                expect(reimbursementAccount.isLoading).toBe(false);
                 expect(reimbursementAccount.error).toBe('');
                 expect(reimbursementAccount.achData.currentStep).toBe(CONST.BANK_ACCOUNT.STEP.COMPANY);
                 expect(reimbursementAccount.achData.enableCardAfterVerified).toBe(true);
@@ -121,7 +123,7 @@ describe('actions/BankAccounts', () => {
             })
             .then(() => {
                 // THEN we should advance to the RequestorStep
-                expect(reimbursementAccount.loading).toBe(false);
+                expect(reimbursementAccount.isLoading).toBe(false);
                 expect(reimbursementAccount.error).toBe('');
                 expect(reimbursementAccount.achData.currentStep).toBe(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
             });
@@ -151,7 +153,7 @@ describe('actions/BankAccounts', () => {
         return waitForPromisesToResolve()
             .then(() => {
                 // THEN we should to navigate to the RequestorStep
-                expect(reimbursementAccount.loading).toBe(false);
+                expect(reimbursementAccount.isLoading).toBe(false);
                 expect(reimbursementAccount.error).toBe('');
                 expect(reimbursementAccount.achData.currentStep).toBe(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
                 expect(reimbursementAccount.achData.bankAccountID).toBe(TEST_BANK_ACCOUNT_ID);
@@ -190,7 +192,7 @@ describe('actions/BankAccounts', () => {
             })
             .then(() => {
                 // THEN we should move to the ACHContract step and Onfido should be marked as complete
-                expect(reimbursementAccount.loading).toBe(false);
+                expect(reimbursementAccount.isLoading).toBe(false);
                 expect(reimbursementAccount.error).toBe('');
                 expect(reimbursementAccount.achData.currentStep).toBe(CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT);
                 expect(reimbursementAccount.achData.isOnfidoSetupComplete).toBe(true);
@@ -223,7 +225,7 @@ describe('actions/BankAccounts', () => {
         return waitForPromisesToResolve()
             .then(() => {
                 // THEN we should expect it redirect the user back to the RequestorStep because they still need to do Onfido
-                expect(reimbursementAccount.loading).toBe(false);
+                expect(reimbursementAccount.isLoading).toBe(false);
                 expect(reimbursementAccount.error).toBe('');
                 expect(reimbursementAccount.achData.currentStep).toBe(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
             });
@@ -255,29 +257,34 @@ describe('actions/BankAccounts', () => {
         return waitForPromisesToResolve()
             .then(() => {
                 // THEN we should expect to be navigated to the ACHContractStep step
-                expect(reimbursementAccount.loading).toBe(false);
+                expect(reimbursementAccount.isLoading).toBe(false);
                 expect(reimbursementAccount.error).toBe('');
                 expect(reimbursementAccount.achData.currentStep).toBe(CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT);
 
-                // WHEN we mock a sucessful call to SetupWithdrawalAccount while on the ACHContractStep
-                HttpUtils.xhr.mockImplementationOnce(() => Promise.resolve({
-                    jsonCode: 200,
-                    achData: {
-                        bankAccountID: TEST_BANK_ACCOUNT_ID,
-                    },
-                }));
+                HttpUtils.xhr.mockImplementation((command) => {
+                    // WHEN we mock a sucessful call to SetupWithdrawalAccount while on the ACHContractStep
+                    switch (command) {
+                        case 'BankAccount_SetupWithdrawal':
+                            return Promise.resolve({
+                                jsonCode: 200,
+                                achData: {
+                                    bankAccountID: TEST_BANK_ACCOUNT_ID,
+                                },
+                            });
 
-                // And mock SetNameValuePair response
-                HttpUtils.xhr.mockImplementationOnce(() => Promise.resolve({jsonCode: 200}));
-
-                // And mock the response of Get&returnValueList=bankAccountList
-                HttpUtils.xhr.mockImplementationOnce(() => Promise.resolve({
-                    jsonCode: 200,
-                    bankAccountList: [{
-                        bankAccountID: TEST_BANK_ACCOUNT_ID,
-                        state: BankAccount.STATE.PENDING,
-                    }],
-                }));
+                        // And mock the response of Get&returnValueList=bankAccountList
+                        case 'Get':
+                            return Promise.resolve({
+                                jsonCode: 200,
+                                bankAccountList: [{
+                                    bankAccountID: TEST_BANK_ACCOUNT_ID,
+                                    state: BankAccount.STATE.PENDING,
+                                }],
+                            });
+                        default:
+                            return Promise.resolve({jsonCode: 200});
+                    }
+                });
 
                 // WHEN we call setupWithdrawalAccount via the ACHContractStep
                 BankAccounts.setupWithdrawalAccount({
@@ -291,7 +298,7 @@ describe('actions/BankAccounts', () => {
             })
             .then(() => {
                 // THEN we should expect to have an account in the PENDING state and be brought to the ValidationStep
-                expect(reimbursementAccount.loading).toBe(false);
+                expect(reimbursementAccount.isLoading).toBe(false);
                 expect(reimbursementAccount.error).toBe('');
                 expect(reimbursementAccount.achData.currentStep).toBe(CONST.BANK_ACCOUNT.STEP.VALIDATION);
                 expect(reimbursementAccount.achData.state).toBe(BankAccount.STATE.PENDING);
@@ -325,7 +332,7 @@ describe('actions/BankAccounts', () => {
         return waitForPromisesToResolve()
             .then(() => {
                 // THEN we should see that we are directed to the ValidationStep
-                expect(reimbursementAccount.loading).toBe(false);
+                expect(reimbursementAccount.isLoading).toBe(false);
                 expect(reimbursementAccount.error).toBe('');
                 expect(reimbursementAccount.achData.currentStep).toBe(CONST.BANK_ACCOUNT.STEP.VALIDATION);
                 expect(reimbursementAccount.achData.state).toBe(BankAccount.STATE.PENDING);
@@ -361,7 +368,7 @@ describe('actions/BankAccounts', () => {
         return waitForPromisesToResolve()
             .then(() => {
                 // THEN it should have maxAttemptsReached set to true and show the correct data set in Onyx
-                expect(reimbursementAccount.loading).toBe(false);
+                expect(reimbursementAccount.isLoading).toBe(false);
                 expect(reimbursementAccount.error).toBe('');
                 expect(reimbursementAccount.maxAttemptsReached).toBe(true);
             });

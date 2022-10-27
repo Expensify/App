@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {
-    Animated, View, TouchableWithoutFeedback, Pressable, AppState, Keyboard,
+    Animated, View, TouchableWithoutFeedback, AppState, Keyboard,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
 import RNTextInput from '../RNTextInput';
@@ -14,7 +14,10 @@ import * as Expensicons from '../Icon/Expensicons';
 import Text from '../Text';
 import * as styleConst from './styleConst';
 import * as StyleUtils from '../../styles/StyleUtils';
+import variables from '../../styles/variables';
+import Checkbox from '../Checkbox';
 import getSecureEntryKeyboardType from '../../libs/getSecureEntryKeyboardType';
+import CONST from '../../CONST';
 
 class BaseTextInput extends Component {
     constructor(props) {
@@ -30,6 +33,8 @@ class BaseTextInput extends Component {
             passwordHidden: props.secureTextEntry,
             textInputWidth: 0,
             prefixWidth: 0,
+            selection: props.selection,
+            height: variables.componentSizeLarge,
 
             // Value should be kept in state for the autoGrow feature to work - https://github.com/Expensify/App/pull/8232#issuecomment-1077282006
             value,
@@ -59,19 +64,21 @@ class BaseTextInput extends Component {
             return;
         }
 
+        if (this.props.shouldDelayFocus) {
+            return setTimeout(() => this.input.focus(), CONST.ANIMATED_TRANSITION);
+        }
         this.input.focus();
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevProps) {
         // Activate or deactivate the label when value is changed programmatically from outside
         const inputValue = _.isUndefined(this.props.value) ? this.input.value : this.props.value;
-        if (_.isUndefined(inputValue) || this.state.value === inputValue) {
+        if ((_.isUndefined(inputValue) || this.state.value === inputValue) && _.isEqual(prevProps.selection, this.props.selection)) {
             return;
         }
 
         // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({value: inputValue});
-        this.input.setNativeProps({text: inputValue});
+        this.setState({value: inputValue, selection: this.props.selection});
 
         // In some cases, When the value prop is empty, it is not properly updated on the TextInput due to its uncontrolled nature, thus manually clearing the TextInput.
         if (inputValue === '') {
@@ -212,6 +219,9 @@ class BaseTextInput extends Component {
                     >
                         <TouchableWithoutFeedback onPress={this.onPress} focusable={false}>
                             <View
+
+                                // When multiline is not supplied, calculating textinput height using onLayout
+                                onLayout={event => !this.props.multiline && this.setState({height: event.nativeEvent.layout.height})}
                                 style={[
                                     textInputContainerStyles,
 
@@ -253,7 +263,7 @@ class BaseTextInput extends Component {
                                         }}
                                         // eslint-disable-next-line
                                         {...inputProps}
-                                        defaultValue={this.state.value}
+                                        autoCorrect={this.props.secureTextEntry ? false : this.props.autoCorrect}
                                         placeholder={placeholder}
                                         placeholderTextColor={themeColors.placeholderText}
                                         underlineColorAndroid="transparent"
@@ -264,6 +274,7 @@ class BaseTextInput extends Component {
                                             !hasLabel && styles.pv0,
                                             this.props.prefixCharacter && StyleUtils.getPaddingLeft(this.state.prefixWidth + styles.pl1.paddingLeft),
                                             this.props.secureTextEntry && styles.secureInput,
+                                            !this.props.multiline && {height: this.state.height},
                                         ]}
                                         multiline={this.props.multiline}
                                         maxLength={this.props.maxLength}
@@ -274,18 +285,20 @@ class BaseTextInput extends Component {
                                         onPressOut={this.props.onPress}
                                         showSoftInputOnFocus={!this.props.disableKeyboard}
                                         keyboardType={getSecureEntryKeyboardType(this.props.keyboardType, this.props.secureTextEntry, this.state.passwordHidden)}
+                                        value={this.state.value}
+                                        selection={this.state.selection}
                                     />
                                     {this.props.secureTextEntry && (
-                                        <Pressable
-                                            accessibilityRole="button"
+                                        <Checkbox
                                             style={styles.secureInputShowPasswordButton}
                                             onPress={this.togglePasswordVisibility}
+                                            onMouseDown={e => e.preventDefault()}
                                         >
                                             <Icon
                                                 src={this.state.passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
                                                 fill={themeColors.icon}
                                             />
-                                        </Pressable>
+                                        </Checkbox>
                                     )}
                                 </View>
                             </View>

@@ -1,4 +1,4 @@
-import RNFetchBlob from 'rn-fetch-blob';
+import RNFetchBlob from 'react-native-blob-util';
 import CameraRoll from '@react-native-community/cameraroll';
 import lodashGet from 'lodash/get';
 import * as FileUtils from './FileUtils';

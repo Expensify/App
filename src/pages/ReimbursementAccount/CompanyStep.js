@@ -22,15 +22,21 @@ import * as LoginUtils from '../../libs/LoginUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import Picker from '../../components/Picker';
+import AddressForm from './AddressForm';
+import ReimbursementAccountForm from './ReimbursementAccountForm';
+import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
-import ReimbursementAccountForm from './ReimbursementAccountForm';
-import AddressForm from './AddressForm';
+import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 
 const propTypes = {
-    /** Bank account currently in setup */
-    // eslint-disable-next-line react/no-unused-prop-types
+    /** The bank account currently in setup */
+    /* eslint-disable-next-line react/no-unused-prop-types */
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+
+    /** The draft values of the bank account being setup */
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -40,6 +46,10 @@ class CompanyStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
+        this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
+        this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
+        this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
+        this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
 
         this.defaultWebsite = lodashGet(props, 'user.isFromPublicDomain', false)
             ? 'https://'
@@ -88,41 +98,20 @@ class CompanyStep extends React.Component {
             hasNoConnectionToCannabis: 'bankAccount.error.restrictedBusiness',
             incorporationState: 'bankAccount.error.incorporationState',
         };
-
-        this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
-        this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
-        this.clearErrors = inputKeys => ReimbursementAccountUtils.clearErrors(this.props, inputKeys);
-        this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
-        this.clearDateErrorsAndSetValue = this.clearDateErrorsAndSetValue.bind(this);
     }
 
     /**
-     * @param {String} value
-     */
-    setValue(value) {
-        this.setState(value);
-        BankAccounts.updateReimbursementAccountDraft(value);
-    }
-
-    /**
-     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
-     *
      * @param {String} inputKey
      * @param {String} value
      */
     clearErrorAndSetValue(inputKey, value) {
-        this.setValue({[inputKey]: value});
+        const newState = {[inputKey]: value};
+        this.setState(newState);
+        ReimbursementAccount.updateReimbursementAccountDraft(newState);
         this.clearError(inputKey);
-    }
-
-    /**
-     * Clear both errors associated with incorporation date, and set the new value.
-     *
-     * @param {String} value
-     */
-    clearDateErrorsAndSetValue(value) {
-        this.clearErrors(['incorporationDate', 'incorporationDateFuture']);
-        this.setValue({incorporationDate: value});
+        if (inputKey === 'incorporationDate') {
+            this.clearError('incorporationDateFuture');
+        }
     }
 
     /**
@@ -130,6 +119,14 @@ class CompanyStep extends React.Component {
      */
     validate() {
         const errors = {};
+
+        _.each(this.requiredFields, (inputKey) => {
+            if (ValidationUtils.isRequiredFulfilled(this.state[inputKey])) {
+                return;
+            }
+
+            errors[inputKey] = true;
+        });
 
         if (!ValidationUtils.isValidAddress(this.state.addressStreet)) {
             errors.addressStreet = true;
@@ -159,35 +156,34 @@ class CompanyStep extends React.Component {
             errors.companyPhone = true;
         }
 
-        _.each(this.requiredFields, (inputKey) => {
-            if (ValidationUtils.isRequiredFulfilled(this.state[inputKey])) {
-                return;
-            }
+        ReimbursementAccount.setBankAccountFormValidationErrors(errors);
 
-            errors[inputKey] = true;
-        });
-        BankAccounts.setBankAccountFormValidationErrors(errors);
         return _.size(errors) === 0;
     }
 
     submit() {
         if (!this.validate()) {
-            BankAccounts.showBankAccountErrorModal();
             return;
         }
 
-        const incorporationDate = moment(this.state.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING);
-        BankAccounts.setupWithdrawalAccount({
+        const bankAccount = {
+            // Fields from BankAccount step
+            ...ReimbursementAccountUtils.getBankAccountFields(this.props, ['bankAccountID', 'routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
+
+            // Fields from Company step
             ...this.state,
-            incorporationDate,
+            incorporationDate: moment(this.state.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING),
             companyTaxID: this.state.companyTaxID.replace(CONST.REGEX.NON_NUMERIC, ''),
             companyPhone: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(this.state.companyPhone),
-        });
+        };
+
+        BankAccounts.updateCompanyInformationForBankAccount(bankAccount);
     }
 
     render() {
-        const shouldDisableCompanyName = Boolean(this.props.achData.bankAccountID && this.props.achData.companyName);
-        const shouldDisableCompanyTaxID = Boolean(this.props.achData.bankAccountID && this.props.achData.companyTaxID);
+        const bankAccountID = ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0);
+        const shouldDisableCompanyName = bankAccountID && ReimbursementAccountUtils.getDefaultStateForField(this.props, 'companyName');
+        const shouldDisableCompanyTaxID = bankAccountID && ReimbursementAccountUtils.getDefaultStateForField(this.props, 'companyTaxID');
 
         return (
             <>
@@ -200,20 +196,19 @@ class CompanyStep extends React.Component {
                     onBackButtonPress={() => BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                <ReimbursementAccountForm
-                    reimbursementAccount={this.props.reimbursementAccount}
-                    onSubmit={this.submit}
-                >
+
+                <ReimbursementAccountForm onSubmit={this.submit}>
                     <Text>{this.props.translate('companyStep.subtitle')}</Text>
                     <TextInput
                         label={this.props.translate('companyStep.legalBusinessName')}
                         containerStyles={[styles.mt4]}
                         onChangeText={value => this.clearErrorAndSetValue('companyName', value)}
-                        value={this.state.companyName}
+                        defaultValue={this.state.companyName}
                         disabled={shouldDisableCompanyName}
                         errorText={this.getErrorText('companyName')}
                     />
                     <AddressForm
+                        translate={this.props.translate}
                         streetTranslationKey="common.companyAddress"
                         values={{
                             street: this.state.addressStreet,
@@ -234,13 +229,10 @@ class CompanyStep extends React.Component {
                                 city: 'addressCity',
                                 zipCode: 'addressZipCode',
                             };
-                            const renamedValues = {};
                             _.each(values, (value, inputKey) => {
                                 const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
-                                renamedValues[renamedInputKey] = value;
+                                this.clearErrorAndSetValue(renamedInputKey, value);
                             });
-                            this.setValue(renamedValues);
-                            this.clearErrors(_.keys(renamedValues));
                         }}
                     />
                     <TextInput
@@ -248,7 +240,7 @@ class CompanyStep extends React.Component {
                         containerStyles={[styles.mt4]}
                         keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                         onChangeText={value => this.clearErrorAndSetValue('companyPhone', value)}
-                        value={this.state.companyPhone}
+                        defaultValue={this.state.companyPhone}
                         placeholder={this.props.translate('common.phoneNumberPlaceholder')}
                         errorText={this.getErrorText('companyPhone')}
                     />
@@ -256,7 +248,7 @@ class CompanyStep extends React.Component {
                         label={this.props.translate('companyStep.companyWebsite')}
                         containerStyles={[styles.mt4]}
                         onChangeText={value => this.clearErrorAndSetValue('website', value)}
-                        value={this.state.website}
+                        defaultValue={this.state.website}
                         errorText={this.getErrorText('website')}
                     />
                     <TextInput
@@ -264,7 +256,7 @@ class CompanyStep extends React.Component {
                         containerStyles={[styles.mt4]}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         onChangeText={value => this.clearErrorAndSetValue('companyTaxID', value)}
-                        value={this.state.companyTaxID}
+                        defaultValue={this.state.companyTaxID}
                         disabled={shouldDisableCompanyTaxID}
                         placeholder={this.props.translate('companyStep.taxIDNumberPlaceholder')}
                         errorText={this.getErrorText('companyTaxID')}
@@ -282,7 +274,7 @@ class CompanyStep extends React.Component {
                     <View style={styles.mt4}>
                         <DatePicker
                             label={this.props.translate('companyStep.incorporationDate')}
-                            onInputChange={this.clearDateErrorsAndSetValue}
+                            onInputChange={value => this.clearErrorAndSetValue('incorporationDate', value)}
                             defaultValue={this.state.incorporationDate}
                             placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
                             errorText={this.getErrorText('incorporationDate') || this.getErrorText('incorporationDateFuture')}
@@ -299,14 +291,7 @@ class CompanyStep extends React.Component {
                     </View>
                     <CheckboxWithLabel
                         isChecked={this.state.hasNoConnectionToCannabis}
-                        onInputChange={() => {
-                            this.setState((prevState) => {
-                                const newState = {hasNoConnectionToCannabis: !prevState.hasNoConnectionToCannabis};
-                                BankAccounts.updateReimbursementAccountDraft(newState);
-                                return newState;
-                            });
-                            this.clearError('hasNoConnectionToCannabis');
-                        }}
+                        onInputChange={value => this.clearErrorAndSetValue('hasNoConnectionToCannabis', value)}
                         LabelComponent={() => (
                             <>
                                 <Text>{`${this.props.translate('companyStep.confirmCompanyIsNot')} `}</Text>
@@ -331,6 +316,7 @@ CompanyStep.propTypes = propTypes;
 export default compose(
     withLocalize,
     withOnyx({
+        // Needed to retrieve errorFields
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },

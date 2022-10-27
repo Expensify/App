@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {FlatList} from 'react-native';
+import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
@@ -14,19 +15,20 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
+import paypalMeDataPropTypes from '../../../components/paypalMeDataPropTypes';
 import cardPropTypes from '../../../components/cardPropTypes';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
 import FormAlertWrapper from '../../../components/FormAlertWrapper';
-
-const MENU_ITEM = 'menuItem';
-const BUTTON = 'button';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
+import Log from '../../../libs/Log';
 
 const propTypes = {
     /** What to do when a menu item is pressed */
     onPress: PropTypes.func.isRequired,
 
-    /** User's paypal.me username if they have one */
-    payPalMeUsername: PropTypes.string,
+    /** Account details for PayPal.Me */
+    payPalMeData: paypalMeDataPropTypes,
 
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
@@ -62,7 +64,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    payPalMeUsername: '',
+    payPalMeData: {},
     bankAccountList: {},
     cardList: {},
     userWallet: {
@@ -108,10 +110,9 @@ class PaymentMethodList extends Component {
      * @returns {Array}
      */
     getFilteredPaymentMethods() {
-        // Hide the billing card from the payments menu for now because you can't make it your default method, or delete it
-        const filteredCardList = _.filter(this.props.cardList, card => !card.additionalData.isBillingCard);
-
-        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, this.props.payPalMeUsername, this.props.userWallet);
+        // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
+        const filteredCardList = _.filter(this.props.cardList, card => card.accountData.additionalData.isP2PDebitCard);
+        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, this.props.payPalMeData);
 
         if (!_.isEmpty(this.props.filterType)) {
             combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === this.props.filterType);
@@ -119,8 +120,7 @@ class PaymentMethodList extends Component {
 
         combinedPaymentMethods = _.map(combinedPaymentMethods, paymentMethod => ({
             ...paymentMethod,
-            type: MENU_ITEM,
-            onPress: e => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault),
+            onPress: e => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault, paymentMethod.methodID),
             iconFill: this.isPaymentMethodActive(paymentMethod) ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
             wrapperStyle: this.isPaymentMethodActive(paymentMethod) ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
         }));
@@ -129,39 +129,23 @@ class PaymentMethodList extends Component {
     }
 
     /**
-     * Take all of the different payment methods and create a list that can be easily digested by renderItem
-     *
-     * @returns {Array}
+     * Dismisses the error on the payment method
+     * @param {Object} item
      */
-    createPaymentMethodList() {
-        const combinedPaymentMethods = this.getFilteredPaymentMethods();
+    dismissError(item) {
+        const paymentList = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST;
+        const paymentID = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? lodashGet(item, ['accountData', 'bankAccountID'], '') : lodashGet(item, ['accountData', 'fundID'], '');
 
-        // If we have not added any payment methods, show a default empty state
-        if (_.isEmpty(combinedPaymentMethods)) {
-            combinedPaymentMethods.push({
-                key: 'addFirstPaymentMethodHelpText',
-                text: this.props.translate('paymentMethodList.addFirstPaymentMethod'),
-            });
+        if (!paymentID) {
+            Log.info('Unable to clear payment method error: ', item);
+            return;
         }
 
-        if (!this.props.shouldShowAddPaymentMethodButton) {
-            return combinedPaymentMethods;
+        if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            PaymentMethods.clearDeletePaymentMethodError(paymentList, paymentID);
+        } else {
+            PaymentMethods.clearAddPaymentMethodError(paymentList, paymentID);
         }
-
-        combinedPaymentMethods.push({
-            type: BUTTON,
-            text: this.props.translate('paymentMethodList.addPaymentMethod'),
-            icon: Expensicons.CreditCard,
-            style: [styles.mh4],
-            iconStyles: [styles.mr4],
-            onPress: e => this.props.onPress(e),
-            isDisabled: this.props.isLoadingPayments,
-            shouldShowRightIcon: true,
-            success: true,
-            key: 'addPaymentMethodButton',
-        });
-
-        return combinedPaymentMethods;
     }
 
     /**
@@ -183,8 +167,13 @@ class PaymentMethodList extends Component {
      * @return {React.Component}
      */
     renderItem({item}) {
-        if (item.type === MENU_ITEM) {
-            return (
+        return (
+            <OfflineWithFeedback
+                onClose={() => this.dismissError(item)}
+                pendingAction={item.pendingAction}
+                errors={item.errors}
+                errorRowStyles={styles.ph6}
+            >
                 <MenuItem
                     onPress={item.onPress}
                     title={item.title}
@@ -199,44 +188,58 @@ class PaymentMethodList extends Component {
                     shouldShowSelectedState={this.props.shouldShowSelectedState}
                     isSelected={this.props.selectedMethodID === item.methodID}
                 />
-            );
-        }
-        if (item.type === BUTTON) {
-            return (
-                <FormAlertWrapper>
-                    {isOffline => (
-                        <Button
-                            text={item.text}
-                            icon={item.icon}
-                            onPress={item.onPress}
-                            isDisabled={item.isDisabled || isOffline}
-                            style={item.style}
-                            iconStyles={item.iconStyles}
-                            success={item.success}
-                            shouldShowRightIcon={item.shouldShowRightIcon}
-                            extraLarge
-                        />
-                    )}
-                </FormAlertWrapper>
-            );
-        }
+            </OfflineWithFeedback>
+        );
+    }
 
+    /**
+     * Show add first payment copy when payment methods are
+     *
+     * @return {React.Component}
+     */
+    renderListEmptyComponent() {
         return (
             <Text
                 style={[styles.popoverMenuItem]}
             >
-                {item.text}
+                {this.props.translate('paymentMethodList.addFirstPaymentMethod')}
             </Text>
         );
     }
 
     render() {
         return (
-            <FlatList
-                data={this.createPaymentMethodList()}
-                renderItem={this.renderItem}
-                keyExtractor={item => item.key}
-            />
+            <>
+                <FlatList
+                    data={this.getFilteredPaymentMethods()}
+                    renderItem={this.renderItem}
+                    keyExtractor={item => item.key}
+                    ListEmptyComponent={this.renderListEmptyComponent()}
+                />
+                {
+                    this.props.shouldShowAddPaymentMethodButton
+                    && (
+                        <FormAlertWrapper>
+                            {
+                                isOffline => (
+                                    <Button
+                                        text={this.props.translate('paymentMethodList.addPaymentMethod')}
+                                        icon={Expensicons.CreditCard}
+                                        onPress={e => this.props.onPress(e)}
+                                        isDisabled={this.props.isLoadingPayments || isOffline}
+                                        style={[styles.mh4, styles.mb4, styles.buttonCTA]}
+                                        iconStyles={[styles.buttonCTAIcon]}
+                                        key="addPaymentMethodButton"
+                                        success
+                                        shouldShowRightIcon
+                                        large
+                                    />
+                                )
+                            }
+                        </FormAlertWrapper>
+                    )
+                }
+            </>
         );
     }
 }
@@ -253,8 +256,8 @@ export default compose(
         cardList: {
             key: ONYXKEYS.CARD_LIST,
         },
-        payPalMeUsername: {
-            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
+        payPalMeData: {
+            key: ONYXKEYS.PAYPAL,
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,

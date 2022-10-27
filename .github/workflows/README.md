@@ -80,9 +80,13 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 
 All these _workflows_ are comprised of atomic _actions_. Most of the time, we can use pre-made and independently maintained actions to create powerful workflows that meet our needs. However, when we want to do something very specific or have a more complex or robust action in mind, we can create our own _actions_.
 
-All our actions are stored in the neighboring directory [`.github/actions`](https://github.com/Expensify/App/tree/main/.github/actions). Each action is a module comprised of three parts:
+All our actions are stored in the neighboring directory [`.github/actions`](https://github.com/Expensify/App/tree/main/.github/actions). There are two kinds of actions, [composite actions](https://docs.github.com/en/actions/creating-actions/creating-a-composite-action), and [JavaScript actions](https://docs.github.com/en/actions/creating-actions/creating-a-javascript-action).
 
-1. An [action metadata file](https://docs.github.com/en/free-pro-team@latest/actions/creating-actions/creating-a-javascript-action#creating-an-action-metadata-file) called `action.yml`. This describes the action, gives it a name, and defines its inputs and outputs.
+All actions must have an "action metadata file" called `action.yml`. This describes the action, gives it a name, and defines its inputs and outputs. For composite actions, it also includes the run steps.
+
+JavaScript actions are modules comprised of three parts:
+
+1. An [action metadata file](https://docs.github.com/en/free-pro-team@latest/actions/creating-actions/creating-a-javascript-action#creating-an-action-metadata-file) called `action.yml`.
 1. A Node.js script, whose name matches the module. This is where you can implement the custom logic for your action.
 1. A compiled file called index.js. This is a compiled output of the file from (2) and should _NEVER_ be directly modified.
 

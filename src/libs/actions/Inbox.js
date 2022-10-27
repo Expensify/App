@@ -19,18 +19,18 @@ function requestCall({
 }) {
     const optimisticData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: ONYXKEYS.REQUEST_CALL_FORM,
+        key: ONYXKEYS.FORMS.REQUEST_CALL_FORM,
         value: {
-            loading: true,
+            isLoading: true,
         },
     }];
 
     const successData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.REQUEST_CALL_FORM,
+            key: ONYXKEYS.FORMS.REQUEST_CALL_FORM,
             value: {
-                loading: false,
+                isLoading: false,
                 error: '',
                 didRequestCallSucceed: true,
             },
@@ -39,9 +39,9 @@ function requestCall({
 
     const failureData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: ONYXKEYS.REQUEST_CALL_FORM,
+        key: ONYXKEYS.FORMS.REQUEST_CALL_FORM,
         value: {
-            loading: false,
+            isLoading: false,
         },
     }];
 
@@ -63,7 +63,7 @@ function openRequestCallPage() {
     // Reset the error message in case we had one set from a previous failed attempt at requesting a call.
     const optimisticData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
-        key: ONYXKEYS.REQUEST_CALL_FORM,
+        key: ONYXKEYS.FORMS.REQUEST_CALL_FORM,
         value: {
             error: '',
         },
@@ -72,7 +72,7 @@ function openRequestCallPage() {
 }
 
 function clearDidRequestCallSucceed() {
-    Onyx.merge(ONYXKEYS.REQUEST_CALL_FORM, {didRequestCallSucceed: false});
+    Onyx.merge(ONYXKEYS.FORMS.REQUEST_CALL_FORM, {didRequestCallSucceed: false});
 }
 
 export {
