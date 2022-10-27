@@ -2,9 +2,8 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, ScrollView} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import LocalePicker from '../../components/LocalePicker';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -21,6 +20,7 @@ import compose from '../../libs/compose';
 import Picker from '../../components/Picker';
 import withEnvironment, {environmentPropTypes} from '../../components/withEnvironment';
 import TestToolMenu from '../../components/TestToolMenu';
+import withTheme from '../../components/withThemeColors';
 
 const propTypes = {
     /** The chat priority mode */
@@ -54,6 +54,10 @@ const PreferencesPage = (props) => {
             label: props.translate('preferencesPage.focus'),
             description: props.translate('preferencesPage.focusModeDescription'),
         },
+    };
+
+    const toggleDarkMode = (darkModeOn) => {
+        Onyx.merge(ONYXKEYS.NVP_PREFERRED_THEME, darkModeOn);
     };
 
     return (
@@ -102,6 +106,13 @@ const PreferencesPage = (props) => {
                     {/* If we are in the staging environment then we enable additional test features */}
                     {_.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.DEV], props.environment) && <TestToolMenu />}
                 </View>
+                <View style={[styles.flexRow, styles.justifyContentBetween]}>
+                    <Text>DARK MODE:</Text>
+                    <Switch
+                        isOn={props.preferredTheme}
+                        onToggle={toggleDarkMode}
+                    />
+                </View>
             </ScrollView>
         </ScreenWrapper>
     );
@@ -114,6 +125,7 @@ PreferencesPage.displayName = 'PreferencesPage';
 export default compose(
     withEnvironment,
     withLocalize,
+    withTheme,
     withOnyx({
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
@@ -121,5 +133,8 @@ export default compose(
         user: {
             key: ONYXKEYS.USER,
         },
+        preferredTheme: {
+            key: ONYXKEYS.NVP_PREFERRED_THEME,
+        }
     }),
 )(PreferencesPage);

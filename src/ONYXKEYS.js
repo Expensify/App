@@ -101,6 +101,9 @@ export default {
     // Indicates which locale should be used
     NVP_PREFERRED_LOCALE: 'preferredLocale',
 
+    // Idicates which theme the user likes
+    NVP_PREFERRED_THEME: 'preferredTheme',
+
     // List of transactionIDs in process of rejection
     TRANSACTIONS_BEING_REJECTED: 'transactionsBeingRejected',
 
