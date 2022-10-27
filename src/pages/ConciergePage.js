@@ -2,14 +2,10 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import Navigation from '../libs/Navigation/Navigation';
 import * as Report from '../libs/actions/Report';
-import * as ReportUtils from "../libs/ReportUtils";
-import * as OptionsListUtils from "../libs/OptionsListUtils";
-import ROUTES from "../ROUTES";
 
 const propTypes = {
     /** Session info for the currently logged in user. */

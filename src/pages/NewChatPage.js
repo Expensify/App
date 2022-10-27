@@ -18,8 +18,6 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
-import ROUTES from '../ROUTES';
-import {navigateToOrCreateChatReport} from "../libs/actions/Report";
 
 const propTypes = {
     /** Whether screen is used to create group chat */
