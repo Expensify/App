@@ -248,6 +248,7 @@ function requestMoney(report, amount, currency, recipientEmail, debtorEmail, com
             ...optimisticCreateAction,
             ...optimisticData[1].value,
         };
+        optimisticData[2].onyxMethod = CONST.ONYX.METHOD.SET;
         successData.push(
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
