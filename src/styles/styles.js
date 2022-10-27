@@ -18,6 +18,7 @@ import visibility from './utilities/visibility';
 import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
+import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
 
 const picker = {
@@ -76,12 +77,10 @@ const webViewStyles = {
 
         ul: {
             maxWidth: '100%',
-            flex: 1,
         },
 
         ol: {
             maxWidth: '100%',
-            flex: 1,
         },
 
         li: {
@@ -1373,7 +1372,6 @@ const styles = {
     },
 
     chatFooter: {
-        marginBottom: 5,
         paddingLeft: 20,
         paddingRight: 20,
         display: 'flex',
@@ -1408,9 +1406,10 @@ const styles = {
     }, 0),
 
     textInputFullCompose: {
-        alignSelf: 'flex-end',
+        alignSelf: 'stretch',
         flex: 1,
         maxHeight: '100%',
+        textAlignVertical: 'top',
     },
 
     editInputComposeSpacing: {
@@ -1746,6 +1745,8 @@ const styles = {
     },
 
     pointerEventsNone,
+
+    pointerEventsAuto,
 
     headerBar: {
         overflow: 'hidden',
@@ -2573,7 +2574,6 @@ const styles = {
     },
 
     keyboardShortcutModalContainer: {
-        maxWidth: 600,
         maxHeight: '100%',
         flex: '0 0 auto',
     },
@@ -2674,6 +2674,11 @@ const styles = {
         userSelect: 'text',
     },
 
+    userSelectNone: {
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+    },
+
     screenCenteredContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -2692,6 +2697,17 @@ const styles = {
         paddingHorizontal: 20,
         maxWidth: 450,
         alignSelf: 'center',
+    },
+
+    textPill: {
+        ellipsizeMode: 'end',
+        backgroundColor: colors.gray2,
+        borderRadius: 10,
+        overflow: 'hidden',
+        paddingVertical: 2,
+        flexShrink: 1,
+        fontSize: variables.fontSizeSmall,
+        ...spacing.ph2,
     },
 };
 

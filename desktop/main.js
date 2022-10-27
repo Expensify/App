@@ -278,6 +278,13 @@ const mainWindow = (() => {
                 }
             });
 
+            browserWindow.on(ELECTRON_EVENTS.FOCUS, () => {
+                browserWindow.webContents.send(ELECTRON_EVENTS.FOCUS);
+            });
+            browserWindow.on(ELECTRON_EVENTS.BLUR, () => {
+                browserWindow.webContents.send(ELECTRON_EVENTS.BLUR);
+            });
+
             app.on('before-quit', () => quitting = true);
             app.on('activate', () => {
                 if (expectedUpdateVersion && app.getVersion() !== expectedUpdateVersion) {

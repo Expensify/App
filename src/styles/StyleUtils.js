@@ -213,6 +213,26 @@ function getBackgroundColorStyle(backgroundColor) {
 }
 
 /**
+ * Returns a background color with opacity style
+ *
+ * @param {String} backgroundColor
+ * @param {number} opacity
+ * @returns {Object}
+ */
+function getBackgroundColorWithOpacityStyle(backgroundColor, opacity) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(backgroundColor);
+    if (result !== null) {
+        const r = parseInt(result[1], 16);
+        const g = parseInt(result[2], 16);
+        const b = parseInt(result[3], 16);
+        return {
+            backgroundColor: `rgba(${r}, ${g}, ${b}, ${opacity})`,
+        };
+    }
+    return {};
+}
+
+/**
  * Generate a style for the background color of the Badge
  *
  * @param {Boolean} success
@@ -506,6 +526,19 @@ function fade(fadeAnimation) {
     };
 }
 
+/**
+ * Return width for keyboard shortcuts modal.
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {Object}
+ */
+function getKeyboardShortcutsModalWidth(isSmallScreenWidth) {
+    if (isSmallScreenWidth) {
+        return {maxWidth: '100%'};
+    }
+    return {maxWidth: 600};
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -519,6 +552,7 @@ export {
     getAutoGrowTextInputStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
+    getBackgroundColorWithOpacityStyle,
     getBadgeColorStyle,
     getButtonBackgroundColorStyle,
     getIconFillColor,
@@ -530,6 +564,7 @@ export {
     getLoginPagePromoStyle,
     getReportActionItemStyle,
     getMiniReportActionContextMenuWrapperStyle,
+    getKeyboardShortcutsModalWidth,
     getPaymentMethodMenuWidth,
     parseStyleAsArray,
     combineStyles,
