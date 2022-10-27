@@ -88,6 +88,7 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
         avatar: fullPolicyOrPolicySummary.avatar
             || lodashGet(fullPolicyOrPolicySummary, 'value.avatar', ''),
         customUnits: lodashGet(fullPolicyOrPolicySummary, 'value.customUnits', {}),
+        lastModified: lodashGet(fullPolicyOrPolicySummary, 'value.lastModified', 0),
     };
 }
 
