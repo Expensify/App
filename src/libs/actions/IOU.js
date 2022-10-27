@@ -130,13 +130,12 @@ function startLoadingAndResetError() {
  * @param {Object} report
  * @param {Number} amount
  * @param {String} currency
- * @param {Array} recipient
- * @param {Array} debtor
+ * @param {String} recipientEmail
+ * @param {String} debtorEmail
+ * @param {String} debtorName
  * @param {String} comment
  */
-function requestMoney(report, amount, currency, recipient, debtor, comment) {
-    const recipientEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(recipient.login);
-    const debtorEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(debtor.login);
+function requestMoney(report, amount, currency, recipientEmail, debtorEmail, debtorName = '', comment = '') {
     let chatReport = lodashGet(report, 'reportID', null) ? report : null;
     let isNewChat = false;
     if (!chatReport) {
@@ -167,7 +166,7 @@ function requestMoney(report, amount, currency, recipient, debtor, comment) {
         '',
         '',
         iouReport.reportID,
-        debtor.firstName,
+        debtorName || debtorEmail,
         preferredLocale,
     );
 

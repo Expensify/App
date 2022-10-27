@@ -344,14 +344,12 @@ class IOUModal extends Component {
             });
             return;
         }
-
-        console.log(this.state.participants);
-        console.log(this.props.currentUserPersonalDetails);
         IOU.requestMoney(this.props.report,
             Math.round(this.state.amount * 100),
             this.props.iou.selectedCurrencyCode,
-            this.props.currentUserPersonalDetails,
-            this.state.participants[0],
+            this.props.currentUserPersonalDetails.login,
+            OptionsListUtils.addSMSDomainIfPhoneNumber(this.state.participants[0].login),
+            lodashGet(this.state.participants[0], 'firstName', ''),
             this.state.comment);
     }
 
