@@ -127,7 +127,7 @@ function read(command, apiCommandParameters, onyxData) {
             return;
         }
 
-        return makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ)
+        return makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ);
     });
 }
 
