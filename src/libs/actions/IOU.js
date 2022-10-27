@@ -326,7 +326,9 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
 
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            // Use set for new reports because it doesn't exist yet, is faster,
+            // and we need the data to be available when we navigate to the chat page
+            onyxMethod: existingGroupChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`,
             value: {
                 ...groupChatReport,
@@ -341,7 +343,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             },
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: existingGroupChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChatReport.reportID}`,
             value: {
                 ...groupCreatedReportAction,
@@ -434,7 +436,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
 
         optimisticData.push(
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: existingOneOnOneChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
                 value: {
                     ...oneOnOneChatReport,
@@ -453,7 +455,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 value: oneOnOneIOUReport,
             },
             {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                onyxMethod: existingOneOnOneChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
                 value: {
                     ...oneOnOneCreatedReportAction,
