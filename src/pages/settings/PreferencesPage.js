@@ -21,6 +21,7 @@ import Picker from '../../components/Picker';
 import withEnvironment, {environmentPropTypes} from '../../components/withEnvironment';
 import TestToolMenu from '../../components/TestToolMenu';
 import withTheme from '../../components/withThemeColors';
+import * as App from '../../libs/actions/App';
 
 const propTypes = {
     /** The chat priority mode */
@@ -54,10 +55,6 @@ const PreferencesPage = (props) => {
             label: props.translate('preferencesPage.focus'),
             description: props.translate('preferencesPage.focusModeDescription'),
         },
-    };
-
-    const toggleDarkMode = (darkModeOn) => {
-        Onyx.merge(ONYXKEYS.NVP_PREFERRED_THEME, darkModeOn);
     };
 
     return (
@@ -110,7 +107,7 @@ const PreferencesPage = (props) => {
                     <Text>DARK MODE:</Text>
                     <Switch
                         isOn={props.preferredTheme}
-                        onToggle={toggleDarkMode}
+                        onToggle={App.setTheme}
                     />
                 </View>
             </ScrollView>
