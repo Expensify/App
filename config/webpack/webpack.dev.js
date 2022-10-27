@@ -50,6 +50,12 @@ module.exports = (env = {}) => portfinder.getPortPromise({port: BASE_PORT})
             ],
             cache: {
                 type: 'filesystem',
+                name: env.platform || 'default',
+                buildDependencies: {
+                    // By default, webpack and loaders are build dependencies
+                    // This (also) makes all dependencies of this config file - build dependencies
+                    config: [__filename],
+                },
             },
         });
 
