@@ -275,7 +275,8 @@ class IOUConfirmationList extends Component {
         const shouldShowSettlementButton = this.props.iouType === CONST.IOU.IOU_TYPE.SEND;
         const shouldDisableButton = selectedParticipants.length === 0;
         const recipient = this.state.participants[0];
-        const canModifyParticipants = this.props.isIOUAttachedToExistingChatReport && this.props.hasMultipleParticipants;
+        const canModifyParticipants = !this.props.isIOUAttachedToExistingChatReport && this.props.hasMultipleParticipants;
+
         return (
             <OptionsSelector
                 sections={this.getSections()}
@@ -286,7 +287,7 @@ class IOUConfirmationList extends Component {
                 textInputLabel={this.props.translate('iOUConfirmationList.whatsItFor')}
                 placeholderText={this.props.translate('common.optional')}
                 selectedOptions={this.getSelectedOptions()}
-                canSelectMultipleOptions={this.props.hasMultipleParticipants}
+                canSelectMultipleOptions={canModifyParticipants}
                 disableArrowKeysActions={!canModifyParticipants}
                 isDisabled={!canModifyParticipants}
                 hideAdditionalOptionStates
