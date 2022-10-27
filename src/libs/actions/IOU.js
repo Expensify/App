@@ -447,6 +447,9 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
 
         // Regardless of the number of participants, we always want to push the iouReport update to onyxData
         optimisticData.push({
+            // We want to use set in case we are creating the the optimistic chat.
+            // If we have multiple participants selected, we need to check if the 1:1 chat between the users already exists
+            // If we have only one other participant, the group chat is the 1:1 chat and we need to check if that already exists
             onyxMethod: ((hasMultipleParticipants && existingOneOnOneChatReport) || (!hasMultipleParticipants && existingGroupChatReport)) ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneIOUReport.reportID}`,
             value: oneOnOneIOUReport,
