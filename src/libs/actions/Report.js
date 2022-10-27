@@ -694,7 +694,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
  *
  * @param {Array} userLogins list of user logins.
  */
-function navigateToOrCreateChatReport(userLogins) {
+function navigateToAndOpenReport(userLogins) {
     const formattedUserLogins = _.map(userLogins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
     let newChat = {};
     const chat = ReportUtils.getChatByParticipants(formattedUserLogins);
@@ -1161,7 +1161,7 @@ function updateNotificationPreference(reportID, previousValue, newValue) {
 function navigateToConciergeChat() {
     // If we don't have a chat with Concierge then create it
     if (!conciergeChatReportID) {
-        navigateToOrCreateChatReport([CONST.EMAIL.CONCIERGE]);
+        navigateToAndOpenReport([CONST.EMAIL.CONCIERGE]);
         return;
     }
 
@@ -1479,7 +1479,7 @@ export {
     readNewestAction,
     readOldestAction,
     openReport,
-    navigateToOrCreateChatReport,
+    navigateToAndOpenReport,
     openPaymentDetailsPage,
     createOptimisticChatReport,
     createOptimisticReportAction,
