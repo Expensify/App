@@ -75,4 +75,9 @@ describe('EmojiTest', () => {
         const limit = 3;
         expect(EmojiUtils.suggestEmojis(text, limit).length).toBe(limit);
     });
+
+    it('correct suggests emojis accounting for keywords', () => {
+        const text = ':thumb';
+        expect(EmojiUtils.suggestEmojis(text)).toEqual([{code: '👍', name: '+1'}, {code: '👎', name: '-1'}]);
+    });
 });
