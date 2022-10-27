@@ -134,6 +134,7 @@ class Composer extends React.Component {
         this.paste = this.paste.bind(this);
 
         this.dropZone = document.getElementById(CONST.REPORT.DROP_NATIVE_ID);
+        this.dropZoneRect = this.dropZone.getBoundingClientRect();
         this.dragNDropListener = this.dragNDropListener.bind(this);
         this.dropZoneDragHandler = this.dropZoneDragHandler.bind(this);
         this.dropZoneDragListener = this.dropZoneDragListener.bind(this);
@@ -224,14 +225,27 @@ class Composer extends React.Component {
             case 'dragenter':
                 // Avoid reporting onDragEnter for children views -> not performant
                 if (this.dropZoneDragState === 'dragleave') {
-                    // eslint-disable-next-line no-param-reassign
+                // eslint-disable-next-line no-param-reassign
                     event.dataTransfer.dropEffect = COPY_DROP_EFFECT;
                     this.dropZoneDragState = 'dragenter';
                     this.props.onDragEnter(event);
                 }
                 break;
+            case 'dragleave':
+                if (this.dropZoneDragState === 'dragenter' || this.dropZoneDragState === 'dragover') {
+                    if (
+                        event.clientY < this.dropZoneRect.top
+                        || event.clientY >= this.dropZoneRect.bottom
+                        || event.clientX < this.dropZoneRect.left
+                        || event.clientX >= this.dropZoneRect.right
+                    ) {
+                        this.dropZoneDragState = 'dragleave';
+                        this.props.onDragLeave(event);
+                    }
+                }
+                break;
             case 'drop':
-                this.dropZoneDragState = 'drop';
+                this.dropZoneDragState = 'dragleave';
                 this.props.onDrop(event);
                 break;
             default: break;
@@ -245,21 +259,8 @@ class Composer extends React.Component {
      */
     dropZoneDragListener(event) {
         event.preventDefault();
-        if (event.screenX === 0 && event.screenY === 0 && event.type === 'dragleave' && this.dropZoneDragState !== 'dragleave') {
-            /* We left window - necessary since the latest dragleave might be from the child of drop zone which will not be detected as dropZoneLeave
-            in order to avoid sending burst of events on every child leave */
-            // eslint-disable-next-line no-param-reassign
-            event.dataTransfer.dropEffect = NONE_DROP_EFFECT;
-            this.dropZoneDragState = 'dragleave';
-            this.props.onDragLeave();
-        }
-
         if (this.dropZone.contains(event.target)) {
             this.dropZoneDragHandler(event);
-        } else if ((event.type === 'dragenter' || event.type === 'dragover') && this.dropZoneDragState !== 'dragleave') {
-            // We left dropZone and entered other elements
-            this.dropZoneDragState = 'dragleave';
-            this.props.onDragLeave();
         } else {
             // eslint-disable-next-line no-param-reassign
             event.dataTransfer.dropEffect = NONE_DROP_EFFECT;
