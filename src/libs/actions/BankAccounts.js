@@ -93,10 +93,9 @@ function getVBBADataForOnyx() {
  * Adds a bank account via Plaid
  *
  * @param {Object} account
- * @param {String} password
  * @TODO offline pattern for this command will have to be added later once the pattern B design doc is complete
  */
-function addPersonalBankAccount(account, password) {
+function addPersonalBankAccount(account) {
     const commandName = 'AddPersonalBankAccount';
 
     const parameters = {
@@ -108,7 +107,6 @@ function addPersonalBankAccount(account, password) {
         bank: account.bankName,
         plaidAccountID: account.plaidAccountID,
         plaidAccessToken: account.plaidAccessToken,
-        password,
     };
 
     const onyxData = {
