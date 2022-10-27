@@ -110,18 +110,6 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                     new RegExp(`node_modules/(?!(${includeModules})/).*|.native.js$`),
                 ],
             },
-            {
-                test: /\.js$/,
-                loader: 'eslint-loader',
-                exclude: [
-                    /node_modules|\.native\.js$/,
-                ],
-                options: {
-                    cache: false,
-                    emitWarning: true,
-                    configFile: path.resolve(__dirname, '../../.eslintrc.js'),
-                },
-            },
 
             // Rule for react-native-web-webview
             {
