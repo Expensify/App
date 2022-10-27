@@ -251,23 +251,22 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         participants,
     );
 
+    groupChatReport.maxSequenceNumber = groupChatReportMaxSequenceNumber + 1;
+    groupChatReport.lastReadSequenceNumber = groupChatReportMaxSequenceNumber + 1;
+    groupChatReport.lastVisitedTimestamp = Date.now();
+    groupChatReport.lastMessageText = groupIOUReportAction.message[0].text;
+    groupChatReport.lastMessageHtml = groupIOUReportAction.message[0].html;
+    groupChatReport.pendingFields = {
+        createChat: existingGroupChatReport ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+
     const optimisticData = [
         {
             // Use set for new reports because it doesn't exist yet, is faster,
             // and we need the data to be available when we navigate to the chat page
             onyxMethod: existingGroupChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`,
-            value: {
-                ...groupChatReport,
-                maxSequenceNumber: groupChatReportMaxSequenceNumber + 1,
-                lastReadSequenceNumber: groupChatReportMaxSequenceNumber + 1,
-                lastVisitedTimestamp: Date.now(),
-                lastMessageText: groupIOUReportAction.message[0].text,
-                lastMessageHtml: groupIOUReportAction.message[0].html,
-                pendingFields: {
-                    createChat: existingGroupChatReport ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-            },
+            value: groupChatReport,
         },
         {
             onyxMethod: existingGroupChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
@@ -317,13 +316,15 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     const splitAmount = IOUUtils.calculateAmount(participants, amount);
     const splits = [{email: currentUserEmail, amount: IOUUtils.calculateAmount(participants, amount, true)}];
 
+    const hasMultipleParticipants = participants.length > 1;
     _.each(participants, (participant) => {
         const email = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase();
         if (email === currentUserEmail) {
             return;
         }
 
-        const existingOneOnOneChatReport = ReportUtils.getChatByParticipants([email]);
+        // If we only have one participant, the oneOnOneChatReport is the groupChatReport
+        const existingOneOnOneChatReport = hasMultipleParticipants ? ReportUtils.getChatByParticipants([email]) : groupChatReport;
         const oneOnOneChatReport = existingOneOnOneChatReport || ReportUtils.buildOptimisticChatReport([email]);
         let oneOnOneIOUReport;
         let existingIOUReport = null;
@@ -362,78 +363,104 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             oneOnOneIOUReport.reportID,
         );
 
-        optimisticData.push(
-            {
-                onyxMethod: existingOneOnOneChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
-                value: {
-                    ...oneOnOneChatReport,
-                    maxSequenceNumber: oneOnOneChatReportMaxSequenceNumber + 1,
-                    lastReadSequenceNumber: oneOnOneChatReportMaxSequenceNumber + 1,
-                    lastMessageText: oneOnOneIOUReportAction.message[0].text,
-                    lastMessageHtml: oneOnOneIOUReportAction.message[0].html,
-                    pendingFields: {
-                        createChat: existingOneOnOneChatReport ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        oneOnOneChatReport.maxSequenceNumber = oneOnOneChatReportMaxSequenceNumber + 1;
+        oneOnOneChatReport.lastReadSequenceNumber = oneOnOneChatReportMaxSequenceNumber + 1;
+        oneOnOneChatReport.lastMessageText = oneOnOneIOUReportAction.message[0].text;
+        oneOnOneChatReport.lastMessageHtml = oneOnOneIOUReportAction.message[0].html;
+        oneOnOneChatReport.pendingFields = {
+            createChat: existingOneOnOneChatReport ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        };
+
+        if (!hasMultipleParticipants) {
+            optimisticData[0].value = oneOnOneChatReport;
+            optimisticData[1].value = {
+                ...optimisticData[1].value,
+                [oneOnOneIOUReportAction.sequenceNumber]: oneOnOneIOUReportAction,
+            };
+            successData[1].value = {
+                ...successData[1].value,
+                [oneOnOneIOUReportAction.sequenceNumber]: {pendingAction: null},
+            };
+            failureData[1].value = {
+                ...failureData[1].value,
+                [oneOnOneIOUReportAction.sequenceNumber]: {pendingAction: null},
+            };
+        } else {
+            optimisticData.push(
+                {
+                    onyxMethod: existingOneOnOneChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
+                    value: {
+                        ...oneOnOneChatReport,
+                        maxSequenceNumber: oneOnOneChatReportMaxSequenceNumber + 1,
+                        lastReadSequenceNumber: oneOnOneChatReportMaxSequenceNumber + 1,
+                        lastMessageText: oneOnOneIOUReportAction.message[0].text,
+                        lastMessageHtml: oneOnOneIOUReportAction.message[0].html,
+                        pendingFields: {
+                            createChat: existingOneOnOneChatReport ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        },
                     },
                 },
-            },
-            {
-                onyxMethod: existingOneOnOneChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneIOUReport.reportID}`,
-                value: oneOnOneIOUReport,
-            },
-            {
-                onyxMethod: existingOneOnOneChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
-                value: {
-                    ...oneOnOneCreatedReportAction,
-                    [oneOnOneIOUReportAction.sequenceNumber]: oneOnOneIOUReportAction,
+                {
+                    onyxMethod: existingOneOnOneChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
+                    value: {
+                        ...oneOnOneCreatedReportAction,
+                        [oneOnOneIOUReportAction.sequenceNumber]: oneOnOneIOUReportAction,
+                    },
                 },
-            },
-        );
+            );
 
-        successData.push(
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
-                value: {pendingFields: {createChat: null}},
-            },
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
-                value: {
-                    0: {pendingAction: null},
-                    [oneOnOneIOUReportAction.sequenceNumber]: {pendingAction: null},
+            successData.push(
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
+                    value: {pendingFields: {createChat: null}},
                 },
-            },
-        );
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
+                    value: {
+                        0: {pendingAction: null},
+                        [oneOnOneIOUReportAction.sequenceNumber]: {pendingAction: null},
+                    },
+                },
+            );
 
-        failureData.push(
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
-                value: {
-                    pendingFields: {createChat: null},
-                    hasOutstandingIOU: existingOneOnOneChatReport ? existingOneOnOneChatReport.hasOutstandingIOU : false,
-                    iouReportID: existingOneOnOneChatReport ? existingOneOnOneChatReport.iouReportID : null,
-                    maxSequenceNumber: oneOnOneChatReportMaxSequenceNumber,
-                    lastReadSequenceNumber: oneOnOneChatReportMaxSequenceNumber,
+            failureData.push(
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
+                    value: {
+                        pendingFields: {createChat: null},
+                        hasOutstandingIOU: existingOneOnOneChatReport ? existingOneOnOneChatReport.hasOutstandingIOU : false,
+                        iouReportID: existingOneOnOneChatReport ? existingOneOnOneChatReport.iouReportID : null,
+                        maxSequenceNumber: oneOnOneChatReportMaxSequenceNumber,
+                        lastReadSequenceNumber: oneOnOneChatReportMaxSequenceNumber,
+                    },
                 },
-            },
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
-                value: {
-                    0: {pendingAction: null},
-                    [oneOnOneIOUReportAction.sequenceNumber]: null,
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
+                    value: {
+                        0: {pendingAction: null},
+                        [oneOnOneIOUReportAction.sequenceNumber]: {pendingAction: null},
+                    },
                 },
-            },
-            {
-                onyxMethod: CONST.ONYX.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneIOUReport.reportID}`,
-                value: existingIOUReport,
-            },
-        );
+            );
+        }
+
+        optimisticData.push({
+            onyxMethod: existingOneOnOneChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneIOUReport.reportID}`,
+            value: oneOnOneIOUReport,
+        });
+
+        failureData.push({
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneIOUReport.reportID}`,
+            value: existingIOUReport,
+        });
 
         splits.push({
             email,
