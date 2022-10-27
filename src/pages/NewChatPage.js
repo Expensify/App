@@ -179,7 +179,7 @@ class NewChatPage extends Component {
      * @param {Object} option
      */
     createChat(option) {
-        Report.navigateToOrCreateChatReport([option.login]);
+        Report.navigateToAndOpenReport([option.login]);
     }
 
     /**
@@ -191,7 +191,7 @@ class NewChatPage extends Component {
         if (userLogins.length < 1) {
             return;
         }
-        Report.navigateToOrCreateChatReport(userLogins);
+        Report.navigateToAndOpenReport(userLogins);
     }
 
     render() {
