@@ -105,7 +105,30 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
  * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  */
 function read(command, apiCommandParameters, onyxData) {
-    SequentialQueue.flush().then(() => makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ));
+    SequentialQueue.flush().then((isQueueRunning) => {
+        // If the SequentialQueue is already running,
+        // we'll simply add this read request on to the end of the sequential queue
+        // so that it gets executed after all the write requests on the queue.
+        if (isQueueRunning) {
+            const data = {
+                ...apiCommandParameters,
+                appversion: pkg.version,
+                apiRequestType: CONST.API_REQUEST_TYPE.READ,
+            };
+
+            const request = {
+                command,
+                data: {
+                    ...data,
+                },
+                ...onyxData,
+            };
+            SequentialQueue.push(request);
+            return;
+        }
+
+        return makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ)
+    });
 }
 
 export {

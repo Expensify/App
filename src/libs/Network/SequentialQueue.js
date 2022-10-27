@@ -42,13 +42,13 @@ function process() {
 
 function flush() {
     if (isSequentialQueueRunning) {
-        return Promise.resolve();
+        return Promise.resolve(true);
     }
 
     // ONYXKEYS.PERSISTED_REQUESTS is shared across clients, thus every client/tab will have a copy
     // It is very important to only process the queue from leader client otherwise requests will be duplicated.
     if (!ActiveClientManager.isClientTheLeader()) {
-        return Promise.resolve();
+        return Promise.resolve(true);
     }
 
     isSequentialQueueRunning = true;
@@ -73,6 +73,7 @@ function flush() {
                     });
             },
         });
+        return false;
     });
 }
 
