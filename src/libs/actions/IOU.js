@@ -392,16 +392,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 {
                     onyxMethod: existingOneOnOneChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
-                    value: {
-                        ...oneOnOneChatReport,
-                        maxSequenceNumber: oneOnOneChatReportMaxSequenceNumber + 1,
-                        lastReadSequenceNumber: oneOnOneChatReportMaxSequenceNumber + 1,
-                        lastMessageText: oneOnOneIOUReportAction.message[0].text,
-                        lastMessageHtml: oneOnOneIOUReportAction.message[0].html,
-                        pendingFields: {
-                            createChat: existingOneOnOneChatReport ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                        },
-                    },
+                    value: oneOnOneChatReport,
                 },
                 {
                     onyxMethod: existingOneOnOneChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
