@@ -321,7 +321,7 @@ function dismissSuccessfulTransferBalancePage() {
  * @returns {Boolean}
  */
 function hasPaymentMethodError(bankList, cardList) {
-    const combinedPaymentMethods = lodashMerge(bankList, cardList);
+    const combinedPaymentMethods = {...bankList, ...cardList};
     return _.some(combinedPaymentMethods, item => !_.isEmpty(item.errors));
 }
 
