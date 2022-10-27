@@ -788,6 +788,7 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, 
  * @param {Boolean} isOwnPolicyExpenseChat
  * @param {String} oldPolicyName
  * @param {String} visibility
+ * @param {String} notificationPreference
  * @returns {Object}
  */
 function buildOptimisticChatReport(
@@ -799,6 +800,7 @@ function buildOptimisticChatReport(
     isOwnPolicyExpenseChat = false,
     oldPolicyName = '',
     visibility = undefined,
+    notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
 ) {
     return {
         chatType,
@@ -812,7 +814,7 @@ function buildOptimisticChatReport(
         lastMessageTimestamp: 0,
         lastVisitedTimestamp: 0,
         maxSequenceNumber: 0,
-        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
+        notificationPreference,
         oldPolicyName,
         ownerEmail,
         participants: participantList,
@@ -878,15 +880,35 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         null,
         false,
         policyName,
+        null,
+
+        // #announce contains all policy members so notifying always should be opt-in only.
+        CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
     );
     const announceChatReportID = announceChatData.reportID;
     const announceReportActionData = buildOptimisticCreatedReportAction(announceChatData.ownerEmail);
 
-    const adminsChatData = buildOptimisticChatReport([currentUserEmail], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, null, false, policyName);
+    const adminsChatData = buildOptimisticChatReport(
+        [currentUserEmail],
+        CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
+        CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+        policyID,
+        null,
+        false,
+        policyName,
+    );
     const adminsChatReportID = adminsChatData.reportID;
     const adminsReportActionData = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
 
-    const expenseChatData = buildOptimisticChatReport([currentUserEmail], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserEmail, true, policyName);
+    const expenseChatData = buildOptimisticChatReport(
+        [currentUserEmail],
+        '',
+        CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        policyID,
+        currentUserEmail,
+        true,
+        policyName,
+    );
     const expenseChatReportID = expenseChatData.reportID;
     const expenseReportActionData = buildOptimisticCreatedReportAction(expenseChatData.ownerEmail);
 

@@ -150,18 +150,20 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
     // Now, let's add the data we need just when we are creating a new chat report
     if (isNewChat) {
         const optimisticCreateAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
+
+        // Change the method to set for new reports because it doesn't exist yet, is faster,
+        // and we need the data to be available when we navigate to the chat page
+        optimisticData[0].onyxMethod = CONST.ONYX.METHOD.SET;
         optimisticData[0].value = {
             ...optimisticData[0].value,
             pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
         };
-        optimisticData.push(
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-                value: optimisticCreateAction,
-            },
-        );
-
+        optimisticData[1].onyxMethod = CONST.ONYX.METHOD.SET;
+        optimisticData[1].value = {
+            ...optimisticCreateAction,
+            ...optimisticData[1].value,
+        };
+        optimisticData[2].onyxMethod = CONST.ONYX.METHOD.SET;
         successData.push(
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
