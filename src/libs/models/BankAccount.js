@@ -136,7 +136,7 @@ class BankAccount {
      * @returns {Boolean}
      */
     isDefaultCredit() {
-        return this.json.isDefault === true;
+        return this.json.accountData.defaultCredit === true;
     }
 
     /**
