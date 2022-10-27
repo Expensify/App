@@ -174,8 +174,8 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
 
         if (isChatRoomOrPolicyExpenseChat) {
             const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report, policies);
-            searchTerms.push(...chatRoomSubtitle);
-            searchTerms.push(..._.map(chatRoomSubtitle.split(','), name => name.trim()));
+
+            Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
         } else {
             searchTerms.push(...report.participants);
         }
