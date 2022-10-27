@@ -22,6 +22,8 @@ export default {
     HOME: '',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
+    SETTINGS_TIMEZONE_INITIAL: 'settings/profile/timezone',
+    SETTINGS_TIMEZONE_SELECT: 'settings/profile/timezone/select',
     SETTINGS_PREFERENCES: 'settings/preferences',
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_CLOSE: 'settings/security/closeAccount',

@@ -212,6 +212,20 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsTimezoneInitialPage = require('../../../pages/settings/Profile/TimezoneInitialPage').default;
+            return SettingsTimezoneInitialPage;
+        },
+        name: 'Settings_Timezone_Init',
+    },
+    {
+        getComponent: () => {
+            const SettingsTimezoneSelectPage = require('../../../pages/settings/Profile/TimezoneSelectPage').default;
+            return SettingsTimezoneSelectPage;
+        },
+        name: 'Settings_Timezone_Select',
+    },
+    {
+        getComponent: () => {
             const SettingsAddSecondaryLoginPage = require('../../../pages/settings/AddSecondaryLoginPage').default;
             return SettingsAddSecondaryLoginPage;
         },

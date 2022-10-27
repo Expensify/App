@@ -84,6 +84,14 @@ export default {
                         path: ROUTES.SETTINGS_PROFILE,
                         exact: true,
                     },
+                    Settings_Timezone_Init: {
+                        path: ROUTES.SETTINGS_TIMEZONE_INITIAL,
+                        exact: true,
+                    },
+                    Settings_Timezone_Select: {
+                        path: ROUTES.SETTINGS_TIMEZONE_SELECT,
+                        exact: true,
+                    },
                     Settings_About: {
                         path: ROUTES.SETTINGS_ABOUT,
                         exact: true,
