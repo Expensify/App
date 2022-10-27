@@ -49,6 +49,8 @@ class WorkspaceInitialPage extends React.Component {
         this.openEditor = this.openEditor.bind(this);
         this.toggleDeleteModal = this.toggleDeleteModal.bind(this);
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
+        this.disabled = this.disabled.bind(this);
+        this.dismissError = this.dismissError.bind(this);
 
         this.state = {
             isDeleteModalOpen: false,
@@ -78,6 +80,18 @@ class WorkspaceInitialPage extends React.Component {
         Policy.deleteWorkspace(this.props.policy.id, policyReports);
         this.toggleDeleteModal(false);
         Navigation.navigate(ROUTES.SETTINGS);
+    }
+
+    /**
+     * @returns {Boolean}
+     */
+    disabled() {
+        return Boolean(this.props.policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && this.props.policy.errors);
+    }
+
+    dismissError() {
+        Navigation.navigate(ROUTES.SETTINGS);
+        Policy.removeWorkspace(this.props.policy.id);
     }
 
     render() {
@@ -163,11 +177,17 @@ class WorkspaceInitialPage extends React.Component {
                             styles.justifyContentBetween,
                         ]}
                     >
-                        <OfflineWithFeedback pendingAction={this.props.policy.pendingAction}>
+                        <OfflineWithFeedback
+                            pendingAction={this.props.policy.pendingAction}
+                            onClose={() => this.dismissError()}
+                            errors={this.props.policy.errors}
+                            errorRowStyles={[styles.ph6, styles.pv2]}
+                        >
                             <View style={[styles.flex1]}>
                                 <View style={styles.pageWrapper}>
                                     <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
                                         <Pressable
+                                            disabled={this.disabled()}
                                             style={[styles.pRelative, styles.avatarLarge]}
                                             onPress={this.openEditor}
                                         >
@@ -192,6 +212,7 @@ class WorkspaceInitialPage extends React.Component {
                                         </Pressable>
                                         {!_.isEmpty(this.props.policy.name) && (
                                             <Pressable
+                                                disabled={this.disabled()}
                                                 style={[
                                                     styles.alignSelfCenter,
                                                     styles.mt4,
@@ -218,6 +239,8 @@ class WorkspaceInitialPage extends React.Component {
                                 {_.map(menuItems, item => (
                                     <MenuItem
                                         key={item.translationKey}
+                                        disabled={this.disabled()}
+                                        interactive={!this.disabled()}
                                         title={this.props.translate(item.translationKey)}
                                         icon={item.icon}
                                         iconRight={item.iconRight}
