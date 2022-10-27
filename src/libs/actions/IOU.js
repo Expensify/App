@@ -243,6 +243,7 @@ function requestMoney(report, amount, currency, recipientEmail, debtorEmail, com
             ...optimisticData[0].value,
             pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
         };
+        optimisticData[1].onyxMethod = CONST.ONYX.METHOD.SET;
         optimisticData.push(
             {
                 onyxMethod: CONST.ONYX.METHOD.SET,
