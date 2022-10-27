@@ -688,12 +688,12 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
  * @param {String} paymentType - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
  * @param {String} iouTransactionID - Only required if the IOUReportAction type is oneOf(cancel, decline). Generates a randomID as default.
  * @param {String} iouReportID - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
- * @param {String} debtorEmail - Email of the user that has to pay
+ * @param {String} debtorName - Name to display for the user that has to pay. It should be the first name when available and the email otherwise
  * @param {String} locale - Locale of the user
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, comment, paymentType = '', iouTransactionID = '', iouReportID = '', debtorEmail = '', locale = 'en') {
+function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, comment, paymentType = '', iouTransactionID = '', iouReportID = '', debtorName = '', locale = 'en') {
     const IOUTransactionID = iouTransactionID || NumberUtils.rand64();
     const IOUReportID = iouReportID || generateReportID();
     const originalMessage = {
@@ -712,8 +712,8 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, 
     const message = [{
         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
         isEdited: false,
-        html: comment ? `Requested ${formattedTotal} from ${debtorEmail} for ${comment}` : `Requested ${formattedTotal} from ${debtorEmail}`,
-        text: comment ? `Requested ${formattedTotal} from ${debtorEmail} for ${comment}` : `Requested ${formattedTotal} from ${debtorEmail}`,
+        html: comment ? `Requested ${formattedTotal} from ${debtorName} for ${comment}` : `Requested ${formattedTotal} from ${debtorName}`,
+        text: comment ? `Requested ${formattedTotal} from ${debtorName} for ${comment}` : `Requested ${formattedTotal} from ${debtorName}`,
     }];
 
     // We store amount, comment, currency in IOUDetails when type = pay
