@@ -235,6 +235,9 @@ function requestMoney(report, amount, currency, recipientEmail, debtorEmail, com
     // Now, let's add the data we need just when we are creating a new chat report
     if (isNewChat) {
         const optimisticCreateAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
+
+        // Change the method to set for new reports because it doesn't exist yet, is faster,
+        // and we need the data to be available when we navigate to the chat page
         optimisticData[0].onyxMethod = CONST.ONYX.METHOD.SET;
         optimisticData[0].value = {
             ...optimisticData[0].value,
