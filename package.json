@@ -84,7 +84,7 @@
     "react-collapse": "^5.1.0",
     "react-content-loader": "^6.1.0",
     "react-dom": "18.1.0",
-    "react-native": "npm:@expensify/react-native@0.70.5",
+    "react-native": "npm:@expensify/react-native@0.70.4-alpha.1",
     "react-native-blob-util": "^0.16.2",
     "react-native-collapsible": "^1.6.0",
     "react-native-config": "^1.4.5",
