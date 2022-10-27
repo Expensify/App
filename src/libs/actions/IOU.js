@@ -235,6 +235,7 @@ function requestMoney(report, amount, currency, recipientEmail, debtorEmail, com
     // Now, let's add the data we need just when we are creating a new chat report
     if (isNewChat) {
         const optimisticCreateAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
+        optimisticData[0].onyxMethod = CONST.ONYX.METHOD.SET;
         optimisticData[0].value = {
             ...optimisticData[0].value,
             pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
