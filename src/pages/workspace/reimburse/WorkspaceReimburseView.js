@@ -140,8 +140,7 @@ class WorkspaceReimburseView extends React.Component {
             customUnitID: this.state.unitID,
             customUnitName: this.state.unitName,
             attributes: {unit: value},
-            this.props.policy.lastModified,
-        });
+        }, this.props.policy.lastModified);
     }
 
     debounceUpdateOnCursorMove(event) {
