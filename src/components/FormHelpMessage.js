@@ -36,7 +36,7 @@ const FormHelpMessage = (props) => {
     }
 
     return (
-        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.mt1, styles.mb1, ...props.style]}>
+        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, ...props.style]}>
             {props.isError && <Icon src={Expensicons.DotIndicator} fill={colors.red} />}
             <View style={[styles.flex1, styles.ml2]}>
                 {props.children || (
