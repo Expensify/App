@@ -286,6 +286,43 @@ function updateProfile(firstName, lastName, pronouns, timezone) {
 }
 
 /**
+ * @param {Boolean} isAutomatic Does the timezone update automatically.
+ */
+function updateAutomaticTimezone(timezone) {
+    API.write('UpdateAutomaticTimezone', {
+        timezone: JSON.stringify(timezone),
+    }, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    timezone,
+                },
+            },
+        }],
+    });
+}
+
+function updateSelectedTimezone(selectedTimezone) {
+    API.write('UpdateSelectedTimezone', {
+        text: selectedTimezone,
+    }, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    timezone: {
+                        selected: selectedTimezone,
+                    },
+                },
+            },
+        }],
+    });
+}
+
+/**
  * Fetches the local currency based on location and sets currency code/symbol to Onyx
  */
 function openIOUModalPage() {
@@ -398,4 +435,6 @@ export {
     extractFirstAndLastNameFromAvailableDetails,
     updateProfile,
     clearAvatarErrors,
+    updateAutomaticTimezone,
+    updateSelectedTimezone,
 };
