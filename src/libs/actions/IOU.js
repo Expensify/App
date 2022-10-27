@@ -14,7 +14,8 @@ import Log from '../Log';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
 import * as IOUUtils from '../IOUUtils';
-import * as OptionsListUtils from '../OptionsListUtils';
+import DateUtils from '../DateUtils';
+import * as OptionsListUtils from "../OptionsListUtils";
 
 let iouReports;
 Onyx.connect({
@@ -116,11 +117,13 @@ function startLoadingAndResetError() {
  * @param {Object} report
  * @param {Number} amount
  * @param {String} currency
- * @param {String} recipientEmail
- * @param {String} debtorEmail
+ * @param {Array} recipient
+ * @param {Array} debtor
  * @param {String} comment
  */
-function requestMoney(report, amount, currency, recipientEmail, debtorEmail, comment) {
+function requestMoney(report, amount, currency, recipient, debtor, comment) {
+    const recipientEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(recipient.login);
+    const debtorEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(debtor.login);
     let chatReport = lodashGet(report, 'reportID', null) ? report : null;
     let isNewChat = false;
     if (!chatReport) {
@@ -151,7 +154,7 @@ function requestMoney(report, amount, currency, recipientEmail, debtorEmail, com
         '',
         '',
         iouReport.reportID,
-        debtorEmail,
+        debtor.firstName,
         preferredLocale,
     );
 
