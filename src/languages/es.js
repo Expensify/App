@@ -19,6 +19,7 @@ export default {
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
         password: 'Contraseña',
+        workspaces: 'Espacios de trabajo',
         profile: 'Perfil',
         payments: 'Pagos',
         preferences: 'Preferencias',
@@ -260,6 +261,7 @@ export default {
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
+            genericCreateFailureMessage: 'Error inesperado solicitando dinero, por favor inténtalo más tarde',
         },
     },
     notificationPreferences: {
@@ -815,6 +817,10 @@ export default {
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             growlMessageOnDeleteError: 'No se puede eliminar el espacio de trabajo porque tiene informes que están siendo procesados',
             unavailable: 'Espacio de trabajo no disponible',
+        },
+        emptyWorkspace: {
+            title: 'Crear un nuevo espacio de trabajo',
+            subtitle: 'En los espacios de trabajo es donde puedes chatear con tu equipo, reembolsar gastos, emitir tarjetas, enviar y pagar facturas y mas — todo en un mismo lugar',
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
