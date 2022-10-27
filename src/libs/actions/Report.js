@@ -1089,8 +1089,7 @@ function addPolicyReport(policy, reportName, visibility) {
     );
 
     // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
-    // fetchReportIfNeeded is called on the ReportScreen, so fetchChatReportsByIDs is called which is unnecessary since the optimistic data will be stored in Onyx.
-    // If there was an error creating the room, then fetchChatReportsByIDs throws an error and the user is navigated away from the report instead of showing the RBR error message.
+    // fetchReportIfNeeded is called on the ReportScreen, so openReport is called which is unnecessary since the optimistic data will be stored in Onyx.
     // Therefore, Onyx.set is used instead of Onyx.merge.
     const optimisticData = [
         {
