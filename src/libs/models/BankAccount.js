@@ -33,17 +33,17 @@ class BankAccount {
      * @returns {Number}
      */
     getID() {
-        return this.json.bankAccountID;
+        return this.json.methodID;
     }
 
     /**
-     * Return the account number, which has been obfuscate by the back end
+     * Return the account number, which has been obfuscated by the back end
      * example "XXXXXX3956"
      *
      * @returns {String}
      */
     getMaskedAccountNumber() {
-        return this.json.accountNumber;
+        return this.json.accountData.accountNumber;
     }
 
     /**
@@ -51,21 +51,21 @@ class BankAccount {
      * @returns {String}
      */
     getAddressName() {
-        return this.json.addressName;
+        return this.json.accountData.addressName;
     }
 
     /**
      * @returns {String}
      */
     getProcessor() {
-        return this.json.processor;
+        return this.json.accountData.processor;
     }
 
     /**
      * @returns {String}
      */
     getRoutingNumber() {
-        return this.json.routingNumber;
+        return this.json.accountData.routingNumber;
     }
 
     /**
@@ -73,7 +73,7 @@ class BankAccount {
      * @return {String[]}
      */
     getSharees() {
-        return this.json.sharees;
+        return this.json.accountData.sharees;
     }
 
     /**
@@ -81,7 +81,7 @@ class BankAccount {
      * @private
      */
     getState() {
-        return this.json.state;
+        return this.json.accountData.state;
     }
 
     /**
@@ -112,11 +112,11 @@ class BankAccount {
      * @returns {Boolean}
      */
     isVerifying() {
-        return Boolean(this.json.validating) || this.getState() === BankAccount.STATE.VERIFYING;
+        return this.getState() === BankAccount.STATE.VERIFYING;
     }
 
     /**
-     * If the user didn't finish entering all his info.
+     * If the user didn't finish entering all their info.
      * @returns {Boolean}
      */
     isInSetup() {
@@ -131,28 +131,12 @@ class BankAccount {
     }
 
     /**
-     * If someone asked to share the bank account with me, and the request is still pending
-     * @returns {Boolean}
-     */
-    isSharePending() {
-        return Boolean(this.json.shareComplete === false && this.getOwner() !== currentUserLogin);
-    }
-
-    /**
-     * Who shared this account with me?
-     * @returns {String}
-     */
-    getOwner() {
-        return this.json.ownedBy;
-    }
-
-    /**
      * Is it the account to use by default to receive money?
      *
      * @returns {Boolean}
      */
     isDefaultCredit() {
-        return this.json.defaultCredit === true;
+        return this.json.isDefault === true;
     }
 
     /**
@@ -161,15 +145,7 @@ class BankAccount {
      * @returns {Boolean}
      */
     isWithdrawal() {
-        return this.json.allowDebit === true;
-    }
-
-    /**
-     * Get when the user last updated their bank account.
-     * @return {*|String}
-     */
-    getDateSigned() {
-        return lodashGet(this.json, ['additionalData', 'dateSigned']) || '';
+        return this.json.accountData.allowDebit === true;
     }
 
     /**
@@ -204,7 +180,7 @@ class BankAccount {
      * @returns {Boolean}
      */
     isRiskChecked() {
-        return Boolean(this.json.riskChecked);
+        return Boolean(this.json.accountData.riskChecked);
     }
 
     /**
@@ -220,7 +196,7 @@ class BankAccount {
      * @returns {string}
      */
     getCountry() {
-        return lodashGet(this.json, ['additionalData', 'country'], CONST.COUNTRY.US);
+        return lodashGet(this.json, ['accountData', 'additionalData', 'country'], CONST.COUNTRY.US);
     }
 
     /**
@@ -228,7 +204,7 @@ class BankAccount {
      * @returns {String}
      */
     getCurrency() {
-        return lodashGet(this.json, ['additionalData', 'currency'], 'USD');
+        return lodashGet(this.json, ['accountData', 'additionalData', 'currency'], 'USD');
     }
 
     /**
@@ -236,7 +212,7 @@ class BankAccount {
      * @returns {String}
      */
     getBankName() {
-        return lodashGet(this.json, ['additionalData', 'bankName'], lodashGet(this.json, 'bankName'));
+        return lodashGet(this.json, ['accountData', 'additionalData', 'bankName'], '');
     }
 
     /**
@@ -244,7 +220,7 @@ class BankAccount {
      * @returns {Boolean}
      */
     hasInternationalWireDetails() {
-        return lodashGet(this.json, ['additionalData', 'fieldsType'], 'local') === 'international';
+        return lodashGet(this.json, ['accountData', 'additionalData', 'fieldsType'], 'local') === 'international';
     }
 
     /**
@@ -252,7 +228,7 @@ class BankAccount {
      * @returns {Object}
      */
     getAdditionalData() {
-        return this.json.additionalData || {};
+        return this.json.accountData.additionalData || {};
     }
 
     /**
@@ -277,7 +253,7 @@ class BankAccount {
      * @return {Boolean}
      */
     needsToUpgrade() {
-        return !this.isInSetup() && !lodashHas(this.json, ['additionalData', 'beneficialOwners']);
+        return !this.isInSetup() && !lodashHas(this.json, ['accountData', 'additionalData', 'beneficialOwners']);
     }
 }
 
