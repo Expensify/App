@@ -16,7 +16,6 @@ import * as ReportUtils from '../ReportUtils';
 import * as NumberUtils from '../NumberUtils';
 import * as IOUUtils from '../IOUUtils';
 import DateUtils from '../DateUtils';
-import * as OptionsListUtils from "../OptionsListUtils";
 
 let iouReports;
 Onyx.connect({
