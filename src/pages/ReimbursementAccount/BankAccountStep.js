@@ -25,13 +25,22 @@ import getPlaidDesktopMessage from '../../libs/getPlaidDesktopMessage';
 import CONFIG from '../../CONFIG';
 import ROUTES from '../../ROUTES';
 import Button from '../../components/Button';
+import plaidDataPropTypes from './plaidDataPropTypes';
+import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 
 const propTypes = {
+    /** Contains plaid data */
+    plaidData: plaidDataPropTypes,
+
     /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
     receivedRedirectURI: PropTypes.string,
 
     /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
     plaidLinkOAuthToken: PropTypes.string,
+
+    /** The bank account currently in setup */
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    reimbursementAccount: reimbursementAccountPropTypes,
 
     /** Object with various information about the user */
     user: PropTypes.shape({
@@ -45,6 +54,10 @@ const propTypes = {
 const defaultProps = {
     receivedRedirectURI: null,
     plaidLinkOAuthToken: '',
+    plaidData: {
+        isPlaidDisabled: false,
+    },
+    reimbursementAccount: {},
     user: {},
 };
 
@@ -105,7 +118,7 @@ const BankAccountStep = (props) => {
                         BankAccounts.clearPlaid();
                         BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
                     }}
-                    disabled={props.isPlaidDisabled || !props.user.validated}
+                    disabled={props.plaidData.isPlaidDisabled || !props.user.validated}
                     style={[styles.mt5, styles.buttonCTA]}
                     iconStyles={[styles.buttonCTAIcon]}
                     shouldShowRightIcon
@@ -167,6 +180,9 @@ export default compose(
         },
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        plaidData: {
+            key: ONYXKEYS.PLAID_DATA,
         },
     }),
 )(BankAccountStep);

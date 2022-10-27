@@ -22,11 +22,14 @@ import withDrawerState from '../../../../components/withDrawerState';
 
 const propTypes = {
 
-    /* Callback function when the menu is shown */
+    /** Callback function when the menu is shown */
     onShowCreateMenu: PropTypes.func,
 
-    /* Callback function before the menu is hidden */
+    /** Callback function before the menu is hidden */
     onHideCreateMenu: PropTypes.func,
+
+    /** reportID in the current navigation state */
+    reportIDFromRoute: PropTypes.string,
 
     ...sidebarPropTypes,
 };
@@ -112,6 +115,7 @@ class BaseSidebarScreen extends Component {
                                 onAvatarClick={this.navigateToSettings}
                                 isSmallScreenWidth={this.props.isSmallScreenWidth}
                                 isDrawerOpen={this.props.isDrawerOpen}
+                                reportIDFromRoute={this.props.reportIDFromRoute}
                             />
                             <FAB
                                 accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}

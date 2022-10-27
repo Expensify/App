@@ -156,8 +156,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1001021102
-        versionName "1.2.11-2"
+        versionCode 1001022000
+        versionName "1.2.20-0"
         buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
 
         if (isNewArchitectureEnabled()) {
@@ -251,6 +251,12 @@ android {
             signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+        }
+        // We need a custom build type, so we can allow http clear text traffic in a release build:
+        e2eRelease {
+            initWith release
+            matchingFallbacks = ['release']
+            signingConfig signingConfigs.debug
         }
     }
 

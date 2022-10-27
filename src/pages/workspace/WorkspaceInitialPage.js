@@ -21,25 +21,25 @@ import compose from '../../libs/compose';
 import Avatar from '../../components/Avatar';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
+import reportPropTypes from '../reportPropTypes';
 import * as Policy from '../../libs/actions/Policy';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import CONST from '../../CONST';
 import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import ONYXKEYS from '../../ONYXKEYS';
-import policyMemberPropType from '../policyMemberPropType';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
 const propTypes = {
     ...policyPropTypes,
     ...withLocalizePropTypes,
 
-    /** The employee list of this policy (coming from Onyx) */
-    policyMemberList: PropTypes.objectOf(policyMemberPropType),
+    /** All reports shared with the user (coming from Onyx) */
+    reports: PropTypes.objectOf(reportPropTypes),
+
 };
 
 const defaultProps = {
     ...policyDefaultProps,
-    policyMemberList: {},
 };
 
 class WorkspaceInitialPage extends React.Component {
@@ -74,7 +74,8 @@ class WorkspaceInitialPage extends React.Component {
      * Call the delete policy and hide the modal
      */
     confirmDeleteAndHideModal() {
-        Policy.deleteWorkspace(this.props.policy.id);
+        const policyReports = _.filter(this.props.reports, report => report && report.policyID === this.props.policy.id);
+        Policy.deleteWorkspace(this.props.policy.id, policyReports);
         this.toggleDeleteModal(false);
         Navigation.navigate(ROUTES.SETTINGS);
     }
@@ -251,8 +252,8 @@ export default compose(
     withLocalize,
     withPolicy,
     withOnyx({
-        policyMemberList: {
-            key: ({policy}) => `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`,
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
         },
     }),
 )(WorkspaceInitialPage);
