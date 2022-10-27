@@ -301,8 +301,8 @@ export default {
         syncing: 'Sincronizando',
     },
     displayNamePage: {
-        headerTitle: 'Nombre para mostrar',
-        isShownOnProfile: 'Su nombre para mostrar se muestra en su perfil.',
+        headerTitle: 'Nombre',
+        isShownOnProfile: 'Este nombre es visible en su perfil.',
         john: 'Juan',
         doe: 'Nadie',
     },
