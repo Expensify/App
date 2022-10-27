@@ -19,7 +19,6 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
-import {navigateToOrCreateChatReport} from "../libs/actions/Report";
 
 const propTypes = {
     /* Onyx Props */
