@@ -311,13 +311,9 @@ class IOUModal extends Component {
     createTransaction() {
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
 
-        // We use hasSelectedMultipleParticipants instead of props.hasMultipleParticipants because the user can start a Split Bill flow
-        // but select a single participant. We should still allow the user to finish the flow, but we should call the appropriate API command
-        const hasSelectedMultipleParticipants = this.state.participants.length > 1;
-
         // IOUs created from a group report will have a reportID param in the route.
         // Since the user is already viewing the report, we don't need to navigate them to the report
-        if (hasSelectedMultipleParticipants && CONST.REGEX.NUMBER.test(reportID)) {
+        if (this.props.hasMultipleParticipants && CONST.REGEX.NUMBER.test(reportID)) {
             IOU.splitBill(
                 this.state.participants,
                 this.props.currentUserPersonalDetails.login,
@@ -330,7 +326,7 @@ class IOUModal extends Component {
         }
 
         // If the IOU is created from the global create menu, we also navigate the user to the group report
-        if (hasSelectedMultipleParticipants) {
+        if (this.props.hasMultipleParticipants) {
             IOU.splitBillAndOpenReport(
                 this.state.participants,
                 this.props.currentUserPersonalDetails.login,
