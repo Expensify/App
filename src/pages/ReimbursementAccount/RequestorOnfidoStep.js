@@ -13,6 +13,7 @@ import Growl from '../../libs/Growl';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import CONST from '../../CONST';
+import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -50,24 +51,26 @@ class RequestorOnfidoStep extends React.Component {
 
     render() {
         return (
-            <ScrollView contentContainerStyle={styles.flex1}>
-                <Onfido
-                    sdkToken={this.props.onfidoToken}
-                    onUserExit={() => {
-                        BankAccounts.clearOnfidoToken();
-                        BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
-                    }}
-                    onError={() => {
-                        // In case of any unexpected error we log it to the server, show a growl, and return the user back to the requestor step so they can try again.
-                        Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
-                        BankAccounts.clearOnfidoToken();
-                        BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
-                    }}
-                    onSuccess={(onfidoData) => {
-                        this.submit(onfidoData);
-                    }}
-                />
-            </ScrollView>
+            <FullPageOfflineBlockingView>
+                <ScrollView contentContainerStyle={styles.flex1}>
+                    <Onfido
+                        sdkToken={this.props.onfidoToken}
+                        onUserExit={() => {
+                            BankAccounts.clearOnfidoToken();
+                            BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+                        }}
+                        onError={() => {
+                            // In case of any unexpected error we log it to the server, show a growl, and return the user back to the requestor step so they can try again.
+                            Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
+                            BankAccounts.clearOnfidoToken();
+                            BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+                        }}
+                        onSuccess={(onfidoData) => {
+                            this.submit(onfidoData);
+                        }}
+                    />
+                </ScrollView>
+            </FullPageOfflineBlockingView>
         );
     }
 }

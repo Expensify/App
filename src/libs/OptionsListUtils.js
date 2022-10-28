@@ -10,6 +10,7 @@ import * as Localize from './Localize';
 import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
 import Navigation from './Navigation/Navigation';
+import * as LoginUtils from './LoginUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -26,7 +27,9 @@ Onyx.connect({
 let loginList;
 Onyx.connect({
     key: ONYXKEYS.LOGIN_LIST,
-    callback: val => loginList = _.isEmpty(val) ? [] : val,
+    callback: (val) => {
+        loginList = LoginUtils.convertLoginListToObject(val);
+    },
 });
 
 let countryCodeByIP;
@@ -195,11 +198,7 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
         if (isChatRoomOrPolicyExpenseChat) {
             const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report, policies);
 
-            // When running tests, chatRoomSubtitle can be undefined due to the Localize() stuff being mocked in the tests.
-            // It's OK to ignore this and just add a null check in here to keep code from crashing.
-            if (chatRoomSubtitle) {
-                Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
-            }
+            Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
         } else {
             searchTerms = searchTerms.concat(report.participants);
         }
@@ -209,26 +208,37 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
 }
 
 /**
- * If the report or the report actions have errors, return
- * CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, otherwise an empty string.
- *
+ * Get an object of error messages keyed by microtime by combining all error objects related to the report.
  * @param {Object} report
  * @param {Object} reportActions
- * @returns {String}
+ * @returns {Object}
  */
-function getBrickRoadIndicatorStatusForReport(report, reportActions) {
+function getAllReportErrors(report, reportActions) {
     const reportErrors = report.errors || {};
     const reportErrorFields = report.errorFields || {};
     const reportID = report.reportID;
     const reportsActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] || {};
+    const reportActionErrors = _.reduce(
+        reportsActions,
+        (prevReportActionErrors, action) => (_.isEmpty(action.errors) ? prevReportActionErrors : _.extend(prevReportActionErrors, action.errors)),
+        {},
+    );
 
-    const hasReportFieldErrors = _.some(reportErrorFields, fieldErrors => !_.isEmpty(fieldErrors));
-    const hasReportActionErrors = _.some(reportsActions, action => !_.isEmpty(action.errors));
+    // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
+    const errorSources = {
+        reportErrors,
+        ...reportErrorFields,
+        reportActionErrors,
+    };
 
-    if (_.isEmpty(reportErrors) && !hasReportFieldErrors && !hasReportActionErrors) {
-        return '';
-    }
-    return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    // Combine all error messages keyed by microtime into one object
+    const allReportErrors = _.reduce(
+        errorSources,
+        (prevReportErrors, errors) => (_.isEmpty(errors) ? prevReportErrors : _.extend(prevReportErrors, errors)),
+        {},
+    );
+
+    return allReportErrors;
 }
 
 /**
@@ -250,6 +260,8 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
     const result = {
         text: null,
         alternateText: null,
+        pendingAction: null,
+        allReportErrors: null,
         brickRoadIndicator: null,
         icons: null,
         tooltipText: null,
@@ -290,7 +302,9 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
         result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
-        result.brickRoadIndicator = getBrickRoadIndicatorStatusForReport(report, reportActions);
+        result.allReportErrors = getAllReportErrors(report, reportActions);
+        result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+        result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom : null;
         result.ownerEmail = report.ownerEmail;
         result.reportID = report.reportID;
         result.isUnread = ReportUtils.isUnread(report);
@@ -388,32 +402,25 @@ function isSearchStringMatch(searchValue, searchText, participantNames = new Set
 }
 
 /**
- * Returns the given userDetails is currentUser or not.
+ * Checks if the given userDetails is currentUser or not.
+ *
  * @param {Object} userDetails
  * @returns {Boolean}
  */
-
 function isCurrentUser(userDetails) {
     if (!userDetails) {
-        // If userDetails is null or undefined
         return false;
     }
 
-    // If user login is mobile number, append sms domain if not appended already.
+    // If user login is a mobile number, append sms domain if not appended already.
     const userDetailsLogin = addSMSDomainIfPhoneNumber(userDetails.login);
 
-    // Initial check with currentUserLogin
-    let result = currentUserLogin.toLowerCase() === userDetailsLogin.toLowerCase();
-    let index = 0;
-
-    // Checking userDetailsLogin against to current user login options.
-    while (index < loginList.length && !result) {
-        if (loginList[index].partnerUserID.toLowerCase() === userDetailsLogin.toLowerCase()) {
-            result = true;
-        }
-        index++;
+    if (currentUserLogin.toLowerCase() === userDetailsLogin.toLowerCase()) {
+        return true;
     }
-    return result;
+
+    // Check if userDetails login exists in loginList
+    return _.some(_.keys(loginList), login => login.toLowerCase() === userDetailsLogin.toLowerCase());
 }
 
 /**
@@ -802,5 +809,5 @@ export {
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
     getSearchText,
-    getBrickRoadIndicatorStatusForReport,
+    getAllReportErrors,
 };
