@@ -42,7 +42,6 @@ Onyx.connect({
 });
 
 const lastReportActions = {};
-
 const reportActions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
