@@ -111,6 +111,7 @@ class ReportScreen extends React.Component {
         this.chatWithAccountManager = this.chatWithAccountManager.bind(this);
         this.dismissBanner = this.dismissBanner.bind(this);
         this.removeViewportResizeListener = () => {};
+        this.didLoadReports = false;
 
         this.state = {
             skeletonViewContainerHeight: reportActionsListViewHeight,
@@ -126,6 +127,10 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (prevProps.isLoadingReportData && !this.props.isLoadingReportData) {
+            this.didLoadReports = true;
+        }
+
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
         }
@@ -157,9 +162,13 @@ class ReportScreen extends React.Component {
         // This means there are no reportActions at all to display, but it is still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
 
+        // If we are loading reports for the first time when the app loads we will defer the ReportActionsView so it can initialize with
+        // the correct unread status.
+        const isLoadingInitialReportData = this.props.isLoadingReportData && !this.didLoadReports;
+
         // This is necessary so that when we are retrieving the next report data from Onyx the ReportActionsView will remount completely
         const isTransitioning = this.props.report && this.props.report.reportID !== reportIDFromPath;
-        return !reportIDFromPath || isLoadingInitialReportActions || !this.props.report.reportID || isTransitioning;
+        return !reportIDFromPath || isLoadingInitialReportActions || !this.props.report.reportID || isTransitioning || isLoadingInitialReportData;
     }
 
     fetchReportIfNeeded() {
@@ -351,6 +360,9 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(ReportScreen);
