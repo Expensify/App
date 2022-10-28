@@ -13,6 +13,8 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import compose from '../../../libs/compose';
 import OptionsSelector from '../../../components/OptionsSelector';
+import themeColors from '../../../styles/themes/default';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -38,7 +40,9 @@ class TimezoneSelectPage extends Component {
                 keyForList: timezone,
 
                 // Add green checkmark icon & bold the timezone text
-                isSelected: timezone === this.currentSelectedTimezone,
+                customIcon: timezone === this.currentSelectedTimezone
+                    ? {src: Expensicons.Checkmark, color: themeColors.textSuccess}
+                    : null,
                 isUnread: timezone === this.currentSelectedTimezone,
             }))
             .value();

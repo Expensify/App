@@ -25,6 +25,7 @@ import OfflineWithFeedback from './OfflineWithFeedback';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
 import variables from '../styles/variables';
+import themeColors from '../styles/themes/default';
 
 const propTypes = {
     /** The accessibility hint for the entire option row. Primarily used for unit testing to identify the component */
@@ -140,6 +141,7 @@ const OptionRow = (props) => {
             <Hoverable
                 containerStyles={[
                     props.isDisabled ? styles.userSelectNone : null,
+                    styles.borderBottom,
                 ]}
             >
                 {hovered => (
@@ -264,6 +266,11 @@ const OptionRow = (props) => {
                                         accessibilityLabel={props.translate('sidebarScreen.chatPinned')}
                                     >
                                         <Icon src={Expensicons.Pin} height={16} width={16} />
+                                    </View>
+                                )}
+                                {Boolean(props.option.customIcon) && (
+                                    <View>
+                                        <Icon src={props.option.customIcon.src} height={16} width={16} fill={props.option.customIcon.color} />
                                     </View>
                                 )}
                             </View>
