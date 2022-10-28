@@ -69,11 +69,15 @@
             <h1 class="title">
                 {{ page.name | remove: '.md' | split: "-" |  join: " " }}
             </h1>
-        {% endif %}
 
-        <div class="article-toc-content">
-            {{ content }}
-        </div>
+            <div class="article-toc-content article">
+                {{ content }}
+            </div>
+        {% else %}
+            <div class="article-toc-content lhn">
+                {{ content }}
+            </div>
+        {% endif %}
 
         <!-- Concierge button at the bottom of the page -->
         <a class="card get-help" href="{{ CONCIERGE_CHAT_URL }}" target="_blank">
