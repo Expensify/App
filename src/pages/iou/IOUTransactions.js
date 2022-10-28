@@ -16,10 +16,10 @@ const propTypes = {
     reportActions: PropTypes.shape(reportActionPropTypes),
 
     /** ReportID for the associated chat report */
-    chatReportID: PropTypes.number.isRequired,
+    chatReportID: PropTypes.string.isRequired,
 
     /** ReportID for the associated IOU report */
-    iouReportID: PropTypes.number.isRequired,
+    iouReportID: PropTypes.string.isRequired,
 
     /** Email for the authenticated user */
     userEmail: PropTypes.string.isRequired,
@@ -55,7 +55,7 @@ class IOUTransactions extends Component {
         }
 
         const actionsForIOUReport = _.filter(this.props.reportActions, action => action.originalMessage
-            && action.originalMessage.type && action.originalMessage.IOUReportID === this.props.iouReportID);
+            && action.originalMessage.type && Number(action.originalMessage.IOUReportID) === Number(this.props.iouReportID));
 
         const rejectedTransactionIDs = _.chain(actionsForIOUReport)
             .filter(action => _.contains(['cancel', 'decline'], action.originalMessage.type))
@@ -75,7 +75,7 @@ class IOUTransactions extends Component {
         return (
             <View style={[styles.mt3]}>
                 {_.map(this.props.reportActions, (reportAction) => {
-                    if (!reportAction.originalMessage || reportAction.originalMessage.IOUReportID !== this.props.iouReportID) {
+                    if (!reportAction.originalMessage || Number(reportAction.originalMessage.IOUReportID) !== Number(this.props.iouReportID)) {
                         return;
                     }
 
