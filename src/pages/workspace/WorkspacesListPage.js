@@ -15,8 +15,10 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import themeColors from '../../styles/themes/default';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 import MenuItem from '../../components/MenuItem';
 import * as Policy from '../../libs/actions/Policy';
+import policyMemberPropType from '../policyMemberPropType';
 import Permissions from '../../libs/Permissions';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
@@ -43,6 +45,9 @@ const propTypes = {
         pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
     })),
 
+    /** List of policy members */
+    policyMembers: PropTypes.objectOf(policyMemberPropType),
+
     /** The user's wallet account */
     userWallet: PropTypes.shape({
         /** The user's current wallet balance */
@@ -57,6 +62,7 @@ const propTypes = {
 
 const defaultProps = {
     policies: {},
+    policyMembers: {},
     userWallet: {
         currentBalance: 0,
     },
@@ -118,9 +124,9 @@ class WorkspacesListPage extends Component {
                 iconStyles: policy.avatar ? [] : [styles.popoverMenuIconEmphasized],
                 iconFill: themeColors.iconReversed,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
                 pendingAction: policy.pendingAction,
                 isPolicy: true,
-                errors: policy.errors,
                 dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
                 disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             }))
@@ -205,6 +211,9 @@ export default compose(
     withOnyx({
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        policyMembers: {
+            key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
