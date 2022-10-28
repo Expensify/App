@@ -63,6 +63,9 @@ const propTypes = {
     /** Allow the full composer to be opened */
     setIsFullComposerAvailable: PropTypes.func,
 
+    /** Whether the composer is full size */
+    isComposerFullSize: PropTypes.bool.isRequired,
+
     /** Called when the user changes the text in the input */
     onChangeText: PropTypes.func,
 
@@ -86,6 +89,7 @@ const defaultProps = {
     onSelectionChange: () => {},
     isFullComposerAvailable: false,
     setIsFullComposerAvailable: () => {},
+    isComposerFullSize: false,
     onChangeText: () => {},
 };
 

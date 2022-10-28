@@ -138,17 +138,13 @@ class WorkspaceInitialPage extends React.Component {
                     <HeaderWithCloseButton
                         title={this.props.translate('workspace.common.workspace')}
                         shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                         onCloseButtonPress={() => Navigation.dismissModal()}
                         shouldShowThreeDotsButton
                         shouldShowGetAssistanceButton
                         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INITIAL}
                         threeDotsMenuItems={[
                             {
-                                icon: Expensicons.Plus,
-                                text: this.props.translate('workspace.new.newWorkspace'),
-                                onSelected: () => Policy.createWorkspace(),
-                            }, {
                                 icon: Expensicons.Trashcan,
                                 text: this.props.translate('workspace.common.delete'),
                                 onSelected: () => this.setState({isDeleteModalOpen: true}),
