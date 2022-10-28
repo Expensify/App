@@ -704,6 +704,7 @@ const CONST = {
         LARGE: 'large',
         DEFAULT: 'default',
         SMALL: 'small',
+        SMALLER: 'smaller',
         SUBSCRIPT: 'subscript',
         SMALL_SUBSCRIPT: 'small-subscript',
     },

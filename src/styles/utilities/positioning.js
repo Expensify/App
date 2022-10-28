@@ -18,6 +18,9 @@ export default {
     l0: {
         left: 0,
     },
+    l4: {
+        left: 4,
+    },
     r0: {
         right: 0,
     },
