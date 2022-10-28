@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Callback method fired when the user requests to close the modal */
@@ -57,7 +58,7 @@ const propTypes = {
 const defaultProps = {
     animationIn: 'fadeIn',
     animationOut: 'fadeOut',
-    animationInTiming: 300,
+    animationInTiming: CONST.ANIMATED_TRANSITION,
     headerText: undefined,
     disableAnimation: true,
 };

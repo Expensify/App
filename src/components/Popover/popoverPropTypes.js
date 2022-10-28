@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {propTypes as modalPropTypes, defaultProps as defaultModalProps} from '../Modal/modalPropTypes';
+import CONST from '../../CONST';
 
 const propTypes = {
     ...(_.omit(modalPropTypes, ['type', 'popoverAnchorPosition'])),
@@ -25,7 +26,7 @@ const defaultProps = {
 
     animationIn: 'fadeIn',
     animationOut: 'fadeOut',
-    animationInTiming: 300,
+    animationInTiming: CONST.ANIMATED_TRANSITION,
 
     // Anchor position is optional only because it is not relevant on mobile
     anchorPosition: {},
