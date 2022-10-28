@@ -357,6 +357,9 @@ function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = f
                 Navigation.navigate(ROUTES.REPORT);
                 return;
             }
+            if (!iouReportObject) {
+                return;
+            }
             setLocalIOUReportData(iouReportObject);
             return iouReportObject;
         });
