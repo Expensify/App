@@ -100,7 +100,7 @@ class AddPayPalMePage extends React.Component {
                         onPress={this.setPayPalMeUsername}
                         pressOnEnter
                         style={[styles.mt3]}
-                        isDisabled={this.state.payPalMeUsername === this.props.payPalMeData.description}
+                        isDisabled={(this.state.payPalMeUsername === this.props.payPalMeData.description) || _.isEmpty(this.state.payPalMeUsername.trim())}
                         text={this.props.payPalMeData.description
                             ? this.props.translate('addPayPalMePage.editPayPalAccount')
                             : this.props.translate('addPayPalMePage.addPayPalAccount')}
