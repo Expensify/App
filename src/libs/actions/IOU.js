@@ -458,7 +458,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         failureData.push({
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneIOUReport.reportID}`,
-            value: existingIOUReport,
+            value: existingIOUReport || oneOnOneIOUReport,
         });
 
         splits.push({
