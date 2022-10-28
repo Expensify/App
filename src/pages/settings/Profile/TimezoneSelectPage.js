@@ -55,10 +55,10 @@ class TimezoneSelectPage extends Component {
 
     /**
      * @param {Object} timezone
-     * @param {String} timezone.label
+     * @param {String} timezone.text
      */
-    saveSelectedTimezone({label}) {
-        PersonalDetails.updateSelectedTimezone(label);
+    saveSelectedTimezone({text}) {
+        PersonalDetails.updateSelectedTimezone(text);
     }
 
     /**
