@@ -323,7 +323,12 @@ function verifyIdentityForBankAccount(bankAccountID, onfidoData) {
     }, getVBBADataForOnyx());
 }
 
+function openWorkspaceView() {
+    API.read('OpenWorkspaceView');
+}
+
 export {
+    openWorkspaceView,
     addPersonalBankAccount,
     connectBankAccountManually,
     clearPersonalBankAccount,
