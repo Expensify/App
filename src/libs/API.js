@@ -2,7 +2,10 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import * as Request from './Request';
 import * as SequentialQueue from './Network/SequentialQueue';
-import {version} from '../../package.json';
+import pkg from '../../package.json';
+import CONST from '../CONST';
+import ONYXKEYS from '../ONYXKEYS';
+import {process} from './Network/SequentialQueue';
 
 /**
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData.
@@ -100,7 +103,16 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
  * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  */
 function read(command, apiCommandParameters, onyxData) {
-    makeRequestWithSideEffects(command, apiCommandParameters, onyxData);
+    const connectionID = Onyx.connect({
+        key: ONYXKEYS.PERSISTED_REQUESTS,
+        callback: () => {
+            Onyx.disconnect(connectionID);
+            process()
+                .finally(() => {
+                    makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ);
+                });
+        },
+    });
 }
 
 export {
