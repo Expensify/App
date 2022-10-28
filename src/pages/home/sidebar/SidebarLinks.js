@@ -81,7 +81,44 @@ const defaultProps = {
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
 
-class SidebarLinks extends React.Component {
+class SidebarLinks extends React.PureComponent {
+    constructor(props) {
+        super(props);
+
+        this.onSelectRow = this.onSelectRow.bind(this);
+        this.lastOptionListItems = [];
+    }
+
+    onSelectRow(option) {
+        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+        this.props.onLinkClick();
+    }
+
+    getContainerStyles() {
+        const paddingBottom = StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom;
+        if (this.lastMarginBottom === paddingBottom) {
+            return this.containerStyles;
+        }
+
+        this.lastMarginBottom = paddingBottom;
+        this.containerStyles = [
+            styles.sidebarListContainer,
+            {paddingBottom},
+        ];
+
+        return this.containerStyles;
+    }
+
+    getReportIDs() {
+        const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
+        if (_.isEqual(optionListItems, this.lastOptionListItems)) {
+            return this.lastOptionListItems;
+        }
+
+        this.lastOptionListItems = optionListItems;
+        return this.lastOptionListItems;
+    }
+
     showSearchPage() {
         Navigation.navigate(ROUTES.SEARCH);
     }
@@ -91,7 +128,7 @@ class SidebarLinks extends React.Component {
         if (_.isEmpty(this.props.personalDetails)) {
             return null;
         }
-        const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
+        const optionListItems = this.getReportIDs();
         return (
             <View
                 accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
@@ -137,18 +174,12 @@ class SidebarLinks extends React.Component {
                     </TouchableOpacity>
                 </View>
                 <LHNOptionsList
-                    contentContainerStyles={[
-                        styles.sidebarListContainer,
-                        {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
-                    ]}
+                    contentContainerStyles={this.getContainerStyles()}
                     data={optionListItems}
-                    focusedIndex={_.findIndex(optionListItems, (
+                    focusedIndex={!this.props.isSmallScreenWidth ? _.findIndex(optionListItems, (
                         option => option.toString() === this.props.reportIDFromRoute
-                    ))}
-                    onSelectRow={(option) => {
-                        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
-                        this.props.onLinkClick();
-                    }}
+                    )) : undefined}
+                    onSelectRow={this.onSelectRow}
                     shouldDisableFocusOptions={this.props.isSmallScreenWidth}
                     optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
                     onLayout={App.setSidebarLoaded}

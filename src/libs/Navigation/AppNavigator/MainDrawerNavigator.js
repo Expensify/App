@@ -61,6 +61,11 @@ class MainDrawerNavigator extends Component {
     }
 
     shouldComponentUpdate(nextProps) {
+        // This means the initial params have been set and we don't need to update further
+        if (this.initialParams.reportID !== '') {
+            return false;
+        }
+
         const initialNextParams = getInitialReportScreenParams(nextProps.reports, !Permissions.canUseDefaultRooms(nextProps.betas), nextProps.policies);
         if (this.initialParams.reportID === initialNextParams.reportID) {
             return false;

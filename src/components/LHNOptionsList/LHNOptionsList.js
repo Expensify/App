@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {Component} from 'react';
+import React, {PureComponent} from 'react';
 import {View, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
@@ -35,7 +35,7 @@ const defaultProps = {
     shouldDisableFocusOptions: false,
 };
 
-class LHNOptionsList extends Component {
+class LHNOptionsList extends PureComponent {
     constructor(props) {
         super(props);
 
@@ -98,7 +98,7 @@ class LHNOptionsList extends Component {
                     extraData={this.props.focusedIndex}
                     initialNumToRender={5}
                     maxToRenderPerBatch={5}
-                    windowSize={5}
+                    windowSize={2}
                     onLayout={this.props.onLayout}
                 />
             </View>

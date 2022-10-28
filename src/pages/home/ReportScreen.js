@@ -107,6 +107,7 @@ class ReportScreen extends React.Component {
         this.onSubmitComment = this.onSubmitComment.bind(this);
         this.updateViewportOffsetTop = this.updateViewportOffsetTop.bind(this);
         this.chatWithAccountManager = this.chatWithAccountManager.bind(this);
+        this.onNavigationMenuButtonClicked = this.onNavigationMenuButtonClicked.bind(this);
         this.dismissBanner = this.dismissBanner.bind(this);
         this.removeViewportResizeListener = () => {};
 
@@ -189,6 +190,10 @@ class ReportScreen extends React.Component {
         Navigation.navigate(ROUTES.getReportRoute(this.props.accountManagerReportID));
     }
 
+    onNavigationMenuButtonClicked() {
+        Navigation.navigate(ROUTES.HOME);
+    }
+
     render() {
         if (!this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails)) {
             return null;
@@ -236,7 +241,7 @@ class ReportScreen extends React.Component {
                     >
                         <HeaderView
                             reportID={reportID}
-                            onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                            onNavigationMenuButtonClicked={this.onNavigationMenuButtonClicked}
                             personalDetails={this.props.personalDetails}
                             report={this.props.report}
                             policies={this.props.policies}

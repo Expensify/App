@@ -110,7 +110,7 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-class ReportActionCompose extends React.Component {
+class ReportActionCompose extends React.PureComponent {
     constructor(props) {
         super(props);
 
@@ -192,7 +192,12 @@ class ReportActionCompose extends React.Component {
     }
 
     onSelectionChange(e) {
-        this.setState({selection: e.nativeEvent.selection});
+        const selection = e.nativeEvent.selection;
+        if (this.state.selection.start === selection.start && this.state.selection.end === selection.end) {
+            return;
+        }
+
+        this.setState({selection});
     }
 
     /**
@@ -201,10 +206,18 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldHighlight
      */
     setIsFocused(shouldHighlight) {
+        if (this.state.isFocused === shouldHighlight) {
+            return;
+        }
+
         this.setState({isFocused: shouldHighlight});
     }
 
     setIsFullComposerAvailable(isFullComposerAvailable) {
+        if (this.state.isFullComposerAvailable === isFullComposerAvailable) {
+            return;
+        }
+
         this.setState({isFullComposerAvailable});
     }
 
@@ -214,6 +227,10 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldClear
      */
     setTextInputShouldClear(shouldClear) {
+        if (this.state.textInputShouldClear === shouldClear) {
+            return;
+        }
+
         this.setState({textInputShouldClear: shouldClear});
     }
 
@@ -305,6 +322,10 @@ class ReportActionCompose extends React.Component {
         if (this.props.isComposerFullSize) {
             maxLines = CONST.COMPOSER.MAX_LINES_FULL;
         }
+        if (this.state.maxLines === maxLines) {
+            return;
+        }
+
         this.setState({maxLines});
     }
 
@@ -381,10 +402,14 @@ class ReportActionCompose extends React.Component {
      */
     updateComment(comment, shouldDebounceSaveComment) {
         const newComment = EmojiUtils.replaceEmojis(comment);
-        this.setState({
-            isCommentEmpty: !!newComment.match(/^(\s|`)*$/),
-            value: newComment,
-        });
+
+        const isCommentEmpty = !!newComment.match(/^(\s|`)*$/);
+        if (isCommentEmpty !== this.state.isCommentEmpty || newComment !== this.state.value) {
+            this.setState({
+                isCommentEmpty,
+                value: newComment,
+            });
+        }
 
         // Indicate that draft has been created.
         if (this.comment.length === 0 && newComment.length !== 0) {
