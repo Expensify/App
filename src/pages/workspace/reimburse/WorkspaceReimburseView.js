@@ -253,45 +253,43 @@ class WorkspaceReimburseView extends React.Component {
                         </View>
                     </OfflineWithFeedback>
                 </Section>
-
-                {!this.props.hasVBA && (
-                <Section
-                    title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
-                    icon={Illustrations.JewelBoxGreen}
-                >
-                    <View style={[styles.mv4]}>
-                        <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
-                    </View>
-                    <Button
-                        text={this.props.translate('workspace.common.bankAccount')}
-                        onPress={() => ReimbursementAccount.navigateToBankAccountRoute(this.props.policy.id)}
-                        icon={Expensicons.Bank}
-                        style={[styles.mt4]}
-                        iconStyles={[styles.buttonCTAIcon]}
-                        shouldShowRightIcon
-                        large
-                        success
-                    />
-                </Section>
-                )}
-                {this.props.hasVBA && (
-                <Section
-                    title={this.props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
-                    icon={Illustrations.BankUserGreen}
-                    menuItems={[
-                        {
-                            title: this.props.translate('workspace.reimburse.reimburseReceipts'),
-                            onPress: () => Link.openOldDotLink(`reports?policyID=${this.props.policy.id}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`),
-                            icon: Expensicons.Bank,
-                            shouldShowRightIcon: true,
-                            iconRight: Expensicons.NewWindow,
-                        },
-                    ]}
-                >
-                    <View style={[styles.mv4]}>
-                        <Text>{this.props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
-                    </View>
-                </Section>
+                {this.props.hasVBA ? (
+                    <Section
+                        title={this.props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
+                        icon={Illustrations.BankUserGreen}
+                        menuItems={[
+                            {
+                                title: this.props.translate('workspace.reimburse.reimburseReceipts'),
+                                onPress: () => Link.openOldDotLink(`reports?policyID=${this.props.policy.id}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`),
+                                icon: Expensicons.Bank,
+                                shouldShowRightIcon: true,
+                                iconRight: Expensicons.NewWindow,
+                            },
+                        ]}
+                    >
+                        <View style={[styles.mv4]}>
+                            <Text>{this.props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
+                        </View>
+                    </Section>
+                ) : (
+                    <Section
+                        title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
+                        icon={Illustrations.JewelBoxGreen}
+                    >
+                        <View style={[styles.mv4]}>
+                            <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
+                        </View>
+                        <Button
+                            text={this.props.translate('workspace.common.bankAccount')}
+                            onPress={() => ReimbursementAccount.navigateToBankAccountRoute(this.props.policy.id)}
+                            icon={Expensicons.Bank}
+                            style={[styles.mt4]}
+                            iconStyles={[styles.buttonCTAIcon]}
+                            shouldShowRightIcon
+                            large
+                            success
+                        />
+                    </Section>
                 )}
             </>
         );
