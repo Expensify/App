@@ -12,6 +12,8 @@ import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../ReportUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
+import ROUTES from '../../ROUTES';
+import Navigation from '../Navigation/Navigation';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -304,6 +306,9 @@ function updateAutomaticTimezone(timezone) {
     });
 }
 
+/**
+ * @param {String} selectedTimezone
+ */
 function updateSelectedTimezone(selectedTimezone) {
     API.write('UpdateSelectedTimezone', {
         text: selectedTimezone,
@@ -320,6 +325,7 @@ function updateSelectedTimezone(selectedTimezone) {
             },
         }],
     });
+    Navigation.navigate(ROUTES.SETTINGS_TIMEZONE_INITIAL);
 }
 
 /**
