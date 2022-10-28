@@ -40,10 +40,6 @@ const TextLink = (props) => {
      */
 
     const openLink = (event) => {
-        if (event.key !== 'Enter' && event.type !== 'click') {
-            return;
-        }
-
         event.preventDefault();
         if (props.onPress) {
             props.onPress();
@@ -59,7 +55,12 @@ const TextLink = (props) => {
             accessibilityRole="link"
             href={props.href}
             onPress={openLink}
-            onKeyDown={openLink}
+            onKeyDown={(e) => {
+                if (e.key !== 'Enter') {
+                    return;
+                }
+                openLink(e);
+            }}
         >
             {props.children}
         </Text>
