@@ -10,10 +10,10 @@ import styles from '../styles/styles';
 import stylePropTypes from '../styles/stylePropTypes';
 
 const propTypes = {
-    /** Error or hint text */
+    /** Error or hint text. Ignored when children is not empty */
     message: PropTypes.string,
 
-    /** Children to render next to dot indicator. Ignored when message is not empty */
+    /** Children to render next to dot indicator */
     children: PropTypes.node,
 
     /** Indicates whether to show error or hint */
