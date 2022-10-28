@@ -10,6 +10,7 @@ import * as Localize from './Localize';
 import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
 import Navigation from './Navigation/Navigation';
+import * as LoginUtils from './LoginUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -26,7 +27,9 @@ Onyx.connect({
 let loginList;
 Onyx.connect({
     key: ONYXKEYS.LOGIN_LIST,
-    callback: val => loginList = _.isEmpty(val) ? [] : val,
+    callback: (val) => {
+        loginList = LoginUtils.convertLoginListToObject(val);
+    },
 });
 
 let countryCodeByIP;
@@ -195,11 +198,7 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
         if (isChatRoomOrPolicyExpenseChat) {
             const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report, policies);
 
-            // When running tests, chatRoomSubtitle can be undefined due to the Localize() stuff being mocked in the tests.
-            // It's OK to ignore this and just add a null check in here to keep code from crashing.
-            if (chatRoomSubtitle) {
-                Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
-            }
+            Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
         } else {
             searchTerms = searchTerms.concat(report.participants);
         }
@@ -403,32 +402,25 @@ function isSearchStringMatch(searchValue, searchText, participantNames = new Set
 }
 
 /**
- * Returns the given userDetails is currentUser or not.
+ * Checks if the given userDetails is currentUser or not.
+ *
  * @param {Object} userDetails
  * @returns {Boolean}
  */
-
 function isCurrentUser(userDetails) {
     if (!userDetails) {
-        // If userDetails is null or undefined
         return false;
     }
 
-    // If user login is mobile number, append sms domain if not appended already.
+    // If user login is a mobile number, append sms domain if not appended already.
     const userDetailsLogin = addSMSDomainIfPhoneNumber(userDetails.login);
 
-    // Initial check with currentUserLogin
-    let result = currentUserLogin.toLowerCase() === userDetailsLogin.toLowerCase();
-    let index = 0;
-
-    // Checking userDetailsLogin against to current user login options.
-    while (index < loginList.length && !result) {
-        if (loginList[index].partnerUserID.toLowerCase() === userDetailsLogin.toLowerCase()) {
-            result = true;
-        }
-        index++;
+    if (currentUserLogin.toLowerCase() === userDetailsLogin.toLowerCase()) {
+        return true;
     }
-    return result;
+
+    // Check if userDetails login exists in loginList
+    return _.some(_.keys(loginList), login => login.toLowerCase() === userDetailsLogin.toLowerCase());
 }
 
 /**

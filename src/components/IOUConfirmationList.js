@@ -328,6 +328,7 @@ class IOUConfirmationList extends Component {
         const shouldDisableButton = selectedParticipants.length === 0;
         const recipient = this.state.participants[0];
         const canModifyParticipants = this.props.isIOUAttachedToExistingChatReport && this.props.hasMultipleParticipants;
+        const isLoading = this.props.iou.loading;
         return (
             <OptionsSelector
                 sections={this.getSections()}
@@ -357,12 +358,14 @@ class IOUConfirmationList extends Component {
                             addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
                             addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                             currency={this.props.iou.selectedCurrencyCode}
+                            isLoading={isLoading}
                         />
                     ) : (
                         <ButtonWithMenu
                             isDisabled={shouldDisableButton}
                             onPress={(_event, value) => this.confirm(value)}
                             options={this.splitOrRequestOptions}
+                            isLoading={isLoading}
                         />
                     )}
             />
