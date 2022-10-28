@@ -180,7 +180,7 @@ class ReportActionsList extends React.Component {
                     CellRendererComponent={this.renderCell}
                     contentContainerStyle={[
                         styles.chatContentScrollView,
-                        shouldShowReportRecipientLocalTime && styles.pt3,
+                        shouldShowReportRecipientLocalTime && styles.pt3 && styles.mtn4,
                     ]}
                     keyExtractor={this.keyExtractor}
                     initialRowHeight={32}
