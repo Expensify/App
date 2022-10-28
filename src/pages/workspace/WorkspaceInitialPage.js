@@ -60,7 +60,7 @@ class WorkspaceInitialPage extends React.Component {
         this.openEditor = this.openEditor.bind(this);
         this.toggleDeleteModal = this.toggleDeleteModal.bind(this);
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
-        this.disabled = this.disabled.bind(this);
+        this.hasPolicyCreationError = this.hasPolicyCreationError.bind(this);
         this.dismissError = this.dismissError.bind(this);
 
         this.state = {
@@ -95,7 +95,7 @@ class WorkspaceInitialPage extends React.Component {
     /**
      * @returns {Boolean}
      */
-    disabled() {
+    hasPolicyCreationError() {
         return Boolean(this.props.policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && this.props.policy.errors);
     }
 
@@ -185,7 +185,7 @@ class WorkspaceInitialPage extends React.Component {
                     >
                         <OfflineWithFeedback
                             pendingAction={this.props.policy.pendingAction}
-                            onClose={() => this.dismissError()}
+                            onClose={this.dismissError}
                             errors={this.props.policy.errors}
                             errorRowStyles={[styles.ph6, styles.pv2]}
                         >
@@ -193,7 +193,7 @@ class WorkspaceInitialPage extends React.Component {
                                 <View style={styles.pageWrapper}>
                                     <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
                                         <Pressable
-                                            disabled={this.disabled()}
+                                            disabled={this.hasPolicyCreationError()}
                                             style={[styles.pRelative, styles.avatarLarge]}
                                             onPress={this.openEditor}
                                         >
@@ -211,7 +211,7 @@ class WorkspaceInitialPage extends React.Component {
                                         </Pressable>
                                         {!_.isEmpty(this.props.policy.name) && (
                                             <Pressable
-                                                disabled={this.disabled()}
+                                                disabled={this.hasPolicyCreationError()}
                                                 style={[
                                                     styles.alignSelfCenter,
                                                     styles.mt4,
@@ -238,8 +238,8 @@ class WorkspaceInitialPage extends React.Component {
                                 {_.map(menuItems, item => (
                                     <MenuItem
                                         key={item.translationKey}
-                                        disabled={this.disabled()}
-                                        interactive={!this.disabled()}
+                                        disabled={this.hasPolicyCreationError()}
+                                        interactive={!this.hasPolicyCreationError()}
                                         title={this.props.translate(item.translationKey)}
                                         icon={item.icon}
                                         iconRight={item.iconRight}
