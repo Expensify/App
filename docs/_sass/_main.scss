@@ -402,19 +402,10 @@ button {
     font-weight: bold;
     cursor: pointer;
     color: $color-dark;
+    background-color: $color-gray1;
 
-    @include card-border($color-gray2, 1px);
-
-    &.send-money {
-        @include card-border($color-blue);
-    }
-
-    &.request-money {
-        @include card-border($color-green);
-    }
-
-    &.get-help {
-        @include card-border($color-pink);
+    &:hover {
+        background-color: darken($color-gray1, 1%);
     }
 
     .row {
