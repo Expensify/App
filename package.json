@@ -171,7 +171,7 @@
     "jest": "^26.6.3",
     "jest-circus": "^26.6.3",
     "jest-cli": "^26.6.3",
-    "metro-react-native-babel-preset": "^0.72.1",
+    "metro-react-native-babel-preset": "^0.73.3",
     "mock-fs": "^4.13.0",
     "portfinder": "^1.0.28",
     "pusher-js-mock": "^0.3.3",
