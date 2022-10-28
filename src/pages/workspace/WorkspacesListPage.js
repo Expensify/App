@@ -57,7 +57,6 @@ const propTypes = {
 
 const defaultProps = {
     policies: {},
-    policyMembers: {},
     userWallet: {
         currentBalance: 0,
     },
