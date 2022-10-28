@@ -69,8 +69,8 @@ class PopoverModal extends React.Component {
 
     /**
      * Method called either when:
-     * Pressing the floating action button to open the CreateMenu modal
-     * Selecting an item on CreateMenu or closing it by clicking outside of the modal component
+     * - Pressing the floating action button to open the CreateMenu modal
+     * - Selecting an item on CreateMenu or closing it by clicking outside of the modal component
      */
     hideCreateMenu() {
         this.props.onHideCreateMenu();
