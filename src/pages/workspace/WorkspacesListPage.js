@@ -124,6 +124,7 @@ class WorkspacesListPage extends Component {
                 iconStyles: policy.avatar ? [] : [styles.popoverMenuIconEmphasized],
                 iconFill: themeColors.iconReversed,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
                 pendingAction: policy.pendingAction,
                 isPolicy: true,
                 errors: policy.errors,
