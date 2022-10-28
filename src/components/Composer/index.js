@@ -64,7 +64,7 @@ const propTypes = {
     setIsFullComposerAvailable: PropTypes.func,
 
     /** Whether the composer is full size */
-    isComposerFullSize: PropTypes.bool.isRequired,
+    isComposerFullSize: PropTypes.bool,
 
     /** Called when the user changes the text in the input */
     onChangeText: PropTypes.func,
