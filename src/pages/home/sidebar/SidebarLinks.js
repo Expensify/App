@@ -184,6 +184,9 @@ export default compose(
                 errorFields: {
                     addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
                 },
+                maxSequenceNumber: report.maxSequenceNumber,
+                lastReadSequenceNumber: report.lastReadSequenceNumber,
+                lastMessageText: report.lastMessageText,
                 lastMessageTimestamp: report.lastMessageTimestamp,
                 iouReportID: report.iouReportID,
                 hasOutstandingIOU: report.hasOutstandingIOU,
