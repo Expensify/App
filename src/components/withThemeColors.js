@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Theme from '../libs/Theme';
+import { getStyle } from 'react-native-svg/lib/typescript/xml';
 
 const ThemeContext = createContext(null);
 
@@ -24,19 +25,9 @@ const themeProviderDefaultProps = {
 };
 
 class ThemeContextProvider extends React.Component {
-    getContextValue () {
-        return {
-            themed: this.themed.bind(this),
-        }
-    }
-
-    themed(unthemedStyles) {
-        return Theme.themed(unthemedStyles);
-    }
-
     render() {
         return (
-            <ThemeContext.Provider value={this.getContextValue()}>
+            <ThemeContext.Provider value={getThemedStyles(this.props.preferredTheme)}>
                 {this.props.children}
             </ThemeContext.Provider>
         );

@@ -25,19 +25,6 @@ import light from '../styles/themes/default';
 import Onyx from "react-native-onyx";
 import ONYXKEYS from '../ONYXKEYS';
 
-let useDarkTheme = null;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_THEME,
-    callback: (val) => {
-        console.log('wassup');
-        useDarkTheme = val;
-    },
-});
-
-function getThemedColor(styleKey) {
-    console.log('useDarkTheme in syles.js: ', useDarkTheme);
-    return useDarkTheme ? darkGreen[styleKey] : light[styleKey];
-}
 
 const picker = {
     backgroundColor: 'transparent',
@@ -156,882 +143,857 @@ const webViewStyles = {
     },
 };
 
-const styles = {
-    button: {
-        backgroundColor: getThemedColor('buttonDefaultBG'),
-        borderRadius: variables.componentBorderRadiusNormal,
-        height: variables.componentSizeLarge,
-        justifyContent: 'center',
-        ...spacing.ph3,
-    },
-
-    // Add all of our utility and helper styles
-    ...spacing,
-    ...sizing,
-    ...flex,
-    ...display,
-    ...overflow,
-    ...positioning,
-    ...wordBreak,
-    ...whiteSpace,
-    ...writingDirection,
-
-    rateCol: {
-        margin: 0,
-        padding: 0,
-        flexBasis: '48%',
-    },
-
-    unitCol: {
-        margin: 0,
-        padding: 0,
-        marginLeft: '4%',
-        flexBasis: '48%',
-    },
-
-    webViewStyles,
-
-    link,
-
-    linkHovered: {
-        color: themeColors.linkHover,
-    },
-
-    linkMuted: {
-        color: themeColors.textSupporting,
-        textDecorationColor: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA,
-    },
-
-    linkMutedHovered: {
-        color: themeColors.textMutedReversed,
-    },
-
-    h1: {
-        color: themeColors.heading,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeh1,
-        fontWeight: fontWeightBold,
-    },
-
-    h3: {
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeNormal,
-        fontWeight: fontWeightBold,
-    },
-
-    h4: {
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeLabel,
-        fontWeight: fontWeightBold,
-    },
-
-    textAlignCenter: {
-        textAlign: 'center',
-    },
-
-    textAlignRight: {
-        textAlign: 'right',
-    },
-
-    textUnderline: {
-        textDecorationLine: 'underline',
-    },
-
-    label: {
-        fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
-    },
-
-    textLabel: {
-        color: themeColors.text,
-        fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
-    },
-
-    mutedTextLabel: {
-        color: themeColors.textSupporting,
-        fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
-    },
-
-    textMicro: {
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 14,
-    },
-
-    textMicroBold: {
-        color: themeColors.text,
-        fontWeight: fontWeightBold,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeSmall,
-    },
-
-    textMicroSupporting: {
-        color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 14,
-    },
-
-    textExtraSmallSupporting: {
-        color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeExtraSmall,
-    },
-
-    textLarge: {
-        fontSize: variables.fontSizeLarge,
-    },
-
-    textXXLarge: {
-        fontSize: variables.fontSizeXXLarge,
-    },
-
-    textXXXLarge: {
-        color: themeColors.heading,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeXXXLarge,
-        fontWeight: fontWeightBold,
-    },
-
-    textStrong: {
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
-    },
-
-    textItalic: {
-        fontFamily: fontFamily.GTA_ITALIC,
-        fontStyle: 'italic',
-    },
-
-    textDecorationNoLine: {
-        textDecorationLine: 'none',
-    },
-
-    textWhite: {
-        color: colors.white,
-    },
-
-    textBlue: {
-        color: colors.blue,
-    },
-
-    textUppercase: {
-        textTransform: 'uppercase',
-    },
-
-    textNoWrap: {
-        ...whiteSpace.noWrap,
-    },
-
-    colorReversed: {
-        color: themeColors.textReversed,
-    },
-
-    colorMutedReversed: {
-        color: themeColors.textMutedReversed,
-    },
-
-    colorMuted: {
-        color: themeColors.textSupporting,
-    },
-
-    colorHeading: {
-        color: themeColors.heading,
-    },
-
-    bgTransparent: {
-        backgroundColor: 'transparent',
-    },
-
-    bgDark: {
-        backgroundColor: colors.dark,
-    },
-
-    opacity0: {
-        opacity: 0,
-    },
-
-    opacity1: {
-        opacity: 1,
-    },
-
-    textDanger: {
-        color: colors.red,
-    },
-
-    borderRadiusNormal: {
-        borderRadius: variables.componentBorderRadiusNormal,
-    },
-
-   
-
-    buttonText: {
-        color: themeColors.heading,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeNormal,
-        fontWeight: fontWeightBold,
-        textAlign: 'center',
-
-        // It is needed to unset the Lineheight. We don't need it for buttons as button always contains single line of text.
-        // It allows to vertically center the text.
-        lineHeight: undefined,
-    },
-
-    buttonSmall: {
-        borderRadius: variables.componentBorderRadiusNormal,
-        height: variables.componentSizeSmall,
-        paddingTop: 6,
-        paddingRight: 10,
-        paddingBottom: 6,
-        paddingLeft: 10,
-        backgroundColor: 'themeColors.buttonDefaultBG',
-    },
-
-    buttonMedium: {
-        borderRadius: variables.componentBorderRadiusNormal,
-        height: variables.componentSizeNormal,
-        paddingTop: 6,
-        paddingRight: 12,
-        paddingBottom: 6,
-        paddingLeft: 12,
-        backgroundColor: 'themeColors.buttonDefaultBG',
-    },
-
-    buttonLarge: {
-        borderRadius: variables.componentBorderRadius,
-        height: variables.componentSizeLarge,
-        paddingTop: 8,
-        paddingRight: 14,
-        paddingBottom: 8,
-        paddingLeft: 14,
-        backgroundColor: 'themeColors.buttonDefaultBG',
-    },
-
-    buttonSmallText: {
-        fontSize: variables.fontSizeSmall,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
-        textAlign: 'center',
-    },
-
-    buttonMediumText: {
-        fontSize: variables.fontSizeLabel,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
-        textAlign: 'center',
-    },
-
-    buttonLargeText: {
-        fontSize: variables.fontSizeNormal,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
-        textAlign: 'center',
-    },
-
-    buttonSuccess: {
-        backgroundColor: 'themeColors.buttonSuccessBG',
-        borderWidth: 0,
-    },
-
-    buttonSuccessDisabled: {
-        opacity: 0.5,
-    },
-
-    buttonSuccessHovered: {
-        backgroundColor: 'themeColors.buttonSuccessHoveredBG',
-        borderWidth: 0,
-    },
-
-    buttonDanger: {
-        backgroundColor: 'themeColors.buttonDangerBG',
-        borderWidth: 0,
-    },
-
-    buttonDangerDisabled: {
-        backgroundColor: themeColors.buttonDangerDisabledBG,
-    },
-
-    buttonDangerHovered: {
-        backgroundColor: themeColors.buttonDangerPressedBG,
-        borderWidth: 0,
-    },
-
-    buttonDisable: {
-        backgroundColor: themeColors.buttonDisabledBG,
-        borderWidth: 0,
-    },
-
-    buttonDropdown: {
-        borderLeftWidth: 1,
-        borderColor: themeColors.textReversed,
-    },
-
-    noRightBorderRadius: {
-        borderTopRightRadius: 0,
-        borderBottomRightRadius: 0,
-    },
-
-    noLeftBorderRadius: {
-        borderTopLeftRadius: 0,
-        borderBottomLeftRadius: 0,
-    },
-
-    buttonCTA: {
-        paddingVertical: 6,
-        ...spacing.mh4,
-    },
-
-    buttonCTAIcon: {
-        marginRight: 22,
-    },
-
-    buttonConfirm: {
-        margin: 20,
-    },
-
-    buttonConfirmText: {
-        paddingLeft: 20,
-        paddingRight: 20,
-    },
-
-    buttonSuccessText: {
-        color: 'themeColors.textReversed',
-    },
-
-    buttonDangerText: {
-        color: 'themeColors.textReversed',
-    },
-
-    hoveredComponentBG: {
-        backgroundColor: 'themeColors.hoverComponentBG',
-    },
-
-    activeComponentBG: {
-        backgroundColor: 'themeColors.activeComponentBG',
-    },
-
-    touchableButtonImage: {
-        alignItems: 'center',
-        height: variables.componentSizeNormal,
-        justifyContent: 'center',
-        marginRight: 8,
-        width: variables.componentSizeNormal,
-    },
-
-    visuallyHidden: {
-        ...visibility('hidden'),
-        overflow: 'hidden',
-        width: 0,
-        height: 0,
-    },
-
-    visibilityHidden: {
-        ...visibility('hidden'),
-    },
-
-    loadingVBAAnimation: {
-        width: 160,
-        height: 160,
-    },
-
-    pickerSmall: {
-        inputIOS: {
+
+function getThemedStyles(preferredTheme) {
+
+    // Set themeColors based on preferredTheme
+
+    return {
+        button: {
+            backgroundColor: themeColors.buttonDefaultBG,
+            borderRadius: variables.componentBorderRadiusNormal,
+            height: variables.componentSizeLarge,
+            justifyContent: 'center',
+            ...spacing.ph3,
+        },
+
+        // Add all of our utility and helper styles
+        ...spacing,
+        ...sizing,
+        ...flex,
+        ...display,
+        ...overflow,
+        ...positioning,
+        ...wordBreak,
+        ...whiteSpace,
+        ...writingDirection,
+
+        rateCol: {
+            margin: 0,
+            padding: 0,
+            flexBasis: '48%',
+        },
+
+        unitCol: {
+            margin: 0,
+            padding: 0,
+            marginLeft: '4%',
+            flexBasis: '48%',
+        },
+
+        webViewStyles,
+
+        link,
+
+        linkHovered: {
+            color: themeColors.linkHover,
+        },
+
+        linkMuted: {
+            color: themeColors.textSupporting,
+            textDecorationColor: themeColors.textSupporting,
+            fontFamily: fontFamily.GTA,
+        },
+
+        linkMutedHovered: {
+            color: themeColors.textMutedReversed,
+        },
+
+        h1: {
+            color: themeColors.heading,
+            fontFamily: fontFamily.GTA_BOLD,
+            fontSize: variables.fontSizeh1,
+            fontWeight: fontWeightBold,
+        },
+
+        h3: {
+            fontFamily: fontFamily.GTA_BOLD,
+            fontSize: variables.fontSizeNormal,
+            fontWeight: fontWeightBold,
+        },
+
+        h4: {
+            fontFamily: fontFamily.GTA_BOLD,
+            fontSize: variables.fontSizeLabel,
+            fontWeight: fontWeightBold,
+        },
+
+        textAlignCenter: {
+            textAlign: 'center',
+        },
+
+        textAlignRight: {
+            textAlign: 'right',
+        },
+
+        textUnderline: {
+            textDecorationLine: 'underline',
+        },
+
+        label: {
+            fontSize: variables.fontSizeLabel,
+            lineHeight: 18,
+        },
+
+        textLabel: {
+            color: themeColors.text,
+            fontSize: variables.fontSizeLabel,
+            lineHeight: 18,
+        },
+
+        mutedTextLabel: {
+            color: themeColors.textSupporting,
+            fontSize: variables.fontSizeLabel,
+            lineHeight: 18,
+        },
+
+        textMicro: {
             fontFamily: fontFamily.GTA,
             fontSize: variables.fontSizeSmall,
-            paddingLeft: 9,
-            paddingRight: 25,
-            paddingTop: 6,
-            paddingBottom: 6,
-            borderRadius: variables.componentBorderRadius,
-            borderWidth: 1,
-            borderColor: themeColors.border,
-            borderStyle: 'solid',
+            lineHeight: 14,
+        },
+
+        textMicroBold: {
             color: themeColors.text,
-            height: variables.componentSizeSmall,
-            opacity: 1,
+            fontWeight: fontWeightBold,
+            fontFamily: fontFamily.GTA_BOLD,
+            fontSize: variables.fontSizeSmall,
+        },
+
+        textMicroSupporting: {
+            color: themeColors.textSupporting,
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: 14,
+        },
+
+        textExtraSmallSupporting: {
+            color: themeColors.textSupporting,
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeExtraSmall,
+        },
+
+        textLarge: {
+            fontSize: variables.fontSizeLarge,
+        },
+
+        textXXLarge: {
+            fontSize: variables.fontSizeXXLarge,
+        },
+
+        textXXXLarge: {
+            color: themeColors.heading,
+            fontFamily: fontFamily.GTA_BOLD,
+            fontSize: variables.fontSizeXXXLarge,
+            fontWeight: fontWeightBold,
+        },
+
+        textStrong: {
+            fontFamily: fontFamily.GTA_BOLD,
+            fontWeight: fontWeightBold,
+        },
+
+        textItalic: {
+            fontFamily: fontFamily.GTA_ITALIC,
+            fontStyle: 'italic',
+        },
+
+        textDecorationNoLine: {
+            textDecorationLine: 'none',
+        },
+
+        textWhite: {
+            color: colors.white,
+        },
+
+        textBlue: {
+            color: colors.blue,
+        },
+
+        textUppercase: {
+            textTransform: 'uppercase',
+        },
+
+        textNoWrap: {
+            ...whiteSpace.noWrap,
+        },
+
+        colorReversed: {
+            color: themeColors.textReversed,
+        },
+
+        colorMutedReversed: {
+            color: themeColors.textMutedReversed,
+        },
+
+        colorMuted: {
+            color: themeColors.textSupporting,
+        },
+
+        colorHeading: {
+            color: themeColors.heading,
+        },
+
+        bgTransparent: {
             backgroundColor: 'transparent',
         },
-        inputWeb: {
-            fontFamily: fontFamily.GTA,
-            fontSize: variables.fontSizeSmall,
-            paddingLeft: 9,
-            paddingRight: 25,
-            paddingTop: 6,
-            paddingBottom: 6,
-            borderWidth: 1,
-            borderColor: themeColors.border,
-            borderStyle: 'solid',
-            borderRadius: variables.componentBorderRadius,
-            color: themeColors.text,
-            appearance: 'none',
-            height: variables.componentSizeSmall,
-            opacity: 1,
-            cursor: 'pointer',
-            backgroundColor: 'transparent',
+
+        bgDark: {
+            backgroundColor: colors.dark,
         },
-        inputAndroid: {
-            fontFamily: fontFamily.GTA,
-            fontSize: variables.fontSizeSmall,
-            paddingLeft: 9,
-            paddingRight: 25,
-            paddingTop: 6,
-            paddingBottom: 6,
-            borderWidth: 1,
-            borderColor: themeColors.border,
-            borderStyle: 'solid',
-            borderRadius: variables.componentBorderRadius,
-            color: themeColors.text,
-            height: variables.componentSizeSmall,
+
+        opacity0: {
+            opacity: 0,
+        },
+
+        opacity1: {
             opacity: 1,
         },
-        iconContainer: {
-            top: 8,
-            right: 9,
-            ...pointerEventsNone,
+
+        textDanger: {
+            color: colors.red,
         },
-        icon: {
-            width: variables.iconSizeExtraSmall,
-            height: variables.iconSizeExtraSmall,
+
+        borderRadiusNormal: {
+            borderRadius: variables.componentBorderRadiusNormal,
         },
-    },
 
-    badge: {
-        backgroundColor: themeColors.badgeDefaultBG,
-        borderRadius: 14,
-        height: variables.iconSizeNormal,
-        flexDirection: 'row',
-        paddingHorizontal: 7,
-        alignItems: 'center',
-    },
+    
 
-    badgeSuccess: {
-        backgroundColor: themeColors.badgeSuccessBG,
-    },
+        buttonText: {
+            color: themeColors.heading,
+            fontFamily: fontFamily.GTA_BOLD,
+            fontSize: variables.fontSizeNormal,
+            fontWeight: fontWeightBold,
+            textAlign: 'center',
 
-    badgeSuccessPressed: {
-        backgroundColor: themeColors.badgeSuccessPressedBG,
-    },
+            // It is needed to unset the Lineheight. We don't need it for buttons as button always contains single line of text.
+            // It allows to vertically center the text.
+            lineHeight: undefined,
+        },
 
-    badgeDanger: {
-        backgroundColor: themeColors.badgeDangerBG,
-    },
+        buttonSmall: {
+            borderRadius: variables.componentBorderRadiusNormal,
+            height: variables.componentSizeSmall,
+            paddingTop: 6,
+            paddingRight: 10,
+            paddingBottom: 6,
+            paddingLeft: 10,
+            backgroundColor: 'themeColors.buttonDefaultBG',
+        },
 
-    badgeDangerPressed: {
-        backgroundColor: themeColors.badgeDangerPressedBG,
-    },
+        buttonMedium: {
+            borderRadius: variables.componentBorderRadiusNormal,
+            height: variables.componentSizeNormal,
+            paddingTop: 6,
+            paddingRight: 12,
+            paddingBottom: 6,
+            paddingLeft: 12,
+            backgroundColor: 'themeColors.buttonDefaultBG',
+        },
 
-    badgeText: {
-        color: themeColors.text,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
-        ...whiteSpace.noWrap,
-    },
+        buttonLarge: {
+            borderRadius: variables.componentBorderRadius,
+            height: variables.componentSizeLarge,
+            paddingTop: 8,
+            paddingRight: 14,
+            paddingBottom: 8,
+            paddingLeft: 14,
+            backgroundColor: 'themeColors.buttonDefaultBG',
+        },
 
-    border: {
-        borderWidth: 1,
-        borderRadius: variables.componentBorderRadiusNormal,
-        borderColor: themeColors.border,
-    },
+        buttonSmallText: {
+            fontSize: variables.fontSizeSmall,
+            fontFamily: fontFamily.GTA_BOLD,
+            fontWeight: fontWeightBold,
+            textAlign: 'center',
+        },
 
-    borderColorFocus: {
-        borderColor: themeColors.borderFocus,
-    },
+        buttonMediumText: {
+            fontSize: variables.fontSizeLabel,
+            fontFamily: fontFamily.GTA_BOLD,
+            fontWeight: fontWeightBold,
+            textAlign: 'center',
+        },
 
-    borderColorDanger: {
-        borderColor: themeColors.badgeDangerBG,
-    },
+        buttonLargeText: {
+            fontSize: variables.fontSizeNormal,
+            fontFamily: fontFamily.GTA_BOLD,
+            fontWeight: fontWeightBold,
+            textAlign: 'center',
+        },
 
-    headerText: {
-        color: themeColors.heading,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeNormal,
-        fontWeight: fontWeightBold,
-    },
+        buttonSuccess: {
+            backgroundColor: 'themeColors.buttonSuccessBG',
+            borderWidth: 0,
+        },
 
-    headerGap: {
-        height: 12,
-    },
+        buttonSuccessDisabled: {
+            opacity: 0.5,
+        },
 
-    pushTextRight: {
-        left: 100000,
-    },
+        buttonSuccessHovered: {
+            backgroundColor: 'themeColors.buttonSuccessHoveredBG',
+            borderWidth: 0,
+        },
 
-    reportOptions: {
-        marginLeft: 8,
-    },
+        buttonDanger: {
+            backgroundColor: 'themeColors.buttonDangerBG',
+            borderWidth: 0,
+        },
 
-    chatItemComposeSecondaryRow: {
-        height: 15,
-        marginBottom: 5,
-        marginTop: 5,
-    },
+        buttonDangerDisabled: {
+            backgroundColor: themeColors.buttonDangerDisabledBG,
+        },
 
-    chatItemComposeSecondaryRowSubText: {
-        color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 14,
-    },
+        buttonDangerHovered: {
+            backgroundColor: themeColors.buttonDangerPressedBG,
+            borderWidth: 0,
+        },
 
-    chatItemComposeSecondaryRowOffset: {
-        marginLeft: 48,
-    },
+        buttonDisable: {
+            backgroundColor: themeColors.buttonDisabledBG,
+            borderWidth: 0,
+        },
 
-    offlineIndicator: {
-        marginLeft: 48,
-    },
+        buttonDropdown: {
+            borderLeftWidth: 1,
+            borderColor: themeColors.textReversed,
+        },
 
-    offlineIndicatorMobile: {
-        paddingLeft: 20,
-        paddingBottom: 9,
-    },
+        noRightBorderRadius: {
+            borderTopRightRadius: 0,
+            borderBottomRightRadius: 0,
+        },
 
-    offlineIndicatorRow: {
-        height: 25,
-    },
+        noLeftBorderRadius: {
+            borderTopLeftRadius: 0,
+            borderBottomLeftRadius: 0,
+        },
 
-    // Actions
-    actionAvatar: {
-        borderRadius: 20,
-        marginRight: 8,
-    },
+        buttonCTA: {
+            paddingVertical: 6,
+            ...spacing.mh4,
+        },
 
-    componentHeightLarge: {
-        height: variables.componentSizeLarge,
-    },
+        buttonCTAIcon: {
+            marginRight: 22,
+        },
 
-    textInputContainer: {
-        flex: 1,
-        borderRadius: variables.componentBorderRadiusNormal,
-        justifyContent: 'center',
-        height: '100%',
-        backgroundColor: themeColors.componentBG,
-        borderWidth: 1,
-        borderColor: themeColors.border,
-        overflow: 'hidden',
-    },
+        buttonConfirm: {
+            margin: 20,
+        },
 
-    textInputLabel: {
-        position: 'absolute',
-        left: 11,
-        top: 0,
-        fontSize: variables.fontSizeNormal,
-        color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA,
-        width: '100%',
-        textAlign: 'left',
-    },
+        buttonConfirmText: {
+            paddingLeft: 20,
+            paddingRight: 20,
+        },
 
-    textInputLabelBackground: {
-        position: 'absolute',
-        top: 0,
-        width: '100%',
-        height: 25,
-        backgroundColor: themeColors.componentBG,
-        borderTopRightRadius: variables.componentBorderRadiusNormal,
-        borderTopLeftRadius: variables.componentBorderRadiusNormal,
-    },
+        buttonSuccessText: {
+            color: 'themeColors.textReversed',
+        },
 
-    textInputLabelDesktop: {
-        transformOrigin: 'left center',
-    },
+        buttonDangerText: {
+            color: 'themeColors.textReversed',
+        },
 
-    textInputLabelTransformation: (translateY, translateX, scale) => ({
-        transform: [
-            {translateY},
-            {translateX},
-            {scale},
-        ],
-    }),
+        hoveredComponentBG: {
+            backgroundColor: 'themeColors.hoverComponentBG',
+        },
 
-    baseTextInput: {
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeNormal,
-        lineHeight: variables.fontSizeNormalHeight,
-        color: themeColors.text,
-        paddingTop: 23,
-        paddingBottom: 8,
-        paddingHorizontal: 11,
-        borderWidth: 0,
-    },
+        activeComponentBG: {
+            backgroundColor: 'themeColors.activeComponentBG',
+        },
 
-    textInputMultiline: {
-        scrollPadding: '23px 0 0 0',
-    },
+        touchableButtonImage: {
+            alignItems: 'center',
+            height: variables.componentSizeNormal,
+            justifyContent: 'center',
+            marginRight: 8,
+            width: variables.componentSizeNormal,
+        },
 
-    textInputAndIconContainer: {
-        flex: 1,
-        height: '100%',
-        zIndex: -1,
-        flexDirection: 'row',
-    },
+        visuallyHidden: {
+            ...visibility('hidden'),
+            overflow: 'hidden',
+            width: 0,
+            height: 0,
+        },
 
-    textInputDesktop: addOutlineWidth({}, 0),
+        visibilityHidden: {
+            ...visibility('hidden'),
+        },
 
-    secureInputShowPasswordButton: {
-        borderTopRightRadius: 6,
-        borderBottomRightRadius: 6,
-        paddingHorizontal: 11,
-        justifyContent: 'center',
-        margin: 1,
-    },
+        loadingVBAAnimation: {
+            width: 160,
+            height: 160,
+        },
 
-    secureInput: {
-        borderTopRightRadius: 0,
-        borderBottomRightRadius: 0,
-    },
+        pickerSmall: {
+            inputIOS: {
+                fontFamily: fontFamily.GTA,
+                fontSize: variables.fontSizeSmall,
+                paddingLeft: 9,
+                paddingRight: 25,
+                paddingTop: 6,
+                paddingBottom: 6,
+                borderRadius: variables.componentBorderRadius,
+                borderWidth: 1,
+                borderColor: themeColors.border,
+                borderStyle: 'solid',
+                color: themeColors.text,
+                height: variables.componentSizeSmall,
+                opacity: 1,
+                backgroundColor: 'transparent',
+            },
+            inputWeb: {
+                fontFamily: fontFamily.GTA,
+                fontSize: variables.fontSizeSmall,
+                paddingLeft: 9,
+                paddingRight: 25,
+                paddingTop: 6,
+                paddingBottom: 6,
+                borderWidth: 1,
+                borderColor: themeColors.border,
+                borderStyle: 'solid',
+                borderRadius: variables.componentBorderRadius,
+                color: themeColors.text,
+                appearance: 'none',
+                height: variables.componentSizeSmall,
+                opacity: 1,
+                cursor: 'pointer',
+                backgroundColor: 'transparent',
+            },
+            inputAndroid: {
+                fontFamily: fontFamily.GTA,
+                fontSize: variables.fontSizeSmall,
+                paddingLeft: 9,
+                paddingRight: 25,
+                paddingTop: 6,
+                paddingBottom: 6,
+                borderWidth: 1,
+                borderColor: themeColors.border,
+                borderStyle: 'solid',
+                borderRadius: variables.componentBorderRadius,
+                color: themeColors.text,
+                height: variables.componentSizeSmall,
+                opacity: 1,
+            },
+            iconContainer: {
+                top: 8,
+                right: 9,
+                ...pointerEventsNone,
+            },
+            icon: {
+                width: variables.iconSizeExtraSmall,
+                height: variables.iconSizeExtraSmall,
+            },
+        },
 
-    textInput: {
-        backgroundColor: themeColors.componentBG,
-        borderRadius: variables.componentBorderRadiusNormal,
-        height: variables.inputComponentSizeNormal,
-        borderColor: themeColors.border,
-        borderWidth: 1,
-        color: themeColors.text,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeNormal,
-        paddingLeft: 12,
-        paddingRight: 12,
-        paddingTop: 10,
-        paddingBottom: 10,
-        textAlignVertical: 'center',
-    },
+        badge: {
+            backgroundColor: themeColors.badgeDefaultBG,
+            borderRadius: 14,
+            height: variables.iconSizeNormal,
+            flexDirection: 'row',
+            paddingHorizontal: 7,
+            alignItems: 'center',
+        },
 
-    textInputPrefix: {
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        height: '100%',
-        paddingLeft: 11,
-        paddingTop: 23,
-        paddingBottom: 8,
-        color: themeColors.text,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeNormal,
-        textAlignVertical: 'center',
-    },
+        badgeSuccess: {
+            backgroundColor: themeColors.badgeSuccessBG,
+        },
 
-    pickerContainer: {
-        borderWidth: 0,
-        borderRadius: variables.componentBorderRadiusNormal,
-        justifyContent: 'center',
-        backgroundColor: themeColors.componentBG,
-    },
-    pickerLabel: {
-        position: 'absolute',
-        left: 12,
-        top: 7,
-    },
-    picker: (disabled = false, error = false, focused = false) => ({
-        iconContainer: {
-            top: 16,
-            right: 11,
+        badgeSuccessPressed: {
+            backgroundColor: themeColors.badgeSuccessPressedBG,
+        },
+
+        badgeDanger: {
+            backgroundColor: themeColors.badgeDangerBG,
+        },
+
+        badgeDangerPressed: {
+            backgroundColor: themeColors.badgeDangerPressedBG,
+        },
+
+        badgeText: {
+            color: themeColors.text,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: 16,
+            ...whiteSpace.noWrap,
+        },
+
+        border: {
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            borderColor: themeColors.border,
+        },
+
+        borderColorFocus: {
+            borderColor: themeColors.borderFocus,
+        },
+
+        borderColorDanger: {
+            borderColor: themeColors.badgeDangerBG,
+        },
+
+        headerText: {
+            color: themeColors.heading,
+            fontFamily: fontFamily.GTA_BOLD,
+            fontSize: variables.fontSizeNormal,
+            fontWeight: fontWeightBold,
+        },
+
+        headerGap: {
+            height: 12,
+        },
+
+        pushTextRight: {
+            left: 100000,
+        },
+
+        reportOptions: {
+            marginLeft: 8,
+        },
+
+        chatItemComposeSecondaryRow: {
+            height: 15,
+            marginBottom: 5,
+            marginTop: 5,
+        },
+
+        chatItemComposeSecondaryRowSubText: {
+            color: themeColors.textSupporting,
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: 14,
+        },
+
+        chatItemComposeSecondaryRowOffset: {
+            marginLeft: 48,
+        },
+
+        offlineIndicator: {
+            marginLeft: 48,
+        },
+
+        offlineIndicatorMobile: {
+            paddingLeft: 20,
+            paddingBottom: 9,
+        },
+
+        offlineIndicatorRow: {
+            height: 25,
+        },
+
+        // Actions
+        actionAvatar: {
+            borderRadius: 20,
+            marginRight: 8,
+        },
+
+        componentHeightLarge: {
+            height: variables.componentSizeLarge,
+        },
+
+        textInputContainer: {
+            flex: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            justifyContent: 'center',
+            height: '100%',
+            backgroundColor: themeColors.componentBG,
+            borderWidth: 1,
+            borderColor: themeColors.border,
+            overflow: 'hidden',
+        },
+
+        textInputLabel: {
+            position: 'absolute',
+            left: 11,
+            top: 0,
+            fontSize: variables.fontSizeNormal,
+            color: themeColors.textSupporting,
+            fontFamily: fontFamily.GTA,
+            width: '100%',
+            textAlign: 'left',
+        },
+
+        textInputLabelBackground: {
+            position: 'absolute',
+            top: 0,
+            width: '100%',
+            height: 25,
+            backgroundColor: themeColors.componentBG,
+            borderTopRightRadius: variables.componentBorderRadiusNormal,
+            borderTopLeftRadius: variables.componentBorderRadiusNormal,
+        },
+
+        textInputLabelDesktop: {
+            transformOrigin: 'left center',
+        },
+
+        textInputLabelTransformation: (translateY, translateX, scale) => ({
+            transform: [
+                {translateY},
+                {translateX},
+                {scale},
+            ],
+        }),
+
+        baseTextInput: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
+            color: themeColors.text,
+            paddingTop: 23,
+            paddingBottom: 8,
+            paddingHorizontal: 11,
+            borderWidth: 0,
+        },
+
+        textInputMultiline: {
+            scrollPadding: '23px 0 0 0',
+        },
+
+        textInputAndIconContainer: {
+            flex: 1,
+            height: '100%',
             zIndex: -1,
+            flexDirection: 'row',
         },
-        inputWeb: {
-            appearance: 'none',
-            cursor: disabled ? 'not-allowed' : 'pointer',
-            ...picker,
-            ...(focused && {borderColor: themeColors.borderFocus}),
-            ...(error && {borderColor: themeColors.badgeDangerBG}),
+
+        textInputDesktop: addOutlineWidth({}, 0),
+
+        secureInputShowPasswordButton: {
+            borderTopRightRadius: 6,
+            borderBottomRightRadius: 6,
+            paddingHorizontal: 11,
+            justifyContent: 'center',
+            margin: 1,
         },
-        inputNative: {
-            ...picker,
-            ...(focused && {borderColor: themeColors.borderFocus}),
-            ...(error && {borderColor: themeColors.badgeDangerBG}),
+
+        secureInput: {
+            borderTopRightRadius: 0,
+            borderBottomRightRadius: 0,
         },
-    }),
 
-    disabledText: {
-        color: colors.gray3,
-    },
+        textInput: {
+            backgroundColor: themeColors.componentBG,
+            borderRadius: variables.componentBorderRadiusNormal,
+            height: variables.inputComponentSizeNormal,
+            borderColor: themeColors.border,
+            borderWidth: 1,
+            color: themeColors.text,
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            paddingLeft: 12,
+            paddingRight: 12,
+            paddingTop: 10,
+            paddingBottom: 10,
+            textAlignVertical: 'center',
+        },
 
-    inputDisabled: {
-        backgroundColor: colors.gray1,
-        color: colors.gray3,
-    },
+        textInputPrefix: {
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            height: '100%',
+            paddingLeft: 11,
+            paddingTop: 23,
+            paddingBottom: 8,
+            color: themeColors.text,
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            textAlignVertical: 'center',
+        },
 
-    textInputReversed: addOutlineWidth({
-        backgroundColor: themeColors.heading,
-        borderColor: themeColors.text,
-        color: themeColors.textReversed,
-    }, 0),
+        pickerContainer: {
+            borderWidth: 0,
+            borderRadius: variables.componentBorderRadiusNormal,
+            justifyContent: 'center',
+            backgroundColor: themeColors.componentBG,
+        },
+        pickerLabel: {
+            position: 'absolute',
+            left: 12,
+            top: 7,
+        },
+        picker: (disabled = false, error = false, focused = false) => ({
+            iconContainer: {
+                top: 16,
+                right: 11,
+                zIndex: -1,
+            },
+            inputWeb: {
+                appearance: 'none',
+                cursor: disabled ? 'not-allowed' : 'pointer',
+                ...picker,
+                ...(focused && {borderColor: themeColors.borderFocus}),
+                ...(error && {borderColor: themeColors.badgeDangerBG}),
+            },
+            inputNative: {
+                ...picker,
+                ...(focused && {borderColor: themeColors.borderFocus}),
+                ...(error && {borderColor: themeColors.badgeDangerBG}),
+            },
+        }),
 
-    textInputReversedFocus: {
-        borderColor: themeColors.icon,
-    },
+        disabledText: {
+            color: colors.gray3,
+        },
 
-    noOutline: addOutlineWidth({}, 0),
+        inputDisabled: {
+            backgroundColor: colors.gray1,
+            color: colors.gray3,
+        },
 
-    errorOutline: {
-        borderColor: colors.red,
-    },
+        textInputReversed: addOutlineWidth({
+            backgroundColor: themeColors.heading,
+            borderColor: themeColors.text,
+            color: themeColors.textReversed,
+        }, 0),
 
-    textLabelSupporting: {
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeLabel,
-        color: themeColors.textSupporting,
-    },
+        textInputReversedFocus: {
+            borderColor: themeColors.icon,
+        },
 
-    lh16: {
-        lineHeight: 16,
-    },
+        noOutline: addOutlineWidth({}, 0),
 
-    formLabel: {
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
-        color: themeColors.heading,
-        fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
-        marginBottom: 8,
-    },
+        errorOutline: {
+            borderColor: colors.red,
+        },
 
-    formHelp: {
-        color: themeColors.textSupporting,
-        fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
-        marginBottom: 4,
-    },
+        textLabelSupporting: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeLabel,
+            color: themeColors.textSupporting,
+        },
 
-    formError: {
-        color: themeColors.textError,
-        fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
-        marginBottom: 4,
-    },
+        lh16: {
+            lineHeight: 16,
+        },
 
-    formSuccess: {
-        color: themeColors.textSuccess,
-        fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
-        marginBottom: 4,
-    },
+        formLabel: {
+            fontFamily: fontFamily.GTA_BOLD,
+            fontWeight: fontWeightBold,
+            color: themeColors.heading,
+            fontSize: variables.fontSizeLabel,
+            lineHeight: 18,
+            marginBottom: 8,
+        },
 
-    signInPage: {
-        backgroundColor: themeColors.sidebar,
-        minHeight: '100%',
-        flex: 1,
-    },
+        formHelp: {
+            color: themeColors.textSupporting,
+            fontSize: variables.fontSizeLabel,
+            lineHeight: 18,
+            marginBottom: 4,
+        },
 
-    signInPageLogo: {
-        height: variables.componentSizeLarge,
-        marginBottom: 24,
-    },
+        formError: {
+            color: themeColors.textError,
+            fontSize: variables.fontSizeLabel,
+            lineHeight: 18,
+            marginBottom: 4,
+        },
 
-    signInPageInner: {
-        marginLeft: 'auto',
-        marginRight: 'auto',
-        height: '100%',
-        width: '100%',
-    },
+        formSuccess: {
+            color: themeColors.textSuccess,
+            fontSize: variables.fontSizeLabel,
+            lineHeight: 18,
+            marginBottom: 4,
+        },
 
-    signInPageInnerNative: {
-        width: '100%',
-    },
+        signInPage: {
+            backgroundColor: themeColors.sidebar,
+            minHeight: '100%',
+            flex: 1,
+        },
 
-    signInPageHeroHeading: {
-        fontFamily: fontFamily.GTA,
-        fontWeight: fontWeightBold,
-        fontSize: variables.fontSizeHero,
-        color: colors.white,
-        lineHeight: variables.lineHeightHero,
-    },
+        signInPageLogo: {
+            height: variables.componentSizeLarge,
+            marginBottom: 24,
+        },
 
-    signInPageHeroDescription: {
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeNormal,
-        color: colors.white,
-    },
+        signInPageInner: {
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            height: '100%',
+            width: '100%',
+        },
 
-    signInPageFormContainer: {
-        maxWidth: 295,
-        width: '100%',
-    },
+        signInPageInnerNative: {
+            width: '100%',
+        },
 
-    signInPageNarrowContentContainer: {
-        maxWidth: 335,
-    },
+        signInPageHeroHeading: {
+            fontFamily: fontFamily.GTA,
+            fontWeight: fontWeightBold,
+            fontSize: variables.fontSizeHero,
+            color: colors.white,
+            lineHeight: variables.lineHeightHero,
+        },
 
-    signInPageNarrowContentMargin: {
-        marginTop: '40%',
-    },
+        signInPageHeroDescription: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            color: colors.white,
+        },
 
-    signInPageWideLeftContainer: {
-        width: 375,
-        maxWidth: 375,
-    },
+        signInPageFormContainer: {
+            maxWidth: 295,
+            width: '100%',
+        },
 
-    signInPageWideLeftContentMargin: {
-        marginTop: '44.5%',
-    },
+        signInPageNarrowContentContainer: {
+            maxWidth: 335,
+        },
 
-    signInPageWideHeroContent: {
-        maxWidth: 400,
-    },
+        signInPageNarrowContentMargin: {
+            marginTop: '40%',
+        },
 
-    changeExpensifyLoginLinkContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        ...wordBreak.breakWord,
-    },
+        signInPageWideLeftContainer: {
+            width: 375,
+            maxWidth: 375,
+        },
 
-    // Sidebar Styles
-    sidebar: {
-        backgroundColor: themeColors.sidebar,
-        height: '100%',
-    },
+        signInPageWideLeftContentMargin: {
+            marginTop: '44.5%',
+        },
 
-    sidebarFooter: {
-        alignItems: 'center',
-        display: 'flex',
-        justifyContent: 'center',
-        paddingVertical: 20,
-        width: '100%',
-    },
+        signInPageWideHeroContent: {
+            maxWidth: 400,
+        },
 
-    sidebarAvatar: {
-        backgroundColor: themeColors.icon,
-        borderRadius: 20,
-        height: variables.componentSizeNormal,
-        width: variables.componentSizeNormal,
-    },
+        changeExpensifyLoginLinkContainer: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            ...wordBreak.breakWord,
+        },
 
-    statusIndicator: {
-        borderColor: themeColors.sidebar,
-        backgroundColor: themeColors.buttonDangerBG,
-        borderRadius: 6,
-        borderWidth: 2,
-        position: 'absolute',
-        right: -1,
-        bottom: -1,
-        height: 12,
-        width: 12,
-        zIndex: 10,
-    },
+        // Sidebar Styles
+        sidebar: {
+            backgroundColor: themeColors.sidebar,
+            height: '100%',
+        },
 
-    statusIndicatorLarge: {
-        borderColor: themeColors.componentBG,
-        backgroundColor: themeColors.buttonDangerBG,
-        borderRadius: 8,
-        borderWidth: 2,
-        position: 'absolute',
-        right: 4,
-        bottom: 4,
-        height: 16,
-        width: 16,
-        zIndex: 10,
-    },
+        sidebarFooter: {
+            alignItems: 'center',
+            display: 'flex',
+            justifyContent: 'center',
+            paddingVertical: 20,
+            width: '100%',
+        },
 
-    statusIndicatorOnline: {
-        backgroundColor: themeColors.online,
-    },
+        sidebarAvatar: {
+            backgroundColor: themeColors.icon,
+            borderRadius: 20,
+            height: variables.componentSizeNormal,
+            width: variables.componentSizeNormal,
+        },
 
-    avatarWithIndicator: {
-        errorDot: {
+        statusIndicator: {
             borderColor: themeColors.sidebar,
+            backgroundColor: themeColors.buttonDangerBG,
             borderRadius: 6,
             borderWidth: 2,
             position: 'absolute',
@@ -1041,1679 +1003,1710 @@ const styles = {
             width: 12,
             zIndex: 10,
         },
-    },
 
-    floatingActionButton: {
-        backgroundColor: themeColors.buttonSuccessBG,
-        position: 'absolute',
-        height: variables.componentSizeLarge,
-        width: variables.componentSizeLarge,
-        right: 20,
-        bottom: 34,
-        borderRadius: 999,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-
-    sidebarFooterUsername: {
-        color: themeColors.heading,
-        fontSize: variables.fontSizeLabel,
-        fontWeight: '700',
-        width: 200,
-        textOverflow: 'ellipsis',
-        overflow: 'hidden',
-        ...whiteSpace.noWrap,
-    },
-
-    sidebarFooterLink: {
-        color: themeColors.textSupporting,
-        fontSize: variables.fontSizeSmall,
-        textDecorationLine: 'none',
-        fontFamily: fontFamily.GTA,
-        lineHeight: 20,
-    },
-
-    sidebarListContainer: {
-        scrollbarWidth: 'none',
-        paddingBottom: 4,
-    },
-
-    sidebarListItem: {
-        justifyContent: 'center',
-        textDecorationLine: 'none',
-    },
-
-    onlyEmojisText: {
-        fontSize: variables.fontSizeOnlyEmojis,
-        lineHeight: variables.fontSizeOnlyEmojisHeight,
-    },
-
-    createMenuPositionSidebar: {
-        left: 18,
-        bottom: 100,
-    },
-
-    createMenuPositionProfile: {
-        right: 18,
-        top: 180,
-    },
-
-    createMenuPositionReportActionCompose: {
-        left: 18 + variables.sideBarWidth,
-        bottom: 75,
-    },
-
-    createMenuPositionRightSidepane: {
-        right: 18,
-        bottom: 75,
-    },
-
-    createMenuContainer: {
-        width: variables.sideBarWidth - 40,
-        paddingVertical: 12,
-    },
-
-    createMenuHeaderText: {
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeLabel,
-        color: themeColors.heading,
-    },
-
-    popoverMenuItem: {
-        flexDirection: 'row',
-        borderRadius: 0,
-        paddingHorizontal: 20,
-        paddingVertical: 12,
-        justifyContent: 'space-between',
-        width: '100%',
-    },
-
-    popoverMenuIcon: {
-        width: variables.componentSizeNormal,
-        height: variables.componentSizeNormal,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-
-    popoverMenuIconEmphasized: {
-        backgroundColor: themeColors.iconSuccessFill,
-        borderRadius: variables.componentSizeLarge / 2,
-    },
-
-    popoverMenuText: {
-        fontSize: variables.fontSizeNormal,
-        color: themeColors.heading,
-        maxWidth: 240,
-    },
-
-    menuItemTextContainer: {
-        minHeight: variables.componentSizeNormal,
-    },
-
-    chatLinkRowPressable: {
-        minWidth: 0,
-        textDecorationLine: 'none',
-        flex: 1,
-    },
-
-    sidebarLink: {
-        textDecorationLine: 'none',
-    },
-
-    sidebarLinkInner: {
-        alignItems: 'center',
-        flexDirection: 'row',
-        paddingLeft: 20,
-        paddingRight: 20,
-    },
-
-    sidebarLinkText: {
-        color: themeColors.text,
-        fontSize: variables.fontSizeNormal,
-        textDecorationLine: 'none',
-        overflow: 'hidden',
-    },
-
-    sidebarLinkHover: {
-        backgroundColor: themeColors.sidebarHover,
-    },
-
-    sidebarLinkActive: {
-        backgroundColor: themeColors.border,
-        textDecorationLine: 'none',
-    },
-
-    sidebarLinkTextUnread: {
-        fontWeight: '700',
-        color: themeColors.heading,
-    },
-
-    sidebarLinkActiveText: {
-        color: themeColors.text,
-        fontSize: variables.fontSizeNormal,
-        textDecorationLine: 'none',
-        overflow: 'hidden',
-    },
-
-    optionItemAvatarNameWrapper: {
-        minWidth: 0,
-        flex: 1,
-    },
-
-    optionDisplayName: {
-        fontFamily: fontFamily.GTA,
-        height: 20,
-        lineHeight: 20,
-        ...whiteSpace.noWrap,
-    },
-
-    optionDisplayNameCompact: {
-        minWidth: 'auto',
-        flexBasis: 'auto',
-        flexGrow: 0,
-        flexShrink: 0,
-    },
-
-    displayNameTooltipEllipsis: {
-        position: 'absolute',
-        opacity: 0,
-        right: 0,
-        bottom: 0,
-    },
-
-    optionAlternateText: {
-        height: 20,
-        lineHeight: 20,
-    },
-
-    optionAlternateTextCompact: {
-        flexShrink: 1,
-        flexGrow: 1,
-        flexBasis: 'auto',
-        ...optionAlternateTextPlatformStyles,
-    },
-
-    optionRow: {
-        height: variables.optionRowHeight,
-        paddingTop: 12,
-        paddingBottom: 12,
-    },
-
-    optionRowCompact: {
-        height: variables.optionRowHeightCompact,
-        paddingTop: 12,
-        paddingBottom: 12,
-    },
-
-    optionsListSectionHeader: {
-        height: variables.optionsListSectionHeaderHeight,
-    },
-
-    appContent: {
-        backgroundColor: themeColors.appBG,
-        overflow: 'hidden',
-    },
-
-    appContentHeader: {
-        borderBottomWidth: 1,
-        borderColor: themeColors.border,
-        height: variables.contentHeaderHeight,
-        justifyContent: 'center',
-        display: 'flex',
-        paddingRight: 20,
-    },
-
-    appContentHeaderTitle: {
-        alignItems: 'center',
-        flexDirection: 'row',
-    },
-
-    LHNToggle: {
-        alignItems: 'center',
-        height: variables.contentHeaderHeight,
-        justifyContent: 'center',
-        paddingRight: 10,
-        paddingLeft: 20,
-    },
-
-    LHNToggleIcon: {
-        height: 15,
-        width: 18,
-    },
-
-    chatContent: {
-        flex: 4,
-        justifyContent: 'flex-end',
-    },
-
-    chatContentScrollView: {
-        flexGrow: 1,
-        justifyContent: 'flex-start',
-        paddingVertical: 16,
-    },
-
-    // Chat Item
-    chatItem: {
-        display: 'flex',
-        flexDirection: 'row',
-        paddingTop: 8,
-        paddingBottom: 8,
-        paddingLeft: 20,
-        paddingRight: 20,
-    },
-
-    chatItemRightGrouped: {
-        flexGrow: 1,
-        flexShrink: 1,
-        flexBasis: 0,
-        position: 'relative',
-        marginLeft: 48,
-    },
-
-    chatItemRight: {
-        flexGrow: 1,
-        flexShrink: 1,
-        flexBasis: 0,
-        position: 'relative',
-    },
-
-    chatItemMessageHeader: {
-        alignItems: 'center',
-        display: 'flex',
-        flexDirection: 'row',
-        flexWrap: 'nowrap',
-    },
-
-    chatItemMessageHeaderSender: {
-        color: themeColors.heading,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeNormal,
-        fontWeight: fontWeightBold,
-        lineHeight: 20,
-        paddingRight: 5,
-        paddingBottom: 4,
-        ...wordBreak.breakWord,
-    },
-
-    chatItemMessageHeaderTimestamp: {
-        flexShrink: 0,
-        color: themeColors.textSupporting,
-        fontSize: variables.fontSizeSmall,
-        height: 24,
-        lineHeight: 20,
-    },
-
-    chatItemMessage: {
-        color: themeColors.text,
-        fontSize: variables.fontSizeNormal,
-        fontFamily: fontFamily.GTA,
-        lineHeight: 20,
-        marginTop: -2,
-        marginBottom: -2,
-        maxWidth: '100%',
-        ...whiteSpace.preWrap,
-        ...wordBreak.breakWord,
-    },
-
-    chatItemMessageLink: {
-        color: colors.blue,
-        fontSize: variables.fontSizeNormal,
-        fontFamily: fontFamily.GTA,
-        lineHeight: 20,
-    },
-
-    chatItemComposeWithFirstRow: {
-        minHeight: 90,
-    },
-
-    chatItemFullComposeRow: {
-        ...sizing.h100,
-    },
-
-    chatItemComposeBoxColor: {
-        borderColor: themeColors.border,
-    },
-
-    chatItemComposeBoxFocusedColor: {
-        borderColor: themeColors.borderFocus,
-    },
-
-    chatItemComposeBox: {
-        backgroundColor: themeColors.componentBG,
-        borderWidth: 1,
-        borderRadius: variables.componentBorderRadiusNormal,
-        minHeight: variables.componentSizeNormal,
-    },
-
-    chatItemFullComposeBox: {
-        ...flex.flex1,
-        ...spacing.mt4,
-        ...sizing.h100,
-    },
-
-    chatFooter: {
-        paddingLeft: 20,
-        paddingRight: 20,
-        display: 'flex',
-        backgroundColor: themeColors.appBG,
-    },
-
-    chatFooterFullCompose: {
-        flex: 1,
-        flexShrink: 1,
-        flexBasis: '100%',
-    },
-
-    textInputCompose: addOutlineWidth({
-        backgroundColor: themeColors.componentBG,
-        borderColor: themeColors.border,
-        color: themeColors.text,
-        fontFamily: fontFamily.EMOJI_TEXT_FONT,
-        fontSize: variables.fontSizeNormal,
-        borderWidth: 0,
-        borderRadius: 0,
-        height: 'auto',
-        lineHeight: 20,
-        ...overflowXHidden,
-
-        // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
-        // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
-
-        paddingHorizontal: 8,
-        paddingVertical: 0,
-        ...textInputAlignSelf.center,
-        textAlignVertical: 'center',
-    }, 0),
-
-    textInputFullCompose: {
-        alignSelf: 'stretch',
-        flex: 1,
-        maxHeight: '100%',
-        textAlignVertical: 'top',
-    },
-
-    editInputComposeSpacing: {
-        marginVertical: 6,
-    },
-
-    textInputComposeSpacing: {
-        paddingVertical: 6,
-        ...flex.flexRow,
-        flex: 1,
-    },
-
-    chatItemSubmitButton: {
-        alignSelf: 'flex-end',
-        borderRadius: 6,
-        height: 32,
-        padding: 6,
-        margin: 3,
-        justifyContent: 'center',
-    },
-
-    emojiPickerContainer: {
-        backgroundColor: themeColors.componentBG,
-    },
-
-    emojiPickerList: {
-        height: 300,
-        width: '100%',
-        ...spacing.ph4,
-    },
-    emojiPickerListLandscape: {
-        height: 240,
-    },
-
-    emojiHeaderStyle: {
-        backgroundColor: themeColors.componentBG,
-        width: '100%',
-        ...spacing.pv3,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
-        color: themeColors.heading,
-        fontSize: variables.fontSizeSmall,
-    },
-
-    emojiSkinToneTitle: {
-        backgroundColor: themeColors.componentBG,
-        width: '100%',
-        ...spacing.pv1,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
-        color: themeColors.heading,
-        fontSize: variables.fontSizeSmall,
-    },
-
-    // Emoji Picker Styles
-    emojiText: {
-        fontFamily: fontFamily.EMOJI_TEXT_FONT,
-        textAlign: 'center',
-        fontSize: variables.emojiSize,
-        ...spacing.pv0,
-        ...spacing.ph0,
-    },
-
-    emojiItem: {
-        width: '12.5%',
-        textAlign: 'center',
-        borderRadius: 8,
-    },
-
-    emojiItemHighlighted: {
-        transition: '0.2s ease',
-        backgroundColor: themeColors.buttonDefaultBG,
-    },
-
-    chatItemEmojiButton: {
-        alignSelf: 'flex-end',
-        borderRadius: 6,
-        height: 32,
-        margin: 3,
-        justifyContent: 'center',
-    },
-
-    editChatItemEmojiWrapper: {
-        marginRight: 3,
-    },
-
-    hoveredButton: {
-        backgroundColor: themeColors.buttonHoveredBG,
-    },
-
-    chatItemAttachButton: {
-        alignItems: 'center',
-        alignSelf: 'flex-end',
-        borderRightColor: themeColors.border,
-        borderRightWidth: 1,
-        height: 26,
-        marginBottom: 6,
-        marginTop: 6,
-        justifyContent: 'center',
-        width: 39,
-    },
-
-    composerSizeButton: {
-        alignItems: 'center',
-        alignSelf: 'flex-end',
-        height: 26,
-        marginBottom: 6,
-        marginTop: 6,
-        justifyContent: 'center',
-        width: 39,
-    },
-
-    chatItemAttachmentPlaceholder: {
-        backgroundColor: themeColors.sidebar,
-        borderColor: themeColors.border,
-        borderWidth: 1,
-        borderRadius: variables.componentBorderRadiusNormal,
-        height: 150,
-        textAlign: 'center',
-        verticalAlign: 'middle',
-        width: 200,
-    },
-
-    chatSwticherPillWrapper: {
-        marginTop: 5,
-        marginRight: 4,
-    },
-
-    navigationModalOverlay: {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-        transform: [{
-            translateX: -variables.sideBarWidth,
-        }],
-    },
-
-    sidebarVisible: {
-        borderRightWidth: 1,
-    },
-
-    sidebarHidden: {
-        width: 0,
-        borderRightWidth: 0,
-    },
-
-    exampleCheckImage: {
-        width: '100%',
-        height: 80,
-        borderColor: themeColors.border,
-        borderWidth: 1,
-        borderRadius: variables.componentBorderRadiusNormal,
-    },
-
-    singleAvatar: {
-        height: 24,
-        width: 24,
-        backgroundColor: themeColors.icon,
-        borderRadius: 24,
-    },
-
-    singleSubscript: {
-        height: variables.iconSizeNormal,
-        width: variables.iconSizeNormal,
-        backgroundColor: themeColors.icon,
-        borderRadius: 20,
-        zIndex: 1,
-    },
-
-    singleAvatarSmall: {
-        height: 18,
-        width: 18,
-        backgroundColor: themeColors.icon,
-        borderRadius: 18,
-    },
-
-    secondAvatar: {
-        position: 'absolute',
-        right: -18,
-        bottom: -18,
-        borderWidth: 3,
-        borderRadius: 30,
-        borderColor: 'transparent',
-    },
-
-    secondAvatarSmall: {
-        position: 'absolute',
-        right: -13,
-        bottom: -13,
-        borderWidth: 3,
-        borderRadius: 18,
-        borderColor: 'transparent',
-    },
-
-    secondAvatarSubscript: {
-        position: 'absolute',
-        right: -4,
-        bottom: -2,
-        borderWidth: 2,
-        borderRadius: 18,
-        borderColor: 'transparent',
-    },
-
-    secondAvatarSubscriptCompact: {
-        position: 'absolute',
-        bottom: -1,
-        right: -1,
-        borderWidth: 1,
-        borderRadius: 18,
-        borderColor: 'transparent',
-    },
-
-    leftSideLargeAvatar: {
-        left: 15,
-    },
-
-    rightSideLargeAvatar: {
-        right: 15,
-        zIndex: 2,
-        borderWidth: 4,
-        borderRadius: 100,
-    },
-
-    secondAvatarInline: {
-        bottom: -3,
-        right: -25,
-        borderWidth: 3,
-        borderRadius: 18,
-        borderColor: themeColors.componentBG,
-    },
-
-    avatarLarge: {
-        width: variables.avatarSizeLarge,
-        height: variables.avatarSizeLarge,
-    },
-
-    avatarNormal: {
-        height: variables.componentSizeNormal,
-        width: variables.componentSizeNormal,
-        borderRadius: variables.componentSizeNormal,
-    },
-
-    avatarSmall: {
-        height: variables.avatarSizeSmall,
-        width: variables.avatarSizeSmall,
-        borderRadius: variables.avatarSizeSmall,
-    },
-
-    avatarInnerText: {
-        color: themeColors.textReversed,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: undefined,
-        marginLeft: -3,
-        textAlign: 'center',
-    },
-
-    avatarInnerTextSmall: {
-        color: themeColors.textReversed,
-        fontSize: variables.fontSizeExtraSmall,
-        lineHeight: undefined,
-        marginLeft: -2,
-        textAlign: 'center',
-    },
-
-    avatarSpace: {
-        top: 3,
-        left: 3,
-    },
-
-    avatar: {
-        backgroundColor: themeColors.sidebar,
-        borderColor: themeColors.sidebar,
-    },
-
-    focusedAvatar: {
-        backgroundColor: themeColors.border,
-        borderColor: themeColors.border,
-    },
-
-    emptyAvatar: {
-        marginRight: variables.componentSizeNormal - 24,
-        height: variables.avatarSizeNormal,
-        width: variables.avatarSizeNormal,
-    },
-
-    emptyAvatarSmall: {
-        marginRight: variables.componentSizeNormal - 28,
-        height: variables.avatarSizeSmall,
-        width: variables.avatarSizeSmall,
-    },
-
-    modalViewContainer: {
-        alignItems: 'center',
-        flex: 1,
-    },
-
-    borderTop: {
-        borderTopWidth: 1,
-        borderColor: themeColors.border,
-    },
-
-    borderTopRounded: {
-        borderTopWidth: 1,
-        borderColor: themeColors.border,
-        borderTopLeftRadius: variables.componentBorderRadiusNormal,
-        borderTopRightRadius: variables.componentBorderRadiusNormal,
-    },
-
-    borderBottomRounded: {
-        borderBottomWidth: 1,
-        borderColor: themeColors.border,
-        borderBottomLeftRadius: variables.componentBorderRadiusNormal,
-        borderBottomRightRadius: variables.componentBorderRadiusNormal,
-    },
-
-    borderBottom: {
-        borderBottomWidth: 1,
-        borderColor: themeColors.border,
-    },
-
-    borderNone: {
-        borderWidth: 0,
-    },
-
-    borderRight: {
-        borderRightWidth: 1,
-        borderColor: themeColors.border,
-    },
-
-    borderLeft: {
-        borderLeftWidth: 1,
-        borderColor: themeColors.border,
-    },
-
-    pointerEventsNone,
-
-    pointerEventsAuto,
-
-    headerBar: {
-        overflow: 'hidden',
-        justifyContent: 'center',
-        display: 'flex',
-        paddingLeft: 20,
-        height: variables.contentHeaderHeight,
-        width: '100%',
-    },
-
-    imageViewContainer: {
-        width: '100%',
-        height: '100%',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-
-    imageModalPDF: {
-        flex: 1,
-        backgroundColor: themeColors.modalBackground,
-    },
-
-    PDFView: {
-        // `display: grid` is not supported in native platforms!
-        // It's being used on Web/Desktop only to vertically center short PDFs,
-        // while preventing the overflow of the top of long PDF files.
-        display: 'grid',
-        backgroundColor: themeColors.modalBackground,
-        width: '100%',
-        height: '100%',
-        justifyContent: 'center',
-        overflow: 'hidden',
-        overflowY: 'auto',
-        alignItems: 'center',
-    },
-
-    pdfPasswordForm: {
-        wideScreenWidth: {
-            width: 350,
+        statusIndicatorLarge: {
+            borderColor: themeColors.componentBG,
+            backgroundColor: themeColors.buttonDangerBG,
+            borderRadius: 8,
+            borderWidth: 2,
+            position: 'absolute',
+            right: 4,
+            bottom: 4,
+            height: 16,
+            width: 16,
+            zIndex: 10,
         },
-    },
 
-    modalCenterContentContainer: {
-        flex: 1,
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: themeColors.modalBackdrop,
-    },
-
-    imageModalImageCenterContainer: {
-        alignItems: 'center',
-        flex: 1,
-        justifyContent: 'center',
-        width: '100%',
-    },
-
-    defaultAttachmentView: {
-        backgroundColor: themeColors.sidebar,
-        borderRadius: variables.componentBorderRadiusNormal,
-        borderWidth: 1,
-        borderColor: themeColors.border,
-        flexDirection: 'row',
-        padding: 20,
-        alignItems: 'center',
-    },
-
-    notFoundSafeArea: {
-        flex: 1,
-        backgroundColor: themeColors.heading,
-    },
-
-    notFoundView: {
-        flex: 1,
-        alignItems: 'center',
-        paddingTop: 40,
-        paddingBottom: 40,
-        justifyContent: 'space-between',
-    },
-
-    notFoundLogo: {
-        width: 202,
-        height: 63,
-    },
-
-    notFoundContent: {
-        alignItems: 'center',
-    },
-
-    notFoundTextHeader: {
-        color: colors.blue,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
-        fontSize: 150,
-    },
-
-    notFoundTextBody: {
-        color: themeColors.componentBG,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
-        fontSize: 15,
-    },
-
-    notFoundButtonText: {
-        color: colors.blue,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
-        fontSize: 15,
-    },
-
-    blockingViewContainer: {
-        paddingBottom: variables.contentHeaderHeight,
-    },
-
-    defaultModalContainer: {
-        backgroundColor: themeColors.componentBG,
-        borderColor: colors.transparent,
-    },
-
-    reportActionContextMenuMiniButton: {
-        ...spacing.p1,
-        ...spacing.mv1,
-        ...spacing.mh1,
-        ...{borderRadius: variables.componentBorderRadiusSmall},
-    },
-
-    reportActionSystemMessageContainer: {
-        marginLeft: 42,
-    },
-
-    reportDetailsTitleContainer: {
-        ...flex.dFlex,
-        ...flex.flexColumn,
-        ...flex.alignItemsCenter,
-        ...spacing.mt4,
-        height: 170,
-    },
-
-    reportDetailsRoomInfo: {
-        ...flex.flex1,
-        ...flex.dFlex,
-        ...flex.flexColumn,
-        ...flex.alignItemsCenter,
-    },
-
-    reportSettingsVisibilityText: {
-        textTransform: 'capitalize',
-    },
-
-    reportTransactionWrapper: {
-        paddingVertical: 8,
-        display: 'flex',
-        flexDirection: 'row',
-    },
-
-    settingsPageBackground: {
-        flexDirection: 'column',
-        width: '100%',
-        flexGrow: 1,
-    },
-
-    settingsPageBody: {
-        width: '100%',
-        justifyContent: 'space-around',
-    },
-
-    settingsPageColumn: {
-        width: '100%',
-        alignItems: 'center',
-        justifyContent: 'space-around',
-    },
-
-    settingsPageContainer: {
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        width: '100%',
-    },
-
-    roomHeaderAvatar: {
-        height: variables.componentSizeLarge,
-        width: variables.componentSizeLarge,
-        borderRadius: 100,
-        borderColor: themeColors.componentBG,
-        borderWidth: 4,
-        marginLeft: -16,
-    },
-
-    screenBlur: {
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        bottom: 0,
-        left: 0,
-        backgroundColor: colors.dark,
-        opacity: 0.5,
-    },
-
-    avatarInnerTextChat: {
-        color: themeColors.textReversed,
-        fontSize: variables.fontSizeNormal,
-        left: 1,
-        textAlign: 'center',
-        fontWeight: 'normal',
-        position: 'absolute',
-    },
-
-    displayName: {
-        fontSize: variables.fontSizeLarge,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
-        color: themeColors.heading,
-    },
-
-    pageWrapper: {
-        width: '100%',
-        alignItems: 'center',
-        padding: 20,
-    },
-
-    selectCircle: {
-        width: variables.componentSizeSmall,
-        height: variables.componentSizeSmall,
-        borderColor: themeColors.border,
-        borderWidth: 1,
-        borderRadius: variables.componentSizeSmall / 2,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: themeColors.componentBG,
-        marginLeft: 8,
-    },
-
-    unreadIndicatorContainer: {
-        position: 'absolute',
-        top: -10,
-        left: 0,
-        width: '100%',
-        height: 20,
-        paddingHorizontal: 20,
-        flexDirection: 'row',
-        alignItems: 'center',
-        zIndex: 1,
-        cursor: 'default',
-    },
-
-    unreadIndicatorLine: {
-        height: 1,
-        backgroundColor: themeColors.unreadIndicator,
-        flexGrow: 1,
-        marginRight: 8,
-        opacity: 0.5,
-    },
-
-    unreadIndicatorText: {
-        color: themeColors.unreadIndicator,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeSmall,
-        fontWeight: fontWeightBold,
-        textTransform: 'capitalize',
-    },
-
-    flipUpsideDown: {
-        transform: [{rotate: '180deg'}],
-    },
-
-    navigationSceneContainer: {
-        backgroundColor: themeColors.appBG,
-    },
-
-    navigationScreenCardStyle: {
-        backgroundColor: themeColors.appBG,
-        height: '100%',
-    },
-
-    navigationSceneFullScreenWrapper: {
-        borderRadius: variables.componentBorderRadiusCard,
-        overflow: 'hidden',
-        height: '100%',
-    },
-
-    invisible: {
-        position: 'absolute',
-        opacity: 0,
-    },
-
-    containerWithSpaceBetween: {
-        justifyContent: 'space-between',
-        width: '100%',
-        flex: 1,
-    },
-
-    detailsPageSectionContainer: {
-        alignSelf: 'flex-start',
-    },
-
-    detailsPageSectionVersion: {
-        alignSelf: 'center',
-        color: themeColors.textSupporting,
-        fontSize: variables.fontSizeSmall,
-        height: 24,
-        lineHeight: 20,
-    },
-
-    switchTrack: {
-        width: 50,
-        height: 28,
-        justifyContent: 'center',
-        borderRadius: 20,
-        padding: 15,
-        backgroundColor: colors.green,
-    },
-
-    switchInactive: {
-        backgroundColor: colors.gray2,
-    },
-
-    switchThumb: {
-        width: 22,
-        height: 22,
-        borderRadius: 11,
-        position: 'absolute',
-        left: 4,
-        backgroundColor: colors.white,
-    },
-
-    radioButtonContainer: {
-        backgroundColor: themeColors.componentBG,
-        borderRadius: 10,
-        height: 20,
-        width: 20,
-        borderColor: themeColors.icon,
-        borderWidth: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-
-    checkboxContainer: {
-        backgroundColor: themeColors.componentBG,
-        borderRadius: 2,
-        height: 20,
-        width: 20,
-        borderColor: themeColors.icon,
-        borderWidth: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-
-    checkedContainer: {
-        backgroundColor: colors.blue,
-    },
-
-    iouAmountText: {
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
-        fontSize: variables.iouAmountTextSize,
-        color: themeColors.heading,
-    },
-
-    iouAmountTextInput: addOutlineWidth({
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
-        fontSize: variables.iouAmountTextSize,
-        color: themeColors.heading,
-        padding: 0,
-        lineHeight: undefined,
-    }, 0),
-
-    iouPreviewBox: {
-        backgroundColor: themeColors.componentBG,
-        borderColor: themeColors.border,
-        borderWidth: 1,
-        borderRadius: variables.componentBorderRadiusCard,
-        padding: 20,
-        marginTop: 16,
-        maxWidth: variables.sideBarWidth,
-        width: '100%',
-    },
-
-    iouPreviewBoxLoading: {
-        minHeight: 47,
-        width: '100%',
-    },
-
-    iouPreviewBoxAvatar: {
-        marginRight: -10,
-        marginBottom: -10,
-    },
-
-    iouPreviewBoxCheckmark: {
-        marginLeft: 4,
-        alignSelf: 'center',
-    },
-
-    iouDetailsContainer: {
-        flexGrow: 1,
-        paddingStart: 20,
-        paddingEnd: 20,
-    },
-
-    noScrollbars: {
-        scrollbarWidth: 'none',
-    },
-
-    codeWordWrapper: {
-        ...codeStyles.codeWordWrapper,
-    },
-
-    codeWordStyle: {
-        borderLeftWidth: 0,
-        borderRightWidth: 0,
-        borderTopLeftRadius: 0,
-        borderBottomLeftRadius: 0,
-        borderTopRightRadius: 0,
-        borderBottomRightRadius: 0,
-        paddingLeft: 0,
-        paddingRight: 0,
-        justifyContent: 'center',
-        ...codeStyles.codeWordStyle,
-    },
-
-    codeFirstWordStyle: {
-        borderLeftWidth: 1,
-        borderTopLeftRadius: 4,
-        borderBottomLeftRadius: 4,
-        paddingLeft: 5,
-    },
-
-    codeLastWordStyle: {
-        borderRightWidth: 1,
-        borderTopRightRadius: 4,
-        borderBottomRightRadius: 4,
-        paddingRight: 5,
-    },
-
-    fullScreenLoading: {
-        backgroundColor: themeColors.componentBG,
-        opacity: 0.8,
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 10,
-    },
-
-    navigatorFullScreenLoading: {
-        backgroundColor: colors.gray1,
-        opacity: 1,
-    },
-
-    reimbursementAccountFullScreenLoading: {
-        backgroundColor: themeColors.componentBG,
-        opacity: 0.8,
-        justifyContent: 'flex-start',
-        alignItems: 'center',
-        zIndex: 10,
-    },
-
-    hiddenElementOutsideOfWindow: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        opacity: 0,
-    },
-
-    growlNotificationWrapper: {
-        zIndex: 2,
-    },
-
-    growlNotificationContainer: {
-        flex: 1,
-        justifyContent: 'flex-start',
-        position: 'absolute',
-        width: '100%',
-        top: 20,
-        ...spacing.pl5,
-        ...spacing.pr5,
-    },
-
-    growlNotificationDesktopContainer: {
-        maxWidth: variables.sideBarWidth,
-        right: 0,
-        position: 'fixed',
-    },
-
-    growlNotificationTranslateY: y => ({
-        transform: [{translateY: y}],
-    }),
-
-    makeSlideInTranslation: (translationType, fromValue) => ({
-        from: {
-            [translationType]: fromValue,
+        statusIndicatorOnline: {
+            backgroundColor: themeColors.online,
         },
-        to: {
-            [translationType]: 0,
+
+        avatarWithIndicator: {
+            errorDot: {
+                borderColor: themeColors.sidebar,
+                borderRadius: 6,
+                borderWidth: 2,
+                position: 'absolute',
+                right: -1,
+                bottom: -1,
+                height: 12,
+                width: 12,
+                zIndex: 10,
+            },
         },
-    }),
 
-    growlNotificationBox: {
-        backgroundColor: colors.dark,
-        borderRadius: variables.componentBorderRadiusNormal,
-        alignItems: 'center',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        shadowColor: '#000',
-        ...spacing.p5,
-    },
-
-    growlNotificationText: {
-        fontSize: variables.fontSizeNormal,
-        fontFamily: fontFamily.GTA,
-        width: '90%',
-        lineHeight: variables.fontSizeNormalHeight,
-        color: themeColors.textReversed,
-        ...spacing.ml4,
-    },
-
-    blockquote: {
-        borderLeftColor: themeColors.border,
-        borderLeftWidth: 4,
-        paddingLeft: 12,
-        marginVertical: 4,
-    },
-
-    cursorDisabled: {
-        cursor: 'not-allowed',
-    },
-
-    noSelect: {
-        boxShadow: 'none',
-        outline: 'none',
-    },
-
-    cursorPointer: {
-        cursor: 'pointer',
-    },
-
-    fullscreenCard: {
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        width: '100%',
-        height: '100%',
-    },
-
-    fullscreenCardWeb: {
-        left: 'auto',
-        right: '-24%',
-        top: '-18%',
-        height: '120%',
-    },
-
-    fullscreenCardWebCentered: {
-        left: '0',
-        right: '0',
-        top: '0',
-        height: '60%',
-    },
-
-    fullscreenCardMobile: {
-        left: '-20%',
-        top: '-30%',
-        width: '150%',
-    },
-
-    fullscreenCardMediumScreen: {
-        left: '-15%',
-        top: '-30%',
-        width: '145%',
-    },
-
-    smallEditIcon: {
-        alignItems: 'center',
-        backgroundColor: themeColors.icon,
-        borderColor: themeColors.textReversed,
-        borderRadius: 14,
-        borderWidth: 3,
-        color: themeColors.textReversed,
-        height: 28,
-        width: 28,
-        justifyContent: 'center',
-    },
-
-    smallAvatarEditIcon: {
-        position: 'absolute',
-        right: -4,
-        bottom: -4,
-    },
-
-    workspaceCard: {
-        width: '100%',
-        height: 400,
-        borderRadius: variables.componentBorderRadiusCard,
-        overflow: 'hidden',
-        backgroundColor: themeColors.heroCard,
-    },
-
-    workspaceCardMobile: {
-        height: 475,
-    },
-
-    workspaceCardMediumScreen: {
-        height: 540,
-    },
-
-    workspaceCardMainText: {
-        fontSize: variables.fontSizeXXXLarge,
-        fontWeight: 'bold',
-        lineHeight: variables.fontSizeXXXLarge,
-    },
-
-    workspaceCardContent: {
-        zIndex: 1,
-        padding: 50,
-    },
-
-    workspaceCardContentMediumScreen: {
-        padding: 25,
-    },
-
-    workspaceCardCTA: {
-        width: 250,
-    },
-
-    workspaceInviteWelcome: {
-        minHeight: 115,
-    },
-
-    peopleRow: {
-        width: '100%',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        ...spacing.pt2,
-    },
-
-    peopleRowBorderBottom: {
-        borderColor: themeColors.border,
-        borderBottomWidth: 1,
-        ...spacing.pb2,
-    },
-
-    peopleRowCell: {
-        justifyContent: 'center',
-    },
-
-    peopleBadge: {
-        backgroundColor: themeColors.icon,
-        ...spacing.ph3,
-    },
-
-    peopleBadgeText: {
-        color: themeColors.textReversed,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
-        ...whiteSpace.noWrap,
-    },
-
-    offlineFeedback: {
-        deleted: {
-            textDecorationLine: 'line-through',
-            textDecorationStyle: 'solid',
+        floatingActionButton: {
+            backgroundColor: themeColors.buttonSuccessBG,
+            position: 'absolute',
+            height: variables.componentSizeLarge,
+            width: variables.componentSizeLarge,
+            right: 20,
+            bottom: 34,
+            borderRadius: 999,
+            alignItems: 'center',
+            justifyContent: 'center',
         },
-        pending: {
+
+        sidebarFooterUsername: {
+            color: themeColors.heading,
+            fontSize: variables.fontSizeLabel,
+            fontWeight: '700',
+            width: 200,
+            textOverflow: 'ellipsis',
+            overflow: 'hidden',
+            ...whiteSpace.noWrap,
+        },
+
+        sidebarFooterLink: {
+            color: themeColors.textSupporting,
+            fontSize: variables.fontSizeSmall,
+            textDecorationLine: 'none',
+            fontFamily: fontFamily.GTA,
+            lineHeight: 20,
+        },
+
+        sidebarListContainer: {
+            scrollbarWidth: 'none',
+            paddingBottom: 4,
+        },
+
+        sidebarListItem: {
+            justifyContent: 'center',
+            textDecorationLine: 'none',
+        },
+
+        onlyEmojisText: {
+            fontSize: variables.fontSizeOnlyEmojis,
+            lineHeight: variables.fontSizeOnlyEmojisHeight,
+        },
+
+        createMenuPositionSidebar: {
+            left: 18,
+            bottom: 100,
+        },
+
+        createMenuPositionProfile: {
+            right: 18,
+            top: 180,
+        },
+
+        createMenuPositionReportActionCompose: {
+            left: 18 + variables.sideBarWidth,
+            bottom: 75,
+        },
+
+        createMenuPositionRightSidepane: {
+            right: 18,
+            bottom: 75,
+        },
+
+        createMenuContainer: {
+            width: variables.sideBarWidth - 40,
+            paddingVertical: 12,
+        },
+
+        createMenuHeaderText: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeLabel,
+            color: themeColors.heading,
+        },
+
+        popoverMenuItem: {
+            flexDirection: 'row',
+            borderRadius: 0,
+            paddingHorizontal: 20,
+            paddingVertical: 12,
+            justifyContent: 'space-between',
+            width: '100%',
+        },
+
+        popoverMenuIcon: {
+            width: variables.componentSizeNormal,
+            height: variables.componentSizeNormal,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+
+        popoverMenuIconEmphasized: {
+            backgroundColor: themeColors.iconSuccessFill,
+            borderRadius: variables.componentSizeLarge / 2,
+        },
+
+        popoverMenuText: {
+            fontSize: variables.fontSizeNormal,
+            color: themeColors.heading,
+            maxWidth: 240,
+        },
+
+        menuItemTextContainer: {
+            minHeight: variables.componentSizeNormal,
+        },
+
+        chatLinkRowPressable: {
+            minWidth: 0,
+            textDecorationLine: 'none',
+            flex: 1,
+        },
+
+        sidebarLink: {
+            textDecorationLine: 'none',
+        },
+
+        sidebarLinkInner: {
+            alignItems: 'center',
+            flexDirection: 'row',
+            paddingLeft: 20,
+            paddingRight: 20,
+        },
+
+        sidebarLinkText: {
+            color: themeColors.text,
+            fontSize: variables.fontSizeNormal,
+            textDecorationLine: 'none',
+            overflow: 'hidden',
+        },
+
+        sidebarLinkHover: {
+            backgroundColor: themeColors.sidebarHover,
+        },
+
+        sidebarLinkActive: {
+            backgroundColor: themeColors.border,
+            textDecorationLine: 'none',
+        },
+
+        sidebarLinkTextUnread: {
+            fontWeight: '700',
+            color: themeColors.heading,
+        },
+
+        sidebarLinkActiveText: {
+            color: themeColors.text,
+            fontSize: variables.fontSizeNormal,
+            textDecorationLine: 'none',
+            overflow: 'hidden',
+        },
+
+        optionItemAvatarNameWrapper: {
+            minWidth: 0,
+            flex: 1,
+        },
+
+        optionDisplayName: {
+            fontFamily: fontFamily.GTA,
+            height: 20,
+            lineHeight: 20,
+            ...whiteSpace.noWrap,
+        },
+
+        optionDisplayNameCompact: {
+            minWidth: 'auto',
+            flexBasis: 'auto',
+            flexGrow: 0,
+            flexShrink: 0,
+        },
+
+        displayNameTooltipEllipsis: {
+            position: 'absolute',
+            opacity: 0,
+            right: 0,
+            bottom: 0,
+        },
+
+        optionAlternateText: {
+            height: 20,
+            lineHeight: 20,
+        },
+
+        optionAlternateTextCompact: {
+            flexShrink: 1,
+            flexGrow: 1,
+            flexBasis: 'auto',
+            ...optionAlternateTextPlatformStyles,
+        },
+
+        optionRow: {
+            height: variables.optionRowHeight,
+            paddingTop: 12,
+            paddingBottom: 12,
+        },
+
+        optionRowCompact: {
+            height: variables.optionRowHeightCompact,
+            paddingTop: 12,
+            paddingBottom: 12,
+        },
+
+        optionsListSectionHeader: {
+            height: variables.optionsListSectionHeaderHeight,
+        },
+
+        appContent: {
+            backgroundColor: themeColors.appBG,
+            overflow: 'hidden',
+        },
+
+        appContentHeader: {
+            borderBottomWidth: 1,
+            borderColor: themeColors.border,
+            height: variables.contentHeaderHeight,
+            justifyContent: 'center',
+            display: 'flex',
+            paddingRight: 20,
+        },
+
+        appContentHeaderTitle: {
+            alignItems: 'center',
+            flexDirection: 'row',
+        },
+
+        LHNToggle: {
+            alignItems: 'center',
+            height: variables.contentHeaderHeight,
+            justifyContent: 'center',
+            paddingRight: 10,
+            paddingLeft: 20,
+        },
+
+        LHNToggleIcon: {
+            height: 15,
+            width: 18,
+        },
+
+        chatContent: {
+            flex: 4,
+            justifyContent: 'flex-end',
+        },
+
+        chatContentScrollView: {
+            flexGrow: 1,
+            justifyContent: 'flex-start',
+            paddingVertical: 16,
+        },
+
+        // Chat Item
+        chatItem: {
+            display: 'flex',
+            flexDirection: 'row',
+            paddingTop: 8,
+            paddingBottom: 8,
+            paddingLeft: 20,
+            paddingRight: 20,
+        },
+
+        chatItemRightGrouped: {
+            flexGrow: 1,
+            flexShrink: 1,
+            flexBasis: 0,
+            position: 'relative',
+            marginLeft: 48,
+        },
+
+        chatItemRight: {
+            flexGrow: 1,
+            flexShrink: 1,
+            flexBasis: 0,
+            position: 'relative',
+        },
+
+        chatItemMessageHeader: {
+            alignItems: 'center',
+            display: 'flex',
+            flexDirection: 'row',
+            flexWrap: 'nowrap',
+        },
+
+        chatItemMessageHeaderSender: {
+            color: themeColors.heading,
+            fontFamily: fontFamily.GTA_BOLD,
+            fontSize: variables.fontSizeNormal,
+            fontWeight: fontWeightBold,
+            lineHeight: 20,
+            paddingRight: 5,
+            paddingBottom: 4,
+            ...wordBreak.breakWord,
+        },
+
+        chatItemMessageHeaderTimestamp: {
+            flexShrink: 0,
+            color: themeColors.textSupporting,
+            fontSize: variables.fontSizeSmall,
+            height: 24,
+            lineHeight: 20,
+        },
+
+        chatItemMessage: {
+            color: themeColors.text,
+            fontSize: variables.fontSizeNormal,
+            fontFamily: fontFamily.GTA,
+            lineHeight: 20,
+            marginTop: -2,
+            marginBottom: -2,
+            maxWidth: '100%',
+            ...whiteSpace.preWrap,
+            ...wordBreak.breakWord,
+        },
+
+        chatItemMessageLink: {
+            color: colors.blue,
+            fontSize: variables.fontSizeNormal,
+            fontFamily: fontFamily.GTA,
+            lineHeight: 20,
+        },
+
+        chatItemComposeWithFirstRow: {
+            minHeight: 90,
+        },
+
+        chatItemFullComposeRow: {
+            ...sizing.h100,
+        },
+
+        chatItemComposeBoxColor: {
+            borderColor: themeColors.border,
+        },
+
+        chatItemComposeBoxFocusedColor: {
+            borderColor: themeColors.borderFocus,
+        },
+
+        chatItemComposeBox: {
+            backgroundColor: themeColors.componentBG,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            minHeight: variables.componentSizeNormal,
+        },
+
+        chatItemFullComposeBox: {
+            ...flex.flex1,
+            ...spacing.mt4,
+            ...sizing.h100,
+        },
+
+        chatFooter: {
+            paddingLeft: 20,
+            paddingRight: 20,
+            display: 'flex',
+            backgroundColor: themeColors.appBG,
+        },
+
+        chatFooterFullCompose: {
+            flex: 1,
+            flexShrink: 1,
+            flexBasis: '100%',
+        },
+
+        textInputCompose: addOutlineWidth({
+            backgroundColor: themeColors.componentBG,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            fontFamily: fontFamily.EMOJI_TEXT_FONT,
+            fontSize: variables.fontSizeNormal,
+            borderWidth: 0,
+            borderRadius: 0,
+            height: 'auto',
+            lineHeight: 20,
+            ...overflowXHidden,
+
+            // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
+            // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
+
+            paddingHorizontal: 8,
+            paddingVertical: 0,
+            ...textInputAlignSelf.center,
+            textAlignVertical: 'center',
+        }, 0),
+
+        textInputFullCompose: {
+            alignSelf: 'stretch',
+            flex: 1,
+            maxHeight: '100%',
+            textAlignVertical: 'top',
+        },
+
+        editInputComposeSpacing: {
+            marginVertical: 6,
+        },
+
+        textInputComposeSpacing: {
+            paddingVertical: 6,
+            ...flex.flexRow,
+            flex: 1,
+        },
+
+        chatItemSubmitButton: {
+            alignSelf: 'flex-end',
+            borderRadius: 6,
+            height: 32,
+            padding: 6,
+            margin: 3,
+            justifyContent: 'center',
+        },
+
+        emojiPickerContainer: {
+            backgroundColor: themeColors.componentBG,
+        },
+
+        emojiPickerList: {
+            height: 300,
+            width: '100%',
+            ...spacing.ph4,
+        },
+        emojiPickerListLandscape: {
+            height: 240,
+        },
+
+        emojiHeaderStyle: {
+            backgroundColor: themeColors.componentBG,
+            width: '100%',
+            ...spacing.pv3,
+            fontFamily: fontFamily.GTA_BOLD,
+            fontWeight: fontWeightBold,
+            color: themeColors.heading,
+            fontSize: variables.fontSizeSmall,
+        },
+
+        emojiSkinToneTitle: {
+            backgroundColor: themeColors.componentBG,
+            width: '100%',
+            ...spacing.pv1,
+            fontFamily: fontFamily.GTA_BOLD,
+            fontWeight: fontWeightBold,
+            color: themeColors.heading,
+            fontSize: variables.fontSizeSmall,
+        },
+
+        // Emoji Picker Styles
+        emojiText: {
+            fontFamily: fontFamily.EMOJI_TEXT_FONT,
+            textAlign: 'center',
+            fontSize: variables.emojiSize,
+            ...spacing.pv0,
+            ...spacing.ph0,
+        },
+
+        emojiItem: {
+            width: '12.5%',
+            textAlign: 'center',
+            borderRadius: 8,
+        },
+
+        emojiItemHighlighted: {
+            transition: '0.2s ease',
+            backgroundColor: themeColors.buttonDefaultBG,
+        },
+
+        chatItemEmojiButton: {
+            alignSelf: 'flex-end',
+            borderRadius: 6,
+            height: 32,
+            margin: 3,
+            justifyContent: 'center',
+        },
+
+        editChatItemEmojiWrapper: {
+            marginRight: 3,
+        },
+
+        hoveredButton: {
+            backgroundColor: themeColors.buttonHoveredBG,
+        },
+
+        chatItemAttachButton: {
+            alignItems: 'center',
+            alignSelf: 'flex-end',
+            borderRightColor: themeColors.border,
+            borderRightWidth: 1,
+            height: 26,
+            marginBottom: 6,
+            marginTop: 6,
+            justifyContent: 'center',
+            width: 39,
+        },
+
+        composerSizeButton: {
+            alignItems: 'center',
+            alignSelf: 'flex-end',
+            height: 26,
+            marginBottom: 6,
+            marginTop: 6,
+            justifyContent: 'center',
+            width: 39,
+        },
+
+        chatItemAttachmentPlaceholder: {
+            backgroundColor: themeColors.sidebar,
+            borderColor: themeColors.border,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            height: 150,
+            textAlign: 'center',
+            verticalAlign: 'middle',
+            width: 200,
+        },
+
+        chatSwticherPillWrapper: {
+            marginTop: 5,
+            marginRight: 4,
+        },
+
+        navigationModalOverlay: {
+            position: 'absolute',
+            width: '100%',
+            height: '100%',
+            transform: [{
+                translateX: -variables.sideBarWidth,
+            }],
+        },
+
+        sidebarVisible: {
+            borderRightWidth: 1,
+        },
+
+        sidebarHidden: {
+            width: 0,
+            borderRightWidth: 0,
+        },
+
+        exampleCheckImage: {
+            width: '100%',
+            height: 80,
+            borderColor: themeColors.border,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
+
+        singleAvatar: {
+            height: 24,
+            width: 24,
+            backgroundColor: themeColors.icon,
+            borderRadius: 24,
+        },
+
+        singleSubscript: {
+            height: variables.iconSizeNormal,
+            width: variables.iconSizeNormal,
+            backgroundColor: themeColors.icon,
+            borderRadius: 20,
+            zIndex: 1,
+        },
+
+        singleAvatarSmall: {
+            height: 18,
+            width: 18,
+            backgroundColor: themeColors.icon,
+            borderRadius: 18,
+        },
+
+        secondAvatar: {
+            position: 'absolute',
+            right: -18,
+            bottom: -18,
+            borderWidth: 3,
+            borderRadius: 30,
+            borderColor: 'transparent',
+        },
+
+        secondAvatarSmall: {
+            position: 'absolute',
+            right: -13,
+            bottom: -13,
+            borderWidth: 3,
+            borderRadius: 18,
+            borderColor: 'transparent',
+        },
+
+        secondAvatarSubscript: {
+            position: 'absolute',
+            right: -4,
+            bottom: -2,
+            borderWidth: 2,
+            borderRadius: 18,
+            borderColor: 'transparent',
+        },
+
+        secondAvatarSubscriptCompact: {
+            position: 'absolute',
+            bottom: -1,
+            right: -1,
+            borderWidth: 1,
+            borderRadius: 18,
+            borderColor: 'transparent',
+        },
+
+        leftSideLargeAvatar: {
+            left: 15,
+        },
+
+        rightSideLargeAvatar: {
+            right: 15,
+            zIndex: 2,
+            borderWidth: 4,
+            borderRadius: 100,
+        },
+
+        secondAvatarInline: {
+            bottom: -3,
+            right: -25,
+            borderWidth: 3,
+            borderRadius: 18,
+            borderColor: themeColors.componentBG,
+        },
+
+        avatarLarge: {
+            width: variables.avatarSizeLarge,
+            height: variables.avatarSizeLarge,
+        },
+
+        avatarNormal: {
+            height: variables.componentSizeNormal,
+            width: variables.componentSizeNormal,
+            borderRadius: variables.componentSizeNormal,
+        },
+
+        avatarSmall: {
+            height: variables.avatarSizeSmall,
+            width: variables.avatarSizeSmall,
+            borderRadius: variables.avatarSizeSmall,
+        },
+
+        avatarInnerText: {
+            color: themeColors.textReversed,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: undefined,
+            marginLeft: -3,
+            textAlign: 'center',
+        },
+
+        avatarInnerTextSmall: {
+            color: themeColors.textReversed,
+            fontSize: variables.fontSizeExtraSmall,
+            lineHeight: undefined,
+            marginLeft: -2,
+            textAlign: 'center',
+        },
+
+        avatarSpace: {
+            top: 3,
+            left: 3,
+        },
+
+        avatar: {
+            backgroundColor: themeColors.sidebar,
+            borderColor: themeColors.sidebar,
+        },
+
+        focusedAvatar: {
+            backgroundColor: themeColors.border,
+            borderColor: themeColors.border,
+        },
+
+        emptyAvatar: {
+            marginRight: variables.componentSizeNormal - 24,
+            height: variables.avatarSizeNormal,
+            width: variables.avatarSizeNormal,
+        },
+
+        emptyAvatarSmall: {
+            marginRight: variables.componentSizeNormal - 28,
+            height: variables.avatarSizeSmall,
+            width: variables.avatarSizeSmall,
+        },
+
+        modalViewContainer: {
+            alignItems: 'center',
+            flex: 1,
+        },
+
+        borderTop: {
+            borderTopWidth: 1,
+            borderColor: themeColors.border,
+        },
+
+        borderTopRounded: {
+            borderTopWidth: 1,
+            borderColor: themeColors.border,
+            borderTopLeftRadius: variables.componentBorderRadiusNormal,
+            borderTopRightRadius: variables.componentBorderRadiusNormal,
+        },
+
+        borderBottomRounded: {
+            borderBottomWidth: 1,
+            borderColor: themeColors.border,
+            borderBottomLeftRadius: variables.componentBorderRadiusNormal,
+            borderBottomRightRadius: variables.componentBorderRadiusNormal,
+        },
+
+        borderBottom: {
+            borderBottomWidth: 1,
+            borderColor: themeColors.border,
+        },
+
+        borderNone: {
+            borderWidth: 0,
+        },
+
+        borderRight: {
+            borderRightWidth: 1,
+            borderColor: themeColors.border,
+        },
+
+        borderLeft: {
+            borderLeftWidth: 1,
+            borderColor: themeColors.border,
+        },
+
+        pointerEventsNone,
+
+        pointerEventsAuto,
+
+        headerBar: {
+            overflow: 'hidden',
+            justifyContent: 'center',
+            display: 'flex',
+            paddingLeft: 20,
+            height: variables.contentHeaderHeight,
+            width: '100%',
+        },
+
+        imageViewContainer: {
+            width: '100%',
+            height: '100%',
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        imageModalPDF: {
+            flex: 1,
+            backgroundColor: themeColors.modalBackground,
+        },
+
+        PDFView: {
+            // `display: grid` is not supported in native platforms!
+            // It's being used on Web/Desktop only to vertically center short PDFs,
+            // while preventing the overflow of the top of long PDF files.
+            display: 'grid',
+            backgroundColor: themeColors.modalBackground,
+            width: '100%',
+            height: '100%',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            overflowY: 'auto',
+            alignItems: 'center',
+        },
+
+        pdfPasswordForm: {
+            wideScreenWidth: {
+                width: 350,
+            },
+        },
+
+        modalCenterContentContainer: {
+            flex: 1,
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: themeColors.modalBackdrop,
+        },
+
+        imageModalImageCenterContainer: {
+            alignItems: 'center',
+            flex: 1,
+            justifyContent: 'center',
+            width: '100%',
+        },
+
+        defaultAttachmentView: {
+            backgroundColor: themeColors.sidebar,
+            borderRadius: variables.componentBorderRadiusNormal,
+            borderWidth: 1,
+            borderColor: themeColors.border,
+            flexDirection: 'row',
+            padding: 20,
+            alignItems: 'center',
+        },
+
+        notFoundSafeArea: {
+            flex: 1,
+            backgroundColor: themeColors.heading,
+        },
+
+        notFoundView: {
+            flex: 1,
+            alignItems: 'center',
+            paddingTop: 40,
+            paddingBottom: 40,
+            justifyContent: 'space-between',
+        },
+
+        notFoundLogo: {
+            width: 202,
+            height: 63,
+        },
+
+        notFoundContent: {
+            alignItems: 'center',
+        },
+
+        notFoundTextHeader: {
+            color: colors.blue,
+            fontFamily: fontFamily.GTA_BOLD,
+            fontWeight: fontWeightBold,
+            fontSize: 150,
+        },
+
+        notFoundTextBody: {
+            color: themeColors.componentBG,
+            fontFamily: fontFamily.GTA_BOLD,
+            fontWeight: fontWeightBold,
+            fontSize: 15,
+        },
+
+        notFoundButtonText: {
+            color: colors.blue,
+            fontFamily: fontFamily.GTA_BOLD,
+            fontWeight: fontWeightBold,
+            fontSize: 15,
+        },
+
+        blockingViewContainer: {
+            paddingBottom: variables.contentHeaderHeight,
+        },
+
+        defaultModalContainer: {
+            backgroundColor: themeColors.componentBG,
+            borderColor: colors.transparent,
+        },
+
+        reportActionContextMenuMiniButton: {
+            ...spacing.p1,
+            ...spacing.mv1,
+            ...spacing.mh1,
+            ...{borderRadius: variables.componentBorderRadiusSmall},
+        },
+
+        reportActionSystemMessageContainer: {
+            marginLeft: 42,
+        },
+
+        reportDetailsTitleContainer: {
+            ...flex.dFlex,
+            ...flex.flexColumn,
+            ...flex.alignItemsCenter,
+            ...spacing.mt4,
+            height: 170,
+        },
+
+        reportDetailsRoomInfo: {
+            ...flex.flex1,
+            ...flex.dFlex,
+            ...flex.flexColumn,
+            ...flex.alignItemsCenter,
+        },
+
+        reportSettingsVisibilityText: {
+            textTransform: 'capitalize',
+        },
+
+        reportTransactionWrapper: {
+            paddingVertical: 8,
+            display: 'flex',
+            flexDirection: 'row',
+        },
+
+        settingsPageBackground: {
+            flexDirection: 'column',
+            width: '100%',
+            flexGrow: 1,
+        },
+
+        settingsPageBody: {
+            width: '100%',
+            justifyContent: 'space-around',
+        },
+
+        settingsPageColumn: {
+            width: '100%',
+            alignItems: 'center',
+            justifyContent: 'space-around',
+        },
+
+        settingsPageContainer: {
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            width: '100%',
+        },
+
+        roomHeaderAvatar: {
+            height: variables.componentSizeLarge,
+            width: variables.componentSizeLarge,
+            borderRadius: 100,
+            borderColor: themeColors.componentBG,
+            borderWidth: 4,
+            marginLeft: -16,
+        },
+
+        screenBlur: {
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            backgroundColor: colors.dark,
             opacity: 0.5,
         },
-        error: {
+
+        avatarInnerTextChat: {
+            color: themeColors.textReversed,
+            fontSize: variables.fontSizeNormal,
+            left: 1,
+            textAlign: 'center',
+            fontWeight: 'normal',
+            position: 'absolute',
+        },
+
+        displayName: {
+            fontSize: variables.fontSizeLarge,
+            fontFamily: fontFamily.GTA_BOLD,
+            fontWeight: fontWeightBold,
+            color: themeColors.heading,
+        },
+
+        pageWrapper: {
+            width: '100%',
+            alignItems: 'center',
+            padding: 20,
+        },
+
+        selectCircle: {
+            width: variables.componentSizeSmall,
+            height: variables.componentSizeSmall,
+            borderColor: themeColors.border,
+            borderWidth: 1,
+            borderRadius: variables.componentSizeSmall / 2,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: themeColors.componentBG,
+            marginLeft: 8,
+        },
+
+        unreadIndicatorContainer: {
+            position: 'absolute',
+            top: -10,
+            left: 0,
+            width: '100%',
+            height: 20,
+            paddingHorizontal: 20,
+            flexDirection: 'row',
+            alignItems: 'center',
+            zIndex: 1,
+            cursor: 'default',
+        },
+
+        unreadIndicatorLine: {
+            height: 1,
+            backgroundColor: themeColors.unreadIndicator,
+            flexGrow: 1,
+            marginRight: 8,
+            opacity: 0.5,
+        },
+
+        unreadIndicatorText: {
+            color: themeColors.unreadIndicator,
+            fontFamily: fontFamily.GTA_BOLD,
+            fontSize: variables.fontSizeSmall,
+            fontWeight: fontWeightBold,
+            textTransform: 'capitalize',
+        },
+
+        flipUpsideDown: {
+            transform: [{rotate: '180deg'}],
+        },
+
+        navigationSceneContainer: {
+            backgroundColor: themeColors.appBG,
+        },
+
+        navigationScreenCardStyle: {
+            backgroundColor: themeColors.appBG,
+            height: '100%',
+        },
+
+        navigationSceneFullScreenWrapper: {
+            borderRadius: variables.componentBorderRadiusCard,
+            overflow: 'hidden',
+            height: '100%',
+        },
+
+        invisible: {
+            position: 'absolute',
+            opacity: 0,
+        },
+
+        containerWithSpaceBetween: {
+            justifyContent: 'space-between',
+            width: '100%',
+            flex: 1,
+        },
+
+        detailsPageSectionContainer: {
+            alignSelf: 'flex-start',
+        },
+
+        detailsPageSectionVersion: {
+            alignSelf: 'center',
+            color: themeColors.textSupporting,
+            fontSize: variables.fontSizeSmall,
+            height: 24,
+            lineHeight: 20,
+        },
+
+        switchTrack: {
+            width: 50,
+            height: 28,
+            justifyContent: 'center',
+            borderRadius: 20,
+            padding: 15,
+            backgroundColor: colors.green,
+        },
+
+        switchInactive: {
+            backgroundColor: colors.gray2,
+        },
+
+        switchThumb: {
+            width: 22,
+            height: 22,
+            borderRadius: 11,
+            position: 'absolute',
+            left: 4,
+            backgroundColor: colors.white,
+        },
+
+        radioButtonContainer: {
+            backgroundColor: themeColors.componentBG,
+            borderRadius: 10,
+            height: 20,
+            width: 20,
+            borderColor: themeColors.icon,
+            borderWidth: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+
+        checkboxContainer: {
+            backgroundColor: themeColors.componentBG,
+            borderRadius: 2,
+            height: 20,
+            width: 20,
+            borderColor: themeColors.icon,
+            borderWidth: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+
+        checkedContainer: {
+            backgroundColor: colors.blue,
+        },
+
+        iouAmountText: {
+            fontFamily: fontFamily.GTA_BOLD,
+            fontWeight: fontWeightBold,
+            fontSize: variables.iouAmountTextSize,
+            color: themeColors.heading,
+        },
+
+        iouAmountTextInput: addOutlineWidth({
+            fontFamily: fontFamily.GTA_BOLD,
+            fontWeight: fontWeightBold,
+            fontSize: variables.iouAmountTextSize,
+            color: themeColors.heading,
+            padding: 0,
+            lineHeight: undefined,
+        }, 0),
+
+        iouPreviewBox: {
+            backgroundColor: themeColors.componentBG,
+            borderColor: themeColors.border,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusCard,
+            padding: 20,
+            marginTop: 16,
+            maxWidth: variables.sideBarWidth,
+            width: '100%',
+        },
+
+        iouPreviewBoxLoading: {
+            minHeight: 47,
+            width: '100%',
+        },
+
+        iouPreviewBoxAvatar: {
+            marginRight: -10,
+            marginBottom: -10,
+        },
+
+        iouPreviewBoxCheckmark: {
+            marginLeft: 4,
+            alignSelf: 'center',
+        },
+
+        iouDetailsContainer: {
+            flexGrow: 1,
+            paddingStart: 20,
+            paddingEnd: 20,
+        },
+
+        noScrollbars: {
+            scrollbarWidth: 'none',
+        },
+
+        codeWordWrapper: {
+            ...codeStyles.codeWordWrapper,
+        },
+
+        codeWordStyle: {
+            borderLeftWidth: 0,
+            borderRightWidth: 0,
+            borderTopLeftRadius: 0,
+            borderBottomLeftRadius: 0,
+            borderTopRightRadius: 0,
+            borderBottomRightRadius: 0,
+            paddingLeft: 0,
+            paddingRight: 0,
+            justifyContent: 'center',
+            ...codeStyles.codeWordStyle,
+        },
+
+        codeFirstWordStyle: {
+            borderLeftWidth: 1,
+            borderTopLeftRadius: 4,
+            borderBottomLeftRadius: 4,
+            paddingLeft: 5,
+        },
+
+        codeLastWordStyle: {
+            borderRightWidth: 1,
+            borderTopRightRadius: 4,
+            borderBottomRightRadius: 4,
+            paddingRight: 5,
+        },
+
+        fullScreenLoading: {
+            backgroundColor: themeColors.componentBG,
+            opacity: 0.8,
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 10,
+        },
+
+        navigatorFullScreenLoading: {
+            backgroundColor: colors.gray1,
+            opacity: 1,
+        },
+
+        reimbursementAccountFullScreenLoading: {
+            backgroundColor: themeColors.componentBG,
+            opacity: 0.8,
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+            zIndex: 10,
+        },
+
+        hiddenElementOutsideOfWindow: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            opacity: 0,
+        },
+
+        growlNotificationWrapper: {
+            zIndex: 2,
+        },
+
+        growlNotificationContainer: {
+            flex: 1,
+            justifyContent: 'flex-start',
+            position: 'absolute',
+            width: '100%',
+            top: 20,
+            ...spacing.pl5,
+            ...spacing.pr5,
+        },
+
+        growlNotificationDesktopContainer: {
+            maxWidth: variables.sideBarWidth,
+            right: 0,
+            position: 'fixed',
+        },
+
+        growlNotificationTranslateY: y => ({
+            transform: [{translateY: y}],
+        }),
+
+        makeSlideInTranslation: (translationType, fromValue) => ({
+            from: {
+                [translationType]: fromValue,
+            },
+            to: {
+                [translationType]: 0,
+            },
+        }),
+
+        growlNotificationBox: {
+            backgroundColor: colors.dark,
+            borderRadius: variables.componentBorderRadiusNormal,
+            alignItems: 'center',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            shadowColor: '#000',
+            ...spacing.p5,
+        },
+
+        growlNotificationText: {
+            fontSize: variables.fontSizeNormal,
+            fontFamily: fontFamily.GTA,
+            width: '90%',
+            lineHeight: variables.fontSizeNormalHeight,
+            color: themeColors.textReversed,
+            ...spacing.ml4,
+        },
+
+        blockquote: {
+            borderLeftColor: themeColors.border,
+            borderLeftWidth: 4,
+            paddingLeft: 12,
+            marginVertical: 4,
+        },
+
+        cursorDisabled: {
+            cursor: 'not-allowed',
+        },
+
+        noSelect: {
+            boxShadow: 'none',
+            outline: 'none',
+        },
+
+        cursorPointer: {
+            cursor: 'pointer',
+        },
+
+        fullscreenCard: {
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            width: '100%',
+            height: '100%',
+        },
+
+        fullscreenCardWeb: {
+            left: 'auto',
+            right: '-24%',
+            top: '-18%',
+            height: '120%',
+        },
+
+        fullscreenCardWebCentered: {
+            left: '0',
+            right: '0',
+            top: '0',
+            height: '60%',
+        },
+
+        fullscreenCardMobile: {
+            left: '-20%',
+            top: '-30%',
+            width: '150%',
+        },
+
+        fullscreenCardMediumScreen: {
+            left: '-15%',
+            top: '-30%',
+            width: '145%',
+        },
+
+        smallEditIcon: {
+            alignItems: 'center',
+            backgroundColor: themeColors.icon,
+            borderColor: themeColors.textReversed,
+            borderRadius: 14,
+            borderWidth: 3,
+            color: themeColors.textReversed,
+            height: 28,
+            width: 28,
+            justifyContent: 'center',
+        },
+
+        smallAvatarEditIcon: {
+            position: 'absolute',
+            right: -4,
+            bottom: -4,
+        },
+
+        workspaceCard: {
+            width: '100%',
+            height: 400,
+            borderRadius: variables.componentBorderRadiusCard,
+            overflow: 'hidden',
+            backgroundColor: themeColors.heroCard,
+        },
+
+        workspaceCardMobile: {
+            height: 475,
+        },
+
+        workspaceCardMediumScreen: {
+            height: 540,
+        },
+
+        workspaceCardMainText: {
+            fontSize: variables.fontSizeXXXLarge,
+            fontWeight: 'bold',
+            lineHeight: variables.fontSizeXXXLarge,
+        },
+
+        workspaceCardContent: {
+            zIndex: 1,
+            padding: 50,
+        },
+
+        workspaceCardContentMediumScreen: {
+            padding: 25,
+        },
+
+        workspaceCardCTA: {
+            width: 250,
+        },
+
+        workspaceInviteWelcome: {
+            minHeight: 115,
+        },
+
+        peopleRow: {
+            width: '100%',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            ...spacing.pt2,
+        },
+
+        peopleRowBorderBottom: {
+            borderColor: themeColors.border,
+            borderBottomWidth: 1,
+            ...spacing.pb2,
+        },
+
+        peopleRowCell: {
+            justifyContent: 'center',
+        },
+
+        peopleBadge: {
+            backgroundColor: themeColors.icon,
+            ...spacing.ph3,
+        },
+
+        peopleBadgeText: {
+            color: themeColors.textReversed,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: 16,
+            ...whiteSpace.noWrap,
+        },
+
+        offlineFeedback: {
+            deleted: {
+                textDecorationLine: 'line-through',
+                textDecorationStyle: 'solid',
+            },
+            pending: {
+                opacity: 0.5,
+            },
+            error: {
+                flexDirection: 'row',
+                alignItems: 'center',
+            },
+            container: {
+                ...spacing.pv2,
+            },
+            textContainer: {
+                flexDirection: 'column',
+                flex: 1,
+            },
+            text: {
+                color: themeColors.textSupporting,
+                textAlignVertical: 'center',
+                fontSize: variables.fontSizeLabel,
+            },
+            errorDot: {
+                marginRight: 12,
+            },
+            menuItemErrorPadding: {
+                paddingLeft: 44,
+                paddingRight: 20,
+            },
+        },
+
+        dotIndicatorMessage: {
+            display: 'flex',
+            flex: 1,
             flexDirection: 'row',
             alignItems: 'center',
         },
-        container: {
-            ...spacing.pv2,
+
+        sidebarPopover: {
+            width: variables.sideBarWidth - 68,
         },
-        textContainer: {
+
+        cardOverlay: {
+            backgroundColor: themeColors.modalBackdrop,
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            opacity: 0.5,
+        },
+
+        communicationsLinkIcon: {
+            right: -36,
+            top: 0,
+            bottom: 0,
+        },
+
+        shortTermsBorder: {
+            borderWidth: 1,
+            borderColor: themeColors.shadow,
+        },
+
+        shortTermsHorizontalRule: {
+            borderBottomWidth: 1,
+            borderColor: themeColors.shadow,
+            ...spacing.mh3,
+        },
+
+        shortTermsLargeHorizontalRule: {
+            borderWidth: 1,
+            borderColor: themeColors.shadow,
+            ...spacing.mh3,
+        },
+
+        shortTermsRow: {
+            flexDirection: 'row',
+            padding: 12,
+        },
+
+        termsCenterRight: {
+            marginTop: 'auto',
+            marginBottom: 'auto',
+        },
+
+        shortTermsBoldHeadingSection: {
+            paddingRight: 12,
+            paddingLeft: 12,
+            marginTop: 12,
+        },
+
+        longTermsRow: {
+            flexDirection: 'row',
+            marginTop: 20,
+        },
+
+        collapsibleSectionBorder: {
+            borderBottomWidth: 2,
+            borderBottomColor: themeColors.border,
+        },
+
+        communicationsLinkHeight: {
+            height: 20,
+        },
+
+        floatingMessageCounterWrapper: {
+            position: 'absolute',
+            left: '50%',
+            top: 0,
+            zIndex: 100,
+            ...visibility('hidden'),
+        },
+
+        floatingMessageCounterWrapperAndroid: {
+            left: 0,
+            width: '100%',
+            alignItems: 'center',
+            position: 'absolute',
+            top: 0,
+            zIndex: 100,
+            ...visibility('hidden'),
+        },
+
+        floatingMessageCounterSubWrapperAndroid: {
+            left: '50%',
+            width: 'auto',
+        },
+
+        floatingMessageCounter: {
+            left: '-50%',
+            ...visibility('visible'),
+        },
+
+        floatingMessageCounterTransformation: translateY => ({
+            transform: [
+                {translateY},
+            ],
+        }),
+
+        confettiIcon: {
+            height: 100,
+            width: 100,
+            marginBottom: 20,
+        },
+
+        googleSearchTextInputContainer: {
             flexDirection: 'column',
+        },
+
+        googleSearchSeparator: {
+            height: 1,
+            backgroundColor: themeColors.border,
+        },
+
+        googleSearchText: {
+            color: themeColors.text,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
+            fontFamily: fontFamily.GTA,
             flex: 1,
         },
-        text: {
+
+        threeDotsPopoverOffset: {
+            top: 50,
+            right: 60,
+        },
+
+        googleListView: {
+            transform: [{scale: 0}],
+        },
+
+        keyboardShortcutModalContainer: {
+            maxWidth: 600,
+            maxHeight: '100%',
+            flex: '0 0 auto',
+        },
+
+        keyboardShortcutTableWrapper: {
+            alignItems: 'center',
+            flex: 1,
+            height: 'auto',
+            maxHeight: '100%',
+        },
+
+        keyboardShortcutTableContainer: {
+            display: 'flex',
+            width: '100%',
+            borderColor: themeColors.border,
+            height: 'auto',
+            borderRadius: variables.componentBorderRadius,
+            borderWidth: 1,
+        },
+
+        keyboardShortcutTableRow: {
+            flex: 1,
+            flexDirection: 'row',
+            borderColor: themeColors.border,
+            flexBasis: 'auto',
+            alignSelf: 'stretch',
+            borderTopWidth: 1,
+        },
+
+        keyboardShortcutTablePrefix: {
+            width: '30%',
+            borderRightWidth: 1,
+            borderColor: themeColors.border,
+        },
+
+        keyboardShortcutTableFirstRow: {
+            borderTopWidth: 0,
+        },
+
+        iPhoneXSafeArea: {
+            backgroundColor: colors.black,
+            flex: 1,
+        },
+
+        errorPageContainer: {
+            backgroundColor: themeColors.componentBG,
+        },
+        transferBalancePayment: {
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            borderColor: themeColors.border,
+        },
+
+        transferBalanceSelectedPayment: {
+            borderColor: themeColors.iconSuccessFill,
+        },
+
+        transferBalanceBalance: {
+            fontSize: 48,
+        },
+
+        closeAccountMessageInput: {
+            height: 153,
+        },
+
+        imageCropContainer: {
+            borderRadius: variables.componentBorderRadiusCard,
+            overflow: 'hidden',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: themeColors.shadow,
+            cursor: 'move',
+        },
+
+        sliderKnob: {
+            backgroundColor: themeColors.badgeSuccessBG,
+            position: 'absolute',
+            height: variables.sliderKnobSize,
+            width: variables.sliderKnobSize,
+            borderRadius: variables.sliderKnobSize / 2,
+            top: -variables.sliderBarHeight,
+            left: -(variables.sliderKnobSize / 2),
+            cursor: 'pointer',
+        },
+
+        sliderBar: {
+            backgroundColor: themeColors.border,
+            height: variables.sliderBarHeight,
+            borderRadius: variables.sliderBarHeight / 2,
+            alignSelf: 'stretch',
+        },
+
+        imageCropRotateButton: {
+            height: variables.iconSizeExtraLarge,
+        },
+
+        userSelectText: {
+            userSelect: 'text',
+        },
+
+        screenCenteredContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            marginBottom: 40,
+            padding: 16,
+        },
+
+        inlineSystemMessage: {
             color: themeColors.textSupporting,
-            textAlignVertical: 'center',
             fontSize: variables.fontSizeLabel,
+            fontFamily: fontFamily.GTA,
+            marginLeft: 6,
         },
-        errorDot: {
-            marginRight: 12,
+
+        addWorkspaceRoomErrorRow: {
+            paddingHorizontal: 20,
+            maxWidth: 450,
+            alignSelf: 'center',
         },
-        menuItemErrorPadding: {
-            paddingLeft: 44,
-            paddingRight: 20,
-        },
-    },
+    };
+}
 
-    dotIndicatorMessage: {
-        display: 'flex',
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-
-    sidebarPopover: {
-        width: variables.sideBarWidth - 68,
-    },
-
-    cardOverlay: {
-        backgroundColor: themeColors.modalBackdrop,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        opacity: 0.5,
-    },
-
-    communicationsLinkIcon: {
-        right: -36,
-        top: 0,
-        bottom: 0,
-    },
-
-    shortTermsBorder: {
-        borderWidth: 1,
-        borderColor: themeColors.shadow,
-    },
-
-    shortTermsHorizontalRule: {
-        borderBottomWidth: 1,
-        borderColor: themeColors.shadow,
-        ...spacing.mh3,
-    },
-
-    shortTermsLargeHorizontalRule: {
-        borderWidth: 1,
-        borderColor: themeColors.shadow,
-        ...spacing.mh3,
-    },
-
-    shortTermsRow: {
-        flexDirection: 'row',
-        padding: 12,
-    },
-
-    termsCenterRight: {
-        marginTop: 'auto',
-        marginBottom: 'auto',
-    },
-
-    shortTermsBoldHeadingSection: {
-        paddingRight: 12,
-        paddingLeft: 12,
-        marginTop: 12,
-    },
-
-    longTermsRow: {
-        flexDirection: 'row',
-        marginTop: 20,
-    },
-
-    collapsibleSectionBorder: {
-        borderBottomWidth: 2,
-        borderBottomColor: themeColors.border,
-    },
-
-    communicationsLinkHeight: {
-        height: 20,
-    },
-
-    floatingMessageCounterWrapper: {
-        position: 'absolute',
-        left: '50%',
-        top: 0,
-        zIndex: 100,
-        ...visibility('hidden'),
-    },
-
-    floatingMessageCounterWrapperAndroid: {
-        left: 0,
-        width: '100%',
-        alignItems: 'center',
-        position: 'absolute',
-        top: 0,
-        zIndex: 100,
-        ...visibility('hidden'),
-    },
-
-    floatingMessageCounterSubWrapperAndroid: {
-        left: '50%',
-        width: 'auto',
-    },
-
-    floatingMessageCounter: {
-        left: '-50%',
-        ...visibility('visible'),
-    },
-
-    floatingMessageCounterTransformation: translateY => ({
-        transform: [
-            {translateY},
-        ],
-    }),
-
-    confettiIcon: {
-        height: 100,
-        width: 100,
-        marginBottom: 20,
-    },
-
-    googleSearchTextInputContainer: {
-        flexDirection: 'column',
-    },
-
-    googleSearchSeparator: {
-        height: 1,
-        backgroundColor: themeColors.border,
-    },
-
-    googleSearchText: {
-        color: themeColors.text,
-        fontSize: variables.fontSizeNormal,
-        lineHeight: variables.fontSizeNormalHeight,
-        fontFamily: fontFamily.GTA,
-        flex: 1,
-    },
-
-    threeDotsPopoverOffset: {
-        top: 50,
-        right: 60,
-    },
-
-    googleListView: {
-        transform: [{scale: 0}],
-    },
-
-    keyboardShortcutModalContainer: {
-        maxWidth: 600,
-        maxHeight: '100%',
-        flex: '0 0 auto',
-    },
-
-    keyboardShortcutTableWrapper: {
-        alignItems: 'center',
-        flex: 1,
-        height: 'auto',
-        maxHeight: '100%',
-    },
-
-    keyboardShortcutTableContainer: {
-        display: 'flex',
-        width: '100%',
-        borderColor: themeColors.border,
-        height: 'auto',
-        borderRadius: variables.componentBorderRadius,
-        borderWidth: 1,
-    },
-
-    keyboardShortcutTableRow: {
-        flex: 1,
-        flexDirection: 'row',
-        borderColor: themeColors.border,
-        flexBasis: 'auto',
-        alignSelf: 'stretch',
-        borderTopWidth: 1,
-    },
-
-    keyboardShortcutTablePrefix: {
-        width: '30%',
-        borderRightWidth: 1,
-        borderColor: themeColors.border,
-    },
-
-    keyboardShortcutTableFirstRow: {
-        borderTopWidth: 0,
-    },
-
-    iPhoneXSafeArea: {
-        backgroundColor: colors.black,
-        flex: 1,
-    },
-
-    errorPageContainer: {
-        backgroundColor: themeColors.componentBG,
-    },
-    transferBalancePayment: {
-        borderWidth: 1,
-        borderRadius: variables.componentBorderRadiusNormal,
-        borderColor: themeColors.border,
-    },
-
-    transferBalanceSelectedPayment: {
-        borderColor: themeColors.iconSuccessFill,
-    },
-
-    transferBalanceBalance: {
-        fontSize: 48,
-    },
-
-    closeAccountMessageInput: {
-        height: 153,
-    },
-
-    imageCropContainer: {
-        borderRadius: variables.componentBorderRadiusCard,
-        overflow: 'hidden',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: themeColors.shadow,
-        cursor: 'move',
-    },
-
-    sliderKnob: {
-        backgroundColor: themeColors.badgeSuccessBG,
-        position: 'absolute',
-        height: variables.sliderKnobSize,
-        width: variables.sliderKnobSize,
-        borderRadius: variables.sliderKnobSize / 2,
-        top: -variables.sliderBarHeight,
-        left: -(variables.sliderKnobSize / 2),
-        cursor: 'pointer',
-    },
-
-    sliderBar: {
-        backgroundColor: themeColors.border,
-        height: variables.sliderBarHeight,
-        borderRadius: variables.sliderBarHeight / 2,
-        alignSelf: 'stretch',
-    },
-
-    imageCropRotateButton: {
-        height: variables.iconSizeExtraLarge,
-    },
-
-    userSelectText: {
-        userSelect: 'text',
-    },
-
-    screenCenteredContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        marginBottom: 40,
-        padding: 16,
-    },
-
-    inlineSystemMessage: {
-        color: themeColors.textSupporting,
-        fontSize: variables.fontSizeLabel,
-        fontFamily: fontFamily.GTA,
-        marginLeft: 6,
-    },
-
-    addWorkspaceRoomErrorRow: {
-        paddingHorizontal: 20,
-        maxWidth: 450,
-        alignSelf: 'center',
-    },
-};
-
-export default styles;
+export default getThemedStyles;
