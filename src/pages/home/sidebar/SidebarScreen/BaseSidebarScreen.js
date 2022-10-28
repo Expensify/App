@@ -58,18 +58,16 @@ class BaseSidebarScreen extends Component {
                 style={[styles.sidebar]}
             >
                 {({insets}) => (
-                    <>
-                        <View style={[styles.flex1]}>
-                            <SidebarLinks
-                                onLinkClick={this.startTimer}
-                                insets={insets}
-                                onAvatarClick={this.navigateToSettings}
-                                isSmallScreenWidth={this.props.isSmallScreenWidth}
-                                isDrawerOpen={this.props.isDrawerOpen}
-                                reportIDFromRoute={this.props.reportIDFromRoute}
-                            />
-                        </View>
-                    </>
+                    <View style={[styles.flex1]}>
+                        <SidebarLinks
+                            onLinkClick={this.startTimer}
+                            insets={insets}
+                            onAvatarClick={this.navigateToSettings}
+                            isSmallScreenWidth={this.props.isSmallScreenWidth}
+                            isDrawerOpen={this.props.isDrawerOpen}
+                            reportIDFromRoute={this.props.reportIDFromRoute}
+                        />
+                    </View>
                 )}
             </ScreenWrapper>
         );
