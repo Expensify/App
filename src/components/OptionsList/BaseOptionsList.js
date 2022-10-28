@@ -181,6 +181,7 @@ class BaseOptionsList extends Component {
                 hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
                 forceTextUnreadStyle={this.props.forceTextUnreadStyle}
                 isDisabled={this.props.isDisabled || section.isDisabled}
+                shouldHaveOptionSeparator={this.props.shouldHaveOptionSeparator}
             />
         );
     }

@@ -89,6 +89,9 @@ const propTypes = {
 
     /** Whether to show options list */
     shouldShowOptions: PropTypes.bool,
+
+    /** Whether to show a line separating options in list */
+    shouldHaveOptionSeparator: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -113,6 +116,7 @@ const defaultProps = {
     shouldShowOptions: true,
     disableArrowKeysActions: false,
     isDisabled: false,
+    shouldHaveOptionSeparator: false,
 };
 
 export {propTypes, defaultProps};
