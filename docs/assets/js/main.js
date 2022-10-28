@@ -25,8 +25,10 @@ function toggleHeaderMenu() {
 function navigateBack() {
     if (window.location.pathname.includes('/request-money/')) {
         window.location.href = '/hubs/request-money';
-    } else {
+    } else if (window.location.pathname.includes('/send-money/')) {
         window.location.href = '/hubs/send-money';
+    } else {
+        window.location.href = '/hubs/other';
     }
 
     // Add a little delay to avoid showing the previous content in a fraction of a time
