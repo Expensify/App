@@ -2,7 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, ScrollView} from 'react-native';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import LocalePicker from '../../components/LocalePicker';
@@ -132,6 +132,6 @@ export default compose(
         },
         preferredTheme: {
             key: ONYXKEYS.NVP_PREFERRED_THEME,
-        }
+        },
     }),
 )(PreferencesPage);

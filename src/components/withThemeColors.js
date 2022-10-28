@@ -3,14 +3,13 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
-import * as Theme from '../libs/Theme';
-import { getStyle } from 'react-native-svg/lib/typescript/xml';
+import {getThemedStyles} from '../styles/styles';
 
 const ThemeContext = createContext(null);
 
 const withThemePropTypes = {
     themed: PropTypes.func.isRequired,
-}
+};
 
 const themeProviderPropTypes = {
     /** The user's preferred locale e.g. 'en', 'es-ES' */
@@ -49,7 +48,7 @@ export default function withTheme(WrappedComponent) {
     const WithTheme = forwardRef((props, ref) => (
         <ThemeContext.Consumer>
             {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-            {themeUtils => <WrappedComponent {...themeUtils} {...props} ref={ref}/>}
+            {themeUtils => <WrappedComponent {...themeUtils} {...props} ref={ref} />}
         </ThemeContext.Consumer>
     ));
 

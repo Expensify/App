@@ -263,8 +263,21 @@ class Button extends Component {
                     return (
                         <OpacityView
                             shouldDim={pressed}
-                            style={   [
+                            style={[
                                 styles.button,
+                                this.props.small ? styles.buttonSmall : undefined,
+                                this.props.medium ? styles.buttonMedium : undefined,
+                                this.props.large ? styles.buttonLarge : undefined,
+                                this.props.success ? styles.buttonSuccess : undefined,
+                                this.props.danger ? styles.buttonDanger : undefined,
+                                (this.props.isDisabled && this.props.success) ? styles.buttonSuccessDisabled : undefined,
+                                (this.props.isDisabled && this.props.danger) ? styles.buttonDangerDisabled : undefined,
+                                (this.props.isDisabled && !this.props.danger && !this.props.success) ? styles.buttonDisable : undefined,
+                                (this.props.success && activeAndHovered) ? styles.buttonSuccessHovered : undefined,
+                                (this.props.danger && activeAndHovered) ? styles.buttonDangerHovered : undefined,
+                                this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
+                                this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+                                ...this.props.innerStyles,
                             ]}
                         >
                             {this.renderContent()}
