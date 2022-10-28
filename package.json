@@ -189,6 +189,9 @@
     "webpack-dev-server": "^4.9.3",
     "webpack-merge": "^5.8.0"
   },
+  "overrides": {
+    "react-native": "$react-native"
+  },
   "engines": {
     "node": "16.15.1",
     "npm": "8.11.0"
