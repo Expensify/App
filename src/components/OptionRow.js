@@ -25,7 +25,6 @@ import OfflineWithFeedback from './OfflineWithFeedback';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
 import variables from '../styles/variables';
-import themeColors from '../styles/themes/default';
 
 const propTypes = {
     /** The accessibility hint for the entire option row. Primarily used for unit testing to identify the component */

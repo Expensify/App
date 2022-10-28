@@ -288,7 +288,12 @@ function updateProfile(firstName, lastName, pronouns, timezone) {
 }
 
 /**
- * @param {Boolean} isAutomatic Does the timezone update automatically.
+ * Updates timezone's 'automatic' setting, and updates
+ * selected timezone if set to automatically update.
+ *
+ * @param {Object} timezone
+ * @param {Boolean} timezone.automatic
+ * @param {String} timezone.selected
  */
 function updateAutomaticTimezone(timezone) {
     API.write('UpdateAutomaticTimezone', {

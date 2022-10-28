@@ -1,6 +1,7 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
+import moment from 'moment-timezone';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
@@ -14,7 +15,6 @@ import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import compose from '../../../libs/compose';
 import Switch from '../../../components/Switch';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
-import moment from 'moment-timezone';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -34,7 +34,7 @@ const TimezoneInitialPage = (props) => {
      *
      * @param {Boolean} isAutomatic
      */
-     const updateAutomaticTimezone = (isAutomatic) => {
+    const updateAutomaticTimezone = (isAutomatic) => {
         PersonalDetails.updateAutomaticTimezone({
             automatic: isAutomatic,
             selected: isAutomatic ? moment.tz.guess() : timezone.selected,
@@ -73,10 +73,11 @@ const TimezoneInitialPage = (props) => {
             />
         </ScreenWrapper>
     );
-}
+};
 
 TimezoneInitialPage.propTypes = propTypes;
 TimezoneInitialPage.defaultProps = defaultProps;
+TimezoneInitialPage.displayName = 'TimezoneInitialPage';
 
 export default compose(
     withLocalize,
