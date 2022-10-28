@@ -80,7 +80,8 @@ class EmojiPicker extends React.Component {
         this.emojiPopoverAnchor = emojiPopoverAnchor;
 
         if (this.emojiPopoverAnchor) {
-            emojiPopoverAnchor.blur(); // Drop focus to avoid blue focus ring.
+            // Drop focus to avoid blue focus ring.
+            emojiPopoverAnchor.blur();
         }
 
         this.measureEmojiPopoverAnchorPosition().then((emojiPopoverAnchorPosition) => {

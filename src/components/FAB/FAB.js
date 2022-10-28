@@ -69,7 +69,8 @@ class FAB extends PureComponent {
                     accessibilityLabel={this.props.accessibilityLabel}
                     accessibilityRole={this.props.accessibilityRole}
                     onPress={(e) => {
-                        this.fabPressable.blur(); // Drop focus to avoid blue focus ring.
+                        // Drop focus to avoid blue focus ring.
+                        this.fabPressable.blur();
                         this.props.onPress(e);
                     }}
                     style={[

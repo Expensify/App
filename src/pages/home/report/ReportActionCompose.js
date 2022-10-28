@@ -577,7 +577,9 @@ class ReportActionCompose extends React.Component {
                                                         ref={el => this.actionButton = el}
                                                         onPress={(e) => {
                                                             e.preventDefault();
-                                                            this.actionButton.blur(); // Drop focus to avoid blue focus ring.
+
+                                                            // Drop focus to avoid blue focus ring.
+                                                            this.actionButton.blur();
                                                             this.setMenuVisibility(true);
                                                         }}
                                                         style={styles.chatItemAttachButton}
