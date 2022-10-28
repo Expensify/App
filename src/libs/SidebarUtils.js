@@ -16,19 +16,6 @@ import * as CollectionUtils from './CollectionUtils';
 // Session also can remain stale because the only way for the current user to change is to sign out and sign in, which would clear out all the Onyx
 // data anyway and cause SidebarLinks to rerender.
 
-// Used properties:
-// reportID
-// participants
-// hasDraft
-// isPinned
-// errorFields.addWorkspaceRoom
-// lastMessageTimestamp
-// iouReportID
-// hasOutstandingIOU
-// statusNum
-// stateNum
-// chatType
-// policyID
 let reports;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -36,11 +23,6 @@ Onyx.connect({
     callback: val => reports = val,
 });
 
-// Used properties:
-// <login>.login
-// <login>.displayName
-// <login>.firstName
-// <login>.avatar
 let personalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
@@ -59,12 +41,8 @@ Onyx.connect({
     callback: val => betas = val,
 });
 
-// Used properties:
-// originalMessage.reason
 const lastReportActions = {};
 
-// Used properties:
-// errors
 const reportActions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -78,9 +56,6 @@ Onyx.connect({
     },
 });
 
-// Used properties:
-// type
-// name
 let policies;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -88,8 +63,6 @@ Onyx.connect({
     callback: val => policies = val,
 });
 
-// Used properties:
-// ownerEmail
 let iouReports;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_IOUS,
@@ -97,8 +70,6 @@ Onyx.connect({
     callback: val => iouReports = val,
 });
 
-// Used properties:
-// email
 let currentUserLogin;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
