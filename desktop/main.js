@@ -5,6 +5,7 @@ const {
     MenuItem,
     shell,
     ipcMain,
+    safeStorage,
 } = require('electron');
 const _ = require('underscore');
 const serve = require('electron-serve');
@@ -14,6 +15,9 @@ const log = require('electron-log');
 const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
 const checkForUpdates = require('../src/libs/checkForUpdates');
 const CONFIG = require('../src/CONFIG').default;
+
+const {requestCredentials, storeCredentials} = require('electron-form-autofill/dist/electron/ProviderSafeStorage');
+const {FORM_AUTOFILL_REQUEST_CREDENTIALS, FORM_AUTOFILL_STORE_CREDENTIALS} = require('electron-form-autofill/dist/electron/constants');
 
 const port = process.env.PORT || 8080;
 
@@ -325,6 +329,9 @@ const mainWindow = (() => {
                     app.setBadgeCount(totalCount);
                 }
             });
+
+            ipcMain.on(FORM_AUTOFILL_REQUEST_CREDENTIALS, requestCredentials(browserWindow, safeStorage));
+            ipcMain.on(FORM_AUTOFILL_STORE_CREDENTIALS, storeCredentials(browserWindow, safeStorage));
 
             return browserWindow;
         })

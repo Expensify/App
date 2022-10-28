@@ -4,6 +4,8 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
+import FormWrapper from 'electron-form-autofill/dist/FormWrapper';
+import InputWrapper from 'electron-form-autofill/dist/InputWrapper';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
@@ -107,6 +109,7 @@ class LoginForm extends React.Component {
      * @param {String} text
      */
     onTextInput(text) {
+        console.log(text)
         this.setState({
             login: text,
             formError: null,
@@ -161,29 +164,34 @@ class LoginForm extends React.Component {
 
         // Check if this login has an account associated with it or not
         Session.beginSignIn(isValidPhoneLogin ? phoneLogin : login);
+
+        // FormDelegate.setDropdownSuggestion({formName: 'authentication', inputName: 'username'}, login, {key: 'username', value: login}, login);
     }
 
     render() {
         const formErrorTranslated = this.state.formError && this.props.translate(this.state.formError);
         const error = formErrorTranslated || ErrorUtils.getLatestErrorMessage(this.props.account);
         return (
-            <>
+            <FormWrapper name="authentication">
                 <View accessibilityLabel="Login form" style={[styles.mt3]}>
-                    <TextInput
-                        ref={el => this.input = el}
-                        label={this.props.translate('loginForm.phoneOrEmail')}
-                        value={this.state.login}
-                        autoCompleteType="username"
-                        textContentType="username"
-                        nativeID="username"
-                        name="username"
-                        onChangeText={this.onTextInput}
-                        onSubmitEditing={this.validateAndSubmitForm}
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                        keyboardType={getEmailKeyboardType()}
-                    />
+                    <InputWrapper>
+                        <TextInput
+                            ref={el => this.input = el}
+                            label={this.props.translate('loginForm.phoneOrEmail')}
+                            value={this.state.login}
+                            autoCompleteType="username"
+                            textContentType="username"
+                            nativeID="username"
+                            name="username"
+                            onChangeText={this.onTextInput}
+                            onSubmitEditing={this.validateAndSubmitForm}
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                            keyboardType={getEmailKeyboardType()}
+                        />
+                    </InputWrapper>
                 </View>
+
                 {!_.isEmpty(this.props.account.success) && (
                     <Text style={[styles.formSuccess]}>
                         {this.props.account.success}
@@ -210,7 +218,7 @@ class LoginForm extends React.Component {
                     )
                 }
                 <OfflineIndicator containerStyles={[styles.mv1]} />
-            </>
+            </FormWrapper>
         );
     }
 }

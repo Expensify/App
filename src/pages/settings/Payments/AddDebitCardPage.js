@@ -22,6 +22,10 @@ import AddressSearch from '../../../components/AddressSearch';
 import * as ComponentUtils from '../../../libs/ComponentUtils';
 import Form from '../../../components/Form';
 
+import FormWrapper from 'electron-form-autofill/dist/FormWrapper';
+import InputWrapper from 'electron-form-autofill/dist/InputWrapper';
+import FormDelegate from 'electron-form-autofill/dist/FormDelegate';
+
 const propTypes = {
     /* Onyx Props */
     formData: PropTypes.shape({

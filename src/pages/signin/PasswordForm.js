@@ -5,6 +5,8 @@ import {
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import FormWrapper from 'electron-form-autofill/dist/FormWrapper';
+import InputWrapper from 'electron-form-autofill/dist/InputWrapper';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
@@ -143,21 +145,23 @@ class PasswordForm extends React.Component {
 
     render() {
         return (
-            <>
+            <FormWrapper name="authentication">
                 <View style={[styles.mv3]}>
-                    <TextInput
-                        ref={el => this.inputPassword = el}
-                        label={this.props.translate('common.password')}
-                        secureTextEntry
-                        autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
-                        textContentType="password"
-                        nativeID="password"
-                        name="password"
-                        value={this.state.password}
-                        onChangeText={text => this.setState({password: text})}
-                        onSubmitEditing={this.validateAndSubmitForm}
-                        blurOnSubmit={false}
-                    />
+                    <InputWrapper>
+                        <TextInput
+                            ref={el => this.inputPassword = el}
+                            label={this.props.translate('common.password')}
+                            secureTextEntry
+                            autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
+                            textContentType="password"
+                            nativeID="password"
+                            name="password"
+                            value={this.state.password}
+                            onChangeText={text => this.setState({password: text})}
+                            onSubmitEditing={this.validateAndSubmitForm}
+                            blurOnSubmit={false}
+                        />
+                    </InputWrapper>
                     <View style={[styles.changeExpensifyLoginLinkContainer]}>
                         <TouchableOpacity
                             style={[styles.mt2]}
@@ -211,7 +215,7 @@ class PasswordForm extends React.Component {
                     <ChangeExpensifyLoginLink onPress={this.clearSignInData} />
                 </View>
                 <OfflineIndicator containerStyles={[styles.mv5]} />
-            </>
+            </FormWrapper>
         );
     }
 }
