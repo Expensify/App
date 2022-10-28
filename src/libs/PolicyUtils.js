@@ -48,7 +48,7 @@ function hasCustomUnitsError(policy) {
  */
 function getPolicyBrickRoadIndicatorStatus(policy, policyMembers) {
     const policyMemberList = lodashGet(policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {});
-    if (hasPolicyMemberError(policyMemberList) || hasCustomUnitsError(policy)) {
+    if (hasPolicyMemberError(policyMemberList) || hasCustomUnitsError(policy) || hasPolicyError(policy)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
     return '';
