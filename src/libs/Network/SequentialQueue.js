@@ -18,6 +18,8 @@ let isSequentialQueueRunning = false;
 
 let currentRequest = null;
 
+
+
 /**
  * This method will get any persisted requests and fire them off in sequence to retry them.
  *
@@ -115,6 +117,7 @@ function getCurrentRequest() {
 }
 
 export {
+    process,
     flush,
     getCurrentRequest,
     isRunning,
