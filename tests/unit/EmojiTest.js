@@ -2,7 +2,7 @@ import _ from 'underscore';
 import Emoji from '../../assets/emojis';
 import * as EmojiUtils from '../../src/libs/EmojiUtils';
 
-describe('EmojiRegexTest', () => {
+describe('EmojiTest', () => {
     it('matches all the emojis in the list', () => {
         // Given the set of Emojis available in the application
         const emojiMatched = _.every(Emoji, (emoji) => {
@@ -58,5 +58,26 @@ describe('EmojiRegexTest', () => {
         expect(EmojiUtils.isSingleEmoji('🇺🇲')).toBe(true);
         expect(EmojiUtils.isSingleEmoji('🇮🇳')).toBe(true);
         expect(EmojiUtils.isSingleEmoji('🇺🇦️')).toBe(true);
+    });
+
+    it('replaces emoji codes with emojis inside a text', () => {
+        const text = 'Hi :smile::wave:';
+        expect(EmojiUtils.replaceEmojis(text)).toBe('Hi 😄👋');
+    });
+
+    it('suggests emojis when typing emojis prefix after colon', () => {
+        const text = 'Hi :happy';
+        expect(EmojiUtils.suggestEmojis(text)).toEqual([{code: '🙋', name: 'raising_hand'}]);
+    });
+
+    it('suggests a limited number of matching emojis', () => {
+        const text = 'Hi :face';
+        const limit = 3;
+        expect(EmojiUtils.suggestEmojis(text, limit).length).toBe(limit);
+    });
+
+    it('correct suggests emojis accounting for keywords', () => {
+        const text = ':thumb';
+        expect(EmojiUtils.suggestEmojis(text)).toEqual([{code: '👍', name: '+1'}, {code: '👎', name: '-1'}]);
     });
 });
