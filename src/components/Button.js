@@ -182,14 +182,14 @@ class Button extends Component {
             <Text
                 selectable={false}
                 style={[
-                    this.props.isLoading && styles.opacity0,
-                    styles.pointerEventsNone,
-                    styles.buttonText,
-                    this.props.small && styles.buttonSmallText,
-                    this.props.medium && styles.buttonMediumText,
-                    this.props.large && styles.buttonLargeText,
-                    this.props.success && styles.buttonSuccessText,
-                    this.props.danger && styles.buttonDangerText,
+                    this.props.isLoading && this.props.opacity0,
+                    this.props.pointerEventsNone,
+                    this.props.buttonText,
+                    this.props.small && this.props.buttonSmallText,
+                    this.props.medium && this.props.buttonMediumText,
+                    this.props.large && this.props.buttonLargeText,
+                    this.props.success && this.props.buttonSuccessText,
+                    this.props.danger && this.props.buttonDangerText,
                     ...this.props.textStyles,
                 ]}
             >
@@ -230,7 +230,7 @@ class Button extends Component {
     }
 
     render() {
-        console.log('I rendered');
+        console.log(this.props.button);
         return (
             <Pressable
                 onPress={(e) => {
@@ -264,19 +264,19 @@ class Button extends Component {
                         <OpacityView
                             shouldDim={pressed}
                             style={[
-                                styles.button,
-                                this.props.small ? styles.buttonSmall : undefined,
-                                this.props.medium ? styles.buttonMedium : undefined,
-                                this.props.large ? styles.buttonLarge : undefined,
-                                this.props.success ? styles.buttonSuccess : undefined,
-                                this.props.danger ? styles.buttonDanger : undefined,
-                                (this.props.isDisabled && this.props.success) ? styles.buttonSuccessDisabled : undefined,
-                                (this.props.isDisabled && this.props.danger) ? styles.buttonDangerDisabled : undefined,
-                                (this.props.isDisabled && !this.props.danger && !this.props.success) ? styles.buttonDisable : undefined,
-                                (this.props.success && activeAndHovered) ? styles.buttonSuccessHovered : undefined,
-                                (this.props.danger && activeAndHovered) ? styles.buttonDangerHovered : undefined,
-                                this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
-                                this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+                                this.props.button,
+                                this.props.small ? this.props.buttonSmall : undefined,
+                                this.props.medium ? this.props.buttonMedium : undefined,
+                                this.props.large ? this.props.buttonLarge : undefined,
+                                this.props.success ? this.props.buttonSuccess : undefined,
+                                this.props.danger ? this.props.buttonDanger : undefined,
+                                (this.props.isDisabled && this.props.success) ? this.props.buttonSuccessDisabled : undefined,
+                                (this.props.isDisabled && this.props.danger) ? this.props.buttonDangerDisabled : undefined,
+                                (this.props.isDisabled && !this.props.danger && !this.props.success) ? this.props.buttonDisable : undefined,
+                                (this.props.success && activeAndHovered) ? this.props.buttonSuccessHovered : undefined,
+                                (this.props.danger && activeAndHovered) ? this.props.buttonDangerHovered : undefined,
+                                this.props.shouldRemoveRightBorderRadius ? this.props.noRightBorderRadius : undefined,
+                                this.props.shouldRemoveLeftBorderRadius ? this.props.noLeftBorderRadius : undefined,
                                 ...this.props.innerStyles,
                             ]}
                         >

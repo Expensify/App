@@ -65,25 +65,25 @@ const PreferencesPage = (props) => {
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                <View style={[styles.settingsPageBody, styles.mb6]}>
-                    <Text style={[styles.formLabel]} numberOfLines={1}>
+            <ScrollView style={props.flex1} contentContainerStyle={props.p5}>
+                <View style={[props.settingsPageBody, props.mb6]}>
+                    <Text style={[props.formLabel]} numberOfLines={1}>
                         {props.translate('common.notifications')}
                     </Text>
-                    <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween]}>
-                        <View style={styles.flex4}>
+                    <View style={[props.flexRow, props.mb6, props.justifyContentBetween]}>
+                        <View style={[props.flex4, props.text]}>
                             <Text>
                                 {props.translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
                             </Text>
                         </View>
-                        <View style={[styles.flex1, styles.alignItemsEnd]}>
+                        <View style={[props.flex1, props.alignItemsEnd]}>
                             <Switch
                                 isOn={lodashGet(props.user, 'isSubscribedToNewsletter', true)}
                                 onToggle={User.updateNewsletterSubscription}
                             />
                         </View>
                     </View>
-                    <View style={[styles.mb2, styles.w100]}>
+                    <View style={[props.mb2, props.w100]}>
                         <Picker
                             label={props.translate('preferencesPage.priorityMode')}
                             onInputChange={
@@ -93,17 +93,17 @@ const PreferencesPage = (props) => {
                             value={props.priorityMode}
                         />
                     </View>
-                    <Text style={[styles.textLabel, styles.colorMuted, styles.mb6]}>
+                    <Text style={[props.textLabel, props.colorMuted, props.mb6]}>
                         {priorityModes[props.priorityMode].description}
                     </Text>
-                    <View style={[styles.mb2]}>
+                    <View style={[props.mb2]}>
                         <LocalePicker />
                     </View>
 
                     {/* If we are in the staging environment then we enable additional test features */}
                     {_.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.DEV], props.environment) && <TestToolMenu />}
                 </View>
-                <View style={[styles.flexRow, styles.justifyContentBetween]}>
+                <View style={[props.flexRow, props.justifyContentBetween]}>
                     <Text>DARK MODE:</Text>
                     <Switch
                         isOn={props.preferredTheme}

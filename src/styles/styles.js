@@ -145,7 +145,10 @@ export function getThemedStyles(useDarkMode) {
     // Set themeColors based on preferredTheme
     themeColors = useDarkMode ? darkGreen : light;
 
-    return {
+    console.log(themeColors.name);
+    console.log(themeColors.buttonDefaultBG);
+
+    let newStyles = {
         button: {
             backgroundColor: themeColors.buttonDefaultBG,
             borderRadius: variables.componentBorderRadiusNormal,
@@ -178,7 +181,92 @@ export function getThemedStyles(useDarkMode) {
             flexBasis: '48%',
         },
 
-        webViewStyles,
+        webViewStyles: {
+            // As of react-native-render-html v6, don't declare distinct styles for
+            // custom renderers, the API for custom renderers has changed. Declare the
+            // styles in the below "tagStyles" instead. If you need to reuse those
+            // styles from the renderer, just pass the "style" prop to the underlying
+            // component.
+            tagStyles: {
+                em: {
+                    fontFamily: fontFamily.GTA,
+                    fontStyle: 'italic',
+                },
+        
+                del: {
+                    textDecorationLine: 'line-through',
+                    textDecorationStyle: 'solid',
+                },
+        
+                strong: {
+                    fontFamily: fontFamily.GTA,
+                    fontWeight: 'bold',
+                },
+        
+                a: link,
+        
+                ul: {
+                    maxWidth: '100%',
+                },
+        
+                ol: {
+                    maxWidth: '100%',
+                },
+        
+                li: {
+                    flexShrink: 1,
+                },
+        
+                blockquote: {
+                    borderLeftColor: themeColors.border,
+                    borderLeftWidth: 4,
+                    paddingLeft: 12,
+                    marginTop: 4,
+                    marginBottom: 4,
+        
+                    // Overwrite default HTML margin for blockquotes
+                    marginLeft: 0,
+                },
+        
+                pre: {
+                    ...baseCodeTagStyles,
+                    paddingTop: 12,
+                    paddingBottom: 12,
+                    paddingRight: 8,
+                    paddingLeft: 8,
+                    fontFamily: fontFamily.MONOSPACE,
+                    marginTop: 0,
+                    marginBottom: 0,
+                },
+        
+                code: {
+                    ...baseCodeTagStyles,
+                    ...codeStyles.codeTextStyle,
+                    paddingLeft: 5,
+                    paddingRight: 5,
+                    fontFamily: fontFamily.MONOSPACE,
+                    fontSize: 13,
+                },
+        
+                img: {
+                    borderColor: themeColors.border,
+                    borderRadius: variables.componentBorderRadiusNormal,
+                    borderWidth: 1,
+                },
+        
+                p: {
+                    marginTop: 0,
+                    marginBottom: 0,
+                },
+            },
+        
+            baseFontStyle: {
+                color: themeColors.text,
+                fontSize: variables.fontSizeNormal,
+                fontFamily: fontFamily.GTA,
+                flex: 1,
+            },
+        },
 
         link,
 
@@ -230,6 +318,10 @@ export function getThemedStyles(useDarkMode) {
         label: {
             fontSize: variables.fontSizeLabel,
             lineHeight: 18,
+        },
+
+        text: {
+            color: themeColors.text,
         },
 
         textLabel: {
@@ -1918,6 +2010,7 @@ export function getThemedStyles(useDarkMode) {
         },
 
         settingsPageBody: {
+            backgroundColor: themeColors.componentBG,
             width: '100%',
             justifyContent: 'space-around',
         },
@@ -2704,6 +2797,10 @@ export function getThemedStyles(useDarkMode) {
             alignSelf: 'center',
         },
     };
+
+    console.log('newStyles.button.buttonDefaultBG: ', newStyles.button.backgroundColor);
+
+    return newStyles;
 }
 
 const styles = {
@@ -4479,6 +4576,7 @@ const styles = {
     },
 
     settingsPageBody: {
+        backgroundColor: themeColors.componentBG,
         width: '100%',
         justifyContent: 'space-around',
     },

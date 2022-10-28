@@ -1,6 +1,7 @@
 import colors from '../colors';
 
 export default {
+    name: 'light',
     shadow: colors.black,
     link: colors.blue,
     linkHover: colors.blueHover,
