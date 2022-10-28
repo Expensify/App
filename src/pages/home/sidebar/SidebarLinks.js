@@ -92,7 +92,6 @@ class SidebarLinks extends React.Component {
         if (_.isEmpty(this.props.personalDetails)) {
             return null;
         }
-        console.log('!!!render', this.props.policies);
         const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
         return (
             <View
@@ -177,7 +176,7 @@ export default compose(
         // with 10,000 withOnyx() connections, it would have unknown performance implications.
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
-            selector: report => ({
+            selector: report => report && ({
                 reportID: report.reportID,
                 participants: report.participants,
                 hasDraft: report.hasDraft,
@@ -197,6 +196,8 @@ export default compose(
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
             selector: personalDetails => _.reduce(personalDetails, (finalPersonalDetails, personalData, login) => {
+                // It's OK to do param-reassignment in _.reduce() because we absolutely know the starting state of finalPersonalDetails
+                // eslint-disable-next-line no-param-reassign
                 finalPersonalDetails[login] = {
                     login: personalData.login,
                     displayName: personalData.displayName,
@@ -214,13 +215,13 @@ export default compose(
         },
         reportActions: {
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-            selector: reportActions => _.map(reportActions, reportAction => ({
+            selector: reportActions => reportActions && _.map(reportActions, reportAction => ({
                 errors: reportAction.errors,
             })),
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-            selector: policy => ({
+            selector: policy => policy && ({
                 type: policy.type,
                 name: policy.name,
             }),
