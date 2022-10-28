@@ -108,7 +108,8 @@ class BaseVideoChatButtonAndMenu extends Component {
                         <Pressable
                             ref={el => this.videoChatButton = el}
                             onPress={() => {
-                                this.videoChatButton.blur(); // Drop focus to avoid blue focus ring.
+                                // Drop focus to avoid blue focus ring.
+                                this.videoChatButton.blur();
 
                                 // If this is the Concierge chat, we'll open the modal for requesting a setup call instead
                                 if (this.props.isConcierge) {
