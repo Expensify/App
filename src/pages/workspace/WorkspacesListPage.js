@@ -15,10 +15,8 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import themeColors from '../../styles/themes/default';
-import * as PolicyUtils from '../../libs/PolicyUtils';
 import MenuItem from '../../components/MenuItem';
 import * as Policy from '../../libs/actions/Policy';
-import policyMemberPropType from '../policyMemberPropType';
 import Permissions from '../../libs/Permissions';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
@@ -44,9 +42,6 @@ const propTypes = {
         /** The current action that is waiting to happen on the policy */
         pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
     })),
-
-    /** List of policy members */
-    policyMembers: PropTypes.objectOf(policyMemberPropType),
 
     /** The user's wallet account */
     userWallet: PropTypes.shape({
@@ -124,7 +119,6 @@ class WorkspacesListPage extends Component {
                 iconStyles: policy.avatar ? [] : [styles.popoverMenuIconEmphasized],
                 iconFill: themeColors.iconReversed,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
                 pendingAction: policy.pendingAction,
                 isPolicy: true,
                 errors: policy.errors,
@@ -212,9 +206,6 @@ export default compose(
     withOnyx({
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        policyMembers: {
-            key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
