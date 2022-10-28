@@ -48,6 +48,7 @@ class CompanyStep extends React.Component {
         this.submit = this.submit.bind(this);
         this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
+        this.clearErrors = inputKeys => ReimbursementAccountUtils.clearErrors(this.props, inputKeys);
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
 
@@ -229,10 +230,14 @@ class CompanyStep extends React.Component {
                                 city: 'addressCity',
                                 zipCode: 'addressZipCode',
                             };
+                            const renamedValues = {};
                             _.each(values, (value, inputKey) => {
                                 const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
-                                this.clearErrorAndSetValue(renamedInputKey, value);
+                                renamedValues[renamedInputKey] = value;
                             });
+                            this.setState(renamedValues);
+                            this.clearErrors(_.keys(renamedValues));
+                            ReimbursementAccount.updateReimbursementAccountDraft(renamedValues);
                         }}
                     />
                     <TextInput
