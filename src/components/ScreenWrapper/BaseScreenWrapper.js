@@ -2,6 +2,7 @@ import {KeyboardAvoidingView, View} from 'react-native';
 import React from 'react';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import CONST from '../../CONST';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -17,7 +18,6 @@ import withWindowDimensions from '../withWindowDimensions';
 import ONYXKEYS from '../../ONYXKEYS';
 import {withNetwork} from '../OnyxProvider';
 import {propTypes, defaultProps} from './propTypes';
-import onyxSubscribe from '../../libs/onyxSubscribe';
 
 class BaseScreenWrapper extends React.Component {
     constructor(props) {
@@ -29,18 +29,9 @@ class BaseScreenWrapper extends React.Component {
     }
 
     componentDidMount() {
-        let willAlertModalBecomeVisible = false;
-
-        this.unsubscribeOnyx = onyxSubscribe({
-            key: ONYXKEYS.MODAL,
-            callback: (object) => {
-                willAlertModalBecomeVisible = object.willAlertModalBecomeVisible;
-            },
-        });
-
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
         this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
-            if (willAlertModalBecomeVisible) {
+            if (this.props.modal.willAlertModalBecomeVisible) {
                 return;
             }
 
@@ -53,15 +44,29 @@ class BaseScreenWrapper extends React.Component {
         });
     }
 
+    /**
+     * We explicitly want to ignore if props.modal changes, and only want to rerender if
+     * any of the other props **used for the rendering output** is changed.
+     * @param {Object} nextProps
+     * @param {Object} nextState
+     * @returns {boolean}
+     */
+    shouldComponentUpdate(nextProps, nextState) {
+        return this.state !== nextState
+            || this.props.children !== nextProps.children
+        || this.props.network.isOffline !== nextProps.network.isOffline
+        || this.props.includePaddingBottom !== nextProps.includePaddingBottom
+        || this.props.includePaddingTop !== nextProps.includePaddingTop
+        || this.props.isSmallScreenWidth !== nextProps.isSmallScreenWidth
+        || this.props.keyboardAvoidingViewBehavior !== nextProps.keyboardAvoidingViewBehavior;
+    }
+
     componentWillUnmount() {
         if (this.unsubscribeEscapeKey) {
             this.unsubscribeEscapeKey();
         }
         if (this.unsubscribeTransitionEnd) {
             this.unsubscribeTransitionEnd();
-        }
-        if (this.unsubscribeOnyx) {
-            this.unsubscribeOnyx();
         }
     }
 
@@ -118,5 +123,10 @@ BaseScreenWrapper.defaultProps = defaultProps;
 export default compose(
     withNavigation,
     withWindowDimensions,
+    withOnyx({
+        modal: {
+            key: ONYXKEYS.MODAL,
+        },
+    }),
     withNetwork(),
 )(BaseScreenWrapper);
