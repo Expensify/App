@@ -83,7 +83,7 @@ class ReportActionsView extends React.Component {
         this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
-        this.scrollToBottomAndMarkReportAsRead = this.scrollToBottomAndMarkReportAsRead.bind(this);
+        this.scrollToUnreadMsgAndMarkReportAsRead = this.scrollToUnreadMsgAndMarkReportAsRead.bind(this);
         this.openReportIfNecessary = this.openReportIfNecessary.bind(this);
     }
 
@@ -289,8 +289,8 @@ class ReportActionsView extends React.Component {
         Report.readOldestAction(this.props.report.reportID, oldestActionSequenceNumber);
     }
 
-    scrollToBottomAndMarkReportAsRead() {
-        ReportScrollManager.scrollToBottom();
+    scrollToUnreadMsgAndMarkReportAsRead() {
+        ReportScrollManager.scrollToIndex({animated: true, index: this.props.report.maxSequenceNumber - this.state.newMarkerSequenceNumber}, false);
         Report.readNewestAction(this.props.report.reportID);
     }
 
@@ -349,7 +349,7 @@ class ReportActionsView extends React.Component {
                     <>
                         <FloatingMessageCounter
                             isActive={this.state.isFloatingMessageCounterVisible && this.state.newMarkerSequenceNumber > 0}
-                            onClick={this.scrollToBottomAndMarkReportAsRead}
+                            onClick={this.scrollToUnreadMsgAndMarkReportAsRead}
                         />
                         <ReportActionsList
                             report={this.props.report}
