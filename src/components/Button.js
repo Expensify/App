@@ -181,7 +181,7 @@ class Button extends Component {
         const textComponent = (
             <Text
                 selectable={false}
-                style={this.props.themed([
+                style={[
                     this.props.isLoading && styles.opacity0,
                     styles.pointerEventsNone,
                     styles.buttonText,
@@ -191,7 +191,7 @@ class Button extends Component {
                     this.props.success && styles.buttonSuccessText,
                     this.props.danger && styles.buttonDangerText,
                     ...this.props.textStyles,
-                ])}
+                ]}
             >
                 {this.props.text}
             </Text>
@@ -199,12 +199,12 @@ class Button extends Component {
 
         if (this.props.icon) {
             return (
-                <View style={this.props.themed([styles.justifyContentBetween, styles.flexRow])}>
-                    <View style={this.props.themed([styles.alignItemsCenter, styles.flexRow])}>
-                        <View style={this.props.themed([
+                <View style={[styles.justifyContentBetween, styles.flexRow]}>
+                    <View style={[styles.alignItemsCenter, styles.flexRow]}>
+                        <View style={[
                             styles.mr1,
                             ...this.props.iconStyles,
-                        ])}
+                        ]}
                         >
                             <Icon
                                 src={this.props.icon}
@@ -230,6 +230,7 @@ class Button extends Component {
     }
 
     render() {
+        console.log('I rendered');
         return (
             <Pressable
                 onPress={(e) => {
@@ -251,10 +252,10 @@ class Button extends Component {
                 onPressIn={this.props.onPressIn}
                 onPressOut={this.props.onPressOut}
                 disabled={this.props.isLoading || this.props.isDisabled}
-                style={this.props.themed([
+                style={[
                     this.props.isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
                     ...this.additionalStyles,
-                ])}
+                ]}
                 nativeID={this.props.nativeID}
             >
                 {({pressed, hovered}) => {
@@ -262,28 +263,15 @@ class Button extends Component {
                     return (
                         <OpacityView
                             shouldDim={pressed}
-                            style={this.props.themed([
+                            style={   [
                                 styles.button,
-                                this.props.small ? styles.buttonSmall : undefined,
-                                this.props.medium ? styles.buttonMedium : undefined,
-                                this.props.large ? styles.buttonLarge : undefined,
-                                this.props.success ? styles.buttonSuccess : undefined,
-                                this.props.danger ? styles.buttonDanger : undefined,
-                                (this.props.isDisabled && this.props.success) ? styles.buttonSuccessDisabled : undefined,
-                                (this.props.isDisabled && this.props.danger) ? styles.buttonDangerDisabled : undefined,
-                                (this.props.isDisabled && !this.props.danger && !this.props.success) ? styles.buttonDisable : undefined,
-                                (this.props.success && activeAndHovered) ? styles.buttonSuccessHovered : undefined,
-                                (this.props.danger && activeAndHovered) ? styles.buttonDangerHovered : undefined,
-                                this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
-                                this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
-                                ...this.props.innerStyles,
-                            ])}
+                            ]}
                         >
                             {this.renderContent()}
                             {this.props.isLoading && (
                                 <ActivityIndicator
                                     color={(this.props.success || this.props.danger) ? themeColors.textReversed : themeColors.text}
-                                    style={this.props.themed([styles.pAbsolute, styles.l0, styles.r0])}
+                                    style={[styles.pAbsolute, styles.l0, styles.r0]}
                                 />
                             )}
                         </OpacityView>

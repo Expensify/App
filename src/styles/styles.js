@@ -20,6 +20,24 @@ import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyl
 import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
+import darkGreen from '../styles/themes/darkGreen';
+import light from '../styles/themes/default';
+import Onyx from "react-native-onyx";
+import ONYXKEYS from '../ONYXKEYS';
+
+let useDarkTheme = null;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_THEME,
+    callback: (val) => {
+        console.log('wassup');
+        useDarkTheme = val;
+    },
+});
+
+function getThemedColor(styleKey) {
+    console.log('useDarkTheme in syles.js: ', useDarkTheme);
+    return useDarkTheme ? darkGreen[styleKey] : light[styleKey];
+}
 
 const picker = {
     backgroundColor: 'transparent',
@@ -139,6 +157,14 @@ const webViewStyles = {
 };
 
 const styles = {
+    button: {
+        backgroundColor: getThemedColor('buttonDefaultBG'),
+        borderRadius: variables.componentBorderRadiusNormal,
+        height: variables.componentSizeLarge,
+        justifyContent: 'center',
+        ...spacing.ph3,
+    },
+
     // Add all of our utility and helper styles
     ...spacing,
     ...sizing,
@@ -340,13 +366,7 @@ const styles = {
         borderRadius: variables.componentBorderRadiusNormal,
     },
 
-    button: {
-        backgroundColor: 'themeColors.buttonDefaultBG',
-        borderRadius: variables.componentBorderRadiusNormal,
-        height: variables.componentSizeLarge,
-        justifyContent: 'center',
-        ...spacing.ph3,
-    },
+   
 
     buttonText: {
         color: themeColors.heading,
