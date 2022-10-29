@@ -10,7 +10,7 @@ import Permissions from '../../../../libs/Permissions';
 import * as Policy from '../../../../libs/actions/Policy';
 import PopoverMenu from '../../../../components/PopoverMenu';
 import CONST from '../../../../CONST';
-import FAB from '../../../../components/FAB';
+import FloatingActionButton from '../../../../components/FloatingActionButton';
 import compose from '../../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import withWindowDimensions from '../../../../components/withWindowDimensions';
@@ -142,7 +142,7 @@ class PopoverModal extends React.Component {
                         ] : []),
                     ]}
                 />
-                <FAB
+                <FloatingActionButton
                     accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
                     accessibilityRole="button"
                     isActive={this.state.isCreateMenuActive}
