@@ -2174,7 +2174,7 @@ const styles = {
     },
 
     iouPreviewBoxLoading: {
-        minHeight: 47,
+        minHeight: 94,
         width: '100%',
     },
 
