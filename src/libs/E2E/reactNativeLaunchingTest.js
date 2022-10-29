@@ -14,10 +14,14 @@ Performance.markEnd('regularAppStart');
 
 import E2EConfig from '../../../e2e/config';
 import E2EClient from './client';
+import LaunchArguments from "./launchArgs";
 
 console.debug('==========================');
 console.debug('==== Running e2e test ====');
 console.debug('==========================');
+
+const launchArgs = LaunchArguments.value();
+console.debug('[E2E] launchArgs', launchArgs);
 
 // import your test here, define its name and config first in e2e/config.js
 const tests = {
