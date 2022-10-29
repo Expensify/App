@@ -176,22 +176,22 @@ function setUpPoliciesAndNavigate(session, currentPath) {
         return;
     }
 
-    let exitTo;
-    try {
-        const url = new URL(currentPath, CONST.NEW_EXPENSIFY_URL);
-        exitTo = url.searchParams.get('exitTo');
-    } catch (error) {
-        // URLSearchParams is unsupported on iOS so we catch th error and
-        // silence it here since this is primarily a Web flow
-        return;
-    }
+    const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
+    const url = new URL(currentUrl);
+    const exitTo = url.searchParams.get('exitTo');
+
+    // Approved Accountants and Guides can enter a flow where they make a workspace for other users,
+    // and those are passed as a search parameter when using transition links
+    const ownerEmail = url.searchParams.get('ownerEmail');
+    const makeMeAdmin = url.searchParams.get('makeMeAdmin');
+    const policyName = url.searchParams.get('policyName');
 
     const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentPath, session.email);
     const shouldCreateFreePolicy = !isLoggingInAsNewUser
                         && Str.startsWith(currentPath, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
                         && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        Policy.createAndGetPolicyList();
+        Policy.createWorkspace(ownerEmail, makeMeAdmin, policyName);
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
