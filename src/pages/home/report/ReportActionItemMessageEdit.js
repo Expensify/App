@@ -80,9 +80,16 @@ class ReportActionItemMessageEdit extends React.Component {
         this.selection = {
             start: draftMessage.length,
             end: draftMessage.length,
-            isFocused: false,
         };
         this.draft = draftMessage;
+
+        this.state = {
+            isFocused: false,
+
+            // if this is undefined it means we haven't exceeded the max comment length
+            // if it is a number it means we have exceeded the max comment length and the number is the total length
+            exceededContentLength: this.draft.length > CONST.MAX_COMMENT_LENGTH ? this.draft.length : undefined,
+        };
     }
 
     /**
@@ -118,6 +125,14 @@ class ReportActionItemMessageEdit extends React.Component {
         } else {
             this.debouncedSaveDraft(this.props.action.message[0].html);
         }
+
+        const hasExceededMaxCommentLength = this.draft.length > CONST.MAX_COMMENT_LENGTH;
+        const exceededContentLength = hasExceededMaxCommentLength ? this.draft.length : undefined;
+        if (this.state.exceededContentLength !== exceededContentLength) {
+            this.setState({
+                exceededContentLength,
+            });
+        }
     }
 
     /**
@@ -145,7 +160,7 @@ class ReportActionItemMessageEdit extends React.Component {
      */
     publishDraft() {
         // Do nothing if draft exceed the character limit
-        if (this.state.draft.length > CONST.MAX_COMMENT_LENGTH) {
+        if (this.draft.length > CONST.MAX_COMMENT_LENGTH) {
             return;
         }
 
@@ -204,7 +219,7 @@ class ReportActionItemMessageEdit extends React.Component {
     }
 
     render() {
-        const hasExceededMaxCommentLength = this.state.draft.length > CONST.MAX_COMMENT_LENGTH;
+        const hasExceededMaxCommentLength = this.state.exceededContentLength != null;
         return (
             <View style={styles.chatItemMessage}>
                 <View
@@ -268,7 +283,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         onPress={this.publishDraft}
                         text={this.props.translate('common.saveChanges')}
                     />
-                    <ExceededCommentLength commentLength={this.state.draft.length} />
+                    <ExceededCommentLength commentLength={this.state.exceededContentLength || 0} />
                 </View>
             </View>
         );
