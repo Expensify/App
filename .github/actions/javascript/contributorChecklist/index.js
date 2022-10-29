@@ -138,11 +138,16 @@ function getAllComments() {
 }
 
 function countCheckedBoxes(string) {
-    return [...string.toLowerCase().matchAll(/\[x\]/g)].length;
+    return string.toLowerCase().match(/\[x\]/g).length;
+}
+
+function getChecklistSectionOfPullRequestBody(pullRequestBody) {
+    const processed = pullRequestBody.match(/#### PR Author Checklist(.*)<h4>PR Reviewer Checklist<\/h4>/);
+    return processed ? processed[1] : '';
 }
 
 getPullRequestBody()
-    .then(pullRequestBody => combinedData.push(pullRequestBody))
+    .then(pullRequestBody => combinedData.push(getChecklistSectionOfPullRequestBody(pullRequestBody)))
     .then(() => getAllReviewComments())
     .then(reviewComments => combinedData.push(...reviewComments))
     .then(() => getAllComments())
@@ -154,7 +159,7 @@ getPullRequestBody()
         const authorChecklistNumber = countCheckedBoxes(completedAuthorChecklist);
         const reviewerChecklistNumber = countCheckedBoxes(completedReviewerChecklist);
 
-        // Once we've gathered all the data, loop through each comment and look to see if it contains a completed checklist
+        // Once we've gathered all the data, loop through each comment and look to see if it contains enough completed checkboxes
         for (let i = 0; i < combinedData.length; i++) {
             const comment = combinedData[i];
             const commentChecklistNumber = countCheckedBoxes(comment);
