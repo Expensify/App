@@ -88,7 +88,7 @@ class ReportActionItemMessageEdit extends React.Component {
 
             // if this is undefined it means we haven't exceeded the max comment length
             // if it is a number it means we have exceeded the max comment length and the number is the total length
-            exceededContentLength: this.draft.length > CONST.MAX_COMMENT_LENGTH ? this.draft.length : undefined,
+            exceededCommentLength: this.draft.length > CONST.MAX_COMMENT_LENGTH ? this.draft.length : undefined,
         };
     }
 
@@ -127,10 +127,10 @@ class ReportActionItemMessageEdit extends React.Component {
         }
 
         const hasExceededMaxCommentLength = this.draft.length > CONST.MAX_COMMENT_LENGTH;
-        const exceededContentLength = hasExceededMaxCommentLength ? this.draft.length : undefined;
-        if (this.state.exceededContentLength !== exceededContentLength) {
+        const exceededCommentLength = hasExceededMaxCommentLength ? this.draft.length : undefined;
+        if (this.state.exceededCommentLength !== exceededCommentLength) {
             this.setState({
-                exceededContentLength,
+                exceededCommentLength,
             });
         }
     }
@@ -219,7 +219,7 @@ class ReportActionItemMessageEdit extends React.Component {
     }
 
     render() {
-        const hasExceededMaxCommentLength = this.state.exceededContentLength != null;
+        const hasExceededMaxCommentLength = this.state.exceededCommentLength != null;
         return (
             <View style={styles.chatItemMessage}>
                 <View
@@ -283,7 +283,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         onPress={this.publishDraft}
                         text={this.props.translate('common.saveChanges')}
                     />
-                    <ExceededCommentLength commentLength={this.state.exceededContentLength || 0} />
+                    <ExceededCommentLength commentLength={this.state.exceededCommentLength || 0} />
                 </View>
             </View>
         );
