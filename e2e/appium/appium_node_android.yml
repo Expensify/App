@@ -68,7 +68,7 @@ phases:
       - echo "Start Appium Node test"
       # Enter the command below to start the tests . The comamnd should be similar to what you use to run the tests locally.
       # For e.g. assuming you run your tests locally using command "node YOUR_TEST_FILENAME.js.", enter the same command below:
-      - node runner.js
+      - node runTestAndGetResults.js
 
   # The post test phase includes are commands that are run after your tests are executed.
   post_test:
