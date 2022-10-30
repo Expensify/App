@@ -34,6 +34,11 @@ const args = process.argv.slice(2);
 
 const baselineBranch = process.env.baseline || DEFAULT_BASELINE_BRANCH;
 
+// TODO: Run tests with runTestAndGetResults
+// TODO: add option to run tests locally with appium, or do a cloud run with AWS device farm
+// TODO: get the results from cloudfarm back into this script
+// TODO: process results as usual
+
 // Clear all files from previous jobs
 try {
     fs.rmSync(OUTPUT_DIR, {recursive: true, force: true});
