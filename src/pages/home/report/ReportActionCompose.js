@@ -205,6 +205,9 @@ class ReportActionCompose extends React.Component {
     }
 
     setIsFullComposerAvailable(isFullComposerAvailable) {
+        if (this.state.isFullComposerAvailable === isFullComposerAvailable) {
+            return;
+        }
         this.setState({isFullComposerAvailable});
     }
 
@@ -304,6 +307,9 @@ class ReportActionCompose extends React.Component {
         let maxLines = this.props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
         if (this.props.isComposerFullSize) {
             maxLines = CONST.COMPOSER.MAX_LINES_FULL;
+        }
+        if (this.state.maxLines === maxLines) {
+            return;
         }
         this.setState({maxLines});
     }
