@@ -3,13 +3,13 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
-import {getThemedStyles} from '../styles/styles';
+import * as Theme from '../libs/Theme';
 
 const ThemeContext = createContext(null);
 
 const withThemePropTypes = {
     themed: PropTypes.func.isRequired,
-};
+}
 
 const themeProviderPropTypes = {
     /** The user's preferred locale e.g. 'en', 'es-ES' */
@@ -24,9 +24,19 @@ const themeProviderDefaultProps = {
 };
 
 class ThemeContextProvider extends React.Component {
+    getContextValue () {
+        return {
+            themed: this.themed.bind(this),
+        }
+    }
+
+    themed(unthemedStyles) {
+        return Theme.themed(unthemedStyles);
+    }
+
     render() {
         return (
-            <ThemeContext.Provider value={getThemedStyles(this.props.preferredTheme)}>
+            <ThemeContext.Provider value={this.getContextValue()}>
                 {this.props.children}
             </ThemeContext.Provider>
         );
@@ -48,7 +58,7 @@ export default function withTheme(WrappedComponent) {
     const WithTheme = forwardRef((props, ref) => (
         <ThemeContext.Consumer>
             {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-            {themeUtils => <WrappedComponent {...themeUtils} {...props} ref={ref} />}
+            {themeUtils => <WrappedComponent {...themeUtils} {...props} ref={ref}/>}
         </ThemeContext.Consumer>
     ));
 

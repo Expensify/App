@@ -14,7 +14,6 @@ import TestToolRow from './TestToolRow';
 import networkPropTypes from './networkPropTypes';
 import compose from '../libs/compose';
 import {withNetwork} from './OnyxProvider';
-import withTheme from '../components/withThemeColors';
 
 const propTypes = {
     /** User object in Onyx */
@@ -35,7 +34,7 @@ const defaultProps = {
 
 const TestToolMenu = props => (
     <>
-        <Text style={[props.formLabel]} numberOfLines={1}>
+        <Text style={[styles.formLabel]} numberOfLines={1}>
             Test Preferences
         </Text>
 
@@ -82,7 +81,6 @@ TestToolMenu.displayName = 'TestToolMenu';
 
 export default compose(
     withNetwork(),
-    withTheme,
     withOnyx({
         user: {
             key: ONYXKEYS.USER,

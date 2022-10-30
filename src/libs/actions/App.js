@@ -94,7 +94,9 @@ function setLocale(locale) {
 }
 
 function setTheme(darkModeOn) {
+    console.log('setting onyx key for dark mode: ', darkModeOn)
     Onyx.merge(ONYXKEYS.NVP_PREFERRED_THEME, darkModeOn);
+    return;
 }
 
 function setSidebarLoaded() {

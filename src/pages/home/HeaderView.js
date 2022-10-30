@@ -75,7 +75,7 @@ const HeaderView = (props) => {
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     const colorScheme = Appearance.getColorScheme();
-    const background = colorScheme === 'dark' ? styles.bgDark : styles.bgTransparent;
+    const background = colorScheme === 'dark' ? styles.bgDark : styles.bgTransparent; 
 
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
