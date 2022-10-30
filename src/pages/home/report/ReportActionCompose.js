@@ -145,6 +145,11 @@ class ReportActionCompose extends React.Component {
             isMenuVisible: false,
             maxLines: props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES,
             conciergePlaceholderRandomIndex: _.random(this.props.translate('reportActionCompose.conciergePlaceholderOptions').length - 1),
+
+            // if this is undefined it means we haven't exceeded the max comment length
+            // if it is a number it means we have exceeded the max comment length and the number is the total length
+            // we only want to set this value when necessary to avoid re-renders
+            exceededCommentLength: this.comment.length > CONST.MAX_COMMENT_LENGTH ? this.comment.length : undefined,
         };
     }
 
@@ -417,6 +422,12 @@ class ReportActionCompose extends React.Component {
         if (newComment) {
             this.debouncedBroadcastUserIsTyping();
         }
+
+        const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
+        const exceededCommentLength = hasExceededMaxCommentLength ? this.comment.length : undefined;
+        if (this.state.exceededCommentLength !== exceededCommentLength) {
+            this.setState({exceededCommentLength});
+        }
     }
 
     /**
@@ -522,7 +533,7 @@ class ReportActionCompose extends React.Component {
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
         const inputPlaceholder = this.getInputPlaceholder();
-        const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
+        const hasExceededMaxCommentLength = this.state.exceededCommentLength != null;
 
         return (
             <View style={[
@@ -714,7 +725,7 @@ class ReportActionCompose extends React.Component {
                 >
                     {!this.props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                     <ReportTypingIndicator reportID={this.props.reportID} />
-                    <ExceededCommentLength commentLength={this.comment.length} />
+                    <ExceededCommentLength commentLength={this.state.exceededCommentLength || 0} />
                 </View>
             </View>
         );
