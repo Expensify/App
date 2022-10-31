@@ -312,6 +312,9 @@ function updateAutomaticTimezone(timezone) {
 }
 
 /**
+ * Updates user's 'selected' timezone, then navigates to the
+ * initial Timezone page.
+ *
  * @param {String} selectedTimezone
  */
 function updateSelectedTimezone(selectedTimezone) {
