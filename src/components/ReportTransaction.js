@@ -45,7 +45,6 @@ class ReportTransaction extends Component {
     }
 
     cancelMoneyRequest() {
-        console.log("Cancel button pressed");
         IOU.cancelMoneyRequest(
             this.props.chatReportID,
             this.props.iouReportID,
@@ -59,7 +58,7 @@ class ReportTransaction extends Component {
             <OfflineWithFeedback
                 onClose={() => {
                     if (this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                        ReportActions.deleteOptimisticReportAction(this.props.chatReportID, this.props.action.clientID);
+                        ReportActions.deleteOptimisticReportAction(this.props.chatReportID, this.props.action.sequenceNumber);
                     } else {
                         ReportActions.clearReportActionErrors(this.props.chatReportID, this.props.action.sequenceNumber);
                     }
