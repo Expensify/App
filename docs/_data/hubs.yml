@@ -8,12 +8,6 @@
           title: The Free Plan
 - href: request-money
   title: Request money
-  stages:
-    - href: request-money
-      title: Request money
-      articles:
-        - href: SmartScan
-          title: SmartScan
 - href: other
   title: Other
   stages:
