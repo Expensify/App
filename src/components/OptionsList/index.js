@@ -34,11 +34,11 @@ class OptionsList extends Component {
         document.removeEventListener('touchend', this.touchEnd);
     }
 
-    userTouchStart() {
+    touchStart() {
         this.isScreenTouched = true;
     }
 
-    userTouchEnd() {
+    touchEnd() {
         this.isScreenTouched = false;
     }
 
