@@ -466,7 +466,9 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
                 [optimisticReportAction.sequenceNumber]: {
                     ...optimisticReportAction,
                     pendingAction: null,
-                    error: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                    errors: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                    },
                 },
             },
         },
@@ -480,8 +482,6 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
     API.write('CancelMoneyRequest', {
         transactionID,
         iouReportID: updatedIOUReport.reportID,
-
-        // @TODO: add comment
         comment: '',
         clientID: optimisticReportAction.sequenceNumber,
         cancelMoneyRequestReportActionID: optimisticReportAction.reportActionID,
