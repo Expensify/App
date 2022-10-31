@@ -554,6 +554,10 @@ button {
     }
 }
 
+.get-help {
+    margin-top: auto;
+}
+
 .floating-concierge-button {
     bottom: 2rem;
     right: 2rem;
@@ -572,8 +576,4 @@ button {
     @media screen and (max-width: $breakpoint-tablet) {
         overflow: hidden;
     }
-}
-
-.get-help {
-    margin-top: auto;
 }
