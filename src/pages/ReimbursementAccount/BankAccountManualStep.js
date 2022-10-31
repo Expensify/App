@@ -97,6 +97,8 @@ class BankAccountManualStep extends React.Component {
                         defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'routingNumber', '')}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableInputs}
+                        autoFocus
+                        shouldDelayFocus
                         shouldSaveDraft
                     />
                     <TextInput
