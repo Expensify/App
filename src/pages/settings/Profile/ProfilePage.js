@@ -78,8 +78,8 @@ class ProfilePage extends Component {
         this.pronouns = props.currentUserPersonalDetails.pronouns;
         this.state = {
             logins: this.getLogins(LoginUtils.convertLoginListToObject(props.loginList)),
-            selectedTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
-            isAutomaticTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
+            selectedTimezone: this.getSelectedTimezoneFromProps(props),
+            isAutomaticTimezone: this.isAutomaticTimezoneFromProps(props),
             hasSelfSelectedPronouns: !_.isEmpty(props.currentUserPersonalDetails.pronouns) && !props.currentUserPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
         };
 
@@ -97,7 +97,18 @@ class ProfilePage extends Component {
         const currentLoginList = LoginUtils.convertLoginListToObject(this.props.loginList);
         const prevLoginList = LoginUtils.convertLoginListToObject(prevProps.loginList);
         if (_.keys(currentLoginList).length !== _.keys(prevLoginList).length) {
-            stateToUpdate = {...stateToUpdate, logins: this.getLogins(currentLoginList)};
+            stateToUpdate.logins = this.getLogins(currentLoginList);
+        }
+
+        const oldSelectedTimezone = this.getSelectedTimezoneFromProps(prevProps);
+        const newSelectedTimezone = this.getSelectedTimezoneFromProps(this.props);
+        if (oldSelectedTimezone !== newSelectedTimezone) {
+            stateToUpdate.selectedTimezone = newSelectedTimezone;
+        }
+        const oldIsAutomaticTimezone = this.isAutomaticTimezoneFromProps(prevProps);
+        const newIsAutomaticTimezone = this.isAutomaticTimezoneFromProps(this.props);
+        if (oldIsAutomaticTimezone !== newIsAutomaticTimezone) {
+            stateToUpdate.isAutomaticTimezone = newIsAutomaticTimezone;
         }
 
         if (_.isEmpty(stateToUpdate)) {
@@ -106,6 +117,15 @@ class ProfilePage extends Component {
 
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState(stateToUpdate);
+    }
+
+    /**
+     *
+     * @param {Object} props Is of type propTypes
+     * @returns {String}
+     */
+    getSelectedTimezoneFromProps(props) {
+        return lodashGet(props.currentUserPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected);
     }
 
     /**
@@ -166,6 +186,15 @@ class ProfilePage extends Component {
             phone: {},
             email: {},
         });
+    }
+
+    /**
+     *
+     * @param {Object} props Is of type propTypes
+     * @returns {Boolean}
+     */
+    isAutomaticTimezoneFromProps(props) {
+        return lodashGet(props.currentUserPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic);
     }
 
     /**
