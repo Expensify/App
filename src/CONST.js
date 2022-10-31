@@ -12,6 +12,7 @@ const CONST = {
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
+    ANIMATION_IN_TIMING: 100,
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
@@ -504,6 +505,7 @@ const CONST = {
             3: 100,
         },
     },
+    EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EMAIL: {
         CONCIERGE: 'concierge@expensify.com',
         HELP: 'help@expensify.com',
@@ -704,6 +706,7 @@ const CONST = {
         LARGE: 'large',
         DEFAULT: 'default',
         SMALL: 'small',
+        SMALLER: 'smaller',
         SUBSCRIPT: 'subscript',
         SMALL_SUBSCRIPT: 'small-subscript',
     },
