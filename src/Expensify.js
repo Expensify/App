@@ -67,9 +67,11 @@ const propTypes = {
         roomName: PropTypes.string,
     }),
 
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
+
     ...withLocalizePropTypes,
     ...environmentPropTypes,
-    ...networkPropTypes,
 };
 
 const defaultProps = {
