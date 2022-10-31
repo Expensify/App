@@ -39,7 +39,6 @@ function process() {
     }
 
     const task = _.reduce(persistedRequests, (previousRequest, request) => previousRequest.then(() => {
-        console.log('>>>> retrying', request.command);
         currentRequest = Request.processWithMiddleware(request, true);
         pendingRequests.push(currentRequest);
         return currentRequest;
@@ -138,7 +137,6 @@ function getCurrentRequest() {
 }
 
 function getIsDonePromise() {
-    console.log('>>>> getIsDonePromise, isSequentialQueueRunning:', isSequentialQueueRunning);
     return isDonePromise;
 }
 

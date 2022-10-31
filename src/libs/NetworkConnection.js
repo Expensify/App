@@ -5,7 +5,6 @@ import Log from './Log';
 import * as NetworkActions from './actions/Network';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
-import * as SequentialQueue from './Network/SequentialQueue';
 
 let isOffline = false;
 let hasPendingNetworkCheck = false;
