@@ -273,7 +273,12 @@ const OptionRow = (props) => {
                                 )}
                                 {Boolean(props.option.customIcon) && (
                                     <View>
-                                        <Icon src={props.option.customIcon.src} height={16} width={16} fill={props.option.customIcon.color} />
+                                        <Icon
+                                            src={lodashGet(props.option, 'customIcon.src', '')}
+                                            height={16}
+                                            width={16}
+                                            fill={lodashGet(props.option, 'customIcon.color')}
+                                        />
                                     </View>
                                 )}
                             </View>
