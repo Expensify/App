@@ -653,10 +653,10 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
         amount,
         moneyRequestAction.originalMessage.currency,
         moneyRequestAction.originalMessage.comment,
+        [],
         '',
         transactionID,
         iouReportID,
-        '',
     );
 
     const currentUserEmail = optimisticReportAction.actorEmail;
