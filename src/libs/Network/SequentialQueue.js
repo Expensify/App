@@ -65,6 +65,7 @@ function flush() {
             Onyx.disconnect(connectionID);
             process()
                 .finally(() => {
+                    // console.log(">>>> process.finally");
                     isSequentialQueueRunning = false;
                     resolveIsReadyPromise();
                     currentRequest = null;
@@ -81,7 +82,7 @@ function isRunning() {
 }
 
 // Flush the queue when the connection resumes
-NetworkStore.onReconnection(flush);
+// NetworkStore.onReconnection(flush);
 
 /**
  * @param {Object} request
