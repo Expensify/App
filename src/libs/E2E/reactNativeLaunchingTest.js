@@ -14,7 +14,7 @@ Performance.markEnd('regularAppStart');
 
 import E2EConfig from '../../../e2e/config';
 import E2EClient from './client';
-import LaunchArguments from "./launchArgs";
+import LaunchArguments from './launchArgs';
 
 console.debug('==========================');
 console.debug('==== Running e2e test ====');
@@ -39,21 +39,16 @@ const appReady = new Promise((resolve) => {
     });
 });
 
-E2EClient.getTestConfig().then((config) => {
-    const test = tests[config.name];
-    if (!test) {
-        // instead of throwing, report the error to the server, which is better for DX
-        return E2EClient.submitTestResults({
-            name: config.name,
-            error: `Test '${config.name}' not found`,
-        });
-    }
-    console.debug(`[E2E] Configured for test ${config.name}. Waiting for app to become ready`);
+const testName = E2EClient.getTestName();
+const test = tests[testName];
+if (!test) {
+    throw new Error(`Test '${testName}' not found`);
+}
+console.debug(`[E2E] Configured for test ${testName}. Waiting for app to become ready`);
 
-    appReady.then(() => {
-        console.debug('[E2E] App is ready, running test…');
-        Performance.measureFailSafe('appStartedToReady', 'regularAppStart');
-        test();
-    });
+appReady.then(() => {
+    console.debug('[E2E] App is ready, running test…');
+    Performance.measureFailSafe('appStartedToReady', 'regularAppStart');
+    test();
 });
 

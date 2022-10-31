@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import E2ELogin from '../actions/e2eLogin';
 import Performance from '../../Performance';
 import E2EClient from '../client';
@@ -21,18 +20,7 @@ const test = () => {
         // collect performance metrics and submit
         const metrics = Performance.getPerformanceMetrics();
 
-        // underscore promises in sequence without for-loop
-        Promise.all(
-            _.map(metrics, metric => E2EClient.submitTestResults({
-                name: metric.name,
-                duration: metric.duration,
-            })),
-        ).then(() => {
-            console.debug('[E2E] Done, exiting…');
-            E2EClient.submitTestDone();
-        }).catch((err) => {
-            console.debug('[E2E] Error while submitting test results:', err);
-        });
+        E2EClient.submitTestResults(metrics);
     });
 };
 

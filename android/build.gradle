@@ -1,5 +1,18 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
+allprojects {
+  repositories {
+      all { ArtifactRepository repo ->
+          if (repo.url.toString().startsWith("https://jcenter.bintray.com/")) {
+              project.logger.warn "Repository ${repo.url} removed."
+              remove repo
+              mavenCentral()
+          }
+      }
+  }
+}
+
+
 buildscript {
     ext {
         minSdkVersion = 21
@@ -21,8 +34,8 @@ buildscript {
     }
     repositories {
         google()
-        jcenter()
         mavenCentral()
+        jcenter()
     }
     dependencies {
         classpath("com.android.tools.build:gradle:7.2.1")

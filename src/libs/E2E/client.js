@@ -1,45 +1,33 @@
-import Routes from '../../../e2e/server/routes';
-import Config from '../../../e2e/config';
+import {Alert} from 'react-native';
+import LaunchArguments from './launchArgs';
 
-const SERVER_ADDRESS = `http://localhost:${Config.SERVER_PORT}`;
+const launchArgs = LaunchArguments.value();
+console.debug('[E2E] launchArgs', launchArgs);
 
 /**
  * Submits a test result to the server.
  * Note: a test can have multiple test results.
  *
  * @param {TestResult} testResult
- * @returns {Promise<void>}
  */
-const submitTestResults = testResult => fetch(`${SERVER_ADDRESS}${Routes.testResults}`, {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(testResult),
-}).then((res) => {
-    if (res.statusCode === 200) {
-        console.debug(`[E2E] Test result '${testResult.name}' submitted successfully`);
-        return;
-    }
-    const errorMsg = `Test result submission failed with status code ${res.statusCode}`;
-    res.json().then((responseText) => {
-        throw new Error(`${errorMsg}: ${responseText}`);
-    }).catch(() => {
-        throw new Error(errorMsg);
-    });
-});
+const submitTestResults = (testResult) => {
+    Alert.alert('RESULTS_ALERT', `RESULTS_STR:${JSON.stringify(testResult)}`);
+};
 
-const submitTestDone = () => fetch(`${SERVER_ADDRESS}${Routes.testDone}`);
+// TODO: remove
+const submitTestDone = () => {
+    // throw new Error('"submitTestDone" Not implemented yet');
+    console.debug('noop, not needed anymore');
+    // Alert.alert('RESULTS_ALERT', 'RESULTS_STR:{}');
+};
 
 /**
  * @returns {Promise<TestConfig>}
  */
-const getTestConfig = () => fetch(`${SERVER_ADDRESS}${Routes.testConfig}`)
-    .then(res => res.json())
-    .then(config => config);
+const getTestName = () => launchArgs.testName;
 
 export default {
     submitTestResults,
     submitTestDone,
-    getTestConfig,
+    getTestName,
 };

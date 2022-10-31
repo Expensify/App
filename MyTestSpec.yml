@@ -1,0 +1,44 @@
+version: 0.1
+
+# Phases are collection of commands that get executed on Device Farm.
+phases:
+  # The install phase includes commands that install dependencies that your tests use.
+  # Default dependencies for testing frameworks supported on Device Farm are already installed.
+  install:
+    commands:
+      # By default the Node.js version installed is 11.4.0, however we enable you to change it
+      # using the Node version manager (nvm). An example "nvm" command below changes the version to 16.15.1
+      - export NVM_DIR=$HOME/.nvm
+      - . $NVM_DIR/nvm.sh
+      - nvm install 16.15.1
+
+      - ls -la
+
+      - echo "Clone repo"
+      - git clone https://github.com/margelo/expensify-app-fork.git Git-App
+      - cd $DEVICEFARM_TEST_PACKAGE_PATH/Git-App
+      - git checkout andrew-e2e-fork
+      - ls -la
+      - npm install
+
+      # Bundle install doesn't work so install fastlane manually
+      - gem install fastlane
+
+      - mkdir -p android/app/build/outputs/apk/e2eRelease/
+      - cp ../app-e2eRelease.apk android/app/build/outputs/apk/e2eRelease/
+
+  # The test phase includes commands that start your test suite execution.
+  test:
+    commands:
+      - ls -la
+      - echo "Starting tests"
+      - baseline=andrew-e2e-fork npm run test:e2e -- --skipInstallDeps --skipBuild --verbose
+
+
+# The artifacts phase lets you specify the location where your tests logs, device logs will be stored.
+# And also let you specify the location of your test logs and artifacts which you want to be collected by Device Farm.
+# These logs and artifacts will be available through ListArtifacts API in Device Farm.
+artifacts:
+  # By default, Device Farm will collect your artifacts from following directories
+  - $DEVICEFARM_LOG_DIR
+  - $DEVICEFARM_TEST_PACKAGE_PATH/Git-App/e2e/.results

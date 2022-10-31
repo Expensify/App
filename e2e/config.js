@@ -17,15 +17,15 @@ module.exports = {
     SERVER_PORT: 3000,
 
     // The amount of times a test should be executed for average performance metrics
-    RUNS: 30,
+    RUNS: 4,
 
     DEFAULT_BASELINE_BRANCH: 'main',
 
     // The amount of outliers to remove from a dataset before calculating the average
-    DROP_WORST: 8,
+    DROP_WORST: 0,
 
     // The amount of runs that should happen without counting test results
-    WARM_UP_RUNS: 3,
+    WARM_UP_RUNS: 0,
 
     OUTPUT_DIR,
 
@@ -36,7 +36,7 @@ module.exports = {
     LOG_FILE: `${OUTPUT_DIR}/debug.log`,
 
     // The time in milliseconds after which an operation fails due to timeout
-    INTERACTION_TIMEOUT: 30_000,
+    INTERACTION_TIMEOUT: 60_000,
 
     TEST_NAMES,
 

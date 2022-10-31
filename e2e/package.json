@@ -1,0 +1,15 @@
+{
+  "name": "e2e",
+  "version": "1.0.0",
+  "description": "This directory contains the scripts and configuration files for running the performance regression tests. These tests are called E2E tests because they run the app on a real device (physical or emulated).",
+  "main": "config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "underscore": "^1.13.6",
+    "wd": "^1.14.0"
+  }
+}
