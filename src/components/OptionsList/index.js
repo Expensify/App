@@ -19,7 +19,11 @@ class OptionsList extends Component {
             return;
         }
 
-        // According to this https://github.com/Expensify/App/issues/11801
+        // According to https://github.com/Expensify/App/issues/11801
+        // `keyboardDismissMode` is dismissing the keyboard when the list is scrolled programmatically.
+        // In this listener we will set `isUserScreenTouched` when the user is touching the screen
+        // and `isUserScreenTouched` will be used to decide whether the list was scrolled by the user
+        // or programmatically so that the keyboard would be dismissed only when it was scrolled by the user.
         // the `keyboardDismissMode` is dismiss the keyboard when we scroll programmatically.
         // In this listener we will set `isUserScreenTouched` if the user start/end touching the screen
         // and `isUserScreenTouched` will be used to decide whether the scroll from touching or
