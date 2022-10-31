@@ -1,0 +1,32 @@
+version: 0.1
+
+phases:
+  install:
+    commands:
+      - export NVM_DIR=$HOME/.nvm
+      - . $NVM_DIR/nvm.sh
+      - nvm install 16.15.1
+
+      # Fetch latest code from GitHub
+      - git clone https://github.com/Expensify/App.git Git-App
+      - cd $DEVICEFARM_TEST_PACKAGE_PATH/Git-App
+      - git checkout andrew-aws-df
+      - npm install
+
+      # Bundle install doesn't work so install fastlane manually
+      - gem install fastlane
+
+      # Move APK to correct location
+      - mkdir -p android/app/build/outputs/apk/e2eRelease/
+      - cp ../app-e2eRelease.apk android/app/build/outputs/apk/e2eRelease/
+
+      - PORT=4723
+      - IP_ADDRESS=$(ip -4 addr show eth0 | grep -Po "(?<=inet\s)\d+(\.\d+){3}")
+      - reverse_values="{\"ip_address\":\"$IP_ADDRESS\",\"local_port\":\"$PORT\",\"remote_port\":\"$PORT\"}"
+      - "curl -H \"Content-Type: application/json\" -X POST -d \"$reverse_values\" http://localhost:31007/reverse_forward_tcp"
+      - adb reverse tcp:$PORT tcp:$PORT
+
+  test:
+    commands:
+      - echo "Starting tests"
+      - npm run test:e2e -- --skipInstallDeps --skipBuild
