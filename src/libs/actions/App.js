@@ -136,7 +136,7 @@ function openApp() {
  */
 function reconnectApp() {
     policyIDListExcludingWorkspacesCreatedOfflineLoaded.then(() => {
-        API.read('ReconnectApp', {policyIDList: policyIDListExcludingWorkspacesCreatedOffline}, {
+        API.write('ReconnectApp', {policyIDList: policyIDListExcludingWorkspacesCreatedOffline}, {
             optimisticData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
