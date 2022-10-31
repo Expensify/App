@@ -145,50 +145,18 @@ describe('Sidebar', () => {
                 });
         });
 
-        // @TODO: this test broke after merging the PR which moved hasDraft onto the
-        // report object. Due to the difficulty of debugging setDerivedStateFromProps() (it's called dozens
-        // of times in this simple flow, with many different data formats that is difficult to reason
-        // about), the plan is to refactor and remove setDerivedStateFromProps(). As part of that refactor
-        // the goal will be to have this test running again.
-        // Also, it's important to note that while this test is broken, the UI works correctly when
-        // being tested manually (a real head-scratcher).
-        // test('doesn\'t change the order when adding a draft to the active report', () => {
-        //     // GIVEN the sidebar is rendered in default mode (most recent first)
-        //     // while currently viewing report 1
-        //     const sidebarLinks = getDefaultRenderedSidebarLinks();
-        //
-        //     return waitForPromisesToResolve()
-        //
-        //         // WHEN Onyx is updated with some personal details and multiple reports
-        //         // and a draft on the active report (report 1 is the oldest report, so it's listed at the bottom)
-        //         .then(() => Onyx.multiSet({
-        //             [ONYXKEYS.NVP_PRIORITY_MODE]: 'default',
-        //             [ONYXKEYS.PERSONAL_DETAILS]: fakePersonalDetails,
-        //             [ONYXKEYS.CURRENTLY_VIEWED_REPORTID]: '1',
-        //             [`${ONYXKEYS.COLLECTION.REPORT}1`]: {...fakeReport1, hasDraft: true},
-        //             [`${ONYXKEYS.COLLECTION.REPORT}2`]: fakeReport2,
-        //             [`${ONYXKEYS.COLLECTION.REPORT}3`]: fakeReport3,
-        //             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: fakeReport1Actions,
-        //             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport2Actions,
-        //             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
-        //         }))
-        //
-        //         // THEN there should be a pencil icon and report one should still be the last one
-        //         .then(() => {
-        //             const pencilIcon = sidebarLinks.getAllByAccessibilityHint('Pencil Icon');
-        //             expect(pencilIcon).toHaveLength(1);
-        //
-        //             // console.log(sidebarLinks.toJSON().children[1].children[0].props.data[0].data)
-        //
-        //             // The reports should be in the order 3 > 2 > 1
-        //             const reportOptions = sidebarLinks.getAllByText(/ReportID, (One|Two|Three)/);
-        //             expect(reportOptions).toHaveLength(3);
-        //             expect(reportOptions[2].children[0].props.children).toBe('ReportID, One');
-        //         });
-        // });
-
-        test('reorders the reports to always have the most recently updated one on top', () => {
-            const sidebarLinks = getDefaultRenderedSidebarLinks('1');
+        it('changes the order when adding a draft to the active report', () => {
+            // Given three reports in the recently updated order of 3, 2, 1
+            // And the first report has a draft
+            // And the currently viewed report is the first report
+            const report1 = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
+                hasDraft: true,
+            };
+            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2);
+            const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1);
+            const reportIDFromRoute = report1.reportID;
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(reportIDFromRoute);
             return waitForPromisesToResolve()
 
                 // GIVEN the sidebar is rendered in default mode (most recent first)
@@ -205,10 +173,43 @@ describe('Sidebar', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: fakeReport3Actions,
                 }))
 
-                // WHEN a new comment is added to report 1 (eg. it's lastMessageTimestamp is updated)
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {lastMessageTimestamp: Date.now()}))
+                // Then there should be a pencil icon and report one should be the first one because putting a draft on the active report should change its location
+                // in the ordered list
+                .then(() => {
+                    const pencilIcon = sidebarLinks.getAllByAccessibilityHint('Pencil Icon');
+                    expect(pencilIcon).toHaveLength(1);
 
-                // THEN the order of the reports should be 1 > 3 > 2
+                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    expect(displayNames).toHaveLength(3);
+                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two'); // this has `hasDraft` flag enabled so it will be on top
+                    expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Five, Six');
+                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
+                });
+        });
+
+        it('reorders the reports to always have the most recently updated one on top', () => {
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+            // Given three reports in the recently updated order of 3, 2, 1
+            const report1 = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3);
+            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2);
+            const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1);
+
+            return waitForPromisesToResolve()
+
+                // When Onyx is updated with the data and the sidebar re-renders
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
+                }))
+
+                // When a new comment is added to report 1 (eg. it's lastMessageTimestamp is updated)
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`, {lastMessageTimestamp: Date.now()}))
+
+                // Then the order of the reports should be 1 > 3 > 2
                 //                                         ^--- (1 goes to the front and pushes other two down)
                 .then(() => {
                     const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
