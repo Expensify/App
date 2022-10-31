@@ -1,5 +1,7 @@
 import React from 'react';
 import {render} from '@testing-library/react-native';
+import ComposeProviders from '../../src/components/ComposeProviders';
+import OnyxProvider from '../../src/components/OnyxProvider';
 import {LocaleContextProvider} from '../../src/components/withLocalize';
 import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
 import CONST from '../../src/CONST';
@@ -85,7 +87,6 @@ function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], mi
  * There is one setting not represented here, which is hasOutstandingIOU. In order to test that setting, there must be
  * additional reports in Onyx, so it's being left out for now.
  *
- * @param {boolean} hasComments
  * @param {boolean} isArchived
  * @param {boolean} isUserCreatedPolicyRoom
  * @param {boolean} hasAddWorkspaceError
@@ -94,14 +95,13 @@ function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], mi
  * @param {boolean} hasDraft
  * @returns {Object}
  */
-function getAdvancedFakeReport(hasComments, isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft) {
+function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft) {
     return {
         ...getFakeReport(),
         chatType: isUserCreatedPolicyRoom ? CONST.REPORT.CHAT_TYPE.POLICY_ROOM : CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-        lastMessageTimestamp: hasComments ? Date.now() : 0,
         statusNum: isArchived ? CONST.REPORT.STATUS.CLOSED : 0,
         stateNum: isArchived ? CONST.REPORT.STATE_NUM.SUBMITTED : 0,
-        errorFields: hasAddWorkspaceError ? {errorFields: {addWorkspaceRoom: 'blah'}} : null,
+        errorFields: hasAddWorkspaceError ? {addWorkspaceRoom: 'blah'} : null,
         lastReadSequenceNumber: isUnread ? TEST_MAX_SEQUENCE_NUMBER - 1 : TEST_MAX_SEQUENCE_NUMBER,
         isPinned,
         hasDraft,
@@ -140,7 +140,12 @@ function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
     // and there are a lot of render warnings. It needs to be done like this because normally in
     // our app (App.js) is when the react application is wrapped in the context providers
     return render((
-        <LocaleContextProvider>
+        <ComposeProviders
+            components={[
+                OnyxProvider,
+                LocaleContextProvider,
+            ]}
+        >
             <ErrorBoundary>
                 <SidebarLinks
                     onLinkClick={() => {}}
@@ -155,7 +160,7 @@ function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
                     reportIDFromRoute={reportIDFromRoute}
                 />
             </ErrorBoundary>
-        </LocaleContextProvider>
+        </ComposeProviders>
     ));
 }
 

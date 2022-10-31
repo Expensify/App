@@ -58,6 +58,13 @@ Onyx.connect({
     },
 });
 
+let allReports;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: val => allReports = val,
+});
+
 /**
  * Returns the concatenated title for the PrimaryLogins of a report
  *
@@ -244,17 +251,12 @@ function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
 /**
  * Whether the provided report is an archived room
  * @param {Object} report
- * @param {String} report.chatType
  * @param {Number} report.stateNum
  * @param {Number} report.statusNum
  * @returns {Boolean}
  */
 function isArchivedRoom(report) {
-    if (!isChatRoom(report) && !isPolicyExpenseChat(report)) {
-        return false;
-    }
-
-    return report.statusNum === CONST.REPORT.STATUS.CLOSED && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
+    return lodashGet(report, ['statusNum']) === CONST.REPORT.STATUS.CLOSED && lodashGet(report, ['stateNum']) === CONST.REPORT.STATE_NUM.SUBMITTED;
 }
 
 /**
@@ -298,7 +300,7 @@ function getChatRoomSubtitle(report, policiesMap) {
         return Localize.translateLocal('workspace.common.workspace');
     }
     if (isArchivedRoom(report)) {
-        return report.oldPolicyName;
+        return report.oldPolicyName || '';
     }
     return getPolicyName(report, policiesMap);
 }
@@ -572,10 +574,10 @@ function navigateToDetailsPage(report) {
  * In a test of 500M reports (28 years of reports at our current max rate) we got 20-40 collisions meaning that
  * this is more than random enough for our needs.
  *
- * @returns {Number}
+ * @returns {String}
  */
 function generateReportID() {
-    return (Math.floor(Math.random() * (2 ** 21)) * (2 ** 32)) + Math.floor(Math.random() * (2 ** 32));
+    return ((Math.floor(Math.random() * (2 ** 21)) * (2 ** 32)) + Math.floor(Math.random() * (2 ** 32))).toString();
 }
 
 /**
@@ -643,10 +645,19 @@ function buildOptimisticReportAction(sequenceNumber, text, file) {
     };
 }
 
-/*
+/**
  * Builds an optimistic IOU report with a randomly generated reportID
+ *
+ * @param {String} ownerEmail - Email of the person generating the IOU.
+ * @param {String} userEmail - Email of the other person participating in the IOU.
+ * @param {Number} total - IOU amount in cents.
+ * @param {String} chatReportID - Report ID of the chat where the IOU is.
+ * @param {String} currency - IOU currency.
+ * @param {String} locale - Locale where the IOU is created
+ *
+ * @returns {Object}
  */
-function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportID, currency, locale) {
+function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, currency, locale) {
     const formattedTotal = NumberFormatUtils.format(locale,
         total, {
             style: 'currency',
@@ -657,7 +668,7 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
         chatReportID,
         currency,
         hasOutstandingIOU: true,
-        managerEmail: recipientEmail,
+        managerEmail: userEmail,
         ownerEmail,
         reportID: generateReportID(),
         state: CONST.REPORT.STATE.SUBMITTED,
@@ -672,17 +683,19 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
  * @param {Number} sequenceNumber - Caller is responsible for providing a best guess at what the next sequenceNumber will be.
  * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay).
  * @param {Number} amount - IOU amount in cents.
+ * @param {String} currency - IOU currency.
  * @param {String} comment - User comment for the IOU.
  * @param {String} paymentType - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
- * @param {String} existingIOUTransactionID - Only required if the IOUReportAction type is oneOf(cancel, decline). Generates a randomID as default.
- * @param {Number} existingIOUReportID - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
+ * @param {String} iouTransactionID - Only required if the IOUReportAction type is oneOf(cancel, decline). Generates a randomID as default.
+ * @param {String} iouReportID - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
+ * @param {String} debtorEmail - Email of the user that has to pay
+ * @param {String} locale - Locale of the user
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = 0) {
-    const currency = lodashGet(currentUserPersonalDetails, 'localCurrencyCode');
-    const IOUTransactionID = existingIOUTransactionID || NumberUtils.rand64();
-    const IOUReportID = existingIOUReportID || generateReportID();
+function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, comment, paymentType = '', iouTransactionID = '', iouReportID = '', debtorEmail = '', locale = 'en') {
+    const IOUTransactionID = iouTransactionID || NumberUtils.rand64();
+    const IOUReportID = iouReportID || generateReportID();
     const originalMessage = {
         amount,
         comment,
@@ -691,6 +704,17 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, p
         IOUReportID,
         type,
     };
+    const formattedTotal = NumberFormatUtils.format(locale,
+        amount / 100, {
+            style: 'currency',
+            currency,
+        });
+    const message = [{
+        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+        isEdited: false,
+        html: comment ? `Requested ${formattedTotal} from ${debtorEmail} for ${comment}` : `Requested ${formattedTotal} from ${debtorEmail}`,
+        text: comment ? `Requested ${formattedTotal} from ${debtorEmail} for ${comment}` : `Requested ${formattedTotal} from ${debtorEmail}`,
+    }];
 
     // We store amount, comment, currency in IOUDetails when type = pay
     if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
@@ -709,6 +733,7 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, p
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
         clientID: NumberUtils.generateReportActionClientID(),
         isAttachment: false,
+        message,
         originalMessage,
         person: [{
             style: 'strong',
@@ -734,6 +759,7 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, p
  * @param {Boolean} isOwnPolicyExpenseChat
  * @param {String} oldPolicyName
  * @param {String} visibility
+ * @param {String} notificationPreference
  * @returns {Object}
  */
 function buildOptimisticChatReport(
@@ -745,6 +771,7 @@ function buildOptimisticChatReport(
     isOwnPolicyExpenseChat = false,
     oldPolicyName = '',
     visibility = undefined,
+    notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
 ) {
     return {
         chatType,
@@ -758,7 +785,7 @@ function buildOptimisticChatReport(
         lastMessageTimestamp: 0,
         lastVisitedTimestamp: 0,
         maxSequenceNumber: 0,
-        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
+        notificationPreference,
         oldPolicyName,
         ownerEmail,
         participants: participantList,
@@ -824,15 +851,35 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         null,
         false,
         policyName,
+        null,
+
+        // #announce contains all policy members so notifying always should be opt-in only.
+        CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
     );
     const announceChatReportID = announceChatData.reportID;
     const announceReportActionData = buildOptimisticCreatedReportAction(announceChatData.ownerEmail);
 
-    const adminsChatData = buildOptimisticChatReport([currentUserEmail], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, null, false, policyName);
+    const adminsChatData = buildOptimisticChatReport(
+        [currentUserEmail],
+        CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
+        CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+        policyID,
+        null,
+        false,
+        policyName,
+    );
     const adminsChatReportID = adminsChatData.reportID;
     const adminsReportActionData = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
 
-    const expenseChatData = buildOptimisticChatReport([currentUserEmail], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserEmail, true, policyName);
+    const expenseChatData = buildOptimisticChatReport(
+        [currentUserEmail],
+        '',
+        CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        policyID,
+        currentUserEmail,
+        true,
+        policyName,
+    );
     const expenseChatReportID = expenseChatData.reportID;
     const expenseReportActionData = buildOptimisticCreatedReportAction(expenseChatData.ownerEmail);
 
@@ -903,6 +950,8 @@ function hasOutstandingIOU(report, currentUserLogin, iouReports) {
  * @returns {boolean}
  */
 function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies) {
+    const isInDefaultMode = !isInGSDMode;
+
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
     if (!report || !report.reportID || !report.participants || _.isEmpty(report.participants)) {
@@ -928,17 +977,14 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
         return true;
     }
 
-    // Exclude reports that don't have any comments
-    // User created policy rooms are OK to show when the don't have any comments, only if they aren't archived.
-    const hasNoComments = report.lastMessageTimestamp === 0;
-    if (hasNoComments && (isArchivedRoom(report) || !isUserCreatedPolicyRoom(report))) {
-        return false;
-    }
-
-    // Include unread reports when in GSD mode
-    // GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
+    // All unread chats (even archived ones) in GSD mode will be shown. This is because GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
     if (isInGSDMode) {
         return isUnread(report);
+    }
+
+    // Archived reports should always be shown when in default (most recent) mode. This is because you should still be able to access and search for the chats to find them.
+    if (isInDefaultMode && isArchivedRoom(report)) {
+        return true;
     }
 
     // Include default rooms for free plan policies
@@ -946,8 +992,8 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
         return true;
     }
 
-    // Include default rooms unless you're on the default room beta
-    if (isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas)) {
+    // Include default rooms unless you're on the default room beta, unless you have an assigned guide
+    if (isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas) && !hasExpensifyGuidesEmails(lodashGet(report, ['participants'], []))) {
         return false;
     }
 
@@ -962,6 +1008,22 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
     }
 
     return true;
+}
+
+/**
+ * Attempts to find a report in onyx with the provided list of participants
+ * @param {Array} newParticipantList
+ * @returns {Array|undefined}
+ */
+function getChatByParticipants(newParticipantList) {
+    newParticipantList.sort();
+    return _.find(allReports, (report) => {
+        // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
+        if (!report || !report.participants) {
+            return false;
+        }
+        return _.isEqual(newParticipantList, report.participants.sort());
+    });
 }
 
 export {
@@ -1004,4 +1066,5 @@ export {
     buildOptimisticIOUReportAction,
     buildOptimisticReportAction,
     shouldReportBeInOptionList,
+    getChatByParticipants,
 };

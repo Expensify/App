@@ -31,6 +31,7 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
+import * as Expensicons from '../../components/Icon/Expensicons';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -267,7 +268,7 @@ class WorkspaceMembersPage extends React.Component {
                                 }}
                             />
                         </View>
-                        {this.props.session.email === item.login && (
+                        {(this.props.session.email === item.login || item.role === 'admin') && (
                             <View style={styles.peopleRowCell}>
                                 <View style={[styles.badge, styles.peopleBadge]}>
                                     <Text style={[styles.peopleBadgeText]}>
@@ -290,7 +291,7 @@ class WorkspaceMembersPage extends React.Component {
             if (email !== this.props.session.email && email !== this.props.policy.owner) {
                 removableMembers.push(email);
             }
-            const details = this.props.personalDetails[email] || {displayName: email, login: email};
+            const details = this.props.personalDetails[email] || {displayName: email, login: email, avatar: Expensicons.FallbackAvatar};
             data.push({
                 ...policyMember,
                 ...details,
