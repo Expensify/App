@@ -21,8 +21,8 @@ class OptionsList extends Component {
 
         // We're setting `isScreenTouched` in this listener only for web platforms with touchscreen (mWeb) where
         // we want to dismiss the keyboard only when the list is scrolled by the user and not when it's scrolled programmatically.
-        document.addEventListener('touchstart', this.userTouchStart);
-        document.addEventListener('touchend', this.userTouchEnd);
+        document.addEventListener('touchstart', this.touchStart);
+        document.addEventListener('touchend', this.touchEnd);
     }
 
     componentWillUnmount() {
@@ -30,16 +30,16 @@ class OptionsList extends Component {
             return;
         }
 
-        document.removeEventListener('touchstart', this.userTouchStart);
-        document.removeEventListener('touchend', this.userTouchEnd);
+        document.removeEventListener('touchstart', this.touchStart);
+        document.removeEventListener('touchend', this.touchEnd);
     }
 
     userTouchStart() {
-        this.isUserScreenTouched = true;
+        this.isScreenTouched = true;
     }
 
     userTouchEnd() {
-        this.isUserScreenTouched = false;
+        this.isScreenTouched = false;
     }
 
     render() {
@@ -50,7 +50,7 @@ class OptionsList extends Component {
                 ref={this.props.forwardedRef}
                 onScroll={() => {
                     // Only dismiss the keyboard whenever the user scrolls the screen
-                    if (!this.isUserScreenTouched) {
+                    if (!this.isScreenTouched) {
                         return;
                     }
                     Keyboard.dismiss();
