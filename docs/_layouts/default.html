@@ -35,7 +35,7 @@
             <div id="lhn-content">
                 {% case page.lhn_content %}
                     {% when "homepage" %}
-                        {% include lhn-template.html %}
+                        {% include lhn-template.html activeHub="home" %}
                     {% when "request-money" %}
                         {% include lhn-template.html activeHub="request-money" %}
                     {% when "send-money" %}
