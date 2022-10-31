@@ -65,7 +65,6 @@ const defaultProps = {
     LabelComponent: undefined,
     errorText: '',
     shouldSaveDraft: false,
-    isChecked: false,
     value: false,
     defaultValue: false,
     forwardedRef: () => {},
@@ -93,7 +92,7 @@ class CheckboxWithLabel extends React.Component {
             <>
                 <View style={this.wrapperStyles}>
                     <Checkbox
-                        isChecked={this.isChecked}
+                        isChecked={_.isUndefined(this.props.isChecked) ? this.isChecked : this.props.isChecked}
                         onPress={this.toggleCheckbox}
                         label={this.props.label}
                         hasError={Boolean(this.props.errorText)}

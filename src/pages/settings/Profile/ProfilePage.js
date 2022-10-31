@@ -209,7 +209,7 @@ class ProfilePage extends Component {
      * @returns {Boolean}
      */
     isAutomaticTimezoneFromProps(props) {
-        return lodashGet(props.currentUserPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic);
+        return lodashGet(props, 'currentUserPersonalDetails.timezone.automatic', CONST.DEFAULT_TIME_ZONE.automatic);
     }
 
     /**
@@ -378,7 +378,7 @@ class ProfilePage extends Component {
                     <CheckboxWithLabel
                         inputID="isAutomaticTimezone"
                         label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
-                        defaultValue={this.state.isAutomaticTimezone}
+                        isChecked={this.state.isAutomaticTimezone}
                         onValueChange={this.setAutomaticTimezone}
                     />
                 </Form>
