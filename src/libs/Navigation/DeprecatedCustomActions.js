@@ -131,7 +131,7 @@ function pushDrawerRoute(route) {
         if (newScreenName === SCREENS.REPORT) {
             const prevReportRoute = getRouteFromState(getActiveState());
             if (prevReportRoute.key) {
-                // routes[0].key = prevReportRoute.key;
+                routes[0].key = prevReportRoute.key;
             }
         }
 

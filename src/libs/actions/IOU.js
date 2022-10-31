@@ -394,7 +394,7 @@ function createIOUSplitGroup(params) {
  * @param {String} chatReportID
  * @param {String} iouReportID
  * @param {String} type - cancel|decline
- * @param {Object} moneyRequestAction - the create IOU action we are cancelling
+ * @param {Object} moneyRequestAction - the create IOU reportAction we are cancelling
  */
 function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction) {
     const chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
@@ -405,7 +405,6 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
     const amount = moneyRequestAction.originalMessage.amount;
 
     const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
-    chatReport.maxSequenceNumber = newSequenceNumber;
     const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
         newSequenceNumber,
         type,
@@ -417,13 +416,15 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
         iouReportID,
         '',
     );
-
-    const currentUserEmail = optimisticReportAction.actorEmail;
+    chatReport.maxSequenceNumber = newSequenceNumber;
+    chatReport.lastReadSequenceNumber = newSequenceNumber;
+    chatReport.lastMessageText = optimisticReportAction.message[0].text;
+    chatReport.lastMessageHtml = optimisticReportAction.message[0].html;
 
     // The owner of the IOU report is the account who is owed money,
     // hence if current user is the owner, cancelling a request will lower the total and vice versa for declining
     // or if the current user is not an owner of the report.
-    if (currentUserEmail === iouReport.ownerEmail) {
+    if (optimisticReportAction.actorEmail === iouReport.ownerEmail) {
         iouReport.total += type === CONST.IOU.REPORT_ACTION_TYPE.CANCEL ? -amount : amount;
     } else {
         iouReport.total += type === CONST.IOU.REPORT_ACTION_TYPE.CANCEL ? amount : -amount;
