@@ -678,22 +678,57 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
 }
 
 /**
+ * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
+ * @param {Number} total - IOU total in cents
+ * @param {Array} participants - List of logins for the IOU participants, excluding the current user login
+ * @param {String} comment - IOU comment
+ * @param {String} currency - IOU currency
+ * @returns {Array}
+ */
+function getIOUReportActionMessage(type, total, participants, comment, currency) {
+    const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
+    const isMultipleParticipantReport = participants.length > 1;
+    const displayNames = _.map(participants, participant => getDisplayNameForParticipant(allPersonalDetails[participant.login], isMultipleParticipantReport) || participant.login);
+    const from = displayNames.length < 3
+        ? displayNames.join(' and ')
+        : `${displayNames.slice(0, -1).join(', ')}, and ${_.last(displayNames)}`;
+
+    let iouMessage;
+    switch (type) {
+        case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
+            iouMessage = `Requested ${amount} from ${from}${comment && ` for ${comment}`}`;
+            break;
+        case CONST.IOU.REPORT_ACTION_TYPE.SPLIT:
+            iouMessage = `Split ${amount} with ${from}${comment && ` for ${comment}`}`;
+            break;
+        default:
+            break;
+    }
+
+    return [{
+        html: iouMessage,
+        text: iouMessage,
+        isEdited: false,
+        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+    }];
+}
+
+/**
  * Builds an optimistic IOU reportAction object
  *
  * @param {Number} sequenceNumber - Caller is responsible for providing a best guess at what the next sequenceNumber will be.
- * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay).
+ * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split).
  * @param {Number} amount - IOU amount in cents.
  * @param {String} currency - IOU currency.
  * @param {String} comment - User comment for the IOU.
+ * @param {Array}  participants - An array with participants details.
  * @param {String} paymentType - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
  * @param {String} iouTransactionID - Only required if the IOUReportAction type is oneOf(cancel, decline). Generates a randomID as default.
  * @param {String} iouReportID - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
- * @param {String} debtorEmail - Email of the user that has to pay
- * @param {String} locale - Locale of the user
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, comment, paymentType = '', iouTransactionID = '', iouReportID = '', debtorEmail = '', locale = 'en') {
+function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, comment, participants, paymentType = '', iouTransactionID = '', iouReportID = '') {
     const IOUTransactionID = iouTransactionID || NumberUtils.rand64();
     const IOUReportID = iouReportID || generateReportID();
     const originalMessage = {
@@ -704,17 +739,6 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, 
         IOUReportID,
         type,
     };
-    const formattedTotal = NumberFormatUtils.format(locale,
-        amount / 100, {
-            style: 'currency',
-            currency,
-        });
-    const message = [{
-        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-        isEdited: false,
-        html: comment ? `Requested ${formattedTotal} from ${debtorEmail} for ${comment}` : `Requested ${formattedTotal} from ${debtorEmail}`,
-        text: comment ? `Requested ${formattedTotal} from ${debtorEmail} for ${comment}` : `Requested ${formattedTotal} from ${debtorEmail}`,
-    }];
 
     // We store amount, comment, currency in IOUDetails when type = pay
     if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
@@ -725,6 +749,11 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, 
         originalMessage.paymentType = paymentType;
     }
 
+    // IOUs of type split only exist in group DMs and those don't have an iouReport so we need to delete the IOUReportID key
+    if (type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
+        delete originalMessage.IOUReportID;
+    }
+
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: currentUserAccountID,
@@ -733,8 +762,8 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, 
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
         clientID: NumberUtils.generateReportActionClientID(),
         isAttachment: false,
-        message,
         originalMessage,
+        message: getIOUReportActionMessage(type, amount, participants, comment, currency),
         person: [{
             style: 'strong',
             text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
@@ -1067,4 +1096,5 @@ export {
     buildOptimisticReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
+    getIOUReportActionMessage,
 };
