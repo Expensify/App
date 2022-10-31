@@ -7,6 +7,7 @@ const WrappedText = ({children, textStyles, wordStyles}) => {
   const [lines, setLines] = useState([]);
   console.log('NewWrappedText', textStyles, wordStyles);
   const {width} = useWindowDimensions();
+  // The width * 0.8 follows the width defined in src/components/RenderHTML.js this is hardcoded there thus has to be hardcoded here as well.
   return (
     <View style={{width: width * 0.8}}>
       {lines.map((line, idx) => {
