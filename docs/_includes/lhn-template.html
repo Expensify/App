@@ -1,0 +1,49 @@
+{% capture activeHub %}{{ include.activeHub }}{% endcapture %}
+
+<ul class="lhn-items">
+  <li class="home-link">
+    <div class="selected">Home</div>
+  </li>
+
+  {% for hub in site.data.hubs %}
+    {% if include.activeHub and hub.href == include.activeHub %}
+      <li>
+        <div class="icon-with-link selected">
+          <i class="fa-solid fa-angle-down icon"></i>
+          <span>{{ hub.title }}</span>
+        </div>
+        <ul class="nested-treeview">
+          {% for stage in hub.stages %}
+            {% if stage.articles == empty %}
+              <li>
+                <a href="/articles/{{ hub.href }}/{{ stage.href }}">
+                  {{ stage.title }}
+                </a>
+              </li>
+            {% else %}
+              <li>
+                <a href="#{{ stage.href }}">{{ stage.title }}</a>
+                <ul>
+                  {% for article in stage.articles %}
+                    <li>
+                      <a href="/articles/{{ hub.href }}/{{ article.href }}">
+                        {{ article.title }}
+                      </a>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      </li>
+    {% else %}
+      <li>
+        <a href="/hubs/{{ hub.href }}" class="icon-with-link">
+          <i class="fa-solid fa-angle-right icon"></i>
+          {{ hub.title }}
+        </a>
+      </li>
+    {% endif %}
+  {% endfor %}
+</ul>
