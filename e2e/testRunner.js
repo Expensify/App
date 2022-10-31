@@ -53,7 +53,7 @@ const restartApp = async () => {
 const runTestsOnBranch = async (branch, baselineOrCompare) => {
     // Switch branch and install dependencies
     const progress = Logger.progressInfo(`Preparing ${baselineOrCompare} tests on branch '${branch}'`);
-    await execAsync(`git switch ${branch}`);
+    await execAsync(`git checkout ${branch}`);
 
     if (!args.includes('--skipInstallDeps')) {
         progress.updateText(`Preparing ${baselineOrCompare} tests on branch '${branch}' - npm install`);
