@@ -107,12 +107,7 @@ function openPaymentsPage() {
         ],
     };
 
-    return API.read('OpenPaymentsPage', {
-        // We're passing this to have the data returned in the right format.
-        // This can be removed when the massageData parameter
-        // is removed from here https://github.com/Expensify/Web-Expensify/blob/main/lib/BankAccountAPI.php#L1064.
-        massageData: true,
-    }, onyxData);
+    return API.read('OpenPaymentsPage', {}, onyxData);
 }
 
 /**
