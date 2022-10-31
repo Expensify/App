@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
-import * as Theme from '../libs/Theme';
+import themed from '../libs/Theme';
 
 const ThemeContext = createContext(null);
 
@@ -26,12 +26,12 @@ const themeProviderDefaultProps = {
 class ThemeContextProvider extends React.Component {
     getContextValue() {
         return {
-            themed: this.themed.bind(this),
+            themed: this.getThemedStyles.bind(this),
         };
     }
 
-    themed(unthemedStyles) {
-        return Theme.themed(unthemedStyles, this.props.preferredTheme);
+    getThemedStyles(unthemedStyles) {
+        return themed(unthemedStyles, this.props.preferredTheme);
     }
 
     render() {

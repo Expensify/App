@@ -15,7 +15,7 @@ import compose from '../libs/compose';
 import * as Expensicons from './Icon/Expensicons';
 import colors from '../styles/colors';
 import withNavigationFocus from './withNavigationFocus';
-import withTheme, { withThemePropTypes } from './withThemeColors';
+import withTheme, {withThemePropTypes} from './withThemeColors';
 
 const propTypes = {
     /** The text for the button label */
