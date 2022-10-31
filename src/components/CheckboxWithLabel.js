@@ -22,7 +22,7 @@ const requiredPropsCheck = (props) => {
 };
 
 const propTypes = {
-    /** Whether the checkbox is checked */
+    /** Whether the checkbox is checked. Use this prop only if you need this input to be controlled, otherwise use defaultValue */
     isChecked: PropTypes.bool,
 
     /** Called when the checkbox or label is pressed */
@@ -62,6 +62,7 @@ const defaultProps = {
     inputID: undefined,
     style: [],
     label: undefined,
+    isChecked: undefined,
     LabelComponent: undefined,
     errorText: '',
     shouldSaveDraft: false,
