@@ -1,76 +1,83 @@
-import _ from 'underscore';
-import React, {Fragment} from 'react';
-import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import Text from '../Text';
+import * as React from 'react';
+import {useState} from 'react';
 
-/**
- * Breaks the text into matrix
- * for eg: My Name  is Rajat
- *  [
- *    [My,' ',Name,' ',' ',is,' ',Rajat],
- *  ]
- *
- * @param {String} text
- * @returns {Array<String[]>}
- */
-function getTextMatrix(text) {
-    return _.map(text.split('\n'), row => _.without(row.split(/(\s)/), ''));
-}
+import {Text, View} from 'react-native';
 
-const propTypes = {
-    /** Required text */
-    children: PropTypes.string.isRequired,
+const WrappedText = ({children, textStyles, wordStyles}) => {
+  const [lines, setLines] = useState([]);
+  console.log('NewWrappedText', textStyles, wordStyles);
+  return (
+    <View>
+      {lines.map((line, idx) => {
+        const {x, y, height, width} = line;
 
-    /** Style to be applied to Text */
-    textStyles: PropTypes.arrayOf(PropTypes.object),
+        let leftBorderRadius = {};
+        let rightBorderRadius = {};
+        let leftBorderWidth = {borderLeftWidth: 1};
+        let rightBorderWidth = {borderRightWidth: 1};
+        if (idx === 0) {
+          rightBorderWidth = {borderRightWidth: 0};
+          rightBorderRadius = {
+            borderBottomRightRadius: 0,
+            borderTopRightRadius: 0,
+          };
+        }
 
-    /** Style for each word(Token) in the text, remember that token also includes whitespaces among words */
-    wordStyles: PropTypes.arrayOf(PropTypes.object),
+        if (idx > 0 && idx < lines.length - 1) {
+          leftBorderWidth = {borderLeftWidth: 0};
+          rightBorderWidth = {borderRightWidth: 0};
+          leftBorderRadius = {
+            borderBottomLeftRadius: 0,
+            borderTopLeftRadius: 0,
+          };
+          rightBorderRadius = {
+            borderBottomRightRadius: 0,
+            borderTopRightRadius: 0,
+          };
+        }
+
+        if (idx === lines.length - 1) {
+          leftBorderWidth = {borderLeftWidth: 0};
+          leftBorderRadius = {
+            borderBottomLeftRadius: 0,
+            borderTopLeftRadius: 0,
+          };
+          rightBorderRadius = {
+            borderBottomRightRadius: 15,
+            borderTopRightRadius: 15,
+          };
+        }
+
+        return (
+          <View
+            key={`lineOrder_${idx}`}
+            style={[
+              ...wordStyles,
+              {
+                top: y,
+                position: 'absolute',
+                height: height - 5,
+                width: width + 10,
+                marginTop: 2.5,
+                marginLeft: -5,
+                borderWidth: 1,
+                ...leftBorderRadius,
+                ...rightBorderRadius,
+                ...leftBorderWidth,
+                ...rightBorderWidth,
+              },
+            ]}
+          />
+        );
+      })}
+
+      <Text
+        style={[textStyles, {lineHeight: textStyles.lineHeight + 5}]}
+        onTextLayout={(e) => setLines(e.nativeEvent.lines)}>
+        {children}
+      </Text>
+    </View>
+  );
 };
-
-const defaultProps = {
-    textStyles: [],
-    wordStyles: [],
-};
-
-const WrappedText = (props) => {
-    const textMatrix = getTextMatrix(props.children);
-    return (
-        <>
-            {_.map(textMatrix, (rowText, rowIndex) => (
-                <Fragment
-                    // eslint-disable-next-line react/no-array-index-key
-                    key={`${rowText}-${rowIndex}`}
-                >
-                    {_.map(rowText, (colText, colIndex) => (
-
-                        // Outer View is important to vertically center the Text
-                        <View
-                            // eslint-disable-next-line react/no-array-index-key
-                            key={`${colText}-${colIndex}`}
-                            style={styles.codeWordWrapper}
-                        >
-                            <View
-                                style={[
-                                    props.wordStyles,
-                                    colIndex === 0 && styles.codeFirstWordStyle,
-                                    colIndex === rowText.length - 1 && styles.codeLastWordStyle,
-                                ]}
-                            >
-                                <Text style={props.textStyles}>{colText}</Text>
-                            </View>
-                        </View>
-                    ))}
-                </Fragment>
-            ))}
-        </>
-    );
-};
-
-WrappedText.propTypes = propTypes;
-WrappedText.defaultProps = defaultProps;
-WrappedText.displayName = 'WrappedText';
 
 export default WrappedText;
