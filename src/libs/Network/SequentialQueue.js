@@ -38,14 +38,12 @@ function process() {
         return Promise.resolve();
     }
 
-    const task = _.reduce(persistedRequests, (previousRequest, request) => {
-        return previousRequest.then(() => {
-            console.log(">>>> retrying", request.command);
-            currentRequest = Request.processWithMiddleware(request, true);
-            pendingRequests.push(currentRequest);
-            return currentRequest;
-        });
-    }, Promise.resolve());
+    const task = _.reduce(persistedRequests, (previousRequest, request) => previousRequest.then(() => {
+        console.log('>>>> retrying', request.command);
+        currentRequest = Request.processWithMiddleware(request, true);
+        pendingRequests.push(currentRequest);
+        return currentRequest;
+    }), Promise.resolve());
 
     // Do a recursive call in case the queue is not empty after processing the current batch
     return task.then(process);
@@ -53,13 +51,13 @@ function process() {
 
 function flush() {
     if (isSequentialQueueRunning) {
-        return Promise.resolve();
+        return;
     }
 
     // ONYXKEYS.PERSISTED_REQUESTS is shared across clients, thus every client/tab will have a copy
     // It is very important to only process the queue from leader client otherwise requests will be duplicated.
     if (!ActiveClientManager.isClientTheLeader()) {
-        return Promise.resolve();
+        return;
     }
 
     isSequentialQueueRunning = true;
@@ -70,30 +68,31 @@ function flush() {
     });
 
     // Ensure persistedRequests are read from storage before proceeding with the queue
-    return new Promise((resolve) => {
-        const connectionID = Onyx.connect({
-            key: ONYXKEYS.PERSISTED_REQUESTS,
-            callback: () => {
-                Onyx.disconnect(connectionID);
+    const connectionID = Onyx.connect({
+        key: ONYXKEYS.PERSISTED_REQUESTS,
+        callback: () => {
+            Onyx.disconnect(connectionID);
 
-                process()
-                    .finally(() => {
-                        isSequentialQueueRunning = false;
-                        resolve();
-                        resolveIsReadyPromise();
-                        currentRequest = null;
+            process()
+                .finally(() => {
+                    isSequentialQueueRunning = false;
+                    resolveIsReadyPromise();
+                    currentRequest = null;
 
-
-                        // Resolve the isDonePromise once all the pending requests complete,
-                        // and reset the pendingRequests array
-                        console.log(">>>> # of pendingRequests requests", pendingRequests.length);
-                        Promise.all(pendingRequests).then(() => {
-                            resolveIsDonePromise();
-                            pendingRequests = [];
-                        });
+                    // Resolve the isDonePromise once all the pending requests complete,
+                    // and reset the pendingRequests array
+                    Promise.all(pendingRequests).then(() => {
+                        resolveIsDonePromise();
+                        pendingRequests = [];
                     });
-            },
-        });
+                }).then(() => {
+                    // Reset the isDonePromise so we can use it again on the next run,
+                    // this has to be done after the finally runs otherwise it'll have no effect
+                    isDonePromise = new Promise((resolve) => {
+                        resolveIsDonePromise = resolve;
+                    });
+                });
+        },
     });
 }
 
@@ -139,15 +138,8 @@ function getCurrentRequest() {
 }
 
 function getIsDonePromise() {
-    console.log(">>>> getIsDonePromise, isSequentialQueueRunning:", isSequentialQueueRunning);
-    return isDonePromise.then(() => {
-        console.log(">>>> resetting isDonePromise");
-
-        // Reset the isDonePromise so we can use it again on the next run
-        isDonePromise = new Promise((resolve) => {
-            resolveIsDonePromise = resolve;
-        });
-    });
+    console.log('>>>> getIsDonePromise, isSequentialQueueRunning:', isSequentialQueueRunning);
+    return isDonePromise;
 }
 
 export {

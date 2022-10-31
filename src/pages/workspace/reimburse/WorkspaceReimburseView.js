@@ -110,8 +110,6 @@ class WorkspaceReimburseView extends React.Component {
             return;
         }
 
-        console.log(">>>> componentDidUpdate: calling openWorkspaceReimburseView");
-
         Policy.openWorkspaceReimburseView(this.props.policy.id);
     }
 
