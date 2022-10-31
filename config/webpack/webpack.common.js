@@ -1,5 +1,7 @@
 const path = require('path');
-const {IgnorePlugin, DefinePlugin, ProvidePlugin} = require('webpack');
+const {
+    IgnorePlugin, DefinePlugin, ProvidePlugin, EnvironmentPlugin,
+} = require('webpack');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
@@ -18,6 +20,7 @@ const includeModules = [
     'react-native-gesture-handler',
     'react-native-flipper',
     'react-native-google-places-autocomplete',
+    '@react-navigation/drawer',
 ].join('|');
 
 /**
@@ -30,13 +33,23 @@ const includeModules = [
 const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
     mode: 'production',
     devtool: 'source-map',
-    entry: {
-        app: './index.js',
-    },
+    entry: [
+        'babel-polyfill',
+        './index.js',
+    ],
     output: {
         filename: '[name]-[contenthash].bundle.js',
         path: path.resolve(__dirname, '../../dist'),
         publicPath: '/',
+    },
+    stats: {
+        warningsFilter: [
+            // @react-navigation for web uses the legacy modules (related to react-native-reanimated)
+            // This results in 33 warnings with stack traces that appear during build and each time we make a change
+            // We can't do anything about the warnings, and they only get in the way, so we suppress them
+            './node_modules/@react-navigation/drawer/lib/module/views/legacy/Drawer.js',
+            './node_modules/@react-navigation/drawer/lib/module/views/legacy/Overlay.js',
+        ],
     },
     plugins: [
         new CleanWebpackPlugin(),
@@ -66,12 +79,14 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 {from: 'node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
             ],
         }),
+        new EnvironmentPlugin({JEST_WORKER_ID: null}),
         new IgnorePlugin({
             resourceRegExp: /^\.\/locale$/,
             contextRegExp: /moment$/,
         }),
         ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
         new DefinePlugin({
+            ...(platform === 'desktop' ? {} : {process: {env: {}}}),
             __REACT_WEB_CONFIG__: JSON.stringify(
                 dotenv.config({path: envFile}).parsed,
             ),
@@ -103,18 +118,6 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 exclude: [
                     new RegExp(`node_modules/(?!(${includeModules})/).*|.native.js$`),
                 ],
-            },
-            {
-                test: /\.js$/,
-                loader: 'eslint-loader',
-                exclude: [
-                    /node_modules|\.native\.js$/,
-                ],
-                options: {
-                    cache: false,
-                    emitWarning: true,
-                    configFile: path.resolve(__dirname, '../../.eslintrc.js'),
-                },
             },
 
             // Rule for react-native-web-webview
@@ -170,11 +173,6 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         extensions: ['.web.js', (platform === 'web') ? '.website.js' : '.desktop.js', '.js', '.jsx'],
         fallback: {
             'process/browser': require.resolve('process/browser'),
-        },
-    },
-    devServer: {
-        client: {
-            overlay: false,
         },
     },
 });

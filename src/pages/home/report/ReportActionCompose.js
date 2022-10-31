@@ -45,6 +45,7 @@ import toggleReportActionComposeView from '../../../libs/toggleReportActionCompo
 import OfflineIndicator from '../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import withNavigationFocus from '../../../components/withNavigationFocus';
+import * as EmojiUtils from '../../../libs/EmojiUtils';
 import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
@@ -375,10 +376,11 @@ class ReportActionCompose extends React.Component {
     /**
      * Update the value of the comment in Onyx
      *
-     * @param {String} newComment
+     * @param {String} comment
      * @param {Boolean} shouldDebounceSaveComment
      */
-    updateComment(newComment, shouldDebounceSaveComment) {
+    updateComment(comment, shouldDebounceSaveComment) {
+        const newComment = EmojiUtils.replaceEmojis(comment);
         this.setState({
             isCommentEmpty: !!newComment.match(/^(\s|`)*$/),
             value: newComment,
@@ -587,6 +589,7 @@ class ReportActionCompose extends React.Component {
                                                 </Tooltip>
                                             </View>
                                             <PopoverMenu
+                                                animationInTiming={CONST.ANIMATION_IN_TIMING}
                                                 isVisible={this.state.isMenuVisible}
                                                 onClose={() => this.setMenuVisibility(false)}
                                                 onItemSelected={() => this.setMenuVisibility(false)}

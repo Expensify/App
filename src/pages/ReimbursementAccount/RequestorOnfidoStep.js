@@ -11,20 +11,29 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import Growl from '../../libs/Growl';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import CONST from '../../CONST';
+import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
 
 const propTypes = {
     /** Bank account currently in setup */
     /* eslint-disable-next-line react/no-unused-prop-types */
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
-    onfidoToken: PropTypes.string,
+
+    /** The draft values of the bank account being setup */
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
+
+    /** The token required to initialize the Onfido SDK */
+    onfidoToken: PropTypes.string.isRequired,
+
+    /** A callback to call once the user completes the Onfido flow */
     onComplete: PropTypes.func.isRequired,
+
     ...withLocalizePropTypes,
 };
 
-const defaultProps = {
-    onfidoToken: '',
-};
+const defaultProps = {};
 
 class RequestorOnfidoStep extends React.Component {
     constructor(props) {
@@ -42,23 +51,25 @@ class RequestorOnfidoStep extends React.Component {
 
     render() {
         return (
-            <ScrollView contentContainerStyle={styles.flex1}>
-                <Onfido
-                    sdkToken={this.props.onfidoToken}
-                    onUserExit={() => {
-                        // We're taking the user back to the company step. They will need to come back to the requestor step to make the Onfido flow appear again.
-                        BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
-                    }}
-                    onError={() => {
-                        // In case of any unexpected error we log it to the server, show a growl, and return the user back to the company step so they can try again.
-                        Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
-                        BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
-                    }}
-                    onSuccess={(onfidoData) => {
-                        this.submit(onfidoData);
-                    }}
-                />
-            </ScrollView>
+            <FullPageOfflineBlockingView>
+                <ScrollView contentContainerStyle={styles.flex1}>
+                    <Onfido
+                        sdkToken={this.props.onfidoToken}
+                        onUserExit={() => {
+                            // We're taking the user back to the company step. They will need to come back to the requestor step to make the Onfido flow appear again.
+                            BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
+                        }}
+                        onError={() => {
+                            // In case of any unexpected error we log it to the server, show a growl, and return the user back to the company step so they can try again.
+                            Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
+                            BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
+                        }}
+                        onSuccess={(onfidoData) => {
+                            this.submit(onfidoData);
+                        }}
+                    />
+                </ScrollView>
+            </FullPageOfflineBlockingView>
         );
     }
 }

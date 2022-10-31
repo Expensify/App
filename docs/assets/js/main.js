@@ -11,12 +11,14 @@ function toggleHeaderMenu() {
         lhnContent.className = '';
         barsIcon.classList.remove('hide');
         anguleUpIcon.classList.add('hide');
+        document.body.classList.remove('disable-scrollbar');
     } else {
         // Expand the LHN in mobile
         lhn.className = 'expanded';
         lhnContent.className = 'expanded';
         barsIcon.classList.add('hide');
         anguleUpIcon.classList.remove('hide');
+        document.body.classList.add('disable-scrollbar');
     }
 }
 
@@ -58,6 +60,9 @@ window.addEventListener('DOMContentLoaded', () => {
             headingsOffset: 80,
             scrollSmoothOffset: -80,
             scrollSmooth: true,
+
+            // If there is a fixed article scroll container, set to calculate titles' offset
+            scrollContainer: 'content-area',
 
             // onclick function to apply to all links in toc. will be called with
             // the event as the first parameter, and this can be used to stop,
