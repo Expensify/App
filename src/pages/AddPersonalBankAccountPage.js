@@ -61,7 +61,7 @@ class AddPersonalBankAccountPage extends React.Component {
         this.submit = this.submit.bind(this);
 
         this.state = {
-            selectedPlaidAccountID: this.props.personalBankAccount.plaidAccountID,
+            selectedPlaidAccountID: '',
         };
     }
 
@@ -103,7 +103,7 @@ class AddPersonalBankAccountPage extends React.Component {
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={this.props.translate('bankAccount.addBankAccount')}
-                    onCloseButtonPress={Navigation.goBack}
+                    onCloseButtonPress={Navigation.dismissModal}
                     shouldShowBackButton
                     onBackButtonPress={Navigation.goBack}
                 />

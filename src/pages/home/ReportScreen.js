@@ -1,7 +1,7 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {Freeze} from 'react-freeze';
@@ -211,10 +211,12 @@ class ReportScreen extends React.Component {
             return null;
         }
 
+        // We are either adding a workspace room, or we're creating a chat, it isn't possible for both of these to be pending, or to have errors for the same report at the same time, so
+        // simply looking up the first truthy value for each case will get the relevant property if it's set.
         const reportID = getReportID(this.props.route);
-        const addWorkspaceRoomPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom');
-        const addWorkspaceRoomErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom');
-        const screenWrapperStyle = [styles.appContent, {marginTop: this.state.viewportOffsetTop}];
+        const addWorkspaceRoomOrChatPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(this.props.report, 'pendingFields.createChat');
+        const addWorkspaceRoomOrChatErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom') || lodashGet(this.props.report, 'errorFields.createChat');
+        const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}];
         return (
             <Freeze
                 freeze={this.props.isSmallScreenWidth && this.props.isDrawerOpen}
@@ -229,7 +231,6 @@ class ReportScreen extends React.Component {
             >
                 <ScreenWrapper
                     style={screenWrapperStyle}
-                    keyboardAvoidingViewBehavior={Platform.OS === 'android' ? '' : 'padding'}
                 >
                     <FullPageNotFoundView
                         shouldShow={!this.props.report.reportID}
@@ -241,9 +242,9 @@ class ReportScreen extends React.Component {
                         }}
                     >
                         <OfflineWithFeedback
-                            pendingAction={addWorkspaceRoomPendingAction}
-                            errors={addWorkspaceRoomErrors}
-                            errorRowStyles={styles.dNone}
+                            pendingAction={addWorkspaceRoomOrChatPendingAction}
+                            errors={addWorkspaceRoomOrChatErrors}
+                            shouldShowErrorMessages={false}
                         >
                             <HeaderView
                                 reportID={reportID}
@@ -295,8 +296,8 @@ class ReportScreen extends React.Component {
                                             isDrawerOpen={this.props.isDrawerOpen}
                                         />
                                         <ReportFooter
-                                            addWorkspaceRoomErrors={addWorkspaceRoomErrors}
-                                            addWorkspaceRoomPendingAction={addWorkspaceRoomPendingAction}
+                                            errors={addWorkspaceRoomOrChatErrors}
+                                            pendingAction={addWorkspaceRoomOrChatPendingAction}
                                             isOffline={this.props.network.isOffline}
                                             reportActions={this.props.reportActions}
                                             report={this.props.report}
