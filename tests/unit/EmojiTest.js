@@ -25,37 +25,37 @@ describe('EmojiTest', () => {
         expect(emojiMatched).toBe(true);
     });
 
-    it('matches single emojis variants for size', () => {
-        // GIVEN an emoji that has the default Unicode representation WHEN we check if it's a single emoji THEN it should return true
+    it('matches only emojis variants for size', () => {
+        // GIVEN an emoji that has the default Unicode representation WHEN we check if it contains only emoji THEN it should return true
         expect(EmojiUtils.containsOnlyEmojis('👉')).toBe(true);
         expect(EmojiUtils.containsOnlyEmojis('😪️')).toBe(true);
         expect(EmojiUtils.containsOnlyEmojis('😎️')).toBe(true);
 
-        // GIVEN an emoji that different cross - platform variations WHEN we check if it's a single emoji THEN it should return true
+        // GIVEN an emoji that different cross - platform variations WHEN we check if it contains only emoji THEN it should return true
         expect(EmojiUtils.containsOnlyEmojis('🔫️')).toBe(true);
         expect(EmojiUtils.containsOnlyEmojis('🛍')).toBe(true);
         expect(EmojiUtils.containsOnlyEmojis('🕍')).toBe(true);
 
-        // GIVEN an emoji that is symbol/numerical WHEN we check if it's a single emoji THEN it should return true
+        // GIVEN an emoji that is symbol/numerical WHEN we check if it contains only emoji THEN it should return true
         expect(EmojiUtils.containsOnlyEmojis('*️⃣')).toBe(true);
         expect(EmojiUtils.containsOnlyEmojis('1️⃣')).toBe(true);
 
-        // GIVEN an emoji that has text-variant WHEN we check if it's a single emoji THEN it should return true
+        // GIVEN an emoji that has text-variant WHEN we check if it contains only emoji THEN it should return true
         expect(EmojiUtils.containsOnlyEmojis('❤️')).toBe(true);
         expect(EmojiUtils.containsOnlyEmojis('⁉️')).toBe(true);
         expect(EmojiUtils.containsOnlyEmojis('✳️')).toBe(true);
         expect(EmojiUtils.containsOnlyEmojis('☠️')).toBe(true);
 
-        // GIVEN an emoji that has skin tone attached WHEN we check if it's a single emoji THEN it should return true
+        // GIVEN an emoji that has skin tone attached WHEN we check if it contains only emoji THEN it should return true
         expect(EmojiUtils.containsOnlyEmojis('👶🏽')).toBe(true);
         expect(EmojiUtils.containsOnlyEmojis('👩🏾')).toBe(true);
         expect(EmojiUtils.containsOnlyEmojis('👊🏾')).toBe(true);
 
-        // GIVEN an emoji that is composite(family) with 4+ unicode pairs WHEN we check if it's a single emoji THEN it should return true
+        // GIVEN an emoji that is composite(family) with 4+ unicode pairs WHEN we check if it contains only emoji THEN it should return true
         expect(EmojiUtils.containsOnlyEmojis('👨‍👩‍👦️')).toBe(true);
         expect(EmojiUtils.containsOnlyEmojis('👩‍👩‍👧‍👦️')).toBe(true);
 
-        // // GIVEN an emoji that has a length of 2 (flags) WHEN we check if it's a single emoji THEN it should return true
+        // GIVEN an emoji that has a length of 2 (flags) WHEN we check if it contains only emoji THEN it should return true
         expect(EmojiUtils.containsOnlyEmojis('🇺🇲')).toBe(true);
         expect(EmojiUtils.containsOnlyEmojis('🇮🇳')).toBe(true);
         expect(EmojiUtils.containsOnlyEmojis('🇺🇦️')).toBe(true);
