@@ -7,7 +7,7 @@
         {% endif %}
     </li>
 
-    {% for hub in site.data.hubs %}
+    {% for hub in site.data.routes.hubs %}
         {% if hub.href == include.activeHub %}
             <li>
                 <div class="icon-with-link selected">
@@ -15,13 +15,13 @@
                     <span>{{ hub.title }}</span>
                 </div>
                 <ul class="nested-treeview">
-                    {% for stage in hub.stages %}
+                    {% for section in hub.sections %}
                         <li>
-                            <!-- Stages may have nested articles, or they may be just a single article. -->
-                            {% if stage.articles %}
-                                <a href="#{{ stage.href }}">{{ stage.title }}</a>
+                            <!-- sections may have nested articles, or they may be just a single article. -->
+                            {% if section.articles %}
+                                <a href="#{{ section.href }}">{{ section.title }}</a>
                                 <ul>
-                                    {% for article in stage.articles %}
+                                    {% for article in section.articles %}
                                         <li>
                                             <a href="/articles/{{ hub.href }}/{{ article.href }}">
                                                 {{ article.title }}
@@ -30,7 +30,7 @@
                                     {% endfor %}
                                 </ul>
                             {% else %}
-                                <a href="/articles/{{ hub.href }}/{{ stage.href }}">{{ stage.title }}</a>
+                                <a href="/articles/{{ hub.href }}/{{ section.href }}">{{ section.title }}</a>
                             {% endif %}
                         </li>
                     {% endfor %}

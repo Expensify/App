@@ -1,0 +1,22 @@
+home:
+  href: home
+  title: Welcome to the New Expensify!
+
+hubs:
+  - href: send-money
+    title: Send money
+    sections:
+      - href: workspaces
+        title: Workspaces
+        articles:
+          - href: The-Free-Plan
+            title: The Free Plan
+
+  - href: request-money
+    title: Request money
+
+  - href: other
+    title: Other
+    sections:
+      - href: Account-Management
+        title: Account Management
