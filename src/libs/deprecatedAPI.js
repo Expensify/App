@@ -312,22 +312,6 @@ function ValidateEmail(parameters) {
 }
 
 /**
- * Create a new IOUTransaction
- *
- * @param {Object} parameters
- * @param {String} parameters.comment
- * @param {Array} parameters.debtorEmail
- * @param {String} parameters.currency
- * @param {String} parameters.amount
- * @returns {Promise}
- */
-function CreateIOUTransaction(parameters) {
-    const commandName = 'CreateIOUTransaction';
-    requireParameters(['comment', 'debtorEmail', 'currency', 'amount'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
  * Create a new IOU Split
  *
  * @param {Object} parameters
@@ -566,7 +550,6 @@ export {
     User_IsUsingExpensifyCard,
     User_SecondaryLogin_Send,
     User_UploadAvatar,
-    CreateIOUTransaction,
     CreateIOUSplit,
     ValidateEmail,
     Wallet_Activate,
