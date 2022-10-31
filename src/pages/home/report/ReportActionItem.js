@@ -198,6 +198,7 @@ class ReportActionItem extends Component {
                                     pendingAction={this.props.action.pendingAction}
                                     errors={this.props.action.errors}
                                     errorRowStyles={[styles.ml10, styles.mr2]}
+                                    draftMessage={this.props.draftMessage}
                                 >
                                     {!this.props.displayAsGroup
                                         ? (

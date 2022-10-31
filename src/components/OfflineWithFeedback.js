@@ -49,11 +49,16 @@ const propTypes = {
     /** Additional style object for the error row */
     errorRowStyles: stylePropTypes,
 
+    /** User draft to update message */
+    // eslint-disable-next-line react/forbid-prop-types
+    draftMessage: PropTypes.any,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     pendingAction: null,
+    draftMessage: null,
     errors: null,
     shouldShowErrorMessages: true,
     onClose: () => {},
@@ -85,7 +90,7 @@ const OfflineWithFeedback = (props) => {
     const isOfflinePendingAction = props.network.isOffline && props.pendingAction;
     const isUpdateOrDeleteError = hasErrors && (props.pendingAction === 'delete' || props.pendingAction === 'update');
     const isAddError = hasErrors && props.pendingAction === 'add';
-    const needsOpacity = (isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError;
+    const needsOpacity = (isOfflinePendingAction && !isUpdateOrDeleteError && !props.draftMessage) || isAddError;
     const needsStrikeThrough = props.network.isOffline && props.pendingAction === 'delete';
     const hideChildren = !props.network.isOffline && props.pendingAction === 'delete' && !hasErrors;
     let children = props.children;
