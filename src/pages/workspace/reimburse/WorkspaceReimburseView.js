@@ -92,6 +92,36 @@ class WorkspaceReimburseView extends React.Component {
         this.updateRateValueDebounced = _.debounce(this.updateRateValue.bind(this), 1000);
     }
 
+    componentDidMount() {
+        Policy.openWorkspaceReimburseView(this.props.policy.id);
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.policy.customUnits !== this.props.policy.customUnits) {
+            const distanceCustomUnit = _.chain(lodashGet(this.props, 'policy.customUnits', []))
+                .values()
+                .findWhere({name: CONST.CUSTOM_UNITS.NAME_DISTANCE})
+                .value();
+            const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), rate => rate.name === 'Default Rate');
+            this.setState({
+                unitID: lodashGet(distanceCustomUnit, 'customUnitID', ''),
+                unitName: lodashGet(distanceCustomUnit, 'name', ''),
+                unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
+                unitRateID: lodashGet(customUnitRate, 'customUnitRateID'),
+                unitRateValue: this.getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / 100),
+            });
+        }
+
+        const reconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
+        if (!reconnecting) {
+            return;
+        }
+
+        console.log(">>>> componentDidUpdate: calling openWorkspaceReimburseView");
+
+        Policy.openWorkspaceReimburseView(this.props.policy.id);
+    }
+
     getRateDisplayValue(value) {
         const numValue = parseFloat(value);
         if (Number.isNaN(numValue)) {

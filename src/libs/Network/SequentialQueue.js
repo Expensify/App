@@ -18,6 +18,8 @@ let isSequentialQueueRunning = false;
 
 let currentRequest = null;
 
+let activeRun = Promise.resolve();
+
 /**
  * This method will get any persisted requests and fire them off in sequence to retry them.
  *
@@ -32,6 +34,7 @@ function process() {
     }
 
     const task = _.reduce(persistedRequests, (previousRequest, request) => previousRequest.then(() => {
+        console.log(">>>> retrying", request.command);
         currentRequest = Request.processWithMiddleware(request, true);
         return currentRequest;
     }), Promise.resolve());
@@ -42,13 +45,13 @@ function process() {
 
 function flush() {
     if (isSequentialQueueRunning) {
-        return;
+        return Promise.resolve();
     }
 
     // ONYXKEYS.PERSISTED_REQUESTS is shared across clients, thus every client/tab will have a copy
     // It is very important to only process the queue from leader client otherwise requests will be duplicated.
     if (!ActiveClientManager.isClientTheLeader()) {
-        return;
+        return Promise.resolve();
     }
 
     isSequentialQueueRunning = true;
@@ -63,12 +66,15 @@ function flush() {
         key: ONYXKEYS.PERSISTED_REQUESTS,
         callback: () => {
             Onyx.disconnect(connectionID);
-            process()
+
+            activeRun = process()
                 .finally(() => {
                     isSequentialQueueRunning = false;
                     resolveIsReadyPromise();
                     currentRequest = null;
+                    activeRun = Promise.resolve();
                 });
+            console.log(">>>> set activeRun to be process.finally");
         },
     });
 }
@@ -114,10 +120,16 @@ function getCurrentRequest() {
     return currentRequest;
 }
 
+function getActiveRun() {
+    console.log(">>>> getting active run, isSequentialQueueRunning:", isSequentialQueueRunning);
+    return activeRun;
+}
+
 export {
     process,
     flush,
     getCurrentRequest,
     isRunning,
     push,
+    getActiveRun,
 };
