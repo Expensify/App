@@ -1,12 +1,10 @@
-{% capture activeHub %}{{ include.activeHub }}{% endcapture %}
-
 <ul class="lhn-items">
   <li class="home-link">
     <div class="selected">Home</div>
   </li>
 
   {% for hub in site.data.hubs %}
-    {% if include.activeHub and hub.href == include.activeHub %}
+    {% if hub.href == include.activeHub %}
       <li>
         <div class="icon-with-link selected">
           <i class="fa-solid fa-angle-down icon"></i>
@@ -15,6 +13,7 @@
         <ul class="nested-treeview">
           {% for stage in hub.stages %}
             <li>
+              <!-- Stages may have nested articles, or they may be just a single article. -->
               {% if stage.articles %}
                 <a href="#{{ stage.href }}">{{ stage.title }}</a>
                 <ul>
