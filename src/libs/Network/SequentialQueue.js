@@ -139,7 +139,6 @@ function getIsDonePromise() {
     if (!isSequentialQueueRunning) {
         return Promise.resolve();
     }
-
     return isDonePromise;
 }
 
