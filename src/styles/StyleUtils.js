@@ -19,6 +19,7 @@ function getAvatarSize(size) {
         [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.avatarSizeSmallSubscript,
         [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.avatarSizeSubscript,
         [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
+        [CONST.AVATAR_SIZE.SMALLER]: variables.avatarSizeSmaller,
         [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
     };
     return AVATAR_SIZES[size];
@@ -210,6 +211,26 @@ function getBackgroundColorStyle(backgroundColor) {
     return {
         backgroundColor,
     };
+}
+
+/**
+ * Returns a background color with opacity style
+ *
+ * @param {String} backgroundColor
+ * @param {number} opacity
+ * @returns {Object}
+ */
+function getBackgroundColorWithOpacityStyle(backgroundColor, opacity) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(backgroundColor);
+    if (result !== null) {
+        const r = parseInt(result[1], 16);
+        const g = parseInt(result[2], 16);
+        const b = parseInt(result[3], 16);
+        return {
+            backgroundColor: `rgba(${r}, ${g}, ${b}, ${opacity})`,
+        };
+    }
+    return {};
 }
 
 /**
@@ -538,6 +559,7 @@ export {
     getAutoGrowTextInputStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
+    getBackgroundColorWithOpacityStyle,
     getBadgeColorStyle,
     getButtonBackgroundColorStyle,
     getIconFillColor,

@@ -12,6 +12,7 @@ const CONST = {
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
+    ANIMATION_IN_TIMING: 100,
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
@@ -504,6 +505,7 @@ const CONST = {
             3: 100,
         },
     },
+    EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EMAIL: {
         CONCIERGE: 'concierge@expensify.com',
         HELP: 'help@expensify.com',
@@ -656,6 +658,7 @@ const CONST = {
         },
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
+            CREATE: 'create',
         },
         AMOUNT_MAX_LENGTH: 10,
     },
@@ -703,6 +706,7 @@ const CONST = {
         LARGE: 'large',
         DEFAULT: 'default',
         SMALL: 'small',
+        SMALLER: 'smaller',
         SUBSCRIPT: 'subscript',
         SMALL_SUBSCRIPT: 'small-subscript',
     },
@@ -780,8 +784,8 @@ const CONST = {
         ];
     },
 
-    // There's a limit of 60k characters in Auth - https://github.com/Expensify/Auth/blob/198d59547f71fdee8121325e8bc9241fc9c3236a/auth/lib/Request.h#L28
-    MAX_COMMENT_LENGTH: 60000,
+    // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
+    MAX_COMMENT_LENGTH: 15000,
 
     FORM_CHARACTER_LIMIT: 50,
     AVATAR_CROP_MODAL: {
