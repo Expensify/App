@@ -3,7 +3,6 @@ import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import {propTypes, defaultProps} from './formSubmitPropTypes';
 
-
 class FormSubmit extends React.Component {
     constructor(props) {
         super(props);
