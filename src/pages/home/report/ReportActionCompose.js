@@ -146,9 +146,9 @@ class ReportActionCompose extends React.Component {
             maxLines: props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES,
             conciergePlaceholderRandomIndex: _.random(this.props.translate('reportActionCompose.conciergePlaceholderOptions').length - 1),
 
-            // if this is undefined it means we haven't exceeded the max comment length
-            // if it is a number it means we have exceeded the max comment length and the number is the total length
-            // we only want to set this value when necessary to avoid re-renders
+            // If this is undefined it means we haven't exceeded the max comment length.
+            // If it is a number it means we have exceeded the max comment length and the number is the total length.
+            // We only want to set this value when necessary to avoid re-renders.
             exceededCommentLength: this.comment.length > CONST.MAX_COMMENT_LENGTH ? this.comment.length : undefined,
         };
     }
