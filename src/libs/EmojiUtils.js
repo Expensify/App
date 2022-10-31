@@ -241,4 +241,5 @@ export {
     containsOnlyEmojis,
     replaceEmojis,
     suggestEmojis,
+    trimEmojiUnicode,
 };
