@@ -66,8 +66,8 @@ describe('EmojiTest', () => {
     });
 
     it('suggests emojis when typing emojis prefix after colon', () => {
-        const text = 'Hi :happy';
-        expect(EmojiUtils.suggestEmojis(text)).toEqual([{code: '🙋', name: 'raising_hand'}]);
+        const text = 'Hi :coffin';
+        expect(EmojiUtils.suggestEmojis(text)).toEqual([{code: '⚰️', name: 'coffin'}]);
     });
 
     it('suggests a limited number of matching emojis', () => {
