@@ -5823,5 +5823,5 @@ const emojis = [{
     keywords: ['wales', 'flag'],
 }];
 
-export { skinTones };
+export {skinTones};
 export default emojis;
