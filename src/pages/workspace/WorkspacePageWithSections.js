@@ -86,7 +86,8 @@ class WorkspacePageWithSections extends React.Component {
 
     fetchData() {
         const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
-        BankAccounts.fetchFreePlanVerifiedBankAccount('', achState);
+        // BankAccounts.fetchFreePlanVerifiedBankAccount('', achState);
+        BankAccounts.openWorkspaceView();
     }
 
     render() {
