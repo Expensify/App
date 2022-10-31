@@ -8,6 +8,10 @@ import Onyx from 'react-native-onyx';
 function SaveResponseInOnyx(response, request) {
     return response
         .then((responseData) => {
+            const onyxUpdates = [];
+
+            console.log(">>>> SaveResponseInOnyx for", request.command);
+
             // Make sure we have response data (i.e. response isn't a promise being passed down to us by a failed retry request and responseData undefined)
             if (!responseData) {
                 return;

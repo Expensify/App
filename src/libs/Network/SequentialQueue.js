@@ -18,7 +18,12 @@ let isSequentialQueueRunning = false;
 
 let currentRequest = null;
 
-let activeRun = Promise.resolve();
+let resolveIsDonePromise;
+let isDonePromise = new Promise((resolve) => {
+    resolveIsDonePromise = resolve;
+});
+
+let pendingRequests = [];
 
 /**
  * This method will get any persisted requests and fire them off in sequence to retry them.
@@ -33,11 +38,14 @@ function process() {
         return Promise.resolve();
     }
 
-    const task = _.reduce(persistedRequests, (previousRequest, request) => previousRequest.then(() => {
-        console.log(">>>> retrying", request.command);
-        currentRequest = Request.processWithMiddleware(request, true);
-        return currentRequest;
-    }), Promise.resolve());
+    const task = _.reduce(persistedRequests, (previousRequest, request) => {
+        return previousRequest.then(() => {
+            console.log(">>>> retrying", request.command);
+            currentRequest = Request.processWithMiddleware(request, true);
+            pendingRequests.push(currentRequest);
+            return currentRequest;
+        });
+    }, Promise.resolve());
 
     // Do a recursive call in case the queue is not empty after processing the current batch
     return task.then(process);
@@ -62,20 +70,30 @@ function flush() {
     });
 
     // Ensure persistedRequests are read from storage before proceeding with the queue
-    const connectionID = Onyx.connect({
-        key: ONYXKEYS.PERSISTED_REQUESTS,
-        callback: () => {
-            Onyx.disconnect(connectionID);
+    return new Promise((resolve) => {
+        const connectionID = Onyx.connect({
+            key: ONYXKEYS.PERSISTED_REQUESTS,
+            callback: () => {
+                Onyx.disconnect(connectionID);
 
-            activeRun = process()
-                .finally(() => {
-                    isSequentialQueueRunning = false;
-                    resolveIsReadyPromise();
-                    currentRequest = null;
-                    activeRun = Promise.resolve();
-                });
-            console.log(">>>> set activeRun to be process.finally");
-        },
+                process()
+                    .finally(() => {
+                        isSequentialQueueRunning = false;
+                        resolve();
+                        resolveIsReadyPromise();
+                        currentRequest = null;
+
+
+                        // Resolve the isDonePromise once all the pending requests complete,
+                        // and reset the pendingRequests array
+                        console.log(">>>> # of pendingRequests requests", pendingRequests.length);
+                        Promise.all(pendingRequests).then(() => {
+                            resolveIsDonePromise();
+                            pendingRequests = [];
+                        });
+                    });
+            },
+        });
     });
 }
 
@@ -120,9 +138,16 @@ function getCurrentRequest() {
     return currentRequest;
 }
 
-function getActiveRun() {
-    console.log(">>>> getting active run, isSequentialQueueRunning:", isSequentialQueueRunning);
-    return activeRun;
+function getIsDonePromise() {
+    console.log(">>>> getIsDonePromise, isSequentialQueueRunning:", isSequentialQueueRunning);
+    return isDonePromise.then(() => {
+        console.log(">>>> resetting isDonePromise");
+
+        // Reset the isDonePromise so we can use it again on the next run
+        isDonePromise = new Promise((resolve) => {
+            resolveIsDonePromise = resolve;
+        });
+    });
 }
 
 export {
@@ -131,5 +156,5 @@ export {
     getCurrentRequest,
     isRunning,
     push,
-    getActiveRun,
+    getIsDonePromise,
 };
