@@ -86,8 +86,8 @@ class ReportActionItemMessageEdit extends React.Component {
         this.state = {
             isFocused: false,
 
-            // if this is undefined it means we haven't exceeded the max comment length
-            // if it is a number it means we have exceeded the max comment length and the number is the total length
+            // If this is undefined it means we haven't exceeded the max comment length.
+            // If it is a number it means we have exceeded the max comment length and the number is the total length.
             exceededCommentLength: this.draft.length > CONST.MAX_COMMENT_LENGTH ? this.draft.length : undefined,
         };
     }
