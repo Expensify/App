@@ -1,32 +1,17 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
-import stylePropTypes from '../../styles/stylePropTypes';
+import {propTypes, defaultProps} from './formSubmitPropTypes';
 
-const propTypes = {
-    /* A function to execute when form is submitted with ENTER */
-    onSubmit: PropTypes.func.isRequired,
-
-    /** Children to wrap with FormSubmit. */
-    children: PropTypes.node.isRequired,
-
-    /** Container styles */
-    style: stylePropTypes,
-};
-
-const defaultProps = {
-    style: [],
-};
 
 class FormSubmit extends React.Component {
     constructor(props) {
         super(props);
 
-        this.onKeyDownCapture = this.onKeyDownCapture.bind(this);
+        this.submitForm = this.submitForm.bind(this);
     }
 
-    onKeyDownCapture(event) {
+    submitForm(event) {
         if (event.shiftKey || event.key !== 'Enter') {
             return;
         }
@@ -50,7 +35,7 @@ class FormSubmit extends React.Component {
 
     render() {
         return (
-            <View onKeyDownCapture={this.onKeyDownCapture} style={this.props.style}>{this.props.children}</View>
+            <View onKeyDownCapture={this.submitForm} style={this.props.style}>{this.props.children}</View>
         );
     }
 }

@@ -1,20 +1,11 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import {View} from 'react-native';
+import {propTypes, defaultProps} from './formSubmitPropTypes';
 
-const propTypes = {
-    /** Children to wrap with FormSubmit. */
-    children: PropTypes.node.isRequired,
-};
-
-function FormSubmit(props) {
-    return (
-        <>
-            {props.children}
-        </>
-    );
-}
+const FormSubmit = (props) => <View style={props.style}>{props.children}</View>;
 
 FormSubmit.propTypes = propTypes;
+FormSubmit.defaultProps = defaultProps;
 FormSubmit.displayName = 'FormSubmit';
 
 export default FormSubmit;
