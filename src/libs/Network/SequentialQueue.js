@@ -71,7 +71,6 @@ function flush() {
         key: ONYXKEYS.PERSISTED_REQUESTS,
         callback: () => {
             Onyx.disconnect(connectionID);
-
             process()
                 .finally(() => {
                     isSequentialQueueRunning = false;
