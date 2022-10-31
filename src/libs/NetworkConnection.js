@@ -5,6 +5,7 @@ import Log from './Log';
 import * as NetworkActions from './actions/Network';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
+import * as SequentialQueue from './Network/SequentialQueue';
 
 let isOffline = false;
 let hasPendingNetworkCheck = false;
@@ -33,7 +34,10 @@ function setOfflineStatus(isCurrentlyOffline) {
     // When reconnecting, ie, going from offline to online, all the reconnection callbacks
     // are triggered (this is usually Actions that need to re-download data from the server)
     if (isOffline && !isCurrentlyOffline) {
-        triggerReconnectionCallbacks('offline status changed');
+        SequentialQueue.flush().then(() => {
+            console.log(">>>> triggering reconnection callbacks");
+            triggerReconnectionCallbacks('offline status changed');
+        });
     }
 
     isOffline = isCurrentlyOffline;

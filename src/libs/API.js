@@ -4,6 +4,7 @@ import * as Request from './Request';
 import * as SequentialQueue from './Network/SequentialQueue';
 import pkg from '../../package.json';
 import CONST from '../CONST';
+import {getIsDonePromise} from './Network/SequentialQueue';
 
 /**
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData.
@@ -69,6 +70,7 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
  * @returns {Promise}
  */
 function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData = {}, apiRequestType = CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
+    console.log(">>>>!!!! makeRequestWithSideEffects");
     // Optimistically update Onyx
     if (onyxData.optimisticData) {
         Onyx.update(onyxData.optimisticData);
@@ -106,7 +108,7 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
  */
 function read(command, apiCommandParameters, onyxData) {
     console.log(">>>> in API.read for", command);
-    SequentialQueue.getActiveRun().then(() => makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ));
+    SequentialQueue.getIsDonePromise().then(() => makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ));
     // makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ)
 }
 
