@@ -38,6 +38,8 @@
                 {% include request-money-lhn.html %}
             {% when "send-money" %}
                 {% include send-money-lhn.html %}
+            {% when "other" %}
+                {% include other-lhn.html %}
             {% else %}
                 <div id="back-button" class="icon-with-link">
                     <i class="fa-solid fa-angle-left icon"></i>
@@ -62,11 +64,15 @@
             <h1 class="title">
                 {{ page.name | remove: '.md' | split: "-" |  join: " " }}
             </h1>
-        {% endif %}
 
-        <div class="article-toc-content">
-            {{ content }}
-        </div>
+            <div class="article-toc-content article">
+                {{ content }}
+            </div>
+        {% else %}
+            <div class="article-toc-content lhn">
+                {{ content }}
+            </div>
+        {% endif %}
 
         <!-- Concierge button at the bottom of the page -->
         <a class="card get-help" href="{{ CONCIERGE_CHAT_URL }}" target="_blank">

@@ -1,7 +1,6 @@
 @import 'breakpoints';
 @import 'colors';
 @import 'fonts';
-@import 'mixins';
 
 * {
     margin: 0;
@@ -313,30 +312,33 @@ button {
         }
     }
 
-    img {
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-        padding-bottom: 20px;
+    .article {
+        img {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            padding-bottom: 20px;
 
-        @include maxBreakpoint($breakpoint-tablet) {
-            width: 100%;
-            height: 100%;
-            max-width: auto;
-            max-height: auto;
+            @include maxBreakpoint($breakpoint-tablet) {
+                width: 100%;
+                height: 100%;
+                max-width: auto;
+                max-height: auto;
+            }
+
+            @include breakpoint($breakpoint-tablet) {
+                max-width: -webkit-fill-available;
+                max-height: -webkit-fill-available;
+            }
         }
 
-        @include breakpoint($breakpoint-tablet) {
-            max-width: -webkit-fill-available;
-            max-height: -webkit-fill-available;
+        .img-wrap {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
         }
     }
 
-    .img-wrap {
-        display: flex;
-        justify-content: space-around;
-        flex-wrap: wrap;
-    }
 }
 
 .link {
@@ -402,19 +404,10 @@ button {
     font-weight: bold;
     cursor: pointer;
     color: $color-dark;
+    background-color: $color-gray1;
 
-    @include card-border($color-gray2, 1px);
-
-    &.send-money {
-        @include card-border($color-blue);
-    }
-
-    &.request-money {
-        @include card-border($color-green);
-    }
-
-    &.get-help {
-        @include card-border($color-pink);
+    &:hover {
+        background-color: darken($color-gray1, 1%);
     }
 
     .row {
