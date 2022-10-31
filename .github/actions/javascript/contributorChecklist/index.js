@@ -10,10 +10,11 @@ module.exports =
 
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
+const _ = __nccwpck_require__(3571);
 const GitHubUtils = __nccwpck_require__(7999);
 
 /* eslint-disable max-len */
-const completedContributorChecklist = `- [x] I linked the correct issue in the \`### Fixed Issues\` section above
+const completedAuthorChecklist = `- [x] I linked the correct issue in the \`### Fixed Issues\` section above
 - [x] I wrote clear testing steps that cover the changes made in this PR
     - [x] I added steps for local testing in the \`Tests\` section
     - [x] I added steps for Staging and/or Production testing in the \`QA steps\` section
@@ -33,7 +34,7 @@ const completedContributorChecklist = `- [x] I linked the correct issue in the \
     - [x] I verified that comments were added to code that is not self explanatory
     - [x] I verified that any new or modified comments were clear, correct English, and explained "why" the code was doing something instead of only explaining "what" the code was doing.
     - [x] I verified any copy / text shown in the product was added in all \`src/languages/*\` files
-    - [x] I verified any copy / text that was added to the app is correct English and approved by marketing by tagging the marketing team on the original GH to get the correct copy.
+    - [x] I verified any copy / text that was added to the app is correct English and approved by marketing by adding the \`Waiting for Copy\` label for a copy review on the original GH to get the correct copy.
     - [x] I verified proper file naming conventions were followed for any new files or renamed files. All non-platform specific files are named after what they export and are not named "index.js". All platform-specific files are named for the platform the code supports as outlined in the README.
     - [x] I verified the JSDocs style guidelines (in [\`STYLE.md\`](https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md#jsdocs)) were followed
 - [x] If a new code pattern is added I verified it was agreed to be used by multiple Expensify engineers
@@ -44,7 +45,6 @@ const completedContributorChecklist = `- [x] I linked the correct issue in the \
 - [x] If a new component is created I verified that:
     - [x] A similar component doesn't exist in the codebase
     - [x] All props are defined accurately and each prop has a \`/** comment above it */\`
-    - [x] Any functional components have the \`displayName\` property
     - [x] The file is named correctly
     - [x] The component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone
     - [x] The only data being stored in the state is data necessary for rendering and nothing else
@@ -59,7 +59,7 @@ const completedContributorChecklist = `- [x] I linked the correct issue in the \
 - [x] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
 - [x] I have checked off every checkbox in the PR author checklist, including those that don't apply to this PR.`;
 
-const completedContributorPlusChecklist = `- [x] I have verified the author checklist is complete (all boxes are checked off).
+const completedReviewerChecklist = `- [x] I have verified the author checklist is complete (all boxes are checked off).
 - [x] I verified the correct issue is linked in the \`### Fixed Issues\` section above
 - [x] I verified testing steps are clear and they cover the changes made in this PR
     - [x] I verified the steps for local testing are in the \`Tests\` section
@@ -67,6 +67,7 @@ const completedContributorPlusChecklist = `- [x] I have verified the author chec
     - [x] I verified the steps cover any possible failure scenarios (i.e. verify an input displays the correct error message if the entered data is not correct)
     - [x] I turned off my network connection and tested it while offline to ensure it matches the expected behavior (i.e. verify the default avatar icon is displayed if app is offline)
 - [x] I checked that screenshots or videos are included for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
+- [x] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [x] I verified tests pass on **all platforms** & I tested again on:
     - [x] iOS / native
     - [x] Android / native
@@ -74,13 +75,13 @@ const completedContributorPlusChecklist = `- [x] I have verified the author chec
     - [x] Android / Chrome
     - [x] MacOS / Chrome
     - [x] MacOS / Desktop
-- [x] I verified there are no console errors (if there's a console error not related to the PR, report it or open an issue for it to be fixed)
+- [x] If there are any errors in the console that are unrelated to this PR, I either fixed them (preferred) or linked to where I reported them in Slack
 - [x] I verified proper code patterns were followed (see [Reviewing the code](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
     - [x] I verified that any callback methods that were added or modified are named for what the method does and never what callback they handle (i.e. \`toggleReport\` and not \`onIconClick\`).
     - [x] I verified that comments were added to code that is not self explanatory
     - [x] I verified that any new or modified comments were clear, correct English, and explained "why" the code was doing something instead of only explaining "what" the code was doing.
     - [x] I verified any copy / text shown in the product was added in all \`src/languages/*\` files
-    - [x] I verified any copy / text that was added to the app is correct English and approved by marketing by tagging the marketing team on the original GH to get the correct copy.
+    - [x] I verified any copy / text that was added to the app is correct English and approved by marketing by adding the \`Waiting for Copy\` label for a copy review on the original GH to get the correct copy.
     - [x] I verified proper file naming conventions were followed for any new files or renamed files. All non-platform specific files are named after what they export and are not named "index.js". All platform-specific files are named for the platform the code supports as outlined in the README.
     - [x] I verified the JSDocs style guidelines (in [\`STYLE.md\`](https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md#jsdocs)) were followed
 - [x] If a new code pattern is added I verified it was agreed to be used by multiple Expensify engineers
@@ -91,7 +92,6 @@ const completedContributorPlusChecklist = `- [x] I have verified the author chec
 - [x] If a new component is created I verified that:
     - [x] A similar component doesn't exist in the codebase
     - [x] All props are defined accurately and each prop has a \`/** comment above it */\`
-    - [x] Any functional components have the \`displayName\` property
     - [x] The file is named correctly
     - [x] The component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone
     - [x] The only data being stored in the state is data necessary for rendering and nothing else
@@ -106,75 +106,74 @@ const completedContributorPlusChecklist = `- [x] I have verified the author chec
 - [x] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
 - [x] I have checked off every checkbox in the PR reviewer checklist, including those that don't apply to this PR.`;
 
+// True if we are validating an author checklist, otherwise we are validating a reviewer checklist
+const verifyingAuthorChecklist = core.getInput('CHECKLIST', {required: true}) === 'contributor';
 const issue = github.context.payload.issue ? github.context.payload.issue.number : github.context.payload.pull_request.number;
 const combinedData = [];
 
-function printUncheckedItems(result) {
-    const checklist = result.split('\n');
-
-    checklist.forEach((line) => {
-        // Provide a search string with the first 30 characters to figure out if the checkbox item is in the checklist
-        const lineSearchString = line.replace('- [ ] ', '').slice(0, 30);
-        if (line.includes('- [ ]') && (completedContributorChecklist.includes(lineSearchString) || completedContributorPlusChecklist.includes(lineSearchString))) {
-            console.log(`Unchecked checklist item: ${line}`);
-        }
-    });
+function getPullRequestBody() {
+    return GitHubUtils.octokit.pulls.get({
+        owner: GitHubUtils.GITHUB_OWNER,
+        repo: GitHubUtils.APP_REPO,
+        pull_number: issue,
+    }).then(({data: pullRequestComment}) => pullRequestComment.body);
 }
 
-// Get all user text from the pull request, review comments, and pull request comments
-GitHubUtils.octokit.pulls.get({
-    owner: GitHubUtils.GITHUB_OWNER,
-    repo: GitHubUtils.APP_REPO,
-    pull_number: issue,
-}).then(({data: pullRequestComment}) => {
-    combinedData.push(pullRequestComment.body);
-}).then(() => GitHubUtils.octokit.pulls.listReviews({
-    owner: GitHubUtils.GITHUB_OWNER,
-    repo: GitHubUtils.APP_REPO,
-    pull_number: issue,
-})).then(({data: pullRequestReviewComments}) => {
-    pullRequestReviewComments.forEach(pullRequestReviewComment => combinedData.push(pullRequestReviewComment.body));
-})
-    .then(() => GitHubUtils.octokit.issues.listComments({
+function getAllReviewComments() {
+    return GitHubUtils.paginate(GitHubUtils.octokit.pulls.listReviews, {
+        owner: GitHubUtils.GITHUB_OWNER,
+        repo: GitHubUtils.APP_REPO,
+        pull_number: issue,
+        per_page: 100,
+    }, response => _.map(response.data, review => review.body));
+}
+
+function getAllComments() {
+    return GitHubUtils.paginate(GitHubUtils.octokit.issues.listComments, {
         owner: GitHubUtils.GITHUB_OWNER,
         repo: GitHubUtils.APP_REPO,
         issue_number: issue,
         per_page: 100,
-    }))
-    .then(({data: pullRequestComments}) => {
-        pullRequestComments.forEach(pullRequestComment => combinedData.push(pullRequestComment.body));
-        let contributorChecklistComplete = false;
-        let contributorPlusChecklistComplete = false;
+    }, response => _.map(response.data, comment => comment.body));
+}
+
+getPullRequestBody()
+    .then(pullRequestBody => combinedData.push(pullRequestBody))
+    .then(() => getAllReviewComments())
+    .then(reviewComments => combinedData.push(...reviewComments))
+    .then(() => getAllComments())
+    .then(comments => combinedData.push(...comments))
+    .then(() => {
+        let authorChecklistComplete = false;
+        let reviewerChecklistComplete = false;
 
         // Once we've gathered all the data, loop through each comment and look to see if it contains a completed checklist
         for (let i = 0; i < combinedData.length; i++) {
             const whitespace = /([\n\r])/gm;
             const comment = combinedData[i].replace(whitespace, '');
 
-            if (comment.includes(completedContributorChecklist.replace(whitespace, ''))) {
-                contributorChecklistComplete = true;
-            } else if (comment.includes('- [')) {
-                printUncheckedItems(combinedData[i]);
+            if (comment.includes(completedAuthorChecklist.replace(whitespace, ''))) {
+                authorChecklistComplete = true;
             }
 
-            if (comment.includes(completedContributorPlusChecklist.replace(whitespace, ''))) {
-                contributorPlusChecklistComplete = true;
-            } else if (comment.includes('- [')) {
-                printUncheckedItems(combinedData[i]);
+            if (comment.includes(completedReviewerChecklist.replace(whitespace, ''))) {
+                reviewerChecklistComplete = true;
             }
         }
 
-        if (!contributorChecklistComplete) {
-            core.setFailed('Contributor checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+        if (verifyingAuthorChecklist && !authorChecklistComplete) {
+            console.log('Make sure you are using the most up to date checklist found here: https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md');
+            core.setFailed('PR Author Checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
             return;
         }
 
-        if (!contributorPlusChecklistComplete) {
-            core.setFailed('Contributor plus checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+        if (!verifyingAuthorChecklist && !reviewerChecklistComplete) {
+            console.log('Make sure you are using the most up to date checklist found here: https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md');
+            core.setFailed('PR Reviewer Checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
             return;
         }
 
-        console.log('All checklists are complete 🎉');
+        console.log(`${verifyingAuthorChecklist ? 'PR Author' : 'PR Reviewer'} checklist is complete 🎉`);
     });
 
 
@@ -672,7 +671,7 @@ class GithubUtils {
      * @returns {Promise<String>}
      */
     static getActorWhoClosedIssue(issueNumber) {
-        return this.octokit.paginate(this.octokit.issues.listEvents, {
+        return this.paginate(this.octokit.issues.listEvents, {
             owner: GITHUB_OWNER,
             repo: APP_REPO,
             issue_number: issueNumber,
@@ -834,7 +833,6 @@ const file_command_1 = __nccwpck_require__(717);
 const utils_1 = __nccwpck_require__(5278);
 const os = __importStar(__nccwpck_require__(2087));
 const path = __importStar(__nccwpck_require__(5622));
-const uuid_1 = __nccwpck_require__(9521);
 const oidc_utils_1 = __nccwpck_require__(8041);
 /**
  * The code to exit an action
@@ -864,20 +862,9 @@ function exportVariable(name, val) {
     process.env[name] = convertedVal;
     const filePath = process.env['GITHUB_ENV'] || '';
     if (filePath) {
-        const delimiter = `ghadelimiter_${uuid_1.v4()}`;
-        // These should realistically never happen, but just in case someone finds a way to exploit uuid generation let's not allow keys or values that contain the delimiter.
-        if (name.includes(delimiter)) {
-            throw new Error(`Unexpected input: name should not contain the delimiter "${delimiter}"`);
-        }
-        if (convertedVal.includes(delimiter)) {
-            throw new Error(`Unexpected input: value should not contain the delimiter "${delimiter}"`);
-        }
-        const commandValue = `${name}<<${delimiter}${os.EOL}${convertedVal}${os.EOL}${delimiter}`;
-        file_command_1.issueCommand('ENV', commandValue);
+        return file_command_1.issueFileCommand('ENV', file_command_1.prepareKeyValueMessage(name, val));
     }
-    else {
-        command_1.issueCommand('set-env', { name }, convertedVal);
-    }
+    command_1.issueCommand('set-env', { name }, convertedVal);
 }
 exports.exportVariable = exportVariable;
 /**
@@ -895,7 +882,7 @@ exports.setSecret = setSecret;
 function addPath(inputPath) {
     const filePath = process.env['GITHUB_PATH'] || '';
     if (filePath) {
-        file_command_1.issueCommand('PATH', inputPath);
+        file_command_1.issueFileCommand('PATH', inputPath);
     }
     else {
         command_1.issueCommand('add-path', {}, inputPath);
@@ -935,7 +922,10 @@ function getMultilineInput(name, options) {
     const inputs = getInput(name, options)
         .split('\n')
         .filter(x => x !== '');
-    return inputs;
+    if (options && options.trimWhitespace === false) {
+        return inputs;
+    }
+    return inputs.map(input => input.trim());
 }
 exports.getMultilineInput = getMultilineInput;
 /**
@@ -968,8 +958,12 @@ exports.getBooleanInput = getBooleanInput;
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function setOutput(name, value) {
+    const filePath = process.env['GITHUB_OUTPUT'] || '';
+    if (filePath) {
+        return file_command_1.issueFileCommand('OUTPUT', file_command_1.prepareKeyValueMessage(name, value));
+    }
     process.stdout.write(os.EOL);
-    command_1.issueCommand('set-output', { name }, value);
+    command_1.issueCommand('set-output', { name }, utils_1.toCommandValue(value));
 }
 exports.setOutput = setOutput;
 /**
@@ -1098,7 +1092,11 @@ exports.group = group;
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function saveState(name, value) {
-    command_1.issueCommand('save-state', { name }, value);
+    const filePath = process.env['GITHUB_STATE'] || '';
+    if (filePath) {
+        return file_command_1.issueFileCommand('STATE', file_command_1.prepareKeyValueMessage(name, value));
+    }
+    command_1.issueCommand('save-state', { name }, utils_1.toCommandValue(value));
 }
 exports.saveState = saveState;
 /**
@@ -1164,13 +1162,14 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.issueCommand = void 0;
+exports.prepareKeyValueMessage = exports.issueFileCommand = void 0;
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const fs = __importStar(__nccwpck_require__(5747));
 const os = __importStar(__nccwpck_require__(2087));
+const uuid_1 = __nccwpck_require__(9521);
 const utils_1 = __nccwpck_require__(5278);
-function issueCommand(command, message) {
+function issueFileCommand(command, message) {
     const filePath = process.env[`GITHUB_${command}`];
     if (!filePath) {
         throw new Error(`Unable to find environment variable for file command ${command}`);
@@ -1182,7 +1181,22 @@ function issueCommand(command, message) {
         encoding: 'utf8'
     });
 }
-exports.issueCommand = issueCommand;
+exports.issueFileCommand = issueFileCommand;
+function prepareKeyValueMessage(key, value) {
+    const delimiter = `ghadelimiter_${uuid_1.v4()}`;
+    const convertedValue = utils_1.toCommandValue(value);
+    // These should realistically never happen, but just in case someone finds a
+    // way to exploit uuid generation let's not allow keys or values that contain
+    // the delimiter.
+    if (key.includes(delimiter)) {
+        throw new Error(`Unexpected input: name should not contain the delimiter "${delimiter}"`);
+    }
+    if (convertedValue.includes(delimiter)) {
+        throw new Error(`Unexpected input: value should not contain the delimiter "${delimiter}"`);
+    }
+    return `${key}<<${delimiter}${os.EOL}${convertedValue}${os.EOL}${delimiter}`;
+}
+exports.prepareKeyValueMessage = prepareKeyValueMessage;
 //# sourceMappingURL=file-command.js.map
 
 /***/ }),
@@ -1769,8 +1783,9 @@ exports.context = new Context.Context();
  * @param     token    the repo PAT or GITHUB_TOKEN
  * @param     options  other options to set
  */
-function getOctokit(token, options) {
-    return new utils_1.GitHub(utils_1.getOctokitOptions(token, options));
+function getOctokit(token, options, ...additionalPlugins) {
+    const GitHubWithPlugins = utils_1.GitHub.plugin(...additionalPlugins);
+    return new GitHubWithPlugins(utils_1.getOctokitOptions(token, options));
 }
 exports.getOctokit = getOctokit;
 //# sourceMappingURL=github.js.map
@@ -1852,7 +1867,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getOctokitOptions = exports.GitHub = exports.context = void 0;
+exports.getOctokitOptions = exports.GitHub = exports.defaults = exports.context = void 0;
 const Context = __importStar(__nccwpck_require__(4087));
 const Utils = __importStar(__nccwpck_require__(7914));
 // octokit + plugins
@@ -1861,13 +1876,13 @@ const plugin_rest_endpoint_methods_1 = __nccwpck_require__(3044);
 const plugin_paginate_rest_1 = __nccwpck_require__(8945);
 exports.context = new Context.Context();
 const baseUrl = Utils.getApiBaseUrl();
-const defaults = {
+exports.defaults = {
     baseUrl,
     request: {
         agent: Utils.getProxyAgent(baseUrl)
     }
 };
-exports.GitHub = core_1.Octokit.plugin(plugin_rest_endpoint_methods_1.restEndpointMethods, plugin_paginate_rest_1.paginateRest).defaults(defaults);
+exports.GitHub = core_1.Octokit.plugin(plugin_rest_endpoint_methods_1.restEndpointMethods, plugin_paginate_rest_1.paginateRest).defaults(exports.defaults);
 /**
  * Convience function to correctly format Octokit Options to pass into the constructor.
  *

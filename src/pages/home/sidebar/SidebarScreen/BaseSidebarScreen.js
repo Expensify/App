@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import styles from '../../../../styles/styles';
 import SidebarLinks from '../SidebarLinks';
 import PopoverMenu from '../../../../components/PopoverMenu';
-import FAB from '../../../../components/FAB';
+import FloatingActionButton from '../../../../components/FloatingActionButton';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
@@ -18,14 +18,18 @@ import * as Policy from '../../../../libs/actions/Policy';
 import Performance from '../../../../libs/Performance';
 import * as Welcome from '../../../../libs/actions/Welcome';
 import {sidebarPropTypes, sidebarDefaultProps} from './sidebarPropTypes';
+import withDrawerState from '../../../../components/withDrawerState';
 
 const propTypes = {
 
-    /* Callback function when the menu is shown */
+    /** Callback function when the menu is shown */
     onShowCreateMenu: PropTypes.func,
 
-    /* Callback function before the menu is hidden */
+    /** Callback function before the menu is hidden */
     onHideCreateMenu: PropTypes.func,
+
+    /** reportID in the current navigation state */
+    reportIDFromRoute: PropTypes.string,
 
     ...sidebarPropTypes,
 };
@@ -110,8 +114,10 @@ class BaseSidebarScreen extends Component {
                                 insets={insets}
                                 onAvatarClick={this.navigateToSettings}
                                 isSmallScreenWidth={this.props.isSmallScreenWidth}
+                                isDrawerOpen={this.props.isDrawerOpen}
+                                reportIDFromRoute={this.props.reportIDFromRoute}
                             />
-                            <FAB
+                            <FloatingActionButton
                                 accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
                                 accessibilityRole="button"
                                 isActive={this.state.isCreateMenuActive}
@@ -170,7 +176,7 @@ class BaseSidebarScreen extends Component {
                                         iconHeight: 40,
                                         text: this.props.translate('workspace.new.newWorkspace'),
                                         description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
-                                        onSelected: () => Policy.createAndNavigate(),
+                                        onSelected: () => Policy.createWorkspace(),
                                     },
                                 ] : []),
                             ]}
@@ -185,4 +191,4 @@ class BaseSidebarScreen extends Component {
 BaseSidebarScreen.propTypes = propTypes;
 BaseSidebarScreen.defaultProps = defaultProps;
 
-export default BaseSidebarScreen;
+export default withDrawerState(BaseSidebarScreen);

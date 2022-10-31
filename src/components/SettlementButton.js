@@ -27,12 +27,16 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** When the button is opened via an IOU, ID for the chatReport that the IOU is linked to */
+    chatReportID: PropTypes.number,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     currency: CONST.CURRENCY.USD,
     shouldShowPaypal: false,
+    chatReportID: 0,
 };
 
 class SettlementButton extends React.Component {
@@ -80,6 +84,7 @@ class SettlementButton extends React.Component {
                 addBankAccountRoute={this.props.addBankAccountRoute}
                 addDebitCardRoute={this.props.addDebitCardRoute}
                 isDisabled={this.props.network.isOffline}
+                chatReportID={this.props.chatReportID}
             >
                 {triggerKYCFlow => (
                     <ButtonWithMenu

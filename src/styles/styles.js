@@ -18,6 +18,7 @@ import visibility from './utilities/visibility';
 import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
+import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
 
 const picker = {
@@ -76,12 +77,10 @@ const webViewStyles = {
 
         ul: {
             maxWidth: '100%',
-            flex: 1,
         },
 
         ol: {
             maxWidth: '100%',
-            flex: 1,
         },
 
         li: {
@@ -321,6 +320,10 @@ const styles = {
         backgroundColor: 'transparent',
     },
 
+    bgDark: {
+        backgroundColor: colors.dark,
+    },
+
     opacity0: {
         opacity: 0,
     },
@@ -488,6 +491,10 @@ const styles = {
 
     activeComponentBG: {
         backgroundColor: themeColors.activeComponentBG,
+    },
+
+    fontWeightBold: {
+        fontWeight: fontWeightBold,
     },
 
     touchableButtonImage: {
@@ -666,6 +673,10 @@ const styles = {
         paddingBottom: 9,
     },
 
+    offlineIndicatorRow: {
+        height: 25,
+    },
+
     // Actions
     actionAvatar: {
         borderRadius: 20,
@@ -729,7 +740,6 @@ const styles = {
         paddingBottom: 8,
         paddingHorizontal: 11,
         borderWidth: 0,
-        borderRadius: variables.componentBorderRadiusNormal,
     },
 
     textInputMultiline: {
@@ -1115,9 +1125,7 @@ const styles = {
     },
 
     popoverMenuText: {
-        fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
-        fontWeight: fontWeightBold,
         color: themeColors.heading,
         maxWidth: 240,
     },
@@ -1331,10 +1339,6 @@ const styles = {
         ...wordBreak.breakWord,
     },
 
-    chatItemUnsentMessage: {
-        opacity: 0.6,
-    },
-
     chatItemMessageLink: {
         color: colors.blue,
         fontSize: variables.fontSizeNormal,
@@ -1372,7 +1376,6 @@ const styles = {
     },
 
     chatFooter: {
-        marginBottom: 5,
         paddingLeft: 20,
         paddingRight: 20,
         display: 'flex',
@@ -1407,9 +1410,10 @@ const styles = {
     }, 0),
 
     textInputFullCompose: {
-        alignSelf: 'flex-end',
+        alignSelf: 'stretch',
         flex: 1,
         maxHeight: '100%',
+        textAlignVertical: 'top',
     },
 
     editInputComposeSpacing: {
@@ -1571,6 +1575,14 @@ const styles = {
         borderRadius: 24,
     },
 
+    horizontalStackedAvatar: {
+        height: 28,
+        width: 28,
+        backgroundColor: colors.white,
+        borderRadius: 33,
+        paddingTop: 2,
+    },
+
     singleSubscript: {
         height: variables.iconSizeNormal,
         width: variables.iconSizeNormal,
@@ -1701,6 +1713,43 @@ const styles = {
         width: variables.avatarSizeSmall,
     },
 
+    horizontalStackedAvatar1: {
+        left: -19,
+        top: -79,
+        zIndex: 2,
+    },
+
+    horizontalStackedAvatar2: {
+        left: 1,
+        top: -51,
+        zIndex: 3,
+    },
+
+    horizontalStackedAvatar3: {
+        left: 21,
+        top: -23,
+        zIndex: 4,
+    },
+
+    horizontalStackedAvatar4: {
+        top: 5,
+        left: 41,
+        zIndex: 5,
+    },
+
+    horizontalStackedAvatar4Overlay: {
+        top: -107,
+        left: 41,
+        height: 28,
+        width: 28,
+        borderWidth: 2,
+        borderStyle: 'solid',
+        borderColor: colors.white,
+        backgroundColor: themeColors.opaqueAvatar,
+        borderRadius: 24,
+        zIndex: 6,
+    },
+
     modalViewContainer: {
         alignItems: 'center',
         flex: 1,
@@ -1746,6 +1795,8 @@ const styles = {
 
     pointerEventsNone,
 
+    pointerEventsAuto,
+
     headerBar: {
         overflow: 'hidden',
         justifyContent: 'center',
@@ -1766,6 +1817,7 @@ const styles = {
         flex: 1,
         backgroundColor: themeColors.modalBackground,
     },
+
     PDFView: {
         // `display: grid` is not supported in native platforms!
         // It's being used on Web/Desktop only to vertically center short PDFs,
@@ -1778,6 +1830,12 @@ const styles = {
         overflow: 'hidden',
         overflowY: 'auto',
         alignItems: 'center',
+    },
+
+    pdfPasswordForm: {
+        wideScreenWidth: {
+            width: 350,
+        },
     },
 
     modalCenterContentContainer: {
@@ -1846,6 +1904,10 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: 15,
+    },
+
+    blockingViewContainer: {
+        paddingBottom: variables.contentHeaderHeight,
     },
 
     defaultModalContainer: {
@@ -1975,6 +2037,7 @@ const styles = {
         flexDirection: 'row',
         alignItems: 'center',
         zIndex: 1,
+        cursor: 'default',
     },
 
     unreadIndicatorLine: {
@@ -2218,6 +2281,15 @@ const styles = {
         transform: [{translateY: y}],
     }),
 
+    makeSlideInTranslation: (translationType, fromValue) => ({
+        from: {
+            [translationType]: fromValue,
+        },
+        to: {
+            [translationType]: 0,
+        },
+    }),
+
     growlNotificationBox: {
         backgroundColor: colors.dark,
         borderRadius: variables.componentBorderRadiusNormal,
@@ -2404,6 +2476,10 @@ const styles = {
         errorDot: {
             marginRight: 12,
         },
+        menuItemErrorPadding: {
+            paddingLeft: 44,
+            paddingRight: 20,
+        },
     },
 
     dotIndicatorMessage: {
@@ -2547,7 +2623,6 @@ const styles = {
     },
 
     keyboardShortcutModalContainer: {
-        maxWidth: 600,
         maxHeight: '100%',
         flex: '0 0 auto',
     },
@@ -2613,10 +2688,6 @@ const styles = {
         height: 153,
     },
 
-    avatarCropModalContainer: {
-        maxWidth: 450, // this width was chosen to match layout to average mobile device
-    },
-
     imageCropContainer: {
         borderRadius: variables.componentBorderRadiusCard,
         overflow: 'hidden',
@@ -2652,6 +2723,11 @@ const styles = {
         userSelect: 'text',
     },
 
+    userSelectNone: {
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+    },
+
     screenCenteredContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -2664,6 +2740,23 @@ const styles = {
         fontSize: variables.fontSizeLabel,
         fontFamily: fontFamily.GTA,
         marginLeft: 6,
+    },
+
+    addWorkspaceRoomErrorRow: {
+        paddingHorizontal: 20,
+        maxWidth: 450,
+        alignSelf: 'center',
+    },
+
+    textPill: {
+        ellipsizeMode: 'end',
+        backgroundColor: colors.gray2,
+        borderRadius: 10,
+        overflow: 'hidden',
+        paddingVertical: 2,
+        flexShrink: 1,
+        fontSize: variables.fontSizeSmall,
+        ...spacing.ph2,
     },
 };
 

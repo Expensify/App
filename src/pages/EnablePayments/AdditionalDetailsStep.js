@@ -21,13 +21,14 @@ import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButto
 import * as Wallet from '../../libs/actions/Wallet';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as LoginUtils from '../../libs/LoginUtils';
-import AddressSearch from '../../components/AddressSearch';
+import AddressForm from '../ReimbursementAccount/AddressForm';
 import DatePicker from '../../components/DatePicker';
 import FormHelper from '../../libs/FormHelper';
 import walletAdditionalDetailsDraftPropTypes from './walletAdditionalDetailsDraftPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import OfflineIndicator from '../../components/OfflineIndicator';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -91,25 +92,9 @@ class AdditionalDetailsStep extends React.Component {
 
         this.activateWallet = this.activateWallet.bind(this);
 
-        this.requiredFields = [
-            'legalFirstName',
-            'legalLastName',
-            'addressStreet',
-            'addressCity',
-            'addressState',
-            'addressZip',
-            'phoneNumber',
-            'dob',
-            'ssn',
-        ];
-
         this.errorTranslationKeys = {
             legalFirstName: 'bankAccount.error.firstName',
             legalLastName: 'bankAccount.error.lastName',
-            addressStreet: 'bankAccount.error.addressStreet',
-            addressCity: 'bankAccount.error.addressCity',
-            addressState: 'bankAccount.error.addressState',
-            addressZip: 'bankAccount.error.zipCode',
             phoneNumber: 'bankAccount.error.phoneNumber',
             dob: 'bankAccount.error.dob',
             age: 'bankAccount.error.age',
@@ -121,9 +106,6 @@ class AdditionalDetailsStep extends React.Component {
             legalFirstName: 'additionalDetailsStep.legalFirstNameLabel',
             legalLastName: 'additionalDetailsStep.legalLastNameLabel',
             addressStreet: 'common.personalAddress',
-            addressCity: 'common.city',
-            addressState: 'common.state',
-            addressZip: 'common.zip',
             phoneNumber: 'common.phoneNumber',
             dob: 'common.dob',
             ssn: 'common.ssnLast4',
@@ -134,6 +116,16 @@ class AdditionalDetailsStep extends React.Component {
             errorPath: 'walletAdditionalDetails.errorFields',
             setErrors: Wallet.setAdditionalDetailsErrors,
         });
+    }
+
+    getFirstName() {
+        const {firstName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
+        return this.props.walletAdditionalDetailsDraft.legalFirstName || firstName;
+    }
+
+    getLastName() {
+        const {lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
+        return this.props.walletAdditionalDetailsDraft.legalLastName || lastName;
     }
 
     /**
@@ -171,6 +163,14 @@ class AdditionalDetailsStep extends React.Component {
 
         const errors = {};
 
+        if (!this.getFirstName()) {
+            errors.legalFirstName = true;
+        }
+
+        if (!this.getLastName()) {
+            errors.legalLastName = true;
+        }
+
         if (!ValidationUtils.isValidPastDate(this.props.walletAdditionalDetailsDraft.dob)) {
             errors.dob = true;
         }
@@ -181,6 +181,18 @@ class AdditionalDetailsStep extends React.Component {
 
         if (!ValidationUtils.isValidAddress(this.props.walletAdditionalDetailsDraft.addressStreet)) {
             errors.addressStreet = true;
+        }
+
+        if (_.isEmpty(this.props.walletAdditionalDetailsDraft.addressCity)) {
+            errors.addressCity = true;
+        }
+
+        if (_.isEmpty(this.props.walletAdditionalDetailsDraft.addressState)) {
+            errors.addressState = true;
+        }
+
+        if (!ValidationUtils.isValidZipCode(this.props.walletAdditionalDetailsDraft.addressZip)) {
+            errors.addressZip = true;
         }
 
         if (!ValidationUtils.isValidUSPhone(this.props.walletAdditionalDetailsDraft.phoneNumber, true)) {
@@ -195,14 +207,6 @@ class AdditionalDetailsStep extends React.Component {
             errors.ssn = true;
         }
 
-        _.each(this.requiredFields, (requiredField) => {
-            if (ValidationUtils.isRequiredFulfilled(this.props.walletAdditionalDetailsDraft[requiredField])) {
-                return;
-            }
-
-            errors[requiredField] = true;
-        });
-
         Wallet.setAdditionalDetailsErrors(errors);
         return _.size(errors) === 0;
     }
@@ -214,6 +218,8 @@ class AdditionalDetailsStep extends React.Component {
         const personalDetails = {
             ...this.props.walletAdditionalDetailsDraft,
             phoneNumber: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(this.props.walletAdditionalDetailsDraft.phoneNumber),
+            legalFirstName: this.getFirstName(),
+            legalLastName: this.getLastName(),
         };
         Wallet.updatePersonalDetails(personalDetails);
     }
@@ -265,15 +271,12 @@ class AdditionalDetailsStep extends React.Component {
             );
         }
 
-        const errors = lodashGet(this.props, 'walletAdditionalDetails.errors', {});
-        const isErrorVisible = _.size(this.getErrors()) > 0
-            || !_.isEmpty(errors);
+        const errorMessage = ErrorUtils.getLatestErrorMessage(this.props.walletAdditionalDetails) || '';
+        const isErrorVisible = _.size(this.getErrors()) > 0 || Boolean(errorMessage);
         const shouldAskForFullSSN = this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN;
-        const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
-        const errorMessage = _.isEmpty(errors) ? '' : _.last(_.values(errors));
 
         return (
-            <ScreenWrapper style={[styles.flex1]} keyboardAvoidingViewBehavior="height">
+            <>
                 <HeaderWithCloseButton
                     title={this.props.translate('additionalDetailsStep.headerTitle')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
@@ -295,62 +298,44 @@ class AdditionalDetailsStep extends React.Component {
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.legalFirstName)}
                                     onChangeText={val => this.clearErrorAndSetValue('legalFirstName', val)}
-                                    value={this.props.walletAdditionalDetailsDraft.legalFirstName || firstName}
+                                    value={this.getFirstName()}
                                     errorText={this.getErrorText('legalFirstName')}
                                 />
                                 <TextInput
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.legalLastName)}
                                     onChangeText={val => this.clearErrorAndSetValue('legalLastName', val)}
-                                    value={this.props.walletAdditionalDetailsDraft.legalLastName || lastName}
+                                    value={this.getLastName()}
                                     errorText={this.getErrorText('legalLastName')}
                                 />
-                                <AddressSearch
-                                    label={this.props.translate(this.fieldNameTranslationKeys.addressStreet)}
-                                    value={this.props.walletAdditionalDetailsDraft.addressStreet || ''}
-                                    containerStyles={[styles.mt4]}
-                                    onInputChange={(values) => {
+                                <AddressForm
+                                    translate={this.props.translate}
+                                    streetTranslationKey={this.fieldNameTranslationKeys.addressStreet}
+                                    values={{
+                                        street: this.props.walletAdditionalDetailsDraft.addressStreet,
+                                        state: this.props.walletAdditionalDetailsDraft.addressState,
+                                        city: this.props.walletAdditionalDetailsDraft.addressCity,
+                                        zipCode: this.props.walletAdditionalDetailsDraft.addressZip,
+                                    }}
+                                    errors={{
+                                        street: this.getErrors().addressStreet,
+                                        state: this.getErrors().addressState,
+                                        city: this.getErrors().addressCity,
+                                        zipCode: this.getErrors().addressZip,
+                                    }}
+                                    onFieldChange={(values) => {
                                         const renamedFields = {
                                             street: 'addressStreet',
                                             state: 'addressState',
-                                            zipCode: 'addressZip',
                                             city: 'addressCity',
+                                            zipCode: 'addressZip',
                                         };
                                         _.each(values, (value, inputKey) => {
                                             const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
                                             this.clearErrorAndSetValue(renamedInputKey, value);
                                         });
                                     }}
-                                    errorText={this.getErrorText('addressStreet')}
-                                    hint={this.props.translate('common.noPO')}
                                 />
-                                {this.props.walletAdditionalDetailsDraft.addressStreet ? (
-                                    <>
-                                        {/** Once the user has started entering his address, show the other address fields (city, state, zip) */}
-                                        {/** We'll autofill them when the user selects a full address from the google autocomplete */}
-                                        <TextInput
-                                            containerStyles={[styles.mt4]}
-                                            label={this.props.translate(this.fieldNameTranslationKeys.addressCity)}
-                                            onChangeText={val => this.clearErrorAndSetValue('addressCity', val)}
-                                            value={this.props.walletAdditionalDetailsDraft.addressCity || ''}
-                                            errorText={this.getErrorText('addressCity')}
-                                        />
-                                        <TextInput
-                                            containerStyles={[styles.mt4]}
-                                            label={this.props.translate(this.fieldNameTranslationKeys.addressState)}
-                                            onChangeText={val => this.clearErrorAndSetValue('addressState', val)}
-                                            value={this.props.walletAdditionalDetailsDraft.addressState || ''}
-                                            errorText={this.getErrorText('addressState')}
-                                        />
-                                        <TextInput
-                                            containerStyles={[styles.mt4]}
-                                            label={this.props.translate(this.fieldNameTranslationKeys.addressZip)}
-                                            onChangeText={val => this.clearErrorAndSetValue('addressZip', val)}
-                                            value={this.props.walletAdditionalDetailsDraft.addressZip || ''}
-                                            errorText={this.getErrorText('addressZip')}
-                                        />
-                                    </>
-                                ) : null}
                             </View>
                             <TextInput
                                 containerStyles={[styles.mt4]}
@@ -393,7 +378,7 @@ class AdditionalDetailsStep extends React.Component {
                         <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
                     </FormScrollView>
                 </View>
-            </ScreenWrapper>
+            </>
         );
     }
 }

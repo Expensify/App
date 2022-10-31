@@ -19,6 +19,7 @@ export default {
         save: 'Save',
         saveChanges: 'Save changes',
         password: 'Password',
+        workspaces: 'Workspaces',
         profile: 'Profile',
         payments: 'Payments',
         preferences: 'Preferences',
@@ -81,7 +82,7 @@ export default {
         error: {
             invalidAmount: 'Invalid amount',
             acceptedTerms: 'You must accept the Terms of Service to continue',
-            phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+            phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
         please: 'Please',
         contactUs: 'contact us',
@@ -167,6 +168,16 @@ export default {
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
         sayHello: 'Say hello!',
+        conciergePlaceholderOptions: [
+            'Ask for help!',
+            'Ask me anything!',
+            'Ask me to book travel!',
+            'Ask me what I can do!',
+            'Ask me how to pay people!',
+            'Ask me how to send an invoice!',
+            'Ask me how to scan a receipt!',
+            'Ask me how to get a free corporate card!',
+        ],
         blockedFromConcierge: 'Communication is barred',
         fileUploadFailed: 'Upload failed. File is not supported.',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
@@ -201,6 +212,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartOne: 'Collaboration between ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
+        chatWithAccountManager: 'Chat with your account manager here',
     },
     newMessages: 'New messages',
     reportTypingIndicator: {
@@ -224,6 +236,8 @@ export default {
         buttonSearch: 'Search',
         buttonMySettings: 'My settings',
         fabNewChat: 'New chat(Floating Action)',
+        chatPinned: 'Chat pinned',
+        draftedMessage: 'Drafted message',
     },
     iou: {
         amount: 'Amount',
@@ -247,6 +261,7 @@ export default {
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
+            genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
         },
     },
     notificationPreferences: {
@@ -267,6 +282,7 @@ export default {
         deleteWorkspaceError: 'Sorry, there was an unexpected problem deleting your workspace avatar.',
         sizeExceeded: ({maxUploadSizeInMB}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
         tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels`,
+        notAllowedExtension: ({allowedExtensions}) => `Profile picture must be one of the following types: ${allowedExtensions.join(', ')}.`,
     },
     profilePage: {
         profile: 'Profile',
@@ -400,7 +416,7 @@ export default {
             notOwnerOfFund: 'There was an error setting this card as your default payment method.',
             setDefaultFailure: 'Something went wrong. Please chat with Concierge for further assistance.',
         },
-        addBankAccountFailure: 'And unexpected error occurred while trying to add your bank account. Please try again.',
+        addBankAccountFailure: 'An unexpected error occurred while trying to add your bank account. Please try again.',
     },
     transferAmountPage: {
         transfer: ({amount}) => `Transfer${amount ? ` ${amount}` : ''}`,
@@ -513,6 +529,7 @@ export default {
         iouReportNotFound: 'The payment details you are looking for cannot be found.',
         notHere: "Hmm... it's not here",
         pageNotFound: 'That page is nowhere to be found.',
+        noAccess: 'You don\'t have access to this chat',
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',
@@ -579,6 +596,16 @@ export default {
     },
     attachmentView: {
         unknownFilename: 'Unknown filename',
+        passwordRequired: 'Please enter a password',
+        passwordIncorrect: 'Incorrect password. Please try again.',
+        pdfPasswordForm: {
+            title: 'Password protected PDF',
+            infoText: 'This PDF is password protected.',
+            beforeLinkText: 'Please',
+            linkText: 'enter the password',
+            afterLinkText: 'to view it.',
+            formLabel: 'View PDF',
+        },
     },
     pronouns: {
         heHimHis: 'He/him',
@@ -696,7 +723,10 @@ export default {
         headerTitle: 'Enable payments',
         activatedTitle: 'Wallet activated!',
         activatedMessage: 'Congrats, your wallet is set up and ready to make payments.',
-        checkBackLater: 'We\'re still reviewing your information. Please check back later.',
+        checkBackLaterTitle: 'Just a minute...',
+        checkBackLaterMessage: 'We\'re still reviewing your information. Please check back later.',
+        continueToPayment: 'Continue to payment',
+        continueToTransfer: 'Continue to transfer',
     },
     companyStep: {
         headerTitle: 'Company information',
@@ -763,7 +793,6 @@ export default {
     },
     session: {
         offlineMessageRetry: 'Looks like you\'re offline. Please check your connection and try again.',
-        offlineMessage: 'Looks like you\'re offline.',
     },
     workspace: {
         common: {
@@ -782,17 +811,18 @@ export default {
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
             settlementFrequency: 'Settlement frequency',
-            growlMessageOnCreate: 'Workspace created',
-            growlMessageOnSave: 'Your workspace settings were successfully saved!',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             growlMessageOnDelete: 'Workspace deleted',
             growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
             unavailable: 'Unavailable workspace',
         },
+        emptyWorkspace: {
+            title: 'Create a new workspace',
+            subtitle: 'Workspaces are where you\'ll chat with your team, reimburse expenses, issue cards, send invoices, pay bills, and more — all in one place.',
+        },
         new: {
             newWorkspace: 'New workspace',
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
-            genericFailureMessage: 'An error occurred creating the workspace, please try again.',
         },
         people: {
             genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
@@ -800,7 +830,9 @@ export default {
             removeMembersTitle: 'Remove members',
             selectAll: 'Select all',
             error: {
+                genericAdd: 'There was a problem adding this workspace member.',
                 cannotRemove: 'You cannot remove yourself or the workspace owner.',
+                genericRemove: 'There was a problem removing that workspace member.',
             },
         },
         card: {
@@ -929,8 +961,8 @@ export default {
         },
         error: {
             phoneNumberExtension: 'Please enter a valid phone extension number',
-            firstName: 'Please provide your first name so our guides know how to address you!',
-            lastName: 'Please provide your last name so our guides know how to address you!',
+            firstName: 'Please provide your first name',
+            lastName: 'Please provide your last name',
             firstNameLength: 'First name shouldn\'t be longer than 50 characters',
             lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
         },
@@ -968,7 +1000,6 @@ export default {
         renamedRoomAction: ({oldName, newName}) => ` renamed this room from ${oldName} to ${newName}`,
         social: 'social',
         selectAWorkspace: 'Select a workspace',
-        growlMessageOnError: 'Unable to create policy room, please check your connection and try again.',
         growlMessageOnRenameError: 'Unable to rename policy room, please check your connection and try again.',
         visibilityOptions: {
             restricted: 'Restricted',

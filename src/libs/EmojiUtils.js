@@ -4,6 +4,7 @@ import moment from 'moment';
 import Str from 'expensify-common/lib/str';
 import CONST from '../CONST';
 import * as User from './actions/User';
+import emojisTrie from './EmojiTrie';
 
 /**
  * Get the unicode code of an emoji in base 16.
@@ -199,10 +200,65 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
     User.updateFrequentlyUsedEmojis(frequentEmojiList);
 }
 
+/**
+ * Replace any emoji name in a text with the emoji icon
+ * @param {String} text
+ * @returns {String}
+ */
+function replaceEmojis(text) {
+    let newText = text;
+    const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
+    if (!emojiData || emojiData.length === 0) {
+        return text;
+    }
+    for (let i = 0; i < emojiData.length; i++) {
+        const checkEmoji = emojisTrie.search(emojiData[i].slice(1, -1));
+        if (checkEmoji && checkEmoji.metaData.code) {
+            newText = newText.replace(emojiData[i], checkEmoji.metaData.code);
+        }
+    }
+    return newText;
+}
+
+/**
+ * Suggest emojis when typing emojis prefix after colon
+ * @param {String} text
+ * @param {Number} [limit] - matching emojis limit
+ * @returns {Array}
+ */
+function suggestEmojis(text, limit = 5) {
+    const emojiData = text.match(CONST.REGEX.EMOJI_SUGGESTIONS);
+    if (emojiData) {
+        const matching = [];
+        const nodes = emojisTrie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1));
+        for (let j = 0; j < nodes.length; j++) {
+            if (nodes[j].metaData.code && !_.find(matching, obj => obj.name === nodes[j].name)) {
+                if (matching.length === limit) {
+                    return matching;
+                }
+                matching.unshift({code: nodes[j].metaData.code, name: nodes[j].name});
+            }
+            const suggestions = nodes[j].metaData.suggestions;
+            for (let i = 0; i < suggestions.length; i++) {
+                if (matching.length === limit) {
+                    return matching;
+                }
+                if (!_.find(matching, obj => obj.name === suggestions[i].name)) {
+                    matching.unshift(suggestions[i]);
+                }
+            }
+        }
+        return matching;
+    }
+    return [];
+}
+
 export {
     isSingleEmoji,
     getDynamicHeaderIndices,
     mergeEmojisWithFrequentlyUsedEmojis,
     addToFrequentlyUsedEmojis,
     containsOnlyEmojis,
+    replaceEmojis,
+    suggestEmojis,
 };

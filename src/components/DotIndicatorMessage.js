@@ -45,6 +45,10 @@ const DotIndicatorMessage = (props) => {
         .keys()
         .sortBy()
         .map(key => props.messages[key])
+
+        // Using uniq here since some fields are wrapped by the same OfflineWithFeedback component (e.g. WorkspaceReimburseView)
+        // and can potentially pass the same error.
+        .uniq()
         .value();
 
     return (
@@ -63,6 +67,7 @@ const DotIndicatorMessage = (props) => {
 
 DotIndicatorMessage.propTypes = propTypes;
 DotIndicatorMessage.defaultProps = defaultProps;
+DotIndicatorMessage.displayName = 'DotIndicatorMessage';
 
 export default DotIndicatorMessage;
 

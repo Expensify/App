@@ -1,3 +1,3 @@
-import * as Session from '../actions/Session';
+import * as Composer from '../actions/Composer';
 
-export default shouldShowComposeInput => Session.setShouldShowComposeInput(shouldShowComposeInput);
+export default shouldShowComposeInput => Composer.setShouldShowComposeInput(shouldShowComposeInput);

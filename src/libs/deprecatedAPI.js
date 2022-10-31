@@ -154,14 +154,6 @@ function GetPolicySummaryList() {
 }
 
 /**
- * @returns {Promise}
- */
-function GetRequestCountryCode() {
-    const commandName = 'GetRequestCountryCode';
-    return Network.post(commandName);
-}
-
-/**
  * @param {Object} parameters
  * @param {String} parameters.name
  * @param {Number} parameters.value
@@ -332,22 +324,6 @@ function ValidateEmail(parameters) {
 }
 
 /**
- * Create a new IOUTransaction
- *
- * @param {Object} parameters
- * @param {String} parameters.comment
- * @param {Array} parameters.debtorEmail
- * @param {String} parameters.currency
- * @param {String} parameters.amount
- * @returns {Promise}
- */
-function CreateIOUTransaction(parameters) {
-    const commandName = 'CreateIOUTransaction';
-    requireParameters(['comment', 'debtorEmail', 'currency', 'amount'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
  * Create a new IOU Split
  *
  * @param {Object} parameters
@@ -412,12 +388,6 @@ function Policy_Employees_Merge(parameters) {
     return Network.post(commandName, {...parameters, returnPersonalDetails: true});
 }
 
-function BankAccount_Validate(parameters) {
-    const commandName = 'ValidateBankAccount';
-    requireParameters(['bankAccountID', 'validateCode'], parameters, commandName);
-    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST);
-}
-
 /**
  * @param {*} parameters
  * @returns {Promise}
@@ -476,17 +446,6 @@ function GetLocalCurrency(parameters) {
  */
 function User_IsUsingExpensifyCard() {
     return Network.post('User_IsUsingExpensifyCard', {});
-}
-
-/**
- * @param {Object} parameters
- * @param {String} [parameters.type]
- * @param {String} [parameters.policyName]
- * @returns {Promise}
- */
-function Policy_Create(parameters) {
-    const commandName = 'Policy_Create';
-    return Network.post(commandName, parameters);
 }
 
 /**
@@ -551,31 +510,6 @@ function GetReportSummaryList(parameters) {
 }
 
 /**
- * @param {Object} parameters
- * @param {String} parameters.policyID
- * @param {String} parameters.value - Must be a JSON stringified object
- * @returns {Promise}
- */
-function UpdatePolicy(parameters) {
-    const commandName = 'UpdatePolicy';
-    requireParameters(['policyID', 'value'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.policyID
- * @param {String} parameters.reportName
- * @param {String} parameters.visibility
- * @return {Promise}
- */
-function CreatePolicyRoom(parameters) {
-    const commandName = 'CreatePolicyRoom';
-    requireParameters(['policyID', 'reportName', 'visibility'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
  * Transfer Wallet balance and takes either the bankAccoundID or fundID
  * @param {Object} parameters
  * @param {String} [parameters.bankAccountID]
@@ -603,11 +537,9 @@ function GetStatementPDF(parameters) {
 
 export {
     BankAccount_SetupWithdrawal,
-    BankAccount_Validate,
     ChangePassword,
     CreateChatReport,
     CreateLogin,
-    CreatePolicyRoom,
     DeleteLogin,
     Get,
     GetStatementPDF,
@@ -615,7 +547,6 @@ export {
     GetFullPolicy,
     GetPolicySummaryList,
     GetReportSummaryList,
-    GetRequestCountryCode,
     Graphite_Timer,
     Inbox_CallUser,
     PayIOU,
@@ -628,19 +559,16 @@ export {
     ResendValidateCode,
     SetNameValuePair,
     SetPassword,
-    UpdatePolicy,
     User_SignUp,
     User_IsUsingExpensifyCard,
     User_SecondaryLogin_Send,
     User_UploadAvatar,
-    CreateIOUTransaction,
     CreateIOUSplit,
     ValidateEmail,
     Wallet_Activate,
     Wallet_GetOnfidoSDKToken,
     TransferWalletBalance,
     GetLocalCurrency,
-    Policy_Create,
     Policy_CustomUnitRate_Update,
     Policy_Employees_Remove,
     PreferredLocale_Update,

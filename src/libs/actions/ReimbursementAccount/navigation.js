@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import lodashHas from 'lodash/has';
 import Onyx from 'react-native-onyx';
 import * as store from './store';
 import CONST from '../../../CONST';
@@ -84,10 +83,6 @@ function goToWithdrawalAccountSetupStep(stepID, achData) {
     if (!newACHData.useOnfido && stepID === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
         delete newACHData.questions;
         delete newACHData.answers;
-        if (lodashHas(newACHData, CONST.BANK_ACCOUNT.VERIFICATIONS.EXTERNAL_API_RESPONSES)) {
-            delete newACHData.verifications.externalApiResponses.requestorIdentityID;
-            delete newACHData.verifications.externalApiResponses.requestorIdentityKBA;
-        }
     }
 
     // When going back to the BankAccountStep from the Company Step, show the manual form instead of Plaid
