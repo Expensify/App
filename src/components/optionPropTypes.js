@@ -41,7 +41,10 @@ export default PropTypes.shape({
 
     // Custom icon to render on the right side of the option
     customIcon: PropTypes.shape({
+        // The icon source
         src: PropTypes.func,
+
+        // The color of the icon
         color: PropTypes.string,
     }),
 
