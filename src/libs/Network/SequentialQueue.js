@@ -140,7 +140,6 @@ function getIsDonePromise() {
 }
 
 export {
-    process,
     flush,
     getCurrentRequest,
     isRunning,
