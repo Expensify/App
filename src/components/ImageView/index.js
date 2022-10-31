@@ -25,8 +25,9 @@ class ImageView extends PureComponent {
         this.onContainerPress = this.onContainerPress.bind(this);
         this.imageLoadingStart = this.imageLoadingStart.bind(this);
         this.imageLoadingEnd = this.imageLoadingEnd.bind(this);
-        this.onMouseUp = this.onMouseUp.bind(this);
         this.trackMovement = this.trackMovement.bind(this);
+        this.trackPointerPosition = this.trackPointerPosition.bind(this);
+
         this.state = {
             isLoading: false,
             containerHeight: 0,
@@ -52,7 +53,7 @@ class ImageView extends PureComponent {
             return;
         }
         document.addEventListener('mousemove', this.trackMovement);
-        document.addEventListener('mouseup', this.onMouseUp);
+        document.addEventListener('mouseup', this.trackPointerPosition);
     }
 
     componentWillUnmount() {
@@ -61,7 +62,7 @@ class ImageView extends PureComponent {
         }
 
         document.removeEventListener('mousemove', this.trackMovement);
-        document.removeEventListener('mouseup', this.onMouseUp);
+        document.removeEventListener('mouseup', this.trackPointerPosition);
     }
 
     /**
@@ -120,14 +121,6 @@ class ImageView extends PureComponent {
         }
     }
 
-    onMouseUp(e) {
-        const isInside = this.scrollableRef.contains(e.nativeEvent.target);
-
-        if (!isInside && this.state.isZoomed && this.state.isDragging && this.state.isMouseDown) {
-            this.setState({isDragging: false, isMouseDown: false});
-        }
-    }
-
     /**
      * When open image, set image width, height.
      * @param {Number} imageWidth
@@ -183,6 +176,18 @@ class ImageView extends PureComponent {
             offsetY = y - (this.state.containerHeight / 2);
         }
         return {offsetX, offsetY};
+    }
+
+    /**
+     * @param {SyntheticEvent} e
+     */
+    trackPointerPosition(e) {
+        // Whether the pointer is released inside the ImageView
+        const isInsideImageView = this.scrollableRef.contains(e.nativeEvent.target);
+
+        if (!isInsideImageView && this.state.isZoomed && this.state.isDragging && this.state.isMouseDown) {
+            this.setState({isDragging: false, isMouseDown: false});
+        }
     }
 
     trackMovement(e) {
