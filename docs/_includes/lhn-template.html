@@ -14,14 +14,8 @@
         </div>
         <ul class="nested-treeview">
           {% for stage in hub.stages %}
-            {% if stage.articles == empty %}
-              <li>
-                <a href="/articles/{{ hub.href }}/{{ stage.href }}">
-                  {{ stage.title }}
-                </a>
-              </li>
-            {% else %}
-              <li>
+            <li>
+              {% if stage.articles %}
                 <a href="#{{ stage.href }}">{{ stage.title }}</a>
                 <ul>
                   {% for article in stage.articles %}
@@ -32,8 +26,10 @@
                     </li>
                   {% endfor %}
                 </ul>
-              </li>
-            {% endif %}
+              {% else %}
+                <a href="/articles/{{ hub.href }}/{{ stage.href }}">{{ stage.title }}</a>
+              {% endif %}
+            </li>
           {% endfor %}
         </ul>
       </li>
