@@ -81,6 +81,7 @@ class ProfilePage extends Component {
             selectedTimezone: this.getSelectedTimezoneFromProps(props),
             isAutomaticTimezone: this.isAutomaticTimezoneFromProps(props),
             hasSelfSelectedPronouns: !_.isEmpty(props.currentUserPersonalDetails.pronouns) && !props.currentUserPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
+            firstName: this.getFirstNameFromProps(props),
         };
 
         this.getLogins = this.getLogins.bind(this);
@@ -91,7 +92,7 @@ class ProfilePage extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        let stateToUpdate = {};
+        const stateToUpdate = {};
 
         // Recalculate logins if loginList has changed
         const currentLoginList = LoginUtils.convertLoginListToObject(this.props.loginList);
@@ -111,6 +112,11 @@ class ProfilePage extends Component {
             stateToUpdate.isAutomaticTimezone = newIsAutomaticTimezone;
         }
 
+        const oldFirstName = this.getFirstNameFromProps(prevProps);
+        const newFirstName = this.getFirstNameFromProps(this.props);
+        if (oldFirstName !== newFirstName) {
+            stateToUpdate.firstName = newFirstName;
+        }
         if (_.isEmpty(stateToUpdate)) {
             return;
         }
@@ -125,7 +131,16 @@ class ProfilePage extends Component {
      * @returns {String}
      */
     getSelectedTimezoneFromProps(props) {
-        return lodashGet(props.currentUserPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected);
+        return lodashGet(props, 'currentUserPersonalDetails.timezone.selected', CONST.DEFAULT_TIME_ZONE.selected);
+    }
+
+    /**
+     *
+     * @param {Object} props Is of type propTypes
+     * @returns {String}
+     */
+    getFirstNameFromProps(props) {
+        return lodashGet(props, 'currentUserPersonalDetails.firstName', '');
     }
 
     /**
@@ -301,7 +316,8 @@ class ProfilePage extends Component {
                                 inputID="firstName"
                                 name="fname"
                                 label={this.props.translate('common.firstName')}
-                                defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
+                                value={this.state.firstName}
+                                onChange={input => this.setState({firstName: input.target.value})}
                                 placeholder={this.props.translate('profilePage.john')}
                             />
                         </View>
