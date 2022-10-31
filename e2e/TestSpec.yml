@@ -28,3 +28,10 @@ phases:
     commands:
       - echo "Starting tests"
       - npm run test:e2e -- --skipInstallDeps --skipBuild
+
+# The artifacts phase lets you specify the location where your tests logs, device logs will be stored.
+# And also let you specify the location of your test logs and artifacts which you want to be collected by Device Farm.
+# These logs and artifacts will be available through ListArtifacts API in Device Farm.
+artifacts:
+- $DEVICEFARM_LOG_DIR
+- $DEVICEFARM_TEST_PACKAGE_PATH/Git-App/e2e
