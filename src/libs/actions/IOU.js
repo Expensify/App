@@ -398,7 +398,7 @@ function createIOUSplitGroup(params) {
  */
 function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction) {
     const chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
-    let iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`];
+    const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`];
     const transactionID = moneyRequestAction.originalMessage.IOUTransactionID;
 
     // Get the amount we are cancelling
@@ -417,13 +417,13 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
     );
 
     const currentUserEmail = optimisticReportAction.actorEmail;
-    iouReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, CONST.IOU.REPORT_ACTION_TYPE.CANCEL);
+    const updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, CONST.IOU.REPORT_ACTION_TYPE.CANCEL);
 
     chatReport.maxSequenceNumber = newSequenceNumber;
     chatReport.lastReadSequenceNumber = newSequenceNumber;
     chatReport.lastMessageText = optimisticReportAction.message[0].text;
     chatReport.lastMessageHtml = optimisticReportAction.message[0].html;
-    chatReport.hasOutstandingIOU = iouReport.total !== 0;
+    chatReport.hasOutstandingIOU = updatedIOUReport.total !== 0;
 
     const optimisticData = [
         {
@@ -444,7 +444,7 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
-            value: iouReport,
+            value: updatedIOUReport,
         },
     ];
     const successData = [
@@ -470,14 +470,23 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
                 },
             },
         },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+            value: iouReport,
+        },
     ];
+
     API.write('CancelMoneyRequest', {
         transactionID,
-        iouReportID: iouReport.reportID,
+        iouReportID: updatedIOUReport.reportID,
+
+        // @TODO: add comment
         comment: '',
         clientID: optimisticReportAction.sequenceNumber,
         cancelMoneyRequestReportActionID: optimisticReportAction.reportActionID,
     }, {optimisticData, successData, failureData});
+
     Navigation.navigate(ROUTES.getReportRoute(chatReportID));
 }
 
