@@ -314,7 +314,6 @@ class ReportScreen extends React.Component {
                                         />
                                     </>
                                 )}
-
                         </View>
                         <ReportFooter
                             errors={addWorkspaceRoomOrChatErrors}
