@@ -302,6 +302,18 @@ export default {
         offline: 'Desconectado',
         syncing: 'Sincronizando',
     },
+    pronounsPage: {
+        pronouns: 'Pronombres',
+        isShownOnProfile: '',
+    },
+    pronouns: {
+        heHimHis: 'Él',
+        sheHerHers: 'Ella',
+        theyThemTheirs: 'Ellos',
+        zeHirHirs: 'Ze/hir',
+        selfSelect: 'Personalízalo',
+        callMeByMyName: 'Llámame por mi nombre',
+    },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Agregar número de teléfono',
         addEmailAddress: 'Agregar dirección de email',
@@ -606,14 +618,6 @@ export default {
             afterLinkText: 'para verlo.',
             formLabel: 'Ver PDF',
         },
-    },
-    pronouns: {
-        heHimHis: 'Él',
-        sheHerHers: 'Ella',
-        theyThemTheirs: 'Ellos',
-        zeHirHirs: 'Ze/hir',
-        selfSelect: 'Personalízalo',
-        callMeByMyName: 'Llámame por mi nombre',
     },
     messages: {
         errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
