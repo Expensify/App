@@ -266,7 +266,7 @@ class IOUConfirmationList extends Component {
             Log.info(`[IOU] Sending money via: ${paymentMethod}`);
             this.props.onSendMoney(paymentMethod);
         } else {
-            this.props.onConfirm();
+            this.props.onConfirm(selectedParticipants);
         }
     }
 
