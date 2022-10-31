@@ -312,14 +312,17 @@ class IOUModal extends Component {
             });
     }
 
-    createTransaction() {
+    /**
+     * @param {Array} selectedParticipants
+     */
+    createTransaction(selectedParticipants) {
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
 
         // IOUs created from a group report will have a reportID param in the route.
         // Since the user is already viewing the report, we don't need to navigate them to the report
         if (this.props.hasMultipleParticipants && CONST.REGEX.NUMBER.test(reportID)) {
             IOU.splitBill(
-                this.state.participants,
+                selectedParticipants,
                 this.props.currentUserPersonalDetails.login,
                 this.state.amount,
                 this.state.comment,
@@ -332,7 +335,7 @@ class IOUModal extends Component {
         // If the IOU is created from the global create menu, we also navigate the user to the group report
         if (this.props.hasMultipleParticipants) {
             IOU.splitBillAndOpenReport(
-                this.state.participants,
+                selectedParticipants,
                 this.props.currentUserPersonalDetails.login,
                 this.state.amount,
                 this.state.comment,
@@ -346,7 +349,7 @@ class IOUModal extends Component {
             Math.round(this.state.amount * 100),
             this.props.iou.selectedCurrencyCode,
             this.props.currentUserPersonalDetails.login,
-            OptionsListUtils.addSMSDomainIfPhoneNumber(this.state.participants[0].login),
+            selectedParticipants[0],
             this.state.comment);
     }
 
