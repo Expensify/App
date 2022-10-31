@@ -199,12 +199,12 @@ class Button extends Component {
 
         if (this.props.icon) {
             return (
-                <View style={this.props.themed([styles.justifyContentBetween, styles.flexRow])}>
-                    <View style={this.props.themed([styles.alignItemsCenter, styles.flexRow])}>
-                        <View style={this.props.themed([
+                <View style={[styles.justifyContentBetween, styles.flexRow]}>
+                    <View style={[styles.alignItemsCenter, styles.flexRow]}>
+                        <View style={[
                             styles.mr1,
                             ...this.props.iconStyles,
-                        ])}
+                        ]}
                         >
                             <Icon
                                 src={this.props.icon}

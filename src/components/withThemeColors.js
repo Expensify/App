@@ -31,7 +31,7 @@ class ThemeContextProvider extends React.Component {
     }
 
     themed(unthemedStyles) {
-        return Theme.themed(unthemedStyles);
+        return Theme.themed(unthemedStyles, this.props.preferredTheme);
     }
 
     render() {
