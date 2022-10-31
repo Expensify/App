@@ -31,6 +31,7 @@ import Banner from '../../components/Banner';
 import withLocalize from '../../components/withLocalize';
 import reportPropTypes from '../reportPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -223,6 +224,7 @@ class ReportScreen extends React.Component {
                     <ScreenWrapper
                         style={screenWrapperStyle}
                     >
+                        <ReportHeaderSkeletonView />
                         <HeaderView
                             reportID={reportID}
                             onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
@@ -232,9 +234,13 @@ class ReportScreen extends React.Component {
                         />
                         <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
                         <ReportFooter
+                            errors={addWorkspaceRoomOrChatErrors}
+                            pendingAction={addWorkspaceRoomOrChatPendingAction}
                             isOffline={this.props.network.isOffline}
+                            reportActions={this.props.reportActions}
                             report={this.props.report}
                             isComposerFullSize={this.props.isComposerFullSize}
+                            onSubmitComment={this.onSubmitComment}
                         />
                     </ScreenWrapper>
                 )}
