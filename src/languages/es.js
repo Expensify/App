@@ -981,7 +981,7 @@ export default {
             smileysAndEmotion: 'Emoticonos y emociones',
             peopleAndBody: 'Personas y Cuerpo',
             animalsAndNature: 'Animales y naturaleza',
-            foodAndDrinks: 'Alimentos y bebidas',
+            foodAndDrink: 'Alimentos y bebidas',
             travelAndPlaces: 'Viajes y lugares',
             activities: 'Actividades',
             objects: 'Objetos',

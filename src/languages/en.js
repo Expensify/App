@@ -979,7 +979,7 @@ export default {
             smileysAndEmotion: 'Smileys & Emotion',
             peopleAndBody: 'People & Body',
             animalsAndNature: 'Animals & Nature',
-            foodAndDrinks: 'Food & Drinks',
+            foodAndDrink: 'Food & Drinks',
             travelAndPlaces: 'Travel & Places',
             activities: 'Activities',
             objects: 'Objects',
