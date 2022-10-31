@@ -136,11 +136,11 @@ function getCurrentRequest() {
 }
 
 function getIsDonePromise() {
-    if (isSequentialQueueRunning) {
-        return isDonePromise;
+    if (!isSequentialQueueRunning) {
+        return Promise.resolve();
     }
 
-    return Promise.resolve();
+    return isDonePromise;
 }
 
 export {
