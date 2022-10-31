@@ -24,10 +24,6 @@ class OptionsList extends Component {
         // In this listener we will set `isUserScreenTouched` when the user is touching the screen
         // and `isUserScreenTouched` will be used to decide whether the list was scrolled by the user
         // or programmatically so that the keyboard would be dismissed only when it was scrolled by the user.
-        // the `keyboardDismissMode` is dismiss the keyboard when we scroll programmatically.
-        // In this listener we will set `isUserScreenTouched` if the user start/end touching the screen
-        // and `isUserScreenTouched` will be used to decide whether the scroll from touching or
-        // we scroll programmatically.
         document.addEventListener('touchstart', this.userTouchStart);
         document.addEventListener('touchend', this.userTouchEnd);
     }
