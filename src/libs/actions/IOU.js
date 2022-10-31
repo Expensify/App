@@ -398,12 +398,11 @@ function createIOUSplitGroup(params) {
  */
 function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction) {
     const chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
-    const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`];
+    let iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`];
     const transactionID = moneyRequestAction.originalMessage.IOUTransactionID;
 
     // Get the amount we are cancelling
     const amount = moneyRequestAction.originalMessage.amount;
-
     const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
     const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
         newSequenceNumber,
@@ -416,30 +415,15 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
         iouReportID,
         '',
     );
+
+    const currentUserEmail = optimisticReportAction.actorEmail;
+    iouReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, CONST.IOU.REPORT_ACTION_TYPE.CANCEL);
+
     chatReport.maxSequenceNumber = newSequenceNumber;
     chatReport.lastReadSequenceNumber = newSequenceNumber;
     chatReport.lastMessageText = optimisticReportAction.message[0].text;
     chatReport.lastMessageHtml = optimisticReportAction.message[0].html;
-
-    // The owner of the IOU report is the account who is owed money,
-    // hence if current user is the owner, cancelling a request will lower the total and vice versa for declining
-    // or if the current user is not an owner of the report.
-    if (optimisticReportAction.actorEmail === iouReport.ownerEmail) {
-        iouReport.total += type === CONST.IOU.REPORT_ACTION_TYPE.CANCEL ? -amount : amount;
-    } else {
-        iouReport.total += type === CONST.IOU.REPORT_ACTION_TYPE.CANCEL ? amount : -amount;
-    }
-
-    // If we are cancelling the
-    if (iouReport.total === 0) {
-        chatReport.hasOutstandingIOU = false;
-    } else if (iouReport.total < 0) {
-        // The total sign has changed and hence we need to flip the manager and owner of the report.
-        const oldOwnerEmail = iouReport.ownerEmail;
-        iouReport.ownerEmail = iouReport.managerEmail;
-        iouReport.managerEmail = oldOwnerEmail;
-        iouReport.total = -iouReport.total;
-    }
+    chatReport.hasOutstandingIOU = iouReport.total !== 0;
 
     const optimisticData = [
         {
