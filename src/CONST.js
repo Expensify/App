@@ -449,7 +449,7 @@ const CONST = {
 
     EMOJI_FREQUENT_ROW_COUNT: 3,
 
-    EMOJI_INVISIBLE_CODEPOINT: 'fe0f',
+    EMOJI_INVISIBLE_CODEPOINTS: ['fe0f', '200d'],
 
     TOOLTIP_MAX_LINES: 3,
 
@@ -659,6 +659,7 @@ const CONST = {
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
             CREATE: 'create',
+            SPLIT: 'split',
             DECLINE: 'decline',
             CANCEL: 'cancel',
         },

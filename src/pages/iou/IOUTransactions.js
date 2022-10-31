@@ -51,6 +51,7 @@ class IOUTransactions extends Component {
             return [];
         }
 
+        // iouReportIDs should be strings, but we still have places that send them as ints so we convert them both to Numbers for comparison
         const actionsForIOUReport = _.filter(this.props.reportActions, action => action.originalMessage
             && action.originalMessage.type && Number(action.originalMessage.IOUReportID) === Number(this.props.iouReportID));
 
@@ -72,6 +73,7 @@ class IOUTransactions extends Component {
         return (
             <View style={[styles.mt3]}>
                 {_.map(this.props.reportActions, (reportAction) => {
+                    // iouReportIDs should be strings, but we still have places that send them as ints so we convert them both to Numbers for comparison
                     if (!reportAction.originalMessage || Number(reportAction.originalMessage.IOUReportID) !== Number(this.props.iouReportID)) {
                         return;
                     }
