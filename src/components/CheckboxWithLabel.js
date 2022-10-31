@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View, TouchableOpacity} from 'react-native';
-import _ from 'underscore';
 import styles from '../styles/styles';
 import Checkbox from './Checkbox';
 import Text from './Text';
@@ -71,8 +70,6 @@ class CheckboxWithLabel extends React.Component {
 
         this.isChecked = props.defaultValue || props.isChecked;
         this.LabelComponent = props.LabelComponent;
-        this.defaultStyles = [styles.flexRow, styles.alignItemsCenter];
-        this.wrapperStyles = _.isArray(props.style) ? [...this.defaultStyles, ...props.style] : [...this.defaultStyles, props.style];
 
         this.toggleCheckbox = this.toggleCheckbox.bind(this);
     }
@@ -84,8 +81,8 @@ class CheckboxWithLabel extends React.Component {
 
     render() {
         return (
-            <>
-                <View style={this.wrapperStyles}>
+            <View style={this.props.style}>
+                <View style={[styles.flexRow, styles.alignItemsCenter]}>
                     <Checkbox
                         isChecked={this.isChecked}
                         onPress={this.toggleCheckbox}
@@ -118,7 +115,7 @@ class CheckboxWithLabel extends React.Component {
                     </TouchableOpacity>
                 </View>
                 <FormHelpMessage message={this.props.errorText} />
-            </>
+            </View>
         );
     }
 }
