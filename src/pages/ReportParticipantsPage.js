@@ -19,6 +19,7 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import * as ReportUtils from '../libs/ReportUtils';
 import reportPropTypes from './reportPropTypes';
+import withReportOrNavigateHome from './home/report/withReportOrNavigateHome';
 
 const propTypes = {
     /* Onyx Props */
@@ -113,12 +114,10 @@ ReportParticipantsPage.displayName = 'ReportParticipantsPage';
 
 export default compose(
     withLocalize,
+    withReportOrNavigateHome,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
         },
     }),
 )(ReportParticipantsPage);
