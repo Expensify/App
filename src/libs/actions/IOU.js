@@ -660,7 +660,7 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
     );
 
     const currentUserEmail = optimisticReportAction.actorEmail;
-    const updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, CONST.IOU.REPORT_ACTION_TYPE.CANCEL);
+    const updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, type);
 
     chatReport.maxSequenceNumber = newSequenceNumber;
     chatReport.lastReadSequenceNumber = newSequenceNumber;
@@ -730,6 +730,7 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
         cancelMoneyRequestReportActionID: optimisticReportAction.reportActionID,
     }, {optimisticData, successData, failureData});
 
+    // @TODO: should we navigate the user? What if they want to cancel multiple requests??
     Navigation.navigate(ROUTES.getReportRoute(chatReportID));
 }
 
