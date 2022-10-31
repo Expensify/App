@@ -1,13 +1,14 @@
 import * as React from 'react';
 import {useState} from 'react';
 
-import {Text, View} from 'react-native';
+import {Text, useWindowDimensions, View} from 'react-native';
 
 const WrappedText = ({children, textStyles, wordStyles}) => {
   const [lines, setLines] = useState([]);
   console.log('NewWrappedText', textStyles, wordStyles);
+  const {width} = useWindowDimensions();
   return (
-    <View>
+    <View style={{width: width * 0.8}}>
       {lines.map((line, idx) => {
         const {x, y, height, width} = line;
 
