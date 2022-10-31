@@ -12,7 +12,7 @@ let shouldForceOffline;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     waitForCollectionCallback: true,
-    callback: val => shouldForceOffline = (val.network && val.network.shouldForceOffline) || false,
+    callback: val => shouldForceOffline = val.shouldForceOffline || false,
 });
 
 let isOffline = false;
