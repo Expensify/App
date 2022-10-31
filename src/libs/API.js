@@ -1,10 +1,9 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import * as Request from './Request';
-import * as SequentialQueue from './Network/SequentialQueue';
 import pkg from '../../package.json';
 import CONST from '../CONST';
-import {getIsDonePromise} from './Network/SequentialQueue';
+import * as SequentialQueue from './Network/SequentialQueue';
 
 /**
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData.
@@ -107,7 +106,6 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
  */
 function read(command, apiCommandParameters, onyxData) {
     SequentialQueue.getIsDonePromise().then(() => makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ));
-    // makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ)
 }
 
 export {
