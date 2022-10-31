@@ -54,25 +54,6 @@ function trimEmojiUnicode(emojiCode) {
 }
 
 /**
- * Validates that this string is composed of a single emoji
- *
- * @param {String} message
- * @returns {Boolean}
- */
-function isSingleEmoji(message) {
-    const match = message.match(CONST.REGEX.EMOJIS);
-
-    if (!match) {
-        return false;
-    }
-
-    const matchedEmoji = match[0];
-    const matchedUnicode = getEmojiUnicode(matchedEmoji);
-    const currentMessageUnicode = trimEmojiUnicode(getEmojiUnicode(message));
-    return matchedUnicode === currentMessageUnicode;
-}
-
-/**
  * Validates that this message contains only emojis
  *
  * @param {String} message
@@ -254,7 +235,6 @@ function suggestEmojis(text, limit = 5) {
 }
 
 export {
-    isSingleEmoji,
     getDynamicHeaderIndices,
     mergeEmojisWithFrequentlyUsedEmojis,
     addToFrequentlyUsedEmojis,
