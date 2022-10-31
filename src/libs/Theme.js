@@ -5,8 +5,8 @@ import styles from '../styles/styles';
 /**
  * This function takes an array of style objects (supplied to it by a UI component e.g. Button.js)
  * and returns a themed version of those styles.
- * @param {array} unthemedStyles 
- * @param {bool} preferredTheme 
+ * @param {Array} unthemedStyles 
+ * @param {Boolean} preferredTheme 
  * @returns 
  */
 function themed(unthemedStyles, preferredTheme) {
