@@ -25,7 +25,7 @@ describe('EmojiTest', () => {
         expect(emojiMatched).toBe(true);
     });
 
-    it('matches only emojis variants for size', () => {
+    it('matches emojis for different variants', () => {
         // GIVEN an emoji that has the default Unicode representation WHEN we check if it contains only emoji THEN it should return true
         expect(EmojiUtils.containsOnlyEmojis('👉')).toBe(true);
         expect(EmojiUtils.containsOnlyEmojis('😪️')).toBe(true);
@@ -59,6 +59,11 @@ describe('EmojiTest', () => {
         expect(EmojiUtils.containsOnlyEmojis('🇺🇲')).toBe(true);
         expect(EmojiUtils.containsOnlyEmojis('🇮🇳')).toBe(true);
         expect(EmojiUtils.containsOnlyEmojis('🇺🇦️')).toBe(true);
+
+        // GIVEN an emoji that belongs to the new version of the dataset, WHEN we check if it contains only emoji THEN it should return true
+        expect(EmojiUtils.containsOnlyEmojis('🏋️')).toBe(true);
+        expect(EmojiUtils.containsOnlyEmojis('🧚‍♀️')).toBe(true);
+        expect(EmojiUtils.containsOnlyEmojis('⚰️')).toBe(true);
 
         // GIVEN an input WHEN we check only single emoji with text, THEN it should return false
         expect(EmojiUtils.containsOnlyEmojis('😄 is smiley')).toBe(false);
