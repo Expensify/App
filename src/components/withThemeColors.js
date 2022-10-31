@@ -9,7 +9,7 @@ const ThemeContext = createContext(null);
 
 const withThemePropTypes = {
     themed: PropTypes.func.isRequired,
-}
+};
 
 const themeProviderPropTypes = {
     /** The user's preferred locale e.g. 'en', 'es-ES' */
@@ -24,10 +24,10 @@ const themeProviderDefaultProps = {
 };
 
 class ThemeContextProvider extends React.Component {
-    getContextValue () {
+    getContextValue() {
         return {
             themed: this.themed.bind(this),
-        }
+        };
     }
 
     themed(unthemedStyles) {
@@ -58,7 +58,7 @@ export default function withTheme(WrappedComponent) {
     const WithTheme = forwardRef((props, ref) => (
         <ThemeContext.Consumer>
             {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-            {themeUtils => <WrappedComponent {...themeUtils} {...props} ref={ref}/>}
+            {themeUtils => <WrappedComponent {...themeUtils} {...props} ref={ref} />}
         </ThemeContext.Consumer>
     ));
 

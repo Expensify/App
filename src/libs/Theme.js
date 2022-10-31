@@ -1,6 +1,5 @@
-import darkGreen from "../styles/themes/darkGreen";
-import * as light from "../styles/themes/default";
-import styles from '../styles/styles';
+import darkGreen from '../styles/themes/darkGreen';
+import * as light from '../styles/themes/default';
 
 /**
  * This function takes an array of style objects (supplied to it by a UI component e.g. Button.js)
