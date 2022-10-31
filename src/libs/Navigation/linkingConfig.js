@@ -88,6 +88,10 @@ export default {
                         path: ROUTES.SETTINGS_PROFILE,
                         exact: true,
                     },
+                    Settings_Pronouns: {
+                        path: ROUTES.SETTINGS_PRONOUNS,
+                        exact: true,
+                    },
                     Settings_About: {
                         path: ROUTES.SETTINGS_ABOUT,
                         exact: true,
