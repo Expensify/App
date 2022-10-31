@@ -300,7 +300,7 @@ function getChatRoomSubtitle(report, policiesMap) {
         return Localize.translateLocal('workspace.common.workspace');
     }
     if (isArchivedRoom(report)) {
-        return report.oldPolicyName;
+        return report.oldPolicyName || '';
     }
     return getPolicyName(report, policiesMap);
 }
