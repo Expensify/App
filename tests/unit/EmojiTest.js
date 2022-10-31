@@ -59,6 +59,18 @@ describe('EmojiTest', () => {
         expect(EmojiUtils.containsOnlyEmojis('🇺🇲')).toBe(true);
         expect(EmojiUtils.containsOnlyEmojis('🇮🇳')).toBe(true);
         expect(EmojiUtils.containsOnlyEmojis('🇺🇦️')).toBe(true);
+
+        // GIVEN an input WHEN we check only single emoji with text, THEN it should return false
+        expect(EmojiUtils.containsOnlyEmojis('😄 is smiley')).toBe(false);
+
+        // GIVEN an input WHEN we check text and multiple emojis, THEN it should return false
+        expect(EmojiUtils.containsOnlyEmojis('Hi 😄👋')).toBe(false);
+
+        // GIVEN an input WHEN we only multiple emojis, THEN it should return true
+        expect(EmojiUtils.containsOnlyEmojis('😄👋')).toBe(true);
+
+        // GIVEN an input WHEN we check only multiple emojis with additional whitespace, THEN it should return false
+        expect(EmojiUtils.containsOnlyEmojis('😄  👋')).toBe(true);
     });
 
     it('replaces emoji codes with emojis inside a text', () => {
