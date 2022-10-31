@@ -115,6 +115,7 @@ function getCurrentRequest() {
 }
 
 export {
+    process,
     flush,
     getCurrentRequest,
     isRunning,
