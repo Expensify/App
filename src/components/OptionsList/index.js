@@ -10,8 +10,8 @@ class OptionsList extends Component {
     constructor(props) {
         super(props);
 
-        this.userTouchStart = this.userTouchStart.bind(this);
-        this.userTouchEnd = this.userTouchEnd.bind(this);
+        this.touchStart = this.touchStart.bind(this);
+        this.touchEnd = this.touchEnd.bind(this);
     }
 
     componentDidMount() {
