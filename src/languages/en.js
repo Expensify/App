@@ -302,11 +302,17 @@ export default {
         offline: 'Offline',
         syncing: 'Syncing',
     },
-    displayNamePage: {
-        headerTitle: 'Display name',
-        isShownOnProfile: 'Your display name is shown on your profile.',
-        john: 'John',
-        doe: 'Doe',
+    pronounsPage: {
+        pronouns: 'Pronouns',
+        isShownOnProfile: 'Your pronouns are shown on your profile.',
+    },
+    pronouns: {
+        heHimHis: 'He/him',
+        sheHerHers: 'She/her',
+        theyThemTheirs: 'They/them',
+        zeHirHirs: 'Ze/hir',
+        selfSelect: 'Self-select',
+        callMeByMyName: 'Call me by my name',
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add phone number',
@@ -600,14 +606,6 @@ export default {
     },
     attachmentView: {
         unknownFilename: 'Unknown filename',
-    },
-    pronouns: {
-        heHimHis: 'He/him',
-        sheHerHers: 'She/her',
-        theyThemTheirs: 'They/them',
-        zeHirHirs: 'Ze/hir',
-        selfSelect: 'Self-select',
-        callMeByMyName: 'Call me by my name',
     },
     messages: {
         errorMessageInvalidPhone: `Please enter a valid phone number without brackets or dashes. If you're outside the US please include your country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
