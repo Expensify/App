@@ -10,6 +10,7 @@ import * as FormActions from '../libs/actions/FormActions';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import styles from '../styles/styles';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
+import FormSubmit from './FormSubmit';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -212,7 +213,7 @@ class Form extends React.Component {
 
     render() {
         return (
-            <>
+            <FormSubmit style={[styles.w100, styles.flex1]} onSubmit={this.submit}>
                 <ScrollView
                     style={[styles.w100, styles.flex1]}
                     contentContainerStyle={styles.flexGrow1}
@@ -236,7 +237,7 @@ class Form extends React.Component {
                         )}
                     </View>
                 </ScrollView>
-            </>
+            </FormSubmit>
         );
     }
 }
