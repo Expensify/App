@@ -13,13 +13,11 @@ phases:
       - git checkout andrew-aws-df
       - npm install
 
-      # Bundle install doesn't work so install fastlane manually
-      - gem install fastlane
-
-      # Move APK to correct location
+      # Move compiled APK to correct location
       - mkdir -p android/app/build/outputs/apk/e2eRelease/
       - cp ../app-e2eRelease.apk android/app/build/outputs/apk/e2eRelease/
 
+      # Reverse ports using AWS magic
       - PORT=4723
       - IP_ADDRESS=$(ip -4 addr show eth0 | grep -Po "(?<=inet\s)\d+(\.\d+){3}")
       - reverse_values="{\"ip_address\":\"$IP_ADDRESS\",\"local_port\":\"$PORT\",\"remote_port\":\"$PORT\"}"
