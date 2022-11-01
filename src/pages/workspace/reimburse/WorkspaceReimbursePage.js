@@ -33,7 +33,6 @@ import Section from '../../../components/Section';
 import Text from '../../../components/Text';
 import TextInput from '../../../components/TextInput';
 import withPolicy, {policyPropTypes} from '../withPolicy';
-import WorkspaceReimburseView from './WorkspaceReimburseView';
 
 const propTypes = {
     /** Policy values needed in the component */
