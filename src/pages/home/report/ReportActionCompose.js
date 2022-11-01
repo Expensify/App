@@ -251,7 +251,7 @@ class ReportActionCompose extends React.Component {
             return this.props.translate('reportActionCompose.conciergePlaceholderOptions')[this.state.conciergePlaceholderRandomIndex];
         }
 
-        if (this.isEmptyChat()) {
+        if (this.isEmptyChat() && _.size(this.props.reportActions) !== 0) {
             return this.props.translate('reportActionCompose.sayHello');
         }
 
