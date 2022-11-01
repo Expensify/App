@@ -41,7 +41,7 @@ The [docs](https://github.com/Expensify/App/tree/main/docs) folder will contain 
 - *articles*: Contains sub-folders for each hub and each of them will contain all the articles related to that hub.
 - *_data*: Contains [custom global data](https://jekyllrb.com/docs/datafiles/), available anywhere via liquid with the syntax `site.data.<filename>`. Notably, there is a file called [routes.yml](https://github.com/Expensify/App/blob/55f2c73d8e3bb0efd0e2a985c05f25e87d28f3cc/docs/_data/routes.yml) in there which defines the structure of the app and metadata for its pages. 
 - *_site*: The output folder that contains the generated HTML files. This is the default name by Jekyll but can be changed. Files in here are generated and should not be manually edited.
-- index.html: The main homepage contentx
+- index.html: The main homepage content.
 
 More details about the Jekyll project structure can be found [here](https://jekyllrb.com/docs/structure/). Note that all html files in this project support the use of the [liquid template language](https://shopify.github.io/liquid/).
 
