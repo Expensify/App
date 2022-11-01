@@ -1,6 +1,8 @@
+{% assign activeHub = page.url | remove: "/hubs/" | remove: ".html" %}
+
 <ul class="lhn-items">
     <li class="home-link">
-        {% if include.activeHub == "home" %}
+        {% if page.url == "/" %}
             <div class="selected">Home</div>
         {% else %}
             <a href="/">Home</a>
@@ -8,7 +10,7 @@
     </li>
 
     {% for hub in site.data.routes.hubs %}
-        {% if hub.href == include.activeHub %}
+        {% if hub.href == activeHub %}
             <li>
                 <div class="icon-with-link selected">
                     <i class="fa-solid fa-angle-down icon"></i>

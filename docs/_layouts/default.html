@@ -32,12 +32,14 @@
         <!-- LHN content (Main navigation tree or Article TOC) -->
         <div id="lhn-content">
             {% case page.lhn_content %}
-            {% when "homepage" %}
-                {% include home-lhn.html %}
-            {% when "request-money" %}
-                {% include request-money-lhn.html %}
-            {% when "send-money" %}
-                {% include send-money-lhn.html %}
+                {% when "homepage" %}
+                    {% include lhn-template.html %}
+                {% when "request-money" %}
+                    {% include lhn-template.html %}
+                {% when "send-money" %}
+                    {% include lhn-template.html %}
+                {% when "other" %}
+                    {% include lhn-template.html %}
             {% else %}
                 <div id="back-button" class="icon-with-link">
                     <i class="fa-solid fa-angle-left icon"></i>
