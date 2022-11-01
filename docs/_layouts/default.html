@@ -49,7 +49,7 @@
     <div id="content-area">
 
         <!-- Article title (only shown in article pages) -->
-        {% if page.lhn_content == nil %}
+        {% if page.url contains "/articles/" %}
             <h1 class="title">
                 {{ page.name | remove: '.md' | split: "-" |  join: " " }}
             </h1>
