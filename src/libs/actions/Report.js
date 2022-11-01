@@ -400,14 +400,13 @@ function unsubscribeFromReportChannel(reportID) {
  *
  * @param {String[]} participants
  * @param {Boolean} shouldNavigate
- * @returns {Promise<Object[]>}
  */
 function fetchOrCreateChatReport(participants, shouldNavigate = true) {
     if (participants.length < 2) {
         throw new Error('fetchOrCreateChatReport() must have at least two participants.');
     }
 
-    return DeprecatedAPI.CreateChatReport({
+    DeprecatedAPI.CreateChatReport({
         emailList: participants.join(','),
     })
         .then((data) => {
@@ -428,10 +427,6 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
                 // Redirect the logged in person to the new report
                 Navigation.navigate(ROUTES.getReportRoute(data.reportID));
             }
-
-            // We are returning an array with a report object here since fetchAllReports calls this method or
-            // fetchChatReportsByIDs which returns an array of report objects.
-            return [simplifiedReportObject];
         });
 }
 
