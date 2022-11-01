@@ -1,5 +1,6 @@
 import React from 'react';
-import {Keyboard, View} from 'react-native';
+import PropTypes from 'prop-types';
+import {Keyboard, ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -7,6 +8,12 @@ import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
+import BankAccount from '../../libs/models/BankAccount';
+import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import Navigation from '../../libs/Navigation/Navigation';
+import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
+import ROUTES from '../../ROUTES';
 import compose from '../../libs/compose';
 import * as Policy from '../../libs/actions/Policy';
 import Icon from '../../components/Icon';
@@ -16,7 +23,6 @@ import defaultTheme from '../../styles/themes/default';
 import CONST from '../../CONST';
 import Picker from '../../components/Picker';
 import TextInput from '../../components/TextInput';
-import WorkspacePageWithSections from './WorkspacePageWithSections';
 import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
@@ -24,11 +30,26 @@ import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoun
 import Form from '../../components/Form';
 
 const propTypes = {
+    /** From Onyx */
+    /** Bank account currently in setup */
+    reimbursementAccount: reimbursementAccountPropTypes,
+
+    /** The route object passed to this page from the navigator */
+    route: PropTypes.shape({
+        /** Each parameter passed via the URL */
+        params: PropTypes.shape({
+            /** The policyID that is being configured */
+            policyID: PropTypes.string.isRequired,
+        }).isRequired,
+    }).isRequired,
+
     ...policyPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
+    reimbursementAccount: {},
+
     ...policyDefaultProps,
 };
 
@@ -39,6 +60,10 @@ class WorkspaceSettingsPage extends React.Component {
         this.submit = this.submit.bind(this);
         this.getCurrencyItems = this.getCurrencyItems.bind(this);
         this.validate = this.validate.bind(this);
+    }
+
+    componentDidMount() {
+        BankAccounts.openWorkspaceView();
     }
 
     /**
@@ -71,14 +96,26 @@ class WorkspaceSettingsPage extends React.Component {
     }
 
     render() {
+        const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
+        const hasVBBA = achState === BankAccount.STATE.OPEN;
+        const policyName = lodashGet(this.props.policy, 'name');
+        const policyID = lodashGet(this.props.route, 'params.policyID');
         return (
             <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)}>
-                <WorkspacePageWithSections
-                    headerText={this.props.translate('workspace.common.settings')}
-                    route={this.props.route}
+                <HeaderWithCloseButton
+                    title={this.props.translate('workspace.common.settings')}
+                    subtitle={policyName}
+                    shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_SETTINGS}
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
+                />
+                <ScrollView
+                    keyboardShouldPersistTaps="handled"
+                    style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
                 >
-                    {hasVBA => (
+                    <View style={[styles.w100, styles.flex1]}>
                         <Form
                             formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
                             submitButtonText={this.props.translate('workspace.editor.save')}
@@ -125,7 +162,7 @@ class WorkspaceSettingsPage extends React.Component {
                                         inputID="currency"
                                         label={this.props.translate('workspace.editor.currencyInputLabel')}
                                         items={this.getCurrencyItems()}
-                                        isDisabled={hasVBA}
+                                        isDisabled={hasVBBA}
                                         defaultValue={this.props.policy.outputCurrency}
                                     />
                                 </View>
@@ -134,8 +171,8 @@ class WorkspaceSettingsPage extends React.Component {
                                 </Text>
                             </OfflineWithFeedback>
                         </Form>
-                    )}
-                </WorkspacePageWithSections>
+                    </View>
+                </ScrollView>
             </FullPageNotFoundView>
         );
     }
@@ -147,7 +184,12 @@ WorkspaceSettingsPage.defaultProps = defaultProps;
 export default compose(
     withPolicy,
     withOnyx({
-        currencyList: {key: ONYXKEYS.CURRENCY_LIST},
+        currencyList: {
+            key: ONYXKEYS.CURRENCY_LIST,
+        },
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
     }),
     withLocalize,
     withNetwork(),
