@@ -449,7 +449,7 @@ const CONST = {
 
     EMOJI_FREQUENT_ROW_COUNT: 3,
 
-    EMOJI_INVISIBLE_CODEPOINT: 'fe0f',
+    EMOJI_INVISIBLE_CODEPOINTS: ['fe0f', '200d'],
 
     TOOLTIP_MAX_LINES: 3,
 
@@ -604,8 +604,9 @@ const CONST = {
         },
         SMS_NUMBER_COUNTRY_CODE: 'US',
         ERROR: {
-            USER_CANCELLED: 'User canceled flow',
+            USER_CANCELLED: 'User canceled flow.',
             USER_TAPPED_BACK: 'User exited by clicking the back button.',
+            USER_EXITED: 'User exited by manual action.',
             USER_CAMERA_DENINED: 'Onfido.OnfidoFlowError',
             USER_CAMERA_PERMISSION: 'Encountered an error: cameraPermission',
             // eslint-disable-next-line max-len
@@ -659,6 +660,7 @@ const CONST = {
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
             CREATE: 'create',
+            SPLIT: 'split',
         },
         AMOUNT_MAX_LENGTH: 10,
     },
