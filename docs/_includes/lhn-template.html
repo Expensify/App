@@ -21,11 +21,7 @@
                             <a href="#{{ section.href }}">{{ section.title }}</a>
                             <ul>
                                 {% for article in section.articles %}
-                                    <li>
-                                        <a href="/articles/{{ hub.href }}/{{ article.href }}">
-                                            {{ article.title }}
-                                        </a>
-                                    </li>
+                                    {% include lhn-article-link.html hub=hub.href href=article.href title=article.title %}
                                 {% endfor %}
                             </ul>
                         </li>
@@ -33,11 +29,7 @@
 
                     <!-- Then display standalone articles -->
                     {% for article in hub.articles %}
-                        <li>
-                            <a href="/articles/{{ hub.href }}/{{ article.href }}">
-                                {{ article.title }}
-                            </a>
-                        </li>
+                        {% include lhn-article-link.html hub=hub.href href=article.href title=article.title %}
                     {% endfor %}
                 </ul>
             </li>
