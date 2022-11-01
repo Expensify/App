@@ -33,13 +33,13 @@
         <div id="lhn-content">
             {% case page.lhn_content %}
                 {% when "homepage" %}
-                    {% include lhn-template.html activeHub="home" %}
+                    {% include lhn-template.html %}
                 {% when "request-money" %}
-                    {% include lhn-template.html activeHub="request-money" %}
+                    {% include lhn-template.html %}
                 {% when "send-money" %}
-                    {% include lhn-template.html activeHub="send-money" %}
+                    {% include lhn-template.html %}
                 {% when "other" %}
-                    {% include lhn-template.html activeHub="other" %}
+                    {% include lhn-template.html %}
             {% else %}
                 <div id="back-button" class="icon-with-link">
                     <i class="fa-solid fa-angle-left icon"></i>
