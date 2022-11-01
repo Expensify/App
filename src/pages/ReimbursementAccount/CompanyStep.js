@@ -23,8 +23,6 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import Picker from '../../components/Picker';
 import AddressForm from './AddressForm';
-import ReimbursementAccountForm from './ReimbursementAccountForm';
-import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import Form from '../../components/Form';
@@ -172,37 +170,13 @@ class CompanyStep extends React.Component {
                         disabled={shouldDisableCompanyName}
                         defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'companyName')}
                     />
-                    <View>
-                        <AddressSearch
-                            inputID="addressStreet"
-                            label={this.props.translate('common.companyAddress')}
-                            containerStyles={[styles.mt4]}
-                            hint={this.props.translate('common.noPO')}
-                            value={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressStreet')}
-                        />
-                    </View>
-                    <View style={[styles.flexRow, styles.mt4]}>
-                        <View style={[styles.flex2, styles.mr2]}>
-                            <TextInput
-                                inputID="addressCity"
-                                label={this.props.translate('common.city')}
-                                value={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressCity')}
-                            />
-                        </View>
-                        <View style={[styles.flex1]}>
-                            <StatePicker
-                                inputID="addressState"
-                                value={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressState')}
-                            />
-                        </View>
-                    </View>
-                    <TextInput
-                        inputID="addressZipCode"
-                        label={this.props.translate('common.zip')}
-                        containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                        value={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressZipCode')}
-                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
+                    <AddressForm
+                        translate={this.props.translate}
+                        inputKeys={{
+                            street: 'addressStreet', city: 'addressCity', state: 'addressState', zipCode: 'addressZipCode',
+                        }}
+                        shouldSaveDraft
+                        streetTranslationKey="common.companyAddress"
                     />
                     <TextInput
                         inputID="companyPhone"
