@@ -1,0 +1,48 @@
+<ul class="lhn-items">
+    <li class="home-link">
+        {% if include.activeHub == "home" %}
+            <div class="selected">Home</div>
+        {% else %}
+            <a href="/">Home</a>
+        {% endif %}
+    </li>
+
+    {% for hub in site.data.hubs %}
+        {% if hub.href == include.activeHub %}
+            <li>
+                <div class="icon-with-link selected">
+                    <i class="fa-solid fa-angle-down icon"></i>
+                    <span>{{ hub.title }}</span>
+                </div>
+                <ul class="nested-treeview">
+                    {% for stage in hub.stages %}
+                        <li>
+                            <!-- Stages may have nested articles, or they may be just a single article. -->
+                            {% if stage.articles %}
+                                <a href="#{{ stage.href }}">{{ stage.title }}</a>
+                                <ul>
+                                    {% for article in stage.articles %}
+                                        <li>
+                                            <a href="/articles/{{ hub.href }}/{{ article.href }}">
+                                                {{ article.title }}
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <a href="/articles/{{ hub.href }}/{{ stage.href }}">{{ stage.title }}</a>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </li>
+        {% else %}
+            <li>
+                <a href="/hubs/{{ hub.href }}" class="icon-with-link">
+                    <i class="fa-solid fa-angle-right icon"></i>
+                    {{ hub.title }}
+                </a>
+            </li>
+        {% endif %}
+    {% endfor %}
+</ul>

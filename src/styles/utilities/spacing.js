@@ -93,6 +93,10 @@ export default {
         marginRight: -20,
     },
 
+    mlAuto: {
+        marginLeft: 'auto',
+    },
+
     ml1: {
         marginLeft: 4,
     },
@@ -300,6 +304,10 @@ export default {
 
     pl1: {
         paddingLeft: 4,
+    },
+
+    pl2: {
+        paddingLeft: 8,
     },
 
     pl5: {

@@ -1,8 +1,5 @@
 <!doctype html>
 <html>
-
-{% include CONST.html %}
-
 <head>
     <meta charset="utf-8">
     <title>Expensify Help</title>
@@ -14,14 +11,11 @@
     <script src="https://kit.fontawesome.com/263e5e8608.js" crossorigin="anonymous"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.12.0/tocbot.js"></script>
     <script defer src="/assets/js/main.js"></script>
+
+    <!-- SEO tags -->
+    {% seo %}
 </head>
-
 <body>
-
-    <!-- Show temporarily the "Coming Soon" page until the Expensify Help site is ready -->
-    {% if page.lhn_content == 'coming_soon' %}
-        {{ content }}
-    {% else %}
 
     <div id="lhn">
 
@@ -30,18 +24,22 @@
                 <i id="angle-up-icon" class="fa-solid fa-angle-up icon hide"></i>
                 <i id="bars-icon" class="fa-solid fa-bars icon"></i>
             </div>
-            <img src="/assets/images/expensify-help.svg" class="logo" />
+            <a href="/">
+                <img src="/assets/images/expensify-help.svg" class="logo" />
+            </a>
         </div>
 
         <!-- LHN content (Main navigation tree or Article TOC) -->
         <div id="lhn-content">
             {% case page.lhn_content %}
-            {% when "homepage" %}
-                {% include home-lhn.html %}
-            {% when "request-money" %}
-                {% include request-money-lhn.html %}
-            {% when "send-money" %}
-                {% include send-money-lhn.html %}
+                {% when "homepage" %}
+                    {% include lhn-template.html activeHub="home" %}
+                {% when "request-money" %}
+                    {% include lhn-template.html activeHub="request-money" %}
+                {% when "send-money" %}
+                    {% include lhn-template.html activeHub="send-money" %}
+                {% when "other" %}
+                    {% include lhn-template.html activeHub="other" %}
             {% else %}
                 <div id="back-button" class="icon-with-link">
                     <i class="fa-solid fa-angle-left icon"></i>
@@ -54,7 +52,6 @@
             {% endcase %}
         </div>
 
-
         <!-- Concierge button anchored at the bottom of the LHN (rendered on wider screens) -->
         {% include floating-concierge-button.html id="floating-concierge-button-lhn" %}
     </div>
@@ -66,11 +63,15 @@
             <h1 class="title">
                 {{ page.name | remove: '.md' | split: "-" |  join: " " }}
             </h1>
-        {% endif %}
 
-        <div class="article-toc-content">
-            {{ content }}
-        </div>
+            <div class="article-toc-content article">
+                {{ content }}
+            </div>
+        {% else %}
+            <div class="article-toc-content lhn">
+                {{ content }}
+            </div>
+        {% endif %}
 
         <!-- Concierge button at the bottom of the page -->
         <a class="card get-help" href="{{ CONCIERGE_CHAT_URL }}" target="_blank">
@@ -83,8 +84,5 @@
             </div>
         </a>
     </div>
-    {% endif %}
-
 </body>
-
 </html>

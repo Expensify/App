@@ -1,12 +1,63 @@
 ---
-lhn_content: 'coming_soon'
+lhn_content: 'homepage'
 ---
 
-<img id="logo" src="/assets/images/expensify-help.svg" />
+<div class="homepage">
 
-<div class="centered-content">
-    <img class="icon" src="/assets/images/circle-hourglass.svg" />
-    <strong>Coming soon</strong>
-    <div>Looking for our old help site? Check it out <a href="https://community.expensify.com/">here</a>.</div>
+    <h1 class="title">
+        Welcome to Expensify Help!
+    </h1>
+
+    <p>
+        Find the answers to all of your questions about receipts, expenses, corporate cards, or anything else in the spend management universe.
+    </p>
+
+    <h2>
+        Which best describes how you use Expensify?
+    </h2>
+
+    <div class="cards-group">
+
+        <a class="card send-money" href="/hubs/send-money">
+            <div class="row">
+                <div class="left-icon">
+                    <img class="icon" src="/assets/images/send.svg" alt="send" />
+                </div>
+                <div class="body">
+                    <h3 class="title">Send money</h3>
+                    <p class="description">With only a couple of clicks, send money to your friends or coworkers using NewExpensify.</p>
+                </div>
+            </div>
+        </a>
+
+        <a class="card request-money" href="/hubs/request-money">
+            <div class="row">
+                <div class="left-icon">
+                    <img class="icon" src="/assets/images/money-circle.svg" alt="request" />
+                </div>
+                <div class="body">
+                    <h3 class="title">Request money</h3>
+                    <p class="description">Request money for work expenses, bills, or a night out with friends using NewExpensify.</p>
+                </div>
+            </div>
+        </a>
+
+        <a class="card request-money" href="/hubs/other">
+            <div class="row">
+                <div class="left-icon">
+                    <img class="icon" src="/assets/images/users.svg" alt="other" />
+                </div>
+                <div class="body">
+                    <h3 class="title">Other</h3>
+                    <p class="description">Everything else you're looking for is right here.</p>
+                </div>
+            </div>
+        </a>
+
+    </div>
+
+    <div class="cards-group">
+        <!-- Concierge button anchored globally (rendered on narrow screens) -->
+        {% include floating-concierge-button.html id="floating-concierge-button-global" %}
+    </div>
 </div>
-

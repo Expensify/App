@@ -53,6 +53,22 @@ Copy the [template](https://github.com/Expensify/App/blob/main/docs/TEMPLATE.md)
 
 The sections of the article will be filled and nested automatically in the LHN, just ensure to use the [heading markdown tags](https://www.markdownguide.org/cheat-sheet/) correctly.
 
+## Add meta-description tags for SEO
+
+At the top of template file we're going to find a few variables that will help us to define the meta-description of the article for SEO:
+
+```
+---
+title: The title of the post, page, or document
+description: A short description of the page's content
+image: (Optional) URL to an image associated with the post, page, or document (e.g., /assets/page-pic.jpg)
+author: (Optional) Page-, post-, or document-specific author information.
+locale: (Optional) Page-, post-, or document-specific locale information. Takes priority over existing front matter attribute lang.
+---
+```
+
+Just update the content for each variable accordingly or remove it if the information is not available. More details [here](https://github.com/jekyll/jekyll-seo-tag/blob/master/docs/usage.md#usage).
+
 ## Add a new entry in the hub page
 
 There are 3 main components in the hub page: 1. Stage title, 2. Row of Card buttons and 3. Card buttons.
@@ -132,48 +148,7 @@ In order to add a new Card button in the respective hub page ([send-money/index.
 Then replace the article title accordingly (in this case replace the value `SmartScan` with the new article title) and add a link to the relative path of the article (in this case replace `./request-money/SmartScan` accordingly to the path of the new article file without the file extension).
 
 ## Add a new entry in the LHN page
-
-There are 2 main components in the LHN page associated with the hub you're adding an article to:
-  1. Stage title anchor: which navigates the Stage title in the hub page and contains an unordered list of Article links.
-  2. Article links: which navigate to the corresponding article page.
-
-```html
-<!-- 1.Stage title anchor -->
-<li><a href="#request-money">Request Money</a>
-    <!-- 2. Article links -->
-    <ul>
-        <li><a href="./request-money/SmartScan">SmartScan</a></li>
-        <li><a href="./request-money/AnotherArticle">Another Article</a></li>
-        <!-- More Article links here... -->
-    </ul>
-</li>
-
-<!-- More Stage title anchors here... -->
-```
-
-### Add a new Stage title anchor (optional)
-
-Just add copy and paste the following HTML block in the corresponding navigation tree file (either for [Request Money](https://github.com/Expensify/App/blob/main/docs/_includes/request-money-lhn.html) or [Send Money](https://github.com/Expensify/App/blob/main/docs/_includes/send-money-lhn.html)):
-
-```
-<li><a href="#request-money">Request Money</a>
-    <!-- Article links will be here -->
-</li>
-```
-
-Where `"#request-money"` is the ID of Stage title in the hub page (the same as in the example of the `Add a Stage title (optional)` section).
-
-### Add a new Article link
-
-Add the next HTML block inside of the corresponding Stage title anchor:
-
-```
-<ul>
-    <li><a href="./request-money/SmartScan">SmartScan</a></li>
-</ul>
-```
-
-Where `./request-money/SmartScan` will be the relative path of the file name (exactly the same as in the `Add a Card button` example above).
+To add a new entry to the LHN, simply update the _data/hubs.yml file with the new entry. Note that LHN "hubs" contain 1 or more stages, and stages can be either 1 article or multiple articles.
 
 # How the site is deployed
 This site is hosted on GitHub Pages. GitHub Pages has a built-in Jekyll integration, and we have it configured such that whenever code is merged to main, GitHub will automatically build the Jekyll site housed in the `/docs` directory and deploy it straight to production. The help site is publicly discoverable at https://help.expensify.com/

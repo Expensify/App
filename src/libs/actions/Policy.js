@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import Str from 'expensify-common/lib/str';
+import {escapeRegExp} from 'lodash';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -19,7 +20,12 @@ const allPolicies = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (val, key) => {
-        if (!val || !key) {
+        if (!key) {
+            return;
+        }
+
+        if (val === null || val === undefined) {
+            delete allPolicies[key];
             return;
         }
 
@@ -100,26 +106,6 @@ function updateLastAccessedWorkspace(policyID) {
 }
 
 /**
- * Used to update ALL of the policies at once. If a policy is present locally, but not in the policies object passed here it will be removed.
- * @param {Object} policyCollection - object of policy key and partial policy object
- */
-function updateAllPolicies(policyCollection) {
-    // Clear out locally cached policies that have been deleted (i.e. they exist locally but not in our new policy collection object)
-    _.each(allPolicies, (policy, key) => {
-        if (policyCollection[key]) {
-            return;
-        }
-
-        Onyx.set(key, null);
-    });
-
-    // Set all the policies
-    _.each(policyCollection, (policyData, key) => {
-        Onyx.merge(key, {...policyData, alertMessage: '', errors: null});
-    });
-}
-
-/**
  * Delete the workspace
  *
  * @param {String} policyID
@@ -166,40 +152,6 @@ function deleteWorkspace(policyID, reports) {
     if (policyID === lastAccessedWorkspacePolicyID) {
         updateLastAccessedWorkspace(null);
     }
-}
-
-/**
- * Fetches policy list from the API and saves a simplified version in Onyx, optionally creating a new policy first.
- *
- * More specifically, this action will:
- * 1. Optionally create a new policy.
- * 2. Fetch policy summaries.
- * 3. Optionally navigate to the new policy.
- * 4. Then fetch full policies.
- *
- * This way, we ensure that there's no race condition between creating the new policy and fetching existing ones,
- * and we also don't have to wait for full policies to load before navigating to the new policy.
- */
-function getPolicyList() {
-    Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, true);
-    DeprecatedAPI.GetPolicySummaryList()
-        .then((data) => {
-            if (data.jsonCode !== 200) {
-                Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, false);
-                return;
-            }
-
-            const policyCollection = _.reduce(data.policySummaryList, (memo, policy) => ({
-                ...memo,
-                [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy, false),
-            }), {});
-
-            if (!_.isEmpty(policyCollection)) {
-                updateAllPolicies(policyCollection);
-            }
-
-            Onyx.set(ONYXKEYS.IS_LOADING_POLICY_DATA, false);
-        });
 }
 
 /**
@@ -715,10 +667,11 @@ function clearDeleteWorkspaceError(policyID) {
 
 /**
  * Generate a policy name based on an email and policy list.
+ * @param {String} [email] the email to base the workspace name on. If not passed, will use the logged in user's email instead
  * @returns {String}
  */
-function generateDefaultWorkspaceName() {
-    const emailParts = sessionEmail.split('@');
+function generateDefaultWorkspaceName(email = '') {
+    const emailParts = email ? email.split('@') : sessionEmail.split('@');
     let defaultWorkspaceName = '';
     if (!emailParts || emailParts.length !== 2) {
         return defaultWorkspaceName;
@@ -740,18 +693,14 @@ function generateDefaultWorkspaceName() {
         return defaultWorkspaceName;
     }
 
-    // Check if this name already exists in the policies
-    let suffix = 0;
-    _.forEach(allPolicies, (policy) => {
-        // Get the name of the policy
-        const {name} = policy;
-
-        if (name.toLowerCase().includes(defaultWorkspaceName.toLowerCase())) {
-            suffix += 1;
-        }
-    });
-
-    return suffix > 0 ? `${defaultWorkspaceName} ${suffix}` : defaultWorkspaceName;
+    // find default named workspaces and increment the last number
+    const numberRegEx = new RegExp(`${escapeRegExp(defaultWorkspaceName)} ?(\\d*)`, 'i');
+    const lastWorkspaceNumber = _.chain(allPolicies)
+        .filter(policy => policy.name && numberRegEx.test(policy.name))
+        .map(policy => parseInt(numberRegEx.exec(policy.name)[1] || 1, 10)) // parse the number at the end
+        .max()
+        .value();
+    return lastWorkspaceNumber !== -Infinity ? `${defaultWorkspaceName} ${lastWorkspaceNumber + 1}` : defaultWorkspaceName;
 }
 
 /**
@@ -764,10 +713,13 @@ function generatePolicyID() {
 
 /**
  * Optimistically creates a new workspace and default workspace chats
+ *
+ * @param {String} [ownerEmail] Optional, the email of the account to make the owner of the policy
+ * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  */
-function createWorkspace() {
+function createWorkspace(ownerEmail = '', makeMeAdmin = false) {
     const policyID = generatePolicyID();
-    const workspaceName = generateDefaultWorkspaceName();
+    const workspaceName = generateDefaultWorkspaceName(ownerEmail);
 
     const {
         announceChatReportID,
@@ -786,6 +738,8 @@ function createWorkspace() {
         announceChatReportID,
         adminsChatReportID,
         expenseChatReportID,
+        ownerEmail,
+        makeMeAdmin,
         policyName: workspaceName,
         type: CONST.POLICY.TYPE.FREE,
     },
@@ -973,7 +927,6 @@ function openWorkspaceInvitePage(policyID, clientMemberEmails) {
 }
 
 export {
-    getPolicyList,
     loadFullPolicy,
     removeMembers,
     addMembersToWorkspace,

@@ -115,10 +115,9 @@ function connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount) {
  * Adds a bank account via Plaid
  *
  * @param {Object} account
- * @param {String} password
  * @TODO offline pattern for this command will have to be added later once the pattern B design doc is complete
  */
-function addPersonalBankAccount(account, password) {
+function addPersonalBankAccount(account) {
     const commandName = 'AddPersonalBankAccount';
 
     const parameters = {
@@ -130,7 +129,6 @@ function addPersonalBankAccount(account, password) {
         bank: account.bankName,
         plaidAccountID: account.plaidAccountID,
         plaidAccessToken: account.plaidAccessToken,
-        password,
     };
 
     const onyxData = {
@@ -141,6 +139,7 @@ function addPersonalBankAccount(account, password) {
                 value: {
                     isLoading: true,
                     errors: null,
+                    plaidAccountID: account.plaidAccountID,
                 },
             },
         ],
@@ -276,6 +275,22 @@ function updateCompanyInformationForBankAccount(bankAccount) {
 }
 
 /**
+ * Add beneficial owners for the bank account, accept the ACH terms and conditions and verify the accuracy of the information provided
+ *
+ * @param {Object} params
+ *
+ * // ACH Contract Step
+ * @param {Boolean} [params.ownsMoreThan25Percent]
+ * @param {Boolean} [params.hasOtherBeneficialOwners]
+ * @param {Boolean} [params.acceptTermsAndConditions]
+ * @param {Boolean} [params.certifyTrueInformation]
+ * @param {String}  [params.beneficialOwners]
+ */
+function updateBeneficialOwnersForBankAccount(params) {
+    API.write('UpdateBeneficialOwnersForBankAccount', {...params}, getVBBADataForOnyx());
+}
+
+/**
  * Create the bank account with manually entered data.
  *
  * @param {String} [bankAccountID]
@@ -293,16 +308,31 @@ function connectBankAccountManually(bankAccountID, accountNumber, routingNumber,
     }, getVBBADataForOnyx());
 }
 
+/**
+ * Verify the user's identity via Onfido
+ *
+ * @param {Number} bankAccountID
+ * @param {Object} onfidoData
+ */
+function verifyIdentityForBankAccount(bankAccountID, onfidoData) {
+    API.write('VerifyIdentityForBankAccount', {
+        bankAccountID,
+        onfidoData: JSON.stringify(onfidoData),
+    }, getVBBADataForOnyx());
+}
+
 export {
     addPersonalBankAccount,
     connectBankAccountManually,
-    deletePaymentBankAccount,
     clearPersonalBankAccount,
     clearPlaid,
     clearOnfidoToken,
-    updatePersonalInformationForBankAccount,
-    validateBankAccount,
-    updateCompanyInformationForBankAccount,
     connectBankAccountWithPlaid,
+    deletePaymentBankAccount,
+    updateBeneficialOwnersForBankAccount,
+    updateCompanyInformationForBankAccount,
+    updatePersonalInformationForBankAccount,
     updatePlaidData,
+    validateBankAccount,
+    verifyIdentityForBankAccount,
 };

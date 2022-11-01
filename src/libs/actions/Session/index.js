@@ -16,7 +16,6 @@ import * as Localize from '../../Localize';
 import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
 import Timers from '../../Timers';
 import * as Pusher from '../../Pusher/pusher';
-import NetworkConnection from '../../NetworkConnection';
 import * as User from '../User';
 import * as Authentication from '../../Authentication';
 import * as Welcome from '../Welcome';
@@ -373,7 +372,6 @@ function clearSignInData() {
  */
 function cleanupSession() {
     // We got signed out in this tab or another so clean up any subscriptions and timers
-    NetworkConnection.stopListeningForReconnect();
     UnreadIndicatorUpdater.stopListeningForReportChanges();
     PushNotification.deregister();
     PushNotification.clearNotifications();

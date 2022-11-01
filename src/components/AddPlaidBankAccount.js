@@ -26,6 +26,9 @@ const propTypes = {
     /** Contains plaid data */
     plaidData: plaidDataPropTypes,
 
+    /** Selected account ID from the Picker associated with the end of the Plaid flow */
+    selectedPlaidAccountID: PropTypes.string,
+
     /** Plaid SDK token to use to initialize the widget */
     plaidLinkToken: PropTypes.string,
 
@@ -61,6 +64,7 @@ const defaultProps = {
         isLoading: false,
         error: '',
     },
+    selectedPlaidAccountID: '',
     plaidLinkToken: '',
     onExitPlaid: () => {},
     onSelect: () => {},
@@ -75,7 +79,6 @@ class AddPlaidBankAccount extends React.Component {
     constructor(props) {
         super(props);
 
-        this.selectAccount = this.selectAccount.bind(this);
         this.getPlaidLinkToken = this.getPlaidLinkToken.bind(this);
     }
 
@@ -86,15 +89,6 @@ class AddPlaidBankAccount extends React.Component {
         }
 
         BankAccounts.openPlaidBankLogin(this.props.allowDebit, this.props.bankAccountID);
-    }
-
-    /**
-     * Get list of bank accounts
-     *
-     * @returns {Object[]}
-     */
-    getPlaidBankAccounts() {
-        return lodashGet(this.props.plaidData, 'bankAccounts', []);
     }
 
     /**
@@ -110,25 +104,13 @@ class AddPlaidBankAccount extends React.Component {
         }
     }
 
-    /**
-     * Triggered when user selects a Plaid bank account.
-     * @param {String} plaidAccountID
-     */
-    selectAccount(plaidAccountID) {
-        const selectedPlaidBankAccount = _.findWhere(this.getPlaidBankAccounts(), {plaidAccountID});
-        selectedPlaidBankAccount.bankName = this.props.plaidData.bankName;
-        selectedPlaidBankAccount.plaidAccessToken = this.props.plaidData.plaidAccessToken;
-        this.props.onSelect({selectedPlaidBankAccount});
-    }
-
     render() {
-        const plaidBankAccounts = this.getPlaidBankAccounts();
+        const plaidBankAccounts = lodashGet(this.props.plaidData, 'bankAccounts', []);
         const token = this.getPlaidLinkToken();
         const options = _.map(plaidBankAccounts, account => ({
-            value: account.plaidAccountID, label: `${account.addressName} ${account.mask}`,
+            value: account.plaidAccountID,
+            label: `${account.addressName} ${account.mask}`,
         }));
-        const institutionName = lodashGet(this.props, 'plaidData.institution.name', '');
-        const selectedPlaidBankAccount = lodashGet(this.props, 'plaidData.selectedPlaidBankAccount', {});
         const {icon, iconSize} = getBankIcon();
 
         // Plaid Link view
@@ -180,18 +162,18 @@ class AddPlaidBankAccount extends React.Component {
                         height={iconSize}
                         width={iconSize}
                     />
-                    <Text style={[styles.ml3, styles.textStrong]}>{institutionName}</Text>
+                    <Text style={[styles.ml3, styles.textStrong]}>{this.props.plaidData.bankName}</Text>
                 </View>
                 <View style={[styles.mb5]}>
                     <Picker
                         label={this.props.translate('addPersonalBankAccountPage.chooseAccountLabel')}
-                        onInputChange={this.selectAccount}
+                        onInputChange={this.props.onSelect}
                         items={options}
-                        placeholder={_.isUndefined(this.props.plaidData.selectedPlaidBankAccount) ? {
+                        placeholder={{
                             value: '',
                             label: this.props.translate('bankAccount.chooseAnAccount'),
-                        } : {}}
-                        value={selectedPlaidBankAccount.plaidAccountID}
+                        }}
+                        value={this.props.selectedPlaidAccountID}
                     />
                 </View>
             </View>
