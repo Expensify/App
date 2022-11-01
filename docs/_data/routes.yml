@@ -2,8 +2,7 @@ home:
   href: home
   title: Welcome to the New Expensify!
 
-# Hubs are comprised of sections. Sections can contain multiple articles under one umbrella topic,
-# or can be only a single article if a topic doesn't fit with any others
+# Hubs are comprised of sections and articles. Sections contain multiple related articles, but there can be standalone articles as well
 hubs:
   - href: send-money
     title: Send money
@@ -21,6 +20,7 @@ hubs:
 
   - href: other
     title: Other
-    sections:
+    description: Everything else you're looking for is right here.
+    articles:
       - href: Account-Management
         title: Account Management
