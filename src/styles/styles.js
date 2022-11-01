@@ -2174,8 +2174,9 @@ const styles = {
     },
 
     iouPreviewBoxLoading: {
-        // The measured height of IOUPreview with Pay Button rendered is measured to be 94.
-        // Setting it 94, fixes the issue of pay button cutting in half in open chat.
+        // When a new IOU request arrives it is very briefly in a loading state, so set the minimum height of the container to 94 to match the rendered height after loading.
+        // Otherwise, the IOU request pay button will not be fully visible and the user will have to scroll up to reveal the entire IOU request container.
+        // See https://github.com/Expensify/App/issues/10283.
         minHeight: 94,
         width: '100%',
     },
