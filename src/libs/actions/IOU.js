@@ -638,9 +638,10 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
         comment: '',
         clientID: optimisticReportAction.sequenceNumber,
         cancelMoneyRequestReportActionID: optimisticReportAction.reportActionID,
+        chatReportID,
+        debtorEmail: chatReport.participants[0],
     }, {optimisticData, successData, failureData});
 
-    // @TODO: should we navigate the user? What if they want to cancel multiple requests??
     Navigation.navigate(ROUTES.getReportRoute(chatReportID));
 }
 
