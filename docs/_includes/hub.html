@@ -1,0 +1,30 @@
+{% assign hub = site.data.routes.hubs | where: "href", include.href | first %}
+
+<h1 class="title">
+    {{ hub.title }}
+</h1>
+
+<p>
+    {{ hub.description }}
+</p>
+
+{% for section in hub.sections %}
+    <section>
+        <h2 id="{{ section.href }}">
+            {{ section.title }}
+        </h2>
+
+        <div class="cards-group">
+            {% for article in section.articles %}
+                <a class="card" href="/articles/{{ section.href }}/{{ article.href }}">
+                    <div class="body">
+                        <h3 class="title">{{ article.title }}</h3>
+                    </div>
+                    <div class="right-icon">
+                        <i class="fa-solid fa-angle-right icon"></i>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    </section>
+{% endfor %}
