@@ -47,6 +47,7 @@ const propTypes = {
         ),
         outputCurrency: PropTypes.string,
         hasVBA: PropTypes.bool,
+        lastModified: PropTypes.number,
     }).isRequired,
 
     /** Information about the network */
@@ -160,7 +161,7 @@ class WorkspaceReimburseView extends React.Component {
             customUnitID: this.state.unitID,
             name: this.state.unitName,
             attributes: {unit: value},
-        });
+        }, this.props.policy.lastModified);
     }
 
     debounceUpdateOnCursorMove(event) {
@@ -183,7 +184,7 @@ class WorkspaceReimburseView extends React.Component {
         Policy.updateCustomUnitRate(this.props.policy.id, currentCustomUnitRate, this.state.unitID, {
             ...currentCustomUnitRate,
             rate: numValue * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
-        });
+        }, this.props.policy.lastModified);
     }
 
     render() {
