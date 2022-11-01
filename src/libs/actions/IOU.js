@@ -13,8 +13,9 @@ import asyncOpenURL from '../asyncOpenURL';
 import Log from '../Log';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
-import * as NumberUtils from '../NumberUtils';
 import * as IOUUtils from '../IOUUtils';
+import * as OptionsListUtils from '../OptionsListUtils';
+import * as NumberUtils from '../NumberUtils';
 import DateUtils from '../DateUtils';
 
 let iouReports;
@@ -37,103 +38,17 @@ Onyx.connect({
 });
 
 /**
- * Gets the IOU Reports for new transaction
- *
- * @param {Object[]} requestParams
- * @param {Number} requestParams.reportID the ID of the IOU report
- * @param {Number} requestParams.chatReportID the ID of the chat report that the IOU report belongs to
- */
-function getIOUReportsForNewTransaction(requestParams) {
-    DeprecatedAPI.Get({
-        returnValueList: 'reportStuff',
-        reportIDList: _.pluck(requestParams, 'reportID').join(','),
-        shouldLoadOptionalKeys: true,
-        includePinnedReports: true,
-    })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                Onyx.merge(ONYXKEYS.IOU, {error: true});
-                return;
-            }
-
-            const chatReportsToUpdate = {};
-            const iouReportsToUpdate = {};
-
-            _.each(response.reports, (reportData) => {
-                // First, the existing chat report needs to be updated with the details about the new IOU
-                const paramsForIOUReport = _.findWhere(requestParams, {reportID: reportData.reportID});
-                if (paramsForIOUReport && paramsForIOUReport.chatReportID) {
-                    const chatReportID = paramsForIOUReport.chatReportID;
-                    const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
-                    chatReportsToUpdate[chatReportKey] = {
-                        iouReportID: reportData.reportID,
-                        total: reportData.total,
-                        stateNum: reportData.stateNum,
-                        hasOutstandingIOU: true,
-                    };
-
-                    // Second, the IOU report needs to be updated with the new IOU details too
-                    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${reportData.reportID}`;
-                    iouReportsToUpdate[iouReportKey] = Report.getSimplifiedIOUReport(reportData, chatReportID);
-                }
-            });
-
-            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, chatReportsToUpdate);
-            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, iouReportsToUpdate);
-        })
-        .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false}));
-}
-
-/**
- * Returns IOU Transaction Error Messages
- *
- * @param {Object} response
- * @returns {String}
- */
-function getIOUErrorMessage(response) {
-    if (response && response.jsonCode) {
-        if (response.jsonCode === 405) {
-            return Localize.translateLocal('common.error.invalidAmount');
-        }
-
-        if (response.jsonCode === 404) {
-            return Localize.translateLocal('iou.error.invalidSplit');
-        }
-
-        if (response.jsonCode === 402) {
-            return Localize.translateLocal('common.error.phoneNumber');
-        }
-    }
-    return Localize.translateLocal('iou.error.other');
-}
-
-/**
- * @param {Object} response
- */
-function processIOUErrorResponse(response) {
-    Onyx.merge(ONYXKEYS.IOU, {
-        loading: false,
-        creatingIOUTransaction: false,
-        error: true,
-    });
-    Growl.error(getIOUErrorMessage(response));
-}
-
-function startLoadingAndResetError() {
-    Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
-}
-
-/**
  * Request money from another user
  *
  * @param {Object} report
  * @param {Number} amount
  * @param {String} currency
  * @param {String} recipientEmail
- * @param {String} debtorEmail
+ * @param {String} participant
  * @param {String} comment
  */
-function requestMoney(report, amount, currency, recipientEmail, debtorEmail, comment) {
+function requestMoney(report, amount, currency, recipientEmail, participant, comment) {
+    const debtorEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     let chatReport = lodashGet(report, 'reportID', null) ? report : null;
     let isNewChat = false;
     if (!chatReport) {
@@ -155,17 +70,17 @@ function requestMoney(report, amount, currency, recipientEmail, debtorEmail, com
         iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, preferredLocale);
     }
     const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
+
     const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
         newSequenceNumber,
         CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         amount,
         currency,
         comment,
+        [participant],
         '',
         '',
         iouReport.reportID,
-        debtorEmail,
-        preferredLocale,
     );
 
     // First, add data that will be used in all cases
@@ -303,82 +218,320 @@ function requestMoney(report, amount, currency, recipientEmail, debtorEmail, com
 }
 
 /**
- * Creates IOUSplit Transaction
+ * Build the Onyx data and IOU split necessary for splitting a bill with 3+ users.
+ * 1. Build the optimistic Onyx data for the group chat, i.e. chatReport and iouReportAction creating the former if it doesn't yet exist.
+ * 2. Loop over the group chat participant list, building optimistic or updating existing chatReports, iouReports and iouReportActions between the user and each participant.
+ * We build both Onyx data and the IOU split that is sent as a request param and is used by Auth to create the chatReports, iouReports and iouReportActions in the database.
+ * The IOU split has the following shape:
+ *  [
+ *      {email: 'currentUser', amount: 100},
+ *      {email: 'user2', amount: 100, iouReportID: '100', chatReportID: '110', transactionID: '120', reportActionID: '130', clientID: '140'},
+ *      {email: 'user3', amount: 100, iouReportID: '200', chatReportID: '210', transactionID: '220', reportActionID: '230', clientID: '240'}
+ *  ]
+ * @param {Array} participants
+ * @param {String} currentUserLogin
+ * @param {Number} amount
+ * @param {String} comment
+ * @param {String} currency
+ * @param {String} locale
  *
- * @param {Object} params
- * @param {Array} params.splits
- * @param {String} params.comment
- * @param {Number} params.amount
- * @param {String} params.currency
+ * @return {Object}
  */
-function createIOUSplit(params) {
-    startLoadingAndResetError();
+function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale) {
+    const currentUserEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
+    const participantLogins = _.map(participants, participant => OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase());
+    const existingGroupChatReport = ReportUtils.getChatByParticipants(participantLogins);
+    const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(participantLogins);
+    const groupCreatedReportAction = existingGroupChatReport ? {} : ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
+    const groupChatReportMaxSequenceNumber = lodashGet(groupChatReport, 'maxSequenceNumber', 0);
+    const groupIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
+        groupChatReportMaxSequenceNumber + 1,
+        CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+        Math.round(amount * 100),
+        currency,
+        comment,
+        participants,
+    );
 
-    let chatReportID;
-    DeprecatedAPI.CreateChatReport({
-        emailList: _.map(params.splits, participant => participant.email).join(','),
-    })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                return response;
-            }
+    groupChatReport.maxSequenceNumber = groupChatReportMaxSequenceNumber + 1;
+    groupChatReport.lastReadSequenceNumber = groupChatReportMaxSequenceNumber + 1;
+    groupChatReport.lastVisitedTimestamp = Date.now();
+    groupChatReport.lastMessageText = groupIOUReportAction.message[0].text;
+    groupChatReport.lastMessageHtml = groupIOUReportAction.message[0].html;
+    groupChatReport.pendingFields = {
+        createChat: existingGroupChatReport ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
 
-            chatReportID = response.reportID;
-            return DeprecatedAPI.CreateIOUSplit({
-                ...params,
-                splits: JSON.stringify(params.splits),
-                reportID: response.reportID,
-            });
-        })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                processIOUErrorResponse(response);
-                return;
-            }
+    const optimisticData = [
+        {
+            // Use set for new reports because it doesn't exist yet, is faster,
+            // and we need the data to be available when we navigate to the chat page
+            onyxMethod: existingGroupChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`,
+            value: groupChatReport,
+        },
+        {
+            onyxMethod: existingGroupChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChatReport.reportID}`,
+            value: {
+                ...groupCreatedReportAction,
+                [groupIOUReportAction.sequenceNumber]: groupIOUReportAction,
+            },
+        },
+    ];
 
-            // This data needs to go from this:
-            // {reportIDList: [1, 2], chatReportIDList: [3, 4]}
-            // to this:
-            // [{reportID: 1, chatReportID: 3}, {reportID: 2, chatReportID: 4}]
-            // in order for getIOUReportsForNewTransaction to know which IOU reports are associated with which
-            // chat reports
-            const reportParams = [];
-            for (let i = 0; i < response.reportIDList.length; i++) {
-                reportParams.push({
-                    reportID: response.reportIDList[i],
-                    chatReportID: response.chatReportIDList[i],
-                });
-            }
-            getIOUReportsForNewTransaction(reportParams);
-            Navigation.navigate(ROUTES.getReportRoute(chatReportID));
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`,
+            value: {pendingFields: {createChat: null}},
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChatReport.reportID}`,
+            value: {
+                0: {pendingAction: null},
+                [groupIOUReportAction.sequenceNumber]: {pendingAction: null},
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`,
+            value: {
+                pendingFields: {createChat: null},
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChatReport.reportID}`,
+            value: {
+                0: {pendingAction: null},
+                [groupIOUReportAction.sequenceNumber]: {pendingAction: null},
+            },
+        },
+    ];
+
+    // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
+    const splitAmount = IOUUtils.calculateAmount(participants, amount);
+    const splits = [{email: currentUserEmail, amount: IOUUtils.calculateAmount(participants, amount, true)}];
+
+    const hasMultipleParticipants = participants.length > 1;
+    _.each(participants, (participant) => {
+        const email = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase();
+        if (email === currentUserEmail) {
+            return;
+        }
+
+        // If we only have one participant, the oneOnOneChatReport is the groupChatReport
+        const existingOneOnOneChatReport = hasMultipleParticipants ? ReportUtils.getChatByParticipants([email]) : groupChatReport;
+        const oneOnOneChatReport = existingOneOnOneChatReport || ReportUtils.buildOptimisticChatReport([email]);
+        let oneOnOneIOUReport;
+        let existingIOUReport = null;
+        if (oneOnOneChatReport.iouReportID) {
+            existingIOUReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneChatReport.iouReportID}`];
+            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(
+                existingIOUReport,
+                currentUserEmail,
+                splitAmount,
+            );
+            oneOnOneChatReport.hasOutstandingIOU = oneOnOneIOUReport.total !== 0;
+        } else {
+            oneOnOneIOUReport = ReportUtils.buildOptimisticIOUReport(
+                currentUserEmail,
+                email,
+                splitAmount,
+                oneOnOneChatReport.reportID,
+                currency,
+                locale,
+            );
+            oneOnOneChatReport.hasOutstandingIOU = true;
+            oneOnOneChatReport.iouReportID = oneOnOneIOUReport.reportID;
+        }
+
+        const oneOnOneCreatedReportAction = existingOneOnOneChatReport ? {} : ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
+        const oneOnOneChatReportMaxSequenceNumber = lodashGet(oneOnOneChatReport, 'maxSequenceNumber', 0);
+        const oneOnOneIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
+            oneOnOneChatReportMaxSequenceNumber + 1,
+            CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            splitAmount,
+            currency,
+            comment,
+            [participant],
+            '',
+            '',
+            oneOnOneIOUReport.reportID,
+        );
+
+        oneOnOneChatReport.maxSequenceNumber = oneOnOneChatReportMaxSequenceNumber + 1;
+        oneOnOneChatReport.lastReadSequenceNumber = oneOnOneChatReportMaxSequenceNumber + 1;
+        oneOnOneChatReport.lastMessageText = oneOnOneIOUReportAction.message[0].text;
+        oneOnOneChatReport.lastMessageHtml = oneOnOneIOUReportAction.message[0].html;
+        oneOnOneChatReport.pendingFields = {
+            createChat: existingOneOnOneChatReport ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        };
+
+        // If we only have one other participant, we just need to update onyxData for the groupChatReport and add an iouReportAction of type = create
+        // If we have more participants, we need to push the new oneOnOneChaReport, the create reportAction and iouReportAction of type = create to onyxData
+        if (!hasMultipleParticipants) {
+            optimisticData[0].value = oneOnOneChatReport;
+            optimisticData[1].value = {
+                ...optimisticData[1].value,
+                [oneOnOneIOUReportAction.sequenceNumber]: oneOnOneIOUReportAction,
+            };
+            successData[1].value = {
+                ...successData[1].value,
+                [oneOnOneIOUReportAction.sequenceNumber]: {pendingAction: null},
+            };
+            failureData[1].value = {
+                ...failureData[1].value,
+                [oneOnOneIOUReportAction.sequenceNumber]: {pendingAction: null},
+            };
+        } else {
+            optimisticData.push(
+                {
+                    onyxMethod: existingOneOnOneChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
+                    value: oneOnOneChatReport,
+                },
+                {
+                    onyxMethod: existingOneOnOneChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
+                    value: {
+                        ...oneOnOneCreatedReportAction,
+                        [oneOnOneIOUReportAction.sequenceNumber]: oneOnOneIOUReportAction,
+                    },
+                },
+            );
+
+            successData.push(
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
+                    value: {pendingFields: {createChat: null}},
+                },
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
+                    value: {
+                        0: {pendingAction: null},
+                        [oneOnOneIOUReportAction.sequenceNumber]: {pendingAction: null},
+                    },
+                },
+            );
+
+            failureData.push(
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
+                    value: {
+                        pendingFields: {createChat: null},
+                        hasOutstandingIOU: existingOneOnOneChatReport ? existingOneOnOneChatReport.hasOutstandingIOU : false,
+                        iouReportID: existingOneOnOneChatReport ? existingOneOnOneChatReport.iouReportID : null,
+                        maxSequenceNumber: oneOnOneChatReportMaxSequenceNumber,
+                        lastReadSequenceNumber: oneOnOneChatReportMaxSequenceNumber,
+                    },
+                },
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
+                    value: {
+                        0: {pendingAction: null},
+                        [oneOnOneIOUReportAction.sequenceNumber]: {pendingAction: null},
+                    },
+                },
+            );
+        }
+
+        // Regardless of the number of participants, we always want to push the iouReport update to onyxData
+        optimisticData.push({
+            // We want to use set in case we are creating the the optimistic chat.
+            // If we have multiple participants selected, we need to check if the 1:1 chat between the users already exists
+            // If we have only one other participant, the group chat is the 1:1 chat and we need to check if that already exists
+            onyxMethod: ((hasMultipleParticipants && existingOneOnOneChatReport) || (!hasMultipleParticipants && existingGroupChatReport)) ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneIOUReport.reportID}`,
+            value: oneOnOneIOUReport,
         });
+
+        failureData.push({
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneIOUReport.reportID}`,
+            value: existingIOUReport || oneOnOneIOUReport,
+        });
+
+        splits.push({
+            email,
+            amount: splitAmount,
+            iouReportID: oneOnOneIOUReport.reportID,
+            chatReportID: oneOnOneChatReport.reportID,
+            transactionID: oneOnOneIOUReportAction.originalMessage.IOUTransactionID,
+            reportActionID: oneOnOneIOUReportAction.reportActionID,
+            clientID: oneOnOneIOUReportAction.clientID.toString(),
+        });
+    });
+
+    return {
+        groupData: {
+            chatReportID: groupChatReport.reportID,
+            transactionID: groupIOUReportAction.originalMessage.IOUTransactionID,
+            reportActionID: groupIOUReportAction.reportActionID,
+            clientID: groupIOUReportAction.clientID.toString(),
+        },
+        splits,
+        onyxData: {optimisticData, successData, failureData},
+    };
 }
 
 /**
- * Creates IOUSplit Transaction for Group DM
- *
- * @param {Object} params
- * @param {Array} params.splits
- * @param {String} params.comment
- * @param {Number} params.amount
- * @param {String} params.currency
- * @param {String} params.reportID
+ * @param {Array} participants
+ * @param {String} currentUserLogin
+ * @param {Number} amount
+ * @param {String} comment
+ * @param {String} currency
+ * @param {String} locale
  */
-function createIOUSplitGroup(params) {
-    startLoadingAndResetError();
+function splitBill(participants, currentUserLogin, amount, comment, currency, locale) {
+    const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale);
 
-    DeprecatedAPI.CreateIOUSplit({
-        ...params,
-        splits: JSON.stringify(params.splits),
-    })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                Onyx.merge(ONYXKEYS.IOU, {error: true});
-                return;
-            }
+    API.write('SplitBill', {
+        reportID: groupData.chatReportID,
+        amount: Math.round(amount * 100),
+        splits: JSON.stringify(splits),
+        currency,
+        comment,
+        transactionID: groupData.transactionID,
+        reportActionID: groupData.reportActionID,
+        clientID: groupData.clientID,
+    }, onyxData);
 
-            Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false});
-        });
+    Navigation.dismissModal();
+}
+
+/**
+ * @param {Array} participants
+ * @param {String} currentUserLogin
+ * @param {Number} amount
+ * @param {String} comment
+ * @param {String} currency
+ * @param {String} locale
+ */
+function splitBillAndOpenReport(participants, currentUserLogin, amount, comment, currency, locale) {
+    const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale);
+
+    API.write('SplitBillAndOpenReport', {
+        reportID: groupData.chatReportID,
+        amount: Math.round(amount * 100),
+        splits: JSON.stringify(splits),
+        currency,
+        comment,
+        transactionID: groupData.transactionID,
+        reportActionID: groupData.reportActionID,
+        clientID: groupData.clientID,
+    }, onyxData);
+
+    Navigation.navigate(ROUTES.getReportRoute(groupData.chatReportID));
 }
 
 /**
@@ -502,8 +655,8 @@ function payIOUReport({
 }
 
 export {
-    createIOUSplit,
-    createIOUSplitGroup,
+    splitBill,
+    splitBillAndOpenReport,
     rejectTransaction,
     requestMoney,
     payIOUReport,
