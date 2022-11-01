@@ -34,7 +34,6 @@ const TextLink = (props) => {
     const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
 
     /**
-     * Checking Function on open TextLink identify whether Clicked or Entered key press
      *
      * @param {Event} event
      */
