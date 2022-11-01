@@ -29,6 +29,7 @@ import EmojiPicker from '../../../components/EmojiPicker/EmojiPicker';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
+import Log from '../../../libs/Log';
 
 const propTypes = {
     /* Onyx Props */
@@ -69,11 +70,22 @@ class ReportActionsView extends React.Component {
 
         this.unsubscribeVisibilityListener = null;
 
+        const isUnread = ReportUtils.isUnread(props.report);
+        const lastReadSequenceNumber = props.report.lastReadSequenceNumber;
+        const newMarkerSequenceNumber = ReportUtils.isUnread(props.report)
+            ? props.report.lastReadSequenceNumber + 1
+            : 0;
+
+        Log.info('[ReportActionsView] constructed with params', false, {
+            newMarkerSequenceNumber,
+            isUnread,
+            lastReadSequenceNumber,
+            reportID: props.report.reportID,
+        });
+
         this.state = {
             isFloatingMessageCounterVisible: false,
-            newMarkerSequenceNumber: ReportUtils.isUnread(props.report)
-                ? props.report.lastReadSequenceNumber + 1
-                : 0,
+            newMarkerSequenceNumber,
         };
 
         this.currentScrollOffset = 0;
