@@ -235,7 +235,7 @@ class WorkspaceReimburseView extends React.Component {
                                     <TextInput
                                         label={this.props.translate('workspace.reimburse.trackDistanceRate')}
                                         placeholder={this.state.outputCurrency}
-                                        onChangeText={value => this.setRate(value)}
+                                        onChangeText={value => this.setRate(value.replace(/[^0-9.]/g, ''))}
                                         value={this.state.unitRateValue}
                                         autoCompleteType="off"
                                         autoCorrect={false}
