@@ -286,6 +286,23 @@ function updateProfile(firstName, lastName, pronouns, timezone) {
 }
 
 /**
+ * @param {String} pronouns
+ */
+function updatePronouns(pronouns) {
+    API.write('UpdatePronouns', {pronouns}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    pronouns,
+                },
+            },
+        }],
+    });
+}
+
+/**
  * Fetches the local currency based on location and sets currency code/symbol to Onyx
  */
 function openIOUModalPage() {
@@ -398,4 +415,5 @@ export {
     extractFirstAndLastNameFromAvailableDetails,
     updateProfile,
     clearAvatarErrors,
+    updatePronouns,
 };
