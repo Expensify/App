@@ -12,6 +12,7 @@ const CONST = {
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
+    ANIMATION_IN_TIMING: 100,
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
@@ -448,7 +449,7 @@ const CONST = {
 
     EMOJI_FREQUENT_ROW_COUNT: 3,
 
-    EMOJI_INVISIBLE_CODEPOINT: 'fe0f',
+    EMOJI_INVISIBLE_CODEPOINTS: ['fe0f', '200d'],
 
     TOOLTIP_MAX_LINES: 3,
 
@@ -504,6 +505,7 @@ const CONST = {
             3: 100,
         },
     },
+    EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EMAIL: {
         CONCIERGE: 'concierge@expensify.com',
         HELP: 'help@expensify.com',
@@ -602,8 +604,9 @@ const CONST = {
         },
         SMS_NUMBER_COUNTRY_CODE: 'US',
         ERROR: {
-            USER_CANCELLED: 'User canceled flow',
+            USER_CANCELLED: 'User canceled flow.',
             USER_TAPPED_BACK: 'User exited by clicking the back button.',
+            USER_EXITED: 'User exited by manual action.',
             USER_CAMERA_DENINED: 'Onfido.OnfidoFlowError',
             USER_CAMERA_PERMISSION: 'Encountered an error: cameraPermission',
             // eslint-disable-next-line max-len
@@ -657,6 +660,7 @@ const CONST = {
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
             CREATE: 'create',
+            SPLIT: 'split',
         },
         AMOUNT_MAX_LENGTH: 10,
     },
@@ -704,6 +708,7 @@ const CONST = {
         LARGE: 'large',
         DEFAULT: 'default',
         SMALL: 'small',
+        SMALLER: 'smaller',
         SUBSCRIPT: 'subscript',
         SMALL_SUBSCRIPT: 'small-subscript',
     },

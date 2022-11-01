@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import Str from 'expensify-common/lib/str';
+import {escapeRegExp} from 'lodash';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -19,7 +20,12 @@ const allPolicies = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (val, key) => {
-        if (!val || !key) {
+        if (!key) {
+            return;
+        }
+
+        if (val === null || val === undefined) {
+            delete allPolicies[key];
             return;
         }
 
@@ -687,17 +693,14 @@ function generateDefaultWorkspaceName(email = '') {
         return defaultWorkspaceName;
     }
 
-    // Check if this name already exists in the policies
-    let suffix = 0;
-    _.forEach(allPolicies, (policy) => {
-        const name = lodashGet(policy, 'name', '');
-
-        if (name.toLowerCase().includes(defaultWorkspaceName.toLowerCase())) {
-            suffix += 1;
-        }
-    });
-
-    return suffix > 0 ? `${defaultWorkspaceName} ${suffix}` : defaultWorkspaceName;
+    // find default named workspaces and increment the last number
+    const numberRegEx = new RegExp(`${escapeRegExp(defaultWorkspaceName)} ?(\\d*)`, 'i');
+    const lastWorkspaceNumber = _.chain(allPolicies)
+        .filter(policy => policy.name && numberRegEx.test(policy.name))
+        .map(policy => parseInt(numberRegEx.exec(policy.name)[1] || 1, 10)) // parse the number at the end
+        .max()
+        .value();
+    return lastWorkspaceNumber !== -Infinity ? `${defaultWorkspaceName} ${lastWorkspaceNumber + 1}` : defaultWorkspaceName;
 }
 
 /**
