@@ -32,7 +32,6 @@ import withLocalize from '../../components/withLocalize';
 import reportPropTypes from '../reportPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
-import Log from '../../libs/Log';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -160,18 +159,7 @@ class ReportScreen extends React.Component {
 
         // This is necessary so that when we are retrieving the next report data from Onyx the ReportActionsView will remount completely
         const isTransitioning = this.props.report && this.props.report.reportID !== reportIDFromPath;
-        const showLoader = reportIDFromPath && this.props.report.reportID && !isTransitioning && !isLoadingInitialAppData;
-        if (showLoader) {
-            Log.info('[ReportScreen] isReportReadyForDisplay params', false, {
-                reportIDFromPath,
-                reportID: this.props.report.reportID,
-                isTransitioning,
-                isReportUnread: ReportUtils.isUnread(this.props.report),
-                isLoadingInitialAppData: this.props.isLoadingInitialAppData,
-            });
-        }
-
-        return showLoader;
+        return reportIDFromPath && this.props.report.reportID && !isTransitioning && !isLoadingInitialAppData;
     }
 
     fetchReportIfNeeded() {
