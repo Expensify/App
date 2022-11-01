@@ -31,15 +31,8 @@
 
         <!-- LHN content (Main navigation tree or Article TOC) -->
         <div id="lhn-content">
-            {% case page.lhn_content %}
-                {% when "homepage" %}
-                    {% include lhn-template.html %}
-                {% when "request-money" %}
-                    {% include lhn-template.html %}
-                {% when "send-money" %}
-                    {% include lhn-template.html %}
-                {% when "other" %}
-                    {% include lhn-template.html %}
+            {% if page.url == "/" or page.url contains "/hubs/" %}
+                {% include lhn-template.html %}
             {% else %}
                 <div id="back-button" class="icon-with-link">
                     <i class="fa-solid fa-angle-left icon"></i>
@@ -49,7 +42,7 @@
                     <span class="in-this-article">In this article</span>
                     <div class="article-toc"></div>
                 {% endif %}
-            {% endcase %}
+            {% endif %}
         </div>
 
         <!-- Concierge button anchored at the bottom of the LHN (rendered on wider screens) -->
