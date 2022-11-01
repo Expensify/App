@@ -604,8 +604,9 @@ const CONST = {
         },
         SMS_NUMBER_COUNTRY_CODE: 'US',
         ERROR: {
-            USER_CANCELLED: 'User canceled flow',
+            USER_CANCELLED: 'User canceled flow.',
             USER_TAPPED_BACK: 'User exited by clicking the back button.',
+            USER_EXITED: 'User exited by manual action.',
             USER_CAMERA_DENINED: 'Onfido.OnfidoFlowError',
             USER_CAMERA_PERMISSION: 'Encountered an error: cameraPermission',
             // eslint-disable-next-line max-len
