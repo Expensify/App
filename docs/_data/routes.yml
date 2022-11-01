@@ -2,9 +2,12 @@ home:
   href: home
   title: Welcome to the New Expensify!
 
+# Hubs are comprised of sections. Sections can contain multiple articles under one umbrella topic,
+# or can be only a single article if a topic doesn't fit with any others
 hubs:
   - href: send-money
     title: Send money
+    description: With only a couple of clicks, send money to your friends or coworkers using NewExpensify.
     sections:
       - href: workspaces
         title: Workspaces
@@ -14,6 +17,7 @@ hubs:
 
   - href: request-money
     title: Request money
+    description: Request money for work expenses, bills, or a night out with friends using NewExpensify.
 
   - href: other
     title: Other
