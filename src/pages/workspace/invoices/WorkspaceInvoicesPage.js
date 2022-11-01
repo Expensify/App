@@ -11,6 +11,7 @@ import compose from '../../../libs/compose';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../../ONYXKEYS';
+import reimbursementAccountPropTypes from '../../ReimbursementAccount/reimbursementAccountPropTypes';
 import ROUTES from '../../../ROUTES';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import styles from '../../../styles/styles';
@@ -19,6 +20,10 @@ import WorkspaceInvoicesNoVBAView from './WorkspaceInvoicesNoVBAView';
 import WorkspaceInvoicesVBAView from './WorkspaceInvoicesVBAView';
 
 const propTypes = {
+    /** From Onyx */
+    /** Bank account currently in setup */
+    reimbursementAccount: reimbursementAccountPropTypes,
+
     /** The route object passed to this page from the navigator */
     route: PropTypes.shape({
         /** Each parameter passed via the URL */
@@ -29,6 +34,10 @@ const propTypes = {
     }).isRequired,
 
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    reimbursementAccount: {},
 };
 
 class WorkspaceInvoicesPage extends React.Component {
@@ -70,6 +79,7 @@ class WorkspaceInvoicesPage extends React.Component {
     }
 }
 
+WorkspaceCardPage.defaultProps = defaultProps;
 WorkspaceInvoicesPage.propTypes = propTypes;
 
 export default compose(

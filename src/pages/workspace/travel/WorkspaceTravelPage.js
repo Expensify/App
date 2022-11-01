@@ -11,6 +11,7 @@ import CONST from '../../../CONST';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../../ONYXKEYS';
+import reimbursementAccountPropTypes from '../../ReimbursementAccount/reimbursementAccountPropTypes';
 import ROUTES from '../../../ROUTES';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import styles from '../../../styles/styles';
@@ -19,6 +20,10 @@ import WorkspaceTravelNoVBAView from './WorkspaceTravelNoVBAView';
 import WorkspaceTravelVBAView from './WorkspaceTravelVBAView';
 
 const propTypes = {
+    /** From Onyx */
+    /** Bank account currently in setup */
+    reimbursementAccount: reimbursementAccountPropTypes,
+
     /** The route object passed to this page from the navigator */
     route: PropTypes.shape({
         /** Each parameter passed via the URL */
@@ -70,6 +75,7 @@ class WorkspaceTravelPage extends React.Component {
     }
 }
 
+WorkspaceCardPage.defaultProps = defaultProps;
 WorkspaceTravelPage.propTypes = propTypes;
 
 export default compose(
