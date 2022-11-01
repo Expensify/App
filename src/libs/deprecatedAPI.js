@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 import requireParameters from './requireParameters';
 import * as Request from './Request';
 import * as Network from './Network';
