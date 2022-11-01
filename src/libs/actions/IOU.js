@@ -718,11 +718,6 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
                 },
             },
         },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
-            value: iouReport,
-        },
     ];
 
     API.write('CancelMoneyRequest', {
