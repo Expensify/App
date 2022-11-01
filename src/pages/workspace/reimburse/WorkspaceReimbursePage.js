@@ -110,7 +110,6 @@ class WorkspaceReimbursePage extends React.Component {
     }
 
     componentDidMount() {
-        BankAccounts.openWorkspaceView();
         Policy.openWorkspaceReimburseView(this.props.policy.id);
     }
 
