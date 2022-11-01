@@ -12,6 +12,8 @@ import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../ReportUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -326,6 +328,7 @@ function updateDisplayName(firstName, lastName) {
             },
         }],
     });
+    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
 /**
