@@ -2174,8 +2174,8 @@ const styles = {
     },
 
     iouPreviewBoxLoading: {
-        //The measured height of IOUPreview with Pay Button rendered is measured to be 94.
-        //Setting it 94, fixes the issue of pay button cutting in half in open chat.
+        // The measured height of IOUPreview with Pay Button rendered is measured to be 94.
+        // Setting it 94, fixes the issue of pay button cutting in half in open chat.
         minHeight: 94,
         width: '100%',
     },
