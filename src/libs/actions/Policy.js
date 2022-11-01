@@ -63,42 +63,6 @@ function getSimplifiedEmployeeList(employeeList) {
 }
 
 /**
- * Takes a full policy that is returned from the policyList and simplifies it so we are only storing
- * the pieces of data that we need to in Onyx
- *
- * @param {Object} fullPolicyOrPolicySummary
- * @param {String} fullPolicyOrPolicySummary.id
- * @param {String} fullPolicyOrPolicySummary.name
- * @param {String} fullPolicyOrPolicySummary.role
- * @param {String} fullPolicyOrPolicySummary.type
- * @param {String} fullPolicyOrPolicySummary.outputCurrency
- * @param {String} [fullPolicyOrPolicySummary.avatar]
- * @param {String} [fullPolicyOrPolicySummary.value.avatar]
- * @param {Object} [fullPolicyOrPolicySummary.value.employeeList]
- * @param {Object} [fullPolicyOrPolicySummary.value.customUnits]
- * @param {Boolean} isFromFullPolicy,
- * @returns {Object}
- */
-function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) {
-    return {
-        isFromFullPolicy,
-        id: fullPolicyOrPolicySummary.id,
-        name: fullPolicyOrPolicySummary.name,
-        role: fullPolicyOrPolicySummary.role,
-        type: fullPolicyOrPolicySummary.type,
-        owner: fullPolicyOrPolicySummary.owner,
-        outputCurrency: fullPolicyOrPolicySummary.outputCurrency,
-
-        // "GetFullPolicy" and "GetPolicySummaryList" returns different policy objects. If policy is retrieved by "GetFullPolicy",
-        // avatar will be nested within the key "value"
-        avatar: fullPolicyOrPolicySummary.avatar
-            || lodashGet(fullPolicyOrPolicySummary, 'value.avatar', ''),
-        customUnits: lodashGet(fullPolicyOrPolicySummary, 'value.customUnits', {}),
-        lastModified: lodashGet(fullPolicyOrPolicySummary, 'value.lastModified', 0),
-    };
-}
-
-/**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  * @param {String|null} policyID
  */
@@ -153,26 +117,6 @@ function deleteWorkspace(policyID, reports) {
     if (policyID === lastAccessedWorkspacePolicyID) {
         updateLastAccessedWorkspace(null);
     }
-}
-
-/**
- * @param {String} policyID
- */
-function loadFullPolicy(policyID) {
-    DeprecatedAPI.GetFullPolicy(policyID)
-        .then((data) => {
-            if (data.jsonCode !== 200) {
-                return;
-            }
-
-            const policy = lodashGet(data, 'policyList[0]', {});
-            if (!policy.id) {
-                return;
-            }
-
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, getSimplifiedPolicyObject(policy, true));
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, getSimplifiedEmployeeList(lodashGet(policy, 'value.employeeList', {})));
-        });
 }
 
 /**
@@ -936,7 +880,6 @@ function openWorkspaceInvitePage(policyID, clientMemberEmails) {
 }
 
 export {
-    loadFullPolicy,
     removeMembers,
     addMembersToWorkspace,
     isAdminOfFreePolicy,
