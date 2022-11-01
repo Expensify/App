@@ -82,6 +82,7 @@ class ReportActionItemMessageEdit extends React.Component {
                 start: draftMessage.length,
                 end: draftMessage.length,
             },
+            isFocused: false,
         };
     }
 
@@ -166,12 +167,13 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
+        const emojiWithSpace = `${emoji} `;
         const newComment = this.state.draft.slice(0, this.state.selection.start)
-            + emoji + this.state.draft.slice(this.state.selection.end, this.state.draft.length);
+            + emojiWithSpace + this.state.draft.slice(this.state.selection.end, this.state.draft.length);
         this.setState(prevState => ({
             selection: {
-                start: prevState.selection.start + emoji.length,
-                end: prevState.selection.start + emoji.length,
+                start: prevState.selection.start + emojiWithSpace.length,
+                end: prevState.selection.start + emojiWithSpace.length,
             },
         }));
         this.updateDraft(newComment);
@@ -199,7 +201,14 @@ class ReportActionItemMessageEdit extends React.Component {
         const hasExceededMaxCommentLength = this.state.draft.length > CONST.MAX_COMMENT_LENGTH;
         return (
             <View style={styles.chatItemMessage}>
-                <View style={[styles.chatItemComposeBox, styles.flexRow, styles.chatItemComposeBoxColor, hasExceededMaxCommentLength && styles.borderColorDanger]}>
+                <View
+                    style={[
+                        styles.chatItemComposeBox,
+                        styles.flexRow,
+                        this.state.isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
+                        hasExceededMaxCommentLength && styles.borderColorDanger,
+                    ]}
+                >
                     <Composer
                         multiline
                         ref={(el) => {
@@ -212,6 +221,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         maxLines={16} // This is the same that slack has
                         style={[styles.textInputCompose, styles.flex4, styles.editInputComposeSpacing]}
                         onFocus={() => {
+                            this.setState({isFocused: true});
                             ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
                             toggleReportActionComposeView(false, VirtualKeyboard.shouldAssumeIsOpen());
                         }}
@@ -220,7 +230,7 @@ class ReportActionItemMessageEdit extends React.Component {
                             if (_.contains([this.saveButtonID, this.cancelButtonID, this.emojiButtonID], lodashGet(event, 'nativeEvent.relatedTarget.id'))) {
                                 return;
                             }
-
+                            this.setState({isFocused: false});
                             toggleReportActionComposeView(true, VirtualKeyboard.shouldAssumeIsOpen());
                         }}
                         selection={this.state.selection}

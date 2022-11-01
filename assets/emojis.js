@@ -1,29 +1,48 @@
 import CONST from '../src/CONST';
 
 /*
- * This list is generated from the code here https://github.com/amurani/unicode-emoji-list
+ * This list is generated from the code here https://github.com/github/gemoji/blob/master/db/emoji.json
  * Each code is then converted to hex by replacing the "U+" with "0x"
  * Each hex is then converted to a string using this function (each section is defined as "emojis" in this function)
- * for (var i=0; i<emojis.length; i++) {
- *  newCode = '';
- *  emojis[i].code.forEach(codePiece => {
- *      newCode += String.fromCodePoint(codePiece);
- *  });
- *  emojis[i].code=newCode;
- *  //console.log(newCode);
- *  if (emojis[i].types) {
- *      newTypesArray = [];
- *      emojis[i].types.forEach(type => {
- *          typeCode = '';
- *          type.forEach(code => {
- *               typeCode += String.fromCodePoint(code);
- *          });
- *          newTypesArray.push(typeCode);
+ * const emojiData = require('./gemoji.json');
+ * const { getEmojiUnicode } = require('./EmojiUtils');
+ * const emojisGroupedByCategory = _.groupBy(emojiData, 'category');
+ * const skinTones = ['1f3fb', '1f3fc', '1f3fd', '1f3fe',  '1f3ff'];
+ * const emojisList = []
+ * for(let category in emojisGroupedByCategory) {
+ *      let categoryName = category.replace(' & ', 'And');
+ *      categoryName = categoryName.charAt(0).toLowerCase() + categoryName.slice(1);
+ *      emojisList.push({
+ *          code: categoryName,
+ *          header: true
  *      });
- *      //console.log(newTypesArray);
- *      emojis[i].types = newTypesArray
- *  }
- * }
+ *
+ *     const emojisPerCategory = emojisGroupedByCategory[category];
+ *      for(let i = 0; i < emojisPerCategory.length; i++) {
+ *          const emoji = emojisPerCategory[i];
+ *          let keywords = [...emoji.tags , ...emoji.aliases];
+ *          if(oldEmojiMap[emoji.emoji]) { // old Emoji Map is old assets/emojis.js data
+ *              keywords = keywords.concat(oldEmojiMap[emoji.emoji].keywords);
+ *          }
+ *          const emojiRow = {
+ *              code: emoji.emoji,
+ *              keywords: _.uniq(keywords)
+ *          };
+ *
+ *          if (emoji.skin_tones) {
+ *              emojiRow.types = skinTones.map(skinTone => {
+ *                 const emojiUnicode = trimEmojiUnicode(getEmojiUnicode(emoji.emoji)).split(' ').map(p => parseInt(p, 16));
+ *                 if(emojiUnicode.length > 0) {
+ *                     emojiUnicode.splice(1, 0, parseInt(skinTone, 16));
+ *                 } else {
+ *                    emojiUnicode.push(parseInt(skinTone, 16));
+ *                 }
+ *                 return String.fromCodePoint(...emojiUnicode);
+ *              });
+ *          }
+ *          emojisList.push(emojiRow);
+ *     }
+ * };
  */
 
 // BEFORE YOU EDIT THIS, PLEASE SEE WARNINGS IN EmojiPickerMenu.js
@@ -49,222 +68,388 @@ const skinTones = [{
 
 const emojis = [
     {
-        code: 'smileysAndPeople',
+        code: 'smileysAndEmotion',
         header: true,
     },
     {
+        name: 'grinning',
         code: '😀',
         keywords: [
-            'face',
-            'grin',
-        ],
-        name: 'grinning',
-    },
-    {
-        code: '😁',
-        keywords: [
-            'eye',
-            'face',
-            'grin',
             'smile',
-        ],
-        name: 'grin',
-    },
-    {
-        code: '😂',
-        keywords: [
+            'happy',
+            'grinning',
             'face',
-            'joy',
-            'laugh',
-            'tear',
+            'grin',
         ],
-        name: 'joy',
     },
     {
-        code: '🤣',
-        keywords: [
-            'face',
-            'floor',
-            'laugh',
-            'lol',
-            'rofl',
-            'rolling',
-        ],
-        name: 'rofl',
-    },
-    {
+        name: 'smiley',
         code: '😃',
         keywords: [
+            'happy',
+            'joy',
+            'haha',
+            'smiley',
             'face',
             'mouth',
             'open',
             'smile',
         ],
-        name: 'smiley',
     },
     {
+        name: 'smile',
         code: '😄',
         keywords: [
+            'happy',
+            'joy',
+            'laugh',
+            'pleased',
+            'smile',
             'eye',
             'face',
             'mouth',
             'open',
-            'smile',
         ],
-        name: 'smile',
     },
     {
+        name: 'grin',
+        code: '😁',
+        keywords: [
+            'grin',
+            'eye',
+            'face',
+            'smile',
+        ],
+    },
+    {
+        name: 'laughing',
+        code: '😆',
+        keywords: [
+            'happy',
+            'haha',
+            'laughing',
+            'satisfied',
+            'face',
+            'laugh',
+            'mouth',
+            'open',
+            'smile',
+        ],
+    },
+    {
+        name: 'sweat_smile',
         code: '😅',
         keywords: [
+            'hot',
+            'sweat_smile',
             'cold',
             'face',
             'open',
             'smile',
             'sweat',
         ],
-        name: 'sweat_smile',
     },
     {
-        code: '😆',
+        name: 'rofl',
+        code: '🤣',
         keywords: [
+            'lol',
+            'laughing',
+            'rofl',
+            'face',
+            'floor',
+            'laugh',
+            'rolling',
+        ],
+    },
+    {
+        name: 'joy',
+        code: '😂',
+        keywords: [
+            'tears',
+            'joy',
             'face',
             'laugh',
-            'mouth',
-            'open',
-            'satisfied',
+            'tear',
+        ],
+    },
+    {
+        name: 'slightly_smiling_face',
+        code: '🙂',
+        keywords: [
+            'slightly_smiling_face',
+            'face',
             'smile',
         ],
-        name: 'laughing',
     },
     {
+        name: 'upside_down_face',
+        code: '🙃',
+        keywords: [
+            'upside_down_face',
+            'face',
+            'upside-down',
+        ],
+    },
+    {
+        name: 'wink',
         code: '😉',
         keywords: [
-            'face',
+            'flirt',
             'wink',
+            'face',
         ],
-        name: 'wink',
     },
     {
+        name: 'blush',
         code: '😊',
         keywords: [
+            'proud',
             'blush',
             'eye',
             'face',
             'smile',
         ],
-        name: 'blush',
     },
     {
-        code: '😋',
+        name: 'innocent',
+        code: '😇',
         keywords: [
-            'delicious',
+            'angel',
+            'innocent',
             'face',
-            'savouring',
+            'fairy tale',
+            'fantasy',
+            'halo',
             'smile',
-            'um',
-            'yum',
         ],
-        name: 'yum',
     },
     {
-        code: '😎',
+        name: 'smiling_face_with_three_hearts',
+        code: '🥰',
         keywords: [
-            'bright',
-            'cool',
-            'eye',
-            'eyewear',
-            'face',
-            'glasses',
-            'smile',
-            'sun',
-            'sunglasses',
-            'weather',
+            'love',
+            'smiling_face_with_three_hearts',
         ],
-        name: 'sunglasses',
     },
     {
+        name: 'heart_eyes',
         code: '😍',
         keywords: [
+            'love',
+            'crush',
+            'heart_eyes',
             'eye',
             'face',
             'heart',
-            'love',
             'smile',
         ],
-        name: 'heart_eyes',
     },
     {
+        name: 'star_struck',
+        code: '🤩',
+        keywords: [
+            'eyes',
+            'star_struck',
+        ],
+    },
+    {
+        name: 'kissing_heart',
         code: '😘',
         keywords: [
+            'flirt',
+            'kissing_heart',
             'face',
             'heart',
             'kiss',
         ],
-        name: 'kissing_heart',
     },
     {
+        name: 'kissing',
         code: '😗',
         keywords: [
+            'kissing',
             'face',
             'kiss',
         ],
-        name: 'kissing',
     },
     {
-        code: '😙',
+        name: 'relaxed',
+        code: '☺️',
         keywords: [
-            'eye',
-            'face',
-            'kiss',
-            'smile',
+            'blush',
+            'pleased',
+            'relaxed',
         ],
-        name: 'kissing_smiling_eyes',
     },
     {
+        name: 'kissing_closed_eyes',
         code: '😚',
         keywords: [
+            'kissing_closed_eyes',
             'closed',
             'eye',
             'face',
             'kiss',
         ],
-        name: 'kissing_closed_eyes',
     },
     {
-        code: '🙂',
+        name: 'kissing_smiling_eyes',
+        code: '😙',
         keywords: [
+            'kissing_smiling_eyes',
+            'eye',
             'face',
+            'kiss',
             'smile',
         ],
-        name: 'slightly_smiling_face',
     },
     {
+        name: 'smiling_face_with_tear',
+        code: '🥲',
+        keywords: [
+            'smiling_face_with_tear',
+        ],
+    },
+    {
+        name: 'yum',
+        code: '😋',
+        keywords: [
+            'tongue',
+            'lick',
+            'yum',
+            'delicious',
+            'face',
+            'savouring',
+            'smile',
+            'um',
+        ],
+    },
+    {
+        name: 'stuck_out_tongue',
+        code: '😛',
+        keywords: [
+            'stuck_out_tongue',
+            'face',
+            'tongue',
+        ],
+    },
+    {
+        name: 'stuck_out_tongue_winking_eye',
+        code: '😜',
+        keywords: [
+            'prank',
+            'silly',
+            'stuck_out_tongue_winking_eye',
+            'eye',
+            'face',
+            'joke',
+            'tongue',
+            'wink',
+        ],
+    },
+    {
+        name: 'zany_face',
+        code: '🤪',
+        keywords: [
+            'goofy',
+            'wacky',
+            'zany_face',
+        ],
+    },
+    {
+        name: 'stuck_out_tongue_closed_eyes',
+        code: '😝',
+        keywords: [
+            'prank',
+            'stuck_out_tongue_closed_eyes',
+            'eye',
+            'face',
+            'horrible',
+            'taste',
+            'tongue',
+        ],
+    },
+    {
+        name: 'money_mouth_face',
+        code: '🤑',
+        keywords: [
+            'rich',
+            'money_mouth_face',
+            'face',
+            'money',
+            'mouth',
+        ],
+    },
+    {
+        name: 'hugs',
         code: '🤗',
         keywords: [
+            'hugs',
             'face',
             'hug',
             'hugging',
         ],
-        name: 'hugs',
     },
     {
+        name: 'hand_over_mouth',
+        code: '🤭',
+        keywords: [
+            'quiet',
+            'whoops',
+            'hand_over_mouth',
+        ],
+    },
+    {
+        name: 'shushing_face',
+        code: '🤫',
+        keywords: [
+            'silence',
+            'quiet',
+            'shushing_face',
+        ],
+    },
+    {
+        name: 'thinking',
         code: '🤔',
         keywords: [
-            'face',
             'thinking',
+            'face',
         ],
-        name: 'thinking',
     },
     {
+        name: 'zipper_mouth_face',
+        code: '🤐',
+        keywords: [
+            'silence',
+            'hush',
+            'zipper_mouth_face',
+            'face',
+            'mouth',
+            'zipper',
+        ],
+    },
+    {
+        name: 'raised_eyebrow',
+        code: '🤨',
+        keywords: [
+            'suspicious',
+            'raised_eyebrow',
+        ],
+    },
+    {
+        name: 'neutral_face',
         code: '😐',
         keywords: [
+            'meh',
+            'neutral_face',
             'deadpan',
             'face',
             'neutral',
         ],
-        name: 'neutral_face',
     },
     {
+        name: 'expressionless',
         code: '😑',
         keywords: [
             'expressionless',
@@ -272,334 +457,438 @@ const emojis = [
             'inexpressive',
             'unexpressive',
         ],
-        name: 'expressionless',
     },
     {
+        name: 'no_mouth',
         code: '😶',
         keywords: [
+            'mute',
+            'silence',
+            'no_mouth',
             'face',
             'mouth',
             'quiet',
             'silent',
         ],
-        name: 'no_mouth',
     },
     {
+        name: 'face_in_clouds',
+        code: '😶‍🌫️',
+        keywords: [
+            'face_in_clouds',
+        ],
+    },
+    {
+        name: 'smirk',
+        code: '😏',
+        keywords: [
+            'smug',
+            'smirk',
+            'face',
+        ],
+    },
+    {
+        name: 'unamused',
+        code: '😒',
+        keywords: [
+            'meh',
+            'unamused',
+            'face',
+            'unhappy',
+        ],
+    },
+    {
+        name: 'roll_eyes',
         code: '🙄',
         keywords: [
+            'roll_eyes',
             'eyes',
             'face',
             'rolling',
         ],
-        name: 'roll_eyes',
     },
     {
-        code: '😏',
+        name: 'grimacing',
+        code: '😬',
         keywords: [
+            'grimacing',
             'face',
-            'smirk',
+            'grimace',
         ],
-        name: 'smirk',
     },
     {
-        code: '😣',
+        name: 'face_exhaling',
+        code: '😮‍💨',
         keywords: [
-            'face',
-            'persevere',
+            'face_exhaling',
         ],
-        name: 'persevere',
     },
     {
-        code: '😥',
+        name: 'lying_face',
+        code: '🤥',
         keywords: [
-            'disappointed',
+            'liar',
+            'lying_face',
             'face',
-            'relieved',
-            'whew',
+            'lie',
+            'pinocchio',
         ],
-        name: 'disappointed_relieved',
     },
     {
-        code: '😮',
-        keywords: [
-            'face',
-            'mouth',
-            'open',
-            'sympathy',
-        ],
-        name: 'open_mouth',
-    },
-    {
-        code: '🤐',
-        keywords: [
-            'face',
-            'mouth',
-            'zipper',
-        ],
-        name: 'zipper_mouth_face',
-    },
-    {
-        code: '😯',
-        keywords: [
-            'face',
-            'hushed',
-            'stunned',
-            'surprised',
-        ],
-        name: 'hushed',
-    },
-    {
-        code: '😪',
-        keywords: [
-            'face',
-            'sleep',
-        ],
-        name: 'sleepy',
-    },
-    {
-        code: '😫',
-        keywords: [
-            'face',
-            'tired',
-        ],
-        name: 'tired_face',
-    },
-    {
-        code: '😴',
-        keywords: [
-            'face',
-            'sleep',
-            'zzz',
-        ],
-        name: 'sleeping',
-    },
-    {
+        name: 'relieved',
         code: '😌',
         keywords: [
-            'face',
+            'whew',
             'relieved',
-        ],
-        name: 'relieved',
-    },
-    {
-        code: '🤓',
-        keywords: [
             'face',
-            'geek',
-            'nerd',
         ],
-        name: 'nerd_face',
     },
     {
-        code: '😛',
+        name: 'pensive',
+        code: '😔',
         keywords: [
+            'pensive',
+            'dejected',
             'face',
-            'tongue',
         ],
-        name: 'stuck_out_tongue',
     },
     {
-        code: '😜',
+        name: 'sleepy',
+        code: '😪',
         keywords: [
-            'eye',
+            'tired',
+            'sleepy',
             'face',
-            'joke',
-            'tongue',
-            'wink',
+            'sleep',
         ],
-        name: 'stuck_out_tongue_winking_eye',
     },
     {
-        code: '😝',
-        keywords: [
-            'eye',
-            'face',
-            'horrible',
-            'taste',
-            'tongue',
-        ],
-        name: 'stuck_out_tongue_closed_eyes',
-    },
-    {
+        name: 'drooling_face',
         code: '🤤',
         keywords: [
+            'drooling_face',
             'drooling',
             'face',
         ],
-        name: 'drooling_face',
     },
     {
-        code: '😒',
+        name: 'sleeping',
+        code: '😴',
         keywords: [
+            'zzz',
+            'sleeping',
             'face',
-            'unamused',
-            'unhappy',
+            'sleep',
         ],
-        name: 'unamused',
     },
     {
-        code: '😓',
+        name: 'mask',
+        code: '😷',
         keywords: [
+            'sick',
+            'ill',
+            'mask',
             'cold',
+            'doctor',
             'face',
-            'sweat',
+            'medicine',
         ],
-        name: 'sweat',
     },
     {
-        code: '😔',
+        name: 'face_with_thermometer',
+        code: '🤒',
         keywords: [
-            'dejected',
+            'sick',
+            'face_with_thermometer',
             'face',
-            'pensive',
+            'ill',
+            'thermometer',
         ],
-        name: 'pensive',
     },
     {
+        name: 'face_with_head_bandage',
+        code: '🤕',
+        keywords: [
+            'hurt',
+            'face_with_head_bandage',
+            'bandage',
+            'face',
+            'injury',
+        ],
+    },
+    {
+        name: 'nauseated_face',
+        code: '🤢',
+        keywords: [
+            'sick',
+            'barf',
+            'disgusted',
+            'nauseated_face',
+            'face',
+            'nauseated',
+            'vomit',
+        ],
+    },
+    {
+        name: 'vomiting_face',
+        code: '🤮',
+        keywords: [
+            'barf',
+            'sick',
+            'vomiting_face',
+        ],
+    },
+    {
+        name: 'sneezing_face',
+        code: '🤧',
+        keywords: [
+            'achoo',
+            'sick',
+            'sneezing_face',
+            'face',
+            'gesundheit',
+            'sneeze',
+        ],
+    },
+    {
+        name: 'hot_face',
+        code: '🥵',
+        keywords: [
+            'heat',
+            'sweating',
+            'hot_face',
+        ],
+    },
+    {
+        name: 'cold_face',
+        code: '🥶',
+        keywords: [
+            'freezing',
+            'ice',
+            'cold_face',
+        ],
+    },
+    {
+        name: 'woozy_face',
+        code: '🥴',
+        keywords: [
+            'groggy',
+            'woozy_face',
+        ],
+    },
+    {
+        name: 'dizzy_face',
+        code: '😵',
+        keywords: [
+            'dizzy_face',
+            'dizzy',
+            'face',
+        ],
+    },
+    {
+        name: 'face_with_spiral_eyes',
+        code: '😵‍💫',
+        keywords: [
+            'face_with_spiral_eyes',
+        ],
+    },
+    {
+        name: 'exploding_head',
+        code: '🤯',
+        keywords: [
+            'mind',
+            'blown',
+            'exploding_head',
+        ],
+    },
+    {
+        name: 'cowboy_hat_face',
+        code: '🤠',
+        keywords: [
+            'cowboy_hat_face',
+            'cowboy',
+            'cowgirl',
+            'face',
+            'hat',
+        ],
+    },
+    {
+        name: 'partying_face',
+        code: '🥳',
+        keywords: [
+            'celebration',
+            'birthday',
+            'partying_face',
+        ],
+    },
+    {
+        name: 'disguised_face',
+        code: '🥸',
+        keywords: [
+            'disguised_face',
+        ],
+    },
+    {
+        name: 'sunglasses',
+        code: '😎',
+        keywords: [
+            'cool',
+            'sunglasses',
+            'bright',
+            'eye',
+            'eyewear',
+            'face',
+            'glasses',
+            'smile',
+            'sun',
+            'weather',
+        ],
+    },
+    {
+        name: 'nerd_face',
+        code: '🤓',
+        keywords: [
+            'geek',
+            'glasses',
+            'nerd_face',
+            'face',
+            'nerd',
+        ],
+    },
+    {
+        name: 'monocle_face',
+        code: '🧐',
+        keywords: [
+            'monocle_face',
+        ],
+    },
+    {
+        name: 'confused',
         code: '😕',
         keywords: [
             'confused',
             'face',
         ],
-        name: 'confused',
     },
     {
-        code: '🙃',
+        name: 'worried',
+        code: '😟',
         keywords: [
+            'nervous',
+            'worried',
             'face',
-            'upside-down',
         ],
-        name: 'upside_down_face',
     },
     {
-        code: '🤑',
+        name: 'slightly_frowning_face',
+        code: '🙁',
         keywords: [
+            'slightly_frowning_face',
             'face',
-            'money',
+            'frown',
+        ],
+    },
+    {
+        name: 'frowning_face',
+        code: '☹️',
+        keywords: [
+            'frowning_face',
+        ],
+    },
+    {
+        name: 'open_mouth',
+        code: '😮',
+        keywords: [
+            'surprise',
+            'impressed',
+            'wow',
+            'open_mouth',
+            'face',
             'mouth',
+            'open',
+            'sympathy',
         ],
-        name: 'money_mouth_face',
     },
     {
+        name: 'hushed',
+        code: '😯',
+        keywords: [
+            'silence',
+            'speechless',
+            'hushed',
+            'face',
+            'stunned',
+            'surprised',
+        ],
+    },
+    {
+        name: 'astonished',
         code: '😲',
         keywords: [
+            'amazed',
+            'gasp',
             'astonished',
             'face',
             'shocked',
             'totally',
         ],
-        name: 'astonished',
     },
     {
-        code: '🙁',
+        name: 'flushed',
+        code: '😳',
         keywords: [
-            'face',
-            'frown',
-        ],
-        name: 'slightly_frowning_face',
-    },
-    {
-        code: '😖',
-        keywords: [
-            'confounded',
+            'flushed',
+            'dazed',
             'face',
         ],
-        name: 'confounded',
     },
     {
-        code: '😞',
+        name: 'pleading_face',
+        code: '🥺',
         keywords: [
-            'disappointed',
-            'face',
+            'puppy',
+            'eyes',
+            'pleading_face',
         ],
-        name: 'disappointed',
     },
     {
-        code: '😟',
-        keywords: [
-            'face',
-            'worried',
-        ],
-        name: 'worried',
-    },
-    {
-        code: '😤',
-        keywords: [
-            'face',
-            'triumph',
-            'won',
-        ],
-        name: 'triumph',
-    },
-    {
-        code: '😢',
-        keywords: [
-            'cry',
-            'face',
-            'sad',
-            'tear',
-        ],
-        name: 'cry',
-    },
-    {
-        code: '😭',
-        keywords: [
-            'cry',
-            'face',
-            'sad',
-            'sob',
-            'tear',
-        ],
-        name: 'sob',
-    },
-    {
+        name: 'frowning',
         code: '😦',
         keywords: [
+            'frowning',
             'face',
             'frown',
             'mouth',
             'open',
         ],
-        name: 'frowning',
     },
     {
+        name: 'anguished',
         code: '😧',
         keywords: [
+            'stunned',
             'anguished',
             'face',
         ],
-        name: 'anguished',
     },
     {
+        name: 'fearful',
         code: '😨',
         keywords: [
+            'scared',
+            'shocked',
+            'oops',
+            'fearful',
             'face',
             'fear',
-            'fearful',
-            'scared',
         ],
-        name: 'fearful',
     },
     {
-        code: '😩',
-        keywords: [
-            'face',
-            'tired',
-            'weary',
-        ],
-        name: 'weary',
-    },
-    {
-        code: '😬',
-        keywords: [
-            'face',
-            'grimace',
-        ],
-        name: 'grimacing',
-    },
-    {
+        name: 'cold_sweat',
         code: '😰',
         keywords: [
+            'nervous',
+            'cold_sweat',
             'blue',
             'cold',
             'face',
@@ -608,187 +897,262 @@ const emojis = [
             'rushed',
             'sweat',
         ],
-        name: 'cold_sweat',
     },
     {
+        name: 'disappointed_relieved',
+        code: '😥',
+        keywords: [
+            'phew',
+            'sweat',
+            'nervous',
+            'disappointed_relieved',
+            'disappointed',
+            'face',
+            'relieved',
+            'whew',
+        ],
+    },
+    {
+        name: 'cry',
+        code: '😢',
+        keywords: [
+            'sad',
+            'tear',
+            'cry',
+            'face',
+        ],
+    },
+    {
+        name: 'sob',
+        code: '😭',
+        keywords: [
+            'sad',
+            'cry',
+            'bawling',
+            'sob',
+            'face',
+            'tear',
+        ],
+    },
+    {
+        name: 'scream',
         code: '😱',
         keywords: [
+            'horror',
+            'shocked',
+            'scream',
             'face',
             'fear',
             'fearful',
             'munch',
             'scared',
-            'scream',
         ],
-        name: 'scream',
     },
     {
-        code: '😳',
+        name: 'confounded',
+        code: '😖',
         keywords: [
-            'dazed',
-            'face',
-            'flushed',
-        ],
-        name: 'flushed',
-    },
-    {
-        code: '😵',
-        keywords: [
-            'dizzy',
+            'confounded',
             'face',
         ],
-        name: 'dizzy_face',
     },
     {
+        name: 'persevere',
+        code: '😣',
+        keywords: [
+            'struggling',
+            'persevere',
+            'face',
+        ],
+    },
+    {
+        name: 'disappointed',
+        code: '😞',
+        keywords: [
+            'sad',
+            'disappointed',
+            'face',
+        ],
+    },
+    {
+        name: 'sweat',
+        code: '😓',
+        keywords: [
+            'sweat',
+            'cold',
+            'face',
+        ],
+    },
+    {
+        name: 'weary',
+        code: '😩',
+        keywords: [
+            'tired',
+            'weary',
+            'face',
+        ],
+    },
+    {
+        name: 'tired_face',
+        code: '😫',
+        keywords: [
+            'upset',
+            'whine',
+            'tired_face',
+            'face',
+            'tired',
+        ],
+    },
+    {
+        name: 'yawning_face',
+        code: '🥱',
+        keywords: [
+            'yawning_face',
+        ],
+    },
+    {
+        name: 'triumph',
+        code: '😤',
+        keywords: [
+            'smug',
+            'triumph',
+            'face',
+            'won',
+        ],
+    },
+    {
+        name: 'rage',
         code: '😡',
         keywords: [
             'angry',
+            'rage',
+            'pout',
             'face',
             'mad',
             'pouting',
-            'rage',
             'red',
         ],
-        name: 'rage',
     },
     {
+        name: 'angry',
         code: '😠',
         keywords: [
+            'mad',
+            'annoyed',
             'angry',
             'face',
-            'mad',
         ],
-        name: 'angry',
     },
     {
-        code: '😇',
+        name: 'cursing_face',
+        code: '🤬',
         keywords: [
-            'angel',
+            'foul',
+            'cursing_face',
+        ],
+    },
+    {
+        name: 'smiling_imp',
+        code: '😈',
+        keywords: [
+            'devil',
+            'evil',
+            'horns',
+            'smiling_imp',
             'face',
             'fairy tale',
             'fantasy',
-            'halo',
-            'innocent',
             'smile',
         ],
-        name: 'innocent',
     },
     {
-        code: '🤠',
+        name: 'imp',
+        code: '👿',
         keywords: [
-            'cowboy',
-            'cowgirl',
+            'angry',
+            'devil',
+            'evil',
+            'horns',
+            'imp',
+            'demon',
             'face',
-            'hat',
+            'fairy tale',
+            'fantasy',
         ],
-        name: 'cowboy_hat_face',
     },
     {
+        name: 'skull',
+        code: '💀',
+        keywords: [
+            'dead',
+            'danger',
+            'poison',
+            'skull',
+            'body',
+            'death',
+            'face',
+            'fairy tale',
+            'monster',
+        ],
+    },
+    {
+        name: 'skull_and_crossbones',
+        code: '☠️',
+        keywords: [
+            'danger',
+            'pirate',
+            'skull_and_crossbones',
+            'body',
+            'crossbones',
+            'death',
+            'face',
+            'monster',
+            'skull',
+        ],
+    },
+    {
+        name: 'hankey',
+        code: '💩',
+        keywords: [
+            'crap',
+            'hankey',
+            'poop',
+            'shit',
+            'comic',
+            'dung',
+            'face',
+            'monster',
+            'poo',
+        ],
+    },
+    {
+        name: 'clown_face',
         code: '🤡',
         keywords: [
+            'clown_face',
             'clown',
             'face',
         ],
-        name: 'clown_face',
     },
     {
-        code: '🤥',
-        keywords: [
-            'face',
-            'lie',
-            'pinocchio',
-        ],
-        name: 'lying_face',
-    },
-    {
-        code: '😷',
-        keywords: [
-            'cold',
-            'doctor',
-            'face',
-            'mask',
-            'medicine',
-            'sick',
-        ],
-        name: 'mask',
-    },
-    {
-        code: '🤒',
-        keywords: [
-            'face',
-            'ill',
-            'sick',
-            'thermometer',
-        ],
-        name: 'face_with_thermometer',
-    },
-    {
-        code: '🤕',
-        keywords: [
-            'bandage',
-            'face',
-            'hurt',
-            'injury',
-        ],
-        name: 'face_with_head_bandage',
-    },
-    {
-        code: '🤢',
-        keywords: [
-            'face',
-            'nauseated',
-            'vomit',
-        ],
-        name: 'nauseated_face',
-    },
-    {
-        code: '🤧',
-        keywords: [
-            'face',
-            'gesundheit',
-            'sneeze',
-        ],
-        name: 'sneezing_face',
-    },
-    {
-        code: '😈',
-        keywords: [
-            'face',
-            'fairy tale',
-            'fantasy',
-            'horns',
-            'smile',
-        ],
-        name: 'smiling_imp',
-    },
-    {
-        code: '👿',
-        keywords: [
-            'demon',
-            'devil',
-            'face',
-            'fairy tale',
-            'fantasy',
-            'imp',
-        ],
-        name: 'imp',
-    },
-    {
+        name: 'japanese_ogre',
         code: '👹',
         keywords: [
+            'monster',
+            'japanese_ogre',
             'creature',
             'face',
             'fairy tale',
             'fantasy',
             'japanese',
-            'monster',
             'ogre',
         ],
-        name: 'japanese_ogre',
     },
     {
+        name: 'japanese_goblin',
         code: '👺',
         keywords: [
+            'japanese_goblin',
             'creature',
             'face',
             'fairy tale',
@@ -797,47 +1161,25 @@ const emojis = [
             'japanese',
             'monster',
         ],
-        name: 'japanese_goblin',
     },
     {
-        code: '💀',
-        keywords: [
-            'body',
-            'death',
-            'face',
-            'fairy tale',
-            'monster',
-            'skull',
-        ],
-        name: 'skull',
-    },
-    {
-        code: '☠️',
-        keywords: [
-            'body',
-            'crossbones',
-            'death',
-            'face',
-            'monster',
-            'skull',
-        ],
-        name: 'skull_and_crossbones',
-    },
-    {
+        name: 'ghost',
         code: '👻',
         keywords: [
+            'halloween',
+            'ghost',
             'creature',
             'face',
             'fairy tale',
             'fantasy',
-            'ghost',
             'monster',
         ],
-        name: 'ghost',
     },
     {
+        name: 'alien',
         code: '👽',
         keywords: [
+            'ufo',
             'alien',
             'creature',
             'extraterrestrial',
@@ -846,13 +1188,15 @@ const emojis = [
             'fantasy',
             'monster',
             'space',
-            'ufo',
         ],
-        name: 'alien',
     },
     {
+        name: 'space_invader',
         code: '👾',
         keywords: [
+            'game',
+            'retro',
+            'space_invader',
             'alien',
             'creature',
             'extraterrestrial',
@@ -863,64 +1207,56 @@ const emojis = [
             'space',
             'ufo',
         ],
-        name: 'space_invader',
     },
     {
+        name: 'robot',
         code: '🤖',
         keywords: [
-            'face',
-            'monster',
             'robot',
-        ],
-        name: 'robot',
-    },
-    {
-        code: '💩',
-        keywords: [
-            'comic',
-            'dung',
             'face',
             'monster',
-            'poo',
-            'poop',
         ],
-        name: 'hankey',
     },
     {
+        name: 'smiley_cat',
         code: '😺',
         keywords: [
+            'smiley_cat',
             'cat',
             'face',
             'mouth',
             'open',
             'smile',
         ],
-        name: 'smiley_cat',
     },
     {
+        name: 'smile_cat',
         code: '😸',
         keywords: [
+            'smile_cat',
             'cat',
             'eye',
             'face',
             'grin',
             'smile',
         ],
-        name: 'smile_cat',
     },
     {
+        name: 'joy_cat',
         code: '😹',
         keywords: [
+            'joy_cat',
             'cat',
             'face',
             'joy',
             'tear',
         ],
-        name: 'joy_cat',
     },
     {
+        name: 'heart_eyes_cat',
         code: '😻',
         keywords: [
+            'heart_eyes_cat',
             'cat',
             'eye',
             'face',
@@ -928,982 +1264,694 @@ const emojis = [
             'love',
             'smile',
         ],
-        name: 'heart_eyes_cat',
     },
     {
+        name: 'smirk_cat',
         code: '😼',
         keywords: [
+            'smirk_cat',
             'cat',
             'face',
             'ironic',
             'smile',
             'wry',
         ],
-        name: 'smirk_cat',
     },
     {
+        name: 'kissing_cat',
         code: '😽',
         keywords: [
+            'kissing_cat',
             'cat',
             'eye',
             'face',
             'kiss',
         ],
-        name: 'kissing_cat',
     },
     {
+        name: 'scream_cat',
         code: '🙀',
         keywords: [
+            'horror',
+            'scream_cat',
             'cat',
             'face',
             'oh',
             'surprised',
             'weary',
         ],
-        name: 'scream_cat',
     },
     {
+        name: 'crying_cat_face',
         code: '😿',
         keywords: [
+            'sad',
+            'tear',
+            'crying_cat_face',
             'cat',
             'cry',
             'face',
-            'sad',
-            'tear',
         ],
-        name: 'crying_cat_face',
     },
     {
+        name: 'pouting_cat',
         code: '😾',
         keywords: [
+            'pouting_cat',
             'cat',
             'face',
             'pouting',
         ],
-        name: 'pouting_cat',
     },
     {
+        name: 'see_no_evil',
         code: '🙈',
         keywords: [
+            'monkey',
+            'blind',
+            'ignore',
+            'see_no_evil',
             'evil',
             'face',
             'forbidden',
             'gesture',
-            'monkey',
             'no',
             'not',
             'prohibited',
             'see',
         ],
-        name: 'see_no_evil',
     },
     {
+        name: 'hear_no_evil',
         code: '🙉',
         keywords: [
+            'monkey',
+            'deaf',
+            'hear_no_evil',
             'evil',
             'face',
             'forbidden',
             'gesture',
             'hear',
-            'monkey',
             'no',
             'not',
             'prohibited',
         ],
-        name: 'hear_no_evil',
     },
     {
+        name: 'speak_no_evil',
         code: '🙊',
         keywords: [
+            'monkey',
+            'mute',
+            'hush',
+            'speak_no_evil',
             'evil',
             'face',
             'forbidden',
             'gesture',
-            'monkey',
             'no',
             'not',
             'prohibited',
             'speak',
         ],
-        name: 'speak_no_evil',
     },
     {
-        code: '👦',
+        name: 'kiss',
+        code: '💋',
         keywords: [
-            'boy',
+            'lipstick',
+            'kiss',
+            'heart',
+            'lips',
+            'mark',
+            'romance',
         ],
-        types: [
-            '👦🏿',
-            '👦🏾',
-            '👦🏽',
-            '👦🏼',
-            '👦🏻',
-        ],
-        name: 'boy',
     },
     {
-        code: '👧',
+        name: 'love_letter',
+        code: '💌',
         keywords: [
-            'girl',
-            'maiden',
-            'virgin',
-            'virgo',
-            'zodiac',
+            'email',
+            'envelope',
+            'love_letter',
+            'heart',
+            'letter',
+            'love',
+            'mail',
+            'romance',
         ],
-        types: [
-            '👧🏿',
-            '👧🏾',
-            '👧🏽',
-            '👧🏼',
-            '👧🏻',
-        ],
-        name: 'girl',
     },
     {
-        code: '👨',
+        name: 'cupid',
+        code: '💘',
         keywords: [
-            'man',
+            'love',
+            'heart',
+            'cupid',
+            'arrow',
+            'romance',
         ],
-        types: [
-            '👨🏿',
-            '👨🏾',
-            '👨🏽',
-            '👨🏼',
-            '👨🏻',
-        ],
-        name: 'man',
     },
     {
-        code: '👩',
+        name: 'gift_heart',
+        code: '💝',
         keywords: [
-            'woman',
+            'chocolates',
+            'gift_heart',
+            'heart',
+            'ribbon',
+            'valentine',
         ],
-        types: [
-            '👩🏿',
-            '👩🏾',
-            '👩🏽',
-            '👩🏼',
-            '👩🏻',
-        ],
-        name: 'woman',
     },
     {
-        code: '👴',
+        name: 'sparkling_heart',
+        code: '💖',
         keywords: [
-            'man',
-            'old',
+            'sparkling_heart',
+            'excited',
+            'heart',
+            'sparkle',
         ],
-        types: [
-            '👴🏿',
-            '👴🏾',
-            '👴🏽',
-            '👴🏼',
-            '👴🏻',
-        ],
-        name: 'older_man',
     },
     {
-        code: '👵',
+        name: 'heartpulse',
+        code: '💗',
         keywords: [
-            'old',
-            'woman',
+            'heartpulse',
+            'excited',
+            'growing',
+            'heart',
+            'nervous',
         ],
-        types: [
-            '👵🏿',
-            '👵🏾',
-            '👵🏽',
-            '👵🏼',
-            '👵🏻',
-        ],
-        name: 'older_woman',
     },
     {
-        code: '👶',
+        name: 'heartbeat',
+        code: '💓',
         keywords: [
-            'baby',
+            'heartbeat',
+            'beating',
+            'heart',
+            'pulsating',
         ],
-        types: [
-            '👶🏿',
-            '👶🏾',
-            '👶🏽',
-            '👶🏼',
-            '👶🏻',
-        ],
-        name: 'baby',
     },
     {
-        code: '👼',
+        name: 'revolving_hearts',
+        code: '💞',
         keywords: [
-            'angel',
-            'baby',
-            'face',
-            'fairy tale',
-            'fantasy',
+            'revolving_hearts',
+            'heart',
+            'revolving',
         ],
-        types: [
-            '👼🏿',
-            '👼🏾',
-            '👼🏽',
-            '👼🏼',
-            '👼🏻',
-        ],
-        name: 'angel',
     },
     {
-        code: '👱',
+        name: 'two_hearts',
+        code: '💕',
         keywords: [
-            'blond',
+            'two_hearts',
+            'heart',
+            'love',
         ],
-        types: [
-            '👱🏿',
-            '👱🏾',
-            '👱🏽',
-            '👱🏼',
-            '👱🏻',
-        ],
-        name: 'blond_haired_person',
     },
     {
-        code: '👮',
+        name: 'heart_decoration',
+        code: '💟',
         keywords: [
-            'cop',
-            'officer',
-            'police',
+            'heart_decoration',
+            'heart',
         ],
-        types: [
-            '👮🏿',
-            '👮🏾',
-            '👮🏽',
-            '👮🏼',
-            '👮🏻',
-        ],
-        name: 'police_officer',
     },
     {
-        code: '👲',
+        name: 'heavy_heart_exclamation',
+        code: '❣️',
         keywords: [
-            'gua pi mao',
-            'hat',
-            'man',
+            'heavy_heart_exclamation',
+            'exclamation',
+            'heart',
+            'mark',
+            'punctuation',
         ],
-        types: [
-            '👲🏿',
-            '👲🏾',
-            '👲🏽',
-            '👲🏼',
-            '👲🏻',
-        ],
-        name: 'man_with_gua_pi_mao',
     },
     {
-        code: '👳',
+        name: 'broken_heart',
+        code: '💔',
         keywords: [
-            'man',
-            'turban',
+            'broken_heart',
+            'break',
+            'broken',
+            'heart',
         ],
-        types: [
-            '👳🏿',
-            '👳🏾',
-            '👳🏽',
-            '👳🏼',
-            '👳🏻',
-        ],
-        name: 'person_with_turban',
     },
     {
-        code: '👷',
+        name: 'heart_on_fire',
+        code: '❤️‍🔥',
         keywords: [
-            'construction',
-            'hat',
-            'worker',
+            'heart_on_fire',
         ],
-        types: [
-            '👷🏿',
-            '👷🏾',
-            '👷🏽',
-            '👷🏼',
-            '👷🏻',
-        ],
-        name: 'construction_worker',
     },
     {
-        code: '👸',
+        name: 'mending_heart',
+        code: '❤️‍🩹',
         keywords: [
-            'fairy tale',
-            'fantasy',
-            'princess',
+            'mending_heart',
         ],
-        types: [
-            '👸🏿',
-            '👸🏾',
-            '👸🏽',
-            '👸🏼',
-            '👸🏻',
-        ],
-        name: 'princess',
     },
     {
-        code: '🤴',
+        name: 'heart',
+        code: '❤️',
         keywords: [
-            'prince',
+            'love',
+            'heart',
         ],
-        types: [
-            '🤴🏿',
-            '🤴🏾',
-            '🤴🏽',
-            '🤴🏼',
-            '🤴🏻',
-        ],
-        name: 'prince',
     },
     {
-        code: '💂',
+        name: 'orange_heart',
+        code: '🧡',
         keywords: [
-            'guard',
-            'guardsman',
+            'orange_heart',
         ],
-        types: [
-            '💂🏿',
-            '💂🏾',
-            '💂🏽',
-            '💂🏼',
-            '💂🏻',
-        ],
-        name: 'guard',
     },
     {
-        code: '🕵',
+        name: 'yellow_heart',
+        code: '💛',
         keywords: [
-            'detective',
-            'sleuth',
-            'spy',
+            'yellow_heart',
+            'heart',
+            'yellow',
         ],
-        types: [
-            '🕵🏿',
-            '🕵🏾',
-            '🕵🏽',
-            '🕵🏼',
-            '🕵🏻',
-        ],
-        name: 'detective',
     },
     {
-        code: '🎅',
+        name: 'green_heart',
+        code: '💚',
         keywords: [
-            'activity',
-            'celebration',
-            'christmas',
-            'fairy tale',
-            'fantasy',
-            'father',
-            'santa',
+            'green_heart',
+            'green',
+            'heart',
         ],
-        types: [
-            '🎅🏿',
-            '🎅🏾',
-            '🎅🏽',
-            '🎅🏼',
-            '🎅🏻',
-        ],
-        name: 'santa',
     },
     {
-        code: '🤶',
+        name: 'blue_heart',
+        code: '💙',
         keywords: [
-            'christmas',
-            'mother',
-            'mrs. claus',
+            'blue_heart',
+            'blue',
+            'heart',
         ],
-        types: [
-            '🤶🏿',
-            '🤶🏾',
-            '🤶🏽',
-            '🤶🏼',
-            '🤶🏻',
-        ],
-        name: 'mrs_claus',
     },
     {
-        code: '👰',
+        name: 'purple_heart',
+        code: '💜',
         keywords: [
-            'bride',
-            'veil',
-            'wedding',
+            'purple_heart',
+            'heart',
+            'purple',
         ],
-        types: [
-            '👰🏿',
-            '👰🏾',
-            '👰🏽',
-            '👰🏼',
-            '👰🏻',
-        ],
-        name: 'person_with_veil',
     },
     {
-        code: '🤵',
+        name: 'brown_heart',
+        code: '🤎',
         keywords: [
-            'groom',
-            'man',
-            'tuxedo',
+            'brown_heart',
         ],
-        types: [
-            '🤵🏿',
-            '🤵🏾',
-            '🤵🏽',
-            '🤵🏼',
-            '🤵🏻',
-        ],
-        name: 'person_in_tuxedo',
     },
     {
-        code: '💆',
+        name: 'black_heart',
+        code: '🖤',
         keywords: [
-            'massage',
-            'salon',
+            'black_heart',
+            'black',
+            'evil',
+            'heart',
+            'wicked',
         ],
-        types: [
-            '💆🏿',
-            '💆🏾',
-            '💆🏽',
-            '💆🏼',
-            '💆🏻',
-        ],
-        name: 'massage',
     },
     {
-        code: '💇',
+        name: 'white_heart',
+        code: '🤍',
         keywords: [
-            'barber',
-            'beauty',
-            'haircut',
-            'parlor',
+            'white_heart',
         ],
-        types: [
-            '💇🏿',
-            '💇🏾',
-            '💇🏽',
-            '💇🏼',
-            '💇🏻',
-        ],
-        name: 'haircut',
     },
     {
-        code: '🙍',
+        name: '100',
+        code: '💯',
         keywords: [
-            'frown',
-            'gesture',
+            'score',
+            'perfect',
+            '100',
+            'full',
+            'hundred',
         ],
-        types: [
-            '🙍🏿',
-            '🙍🏾',
-            '🙍🏽',
-            '🙍🏼',
-            '🙍🏻',
-        ],
-        name: 'frowning_person',
     },
     {
-        code: '🙎',
+        name: 'anger',
+        code: '💢',
         keywords: [
-            'gesture',
-            'pouting',
+            'angry',
+            'anger',
+            'comic',
+            'mad',
         ],
-        types: [
-            '🙎🏿',
-            '🙎🏾',
-            '🙎🏽',
-            '🙎🏼',
-            '🙎🏻',
-        ],
-        name: 'pouting_face',
     },
     {
-        code: '🙅',
+        name: 'boom',
+        code: '💥',
         keywords: [
-            'forbidden',
-            'gesture',
+            'explode',
+            'boom',
+            'collision',
+            'comic',
+        ],
+    },
+    {
+        name: 'dizzy',
+        code: '💫',
+        keywords: [
+            'star',
+            'dizzy',
+            'comic',
+        ],
+    },
+    {
+        name: 'sweat_drops',
+        code: '💦',
+        keywords: [
+            'water',
+            'workout',
+            'sweat_drops',
+            'comic',
+            'splashing',
+            'sweat',
+        ],
+    },
+    {
+        name: 'dash',
+        code: '💨',
+        keywords: [
+            'wind',
+            'blow',
+            'fast',
+            'dash',
+            'comic',
+            'running',
+        ],
+    },
+    {
+        name: 'hole',
+        code: '🕳️',
+        keywords: [
+            'hole',
+        ],
+    },
+    {
+        name: 'bomb',
+        code: '💣',
+        keywords: [
+            'boom',
+            'bomb',
+            'comic',
+        ],
+    },
+    {
+        name: 'speech_balloon',
+        code: '💬',
+        keywords: [
+            'comment',
+            'speech_balloon',
+            'balloon',
+            'bubble',
+            'comic',
+            'dialog',
+            'speech',
+        ],
+    },
+    {
+        name: 'eye_speech_bubble',
+        code: '👁️‍🗨️',
+        keywords: [
+            'eye_speech_bubble',
+        ],
+    },
+    {
+        name: 'left_speech_bubble',
+        code: '🗨️',
+        keywords: [
+            'left_speech_bubble',
+        ],
+    },
+    {
+        name: 'right_anger_bubble',
+        code: '🗯️',
+        keywords: [
+            'right_anger_bubble',
+        ],
+    },
+    {
+        name: 'thought_balloon',
+        code: '💭',
+        keywords: [
+            'thinking',
+            'thought_balloon',
+            'balloon',
+            'bubble',
+            'comic',
+            'thought',
+        ],
+    },
+    {
+        name: 'zzz',
+        code: '💤',
+        keywords: [
+            'sleeping',
+            'zzz',
+            'comic',
+            'sleep',
+        ],
+    },
+    {
+        code: 'peopleAndBody',
+        header: true,
+    },
+    {
+        name: 'wave',
+        code: '👋',
+        keywords: [
+            'goodbye',
+            'wave',
+            'body',
             'hand',
-            'no',
-            'not',
-            'prohibited',
+            'waving',
         ],
         types: [
-            '🙅🏿',
-            '🙅🏾',
-            '🙅🏽',
-            '🙅🏼',
-            '🙅🏻',
+            '👋🏿',
+            '👋🏾',
+            '👋🏽',
+            '👋🏼',
+            '👋🏻',
         ],
-        name: 'no_good',
     },
     {
-        code: '🙆',
+        name: 'raised_back_of_hand',
+        code: '🤚',
         keywords: [
-            'gesture',
+            'raised_back_of_hand',
+            'backhand',
+            'raised',
+        ],
+        types: [
+            '🤚🏿',
+            '🤚🏾',
+            '🤚🏽',
+            '🤚🏼',
+            '🤚🏻',
+        ],
+    },
+    {
+        name: 'raised_hand_with_fingers_splayed',
+        code: '🖐️',
+        keywords: [
+            'raised_hand_with_fingers_splayed',
+        ],
+        types: [
+            '🖐🏿',
+            '🖐🏾',
+            '🖐🏽',
+            '🖐🏼',
+            '🖐🏻',
+        ],
+    },
+    {
+        name: 'hand',
+        code: '✋',
+        keywords: [
+            'highfive',
+            'stop',
+            'hand',
+            'raised_hand',
+            'body',
+        ],
+        types: [
+            '✋🏿',
+            '✋🏾',
+            '✋🏽',
+            '✋🏼',
+            '✋🏻',
+        ],
+    },
+    {
+        name: 'vulcan_salute',
+        code: '🖖',
+        keywords: [
+            'prosper',
+            'spock',
+            'vulcan_salute',
+            'body',
+            'finger',
+            'hand',
+            'vulcan',
+        ],
+        types: [
+            '🖖🏿',
+            '🖖🏾',
+            '🖖🏽',
+            '🖖🏼',
+            '🖖🏻',
+        ],
+    },
+    {
+        name: 'ok_hand',
+        code: '👌',
+        keywords: [
+            'ok_hand',
+            'body',
             'hand',
             'ok',
         ],
         types: [
-            '🙆🏿',
-            '🙆🏾',
-            '🙆🏽',
-            '🙆🏼',
-            '🙆🏻',
+            '👌🏿',
+            '👌🏾',
+            '👌🏽',
+            '👌🏼',
+            '👌🏻',
         ],
-        name: 'ok_person',
     },
     {
-        code: '💁',
+        name: 'pinched_fingers',
+        code: '🤌',
         keywords: [
+            'pinched_fingers',
+        ],
+        types: [
+            '🤌🏿',
+            '🤌🏾',
+            '🤌🏽',
+            '🤌🏼',
+            '🤌🏻',
+        ],
+    },
+    {
+        name: 'pinching_hand',
+        code: '🤏',
+        keywords: [
+            'pinching_hand',
+        ],
+        types: [
+            '🤏🏿',
+            '🤏🏾',
+            '🤏🏽',
+            '🤏🏼',
+            '🤏🏻',
+        ],
+    },
+    {
+        name: 'v',
+        code: '✌️',
+        keywords: [
+            'victory',
+            'peace',
+            'v',
+        ],
+        types: [
+            '✌🏿',
+            '✌🏾',
+            '✌🏽',
+            '✌🏼',
+            '✌🏻',
+        ],
+    },
+    {
+        name: 'crossed_fingers',
+        code: '🤞',
+        keywords: [
+            'luck',
+            'hopeful',
+            'crossed_fingers',
+            'cross',
+            'finger',
             'hand',
-            'help',
-            'information',
-            'sassy',
         ],
         types: [
-            '💁🏿',
-            '💁🏾',
-            '💁🏽',
-            '💁🏼',
-            '💁🏻',
+            '🤞🏿',
+            '🤞🏾',
+            '🤞🏽',
+            '🤞🏼',
+            '🤞🏻',
         ],
-        name: 'tipping_hand_person',
     },
     {
-        code: '🤷',
+        name: 'love_you_gesture',
+        code: '🤟',
         keywords: [
-            'doubt',
-            'ignorance',
-            'indifference',
-            'shrug',
+            'love_you_gesture',
         ],
         types: [
-            '🤷🏿',
-            '🤷🏾',
-            '🤷🏽',
-            '🤷🏼',
-            '🤷🏻',
+            '🤟🏿',
+            '🤟🏾',
+            '🤟🏽',
+            '🤟🏼',
+            '🤟🏻',
         ],
-        name: 'shrug',
     },
     {
-        code: '🙋',
+        name: 'metal',
+        code: '🤘',
         keywords: [
-            'gesture',
-            'hand',
-            'happy',
-            'raised',
-        ],
-        types: [
-            '🙋🏿',
-            '🙋🏾',
-            '🙋🏽',
-            '🙋🏼',
-            '🙋🏻',
-        ],
-        name: 'raising_hand',
-    },
-    {
-        code: '🤦',
-        keywords: [
-            'disbelief',
-            'exasperation',
-            'face',
-            'palm',
-        ],
-        types: [
-            '🤦🏿',
-            '🤦🏾',
-            '🤦🏽',
-            '🤦🏼',
-            '🤦🏻',
-        ],
-        name: 'facepalm',
-    },
-    {
-        code: '🙇',
-        keywords: [
-            'apology',
-            'bow',
-            'gesture',
-            'sorry',
-        ],
-        types: [
-            '🙇🏿',
-            '🙇🏾',
-            '🙇🏽',
-            '🙇🏼',
-            '🙇🏻',
-        ],
-        name: 'bow',
-    },
-    {
-        code: '🚶',
-        keywords: [
-            'hike',
-            'pedestrian',
-            'walk',
-            'walking',
-        ],
-        types: [
-            '🚶🏿',
-            '🚶🏾',
-            '🚶🏽',
-            '🚶🏼',
-            '🚶🏻',
-        ],
-        name: 'walking',
-    },
-    {
-        code: '🏃',
-        keywords: [
-            'marathon',
-            'runner',
-            'running',
-        ],
-        types: [
-            '🏃🏿',
-            '🏃🏾',
-            '🏃🏽',
-            '🏃🏼',
-            '🏃🏻',
-        ],
-        name: 'runner',
-    },
-    {
-        code: '💃',
-        keywords: [
-            'dancer',
-        ],
-        types: [
-            '💃🏿',
-            '💃🏾',
-            '💃🏽',
-            '💃🏼',
-            '💃🏻',
-        ],
-        name: 'woman_dancing',
-    },
-    {
-        code: '🕺',
-        keywords: [
-            'dance',
-            'man',
-        ],
-        types: [
-            '🕺🏿',
-            '🕺🏾',
-            '🕺🏽',
-            '🕺🏼',
-            '🕺🏻',
-        ],
-        name: 'man_dancing',
-    },
-    {
-        code: '🤰',
-        keywords: [
-            'pregnant',
-            'woman',
-        ],
-        types: [
-            '🤰🏿',
-            '🤰🏾',
-            '🤰🏽',
-            '🤰🏼',
-            '🤰🏻',
-        ],
-        name: 'pregnant_woman',
-    },
-    {
-        code: '👯',
-        keywords: [
-            'bunny',
-            'dancer',
-            'ear',
-            'girl',
-            'woman',
-        ],
-        name: 'dancers',
-    },
-    {
-        code: '🕴',
-        keywords: [
-            'business',
-            'man',
-            'suit',
-        ],
-        name: 'business_suit_levitating',
-    },
-    {
-        code: '🗣',
-        keywords: [
-            'face',
-            'head',
-            'silhouette',
-            'speak',
-            'speaking',
-        ],
-        name: 'speaking_head',
-    },
-    {
-        code: '👤',
-        keywords: [
-            'bust',
-            'silhouette',
-        ],
-        name: 'bust_in_silhouette',
-    },
-    {
-        code: '👥',
-        keywords: [
-            'bust',
-            'silhouette',
-        ],
-        name: 'busts_in_silhouette',
-    },
-    {
-        code: '👫',
-        keywords: [
-            'couple',
-            'hand',
-            'hold',
-            'man',
-            'woman',
-        ],
-        name: 'couple',
-    },
-    {
-        code: '👬',
-        keywords: [
-            'couple',
-            'gemini',
-            'hand',
-            'hold',
-            'man',
-            'twins',
-            'zodiac',
-        ],
-        name: 'two_men_holding_hands',
-    },
-    {
-        code: '👭',
-        keywords: [
-            'couple',
-            'hand',
-            'hold',
-            'woman',
-        ],
-        name: 'two_women_holding_hands',
-    },
-    {
-        code: '💏',
-        keywords: [
-            'couple',
-            'kiss',
-            'romance',
-        ],
-        name: 'couplekiss',
-    },
-    {
-        code: '💑',
-        keywords: [
-            'couple',
-            'heart',
-            'love',
-            'romance',
-        ],
-        name: 'couple_with_heart',
-    },
-    {
-        code: '👪',
-        keywords: [
-            'child',
-            'family',
-            'father',
-            'mother',
-        ],
-        name: 'family',
-    },
-    {
-        code: '👨‍👩‍👦',
-        keywords: [
-            'boy',
-            'family',
-            'man',
-            'woman',
-        ],
-        name: 'family_man_woman_boy',
-    },
-    {
-        code: '👨‍👩‍👧',
-        keywords: [
-            'family',
-            'girl',
-            'man',
-            'woman',
-        ],
-        name: 'family_man_woman_girl',
-    },
-    {
-        code: '👨‍👩‍👧‍👦',
-        keywords: [
-            'boy',
-            'family',
-            'girl',
-            'man',
-            'woman',
-        ],
-        name: 'family_man_woman_girl_boy',
-    },
-    {
-        code: '👨‍👩‍👦‍👦',
-        keywords: [
-            'boy',
-            'family',
-            'man',
-            'woman',
-        ],
-        name: 'family_man_woman_boy_boy',
-    },
-    {
-        code: '👨‍👩‍👧‍👧',
-        keywords: [
-            'family',
-            'girl',
-            'man',
-            'woman',
-        ],
-        name: 'family_man_woman_girl_girl',
-    },
-    {
-        code: '👨‍👨‍👦',
-        keywords: [
-            'boy',
-            'family',
-            'man',
-        ],
-        name: 'family_man_man_boy',
-    },
-    {
-        code: '👨‍👨‍👧',
-        keywords: [
-            'family',
-            'girl',
-            'man',
-        ],
-        name: 'family_man_man_girl',
-    },
-    {
-        code: '👨‍👨‍👧‍👦',
-        keywords: [
-            'boy',
-            'family',
-            'girl',
-            'man',
-        ],
-        name: 'family_man_man_girl_boy',
-    },
-    {
-        code: '👨‍👨‍👦‍👦',
-        keywords: [
-            'boy',
-            'family',
-            'man',
-        ],
-        name: 'family_man_man_boy_boy',
-    },
-    {
-        code: '👨‍👨‍👧‍👧',
-        keywords: [
-            'family',
-            'girl',
-            'man',
-        ],
-        name: 'family_man_man_girl_girl',
-    },
-    {
-        code: '👩‍👩‍👦',
-        keywords: [
-            'boy',
-            'family',
-            'woman',
-        ],
-        name: 'family_woman_woman_boy',
-    },
-    {
-        code: '👩‍👩‍👧',
-        keywords: [
-            'family',
-            'girl',
-            'woman',
-        ],
-        name: 'family_woman_woman_girl',
-    },
-    {
-        code: '👩‍👩‍👧‍👦',
-        keywords: [
-            'boy',
-            'family',
-            'girl',
-            'woman',
-        ],
-        name: 'family_woman_woman_girl_boy',
-    },
-    {
-        code: '👩‍👩‍👦‍👦',
-        keywords: [
-            'boy',
-            'family',
-            'woman',
-        ],
-        name: 'family_woman_woman_boy_boy',
-    },
-    {
-        code: '👩‍👩‍👧‍👧',
-        keywords: [
-            'family',
-            'girl',
-            'woman',
-        ],
-        name: 'family_woman_woman_girl_girl',
-    },
-    {
-        code: '💪',
-        keywords: [
-            'biceps',
+            'metal',
             'body',
-            'comic',
-            'flex',
-            'muscle',
+            'finger',
+            'hand',
+            'horns',
+            'rock-on',
         ],
         types: [
-            '💪🏿',
-            '💪🏾',
-            '💪🏽',
-            '💪🏼',
-            '💪🏻',
+            '🤘🏿',
+            '🤘🏾',
+            '🤘🏽',
+            '🤘🏼',
+            '🤘🏻',
         ],
-        name: 'muscle',
     },
     {
-        code: '🤳',
+        name: 'call_me_hand',
+        code: '🤙',
         keywords: [
-            'camera',
-            'phone',
-            'selfie',
+            'call_me_hand',
+            'call',
+            'hand',
         ],
         types: [
-            '🤳🏿',
-            '🤳🏾',
-            '🤳🏽',
-            '🤳🏼',
-            '🤳🏻',
+            '🤙🏿',
+            '🤙🏾',
+            '🤙🏽',
+            '🤙🏼',
+            '🤙🏻',
         ],
-        name: 'selfie',
     },
     {
+        name: 'point_left',
         code: '👈',
         keywords: [
+            'point_left',
             'backhand',
             'body',
             'finger',
@@ -1918,11 +1966,12 @@ const emojis = [
             '👈🏼',
             '👈🏻',
         ],
-        name: 'point_left',
     },
     {
+        name: 'point_right',
         code: '👉',
         keywords: [
+            'point_right',
             'backhand',
             'body',
             'finger',
@@ -1937,30 +1986,12 @@ const emojis = [
             '👉🏼',
             '👉🏻',
         ],
-        name: 'point_right',
     },
     {
-        code: '☝',
-        keywords: [
-            'body',
-            'finger',
-            'hand',
-            'index',
-            'point',
-            'up',
-        ],
-        types: [
-            '☝🏿',
-            '☝🏾',
-            '☝🏽',
-            '☝🏼',
-            '☝🏻',
-        ],
-        name: 'point_up',
-    },
-    {
+        name: 'point_up_2',
         code: '👆',
         keywords: [
+            'point_up_2',
             'backhand',
             'body',
             'finger',
@@ -1976,11 +2007,13 @@ const emojis = [
             '👆🏼',
             '👆🏻',
         ],
-        name: 'point_up_2',
     },
     {
+        name: 'middle_finger',
         code: '🖕',
         keywords: [
+            'middle_finger',
+            'fu',
             'body',
             'finger',
             'hand',
@@ -1993,11 +2026,12 @@ const emojis = [
             '🖕🏼',
             '🖕🏻',
         ],
-        name: 'middle_finger',
     },
     {
+        name: 'point_down',
         code: '👇',
         keywords: [
+            'point_down',
             'backhand',
             'body',
             'down',
@@ -2013,145 +2047,29 @@ const emojis = [
             '👇🏼',
             '👇🏻',
         ],
-        name: 'point_down',
     },
     {
-        code: '✌',
+        name: 'point_up',
+        code: '☝️',
         keywords: [
-            'body',
-            'hand',
-            'v',
-            'victory',
+            'point_up',
         ],
         types: [
-            '✌🏿',
-            '✌🏾',
-            '✌🏽',
-            '✌🏼',
-            '✌🏻',
+            '☝🏿',
+            '☝🏾',
+            '☝🏽',
+            '☝🏼',
+            '☝🏻',
         ],
-        name: 'v',
     },
     {
-        code: '🤞',
-        keywords: [
-            'cross',
-            'finger',
-            'hand',
-            'luck',
-        ],
-        types: [
-            '🤞🏿',
-            '🤞🏾',
-            '🤞🏽',
-            '🤞🏼',
-            '🤞🏻',
-        ],
-        name: 'crossed_fingers',
-    },
-    {
-        code: '🖖',
-        keywords: [
-            'body',
-            'finger',
-            'hand',
-            'spock',
-            'vulcan',
-        ],
-        types: [
-            '🖖🏿',
-            '🖖🏾',
-            '🖖🏽',
-            '🖖🏼',
-            '🖖🏻',
-        ],
-        name: 'vulcan_salute',
-    },
-    {
-        code: '🤘',
-        keywords: [
-            'body',
-            'finger',
-            'hand',
-            'horns',
-            'rock-on',
-        ],
-        types: [
-            '🤘🏿',
-            '🤘🏾',
-            '🤘🏽',
-            '🤘🏼',
-            '🤘🏻',
-        ],
-        name: 'metal',
-    },
-    {
-        code: '🤙',
-        keywords: [
-            'call',
-            'hand',
-        ],
-        types: [
-            '🤙🏿',
-            '🤙🏾',
-            '🤙🏽',
-            '🤙🏼',
-            '🤙🏻',
-        ],
-        name: 'call_me_hand',
-    },
-    {
-        code: '🖐',
-        keywords: [
-            'body',
-            'finger',
-            'hand',
-            'splayed',
-        ],
-        types: [
-            '🖐🏿',
-            '🖐🏾',
-            '🖐🏽',
-            '🖐🏼',
-            '🖐🏻',
-        ],
-        name: 'raised_hand_with_fingers_splayed',
-    },
-    {
-        code: '✋',
-        keywords: [
-            'body',
-            'hand',
-        ],
-        types: [
-            '✋🏿',
-            '✋🏾',
-            '✋🏽',
-            '✋🏼',
-            '✋🏻',
-        ],
-        name: 'hand',
-    },
-    {
-        code: '👌',
-        keywords: [
-            'body',
-            'hand',
-            'ok',
-        ],
-        types: [
-            '👌🏿',
-            '👌🏾',
-            '👌🏽',
-            '👌🏼',
-            '👌🏻',
-        ],
-        name: 'ok_hand',
-    },
-    {
+        name: '+1',
         code: '👍',
         keywords: [
+            'approve',
+            'ok',
             '+1',
+            'thumbsup',
             'body',
             'hand',
             'thumb',
@@ -2165,12 +2083,15 @@ const emojis = [
             '👍🏼',
             '👍🏻',
         ],
-        name: '+1',
     },
     {
+        name: '-1',
         code: '👎',
         keywords: [
+            'disapprove',
+            'bury',
             '-1',
+            'thumbsdown',
             'body',
             'down',
             'hand',
@@ -2184,14 +2105,16 @@ const emojis = [
             '👎🏼',
             '👎🏻',
         ],
-        name: '-1',
     },
     {
+        name: 'fist_raised',
         code: '✊',
         keywords: [
+            'power',
+            'fist_raised',
+            'fist',
             'body',
             'clenched',
-            'fist',
             'hand',
             'punch',
         ],
@@ -2202,16 +2125,19 @@ const emojis = [
             '✊🏼',
             '✊🏻',
         ],
-        name: 'fist_raised',
     },
     {
+        name: 'fist_oncoming',
         code: '👊',
         keywords: [
+            'attack',
+            'fist_oncoming',
+            'facepunch',
+            'punch',
             'body',
             'clenched',
             'fist',
             'hand',
-            'punch',
         ],
         types: [
             '👊🏿',
@@ -2220,11 +2146,12 @@ const emojis = [
             '👊🏼',
             '👊🏻',
         ],
-        name: 'fist_oncoming',
     },
     {
+        name: 'fist_left',
         code: '🤛',
         keywords: [
+            'fist_left',
             'fist',
             'leftwards',
         ],
@@ -2235,11 +2162,12 @@ const emojis = [
             '🤛🏼',
             '🤛🏻',
         ],
-        name: 'fist_left',
     },
     {
+        name: 'fist_right',
         code: '🤜',
         keywords: [
+            'fist_right',
             'fist',
             'rightwards',
         ],
@@ -2250,45 +2178,15 @@ const emojis = [
             '🤜🏼',
             '🤜🏻',
         ],
-        name: 'fist_right',
     },
     {
-        code: '🤚',
-        keywords: [
-            'backhand',
-            'raised',
-        ],
-        types: [
-            '🤚🏿',
-            '🤚🏾',
-            '🤚🏽',
-            '🤚🏼',
-            '🤚🏻',
-        ],
-        name: 'raised_back_of_hand',
-    },
-    {
-        code: '👋',
-        keywords: [
-            'body',
-            'hand',
-            'wave',
-            'waving',
-        ],
-        types: [
-            '👋🏿',
-            '👋🏾',
-            '👋🏽',
-            '👋🏼',
-            '👋🏻',
-        ],
-        name: 'wave',
-    },
-    {
+        name: 'clap',
         code: '👏',
         keywords: [
-            'body',
+            'praise',
+            'applause',
             'clap',
+            'body',
             'hand',
         ],
         types: [
@@ -2298,27 +2196,32 @@ const emojis = [
             '👏🏼',
             '👏🏻',
         ],
-        name: 'clap',
     },
     {
-        code: '✍',
+        name: 'raised_hands',
+        code: '🙌',
         keywords: [
+            'hooray',
+            'raised_hands',
             'body',
+            'celebration',
+            'gesture',
             'hand',
-            'write',
+            'raised',
         ],
         types: [
-            '✍🏿',
-            '✍🏾',
-            '✍🏽',
-            '✍🏼',
-            '✍🏻',
+            '🙌🏿',
+            '🙌🏾',
+            '🙌🏽',
+            '🙌🏼',
+            '🙌🏻',
         ],
-        name: 'writing_hand',
     },
     {
+        name: 'open_hands',
         code: '👐',
         keywords: [
+            'open_hands',
             'body',
             'hand',
             'open',
@@ -2330,38 +2233,47 @@ const emojis = [
             '👐🏼',
             '👐🏻',
         ],
-        name: 'open_hands',
     },
     {
-        code: '🙌',
+        name: 'palms_up_together',
+        code: '🤲',
         keywords: [
-            'body',
-            'celebration',
-            'gesture',
-            'hand',
-            'hooray',
-            'raised',
+            'palms_up_together',
         ],
         types: [
-            '🙌🏿',
-            '🙌🏾',
-            '🙌🏽',
-            '🙌🏼',
-            '🙌🏻',
+            '🤲🏿',
+            '🤲🏾',
+            '🤲🏽',
+            '🤲🏼',
+            '🤲🏻',
         ],
-        name: 'raised_hands',
     },
     {
+        name: 'handshake',
+        code: '🤝',
+        keywords: [
+            'deal',
+            'handshake',
+            'agreement',
+            'hand',
+            'meeting',
+            'shake',
+        ],
+    },
+    {
+        name: 'pray',
         code: '🙏',
         keywords: [
+            'please',
+            'hope',
+            'wish',
+            'pray',
             'ask',
             'body',
             'bow',
             'folded',
             'gesture',
             'hand',
-            'please',
-            'pray',
             'thanks',
         ],
         types: [
@@ -2371,33 +2283,31 @@ const emojis = [
             '🙏🏼',
             '🙏🏻',
         ],
-        name: 'pray',
     },
     {
-        code: '🤝',
+        name: 'writing_hand',
+        code: '✍️',
         keywords: [
-            'agreement',
-            'hand',
-            'handshake',
-            'meeting',
-            'shake',
+            'writing_hand',
         ],
         types: [
-            '🤝🏿',
-            '🤝🏾',
-            '🤝🏽',
-            '🤝🏼',
-            '🤝🏻',
+            '✍🏿',
+            '✍🏾',
+            '✍🏽',
+            '✍🏼',
+            '✍🏻',
         ],
-        name: 'handshake',
     },
     {
+        name: 'nail_care',
         code: '💅',
         keywords: [
+            'beauty',
+            'manicure',
+            'nail_care',
             'body',
             'care',
             'cosmetics',
-            'manicure',
             'nail',
             'polish',
         ],
@@ -2408,13 +2318,95 @@ const emojis = [
             '💅🏼',
             '💅🏻',
         ],
-        name: 'nail_care',
     },
     {
+        name: 'selfie',
+        code: '🤳',
+        keywords: [
+            'selfie',
+            'camera',
+            'phone',
+        ],
+        types: [
+            '🤳🏿',
+            '🤳🏾',
+            '🤳🏽',
+            '🤳🏼',
+            '🤳🏻',
+        ],
+    },
+    {
+        name: 'muscle',
+        code: '💪',
+        keywords: [
+            'flex',
+            'bicep',
+            'strong',
+            'workout',
+            'muscle',
+            'biceps',
+            'body',
+            'comic',
+        ],
+        types: [
+            '💪🏿',
+            '💪🏾',
+            '💪🏽',
+            '💪🏼',
+            '💪🏻',
+        ],
+    },
+    {
+        name: 'mechanical_arm',
+        code: '🦾',
+        keywords: [
+            'mechanical_arm',
+        ],
+    },
+    {
+        name: 'mechanical_leg',
+        code: '🦿',
+        keywords: [
+            'mechanical_leg',
+        ],
+    },
+    {
+        name: 'leg',
+        code: '🦵',
+        keywords: [
+            'leg',
+        ],
+        types: [
+            '🦵🏿',
+            '🦵🏾',
+            '🦵🏽',
+            '🦵🏼',
+            '🦵🏻',
+        ],
+    },
+    {
+        name: 'foot',
+        code: '🦶',
+        keywords: [
+            'foot',
+        ],
+        types: [
+            '🦶🏿',
+            '🦶🏾',
+            '🦶🏽',
+            '🦶🏼',
+            '🦶🏻',
+        ],
+    },
+    {
+        name: 'ear',
         code: '👂',
         keywords: [
-            'body',
+            'hear',
+            'sound',
+            'listen',
             'ear',
+            'body',
         ],
         types: [
             '👂🏿',
@@ -2423,13 +2415,28 @@ const emojis = [
             '👂🏼',
             '👂🏻',
         ],
-        name: 'ear',
     },
     {
+        name: 'ear_with_hearing_aid',
+        code: '🦻',
+        keywords: [
+            'ear_with_hearing_aid',
+        ],
+        types: [
+            '🦻🏿',
+            '🦻🏾',
+            '🦻🏽',
+            '🦻🏼',
+            '🦻🏻',
+        ],
+    },
+    {
+        name: 'nose',
         code: '👃',
         keywords: [
-            'body',
+            'smell',
             'nose',
+            'body',
         ],
         types: [
             '👃🏿',
@@ -2438,4867 +2445,3207 @@ const emojis = [
             '👃🏼',
             '👃🏻',
         ],
-        name: 'nose',
     },
     {
-        code: '👣',
+        name: 'brain',
+        code: '🧠',
         keywords: [
-            'body',
-            'clothing',
-            'footprint',
-            'print',
+            'brain',
         ],
-        name: 'footprints',
     },
     {
+        name: 'anatomical_heart',
+        code: '🫀',
+        keywords: [
+            'anatomical_heart',
+        ],
+    },
+    {
+        name: 'lungs',
+        code: '🫁',
+        keywords: [
+            'lungs',
+        ],
+    },
+    {
+        name: 'tooth',
+        code: '🦷',
+        keywords: [
+            'tooth',
+        ],
+    },
+    {
+        name: 'bone',
+        code: '🦴',
+        keywords: [
+            'bone',
+        ],
+    },
+    {
+        name: 'eyes',
         code: '👀',
         keywords: [
+            'look',
+            'see',
+            'watch',
+            'eyes',
             'body',
             'eye',
             'face',
         ],
-        name: 'eyes',
     },
     {
-        code: '👁',
-        keywords: [
-            'body',
-            'eye',
-        ],
         name: 'eye',
-    },
-    {
-        code: '👁‍🗨',
+        code: '👁️',
         keywords: [
-            'bubble',
             'eye',
-            'speech',
-            'witness',
         ],
-        name: 'eye_speech_bubble',
     },
     {
+        name: 'tongue',
         code: '👅',
         keywords: [
-            'body',
+            'taste',
             'tongue',
+            'body',
         ],
-        name: 'tongue',
     },
     {
+        name: 'lips',
         code: '👄',
         keywords: [
-            'body',
-            'lips',
-            'mouth',
-        ],
-        name: 'lips',
-    },
-    {
-        code: '💋',
-        keywords: [
-            'heart',
             'kiss',
             'lips',
-            'mark',
-            'romance',
+            'body',
+            'mouth',
         ],
-        name: 'kiss',
     },
     {
-        code: '💘',
+        name: 'baby',
+        code: '👶',
         keywords: [
-            'arrow',
-            'cupid',
-            'heart',
-            'romance',
+            'child',
+            'newborn',
+            'baby',
         ],
-        name: 'cupid',
-    },
-    {
-        code: '❤️',
-        keywords: [
-            'heart',
-        ],
-        name: 'heart',
-    },
-    {
-        code: '💓',
-        keywords: [
-            'beating',
-            'heart',
-            'heartbeat',
-            'pulsating',
-        ],
-        name: 'heartbeat',
-    },
-    {
-        code: '💔',
-        keywords: [
-            'break',
-            'broken',
-            'heart',
-        ],
-        name: 'broken_heart',
-    },
-    {
-        code: '💕',
-        keywords: [
-            'heart',
-            'love',
-        ],
-        name: 'two_hearts',
-    },
-    {
-        code: '💖',
-        keywords: [
-            'excited',
-            'heart',
-            'sparkle',
-        ],
-        name: 'sparkling_heart',
-    },
-    {
-        code: '💗',
-        keywords: [
-            'excited',
-            'growing',
-            'heart',
-            'heartpulse',
-            'nervous',
-        ],
-        name: 'heartpulse',
-    },
-    {
-        code: '💙',
-        keywords: [
-            'blue',
-            'heart',
-        ],
-        name: 'blue_heart',
-    },
-    {
-        code: '💚',
-        keywords: [
-            'green',
-            'heart',
-        ],
-        name: 'green_heart',
-    },
-    {
-        code: '💛',
-        keywords: [
-            'heart',
-            'yellow',
-        ],
-        name: 'yellow_heart',
-    },
-    {
-        code: '💜',
-        keywords: [
-            'heart',
-            'purple',
-        ],
-        name: 'purple_heart',
-    },
-    {
-        code: '🖤',
-        keywords: [
-            'black',
-            'evil',
-            'heart',
-            'wicked',
-        ],
-        name: 'black_heart',
-    },
-    {
-        code: '💝',
-        keywords: [
-            'heart',
-            'ribbon',
-            'valentine',
-        ],
-        name: 'gift_heart',
-    },
-    {
-        code: '💞',
-        keywords: [
-            'heart',
-            'revolving',
-        ],
-        name: 'revolving_hearts',
-    },
-    {
-        code: '💟',
-        keywords: [
-            'heart',
-        ],
-        name: 'heart_decoration',
-    },
-    {
-        code: '❣️',
-        keywords: [
-            'exclamation',
-            'heart',
-            'mark',
-            'punctuation',
-        ],
-        name: 'heavy_heart_exclamation',
-    },
-    {
-        code: '💌',
-        keywords: [
-            'heart',
-            'letter',
-            'love',
-            'mail',
-            'romance',
-        ],
-        name: 'love_letter',
-    },
-    {
-        code: '💤',
-        keywords: [
-            'comic',
-            'sleep',
-            'zzz',
-        ],
-        name: 'zzz',
-    },
-    {
-        code: '💢',
-        keywords: [
-            'angry',
-            'comic',
-            'mad',
-        ],
-        name: 'anger',
-    },
-    {
-        code: '💣',
-        keywords: [
-            'bomb',
-            'comic',
-        ],
-        name: 'bomb',
-    },
-    {
-        code: '💥',
-        keywords: [
-            'boom',
-            'collision',
-            'comic',
-        ],
-        name: 'boom',
-    },
-    {
-        code: '💦',
-        keywords: [
-            'comic',
-            'splashing',
-            'sweat',
-        ],
-        name: 'sweat_drops',
-    },
-    {
-        code: '💨',
-        keywords: [
-            'comic',
-            'dash',
-            'running',
-        ],
-        name: 'dash',
-    },
-    {
-        code: '💫',
-        keywords: [
-            'comic',
-            'dizzy',
-            'star',
-        ],
-        name: 'dizzy',
-    },
-    {
-        code: '💬',
-        keywords: [
-            'balloon',
-            'bubble',
-            'comic',
-            'dialog',
-            'speech',
-        ],
-        name: 'speech_balloon',
-    },
-    {
-        code: '🗨',
-        keywords: [
-            'dialog',
-            'speech',
-        ],
-        name: 'left_speech_bubble',
-    },
-    {
-        code: '🗯',
-        keywords: [
-            'angry',
-            'balloon',
-            'bubble',
-            'mad',
-        ],
-        name: 'right_anger_bubble',
-    },
-    {
-        code: '💭',
-        keywords: [
-            'balloon',
-            'bubble',
-            'comic',
-            'thought',
-        ],
-        name: 'thought_balloon',
-    },
-    {
-        code: '🕳',
-        keywords: [
-            'hole',
-        ],
-        name: 'hole',
-    },
-    {
-        code: '👓',
-        keywords: [
-            'clothing',
-            'eye',
-            'eyeglasses',
-            'eyewear',
-            'glasses',
-        ],
-        name: 'eyeglasses',
-    },
-    {
-        code: '🕶',
-        keywords: [
-            'dark',
-            'eye',
-            'eyewear',
-            'glasses',
-            'sunglasses',
-        ],
-        name: 'dark_sunglasses',
-    },
-    {
-        code: '👔',
-        keywords: [
-            'clothing',
-            'necktie',
-        ],
-        name: 'necktie',
-    },
-    {
-        code: '👕',
-        keywords: [
-            'clothing',
-            'shirt',
-            'tshirt',
+        types: [
+            '👶🏿',
+            '👶🏾',
+            '👶🏽',
+            '👶🏼',
+            '👶🏻',
         ],
-        name: 'shirt',
     },
     {
-        code: '👖',
+        name: 'child',
+        code: '🧒',
         keywords: [
-            'clothing',
-            'jeans',
-            'pants',
-            'trousers',
+            'child',
         ],
-        name: 'jeans',
-    },
-    {
-        code: '👗',
-        keywords: [
-            'clothing',
-            'dress',
-        ],
-        name: 'dress',
-    },
-    {
-        code: '👘',
-        keywords: [
-            'clothing',
-            'kimono',
-        ],
-        name: 'kimono',
-    },
-    {
-        code: '👙',
-        keywords: [
-            'bikini',
-            'clothing',
-            'swim',
-        ],
-        name: 'bikini',
-    },
-    {
-        code: '👚',
-        keywords: [
-            'clothing',
-            'woman',
-        ],
-        name: 'womans_clothes',
-    },
-    {
-        code: '👛',
-        keywords: [
-            'clothing',
-            'coin',
-            'purse',
-        ],
-        name: 'purse',
-    },
-    {
-        code: '👜',
-        keywords: [
-            'bag',
-            'clothing',
-            'handbag',
-        ],
-        name: 'handbag',
-    },
-    {
-        code: '👝',
-        keywords: [
-            'bag',
-            'clothing',
-            'pouch',
-        ],
-        name: 'pouch',
-    },
-    {
-        code: '🛍',
-        keywords: [
-            'bag',
-            'hotel',
-            'shopping',
-        ],
-        name: 'shopping',
-    },
-    {
-        code: '🎒',
-        keywords: [
-            'activity',
-            'bag',
-            'satchel',
-            'school',
-        ],
-        name: 'school_satchel',
-    },
-    {
-        code: '👞',
-        keywords: [
-            'clothing',
-            'man',
-            'shoe',
-        ],
-        name: 'mans_shoe',
-    },
-    {
-        code: '👟',
-        keywords: [
-            'athletic',
-            'clothing',
-            'shoe',
-            'sneaker',
-        ],
-        name: 'athletic_shoe',
-    },
-    {
-        code: '👠',
-        keywords: [
-            'clothing',
-            'heel',
-            'shoe',
-            'woman',
-        ],
-        name: 'high_heel',
-    },
-    {
-        code: '👡',
-        keywords: [
-            'clothing',
-            'sandal',
-            'shoe',
-            'woman',
-        ],
-        name: 'sandal',
-    },
-    {
-        code: '👢',
-        keywords: [
-            'boot',
-            'clothing',
-            'shoe',
-            'woman',
-        ],
-        name: 'boot',
-    },
-    {
-        code: '👑',
-        keywords: [
-            'clothing',
-            'crown',
-            'king',
-            'queen',
-        ],
-        name: 'crown',
-    },
-    {
-        code: '👒',
-        keywords: [
-            'clothing',
-            'hat',
-            'woman',
-        ],
-        name: 'womans_hat',
-    },
-    {
-        code: '🎩',
-        keywords: [
-            'activity',
-            'clothing',
-            'entertainment',
-            'hat',
-            'top',
-            'tophat',
-        ],
-        name: 'tophat',
-    },
-    {
-        code: '🎓',
-        keywords: [
-            'activity',
-            'cap',
-            'celebration',
-            'clothing',
-            'graduation',
-            'hat',
-        ],
-        name: 'mortar_board',
-    },
-    {
-        code: '⛑',
-        keywords: [
-            'aid',
-            'cross',
-            'face',
-            'hat',
-            'helmet',
-        ],
-        name: 'rescue_worker_helmet',
-    },
-    {
-        code: '📿',
-        keywords: [
-            'beads',
-            'clothing',
-            'necklace',
-            'prayer',
-            'religion',
-        ],
-        name: 'prayer_beads',
-    },
-    {
-        code: '💄',
-        keywords: [
-            'cosmetics',
-            'lipstick',
-            'makeup',
-        ],
-        name: 'lipstick',
-    },
-    {
-        code: '💍',
-        keywords: [
-            'diamond',
-            'ring',
-            'romance',
-        ],
-        name: 'ring',
-    },
-    {
-        code: '💎',
-        keywords: [
-            'diamond',
-            'gem',
-            'jewel',
-            'romance',
-        ],
-        name: 'gem',
-    },
-    {
-        code: 'animalsAndNature',
-        header: true,
-    },
-    {
-        code: '🐵',
-        keywords: [
-            'face',
-            'monkey',
-        ],
-        name: 'monkey_face',
-    },
-    {
-        code: '🐒',
-        keywords: [
-            'monkey',
-        ],
-        name: 'monkey',
-    },
-    {
-        code: '🦍',
-        keywords: [
-            'gorilla',
-        ],
-        name: 'gorilla',
-    },
-    {
-        code: '🐶',
-        keywords: [
-            'dog',
-            'face',
-            'pet',
-        ],
-        name: 'dog',
-    },
-    {
-        code: '🐕',
-        keywords: [
-            'dog',
-            'pet',
-        ],
-        name: 'dog2',
-    },
-    {
-        code: '🐩',
-        keywords: [
-            'dog',
-            'poodle',
-        ],
-        name: 'poodle',
-    },
-    {
-        code: '🐺',
-        keywords: [
-            'face',
-            'wolf',
-        ],
-        name: 'wolf',
-    },
-    {
-        code: '🦊',
-        keywords: [
-            'face',
-            'fox',
+        types: [
+            '🧒🏿',
+            '🧒🏾',
+            '🧒🏽',
+            '🧒🏼',
+            '🧒🏻',
         ],
-        name: 'fox_face',
     },
     {
-        code: '🐱',
+        name: 'boy',
+        code: '👦',
         keywords: [
-            'cat',
-            'face',
-            'pet',
+            'child',
+            'boy',
         ],
-        name: 'cat',
-    },
-    {
-        code: '🐈',
-        keywords: [
-            'cat',
-            'pet',
+        types: [
+            '👦🏿',
+            '👦🏾',
+            '👦🏽',
+            '👦🏼',
+            '👦🏻',
         ],
-        name: 'cat2',
     },
     {
-        code: '🦁',
+        name: 'girl',
+        code: '👧',
         keywords: [
-            'face',
-            'leo',
-            'lion',
+            'child',
+            'girl',
+            'maiden',
+            'virgin',
+            'virgo',
             'zodiac',
         ],
-        name: 'lion',
+        types: [
+            '👧🏿',
+            '👧🏾',
+            '👧🏽',
+            '👧🏼',
+            '👧🏻',
+        ],
     },
     {
-        code: '🐯',
+        name: 'adult',
+        code: '🧑',
         keywords: [
+            'adult',
+        ],
+        types: [
+            '🧑🏿',
+            '🧑🏾',
+            '🧑🏽',
+            '🧑🏼',
+            '🧑🏻',
+        ],
+    },
+    {
+        name: 'blond_haired_person',
+        code: '👱',
+        keywords: [
+            'blond_haired_person',
+            'blond',
+        ],
+        types: [
+            '👱🏿',
+            '👱🏾',
+            '👱🏽',
+            '👱🏼',
+            '👱🏻',
+        ],
+    },
+    {
+        name: 'man',
+        code: '👨',
+        keywords: [
+            'mustache',
+            'father',
+            'dad',
+            'man',
+        ],
+        types: [
+            '👨🏿',
+            '👨🏾',
+            '👨🏽',
+            '👨🏼',
+            '👨🏻',
+        ],
+    },
+    {
+        name: 'bearded_person',
+        code: '🧔',
+        keywords: [
+            'bearded_person',
+        ],
+        types: [
+            '🧔🏿',
+            '🧔🏾',
+            '🧔🏽',
+            '🧔🏼',
+            '🧔🏻',
+        ],
+    },
+    {
+        name: 'man_beard',
+        code: '🧔‍♂️',
+        keywords: [
+            'man_beard',
+        ],
+        types: [
+            '🧔🏿‍♂️',
+            '🧔🏾‍♂️',
+            '🧔🏽‍♂️',
+            '🧔🏼‍♂️',
+            '🧔🏻‍♂️',
+        ],
+    },
+    {
+        name: 'woman_beard',
+        code: '🧔‍♀️',
+        keywords: [
+            'woman_beard',
+        ],
+        types: [
+            '🧔🏿‍♀️',
+            '🧔🏾‍♀️',
+            '🧔🏽‍♀️',
+            '🧔🏼‍♀️',
+            '🧔🏻‍♀️',
+        ],
+    },
+    {
+        name: 'red_haired_man',
+        code: '👨‍🦰',
+        keywords: [
+            'red_haired_man',
+        ],
+        types: [
+            '👨🏿‍🦰',
+            '👨🏾‍🦰',
+            '👨🏽‍🦰',
+            '👨🏼‍🦰',
+            '👨🏻‍🦰',
+        ],
+    },
+    {
+        name: 'curly_haired_man',
+        code: '👨‍🦱',
+        keywords: [
+            'curly_haired_man',
+        ],
+        types: [
+            '👨🏿‍🦱',
+            '👨🏾‍🦱',
+            '👨🏽‍🦱',
+            '👨🏼‍🦱',
+            '👨🏻‍🦱',
+        ],
+    },
+    {
+        name: 'white_haired_man',
+        code: '👨‍🦳',
+        keywords: [
+            'white_haired_man',
+        ],
+        types: [
+            '👨🏿‍🦳',
+            '👨🏾‍🦳',
+            '👨🏽‍🦳',
+            '👨🏼‍🦳',
+            '👨🏻‍🦳',
+        ],
+    },
+    {
+        name: 'bald_man',
+        code: '👨‍🦲',
+        keywords: [
+            'bald_man',
+        ],
+        types: [
+            '👨🏿‍🦲',
+            '👨🏾‍🦲',
+            '👨🏽‍🦲',
+            '👨🏼‍🦲',
+            '👨🏻‍🦲',
+        ],
+    },
+    {
+        name: 'woman',
+        code: '👩',
+        keywords: [
+            'girls',
+            'woman',
+        ],
+        types: [
+            '👩🏿',
+            '👩🏾',
+            '👩🏽',
+            '👩🏼',
+            '👩🏻',
+        ],
+    },
+    {
+        name: 'red_haired_woman',
+        code: '👩‍🦰',
+        keywords: [
+            'red_haired_woman',
+        ],
+        types: [
+            '👩🏿‍🦰',
+            '👩🏾‍🦰',
+            '👩🏽‍🦰',
+            '👩🏼‍🦰',
+            '👩🏻‍🦰',
+        ],
+    },
+    {
+        name: 'person_red_hair',
+        code: '🧑‍🦰',
+        keywords: [
+            'person_red_hair',
+        ],
+        types: [
+            '🧑🏿‍🦰',
+            '🧑🏾‍🦰',
+            '🧑🏽‍🦰',
+            '🧑🏼‍🦰',
+            '🧑🏻‍🦰',
+        ],
+    },
+    {
+        name: 'curly_haired_woman',
+        code: '👩‍🦱',
+        keywords: [
+            'curly_haired_woman',
+        ],
+        types: [
+            '👩🏿‍🦱',
+            '👩🏾‍🦱',
+            '👩🏽‍🦱',
+            '👩🏼‍🦱',
+            '👩🏻‍🦱',
+        ],
+    },
+    {
+        name: 'person_curly_hair',
+        code: '🧑‍🦱',
+        keywords: [
+            'person_curly_hair',
+        ],
+        types: [
+            '🧑🏿‍🦱',
+            '🧑🏾‍🦱',
+            '🧑🏽‍🦱',
+            '🧑🏼‍🦱',
+            '🧑🏻‍🦱',
+        ],
+    },
+    {
+        name: 'white_haired_woman',
+        code: '👩‍🦳',
+        keywords: [
+            'white_haired_woman',
+        ],
+        types: [
+            '👩🏿‍🦳',
+            '👩🏾‍🦳',
+            '👩🏽‍🦳',
+            '👩🏼‍🦳',
+            '👩🏻‍🦳',
+        ],
+    },
+    {
+        name: 'person_white_hair',
+        code: '🧑‍🦳',
+        keywords: [
+            'person_white_hair',
+        ],
+        types: [
+            '🧑🏿‍🦳',
+            '🧑🏾‍🦳',
+            '🧑🏽‍🦳',
+            '🧑🏼‍🦳',
+            '🧑🏻‍🦳',
+        ],
+    },
+    {
+        name: 'bald_woman',
+        code: '👩‍🦲',
+        keywords: [
+            'bald_woman',
+        ],
+        types: [
+            '👩🏿‍🦲',
+            '👩🏾‍🦲',
+            '👩🏽‍🦲',
+            '👩🏼‍🦲',
+            '👩🏻‍🦲',
+        ],
+    },
+    {
+        name: 'person_bald',
+        code: '🧑‍🦲',
+        keywords: [
+            'person_bald',
+        ],
+        types: [
+            '🧑🏿‍🦲',
+            '🧑🏾‍🦲',
+            '🧑🏽‍🦲',
+            '🧑🏼‍🦲',
+            '🧑🏻‍🦲',
+        ],
+    },
+    {
+        name: 'blond_haired_woman',
+        code: '👱‍♀️',
+        keywords: [
+            'blond_haired_woman',
+            'blonde_woman',
+        ],
+        types: [
+            '👱🏿‍♀️',
+            '👱🏾‍♀️',
+            '👱🏽‍♀️',
+            '👱🏼‍♀️',
+            '👱🏻‍♀️',
+        ],
+    },
+    {
+        name: 'blond_haired_man',
+        code: '👱‍♂️',
+        keywords: [
+            'blond_haired_man',
+        ],
+        types: [
+            '👱🏿‍♂️',
+            '👱🏾‍♂️',
+            '👱🏽‍♂️',
+            '👱🏼‍♂️',
+            '👱🏻‍♂️',
+        ],
+    },
+    {
+        name: 'older_adult',
+        code: '🧓',
+        keywords: [
+            'older_adult',
+        ],
+        types: [
+            '🧓🏿',
+            '🧓🏾',
+            '🧓🏽',
+            '🧓🏼',
+            '🧓🏻',
+        ],
+    },
+    {
+        name: 'older_man',
+        code: '👴',
+        keywords: [
+            'older_man',
+            'man',
+            'old',
+        ],
+        types: [
+            '👴🏿',
+            '👴🏾',
+            '👴🏽',
+            '👴🏼',
+            '👴🏻',
+        ],
+    },
+    {
+        name: 'older_woman',
+        code: '👵',
+        keywords: [
+            'older_woman',
+            'old',
+            'woman',
+        ],
+        types: [
+            '👵🏿',
+            '👵🏾',
+            '👵🏽',
+            '👵🏼',
+            '👵🏻',
+        ],
+    },
+    {
+        name: 'frowning_person',
+        code: '🙍',
+        keywords: [
+            'frowning_person',
+            'frown',
+            'gesture',
+        ],
+        types: [
+            '🙍🏿',
+            '🙍🏾',
+            '🙍🏽',
+            '🙍🏼',
+            '🙍🏻',
+        ],
+    },
+    {
+        name: 'frowning_man',
+        code: '🙍‍♂️',
+        keywords: [
+            'frowning_man',
+        ],
+        types: [
+            '🙍🏿‍♂️',
+            '🙍🏾‍♂️',
+            '🙍🏽‍♂️',
+            '🙍🏼‍♂️',
+            '🙍🏻‍♂️',
+        ],
+    },
+    {
+        name: 'frowning_woman',
+        code: '🙍‍♀️',
+        keywords: [
+            'frowning_woman',
+        ],
+        types: [
+            '🙍🏿‍♀️',
+            '🙍🏾‍♀️',
+            '🙍🏽‍♀️',
+            '🙍🏼‍♀️',
+            '🙍🏻‍♀️',
+        ],
+    },
+    {
+        name: 'pouting_face',
+        code: '🙎',
+        keywords: [
+            'pouting_face',
+            'gesture',
+            'pouting',
+        ],
+        types: [
+            '🙎🏿',
+            '🙎🏾',
+            '🙎🏽',
+            '🙎🏼',
+            '🙎🏻',
+        ],
+    },
+    {
+        name: 'pouting_man',
+        code: '🙎‍♂️',
+        keywords: [
+            'pouting_man',
+        ],
+        types: [
+            '🙎🏿‍♂️',
+            '🙎🏾‍♂️',
+            '🙎🏽‍♂️',
+            '🙎🏼‍♂️',
+            '🙎🏻‍♂️',
+        ],
+    },
+    {
+        name: 'pouting_woman',
+        code: '🙎‍♀️',
+        keywords: [
+            'pouting_woman',
+        ],
+        types: [
+            '🙎🏿‍♀️',
+            '🙎🏾‍♀️',
+            '🙎🏽‍♀️',
+            '🙎🏼‍♀️',
+            '🙎🏻‍♀️',
+        ],
+    },
+    {
+        name: 'no_good',
+        code: '🙅',
+        keywords: [
+            'stop',
+            'halt',
+            'denied',
+            'no_good',
+            'forbidden',
+            'gesture',
+            'hand',
+            'no',
+            'not',
+            'prohibited',
+        ],
+        types: [
+            '🙅🏿',
+            '🙅🏾',
+            '🙅🏽',
+            '🙅🏼',
+            '🙅🏻',
+        ],
+    },
+    {
+        name: 'no_good_man',
+        code: '🙅‍♂️',
+        keywords: [
+            'stop',
+            'halt',
+            'denied',
+            'no_good_man',
+            'ng_man',
+        ],
+        types: [
+            '🙅🏿‍♂️',
+            '🙅🏾‍♂️',
+            '🙅🏽‍♂️',
+            '🙅🏼‍♂️',
+            '🙅🏻‍♂️',
+        ],
+    },
+    {
+        name: 'no_good_woman',
+        code: '🙅‍♀️',
+        keywords: [
+            'stop',
+            'halt',
+            'denied',
+            'no_good_woman',
+            'ng_woman',
+        ],
+        types: [
+            '🙅🏿‍♀️',
+            '🙅🏾‍♀️',
+            '🙅🏽‍♀️',
+            '🙅🏼‍♀️',
+            '🙅🏻‍♀️',
+        ],
+    },
+    {
+        name: 'ok_person',
+        code: '🙆',
+        keywords: [
+            'ok_person',
+            'gesture',
+            'hand',
+            'ok',
+        ],
+        types: [
+            '🙆🏿',
+            '🙆🏾',
+            '🙆🏽',
+            '🙆🏼',
+            '🙆🏻',
+        ],
+    },
+    {
+        name: 'ok_man',
+        code: '🙆‍♂️',
+        keywords: [
+            'ok_man',
+        ],
+        types: [
+            '🙆🏿‍♂️',
+            '🙆🏾‍♂️',
+            '🙆🏽‍♂️',
+            '🙆🏼‍♂️',
+            '🙆🏻‍♂️',
+        ],
+    },
+    {
+        name: 'ok_woman',
+        code: '🙆‍♀️',
+        keywords: [
+            'ok_woman',
+        ],
+        types: [
+            '🙆🏿‍♀️',
+            '🙆🏾‍♀️',
+            '🙆🏽‍♀️',
+            '🙆🏼‍♀️',
+            '🙆🏻‍♀️',
+        ],
+    },
+    {
+        name: 'tipping_hand_person',
+        code: '💁',
+        keywords: [
+            'tipping_hand_person',
+            'information_desk_person',
+            'hand',
+            'help',
+            'information',
+            'sassy',
+        ],
+        types: [
+            '💁🏿',
+            '💁🏾',
+            '💁🏽',
+            '💁🏼',
+            '💁🏻',
+        ],
+    },
+    {
+        name: 'tipping_hand_man',
+        code: '💁‍♂️',
+        keywords: [
+            'information',
+            'tipping_hand_man',
+            'sassy_man',
+        ],
+        types: [
+            '💁🏿‍♂️',
+            '💁🏾‍♂️',
+            '💁🏽‍♂️',
+            '💁🏼‍♂️',
+            '💁🏻‍♂️',
+        ],
+    },
+    {
+        name: 'tipping_hand_woman',
+        code: '💁‍♀️',
+        keywords: [
+            'information',
+            'tipping_hand_woman',
+            'sassy_woman',
+        ],
+        types: [
+            '💁🏿‍♀️',
+            '💁🏾‍♀️',
+            '💁🏽‍♀️',
+            '💁🏼‍♀️',
+            '💁🏻‍♀️',
+        ],
+    },
+    {
+        name: 'raising_hand',
+        code: '🙋',
+        keywords: [
+            'raising_hand',
+            'gesture',
+            'hand',
+            'happy',
+            'raised',
+        ],
+        types: [
+            '🙋🏿',
+            '🙋🏾',
+            '🙋🏽',
+            '🙋🏼',
+            '🙋🏻',
+        ],
+    },
+    {
+        name: 'raising_hand_man',
+        code: '🙋‍♂️',
+        keywords: [
+            'raising_hand_man',
+        ],
+        types: [
+            '🙋🏿‍♂️',
+            '🙋🏾‍♂️',
+            '🙋🏽‍♂️',
+            '🙋🏼‍♂️',
+            '🙋🏻‍♂️',
+        ],
+    },
+    {
+        name: 'raising_hand_woman',
+        code: '🙋‍♀️',
+        keywords: [
+            'raising_hand_woman',
+        ],
+        types: [
+            '🙋🏿‍♀️',
+            '🙋🏾‍♀️',
+            '🙋🏽‍♀️',
+            '🙋🏼‍♀️',
+            '🙋🏻‍♀️',
+        ],
+    },
+    {
+        name: 'deaf_person',
+        code: '🧏',
+        keywords: [
+            'deaf_person',
+        ],
+        types: [
+            '🧏🏿',
+            '🧏🏾',
+            '🧏🏽',
+            '🧏🏼',
+            '🧏🏻',
+        ],
+    },
+    {
+        name: 'deaf_man',
+        code: '🧏‍♂️',
+        keywords: [
+            'deaf_man',
+        ],
+        types: [
+            '🧏🏿‍♂️',
+            '🧏🏾‍♂️',
+            '🧏🏽‍♂️',
+            '🧏🏼‍♂️',
+            '🧏🏻‍♂️',
+        ],
+    },
+    {
+        name: 'deaf_woman',
+        code: '🧏‍♀️',
+        keywords: [
+            'deaf_woman',
+        ],
+        types: [
+            '🧏🏿‍♀️',
+            '🧏🏾‍♀️',
+            '🧏🏽‍♀️',
+            '🧏🏼‍♀️',
+            '🧏🏻‍♀️',
+        ],
+    },
+    {
+        name: 'bow',
+        code: '🙇',
+        keywords: [
+            'respect',
+            'thanks',
+            'bow',
+            'apology',
+            'gesture',
+            'sorry',
+        ],
+        types: [
+            '🙇🏿',
+            '🙇🏾',
+            '🙇🏽',
+            '🙇🏼',
+            '🙇🏻',
+        ],
+    },
+    {
+        name: 'bowing_man',
+        code: '🙇‍♂️',
+        keywords: [
+            'respect',
+            'thanks',
+            'bowing_man',
+        ],
+        types: [
+            '🙇🏿‍♂️',
+            '🙇🏾‍♂️',
+            '🙇🏽‍♂️',
+            '🙇🏼‍♂️',
+            '🙇🏻‍♂️',
+        ],
+    },
+    {
+        name: 'bowing_woman',
+        code: '🙇‍♀️',
+        keywords: [
+            'respect',
+            'thanks',
+            'bowing_woman',
+        ],
+        types: [
+            '🙇🏿‍♀️',
+            '🙇🏾‍♀️',
+            '🙇🏽‍♀️',
+            '🙇🏼‍♀️',
+            '🙇🏻‍♀️',
+        ],
+    },
+    {
+        name: 'facepalm',
+        code: '🤦',
+        keywords: [
+            'facepalm',
+            'disbelief',
+            'exasperation',
             'face',
-            'tiger',
+            'palm',
         ],
-        name: 'tiger',
+        types: [
+            '🤦🏿',
+            '🤦🏾',
+            '🤦🏽',
+            '🤦🏼',
+            '🤦🏻',
+        ],
     },
     {
-        code: '🐅',
+        name: 'man_facepalming',
+        code: '🤦‍♂️',
         keywords: [
-            'tiger',
+            'man_facepalming',
         ],
-        name: 'tiger2',
+        types: [
+            '🤦🏿‍♂️',
+            '🤦🏾‍♂️',
+            '🤦🏽‍♂️',
+            '🤦🏼‍♂️',
+            '🤦🏻‍♂️',
+        ],
     },
     {
-        code: '🐆',
+        name: 'woman_facepalming',
+        code: '🤦‍♀️',
         keywords: [
-            'leopard',
+            'woman_facepalming',
         ],
-        name: 'leopard',
+        types: [
+            '🤦🏿‍♀️',
+            '🤦🏾‍♀️',
+            '🤦🏽‍♀️',
+            '🤦🏼‍♀️',
+            '🤦🏻‍♀️',
+        ],
     },
     {
-        code: '🐴',
+        name: 'shrug',
+        code: '🤷',
         keywords: [
+            'shrug',
+            'doubt',
+            'ignorance',
+            'indifference',
+        ],
+        types: [
+            '🤷🏿',
+            '🤷🏾',
+            '🤷🏽',
+            '🤷🏼',
+            '🤷🏻',
+        ],
+    },
+    {
+        name: 'man_shrugging',
+        code: '🤷‍♂️',
+        keywords: [
+            'man_shrugging',
+        ],
+        types: [
+            '🤷🏿‍♂️',
+            '🤷🏾‍♂️',
+            '🤷🏽‍♂️',
+            '🤷🏼‍♂️',
+            '🤷🏻‍♂️',
+        ],
+    },
+    {
+        name: 'woman_shrugging',
+        code: '🤷‍♀️',
+        keywords: [
+            'woman_shrugging',
+        ],
+        types: [
+            '🤷🏿‍♀️',
+            '🤷🏾‍♀️',
+            '🤷🏽‍♀️',
+            '🤷🏼‍♀️',
+            '🤷🏻‍♀️',
+        ],
+    },
+    {
+        name: 'health_worker',
+        code: '🧑‍⚕️',
+        keywords: [
+            'health_worker',
+        ],
+        types: [
+            '🧑🏿‍⚕️',
+            '🧑🏾‍⚕️',
+            '🧑🏽‍⚕️',
+            '🧑🏼‍⚕️',
+            '🧑🏻‍⚕️',
+        ],
+    },
+    {
+        name: 'man_health_worker',
+        code: '👨‍⚕️',
+        keywords: [
+            'doctor',
+            'nurse',
+            'man_health_worker',
+        ],
+        types: [
+            '👨🏿‍⚕️',
+            '👨🏾‍⚕️',
+            '👨🏽‍⚕️',
+            '👨🏼‍⚕️',
+            '👨🏻‍⚕️',
+        ],
+    },
+    {
+        name: 'woman_health_worker',
+        code: '👩‍⚕️',
+        keywords: [
+            'doctor',
+            'nurse',
+            'woman_health_worker',
+        ],
+        types: [
+            '👩🏿‍⚕️',
+            '👩🏾‍⚕️',
+            '👩🏽‍⚕️',
+            '👩🏼‍⚕️',
+            '👩🏻‍⚕️',
+        ],
+    },
+    {
+        name: 'student',
+        code: '🧑‍🎓',
+        keywords: [
+            'student',
+        ],
+        types: [
+            '🧑🏿‍🎓',
+            '🧑🏾‍🎓',
+            '🧑🏽‍🎓',
+            '🧑🏼‍🎓',
+            '🧑🏻‍🎓',
+        ],
+    },
+    {
+        name: 'man_student',
+        code: '👨‍🎓',
+        keywords: [
+            'graduation',
+            'man_student',
+        ],
+        types: [
+            '👨🏿‍🎓',
+            '👨🏾‍🎓',
+            '👨🏽‍🎓',
+            '👨🏼‍🎓',
+            '👨🏻‍🎓',
+        ],
+    },
+    {
+        name: 'woman_student',
+        code: '👩‍🎓',
+        keywords: [
+            'graduation',
+            'woman_student',
+        ],
+        types: [
+            '👩🏿‍🎓',
+            '👩🏾‍🎓',
+            '👩🏽‍🎓',
+            '👩🏼‍🎓',
+            '👩🏻‍🎓',
+        ],
+    },
+    {
+        name: 'teacher',
+        code: '🧑‍🏫',
+        keywords: [
+            'teacher',
+        ],
+        types: [
+            '🧑🏿‍🏫',
+            '🧑🏾‍🏫',
+            '🧑🏽‍🏫',
+            '🧑🏼‍🏫',
+            '🧑🏻‍🏫',
+        ],
+    },
+    {
+        name: 'man_teacher',
+        code: '👨‍🏫',
+        keywords: [
+            'school',
+            'professor',
+            'man_teacher',
+        ],
+        types: [
+            '👨🏿‍🏫',
+            '👨🏾‍🏫',
+            '👨🏽‍🏫',
+            '👨🏼‍🏫',
+            '👨🏻‍🏫',
+        ],
+    },
+    {
+        name: 'woman_teacher',
+        code: '👩‍🏫',
+        keywords: [
+            'school',
+            'professor',
+            'woman_teacher',
+        ],
+        types: [
+            '👩🏿‍🏫',
+            '👩🏾‍🏫',
+            '👩🏽‍🏫',
+            '👩🏼‍🏫',
+            '👩🏻‍🏫',
+        ],
+    },
+    {
+        name: 'judge',
+        code: '🧑‍⚖️',
+        keywords: [
+            'judge',
+        ],
+        types: [
+            '🧑🏿‍⚖️',
+            '🧑🏾‍⚖️',
+            '🧑🏽‍⚖️',
+            '🧑🏼‍⚖️',
+            '🧑🏻‍⚖️',
+        ],
+    },
+    {
+        name: 'man_judge',
+        code: '👨‍⚖️',
+        keywords: [
+            'justice',
+            'man_judge',
+        ],
+        types: [
+            '👨🏿‍⚖️',
+            '👨🏾‍⚖️',
+            '👨🏽‍⚖️',
+            '👨🏼‍⚖️',
+            '👨🏻‍⚖️',
+        ],
+    },
+    {
+        name: 'woman_judge',
+        code: '👩‍⚖️',
+        keywords: [
+            'justice',
+            'woman_judge',
+        ],
+        types: [
+            '👩🏿‍⚖️',
+            '👩🏾‍⚖️',
+            '👩🏽‍⚖️',
+            '👩🏼‍⚖️',
+            '👩🏻‍⚖️',
+        ],
+    },
+    {
+        name: 'farmer',
+        code: '🧑‍🌾',
+        keywords: [
+            'farmer',
+        ],
+        types: [
+            '🧑🏿‍🌾',
+            '🧑🏾‍🌾',
+            '🧑🏽‍🌾',
+            '🧑🏼‍🌾',
+            '🧑🏻‍🌾',
+        ],
+    },
+    {
+        name: 'man_farmer',
+        code: '👨‍🌾',
+        keywords: [
+            'man_farmer',
+        ],
+        types: [
+            '👨🏿‍🌾',
+            '👨🏾‍🌾',
+            '👨🏽‍🌾',
+            '👨🏼‍🌾',
+            '👨🏻‍🌾',
+        ],
+    },
+    {
+        name: 'woman_farmer',
+        code: '👩‍🌾',
+        keywords: [
+            'woman_farmer',
+        ],
+        types: [
+            '👩🏿‍🌾',
+            '👩🏾‍🌾',
+            '👩🏽‍🌾',
+            '👩🏼‍🌾',
+            '👩🏻‍🌾',
+        ],
+    },
+    {
+        name: 'cook',
+        code: '🧑‍🍳',
+        keywords: [
+            'cook',
+        ],
+        types: [
+            '🧑🏿‍🍳',
+            '🧑🏾‍🍳',
+            '🧑🏽‍🍳',
+            '🧑🏼‍🍳',
+            '🧑🏻‍🍳',
+        ],
+    },
+    {
+        name: 'man_cook',
+        code: '👨‍🍳',
+        keywords: [
+            'chef',
+            'man_cook',
+        ],
+        types: [
+            '👨🏿‍🍳',
+            '👨🏾‍🍳',
+            '👨🏽‍🍳',
+            '👨🏼‍🍳',
+            '👨🏻‍🍳',
+        ],
+    },
+    {
+        name: 'woman_cook',
+        code: '👩‍🍳',
+        keywords: [
+            'chef',
+            'woman_cook',
+        ],
+        types: [
+            '👩🏿‍🍳',
+            '👩🏾‍🍳',
+            '👩🏽‍🍳',
+            '👩🏼‍🍳',
+            '👩🏻‍🍳',
+        ],
+    },
+    {
+        name: 'mechanic',
+        code: '🧑‍🔧',
+        keywords: [
+            'mechanic',
+        ],
+        types: [
+            '🧑🏿‍🔧',
+            '🧑🏾‍🔧',
+            '🧑🏽‍🔧',
+            '🧑🏼‍🔧',
+            '🧑🏻‍🔧',
+        ],
+    },
+    {
+        name: 'man_mechanic',
+        code: '👨‍🔧',
+        keywords: [
+            'man_mechanic',
+        ],
+        types: [
+            '👨🏿‍🔧',
+            '👨🏾‍🔧',
+            '👨🏽‍🔧',
+            '👨🏼‍🔧',
+            '👨🏻‍🔧',
+        ],
+    },
+    {
+        name: 'woman_mechanic',
+        code: '👩‍🔧',
+        keywords: [
+            'woman_mechanic',
+        ],
+        types: [
+            '👩🏿‍🔧',
+            '👩🏾‍🔧',
+            '👩🏽‍🔧',
+            '👩🏼‍🔧',
+            '👩🏻‍🔧',
+        ],
+    },
+    {
+        name: 'factory_worker',
+        code: '🧑‍🏭',
+        keywords: [
+            'factory_worker',
+        ],
+        types: [
+            '🧑🏿‍🏭',
+            '🧑🏾‍🏭',
+            '🧑🏽‍🏭',
+            '🧑🏼‍🏭',
+            '🧑🏻‍🏭',
+        ],
+    },
+    {
+        name: 'man_factory_worker',
+        code: '👨‍🏭',
+        keywords: [
+            'man_factory_worker',
+        ],
+        types: [
+            '👨🏿‍🏭',
+            '👨🏾‍🏭',
+            '👨🏽‍🏭',
+            '👨🏼‍🏭',
+            '👨🏻‍🏭',
+        ],
+    },
+    {
+        name: 'woman_factory_worker',
+        code: '👩‍🏭',
+        keywords: [
+            'woman_factory_worker',
+        ],
+        types: [
+            '👩🏿‍🏭',
+            '👩🏾‍🏭',
+            '👩🏽‍🏭',
+            '👩🏼‍🏭',
+            '👩🏻‍🏭',
+        ],
+    },
+    {
+        name: 'office_worker',
+        code: '🧑‍💼',
+        keywords: [
+            'office_worker',
+        ],
+        types: [
+            '🧑🏿‍💼',
+            '🧑🏾‍💼',
+            '🧑🏽‍💼',
+            '🧑🏼‍💼',
+            '🧑🏻‍💼',
+        ],
+    },
+    {
+        name: 'man_office_worker',
+        code: '👨‍💼',
+        keywords: [
+            'business',
+            'man_office_worker',
+        ],
+        types: [
+            '👨🏿‍💼',
+            '👨🏾‍💼',
+            '👨🏽‍💼',
+            '👨🏼‍💼',
+            '👨🏻‍💼',
+        ],
+    },
+    {
+        name: 'woman_office_worker',
+        code: '👩‍💼',
+        keywords: [
+            'business',
+            'woman_office_worker',
+        ],
+        types: [
+            '👩🏿‍💼',
+            '👩🏾‍💼',
+            '👩🏽‍💼',
+            '👩🏼‍💼',
+            '👩🏻‍💼',
+        ],
+    },
+    {
+        name: 'scientist',
+        code: '🧑‍🔬',
+        keywords: [
+            'scientist',
+        ],
+        types: [
+            '🧑🏿‍🔬',
+            '🧑🏾‍🔬',
+            '🧑🏽‍🔬',
+            '🧑🏼‍🔬',
+            '🧑🏻‍🔬',
+        ],
+    },
+    {
+        name: 'man_scientist',
+        code: '👨‍🔬',
+        keywords: [
+            'research',
+            'man_scientist',
+        ],
+        types: [
+            '👨🏿‍🔬',
+            '👨🏾‍🔬',
+            '👨🏽‍🔬',
+            '👨🏼‍🔬',
+            '👨🏻‍🔬',
+        ],
+    },
+    {
+        name: 'woman_scientist',
+        code: '👩‍🔬',
+        keywords: [
+            'research',
+            'woman_scientist',
+        ],
+        types: [
+            '👩🏿‍🔬',
+            '👩🏾‍🔬',
+            '👩🏽‍🔬',
+            '👩🏼‍🔬',
+            '👩🏻‍🔬',
+        ],
+    },
+    {
+        name: 'technologist',
+        code: '🧑‍💻',
+        keywords: [
+            'technologist',
+        ],
+        types: [
+            '🧑🏿‍💻',
+            '🧑🏾‍💻',
+            '🧑🏽‍💻',
+            '🧑🏼‍💻',
+            '🧑🏻‍💻',
+        ],
+    },
+    {
+        name: 'man_technologist',
+        code: '👨‍💻',
+        keywords: [
+            'coder',
+            'man_technologist',
+        ],
+        types: [
+            '👨🏿‍💻',
+            '👨🏾‍💻',
+            '👨🏽‍💻',
+            '👨🏼‍💻',
+            '👨🏻‍💻',
+        ],
+    },
+    {
+        name: 'woman_technologist',
+        code: '👩‍💻',
+        keywords: [
+            'coder',
+            'woman_technologist',
+        ],
+        types: [
+            '👩🏿‍💻',
+            '👩🏾‍💻',
+            '👩🏽‍💻',
+            '👩🏼‍💻',
+            '👩🏻‍💻',
+        ],
+    },
+    {
+        name: 'singer',
+        code: '🧑‍🎤',
+        keywords: [
+            'singer',
+        ],
+        types: [
+            '🧑🏿‍🎤',
+            '🧑🏾‍🎤',
+            '🧑🏽‍🎤',
+            '🧑🏼‍🎤',
+            '🧑🏻‍🎤',
+        ],
+    },
+    {
+        name: 'man_singer',
+        code: '👨‍🎤',
+        keywords: [
+            'rockstar',
+            'man_singer',
+        ],
+        types: [
+            '👨🏿‍🎤',
+            '👨🏾‍🎤',
+            '👨🏽‍🎤',
+            '👨🏼‍🎤',
+            '👨🏻‍🎤',
+        ],
+    },
+    {
+        name: 'woman_singer',
+        code: '👩‍🎤',
+        keywords: [
+            'rockstar',
+            'woman_singer',
+        ],
+        types: [
+            '👩🏿‍🎤',
+            '👩🏾‍🎤',
+            '👩🏽‍🎤',
+            '👩🏼‍🎤',
+            '👩🏻‍🎤',
+        ],
+    },
+    {
+        name: 'artist',
+        code: '🧑‍🎨',
+        keywords: [
+            'artist',
+        ],
+        types: [
+            '🧑🏿‍🎨',
+            '🧑🏾‍🎨',
+            '🧑🏽‍🎨',
+            '🧑🏼‍🎨',
+            '🧑🏻‍🎨',
+        ],
+    },
+    {
+        name: 'man_artist',
+        code: '👨‍🎨',
+        keywords: [
+            'painter',
+            'man_artist',
+        ],
+        types: [
+            '👨🏿‍🎨',
+            '👨🏾‍🎨',
+            '👨🏽‍🎨',
+            '👨🏼‍🎨',
+            '👨🏻‍🎨',
+        ],
+    },
+    {
+        name: 'woman_artist',
+        code: '👩‍🎨',
+        keywords: [
+            'painter',
+            'woman_artist',
+        ],
+        types: [
+            '👩🏿‍🎨',
+            '👩🏾‍🎨',
+            '👩🏽‍🎨',
+            '👩🏼‍🎨',
+            '👩🏻‍🎨',
+        ],
+    },
+    {
+        name: 'pilot',
+        code: '🧑‍✈️',
+        keywords: [
+            'pilot',
+        ],
+        types: [
+            '🧑🏿‍✈️',
+            '🧑🏾‍✈️',
+            '🧑🏽‍✈️',
+            '🧑🏼‍✈️',
+            '🧑🏻‍✈️',
+        ],
+    },
+    {
+        name: 'man_pilot',
+        code: '👨‍✈️',
+        keywords: [
+            'man_pilot',
+        ],
+        types: [
+            '👨🏿‍✈️',
+            '👨🏾‍✈️',
+            '👨🏽‍✈️',
+            '👨🏼‍✈️',
+            '👨🏻‍✈️',
+        ],
+    },
+    {
+        name: 'woman_pilot',
+        code: '👩‍✈️',
+        keywords: [
+            'woman_pilot',
+        ],
+        types: [
+            '👩🏿‍✈️',
+            '👩🏾‍✈️',
+            '👩🏽‍✈️',
+            '👩🏼‍✈️',
+            '👩🏻‍✈️',
+        ],
+    },
+    {
+        name: 'astronaut',
+        code: '🧑‍🚀',
+        keywords: [
+            'astronaut',
+        ],
+        types: [
+            '🧑🏿‍🚀',
+            '🧑🏾‍🚀',
+            '🧑🏽‍🚀',
+            '🧑🏼‍🚀',
+            '🧑🏻‍🚀',
+        ],
+    },
+    {
+        name: 'man_astronaut',
+        code: '👨‍🚀',
+        keywords: [
+            'space',
+            'man_astronaut',
+        ],
+        types: [
+            '👨🏿‍🚀',
+            '👨🏾‍🚀',
+            '👨🏽‍🚀',
+            '👨🏼‍🚀',
+            '👨🏻‍🚀',
+        ],
+    },
+    {
+        name: 'woman_astronaut',
+        code: '👩‍🚀',
+        keywords: [
+            'space',
+            'woman_astronaut',
+        ],
+        types: [
+            '👩🏿‍🚀',
+            '👩🏾‍🚀',
+            '👩🏽‍🚀',
+            '👩🏼‍🚀',
+            '👩🏻‍🚀',
+        ],
+    },
+    {
+        name: 'firefighter',
+        code: '🧑‍🚒',
+        keywords: [
+            'firefighter',
+        ],
+        types: [
+            '🧑🏿‍🚒',
+            '🧑🏾‍🚒',
+            '🧑🏽‍🚒',
+            '🧑🏼‍🚒',
+            '🧑🏻‍🚒',
+        ],
+    },
+    {
+        name: 'man_firefighter',
+        code: '👨‍🚒',
+        keywords: [
+            'man_firefighter',
+        ],
+        types: [
+            '👨🏿‍🚒',
+            '👨🏾‍🚒',
+            '👨🏽‍🚒',
+            '👨🏼‍🚒',
+            '👨🏻‍🚒',
+        ],
+    },
+    {
+        name: 'woman_firefighter',
+        code: '👩‍🚒',
+        keywords: [
+            'woman_firefighter',
+        ],
+        types: [
+            '👩🏿‍🚒',
+            '👩🏾‍🚒',
+            '👩🏽‍🚒',
+            '👩🏼‍🚒',
+            '👩🏻‍🚒',
+        ],
+    },
+    {
+        name: 'police_officer',
+        code: '👮',
+        keywords: [
+            'law',
+            'police_officer',
+            'cop',
+            'officer',
+            'police',
+        ],
+        types: [
+            '👮🏿',
+            '👮🏾',
+            '👮🏽',
+            '👮🏼',
+            '👮🏻',
+        ],
+    },
+    {
+        name: 'policeman',
+        code: '👮‍♂️',
+        keywords: [
+            'law',
+            'cop',
+            'policeman',
+        ],
+        types: [
+            '👮🏿‍♂️',
+            '👮🏾‍♂️',
+            '👮🏽‍♂️',
+            '👮🏼‍♂️',
+            '👮🏻‍♂️',
+        ],
+    },
+    {
+        name: 'policewoman',
+        code: '👮‍♀️',
+        keywords: [
+            'law',
+            'cop',
+            'policewoman',
+        ],
+        types: [
+            '👮🏿‍♀️',
+            '👮🏾‍♀️',
+            '👮🏽‍♀️',
+            '👮🏼‍♀️',
+            '👮🏻‍♀️',
+        ],
+    },
+    {
+        name: 'detective',
+        code: '🕵️',
+        keywords: [
+            'sleuth',
+            'detective',
+        ],
+        types: [
+            '🕵🏿',
+            '🕵🏾',
+            '🕵🏽',
+            '🕵🏼',
+            '🕵🏻',
+        ],
+    },
+    {
+        name: 'male_detective',
+        code: '🕵️‍♂️',
+        keywords: [
+            'sleuth',
+            'male_detective',
+        ],
+        types: [
+            '🕵🏿‍♂️',
+            '🕵🏾‍♂️',
+            '🕵🏽‍♂️',
+            '🕵🏼‍♂️',
+            '🕵🏻‍♂️',
+        ],
+    },
+    {
+        name: 'female_detective',
+        code: '🕵️‍♀️',
+        keywords: [
+            'sleuth',
+            'female_detective',
+        ],
+        types: [
+            '🕵🏿‍♀️',
+            '🕵🏾‍♀️',
+            '🕵🏽‍♀️',
+            '🕵🏼‍♀️',
+            '🕵🏻‍♀️',
+        ],
+    },
+    {
+        name: 'guard',
+        code: '💂',
+        keywords: [
+            'guard',
+            'guardsman',
+        ],
+        types: [
+            '💂🏿',
+            '💂🏾',
+            '💂🏽',
+            '💂🏼',
+            '💂🏻',
+        ],
+    },
+    {
+        name: 'guardsman',
+        code: '💂‍♂️',
+        keywords: [
+            'guardsman',
+        ],
+        types: [
+            '💂🏿‍♂️',
+            '💂🏾‍♂️',
+            '💂🏽‍♂️',
+            '💂🏼‍♂️',
+            '💂🏻‍♂️',
+        ],
+    },
+    {
+        name: 'guardswoman',
+        code: '💂‍♀️',
+        keywords: [
+            'guardswoman',
+        ],
+        types: [
+            '💂🏿‍♀️',
+            '💂🏾‍♀️',
+            '💂🏽‍♀️',
+            '💂🏼‍♀️',
+            '💂🏻‍♀️',
+        ],
+    },
+    {
+        name: 'ninja',
+        code: '🥷',
+        keywords: [
+            'ninja',
+        ],
+        types: [
+            '🥷🏿',
+            '🥷🏾',
+            '🥷🏽',
+            '🥷🏼',
+            '🥷🏻',
+        ],
+    },
+    {
+        name: 'construction_worker',
+        code: '👷',
+        keywords: [
+            'helmet',
+            'construction_worker',
+            'construction',
+            'hat',
+            'worker',
+        ],
+        types: [
+            '👷🏿',
+            '👷🏾',
+            '👷🏽',
+            '👷🏼',
+            '👷🏻',
+        ],
+    },
+    {
+        name: 'construction_worker_man',
+        code: '👷‍♂️',
+        keywords: [
+            'helmet',
+            'construction_worker_man',
+        ],
+        types: [
+            '👷🏿‍♂️',
+            '👷🏾‍♂️',
+            '👷🏽‍♂️',
+            '👷🏼‍♂️',
+            '👷🏻‍♂️',
+        ],
+    },
+    {
+        name: 'construction_worker_woman',
+        code: '👷‍♀️',
+        keywords: [
+            'helmet',
+            'construction_worker_woman',
+        ],
+        types: [
+            '👷🏿‍♀️',
+            '👷🏾‍♀️',
+            '👷🏽‍♀️',
+            '👷🏼‍♀️',
+            '👷🏻‍♀️',
+        ],
+    },
+    {
+        name: 'prince',
+        code: '🤴',
+        keywords: [
+            'crown',
+            'royal',
+            'prince',
+        ],
+        types: [
+            '🤴🏿',
+            '🤴🏾',
+            '🤴🏽',
+            '🤴🏼',
+            '🤴🏻',
+        ],
+    },
+    {
+        name: 'princess',
+        code: '👸',
+        keywords: [
+            'crown',
+            'royal',
+            'princess',
+            'fairy tale',
+            'fantasy',
+        ],
+        types: [
+            '👸🏿',
+            '👸🏾',
+            '👸🏽',
+            '👸🏼',
+            '👸🏻',
+        ],
+    },
+    {
+        name: 'person_with_turban',
+        code: '👳',
+        keywords: [
+            'person_with_turban',
+            'man',
+            'turban',
+        ],
+        types: [
+            '👳🏿',
+            '👳🏾',
+            '👳🏽',
+            '👳🏼',
+            '👳🏻',
+        ],
+    },
+    {
+        name: 'man_with_turban',
+        code: '👳‍♂️',
+        keywords: [
+            'man_with_turban',
+        ],
+        types: [
+            '👳🏿‍♂️',
+            '👳🏾‍♂️',
+            '👳🏽‍♂️',
+            '👳🏼‍♂️',
+            '👳🏻‍♂️',
+        ],
+    },
+    {
+        name: 'woman_with_turban',
+        code: '👳‍♀️',
+        keywords: [
+            'woman_with_turban',
+        ],
+        types: [
+            '👳🏿‍♀️',
+            '👳🏾‍♀️',
+            '👳🏽‍♀️',
+            '👳🏼‍♀️',
+            '👳🏻‍♀️',
+        ],
+    },
+    {
+        name: 'man_with_gua_pi_mao',
+        code: '👲',
+        keywords: [
+            'man_with_gua_pi_mao',
+            'gua pi mao',
+            'hat',
+            'man',
+        ],
+        types: [
+            '👲🏿',
+            '👲🏾',
+            '👲🏽',
+            '👲🏼',
+            '👲🏻',
+        ],
+    },
+    {
+        name: 'woman_with_headscarf',
+        code: '🧕',
+        keywords: [
+            'hijab',
+            'woman_with_headscarf',
+        ],
+        types: [
+            '🧕🏿',
+            '🧕🏾',
+            '🧕🏽',
+            '🧕🏼',
+            '🧕🏻',
+        ],
+    },
+    {
+        name: 'person_in_tuxedo',
+        code: '🤵',
+        keywords: [
+            'groom',
+            'marriage',
+            'wedding',
+            'person_in_tuxedo',
+            'man',
+            'tuxedo',
+        ],
+        types: [
+            '🤵🏿',
+            '🤵🏾',
+            '🤵🏽',
+            '🤵🏼',
+            '🤵🏻',
+        ],
+    },
+    {
+        name: 'man_in_tuxedo',
+        code: '🤵‍♂️',
+        keywords: [
+            'man_in_tuxedo',
+        ],
+        types: [
+            '🤵🏿‍♂️',
+            '🤵🏾‍♂️',
+            '🤵🏽‍♂️',
+            '🤵🏼‍♂️',
+            '🤵🏻‍♂️',
+        ],
+    },
+    {
+        name: 'woman_in_tuxedo',
+        code: '🤵‍♀️',
+        keywords: [
+            'woman_in_tuxedo',
+        ],
+        types: [
+            '🤵🏿‍♀️',
+            '🤵🏾‍♀️',
+            '🤵🏽‍♀️',
+            '🤵🏼‍♀️',
+            '🤵🏻‍♀️',
+        ],
+    },
+    {
+        name: 'person_with_veil',
+        code: '👰',
+        keywords: [
+            'marriage',
+            'wedding',
+            'person_with_veil',
+            'bride',
+            'veil',
+        ],
+        types: [
+            '👰🏿',
+            '👰🏾',
+            '👰🏽',
+            '👰🏼',
+            '👰🏻',
+        ],
+    },
+    {
+        name: 'man_with_veil',
+        code: '👰‍♂️',
+        keywords: [
+            'man_with_veil',
+        ],
+        types: [
+            '👰🏿‍♂️',
+            '👰🏾‍♂️',
+            '👰🏽‍♂️',
+            '👰🏼‍♂️',
+            '👰🏻‍♂️',
+        ],
+    },
+    {
+        name: 'woman_with_veil',
+        code: '👰‍♀️',
+        keywords: [
+            'woman_with_veil',
+            'bride_with_veil',
+        ],
+        types: [
+            '👰🏿‍♀️',
+            '👰🏾‍♀️',
+            '👰🏽‍♀️',
+            '👰🏼‍♀️',
+            '👰🏻‍♀️',
+        ],
+    },
+    {
+        name: 'pregnant_woman',
+        code: '🤰',
+        keywords: [
+            'pregnant_woman',
+            'pregnant',
+            'woman',
+        ],
+        types: [
+            '🤰🏿',
+            '🤰🏾',
+            '🤰🏽',
+            '🤰🏼',
+            '🤰🏻',
+        ],
+    },
+    {
+        name: 'breast_feeding',
+        code: '🤱',
+        keywords: [
+            'nursing',
+            'breast_feeding',
+        ],
+        types: [
+            '🤱🏿',
+            '🤱🏾',
+            '🤱🏽',
+            '🤱🏼',
+            '🤱🏻',
+        ],
+    },
+    {
+        name: 'woman_feeding_baby',
+        code: '👩‍🍼',
+        keywords: [
+            'woman_feeding_baby',
+        ],
+        types: [
+            '👩🏿‍🍼',
+            '👩🏾‍🍼',
+            '👩🏽‍🍼',
+            '👩🏼‍🍼',
+            '👩🏻‍🍼',
+        ],
+    },
+    {
+        name: 'man_feeding_baby',
+        code: '👨‍🍼',
+        keywords: [
+            'man_feeding_baby',
+        ],
+        types: [
+            '👨🏿‍🍼',
+            '👨🏾‍🍼',
+            '👨🏽‍🍼',
+            '👨🏼‍🍼',
+            '👨🏻‍🍼',
+        ],
+    },
+    {
+        name: 'person_feeding_baby',
+        code: '🧑‍🍼',
+        keywords: [
+            'person_feeding_baby',
+        ],
+        types: [
+            '🧑🏿‍🍼',
+            '🧑🏾‍🍼',
+            '🧑🏽‍🍼',
+            '🧑🏼‍🍼',
+            '🧑🏻‍🍼',
+        ],
+    },
+    {
+        name: 'angel',
+        code: '👼',
+        keywords: [
+            'angel',
+            'baby',
             'face',
-            'horse',
+            'fairy tale',
+            'fantasy',
         ],
-        name: 'horse',
+        types: [
+            '👼🏿',
+            '👼🏾',
+            '👼🏽',
+            '👼🏼',
+            '👼🏻',
+        ],
     },
     {
-        code: '🐎',
+        name: 'santa',
+        code: '🎅',
         keywords: [
+            'christmas',
+            'santa',
+            'activity',
+            'celebration',
+            'fairy tale',
+            'fantasy',
+            'father',
+        ],
+        types: [
+            '🎅🏿',
+            '🎅🏾',
+            '🎅🏽',
+            '🎅🏼',
+            '🎅🏻',
+        ],
+    },
+    {
+        name: 'mrs_claus',
+        code: '🤶',
+        keywords: [
+            'santa',
+            'mrs_claus',
+            'christmas',
+            'mother',
+            'mrs. claus',
+        ],
+        types: [
+            '🤶🏿',
+            '🤶🏾',
+            '🤶🏽',
+            '🤶🏼',
+            '🤶🏻',
+        ],
+    },
+    {
+        name: 'mx_claus',
+        code: '🧑‍🎄',
+        keywords: [
+            'mx_claus',
+        ],
+        types: [
+            '🧑🏿‍🎄',
+            '🧑🏾‍🎄',
+            '🧑🏽‍🎄',
+            '🧑🏼‍🎄',
+            '🧑🏻‍🎄',
+        ],
+    },
+    {
+        name: 'superhero',
+        code: '🦸',
+        keywords: [
+            'superhero',
+        ],
+        types: [
+            '🦸🏿',
+            '🦸🏾',
+            '🦸🏽',
+            '🦸🏼',
+            '🦸🏻',
+        ],
+    },
+    {
+        name: 'superhero_man',
+        code: '🦸‍♂️',
+        keywords: [
+            'superhero_man',
+        ],
+        types: [
+            '🦸🏿‍♂️',
+            '🦸🏾‍♂️',
+            '🦸🏽‍♂️',
+            '🦸🏼‍♂️',
+            '🦸🏻‍♂️',
+        ],
+    },
+    {
+        name: 'superhero_woman',
+        code: '🦸‍♀️',
+        keywords: [
+            'superhero_woman',
+        ],
+        types: [
+            '🦸🏿‍♀️',
+            '🦸🏾‍♀️',
+            '🦸🏽‍♀️',
+            '🦸🏼‍♀️',
+            '🦸🏻‍♀️',
+        ],
+    },
+    {
+        name: 'supervillain',
+        code: '🦹',
+        keywords: [
+            'supervillain',
+        ],
+        types: [
+            '🦹🏿',
+            '🦹🏾',
+            '🦹🏽',
+            '🦹🏼',
+            '🦹🏻',
+        ],
+    },
+    {
+        name: 'supervillain_man',
+        code: '🦹‍♂️',
+        keywords: [
+            'supervillain_man',
+        ],
+        types: [
+            '🦹🏿‍♂️',
+            '🦹🏾‍♂️',
+            '🦹🏽‍♂️',
+            '🦹🏼‍♂️',
+            '🦹🏻‍♂️',
+        ],
+    },
+    {
+        name: 'supervillain_woman',
+        code: '🦹‍♀️',
+        keywords: [
+            'supervillain_woman',
+        ],
+        types: [
+            '🦹🏿‍♀️',
+            '🦹🏾‍♀️',
+            '🦹🏽‍♀️',
+            '🦹🏼‍♀️',
+            '🦹🏻‍♀️',
+        ],
+    },
+    {
+        name: 'mage',
+        code: '🧙',
+        keywords: [
+            'wizard',
+            'mage',
+        ],
+        types: [
+            '🧙🏿',
+            '🧙🏾',
+            '🧙🏽',
+            '🧙🏼',
+            '🧙🏻',
+        ],
+    },
+    {
+        name: 'mage_man',
+        code: '🧙‍♂️',
+        keywords: [
+            'wizard',
+            'mage_man',
+        ],
+        types: [
+            '🧙🏿‍♂️',
+            '🧙🏾‍♂️',
+            '🧙🏽‍♂️',
+            '🧙🏼‍♂️',
+            '🧙🏻‍♂️',
+        ],
+    },
+    {
+        name: 'mage_woman',
+        code: '🧙‍♀️',
+        keywords: [
+            'wizard',
+            'mage_woman',
+        ],
+        types: [
+            '🧙🏿‍♀️',
+            '🧙🏾‍♀️',
+            '🧙🏽‍♀️',
+            '🧙🏼‍♀️',
+            '🧙🏻‍♀️',
+        ],
+    },
+    {
+        name: 'fairy',
+        code: '🧚',
+        keywords: [
+            'fairy',
+        ],
+        types: [
+            '🧚🏿',
+            '🧚🏾',
+            '🧚🏽',
+            '🧚🏼',
+            '🧚🏻',
+        ],
+    },
+    {
+        name: 'fairy_man',
+        code: '🧚‍♂️',
+        keywords: [
+            'fairy_man',
+        ],
+        types: [
+            '🧚🏿‍♂️',
+            '🧚🏾‍♂️',
+            '🧚🏽‍♂️',
+            '🧚🏼‍♂️',
+            '🧚🏻‍♂️',
+        ],
+    },
+    {
+        name: 'fairy_woman',
+        code: '🧚‍♀️',
+        keywords: [
+            'fairy_woman',
+        ],
+        types: [
+            '🧚🏿‍♀️',
+            '🧚🏾‍♀️',
+            '🧚🏽‍♀️',
+            '🧚🏼‍♀️',
+            '🧚🏻‍♀️',
+        ],
+    },
+    {
+        name: 'vampire',
+        code: '🧛',
+        keywords: [
+            'vampire',
+        ],
+        types: [
+            '🧛🏿',
+            '🧛🏾',
+            '🧛🏽',
+            '🧛🏼',
+            '🧛🏻',
+        ],
+    },
+    {
+        name: 'vampire_man',
+        code: '🧛‍♂️',
+        keywords: [
+            'vampire_man',
+        ],
+        types: [
+            '🧛🏿‍♂️',
+            '🧛🏾‍♂️',
+            '🧛🏽‍♂️',
+            '🧛🏼‍♂️',
+            '🧛🏻‍♂️',
+        ],
+    },
+    {
+        name: 'vampire_woman',
+        code: '🧛‍♀️',
+        keywords: [
+            'vampire_woman',
+        ],
+        types: [
+            '🧛🏿‍♀️',
+            '🧛🏾‍♀️',
+            '🧛🏽‍♀️',
+            '🧛🏼‍♀️',
+            '🧛🏻‍♀️',
+        ],
+    },
+    {
+        name: 'merperson',
+        code: '🧜',
+        keywords: [
+            'merperson',
+        ],
+        types: [
+            '🧜🏿',
+            '🧜🏾',
+            '🧜🏽',
+            '🧜🏼',
+            '🧜🏻',
+        ],
+    },
+    {
+        name: 'merman',
+        code: '🧜‍♂️',
+        keywords: [
+            'merman',
+        ],
+        types: [
+            '🧜🏿‍♂️',
+            '🧜🏾‍♂️',
+            '🧜🏽‍♂️',
+            '🧜🏼‍♂️',
+            '🧜🏻‍♂️',
+        ],
+    },
+    {
+        name: 'mermaid',
+        code: '🧜‍♀️',
+        keywords: [
+            'mermaid',
+        ],
+        types: [
+            '🧜🏿‍♀️',
+            '🧜🏾‍♀️',
+            '🧜🏽‍♀️',
+            '🧜🏼‍♀️',
+            '🧜🏻‍♀️',
+        ],
+    },
+    {
+        name: 'elf',
+        code: '🧝',
+        keywords: [
+            'elf',
+        ],
+        types: [
+            '🧝🏿',
+            '🧝🏾',
+            '🧝🏽',
+            '🧝🏼',
+            '🧝🏻',
+        ],
+    },
+    {
+        name: 'elf_man',
+        code: '🧝‍♂️',
+        keywords: [
+            'elf_man',
+        ],
+        types: [
+            '🧝🏿‍♂️',
+            '🧝🏾‍♂️',
+            '🧝🏽‍♂️',
+            '🧝🏼‍♂️',
+            '🧝🏻‍♂️',
+        ],
+    },
+    {
+        name: 'elf_woman',
+        code: '🧝‍♀️',
+        keywords: [
+            'elf_woman',
+        ],
+        types: [
+            '🧝🏿‍♀️',
+            '🧝🏾‍♀️',
+            '🧝🏽‍♀️',
+            '🧝🏼‍♀️',
+            '🧝🏻‍♀️',
+        ],
+    },
+    {
+        name: 'genie',
+        code: '🧞',
+        keywords: [
+            'genie',
+        ],
+    },
+    {
+        name: 'genie_man',
+        code: '🧞‍♂️',
+        keywords: [
+            'genie_man',
+        ],
+    },
+    {
+        name: 'genie_woman',
+        code: '🧞‍♀️',
+        keywords: [
+            'genie_woman',
+        ],
+    },
+    {
+        name: 'zombie',
+        code: '🧟',
+        keywords: [
+            'zombie',
+        ],
+    },
+    {
+        name: 'zombie_man',
+        code: '🧟‍♂️',
+        keywords: [
+            'zombie_man',
+        ],
+    },
+    {
+        name: 'zombie_woman',
+        code: '🧟‍♀️',
+        keywords: [
+            'zombie_woman',
+        ],
+    },
+    {
+        name: 'massage',
+        code: '💆',
+        keywords: [
+            'spa',
+            'massage',
+            'salon',
+        ],
+        types: [
+            '💆🏿',
+            '💆🏾',
+            '💆🏽',
+            '💆🏼',
+            '💆🏻',
+        ],
+    },
+    {
+        name: 'massage_man',
+        code: '💆‍♂️',
+        keywords: [
+            'spa',
+            'massage_man',
+        ],
+        types: [
+            '💆🏿‍♂️',
+            '💆🏾‍♂️',
+            '💆🏽‍♂️',
+            '💆🏼‍♂️',
+            '💆🏻‍♂️',
+        ],
+    },
+    {
+        name: 'massage_woman',
+        code: '💆‍♀️',
+        keywords: [
+            'spa',
+            'massage_woman',
+        ],
+        types: [
+            '💆🏿‍♀️',
+            '💆🏾‍♀️',
+            '💆🏽‍♀️',
+            '💆🏼‍♀️',
+            '💆🏻‍♀️',
+        ],
+    },
+    {
+        name: 'haircut',
+        code: '💇',
+        keywords: [
+            'beauty',
+            'haircut',
+            'barber',
+            'parlor',
+        ],
+        types: [
+            '💇🏿',
+            '💇🏾',
+            '💇🏽',
+            '💇🏼',
+            '💇🏻',
+        ],
+    },
+    {
+        name: 'haircut_man',
+        code: '💇‍♂️',
+        keywords: [
+            'haircut_man',
+        ],
+        types: [
+            '💇🏿‍♂️',
+            '💇🏾‍♂️',
+            '💇🏽‍♂️',
+            '💇🏼‍♂️',
+            '💇🏻‍♂️',
+        ],
+    },
+    {
+        name: 'haircut_woman',
+        code: '💇‍♀️',
+        keywords: [
+            'haircut_woman',
+        ],
+        types: [
+            '💇🏿‍♀️',
+            '💇🏾‍♀️',
+            '💇🏽‍♀️',
+            '💇🏼‍♀️',
+            '💇🏻‍♀️',
+        ],
+    },
+    {
+        name: 'walking',
+        code: '🚶',
+        keywords: [
+            'walking',
+            'hike',
+            'pedestrian',
+            'walk',
+        ],
+        types: [
+            '🚶🏿',
+            '🚶🏾',
+            '🚶🏽',
+            '🚶🏼',
+            '🚶🏻',
+        ],
+    },
+    {
+        name: 'walking_man',
+        code: '🚶‍♂️',
+        keywords: [
+            'walking_man',
+        ],
+        types: [
+            '🚶🏿‍♂️',
+            '🚶🏾‍♂️',
+            '🚶🏽‍♂️',
+            '🚶🏼‍♂️',
+            '🚶🏻‍♂️',
+        ],
+    },
+    {
+        name: 'walking_woman',
+        code: '🚶‍♀️',
+        keywords: [
+            'walking_woman',
+        ],
+        types: [
+            '🚶🏿‍♀️',
+            '🚶🏾‍♀️',
+            '🚶🏽‍♀️',
+            '🚶🏼‍♀️',
+            '🚶🏻‍♀️',
+        ],
+    },
+    {
+        name: 'standing_person',
+        code: '🧍',
+        keywords: [
+            'standing_person',
+        ],
+        types: [
+            '🧍🏿',
+            '🧍🏾',
+            '🧍🏽',
+            '🧍🏼',
+            '🧍🏻',
+        ],
+    },
+    {
+        name: 'standing_man',
+        code: '🧍‍♂️',
+        keywords: [
+            'standing_man',
+        ],
+        types: [
+            '🧍🏿‍♂️',
+            '🧍🏾‍♂️',
+            '🧍🏽‍♂️',
+            '🧍🏼‍♂️',
+            '🧍🏻‍♂️',
+        ],
+    },
+    {
+        name: 'standing_woman',
+        code: '🧍‍♀️',
+        keywords: [
+            'standing_woman',
+        ],
+        types: [
+            '🧍🏿‍♀️',
+            '🧍🏾‍♀️',
+            '🧍🏽‍♀️',
+            '🧍🏼‍♀️',
+            '🧍🏻‍♀️',
+        ],
+    },
+    {
+        name: 'kneeling_person',
+        code: '🧎',
+        keywords: [
+            'kneeling_person',
+        ],
+        types: [
+            '🧎🏿',
+            '🧎🏾',
+            '🧎🏽',
+            '🧎🏼',
+            '🧎🏻',
+        ],
+    },
+    {
+        name: 'kneeling_man',
+        code: '🧎‍♂️',
+        keywords: [
+            'kneeling_man',
+        ],
+        types: [
+            '🧎🏿‍♂️',
+            '🧎🏾‍♂️',
+            '🧎🏽‍♂️',
+            '🧎🏼‍♂️',
+            '🧎🏻‍♂️',
+        ],
+    },
+    {
+        name: 'kneeling_woman',
+        code: '🧎‍♀️',
+        keywords: [
+            'kneeling_woman',
+        ],
+        types: [
+            '🧎🏿‍♀️',
+            '🧎🏾‍♀️',
+            '🧎🏽‍♀️',
+            '🧎🏼‍♀️',
+            '🧎🏻‍♀️',
+        ],
+    },
+    {
+        name: 'person_with_probing_cane',
+        code: '🧑‍🦯',
+        keywords: [
+            'person_with_probing_cane',
+        ],
+        types: [
+            '🧑🏿‍🦯',
+            '🧑🏾‍🦯',
+            '🧑🏽‍🦯',
+            '🧑🏼‍🦯',
+            '🧑🏻‍🦯',
+        ],
+    },
+    {
+        name: 'man_with_probing_cane',
+        code: '👨‍🦯',
+        keywords: [
+            'man_with_probing_cane',
+        ],
+        types: [
+            '👨🏿‍🦯',
+            '👨🏾‍🦯',
+            '👨🏽‍🦯',
+            '👨🏼‍🦯',
+            '👨🏻‍🦯',
+        ],
+    },
+    {
+        name: 'woman_with_probing_cane',
+        code: '👩‍🦯',
+        keywords: [
+            'woman_with_probing_cane',
+        ],
+        types: [
+            '👩🏿‍🦯',
+            '👩🏾‍🦯',
+            '👩🏽‍🦯',
+            '👩🏼‍🦯',
+            '👩🏻‍🦯',
+        ],
+    },
+    {
+        name: 'person_in_motorized_wheelchair',
+        code: '🧑‍🦼',
+        keywords: [
+            'person_in_motorized_wheelchair',
+        ],
+        types: [
+            '🧑🏿‍🦼',
+            '🧑🏾‍🦼',
+            '🧑🏽‍🦼',
+            '🧑🏼‍🦼',
+            '🧑🏻‍🦼',
+        ],
+    },
+    {
+        name: 'man_in_motorized_wheelchair',
+        code: '👨‍🦼',
+        keywords: [
+            'man_in_motorized_wheelchair',
+        ],
+        types: [
+            '👨🏿‍🦼',
+            '👨🏾‍🦼',
+            '👨🏽‍🦼',
+            '👨🏼‍🦼',
+            '👨🏻‍🦼',
+        ],
+    },
+    {
+        name: 'woman_in_motorized_wheelchair',
+        code: '👩‍🦼',
+        keywords: [
+            'woman_in_motorized_wheelchair',
+        ],
+        types: [
+            '👩🏿‍🦼',
+            '👩🏾‍🦼',
+            '👩🏽‍🦼',
+            '👩🏼‍🦼',
+            '👩🏻‍🦼',
+        ],
+    },
+    {
+        name: 'person_in_manual_wheelchair',
+        code: '🧑‍🦽',
+        keywords: [
+            'person_in_manual_wheelchair',
+        ],
+        types: [
+            '🧑🏿‍🦽',
+            '🧑🏾‍🦽',
+            '🧑🏽‍🦽',
+            '🧑🏼‍🦽',
+            '🧑🏻‍🦽',
+        ],
+    },
+    {
+        name: 'man_in_manual_wheelchair',
+        code: '👨‍🦽',
+        keywords: [
+            'man_in_manual_wheelchair',
+        ],
+        types: [
+            '👨🏿‍🦽',
+            '👨🏾‍🦽',
+            '👨🏽‍🦽',
+            '👨🏼‍🦽',
+            '👨🏻‍🦽',
+        ],
+    },
+    {
+        name: 'woman_in_manual_wheelchair',
+        code: '👩‍🦽',
+        keywords: [
+            'woman_in_manual_wheelchair',
+        ],
+        types: [
+            '👩🏿‍🦽',
+            '👩🏾‍🦽',
+            '👩🏽‍🦽',
+            '👩🏼‍🦽',
+            '👩🏻‍🦽',
+        ],
+    },
+    {
+        name: 'runner',
+        code: '🏃',
+        keywords: [
+            'exercise',
+            'workout',
+            'marathon',
+            'runner',
+            'running',
+        ],
+        types: [
+            '🏃🏿',
+            '🏃🏾',
+            '🏃🏽',
+            '🏃🏼',
+            '🏃🏻',
+        ],
+    },
+    {
+        name: 'running_man',
+        code: '🏃‍♂️',
+        keywords: [
+            'exercise',
+            'workout',
+            'marathon',
+            'running_man',
+        ],
+        types: [
+            '🏃🏿‍♂️',
+            '🏃🏾‍♂️',
+            '🏃🏽‍♂️',
+            '🏃🏼‍♂️',
+            '🏃🏻‍♂️',
+        ],
+    },
+    {
+        name: 'running_woman',
+        code: '🏃‍♀️',
+        keywords: [
+            'exercise',
+            'workout',
+            'marathon',
+            'running_woman',
+        ],
+        types: [
+            '🏃🏿‍♀️',
+            '🏃🏾‍♀️',
+            '🏃🏽‍♀️',
+            '🏃🏼‍♀️',
+            '🏃🏻‍♀️',
+        ],
+    },
+    {
+        name: 'woman_dancing',
+        code: '💃',
+        keywords: [
+            'dress',
+            'woman_dancing',
+            'dancer',
+        ],
+        types: [
+            '💃🏿',
+            '💃🏾',
+            '💃🏽',
+            '💃🏼',
+            '💃🏻',
+        ],
+    },
+    {
+        name: 'man_dancing',
+        code: '🕺',
+        keywords: [
+            'dancer',
+            'man_dancing',
+            'dance',
+            'man',
+        ],
+        types: [
+            '🕺🏿',
+            '🕺🏾',
+            '🕺🏽',
+            '🕺🏼',
+            '🕺🏻',
+        ],
+    },
+    {
+        name: 'business_suit_levitating',
+        code: '🕴️',
+        keywords: [
+            'business_suit_levitating',
+        ],
+        types: [
+            '🕴🏿',
+            '🕴🏾',
+            '🕴🏽',
+            '🕴🏼',
+            '🕴🏻',
+        ],
+    },
+    {
+        name: 'dancers',
+        code: '👯',
+        keywords: [
+            'bunny',
+            'dancers',
+            'dancer',
+            'ear',
+            'girl',
+            'woman',
+        ],
+    },
+    {
+        name: 'dancing_men',
+        code: '👯‍♂️',
+        keywords: [
+            'bunny',
+            'dancing_men',
+        ],
+    },
+    {
+        name: 'dancing_women',
+        code: '👯‍♀️',
+        keywords: [
+            'bunny',
+            'dancing_women',
+        ],
+    },
+    {
+        name: 'sauna_person',
+        code: '🧖',
+        keywords: [
+            'steamy',
+            'sauna_person',
+        ],
+        types: [
+            '🧖🏿',
+            '🧖🏾',
+            '🧖🏽',
+            '🧖🏼',
+            '🧖🏻',
+        ],
+    },
+    {
+        name: 'sauna_man',
+        code: '🧖‍♂️',
+        keywords: [
+            'steamy',
+            'sauna_man',
+        ],
+        types: [
+            '🧖🏿‍♂️',
+            '🧖🏾‍♂️',
+            '🧖🏽‍♂️',
+            '🧖🏼‍♂️',
+            '🧖🏻‍♂️',
+        ],
+    },
+    {
+        name: 'sauna_woman',
+        code: '🧖‍♀️',
+        keywords: [
+            'steamy',
+            'sauna_woman',
+        ],
+        types: [
+            '🧖🏿‍♀️',
+            '🧖🏾‍♀️',
+            '🧖🏽‍♀️',
+            '🧖🏼‍♀️',
+            '🧖🏻‍♀️',
+        ],
+    },
+    {
+        name: 'climbing',
+        code: '🧗',
+        keywords: [
+            'bouldering',
+            'climbing',
+        ],
+        types: [
+            '🧗🏿',
+            '🧗🏾',
+            '🧗🏽',
+            '🧗🏼',
+            '🧗🏻',
+        ],
+    },
+    {
+        name: 'climbing_man',
+        code: '🧗‍♂️',
+        keywords: [
+            'bouldering',
+            'climbing_man',
+        ],
+        types: [
+            '🧗🏿‍♂️',
+            '🧗🏾‍♂️',
+            '🧗🏽‍♂️',
+            '🧗🏼‍♂️',
+            '🧗🏻‍♂️',
+        ],
+    },
+    {
+        name: 'climbing_woman',
+        code: '🧗‍♀️',
+        keywords: [
+            'bouldering',
+            'climbing_woman',
+        ],
+        types: [
+            '🧗🏿‍♀️',
+            '🧗🏾‍♀️',
+            '🧗🏽‍♀️',
+            '🧗🏼‍♀️',
+            '🧗🏻‍♀️',
+        ],
+    },
+    {
+        name: 'person_fencing',
+        code: '🤺',
+        keywords: [
+            'person_fencing',
+            'fencer',
+            'fencing',
+            'sword',
+        ],
+    },
+    {
+        name: 'horse_racing',
+        code: '🏇',
+        keywords: [
+            'horse_racing',
             'horse',
+            'jockey',
             'racehorse',
             'racing',
         ],
-        name: 'racehorse',
-    },
-    {
-        code: '🦌',
-        keywords: [
-            'deer',
-        ],
-        name: 'deer',
-    },
-    {
-        code: '🦄',
-        keywords: [
-            'face',
-            'unicorn',
-        ],
-        name: 'unicorn',
-    },
-    {
-        code: '🐮',
-        keywords: [
-            'cow',
-            'face',
-        ],
-        name: 'cow',
-    },
-    {
-        code: '🐂',
-        keywords: [
-            'bull',
-            'ox',
-            'taurus',
-            'zodiac',
-        ],
-        name: 'ox',
-    },
-    {
-        code: '🐃',
-        keywords: [
-            'buffalo',
-            'water',
-        ],
-        name: 'water_buffalo',
-    },
-    {
-        code: '🐄',
-        keywords: [
-            'cow',
-        ],
-        name: 'cow2',
-    },
-    {
-        code: '🐷',
-        keywords: [
-            'face',
-            'pig',
-        ],
-        name: 'pig',
-    },
-    {
-        code: '🐖',
-        keywords: [
-            'pig',
-            'sow',
-        ],
-        name: 'pig2',
-    },
-    {
-        code: '🐗',
-        keywords: [
-            'boar',
-            'pig',
-        ],
-        name: 'boar',
-    },
-    {
-        code: '🐽',
-        keywords: [
-            'face',
-            'nose',
-            'pig',
-        ],
-        name: 'pig_nose',
-    },
-    {
-        code: '🐏',
-        keywords: [
-            'aries',
-            'ram',
-            'sheep',
-            'zodiac',
-        ],
-        name: 'ram',
-    },
-    {
-        code: '🐑',
-        keywords: [
-            'ewe',
-            'sheep',
-        ],
-        name: 'sheep',
-    },
-    {
-        code: '🐐',
-        keywords: [
-            'capricorn',
-            'goat',
-            'zodiac',
-        ],
-        name: 'goat',
-    },
-    {
-        code: '🐪',
-        keywords: [
-            'camel',
-            'dromedary',
-            'hump',
-        ],
-        name: 'dromedary_camel',
-    },
-    {
-        code: '🐫',
-        keywords: [
-            'bactrian',
-            'camel',
-            'hump',
-        ],
-        name: 'camel',
-    },
-    {
-        code: '🐘',
-        keywords: [
-            'elephant',
-        ],
-        name: 'elephant',
-    },
-    {
-        code: '🦏',
-        keywords: [
-            'rhinoceros',
-        ],
-        name: 'rhinoceros',
-    },
-    {
-        code: '🐭',
-        keywords: [
-            'face',
-            'mouse',
-        ],
-        name: 'mouse',
-    },
-    {
-        code: '🐁',
-        keywords: [
-            'mouse',
-        ],
-        name: 'mouse2',
-    },
-    {
-        code: '🐀',
-        keywords: [
-            'rat',
-        ],
-        name: 'rat',
-    },
-    {
-        code: '🐹',
-        keywords: [
-            'face',
-            'hamster',
-            'pet',
-        ],
-        name: 'hamster',
-    },
-    {
-        code: '🐰',
-        keywords: [
-            'bunny',
-            'face',
-            'pet',
-            'rabbit',
-        ],
-        name: 'rabbit',
-    },
-    {
-        code: '🐇',
-        keywords: [
-            'bunny',
-            'pet',
-            'rabbit',
-        ],
-        name: 'rabbit2',
-    },
-    {
-        code: '🐿',
-        keywords: [
-            'chipmunk',
-        ],
-        name: 'chipmunk',
-    },
-    {
-        code: '🦇',
-        keywords: [
-            'bat',
-            'vampire',
-        ],
-        name: 'bat',
-    },
-    {
-        code: '🐻',
-        keywords: [
-            'bear',
-            'face',
-        ],
-        name: 'bear',
-    },
-    {
-        code: '🐨',
-        keywords: [
-            'bear',
-            'koala',
-        ],
-        name: 'koala',
-    },
-    {
-        code: '🐼',
-        keywords: [
-            'face',
-            'panda',
-        ],
-        name: 'panda_face',
-    },
-    {
-        code: '🐾',
-        keywords: [
-            'feet',
-            'paw',
-            'print',
-        ],
-        name: 'feet',
-    },
-    {
-        code: '🦃',
-        keywords: [
-            'turkey',
-        ],
-        name: 'turkey',
-    },
-    {
-        code: '🐔',
-        keywords: [
-            'chicken',
-        ],
-        name: 'chicken',
-    },
-    {
-        code: '🐓',
-        keywords: [
-            'rooster',
-        ],
-        name: 'rooster',
-    },
-    {
-        code: '🐣',
-        keywords: [
-            'baby',
-            'chick',
-            'hatching',
-        ],
-        name: 'hatching_chick',
-    },
-    {
-        code: '🐤',
-        keywords: [
-            'baby',
-            'chick',
-        ],
-        name: 'baby_chick',
-    },
-    {
-        code: '🐥',
-        keywords: [
-            'baby',
-            'chick',
-        ],
-        name: 'hatched_chick',
-    },
-    {
-        code: '🐦',
-        keywords: [
-            'bird',
-        ],
-        name: 'bird',
-    },
-    {
-        code: '🐧',
-        keywords: [
-            'penguin',
-        ],
-        name: 'penguin',
-    },
-    {
-        code: '🕊',
-        keywords: [
-            'bird',
-            'dove',
-            'fly',
-            'peace',
-        ],
-        name: 'dove',
-    },
-    {
-        code: '🦅',
-        keywords: [
-            'bird',
-            'eagle',
-        ],
-        name: 'eagle',
-    },
-    {
-        code: '🦆',
-        keywords: [
-            'bird',
-            'duck',
-        ],
-        name: 'duck',
-    },
-    {
-        code: '🦉',
-        keywords: [
-            'bird',
-            'owl',
-            'wise',
-        ],
-        name: 'owl',
-    },
-    {
-        code: '🐸',
-        keywords: [
-            'face',
-            'frog',
-        ],
-        name: 'frog',
-    },
-    {
-        code: '🐊',
-        keywords: [
-            'crocodile',
-        ],
-        name: 'crocodile',
-    },
-    {
-        code: '🐢',
-        keywords: [
-            'turtle',
-        ],
-        name: 'turtle',
-    },
-    {
-        code: '🦎',
-        keywords: [
-            'lizard',
-            'reptile',
-        ],
-        name: 'lizard',
-    },
-    {
-        code: '🐍',
-        keywords: [
-            'bearer',
-            'ophiuchus',
-            'serpent',
-            'snake',
-            'zodiac',
-        ],
-        name: 'snake',
-    },
-    {
-        code: '🐲',
-        keywords: [
-            'dragon',
-            'face',
-            'fairy tale',
-        ],
-        name: 'dragon_face',
-    },
-    {
-        code: '🐉',
-        keywords: [
-            'dragon',
-            'fairy tale',
-        ],
-        name: 'dragon',
-    },
-    {
-        code: '🐳',
-        keywords: [
-            'face',
-            'spouting',
-            'whale',
-        ],
-        name: 'whale',
-    },
-    {
-        code: '🐋',
-        keywords: [
-            'whale',
-        ],
-        name: 'whale2',
-    },
-    {
-        code: '🐬',
-        keywords: [
-            'dolphin',
-            'flipper',
-        ],
-        name: 'dolphin',
-    },
-    {
-        code: '🐟',
-        keywords: [
-            'fish',
-            'pisces',
-            'zodiac',
-        ],
-        name: 'fish',
-    },
-    {
-        code: '🐠',
-        keywords: [
-            'fish',
-            'tropical',
-        ],
-        name: 'tropical_fish',
-    },
-    {
-        code: '🐡',
-        keywords: [
-            'blowfish',
-            'fish',
-        ],
-        name: 'blowfish',
-    },
-    {
-        code: '🦈',
-        keywords: [
-            'fish',
-            'shark',
-        ],
-        name: 'shark',
-    },
-    {
-        code: '🐙',
-        keywords: [
-            'octopus',
-        ],
-        name: 'octopus',
-    },
-    {
-        code: '🐚',
-        keywords: [
-            'shell',
-            'spiral',
-        ],
-        name: 'shell',
-    },
-    {
-        code: '🦀',
-        keywords: [
-            'cancer',
-            'crab',
-            'zodiac',
-        ],
-        name: 'crab',
-    },
-    {
-        code: '🦐',
-        keywords: [
-            'shellfish',
-            'shrimp',
-            'small',
-        ],
-        name: 'shrimp',
-    },
-    {
-        code: '🦑',
-        keywords: [
-            'molusc',
-            'squid',
-        ],
-        name: 'squid',
-    },
-    {
-        code: '🦋',
-        keywords: [
-            'butterfly',
-            'insect',
-            'pretty',
-        ],
-        name: 'butterfly',
-    },
-    {
-        code: '🐌',
-        keywords: [
-            'snail',
-        ],
-        name: 'snail',
-    },
-    {
-        code: '🐛',
-        keywords: [
-            'bug',
-            'insect',
-        ],
-        name: 'bug',
-    },
-    {
-        code: '🐜',
-        keywords: [
-            'ant',
-            'insect',
-        ],
-        name: 'ant',
-    },
-    {
-        code: '🐝',
-        keywords: [
-            'bee',
-            'honeybee',
-            'insect',
-        ],
-        name: 'bee',
-    },
-    {
-        code: '🐞',
-        keywords: [
-            'beetle',
-            'insect',
-            'lady beetle',
-            'ladybird',
-            'ladybug',
-        ],
-        name: 'lady_beetle',
-    },
-    {
-        code: '🕷',
-        keywords: [
-            'insect',
-            'spider',
-        ],
-        name: 'spider',
-    },
-    {
-        code: '🕸',
-        keywords: [
-            'spider',
-            'web',
-        ],
-        name: 'spider_web',
-    },
-    {
-        code: '🦂',
-        keywords: [
-            'scorpio',
-            'scorpion',
-            'scorpius',
-            'zodiac',
-        ],
-        name: 'scorpion',
-    },
-    {
-        code: '💐',
-        keywords: [
-            'bouquet',
-            'flower',
-            'plant',
-            'romance',
-        ],
-        name: 'bouquet',
-    },
-    {
-        code: '🌸',
-        keywords: [
-            'blossom',
-            'cherry',
-            'flower',
-            'plant',
-        ],
-        name: 'cherry_blossom',
-    },
-    {
-        code: '💮',
-        keywords: [
-            'flower',
-        ],
-        name: 'white_flower',
-    },
-    {
-        code: '🏵',
-        keywords: [
-            'plant',
-            'rosette',
-        ],
-        name: 'rosette',
-    },
-    {
-        code: '🌹',
-        keywords: [
-            'flower',
-            'plant',
-            'rose',
-        ],
-        name: 'rose',
-    },
-    {
-        code: '🥀',
-        keywords: [
-            'flower',
-            'wilted',
-        ],
-        name: 'wilted_flower',
-    },
-    {
-        code: '🌺',
-        keywords: [
-            'flower',
-            'hibiscus',
-            'plant',
-        ],
-        name: 'hibiscus',
-    },
-    {
-        code: '🌻',
-        keywords: [
-            'flower',
-            'plant',
-            'sun',
-            'sunflower',
-        ],
-        name: 'sunflower',
-    },
-    {
-        code: '🌼',
-        keywords: [
-            'blossom',
-            'flower',
-            'plant',
-        ],
-        name: 'blossom',
-    },
-    {
-        code: '🌷',
-        keywords: [
-            'flower',
-            'plant',
-            'tulip',
-        ],
-        name: 'tulip',
-    },
-    {
-        code: '🌱',
-        keywords: [
-            'plant',
-            'seedling',
-            'young',
-        ],
-        name: 'seedling',
-    },
-    {
-        code: '🌲',
-        keywords: [
-            'evergreen',
-            'plant',
-            'tree',
-        ],
-        name: 'evergreen_tree',
-    },
-    {
-        code: '🌳',
-        keywords: [
-            'deciduous',
-            'plant',
-            'shedding',
-            'tree',
-        ],
-        name: 'deciduous_tree',
-    },
-    {
-        code: '🌴',
-        keywords: [
-            'palm',
-            'plant',
-            'tree',
-        ],
-        name: 'palm_tree',
-    },
-    {
-        code: '🌵',
-        keywords: [
-            'cactus',
-            'plant',
-        ],
-        name: 'cactus',
-    },
-    {
-        code: '🌾',
-        keywords: [
-            'ear',
-            'plant',
-            'rice',
-        ],
-        name: 'ear_of_rice',
-    },
-    {
-        code: '🌿',
-        keywords: [
-            'herb',
-            'leaf',
-            'plant',
-        ],
-        name: 'herb',
-    },
-    {
-        code: '☘️',
-        keywords: [
-            'plant',
-            'shamrock',
-        ],
-        name: 'shamrock',
-    },
-    {
-        code: '🍀',
-        keywords: [
-            '4',
-            'clover',
-            'four',
-            'leaf',
-            'plant',
-        ],
-        name: 'four_leaf_clover',
-    },
-    {
-        code: '🍁',
-        keywords: [
-            'falling',
-            'leaf',
-            'maple',
-            'plant',
-        ],
-        name: 'maple_leaf',
-    },
-    {
-        code: '🍂',
-        keywords: [
-            'falling',
-            'leaf',
-            'plant',
-        ],
-        name: 'fallen_leaf',
-    },
-    {
-        code: '🍃',
-        keywords: [
-            'blow',
-            'flutter',
-            'leaf',
-            'plant',
-            'wind',
-        ],
-        name: 'leaves',
-    },
-    {
-        code: 'foodAndDrinks',
-        header: true,
-    },
-    {
-        code: '🍇',
-        keywords: [
-            'fruit',
-            'grape',
-            'plant',
-        ],
-        name: 'grapes',
-    },
-    {
-        code: '🍈',
-        keywords: [
-            'fruit',
-            'melon',
-            'plant',
-        ],
-        name: 'melon',
-    },
-    {
-        code: '🍉',
-        keywords: [
-            'fruit',
-            'plant',
-            'watermelon',
-        ],
-        name: 'watermelon',
-    },
-    {
-        code: '🍊',
-        keywords: [
-            'fruit',
-            'orange',
-            'plant',
-            'tangerine',
-        ],
-        name: 'tangerine',
-    },
-    {
-        code: '🍋',
-        keywords: [
-            'citrus',
-            'fruit',
-            'lemon',
-            'plant',
-        ],
-        name: 'lemon',
-    },
-    {
-        code: '🍌',
-        keywords: [
-            'banana',
-            'fruit',
-            'plant',
-        ],
-        name: 'banana',
-    },
-    {
-        code: '🍍',
-        keywords: [
-            'fruit',
-            'pineapple',
-            'plant',
-        ],
-        name: 'pineapple',
-    },
-    {
-        code: '🍎',
-        keywords: [
-            'apple',
-            'fruit',
-            'plant',
-            'red',
-        ],
-        name: 'apple',
-    },
-    {
-        code: '🍏',
-        keywords: [
-            'apple',
-            'fruit',
-            'green',
-            'plant',
-        ],
-        name: 'green_apple',
-    },
-    {
-        code: '🍐',
-        keywords: [
-            'fruit',
-            'pear',
-            'plant',
-        ],
-        name: 'pear',
-    },
-    {
-        code: '🍑',
-        keywords: [
-            'fruit',
-            'peach',
-            'plant',
-        ],
-        name: 'peach',
-    },
-    {
-        code: '🍒',
-        keywords: [
-            'cherry',
-            'fruit',
-            'plant',
-        ],
-        name: 'cherries',
-    },
-    {
-        code: '🍓',
-        keywords: [
-            'berry',
-            'fruit',
-            'plant',
-            'strawberry',
-        ],
-        name: 'strawberry',
-    },
-    {
-        code: '🍅',
-        keywords: [
-            'plant',
-            'tomato',
-            'vegetable',
-        ],
-        name: 'tomato',
-    },
-    {
-        code: '🥝',
-        keywords: [
-            'fruit',
-            'kiwi',
-        ],
-        name: 'kiwi_fruit',
-    },
-    {
-        code: '🥑',
-        keywords: [
-            'avocado',
-            'fruit',
-        ],
-        name: 'avocado',
-    },
-    {
-        code: '🍆',
-        keywords: [
-            'aubergine',
-            'eggplant',
-            'plant',
-            'vegetable',
-        ],
-        name: 'eggplant',
-    },
-    {
-        code: '🥔',
-        keywords: [
-            'potato',
-            'vegetable',
-        ],
-        name: 'potato',
-    },
-    {
-        code: '🥕',
-        keywords: [
-            'carrot',
-            'vegetable',
-        ],
-        name: 'carrot',
-    },
-    {
-        code: '🌽',
-        keywords: [
-            'corn',
-            'ear',
-            'maize',
-            'maze',
-            'plant',
-        ],
-        name: 'corn',
-    },
-    {
-        code: '🌶',
-        keywords: [
-            'hot',
-            'pepper',
-            'plant',
-        ],
-        name: 'hot_pepper',
-    },
-    {
-        code: '🥒',
-        keywords: [
-            'cucumber',
-            'pickle',
-            'vegetable',
-        ],
-        name: 'cucumber',
-    },
-    {
-        code: '🍄',
-        keywords: [
-            'mushroom',
-            'plant',
-        ],
-        name: 'mushroom',
-    },
-    {
-        code: '🥜',
-        keywords: [
-            'nut',
-            'peanut',
-            'vegetable',
-        ],
-        name: 'peanuts',
-    },
-    {
-        code: '🌰',
-        keywords: [
-            'chestnut',
-            'plant',
-        ],
-        name: 'chestnut',
-    },
-    {
-        code: '🍞',
-        keywords: [
-            'bread',
-            'loaf',
-        ],
-        name: 'bread',
-    },
-    {
-        code: '🥐',
-        keywords: [
-            'bread',
-            'crescent roll',
-            'croissant',
-            'french',
-        ],
-        name: 'croissant',
-    },
-    {
-        code: '🥖',
-        keywords: [
-            'baguette',
-            'bread',
-            'french',
-        ],
-        name: 'baguette_bread',
-    },
-    {
-        code: '🥞',
-        keywords: [
-            'crêpe',
-            'hotcake',
-            'pancake',
-        ],
-        name: 'pancakes',
-    },
-    {
-        code: '🧀',
-        keywords: [
-            'cheese',
-        ],
-        name: 'cheese',
-    },
-    {
-        code: '🍖',
-        keywords: [
-            'bone',
-            'meat',
-        ],
-        name: 'meat_on_bone',
-    },
-    {
-        code: '🍗',
-        keywords: [
-            'bone',
-            'chicken',
-            'leg',
-            'poultry',
-        ],
-        name: 'poultry_leg',
-    },
-    {
-        code: '🥓',
-        keywords: [
-            'bacon',
-            'meat',
-        ],
-        name: 'bacon',
-    },
-    {
-        code: '🍔',
-        keywords: [
-            'burger',
-            'hamburger',
-        ],
-        name: 'hamburger',
-    },
-    {
-        code: '🍟',
-        keywords: [
-            'french',
-            'fries',
-        ],
-        name: 'fries',
-    },
-    {
-        code: '🍕',
-        keywords: [
-            'cheese',
-            'pizza',
-            'slice',
-        ],
-        name: 'pizza',
-    },
-    {
-        code: '🌭',
-        keywords: [
-            'frankfurter',
-            'hot dog',
-            'hotdog',
-            'sausage',
-        ],
-        name: 'hotdog',
-    },
-    {
-        code: '🌮',
-        keywords: [
-            'mexican',
-            'taco',
-        ],
-        name: 'taco',
-    },
-    {
-        code: '🌯',
-        keywords: [
-            'burrito',
-            'mexican',
-        ],
-        name: 'burrito',
-    },
-    {
-        code: '🥙',
-        keywords: [
-            'falafel',
-            'flatbread',
-            'gyro',
-            'kebab',
-            'stuffed',
-        ],
-        name: 'stuffed_flatbread',
-    },
-    {
-        code: '🥚',
-        keywords: [
-            'egg',
-        ],
-        name: 'egg',
-    },
-    {
-        code: '🍳',
-        keywords: [
-            'cooking',
-            'egg',
-            'frying',
-            'pan',
-        ],
-        name: 'fried_egg',
-    },
-    {
-        code: '🥘',
-        keywords: [
-            'casserole',
-            'paella',
-            'pan',
-            'shallow',
-        ],
-        name: 'shallow_pan_of_food',
-    },
-    {
-        code: '🍲',
-        keywords: [
-            'pot',
-            'stew',
-        ],
-        name: 'stew',
-    },
-    {
-        code: '🥗',
-        keywords: [
-            'green',
-            'salad',
-        ],
-        name: 'green_salad',
-    },
-    {
-        code: '🍿',
-        keywords: [
-            'popcorn',
-        ],
-        name: 'popcorn',
-    },
-    {
-        code: '🍱',
-        keywords: [
-            'bento',
-            'box',
-        ],
-        name: 'bento',
-    },
-    {
-        code: '🍘',
-        keywords: [
-            'cracker',
-            'rice',
-        ],
-        name: 'rice_cracker',
-    },
-    {
-        code: '🍙',
-        keywords: [
-            'ball',
-            'japanese',
-            'rice',
-        ],
-        name: 'rice_ball',
-    },
-    {
-        code: '🍚',
-        keywords: [
-            'cooked',
-            'rice',
-        ],
-        name: 'rice',
-    },
-    {
-        code: '🍛',
-        keywords: [
-            'curry',
-            'rice',
-        ],
-        name: 'curry',
-    },
-    {
-        code: '🍜',
-        keywords: [
-            'bowl',
-            'noodle',
-            'ramen',
-            'steaming',
-        ],
-        name: 'ramen',
-    },
-    {
-        code: '🍝',
-        keywords: [
-            'pasta',
-            'spaghetti',
-        ],
-        name: 'spaghetti',
-    },
-    {
-        code: '🍠',
-        keywords: [
-            'potato',
-            'roasted',
-            'sweet',
-        ],
-        name: 'sweet_potato',
-    },
-    {
-        code: '🍢',
-        keywords: [
-            'kebab',
-            'oden',
-            'seafood',
-            'skewer',
-            'stick',
-        ],
-        name: 'oden',
-    },
-    {
-        code: '🍣',
-        keywords: [
-            'sushi',
-        ],
-        name: 'sushi',
-    },
-    {
-        code: '🍤',
-        keywords: [
-            'fried',
-            'prawn',
-            'shrimp',
-            'tempura',
-        ],
-        name: 'fried_shrimp',
-    },
-    {
-        code: '🍥',
-        keywords: [
-            'cake',
-            'fish',
-            'pastry',
-            'swirl',
-        ],
-        name: 'fish_cake',
-    },
-    {
-        code: '🍡',
-        keywords: [
-            'dango',
-            'dessert',
-            'japanese',
-            'skewer',
-            'stick',
-            'sweet',
-        ],
-        name: 'dango',
-    },
-    {
-        code: '🍦',
-        keywords: [
-            'cream',
-            'dessert',
-            'ice',
-            'icecream',
-            'soft',
-            'sweet',
-        ],
-        name: 'icecream',
-    },
-    {
-        code: '🍧',
-        keywords: [
-            'dessert',
-            'ice',
-            'shaved',
-            'sweet',
-        ],
-        name: 'shaved_ice',
-    },
-    {
-        code: '🍨',
-        keywords: [
-            'cream',
-            'dessert',
-            'ice',
-            'sweet',
-        ],
-        name: 'ice_cream',
-    },
-    {
-        code: '🍩',
-        keywords: [
-            'dessert',
-            'donut',
-            'doughnut',
-            'sweet',
-        ],
-        name: 'doughnut',
-    },
-    {
-        code: '🍪',
-        keywords: [
-            'cookie',
-            'dessert',
-            'sweet',
-        ],
-        name: 'cookie',
-    },
-    {
-        code: '🎂',
-        keywords: [
-            'birthday',
-            'cake',
-            'celebration',
-            'dessert',
-            'pastry',
-            'sweet',
-        ],
-        name: 'birthday',
-    },
-    {
-        code: '🍰',
-        keywords: [
-            'cake',
-            'dessert',
-            'pastry',
-            'shortcake',
-            'slice',
-            'sweet',
-        ],
-        name: 'cake',
-    },
-    {
-        code: '🍫',
-        keywords: [
-            'bar',
-            'chocolate',
-            'dessert',
-            'sweet',
-        ],
-        name: 'chocolate_bar',
-    },
-    {
-        code: '🍬',
-        keywords: [
-            'candy',
-            'dessert',
-            'sweet',
-        ],
-        name: 'candy',
-    },
-    {
-        code: '🍭',
-        keywords: [
-            'candy',
-            'dessert',
-            'lollipop',
-            'sweet',
-        ],
-        name: 'lollipop',
-    },
-    {
-        code: '🍮',
-        keywords: [
-            'custard',
-            'dessert',
-            'pudding',
-            'sweet',
-        ],
-        name: 'custard',
-    },
-    {
-        code: '🍯',
-        keywords: [
-            'honey',
-            'honeypot',
-            'pot',
-            'sweet',
-        ],
-        name: 'honey_pot',
-    },
-    {
-        code: '🍼',
-        keywords: [
-            'baby',
-            'bottle',
-            'drink',
-            'milk',
-        ],
-        name: 'baby_bottle',
-    },
-    {
-        code: '🥛',
-        keywords: [
-            'drink',
-            'glass',
-            'milk',
-        ],
-        name: 'milk_glass',
-    },
-    {
-        code: '☕',
-        keywords: [
-            'beverage',
-            'coffee',
-            'drink',
-            'hot',
-            'steaming',
-            'tea',
-        ],
-        name: 'coffee',
-    },
-    {
-        code: '🍵',
-        keywords: [
-            'beverage',
-            'cup',
-            'drink',
-            'tea',
-            'teacup',
-        ],
-        name: 'tea',
-    },
-    {
-        code: '🍶',
-        keywords: [
-            'bar',
-            'beverage',
-            'bottle',
-            'cup',
-            'drink',
-            'sake',
-        ],
-        name: 'sake',
-    },
-    {
-        code: '🍾',
-        keywords: [
-            'bar',
-            'bottle',
-            'cork',
-            'drink',
-            'popping',
-        ],
-        name: 'champagne',
-    },
-    {
-        code: '🍷',
-        keywords: [
-            'bar',
-            'beverage',
-            'drink',
-            'glass',
-            'wine',
-        ],
-        name: 'wine_glass',
-    },
-    {
-        code: '🍸',
-        keywords: [
-            'bar',
-            'cocktail',
-            'drink',
-            'glass',
-        ],
-        name: 'cocktail',
-    },
-    {
-        code: '🍹',
-        keywords: [
-            'bar',
-            'drink',
-            'tropical',
-        ],
-        name: 'tropical_drink',
-    },
-    {
-        code: '🍺',
-        keywords: [
-            'bar',
-            'beer',
-            'drink',
-            'mug',
-        ],
-        name: 'beer',
-    },
-    {
-        code: '🍻',
-        keywords: [
-            'bar',
-            'beer',
-            'clink',
-            'drink',
-            'mug',
-        ],
-        name: 'beers',
-    },
-    {
-        code: '🥂',
-        keywords: [
-            'celebrate',
-            'clink',
-            'drink',
-            'glass',
-        ],
-        name: 'clinking_glasses',
-    },
-    {
-        code: '🥃',
-        keywords: [
-            'glass',
-            'liquor',
-            'shot',
-            'tumbler',
-            'whisky',
-        ],
-        name: 'tumbler_glass',
-    },
-    {
-        code: '🍽',
-        keywords: [
-            'cooking',
-            'fork',
-            'knife',
-            'plate',
-        ],
-        name: 'plate_with_cutlery',
-    },
-    {
-        code: '🍴',
-        keywords: [
-            'cooking',
-            'fork',
-            'knife',
-        ],
-        name: 'fork_and_knife',
-    },
-    {
-        code: '🥄',
-        keywords: [
-            'spoon',
-            'tableware',
-        ],
-        name: 'spoon',
-    },
-    {
-        code: '🔪',
-        keywords: [
-            'cooking',
-            'hocho',
-            'knife',
-            'tool',
-            'weapon',
-        ],
-        name: 'hocho',
-    },
-    {
-        code: '🏺',
-        keywords: [
-            'amphora',
-            'aquarius',
-            'cooking',
-            'drink',
-            'jug',
-            'tool',
-            'weapon',
-            'zodiac',
-        ],
-        name: 'amphora',
-    },
-    {
-        code: 'travelAndPlaces',
-        header: true,
-    },
-    {
-        code: '🌍',
-        keywords: [
-            'africa',
-            'earth',
-            'europe',
-            'globe',
-            'world',
-        ],
-        name: 'earth_africa',
-    },
-    {
-        code: '🌎',
-        keywords: [
-            'americas',
-            'earth',
-            'globe',
-            'world',
-        ],
-        name: 'earth_americas',
-    },
-    {
-        code: '🌏',
-        keywords: [
-            'asia',
-            'australia',
-            'earth',
-            'globe',
-            'world',
-        ],
-        name: 'earth_asia',
-    },
-    {
-        code: '🌐',
-        keywords: [
-            'earth',
-            'globe',
-            'meridians',
-            'world',
-        ],
-        name: 'globe_with_meridians',
-    },
-    {
-        code: '🗺',
-        keywords: [
-            'map',
-            'world',
-        ],
-        name: 'world_map',
-    },
-    {
-        code: '🗾',
-        keywords: [
-            'japan',
-            'map',
-        ],
-        name: 'japan',
-    },
-    {
-        code: '🏔',
-        keywords: [
-            'cold',
-            'mountain',
-            'snow',
-        ],
-        name: 'mountain_snow',
-    },
-    {
-        code: '⛰',
-        keywords: [
-            'mountain',
-        ],
-        name: 'mountain',
-    },
-    {
-        code: '🌋',
-        keywords: [
-            'eruption',
-            'mountain',
-            'volcano',
-            'weather',
-        ],
-        name: 'volcano',
-    },
-    {
-        code: '🗻',
-        keywords: [
-            'fuji',
-            'mountain',
-        ],
-        name: 'mount_fuji',
-    },
-    {
-        code: '🏕',
-        keywords: [
-            'camping',
-        ],
-        name: 'camping',
-    },
-    {
-        code: '🏖',
-        keywords: [
-            'beach',
-            'umbrella',
-        ],
-        name: 'beach_umbrella',
-    },
-    {
-        code: '🏜',
-        keywords: [
-            'desert',
-        ],
-        name: 'desert',
-    },
-    {
-        code: '🏝',
-        keywords: [
-            'desert',
-            'island',
-        ],
-        name: 'desert_island',
-    },
-    {
-        code: '🏞',
-        keywords: [
-            'national park',
-            'park',
-        ],
-        name: 'national_park',
-    },
-    {
-        code: '🏟',
-        keywords: [
-            'stadium',
-        ],
-        name: 'stadium',
-    },
-    {
-        code: '🏛',
-        keywords: [
-            'building',
-            'classical',
-        ],
-        name: 'classical_building',
-    },
-    {
-        code: '🏗',
-        keywords: [
-            'building',
-            'construction',
-        ],
-        name: 'building_construction',
-    },
-    {
-        code: '🏘',
-        keywords: [
-            'building',
-            'house',
-        ],
-        name: 'houses',
-    },
-    {
-        code: '🏙',
-        keywords: [
-            'building',
-            'city',
-        ],
-        name: 'cityscape',
-    },
-    {
-        code: '🏚',
-        keywords: [
-            'building',
-            'derelict',
-            'house',
-        ],
-        name: 'derelict_house',
-    },
-    {
-        code: '🏠',
-        keywords: [
-            'building',
-            'home',
-            'house',
-        ],
-        name: 'house',
-    },
-    {
-        code: '🏡',
-        keywords: [
-            'building',
-            'garden',
-            'home',
-            'house',
-        ],
-        name: 'house_with_garden',
-    },
-    {
-        code: '🏢',
-        keywords: [
-            'building',
-        ],
-        name: 'office',
-    },
-    {
-        code: '🏣',
-        keywords: [
-            'building',
-            'japanese',
-            'post',
-        ],
-        name: 'post_office',
-    },
-    {
-        code: '🏤',
-        keywords: [
-            'building',
-            'european',
-            'post',
-        ],
-        name: 'european_post_office',
-    },
-    {
-        code: '🏥',
-        keywords: [
-            'building',
-            'doctor',
-            'hospital',
-            'medicine',
-        ],
-        name: 'hospital',
-    },
-    {
-        code: '🏦',
-        keywords: [
-            'bank',
-            'building',
-        ],
-        name: 'bank',
-    },
-    {
-        code: '🏨',
-        keywords: [
-            'building',
-            'hotel',
-        ],
-        name: 'hotel',
-    },
-    {
-        code: '🏩',
-        keywords: [
-            'building',
-            'hotel',
-            'love',
-        ],
-        name: 'love_hotel',
-    },
-    {
-        code: '🏪',
-        keywords: [
-            'building',
-            'convenience',
-            'store',
-        ],
-        name: 'convenience_store',
-    },
-    {
-        code: '🏫',
-        keywords: [
-            'building',
-            'school',
-        ],
-        name: 'school',
-    },
-    {
-        code: '🏬',
-        keywords: [
-            'building',
-            'department',
-            'store',
-        ],
-        name: 'department_store',
-    },
-    {
-        code: '🏭',
-        keywords: [
-            'building',
-            'factory',
-        ],
-        name: 'factory',
-    },
-    {
-        code: '🏯',
-        keywords: [
-            'building',
-            'castle',
-            'japanese',
-        ],
-        name: 'japanese_castle',
-    },
-    {
-        code: '🏰',
-        keywords: [
-            'building',
-            'castle',
-            'european',
-        ],
-        name: 'european_castle',
-    },
-    {
-        code: '💒',
-        keywords: [
-            'activity',
-            'chapel',
-            'romance',
-            'wedding',
-        ],
-        name: 'wedding',
-    },
-    {
-        code: '🗼',
-        keywords: [
-            'tokyo',
-            'tower',
-        ],
-        name: 'tokyo_tower',
-    },
-    {
-        code: '🗽',
-        keywords: [
-            'liberty',
-            'statue',
-        ],
-        name: 'statue_of_liberty',
-    },
-    {
-        code: '⛪',
-        keywords: [
-            'building',
-            'christian',
-            'church',
-            'cross',
-            'religion',
-        ],
-        name: 'church',
-    },
-    {
-        code: '🕌',
-        keywords: [
-            'islam',
-            'mosque',
-            'muslim',
-            'religion',
-        ],
-        name: 'mosque',
-    },
-    {
-        code: '🕍',
-        keywords: [
-            'jew',
-            'jewish',
-            'religion',
-            'synagogue',
-            'temple',
-        ],
-        name: 'synagogue',
-    },
-    {
-        code: '⛩',
-        keywords: [
-            'religion',
-            'shinto',
-            'shrine',
-        ],
-        name: 'shinto_shrine',
-    },
-    {
-        code: '🕋',
-        keywords: [
-            'islam',
-            'kaaba',
-            'muslim',
-            'religion',
-        ],
-        name: 'kaaba',
-    },
-    {
-        code: '⛲',
-        keywords: [
-            'fountain',
-        ],
-        name: 'fountain',
-    },
-    {
-        code: '⛺',
-        keywords: [
-            'camping',
-            'tent',
-        ],
-        name: 'tent',
-    },
-    {
-        code: '🌁',
-        keywords: [
-            'fog',
-            'weather',
-        ],
-        name: 'foggy',
-    },
-    {
-        code: '🌃',
-        keywords: [
-            'night',
-            'star',
-            'weather',
-        ],
-        name: 'night_with_stars',
-    },
-    {
-        code: '🌄',
-        keywords: [
-            'morning',
-            'mountain',
-            'sun',
-            'sunrise',
-            'weather',
-        ],
-        name: 'sunrise_over_mountains',
-    },
-    {
-        code: '🌅',
-        keywords: [
-            'morning',
-            'sun',
-            'sunrise',
-            'weather',
-        ],
-        name: 'sunrise',
-    },
-    {
-        code: '🌆',
-        keywords: [
-            'building',
-            'city',
-            'dusk',
-            'evening',
-            'landscape',
-            'sun',
-            'sunset',
-            'weather',
-        ],
-        name: 'city_sunset',
-    },
-    {
-        code: '🌇',
-        keywords: [
-            'building',
-            'dusk',
-            'sun',
-            'sunset',
-            'weather',
-        ],
-        name: 'city_sunrise',
-    },
-    {
-        code: '🌉',
-        keywords: [
-            'bridge',
-            'night',
-            'weather',
-        ],
-        name: 'bridge_at_night',
-    },
-    {
-        code: '♨️',
-        keywords: [
-            'hot',
-            'hotsprings',
-            'springs',
-            'steaming',
-        ],
-        name: 'hotsprings',
-    },
-    {
-        code: '🌌',
-        keywords: [
-            'milky way',
-            'space',
-            'weather',
-        ],
-        name: 'milky_way',
-    },
-    {
-        code: '🎠',
-        keywords: [
-            'activity',
-            'carousel',
-            'entertainment',
-            'horse',
-        ],
-        name: 'carousel_horse',
-    },
-    {
-        code: '🎡',
-        keywords: [
-            'activity',
-            'amusement park',
-            'entertainment',
-            'ferris',
-            'wheel',
-        ],
-        name: 'ferris_wheel',
-    },
-    {
-        code: '🎢',
-        keywords: [
-            'activity',
-            'amusement park',
-            'coaster',
-            'entertainment',
-            'roller',
-        ],
-        name: 'roller_coaster',
-    },
-    {
-        code: '💈',
-        keywords: [
-            'barber',
-            'haircut',
-            'pole',
-        ],
-        name: 'barber',
-    },
-    {
-        code: '🎪',
-        keywords: [
-            'activity',
-            'circus',
-            'entertainment',
-            'tent',
-        ],
-        name: 'circus_tent',
-    },
-    {
-        code: '🎭',
-        keywords: [
-            'activity',
-            'art',
-            'entertainment',
-            'mask',
-            'performing',
-            'theater',
-            'theatre',
-        ],
-        name: 'performing_arts',
-    },
-    {
-        code: '🖼',
-        keywords: [
-            'art',
-            'frame',
-            'museum',
-            'painting',
-            'picture',
-        ],
-        name: 'framed_picture',
-    },
-    {
-        code: '🎨',
-        keywords: [
-            'activity',
-            'art',
-            'entertainment',
-            'museum',
-            'painting',
-            'palette',
-        ],
-        name: 'art',
-    },
-    {
-        code: '🎰',
-        keywords: [
-            'activity',
-            'game',
-            'slot',
-        ],
-        name: 'slot_machine',
-    },
-    {
-        code: '🚂',
-        keywords: [
-            'engine',
-            'locomotive',
-            'railway',
-            'steam',
-            'train',
-            'vehicle',
-        ],
-        name: 'steam_locomotive',
-    },
-    {
-        code: '🚃',
-        keywords: [
-            'car',
-            'electric',
-            'railway',
-            'train',
-            'tram',
-            'trolleybus',
-            'vehicle',
-        ],
-        name: 'railway_car',
-    },
-    {
-        code: '🚄',
-        keywords: [
-            'railway',
-            'shinkansen',
-            'speed',
-            'train',
-            'vehicle',
-        ],
-        name: 'bullettrain_side',
-    },
-    {
-        code: '🚅',
-        keywords: [
-            'bullet',
-            'railway',
-            'shinkansen',
-            'speed',
-            'train',
-            'vehicle',
-        ],
-        name: 'bullettrain_front',
-    },
-    {
-        code: '🚆',
-        keywords: [
-            'railway',
-            'train',
-            'vehicle',
-        ],
-        name: 'train2',
-    },
-    {
-        code: '🚇',
-        keywords: [
-            'metro',
-            'subway',
-            'vehicle',
-        ],
-        name: 'metro',
-    },
-    {
-        code: '🚈',
-        keywords: [
-            'railway',
-            'vehicle',
-        ],
-        name: 'light_rail',
-    },
-    {
-        code: '🚉',
-        keywords: [
-            'railway',
-            'station',
-            'train',
-            'vehicle',
-        ],
-        name: 'station',
-    },
-    {
-        code: '🚊',
-        keywords: [
-            'tram',
-            'trolleybus',
-            'vehicle',
-        ],
-        name: 'tram',
-    },
-    {
-        code: '🚝',
-        keywords: [
-            'monorail',
-            'vehicle',
-        ],
-        name: 'monorail',
-    },
-    {
-        code: '🚞',
-        keywords: [
-            'car',
-            'mountain',
-            'railway',
-            'vehicle',
-        ],
-        name: 'mountain_railway',
-    },
-    {
-        code: '🚋',
-        keywords: [
-            'car',
-            'tram',
-            'trolleybus',
-            'vehicle',
-        ],
-        name: 'train',
-    },
-    {
-        code: '🚌',
-        keywords: [
-            'bus',
-            'vehicle',
-        ],
-        name: 'bus',
-    },
-    {
-        code: '🚍',
-        keywords: [
-            'bus',
-            'oncoming',
-            'vehicle',
-        ],
-        name: 'oncoming_bus',
-    },
-    {
-        code: '🚎',
-        keywords: [
-            'bus',
-            'tram',
-            'trolley',
-            'trolleybus',
-            'vehicle',
-        ],
-        name: 'trolleybus',
-    },
-    {
-        code: '🚏',
-        keywords: [
-            'bus',
-            'busstop',
-            'stop',
-        ],
-        name: 'busstop',
-    },
-    {
-        code: '🚐',
-        keywords: [
-            'bus',
-            'minibus',
-            'vehicle',
-        ],
-        name: 'minibus',
-    },
-    {
-        code: '🚑',
-        keywords: [
-            'ambulance',
-            'vehicle',
-        ],
-        name: 'ambulance',
-    },
-    {
-        code: '🚒',
-        keywords: [
-            'engine',
-            'fire',
-            'truck',
-            'vehicle',
-        ],
-        name: 'fire_engine',
-    },
-    {
-        code: '🚓',
-        keywords: [
-            'car',
-            'patrol',
-            'police',
-            'vehicle',
-        ],
-        name: 'police_car',
-    },
-    {
-        code: '🚔',
-        keywords: [
-            'car',
-            'oncoming',
-            'police',
-            'vehicle',
-        ],
-        name: 'oncoming_police_car',
-    },
-    {
-        code: '🚕',
-        keywords: [
-            'taxi',
-            'vehicle',
-        ],
-        name: 'taxi',
-    },
-    {
-        code: '🚖',
-        keywords: [
-            'oncoming',
-            'taxi',
-            'vehicle',
-        ],
-        name: 'oncoming_taxi',
-    },
-    {
-        code: '🚗',
-        keywords: [
-            'automobile',
-            'car',
-            'vehicle',
-        ],
-        name: 'car',
-    },
-    {
-        code: '🚘',
-        keywords: [
-            'automobile',
-            'car',
-            'oncoming',
-            'vehicle',
-        ],
-        name: 'oncoming_automobile',
-    },
-    {
-        code: '🚙',
-        keywords: [
-            'recreational',
-            'rv',
-            'vehicle',
-        ],
-        name: 'blue_car',
-    },
-    {
-        code: '🚚',
-        keywords: [
-            'delivery',
-            'truck',
-            'vehicle',
-        ],
-        name: 'truck',
-    },
-    {
-        code: '🚛',
-        keywords: [
-            'lorry',
-            'semi',
-            'truck',
-            'vehicle',
-        ],
-        name: 'articulated_lorry',
-    },
-    {
-        code: '🚜',
-        keywords: [
-            'tractor',
-            'vehicle',
-        ],
-        name: 'tractor',
-    },
-    {
-        code: '🚲',
-        keywords: [
-            'bicycle',
-            'bike',
-            'vehicle',
-        ],
-        name: 'bike',
-    },
-    {
-        code: '⛽',
-        keywords: [
-            'fuel',
-            'fuelpump',
-            'gas',
-            'pump',
-            'station',
-        ],
-        name: 'fuelpump',
-    },
-    {
-        code: '🛣',
-        keywords: [
-            'highway',
-            'motorway',
-            'road',
-        ],
-        name: 'motorway',
-    },
-    {
-        code: '🛤',
-        keywords: [
-            'railway',
-            'train',
-        ],
-        name: 'railway_track',
-    },
-    {
-        code: '🚨',
-        keywords: [
-            'beacon',
-            'car',
-            'light',
-            'police',
-            'revolving',
-            'vehicle',
-        ],
-        name: 'rotating_light',
-    },
-    {
-        code: '🚥',
-        keywords: [
-            'light',
-            'signal',
-            'traffic',
-        ],
-        name: 'traffic_light',
-    },
-    {
-        code: '🚦',
-        keywords: [
-            'light',
-            'signal',
-            'traffic',
-        ],
-        name: 'vertical_traffic_light',
-    },
-    {
-        code: '🚧',
-        keywords: [
-            'barrier',
-            'construction',
-        ],
-        name: 'construction',
-    },
-    {
-        code: '🛑',
-        keywords: [
-            'octagonal',
-            'stop',
-        ],
-        name: 'stop_sign',
-    },
-    {
-        code: '🛴',
-        keywords: [
-            'kick',
-            'scooter',
-        ],
-        name: 'kick_scooter',
-    },
-    {
-        code: '🛵',
-        keywords: [
-            'motor',
-            'scooter',
-        ],
-        name: 'motor_scooter',
-    },
-    {
-        code: '⚓',
-        keywords: [
-            'anchor',
-            'ship',
-            'tool',
-        ],
-        name: 'anchor',
-    },
-    {
-        code: '⛵',
-        keywords: [
-            'boat',
-            'resort',
-            'sailboat',
-            'sea',
-            'vehicle',
-            'yacht',
-        ],
-        name: 'boat',
-    },
-    {
-        code: '🚣',
-        keywords: [
-            'boat',
-            'rowboat',
-            'vehicle',
-        ],
         types: [
-            '🚣🏿',
-            '🚣🏾',
-            '🚣🏽',
-            '🚣🏼',
-            '🚣🏻',
+            '🏇🏿',
+            '🏇🏾',
+            '🏇🏽',
+            '🏇🏼',
+            '🏇🏻',
         ],
-        name: 'rowboat',
     },
     {
-        code: '🛶',
-        keywords: [
-            'boat',
-            'canoe',
-        ],
-        name: 'canoe',
-    },
-    {
-        code: '🚤',
-        keywords: [
-            'boat',
-            'speedboat',
-            'vehicle',
-        ],
-        name: 'speedboat',
-    },
-    {
-        code: '🛳',
-        keywords: [
-            'passenger',
-            'ship',
-            'vehicle',
-        ],
-        name: 'passenger_ship',
-    },
-    {
-        code: '⛴',
-        keywords: [
-            'boat',
-            'ferry',
-        ],
-        name: 'ferry',
-    },
-    {
-        code: '🛥',
-        keywords: [
-            'boat',
-            'motorboat',
-            'vehicle',
-        ],
-        name: 'motor_boat',
-    },
-    {
-        code: '🚢',
-        keywords: [
-            'ship',
-            'vehicle',
-        ],
-        name: 'ship',
-    },
-    {
-        code: '✈️',
-        keywords: [
-            'airplane',
-            'vehicle',
-        ],
-        name: 'airplane',
-    },
-    {
-        code: '🛩',
-        keywords: [
-            'airplane',
-            'vehicle',
-        ],
-        name: 'small_airplane',
-    },
-    {
-        code: '🛫',
-        keywords: [
-            'airplane',
-            'check-in',
-            'departure',
-            'departures',
-            'vehicle',
-        ],
-        name: 'flight_departure',
-    },
-    {
-        code: '🛬',
-        keywords: [
-            'airplane',
-            'arrivals',
-            'arriving',
-            'landing',
-            'vehicle',
-        ],
-        name: 'flight_arrival',
-    },
-    {
-        code: '💺',
-        keywords: [
-            'chair',
-            'seat',
-        ],
-        name: 'seat',
-    },
-    {
-        code: '🚁',
-        keywords: [
-            'helicopter',
-            'vehicle',
-        ],
-        name: 'helicopter',
-    },
-    {
-        code: '🚟',
-        keywords: [
-            'railway',
-            'suspension',
-            'vehicle',
-        ],
-        name: 'suspension_railway',
-    },
-    {
-        code: '🚠',
-        keywords: [
-            'cable',
-            'gondola',
-            'mountain',
-            'vehicle',
-        ],
-        name: 'mountain_cableway',
-    },
-    {
-        code: '🚡',
-        keywords: [
-            'aerial',
-            'cable',
-            'car',
-            'gondola',
-            'ropeway',
-            'tramway',
-            'vehicle',
-        ],
-        name: 'aerial_tramway',
-    },
-    {
-        code: '🚀',
-        keywords: [
-            'rocket',
-            'space',
-            'vehicle',
-        ],
-        name: 'rocket',
-    },
-    {
-        code: '🛰',
-        keywords: [
-            'satellite',
-            'space',
-            'vehicle',
-        ],
-        name: 'artificial_satellite',
-    },
-    {
-        code: '🛎',
-        keywords: [
-            'bell',
-            'bellhop',
-            'hotel',
-        ],
-        name: 'bellhop_bell',
-    },
-    {
-        code: '🚪',
-        keywords: [
-            'door',
-        ],
-        name: 'door',
-    },
-    {
-        code: '🛌',
-        keywords: [
-            'hotel',
-            'sleep',
-        ],
-        name: 'sleeping_bed',
-    },
-    {
-        code: '🛏',
-        keywords: [
-            'bed',
-            'hotel',
-            'sleep',
-        ],
-        name: 'bed',
-    },
-    {
-        code: '🛋',
-        keywords: [
-            'couch',
-            'hotel',
-            'lamp',
-        ],
-        name: 'couch_and_lamp',
-    },
-    {
-        code: '🚽',
-        keywords: [
-            'toilet',
-        ],
-        name: 'toilet',
-    },
-    {
-        code: '🚿',
-        keywords: [
-            'shower',
-            'water',
-        ],
-        name: 'shower',
-    },
-    {
-        code: '🛀',
-        keywords: [
-            'bath',
-            'bathtub',
-        ],
-        types: [
-            '🛀🏿',
-            '🛀🏾',
-            '🛀🏽',
-            '🛀🏼',
-            '🛀🏻',
-        ],
-        name: 'bath',
-    },
-    {
-        code: '🛁',
-        keywords: [
-            'bath',
-            'bathtub',
-        ],
-        name: 'bathtub',
-    },
-    {
-        code: '⌛',
-        keywords: [
-            'hourglass',
-            'sand',
-            'timer',
-        ],
-        name: 'hourglass',
-    },
-    {
-        code: '⏳',
-        keywords: [
-            'hourglass',
-            'sand',
-            'timer',
-        ],
-        name: 'hourglass_flowing_sand',
-    },
-    {
-        code: '⌚',
-        keywords: [
-            'clock',
-            'watch',
-        ],
-        name: 'watch',
-    },
-    {
-        code: '⏰',
-        keywords: [
-            'alarm',
-            'clock',
-        ],
-        name: 'alarm_clock',
-    },
-    {
-        code: '⏱',
-        keywords: [
-            'clock',
-            'stopwatch',
-        ],
-        name: 'stopwatch',
-    },
-    {
-        code: '⏲',
-        keywords: [
-            'clock',
-            'timer',
-        ],
-        name: 'timer_clock',
-    },
-    {
-        code: '🕰',
-        keywords: [
-            'clock',
-        ],
-        name: 'mantelpiece_clock',
-    },
-    {
-        code: '🕛',
-        keywords: [
-            '00',
-            '12',
-            '12:00',
-            'clock',
-            'o’clock',
-            'twelve',
-        ],
-        name: 'clock12',
-    },
-    {
-        code: '🕧',
-        keywords: [
-            '12',
-            '12:30',
-            '30',
-            'clock',
-            'thirty',
-            'twelve',
-        ],
-        name: 'clock1230',
-    },
-    {
-        code: '🕐',
-        keywords: [
-            '00',
-            '1',
-            '1:00',
-            'clock',
-            'o’clock',
-            'one',
-        ],
-        name: 'clock1',
-    },
-    {
-        code: '🕜',
-        keywords: [
-            '1',
-            '1:30',
-            '30',
-            'clock',
-            'one',
-            'thirty',
-        ],
-        name: 'clock130',
-    },
-    {
-        code: '🕑',
-        keywords: [
-            '00',
-            '2',
-            '2:00',
-            'clock',
-            'o’clock',
-            'two',
-        ],
-        name: 'clock2',
-    },
-    {
-        code: '🕝',
-        keywords: [
-            '2',
-            '2:30',
-            '30',
-            'clock',
-            'thirty',
-            'two',
-        ],
-        name: 'clock230',
-    },
-    {
-        code: '🕒',
-        keywords: [
-            '00',
-            '3',
-            '3:00',
-            'clock',
-            'o’clock',
-            'three',
-        ],
-        name: 'clock3',
-    },
-    {
-        code: '🕞',
-        keywords: [
-            '3',
-            '3:30',
-            '30',
-            'clock',
-            'thirty',
-            'three',
-        ],
-        name: 'clock330',
-    },
-    {
-        code: '🕓',
-        keywords: [
-            '00',
-            '4',
-            '4:00',
-            'clock',
-            'four',
-            'o’clock',
-        ],
-        name: 'clock4',
-    },
-    {
-        code: '🕟',
-        keywords: [
-            '30',
-            '4',
-            '4:30',
-            'clock',
-            'four',
-            'thirty',
-        ],
-        name: 'clock430',
-    },
-    {
-        code: '🕔',
-        keywords: [
-            '00',
-            '5',
-            '5:00',
-            'clock',
-            'five',
-            'o’clock',
-        ],
-        name: 'clock5',
-    },
-    {
-        code: '🕠',
-        keywords: [
-            '30',
-            '5',
-            '5:30',
-            'clock',
-            'five',
-            'thirty',
-        ],
-        name: 'clock530',
-    },
-    {
-        code: '🕕',
-        keywords: [
-            '00',
-            '6',
-            '6:00',
-            'clock',
-            'o’clock',
-            'six',
-        ],
-        name: 'clock6',
-    },
-    {
-        code: '🕡',
-        keywords: [
-            '30',
-            '6',
-            '6:30',
-            'clock',
-            'six',
-            'thirty',
-        ],
-        name: 'clock630',
-    },
-    {
-        code: '🕖',
-        keywords: [
-            '00',
-            '7',
-            '7:00',
-            'clock',
-            'o’clock',
-            'seven',
-        ],
-        name: 'clock7',
-    },
-    {
-        code: '🕢',
-        keywords: [
-            '30',
-            '7',
-            '7:30',
-            'clock',
-            'seven',
-            'thirty',
-        ],
-        name: 'clock730',
-    },
-    {
-        code: '🕗',
-        keywords: [
-            '00',
-            '8',
-            '8:00',
-            'clock',
-            'eight',
-            'o’clock',
-        ],
-        name: 'clock8',
-    },
-    {
-        code: '🕣',
-        keywords: [
-            '30',
-            '8',
-            '8:30',
-            'clock',
-            'eight',
-            'thirty',
-        ],
-        name: 'clock830',
-    },
-    {
-        code: '🕘',
-        keywords: [
-            '00',
-            '9',
-            '9:00',
-            'clock',
-            'nine',
-            'o’clock',
-        ],
-        name: 'clock9',
-    },
-    {
-        code: '🕤',
-        keywords: [
-            '30',
-            '9',
-            '9:30',
-            'clock',
-            'nine',
-            'thirty',
-        ],
-        name: 'clock930',
-    },
-    {
-        code: '🕙',
-        keywords: [
-            '00',
-            '10',
-            '10:00',
-            'clock',
-            'o’clock',
-            'ten',
-        ],
-        name: 'clock10',
-    },
-    {
-        code: '🕥',
-        keywords: [
-            '10',
-            '10:30',
-            '30',
-            'clock',
-            'ten',
-            'thirty',
-        ],
-        name: 'clock1030',
-    },
-    {
-        code: '🕚',
-        keywords: [
-            '00',
-            '11',
-            '11:00',
-            'clock',
-            'eleven',
-            'o’clock',
-        ],
-        name: 'clock11',
-    },
-    {
-        code: '🕦',
-        keywords: [
-            '11',
-            '11:30',
-            '30',
-            'clock',
-            'eleven',
-            'thirty',
-        ],
-        name: 'clock1130',
-    },
-    {
-        code: '🌑',
-        keywords: [
-            'dark',
-            'moon',
-            'space',
-            'weather',
-        ],
-        name: 'new_moon',
-    },
-    {
-        code: '🌒',
-        keywords: [
-            'crescent',
-            'moon',
-            'space',
-            'waxing',
-            'weather',
-        ],
-        name: 'waxing_crescent_moon',
-    },
-    {
-        code: '🌓',
-        keywords: [
-            'moon',
-            'quarter',
-            'space',
-            'weather',
-        ],
-        name: 'first_quarter_moon',
-    },
-    {
-        code: '🌔',
-        keywords: [
-            'gibbous',
-            'moon',
-            'space',
-            'waxing',
-            'weather',
-        ],
-        name: 'moon',
-    },
-    {
-        code: '🌕',
-        keywords: [
-            'full',
-            'moon',
-            'space',
-            'weather',
-        ],
-        name: 'full_moon',
-    },
-    {
-        code: '🌖',
-        keywords: [
-            'gibbous',
-            'moon',
-            'space',
-            'waning',
-            'weather',
-        ],
-        name: 'waning_gibbous_moon',
-    },
-    {
-        code: '🌗',
-        keywords: [
-            'moon',
-            'quarter',
-            'space',
-            'weather',
-        ],
-        name: 'last_quarter_moon',
-    },
-    {
-        code: '🌘',
-        keywords: [
-            'crescent',
-            'moon',
-            'space',
-            'waning',
-            'weather',
-        ],
-        name: 'waning_crescent_moon',
-    },
-    {
-        code: '🌙',
-        keywords: [
-            'crescent',
-            'moon',
-            'space',
-            'weather',
-        ],
-        name: 'crescent_moon',
-    },
-    {
-        code: '🌚',
-        keywords: [
-            'face',
-            'moon',
-            'space',
-            'weather',
-        ],
-        name: 'new_moon_with_face',
-    },
-    {
-        code: '🌛',
-        keywords: [
-            'face',
-            'moon',
-            'quarter',
-            'space',
-            'weather',
-        ],
-        name: 'first_quarter_moon_with_face',
-    },
-    {
-        code: '🌜',
-        keywords: [
-            'face',
-            'moon',
-            'quarter',
-            'space',
-            'weather',
-        ],
-        name: 'last_quarter_moon_with_face',
-    },
-    {
-        code: '🌡',
-        keywords: [
-            'thermometer',
-            'weather',
-        ],
-        name: 'thermometer',
-    },
-    {
-        code: '☀️',
-        keywords: [
-            'bright',
-            'rays',
-            'space',
-            'sun',
-            'sunny',
-            'weather',
-        ],
-        name: 'sunny',
-    },
-    {
-        code: '🌝',
-        keywords: [
-            'bright',
-            'face',
-            'full',
-            'moon',
-            'space',
-            'weather',
-        ],
-        name: 'full_moon_with_face',
-    },
-    {
-        code: '🌞',
-        keywords: [
-            'bright',
-            'face',
-            'space',
-            'sun',
-            'weather',
-        ],
-        name: 'sun_with_face',
-    },
-    {
-        code: '⭐',
-        keywords: [
-            'star',
-        ],
-        name: 'star',
-    },
-    {
-        code: '🌟',
-        keywords: [
-            'glittery',
-            'glow',
-            'shining',
-            'sparkle',
-            'star',
-        ],
-        name: 'star2',
-    },
-    {
-        code: '🌠',
-        keywords: [
-            'activity',
-            'falling',
-            'shooting',
-            'space',
-            'star',
-        ],
-        name: 'stars',
-    },
-    {
-        code: '☁️',
-        keywords: [
-            'cloud',
-            'weather',
-        ],
-        name: 'cloud',
-    },
-    {
-        code: '⛅',
-        keywords: [
-            'cloud',
-            'sun',
-            'weather',
-        ],
-        name: 'partly_sunny',
-    },
-    {
-        code: '⛈',
-        keywords: [
-            'cloud',
-            'rain',
-            'thunder',
-            'weather',
-        ],
-        name: 'cloud_with_lightning_and_rain',
-    },
-    {
-        code: '🌤',
-        keywords: [
-            'cloud',
-            'sun',
-            'weather',
-        ],
-        name: 'sun_behind_small_cloud',
-    },
-    {
-        code: '🌥',
-        keywords: [
-            'cloud',
-            'sun',
-            'weather',
-        ],
-        name: 'sun_behind_large_cloud',
-    },
-    {
-        code: '🌦',
-        keywords: [
-            'cloud',
-            'rain',
-            'sun',
-            'weather',
-        ],
-        name: 'sun_behind_rain_cloud',
-    },
-    {
-        code: '🌧',
-        keywords: [
-            'cloud',
-            'rain',
-            'weather',
-        ],
-        name: 'cloud_with_rain',
-    },
-    {
-        code: '🌨',
-        keywords: [
-            'cloud',
-            'cold',
-            'snow',
-            'weather',
-        ],
-        name: 'cloud_with_snow',
-    },
-    {
-        code: '🌩',
-        keywords: [
-            'cloud',
-            'lightning',
-            'weather',
-        ],
-        name: 'cloud_with_lightning',
-    },
-    {
-        code: '🌪',
-        keywords: [
-            'cloud',
-            'tornado',
-            'weather',
-            'whirlwind',
-        ],
-        name: 'tornado',
-    },
-    {
-        code: '🌫',
-        keywords: [
-            'cloud',
-            'fog',
-            'weather',
-        ],
-        name: 'fog',
-    },
-    {
-        code: '🌬',
-        keywords: [
-            'blow',
-            'cloud',
-            'face',
-            'weather',
-            'wind',
-        ],
-        name: 'wind_face',
-    },
-    {
-        code: '🌀',
-        keywords: [
-            'cyclone',
-            'dizzy',
-            'twister',
-            'typhoon',
-            'weather',
-        ],
-        name: 'cyclone',
-    },
-    {
-        code: '🌈',
-        keywords: [
-            'rain',
-            'rainbow',
-            'weather',
-        ],
-        name: 'rainbow',
-    },
-    {
-        code: '🌂',
-        keywords: [
-            'clothing',
-            'rain',
-            'umbrella',
-            'weather',
-        ],
-        name: 'closed_umbrella',
-    },
-    {
-        code: '☂️',
-        keywords: [
-            'clothing',
-            'rain',
-            'umbrella',
-            'weather',
-        ],
-        name: 'open_umbrella',
-    },
-    {
-        code: '☔',
-        keywords: [
-            'clothing',
-            'drop',
-            'rain',
-            'umbrella',
-            'weather',
-        ],
-        name: 'umbrella',
-    },
-    {
-        code: '⛱',
-        keywords: [
-            'rain',
-            'sun',
-            'umbrella',
-            'weather',
-        ],
-        name: 'parasol_on_ground',
-    },
-    {
-        code: '⚡',
-        keywords: [
-            'danger',
-            'electric',
-            'electricity',
-            'lightning',
-            'voltage',
-            'zap',
-        ],
-        name: 'zap',
-    },
-    {
-        code: '❄️',
-        keywords: [
-            'cold',
-            'snow',
-            'snowflake',
-            'weather',
-        ],
-        name: 'snowflake',
-    },
-    {
-        code: '☃️',
-        keywords: [
-            'cold',
-            'snow',
-            'snowman',
-            'weather',
-        ],
-        name: 'snowman_with_snow',
-    },
-    {
-        code: '⛄',
-        keywords: [
-            'cold',
-            'snow',
-            'snowman',
-            'weather',
-        ],
-        name: 'snowman',
-    },
-    {
-        code: '☄️',
-        keywords: [
-            'comet',
-            'space',
-        ],
-        name: 'comet',
-    },
-    {
-        code: '🔥',
-        keywords: [
-            'fire',
-            'flame',
-            'tool',
-        ],
-        name: 'fire',
-    },
-    {
-        code: '💧',
-        keywords: [
-            'cold',
-            'comic',
-            'drop',
-            'sweat',
-            'weather',
-        ],
-        name: 'droplet',
-    },
-    {
-        code: '🌊',
-        keywords: [
-            'ocean',
-            'water',
-            'wave',
-            'weather',
-        ],
-        name: 'ocean',
-    },
-    {
-        code: 'activities',
-        header: true,
-    },
-    {
-        code: '🎃',
-        keywords: [
-            'activity',
-            'celebration',
-            'entertainment',
-            'halloween',
-            'jack',
-            'lantern',
-        ],
-        name: 'jack_o_lantern',
-    },
-    {
-        code: '🎄',
-        keywords: [
-            'activity',
-            'celebration',
-            'christmas',
-            'entertainment',
-            'tree',
-        ],
-        name: 'christmas_tree',
-    },
-    {
-        code: '🎆',
-        keywords: [
-            'activity',
-            'celebration',
-            'entertainment',
-            'fireworks',
-        ],
-        name: 'fireworks',
-    },
-    {
-        code: '🎇',
-        keywords: [
-            'activity',
-            'celebration',
-            'entertainment',
-            'fireworks',
-            'sparkle',
-        ],
-        name: 'sparkler',
-    },
-    {
-        code: '✨',
-        keywords: [
-            'entertainment',
-            'sparkle',
-            'star',
-        ],
-        name: 'sparkles',
-    },
-    {
-        code: '🎈',
-        keywords: [
-            'activity',
-            'balloon',
-            'celebration',
-            'entertainment',
-        ],
-        name: 'balloon',
-    },
-    {
-        code: '🎉',
-        keywords: [
-            'activity',
-            'celebration',
-            'entertainment',
-            'party',
-            'popper',
-            'tada',
-        ],
-        name: 'tada',
-    },
-    {
-        code: '🎊',
-        keywords: [
-            'activity',
-            'ball',
-            'celebration',
-            'confetti',
-            'entertainment',
-        ],
-        name: 'confetti_ball',
-    },
-    {
-        code: '🎋',
-        keywords: [
-            'activity',
-            'banner',
-            'celebration',
-            'entertainment',
-            'japanese',
-            'tree',
-        ],
-        name: 'tanabata_tree',
-    },
-    {
-        code: '🎍',
-        keywords: [
-            'activity',
-            'bamboo',
-            'celebration',
-            'japanese',
-            'pine',
-            'plant',
-        ],
-        name: 'bamboo',
-    },
-    {
-        code: '🎎',
-        keywords: [
-            'activity',
-            'celebration',
-            'doll',
-            'entertainment',
-            'festival',
-            'japanese',
-        ],
-        name: 'dolls',
-    },
-    {
-        code: '🎏',
-        keywords: [
-            'activity',
-            'carp',
-            'celebration',
-            'entertainment',
-            'flag',
-            'streamer',
-        ],
-        name: 'flags',
-    },
-    {
-        code: '🎐',
-        keywords: [
-            'activity',
-            'bell',
-            'celebration',
-            'chime',
-            'entertainment',
-            'wind',
-        ],
-        name: 'wind_chime',
-    },
-    {
-        code: '🎑',
-        keywords: [
-            'activity',
-            'celebration',
-            'ceremony',
-            'entertainment',
-            'moon',
-        ],
-        name: 'rice_scene',
-    },
-    {
-        code: '🎀',
-        keywords: [
-            'celebration',
-            'ribbon',
-        ],
-        name: 'ribbon',
-    },
-    {
-        code: '🎁',
-        keywords: [
-            'box',
-            'celebration',
-            'entertainment',
-            'gift',
-            'present',
-            'wrapped',
-        ],
-        name: 'gift',
-    },
-    {
-        code: '🎗',
-        keywords: [
-            'celebration',
-            'reminder',
-            'ribbon',
-        ],
-        name: 'reminder_ribbon',
-    },
-    {
-        code: '🎟',
-        keywords: [
-            'admission',
-            'entertainment',
-            'ticket',
-        ],
-        name: 'tickets',
-    },
-    {
-        code: '🎫',
-        keywords: [
-            'activity',
-            'admission',
-            'entertainment',
-            'ticket',
-        ],
-        name: 'ticket',
-    },
-    {
-        code: '🎖',
-        keywords: [
-            'celebration',
-            'medal',
-            'military',
-        ],
-        name: 'medal_military',
-    },
-    {
-        code: '🏆',
-        keywords: [
-            'prize',
-            'trophy',
-        ],
-        name: 'trophy',
-    },
-    {
-        code: '🏅',
-        keywords: [
-            'medal',
-        ],
-        name: 'medal_sports',
-    },
-    {
-        code: '🥇',
-        keywords: [
-            'first',
-            'gold',
-            'medal',
-        ],
-        name: '1st_place_medal',
-    },
-    {
-        code: '🥈',
-        keywords: [
-            'medal',
-            'second',
-            'silver',
-        ],
-        name: '2nd_place_medal',
-    },
-    {
-        code: '🥉',
-        keywords: [
-            'bronze',
-            'medal',
-            'third',
-        ],
-        name: '3rd_place_medal',
-    },
-    {
-        code: '⚽',
-        keywords: [
-            'ball',
-            'soccer',
-        ],
-        name: 'soccer',
-    },
-    {
-        code: '⚾',
-        keywords: [
-            'ball',
-            'baseball',
-        ],
-        name: 'baseball',
-    },
-    {
-        code: '🏀',
-        keywords: [
-            'ball',
-            'basketball',
-            'hoop',
-        ],
-        name: 'basketball',
-    },
-    {
-        code: '🏐',
-        keywords: [
-            'ball',
-            'game',
-            'volleyball',
-        ],
-        name: 'volleyball',
-    },
-    {
-        code: '🏈',
-        keywords: [
-            'american',
-            'ball',
-            'football',
-        ],
-        name: 'football',
-    },
-    {
-        code: '🏉',
-        keywords: [
-            'ball',
-            'football',
-            'rugby',
-        ],
-        name: 'rugby_football',
-    },
-    {
-        code: '🎾',
-        keywords: [
-            'ball',
-            'racquet',
-            'tennis',
-        ],
-        name: 'tennis',
-    },
-    {
-        code: '🎱',
-        keywords: [
-            '8',
-            '8 ball',
-            'ball',
-            'billiard',
-            'eight',
-            'game',
-        ],
-        name: '8ball',
-    },
-    {
-        code: '🎳',
-        keywords: [
-            'ball',
-            'bowling',
-            'game',
-        ],
-        name: 'bowling',
-    },
-    {
-        code: '🏏',
-        keywords: [
-            'ball',
-            'bat',
-            'cricket',
-            'game',
-        ],
-        name: 'cricket_game',
-    },
-    {
-        code: '🏑',
-        keywords: [
-            'ball',
-            'field',
-            'game',
-            'hockey',
-            'stick',
-        ],
-        name: 'field_hockey',
-    },
-    {
-        code: '🏒',
-        keywords: [
-            'game',
-            'hockey',
-            'ice',
-            'puck',
-            'stick',
-        ],
-        name: 'ice_hockey',
-    },
-    {
-        code: '🏓',
-        keywords: [
-            'ball',
-            'bat',
-            'game',
-            'paddle',
-            'table tennis',
-        ],
-        name: 'ping_pong',
-    },
-    {
-        code: '🏸',
-        keywords: [
-            'badminton',
-            'birdie',
-            'game',
-            'racquet',
-            'shuttlecock',
-        ],
-        name: 'badminton',
-    },
-    {
-        code: '🥊',
-        keywords: [
-            'boxing',
-            'glove',
-        ],
-        name: 'boxing_glove',
-    },
-    {
-        code: '🥋',
-        keywords: [
-            'judo',
-            'karate',
-            'martial arts',
-            'taekwondo',
-            'uniform',
-        ],
-        name: 'martial_arts_uniform',
-    },
-    {
-        code: '⛳',
-        keywords: [
-            'flag',
-            'golf',
-            'hole',
-        ],
-        name: 'golf',
-    },
-    {
-        code: '🏌',
-        keywords: [
-            'ball',
-            'golf',
-        ],
-        name: 'golfing',
-    },
-    {
-        code: '⛸',
-        keywords: [
-            'ice',
-            'skate',
-        ],
-        name: 'ice_skate',
-    },
-    {
-        code: '🎣',
-        keywords: [
-            'entertainment',
-            'fish',
-            'pole',
-        ],
-        name: 'fishing_pole_and_fish',
-    },
-    {
-        code: '🎽',
-        keywords: [
-            'running',
-            'sash',
-            'shirt',
-        ],
-        name: 'running_shirt_with_sash',
-    },
-    {
-        code: '🎿',
-        keywords: [
-            'ski',
-            'snow',
-        ],
-        name: 'ski',
-    },
-    {
-        code: '⛷',
-        keywords: [
-            'ski',
-            'snow',
-        ],
         name: 'skier',
+        code: '⛷️',
+        keywords: [
+            'skier',
+        ],
     },
     {
+        name: 'snowboarder',
         code: '🏂',
         keywords: [
+            'snowboarder',
             'ski',
             'snow',
             'snowboard',
         ],
-        name: 'snowboarder',
+        types: [
+            '🏂🏿',
+            '🏂🏾',
+            '🏂🏽',
+            '🏂🏼',
+            '🏂🏻',
+        ],
     },
     {
+        name: 'golfing',
+        code: '🏌️',
+        keywords: [
+            'golfing',
+        ],
+        types: [
+            '🏌🏿',
+            '🏌🏾',
+            '🏌🏽',
+            '🏌🏼',
+            '🏌🏻',
+        ],
+    },
+    {
+        name: 'golfing_man',
+        code: '🏌️‍♂️',
+        keywords: [
+            'golfing_man',
+        ],
+        types: [
+            '🏌🏿‍♂️',
+            '🏌🏾‍♂️',
+            '🏌🏽‍♂️',
+            '🏌🏼‍♂️',
+            '🏌🏻‍♂️',
+        ],
+    },
+    {
+        name: 'golfing_woman',
+        code: '🏌️‍♀️',
+        keywords: [
+            'golfing_woman',
+        ],
+        types: [
+            '🏌🏿‍♀️',
+            '🏌🏾‍♀️',
+            '🏌🏽‍♀️',
+            '🏌🏼‍♀️',
+            '🏌🏻‍♀️',
+        ],
+    },
+    {
+        name: 'surfer',
         code: '🏄',
         keywords: [
             'surfer',
@@ -7311,23 +5658,85 @@ const emojis = [
             '🏄🏼',
             '🏄🏻',
         ],
-        name: 'surfer',
     },
     {
-        code: '🏇',
+        name: 'surfing_man',
+        code: '🏄‍♂️',
         keywords: [
-            'horse',
-            'jockey',
-            'racehorse',
-            'racing',
+            'surfing_man',
         ],
-        name: 'horse_racing',
+        types: [
+            '🏄🏿‍♂️',
+            '🏄🏾‍♂️',
+            '🏄🏽‍♂️',
+            '🏄🏼‍♂️',
+            '🏄🏻‍♂️',
+        ],
     },
     {
+        name: 'surfing_woman',
+        code: '🏄‍♀️',
+        keywords: [
+            'surfing_woman',
+        ],
+        types: [
+            '🏄🏿‍♀️',
+            '🏄🏾‍♀️',
+            '🏄🏽‍♀️',
+            '🏄🏼‍♀️',
+            '🏄🏻‍♀️',
+        ],
+    },
+    {
+        name: 'rowboat',
+        code: '🚣',
+        keywords: [
+            'rowboat',
+            'boat',
+            'vehicle',
+        ],
+        types: [
+            '🚣🏿',
+            '🚣🏾',
+            '🚣🏽',
+            '🚣🏼',
+            '🚣🏻',
+        ],
+    },
+    {
+        name: 'rowing_man',
+        code: '🚣‍♂️',
+        keywords: [
+            'rowing_man',
+        ],
+        types: [
+            '🚣🏿‍♂️',
+            '🚣🏾‍♂️',
+            '🚣🏽‍♂️',
+            '🚣🏼‍♂️',
+            '🚣🏻‍♂️',
+        ],
+    },
+    {
+        name: 'rowing_woman',
+        code: '🚣‍♀️',
+        keywords: [
+            'rowing_woman',
+        ],
+        types: [
+            '🚣🏿‍♀️',
+            '🚣🏾‍♀️',
+            '🚣🏽‍♀️',
+            '🚣🏼‍♀️',
+            '🚣🏻‍♀️',
+        ],
+    },
+    {
+        name: 'swimmer',
         code: '🏊',
         keywords: [
-            'swim',
             'swimmer',
+            'swim',
         ],
         types: [
             '🏊🏿',
@@ -7336,12 +5745,41 @@ const emojis = [
             '🏊🏼',
             '🏊🏻',
         ],
-        name: 'swimmer',
     },
     {
-        code: '⛹',
+        name: 'swimming_man',
+        code: '🏊‍♂️',
         keywords: [
-            'ball',
+            'swimming_man',
+        ],
+        types: [
+            '🏊🏿‍♂️',
+            '🏊🏾‍♂️',
+            '🏊🏽‍♂️',
+            '🏊🏼‍♂️',
+            '🏊🏻‍♂️',
+        ],
+    },
+    {
+        name: 'swimming_woman',
+        code: '🏊‍♀️',
+        keywords: [
+            'swimming_woman',
+        ],
+        types: [
+            '🏊🏿‍♀️',
+            '🏊🏾‍♀️',
+            '🏊🏽‍♀️',
+            '🏊🏼‍♀️',
+            '🏊🏻‍♀️',
+        ],
+    },
+    {
+        name: 'bouncing_ball_person',
+        code: '⛹️',
+        keywords: [
+            'basketball',
+            'bouncing_ball_person',
         ],
         types: [
             '⛹🏿',
@@ -7350,13 +5788,44 @@ const emojis = [
             '⛹🏼',
             '⛹🏻',
         ],
-        name: 'bouncing_ball_person',
     },
     {
-        code: '🏋',
+        name: 'bouncing_ball_man',
+        code: '⛹️‍♂️',
         keywords: [
-            'lifter',
-            'weight',
+            'bouncing_ball_man',
+            'basketball_man',
+        ],
+        types: [
+            '⛹🏿‍♂️',
+            '⛹🏾‍♂️',
+            '⛹🏽‍♂️',
+            '⛹🏼‍♂️',
+            '⛹🏻‍♂️',
+        ],
+    },
+    {
+        name: 'bouncing_ball_woman',
+        code: '⛹️‍♀️',
+        keywords: [
+            'bouncing_ball_woman',
+            'basketball_woman',
+        ],
+        types: [
+            '⛹🏿‍♀️',
+            '⛹🏾‍♀️',
+            '⛹🏽‍♀️',
+            '⛹🏼‍♀️',
+            '⛹🏻‍♀️',
+        ],
+    },
+    {
+        name: 'weight_lifting',
+        code: '🏋️',
+        keywords: [
+            'gym',
+            'workout',
+            'weight_lifting',
         ],
         types: [
             '🏋🏿',
@@ -7365,13 +5834,45 @@ const emojis = [
             '🏋🏼',
             '🏋🏻',
         ],
-        name: 'weight_lifting',
     },
     {
+        name: 'weight_lifting_man',
+        code: '🏋️‍♂️',
+        keywords: [
+            'gym',
+            'workout',
+            'weight_lifting_man',
+        ],
+        types: [
+            '🏋🏿‍♂️',
+            '🏋🏾‍♂️',
+            '🏋🏽‍♂️',
+            '🏋🏼‍♂️',
+            '🏋🏻‍♂️',
+        ],
+    },
+    {
+        name: 'weight_lifting_woman',
+        code: '🏋️‍♀️',
+        keywords: [
+            'gym',
+            'workout',
+            'weight_lifting_woman',
+        ],
+        types: [
+            '🏋🏿‍♀️',
+            '🏋🏾‍♀️',
+            '🏋🏽‍♀️',
+            '🏋🏼‍♀️',
+            '🏋🏻‍♀️',
+        ],
+    },
+    {
+        name: 'bicyclist',
         code: '🚴',
         keywords: [
-            'bicycle',
             'bicyclist',
+            'bicycle',
             'bike',
             'cyclist',
         ],
@@ -7382,11 +5883,40 @@ const emojis = [
             '🚴🏼',
             '🚴🏻',
         ],
-        name: 'bicyclist',
     },
     {
+        name: 'biking_man',
+        code: '🚴‍♂️',
+        keywords: [
+            'biking_man',
+        ],
+        types: [
+            '🚴🏿‍♂️',
+            '🚴🏾‍♂️',
+            '🚴🏽‍♂️',
+            '🚴🏼‍♂️',
+            '🚴🏻‍♂️',
+        ],
+    },
+    {
+        name: 'biking_woman',
+        code: '🚴‍♀️',
+        keywords: [
+            'biking_woman',
+        ],
+        types: [
+            '🚴🏿‍♀️',
+            '🚴🏾‍♀️',
+            '🚴🏽‍♀️',
+            '🚴🏼‍♀️',
+            '🚴🏻‍♀️',
+        ],
+    },
+    {
+        name: 'mountain_bicyclist',
         code: '🚵',
         keywords: [
+            'mountain_bicyclist',
             'bicycle',
             'bicyclist',
             'bike',
@@ -7400,27 +5930,40 @@ const emojis = [
             '🚵🏼',
             '🚵🏻',
         ],
-        name: 'mountain_bicyclist',
     },
     {
-        code: '🏎',
+        name: 'mountain_biking_man',
+        code: '🚵‍♂️',
         keywords: [
-            'car',
-            'racing',
+            'mountain_biking_man',
         ],
-        name: 'racing_car',
+        types: [
+            '🚵🏿‍♂️',
+            '🚵🏾‍♂️',
+            '🚵🏽‍♂️',
+            '🚵🏼‍♂️',
+            '🚵🏻‍♂️',
+        ],
     },
     {
-        code: '🏍',
+        name: 'mountain_biking_woman',
+        code: '🚵‍♀️',
         keywords: [
-            'motorcycle',
-            'racing',
+            'mountain_biking_woman',
         ],
-        name: 'motorcycle',
+        types: [
+            '🚵🏿‍♀️',
+            '🚵🏾‍♀️',
+            '🚵🏽‍♀️',
+            '🚵🏼‍♀️',
+            '🚵🏻‍♀️',
+        ],
     },
     {
+        name: 'cartwheeling',
         code: '🤸',
         keywords: [
+            'cartwheeling',
             'cartwheel',
             'gymnastics',
         ],
@@ -7431,26 +5974,63 @@ const emojis = [
             '🤸🏼',
             '🤸🏻',
         ],
-        name: 'cartwheeling',
     },
     {
+        name: 'man_cartwheeling',
+        code: '🤸‍♂️',
+        keywords: [
+            'man_cartwheeling',
+        ],
+        types: [
+            '🤸🏿‍♂️',
+            '🤸🏾‍♂️',
+            '🤸🏽‍♂️',
+            '🤸🏼‍♂️',
+            '🤸🏻‍♂️',
+        ],
+    },
+    {
+        name: 'woman_cartwheeling',
+        code: '🤸‍♀️',
+        keywords: [
+            'woman_cartwheeling',
+        ],
+        types: [
+            '🤸🏿‍♀️',
+            '🤸🏾‍♀️',
+            '🤸🏽‍♀️',
+            '🤸🏼‍♀️',
+            '🤸🏻‍♀️',
+        ],
+    },
+    {
+        name: 'wrestling',
         code: '🤼',
         keywords: [
+            'wrestling',
             'wrestle',
             'wrestler',
         ],
-        types: [
-            '🤼🏿',
-            '🤼🏾',
-            '🤼🏽',
-            '🤼🏼',
-            '🤼🏻',
-        ],
-        name: 'wrestling',
     },
     {
+        name: 'men_wrestling',
+        code: '🤼‍♂️',
+        keywords: [
+            'men_wrestling',
+        ],
+    },
+    {
+        name: 'women_wrestling',
+        code: '🤼‍♀️',
+        keywords: [
+            'women_wrestling',
+        ],
+    },
+    {
+        name: 'water_polo',
         code: '🤽',
         keywords: [
+            'water_polo',
             'polo',
             'water',
         ],
@@ -7461,11 +6041,40 @@ const emojis = [
             '🤽🏼',
             '🤽🏻',
         ],
-        name: 'water_polo',
     },
     {
+        name: 'man_playing_water_polo',
+        code: '🤽‍♂️',
+        keywords: [
+            'man_playing_water_polo',
+        ],
+        types: [
+            '🤽🏿‍♂️',
+            '🤽🏾‍♂️',
+            '🤽🏽‍♂️',
+            '🤽🏼‍♂️',
+            '🤽🏻‍♂️',
+        ],
+    },
+    {
+        name: 'woman_playing_water_polo',
+        code: '🤽‍♀️',
+        keywords: [
+            'woman_playing_water_polo',
+        ],
+        types: [
+            '🤽🏿‍♀️',
+            '🤽🏾‍♀️',
+            '🤽🏽‍♀️',
+            '🤽🏼‍♀️',
+            '🤽🏻‍♀️',
+        ],
+    },
+    {
+        name: 'handball_person',
         code: '🤾',
         keywords: [
+            'handball_person',
             'ball',
             'handball',
         ],
@@ -7476,28 +6085,40 @@ const emojis = [
             '🤾🏼',
             '🤾🏻',
         ],
-        name: 'handball_person',
     },
     {
-        code: '🤺',
+        name: 'man_playing_handball',
+        code: '🤾‍♂️',
         keywords: [
-            'fencer',
-            'fencing',
-            'sword',
+            'man_playing_handball',
         ],
-        name: 'person_fencing',
+        types: [
+            '🤾🏿‍♂️',
+            '🤾🏾‍♂️',
+            '🤾🏽‍♂️',
+            '🤾🏼‍♂️',
+            '🤾🏻‍♂️',
+        ],
     },
     {
-        code: '🥅',
+        name: 'woman_playing_handball',
+        code: '🤾‍♀️',
         keywords: [
-            'goal',
-            'net',
+            'woman_playing_handball',
         ],
-        name: 'goal_net',
+        types: [
+            '🤾🏿‍♀️',
+            '🤾🏾‍♀️',
+            '🤾🏽‍♀️',
+            '🤾🏼‍♀️',
+            '🤾🏻‍♀️',
+        ],
     },
     {
+        name: 'juggling_person',
         code: '🤹',
         keywords: [
+            'juggling_person',
             'balance',
             'juggle',
             'multitask',
@@ -7510,119 +6131,6069 @@ const emojis = [
             '🤹🏼',
             '🤹🏻',
         ],
-        name: 'juggling_person',
     },
     {
+        name: 'man_juggling',
+        code: '🤹‍♂️',
+        keywords: [
+            'man_juggling',
+        ],
+        types: [
+            '🤹🏿‍♂️',
+            '🤹🏾‍♂️',
+            '🤹🏽‍♂️',
+            '🤹🏼‍♂️',
+            '🤹🏻‍♂️',
+        ],
+    },
+    {
+        name: 'woman_juggling',
+        code: '🤹‍♀️',
+        keywords: [
+            'woman_juggling',
+        ],
+        types: [
+            '🤹🏿‍♀️',
+            '🤹🏾‍♀️',
+            '🤹🏽‍♀️',
+            '🤹🏼‍♀️',
+            '🤹🏻‍♀️',
+        ],
+    },
+    {
+        name: 'lotus_position',
+        code: '🧘',
+        keywords: [
+            'meditation',
+            'lotus_position',
+        ],
+        types: [
+            '🧘🏿',
+            '🧘🏾',
+            '🧘🏽',
+            '🧘🏼',
+            '🧘🏻',
+        ],
+    },
+    {
+        name: 'lotus_position_man',
+        code: '🧘‍♂️',
+        keywords: [
+            'meditation',
+            'lotus_position_man',
+        ],
+        types: [
+            '🧘🏿‍♂️',
+            '🧘🏾‍♂️',
+            '🧘🏽‍♂️',
+            '🧘🏼‍♂️',
+            '🧘🏻‍♂️',
+        ],
+    },
+    {
+        name: 'lotus_position_woman',
+        code: '🧘‍♀️',
+        keywords: [
+            'meditation',
+            'lotus_position_woman',
+        ],
+        types: [
+            '🧘🏿‍♀️',
+            '🧘🏾‍♀️',
+            '🧘🏽‍♀️',
+            '🧘🏼‍♀️',
+            '🧘🏻‍♀️',
+        ],
+    },
+    {
+        name: 'bath',
+        code: '🛀',
+        keywords: [
+            'shower',
+            'bath',
+            'bathtub',
+        ],
+        types: [
+            '🛀🏿',
+            '🛀🏾',
+            '🛀🏽',
+            '🛀🏼',
+            '🛀🏻',
+        ],
+    },
+    {
+        name: 'sleeping_bed',
+        code: '🛌',
+        keywords: [
+            'sleeping_bed',
+            'hotel',
+            'sleep',
+        ],
+        types: [
+            '🛌🏿',
+            '🛌🏾',
+            '🛌🏽',
+            '🛌🏼',
+            '🛌🏻',
+        ],
+    },
+    {
+        name: 'people_holding_hands',
+        code: '🧑‍🤝‍🧑',
+        keywords: [
+            'couple',
+            'date',
+            'people_holding_hands',
+        ],
+        types: [
+            '🧑🏿‍🤝‍🧑🏿',
+            '🧑🏿‍🤝‍🧑🏾',
+            '🧑🏿‍🤝‍🧑🏽',
+            '🧑🏿‍🤝‍🧑🏼',
+            '🧑🏿‍🤝‍🧑🏻',
+            '🧑🏾‍🤝‍🧑🏿',
+            '🧑🏾‍🤝‍🧑🏾',
+            '🧑🏾‍🤝‍🧑🏽',
+            '🧑🏾‍🤝‍🧑🏼',
+            '🧑🏾‍🤝‍🧑🏻',
+            '🧑🏽‍🤝‍🧑🏿',
+            '🧑🏽‍🤝‍🧑🏾',
+            '🧑🏽‍🤝‍🧑🏽',
+            '🧑🏽‍🤝‍🧑🏼',
+            '🧑🏽‍🤝‍🧑🏻',
+            '🧑🏼‍🤝‍🧑🏿',
+            '🧑🏼‍🤝‍🧑🏾',
+            '🧑🏼‍🤝‍🧑🏽',
+            '🧑🏼‍🤝‍🧑🏼',
+            '🧑🏼‍🤝‍🧑🏻',
+            '🧑🏻‍🤝‍🧑🏿',
+            '🧑🏻‍🤝‍🧑🏾',
+            '🧑🏻‍🤝‍🧑🏽',
+            '🧑🏻‍🤝‍🧑🏼',
+            '🧑🏻‍🤝‍🧑🏻',
+        ],
+    },
+    {
+        name: 'two_women_holding_hands',
+        code: '👭',
+        keywords: [
+            'couple',
+            'date',
+            'two_women_holding_hands',
+            'hand',
+            'hold',
+            'woman',
+        ],
+        types: [
+            '👩🏿‍🤝‍👩🏾',
+            '👩🏿‍🤝‍👩🏽',
+            '👩🏿‍🤝‍👩🏼',
+            '👩🏿‍🤝‍👩🏻',
+            '👩🏾‍🤝‍👩🏿',
+            '👩🏾‍🤝‍👩🏽',
+            '👩🏾‍🤝‍👩🏼',
+            '👩🏾‍🤝‍👩🏻',
+            '👩🏽‍🤝‍👩🏿',
+            '👩🏽‍🤝‍👩🏾',
+            '👩🏽‍🤝‍👩🏼',
+            '👩🏽‍🤝‍👩🏻',
+            '👩🏼‍🤝‍👩🏿',
+            '👩🏼‍🤝‍👩🏾',
+            '👩🏼‍🤝‍👩🏽',
+            '👩🏼‍🤝‍👩🏻',
+            '👩🏻‍🤝‍👩🏿',
+            '👩🏻‍🤝‍👩🏾',
+            '👩🏻‍🤝‍👩🏽',
+            '👩🏻‍🤝‍👩🏼',
+            '👭🏿',
+            '👭🏾',
+            '👭🏽',
+            '👭🏼',
+            '👭🏻',
+        ],
+    },
+    {
+        name: 'couple',
+        code: '👫',
+        keywords: [
+            'date',
+            'couple',
+            'hand',
+            'hold',
+            'man',
+            'woman',
+        ],
+        types: [
+            '👩🏿‍🤝‍👨🏾',
+            '👩🏿‍🤝‍👨🏽',
+            '👩🏿‍🤝‍👨🏼',
+            '👩🏿‍🤝‍👨🏻',
+            '👩🏾‍🤝‍👨🏿',
+            '👩🏾‍🤝‍👨🏽',
+            '👩🏾‍🤝‍👨🏼',
+            '👩🏾‍🤝‍👨🏻',
+            '👩🏽‍🤝‍👨🏿',
+            '👩🏽‍🤝‍👨🏾',
+            '👩🏽‍🤝‍👨🏼',
+            '👩🏽‍🤝‍👨🏻',
+            '👩🏼‍🤝‍👨🏿',
+            '👩🏼‍🤝‍👨🏾',
+            '👩🏼‍🤝‍👨🏽',
+            '👩🏼‍🤝‍👨🏻',
+            '👩🏻‍🤝‍👨🏿',
+            '👩🏻‍🤝‍👨🏾',
+            '👩🏻‍🤝‍👨🏽',
+            '👩🏻‍🤝‍👨🏼',
+            '👫🏿',
+            '👫🏾',
+            '👫🏽',
+            '👫🏼',
+            '👫🏻',
+        ],
+    },
+    {
+        name: 'two_men_holding_hands',
+        code: '👬',
+        keywords: [
+            'couple',
+            'date',
+            'two_men_holding_hands',
+            'gemini',
+            'hand',
+            'hold',
+            'man',
+            'twins',
+            'zodiac',
+        ],
+        types: [
+            '👨🏿‍🤝‍👨🏾',
+            '👨🏿‍🤝‍👨🏽',
+            '👨🏿‍🤝‍👨🏼',
+            '👨🏿‍🤝‍👨🏻',
+            '👨🏾‍🤝‍👨🏿',
+            '👨🏾‍🤝‍👨🏽',
+            '👨🏾‍🤝‍👨🏼',
+            '👨🏾‍🤝‍👨🏻',
+            '👨🏽‍🤝‍👨🏿',
+            '👨🏽‍🤝‍👨🏾',
+            '👨🏽‍🤝‍👨🏼',
+            '👨🏽‍🤝‍👨🏻',
+            '👨🏼‍🤝‍👨🏿',
+            '👨🏼‍🤝‍👨🏾',
+            '👨🏼‍🤝‍👨🏽',
+            '👨🏼‍🤝‍👨🏻',
+            '👨🏻‍🤝‍👨🏿',
+            '👨🏻‍🤝‍👨🏾',
+            '👨🏻‍🤝‍👨🏽',
+            '👨🏻‍🤝‍👨🏼',
+            '👬🏿',
+            '👬🏾',
+            '👬🏽',
+            '👬🏼',
+            '👬🏻',
+        ],
+    },
+    {
+        name: 'couplekiss',
+        code: '💏',
+        keywords: [
+            'couplekiss',
+            'couple',
+            'kiss',
+            'romance',
+        ],
+        types: [
+            '🧑🏿‍❤️‍💋‍🧑🏾',
+            '🧑🏿‍❤️‍💋‍🧑🏽',
+            '🧑🏿‍❤️‍💋‍🧑🏼',
+            '🧑🏿‍❤️‍💋‍🧑🏻',
+            '🧑🏾‍❤️‍💋‍🧑🏿',
+            '🧑🏾‍❤️‍💋‍🧑🏽',
+            '🧑🏾‍❤️‍💋‍🧑🏼',
+            '🧑🏾‍❤️‍💋‍🧑🏻',
+            '🧑🏽‍❤️‍💋‍🧑🏿',
+            '🧑🏽‍❤️‍💋‍🧑🏾',
+            '🧑🏽‍❤️‍💋‍🧑🏼',
+            '🧑🏽‍❤️‍💋‍🧑🏻',
+            '🧑🏼‍❤️‍💋‍🧑🏿',
+            '🧑🏼‍❤️‍💋‍🧑🏾',
+            '🧑🏼‍❤️‍💋‍🧑🏽',
+            '🧑🏼‍❤️‍💋‍🧑🏻',
+            '🧑🏻‍❤️‍💋‍🧑🏿',
+            '🧑🏻‍❤️‍💋‍🧑🏾',
+            '🧑🏻‍❤️‍💋‍🧑🏽',
+            '🧑🏻‍❤️‍💋‍🧑🏼',
+            '💏🏿',
+            '💏🏾',
+            '💏🏽',
+            '💏🏼',
+            '💏🏻',
+        ],
+    },
+    {
+        name: 'couplekiss_man_woman',
+        code: '👩‍❤️‍💋‍👨',
+        keywords: [
+            'couplekiss_man_woman',
+        ],
+        types: [
+            '👩🏿‍❤️‍💋‍👨🏿',
+            '👩🏿‍❤️‍💋‍👨🏾',
+            '👩🏿‍❤️‍💋‍👨🏽',
+            '👩🏿‍❤️‍💋‍👨🏼',
+            '👩🏿‍❤️‍💋‍👨🏻',
+            '👩🏾‍❤️‍💋‍👨🏿',
+            '👩🏾‍❤️‍💋‍👨🏾',
+            '👩🏾‍❤️‍💋‍👨🏽',
+            '👩🏾‍❤️‍💋‍👨🏼',
+            '👩🏾‍❤️‍💋‍👨🏻',
+            '👩🏽‍❤️‍💋‍👨🏿',
+            '👩🏽‍❤️‍💋‍👨🏾',
+            '👩🏽‍❤️‍💋‍👨🏽',
+            '👩🏽‍❤️‍💋‍👨🏼',
+            '👩🏽‍❤️‍💋‍👨🏻',
+            '👩🏼‍❤️‍💋‍👨🏿',
+            '👩🏼‍❤️‍💋‍👨🏾',
+            '👩🏼‍❤️‍💋‍👨🏽',
+            '👩🏼‍❤️‍💋‍👨🏼',
+            '👩🏼‍❤️‍💋‍👨🏻',
+            '👩🏻‍❤️‍💋‍👨🏿',
+            '👩🏻‍❤️‍💋‍👨🏾',
+            '👩🏻‍❤️‍💋‍👨🏽',
+            '👩🏻‍❤️‍💋‍👨🏼',
+            '👩🏻‍❤️‍💋‍👨🏻',
+        ],
+    },
+    {
+        name: 'couplekiss_man_man',
+        code: '👨‍❤️‍💋‍👨',
+        keywords: [
+            'couplekiss_man_man',
+        ],
+        types: [
+            '👨🏿‍❤️‍💋‍👨🏿',
+            '👨🏿‍❤️‍💋‍👨🏾',
+            '👨🏿‍❤️‍💋‍👨🏽',
+            '👨🏿‍❤️‍💋‍👨🏼',
+            '👨🏿‍❤️‍💋‍👨🏻',
+            '👨🏾‍❤️‍💋‍👨🏿',
+            '👨🏾‍❤️‍💋‍👨🏾',
+            '👨🏾‍❤️‍💋‍👨🏽',
+            '👨🏾‍❤️‍💋‍👨🏼',
+            '👨🏾‍❤️‍💋‍👨🏻',
+            '👨🏽‍❤️‍💋‍👨🏿',
+            '👨🏽‍❤️‍💋‍👨🏾',
+            '👨🏽‍❤️‍💋‍👨🏽',
+            '👨🏽‍❤️‍💋‍👨🏼',
+            '👨🏽‍❤️‍💋‍👨🏻',
+            '👨🏼‍❤️‍💋‍👨🏿',
+            '👨🏼‍❤️‍💋‍👨🏾',
+            '👨🏼‍❤️‍💋‍👨🏽',
+            '👨🏼‍❤️‍💋‍👨🏼',
+            '👨🏼‍❤️‍💋‍👨🏻',
+            '👨🏻‍❤️‍💋‍👨🏿',
+            '👨🏻‍❤️‍💋‍👨🏾',
+            '👨🏻‍❤️‍💋‍👨🏽',
+            '👨🏻‍❤️‍💋‍👨🏼',
+            '👨🏻‍❤️‍💋‍👨🏻',
+        ],
+    },
+    {
+        name: 'couplekiss_woman_woman',
+        code: '👩‍❤️‍💋‍👩',
+        keywords: [
+            'couplekiss_woman_woman',
+        ],
+        types: [
+            '👩🏿‍❤️‍💋‍👩🏿',
+            '👩🏿‍❤️‍💋‍👩🏾',
+            '👩🏿‍❤️‍💋‍👩🏽',
+            '👩🏿‍❤️‍💋‍👩🏼',
+            '👩🏿‍❤️‍💋‍👩🏻',
+            '👩🏾‍❤️‍💋‍👩🏿',
+            '👩🏾‍❤️‍💋‍👩🏾',
+            '👩🏾‍❤️‍💋‍👩🏽',
+            '👩🏾‍❤️‍💋‍👩🏼',
+            '👩🏾‍❤️‍💋‍👩🏻',
+            '👩🏽‍❤️‍💋‍👩🏿',
+            '👩🏽‍❤️‍💋‍👩🏾',
+            '👩🏽‍❤️‍💋‍👩🏽',
+            '👩🏽‍❤️‍💋‍👩🏼',
+            '👩🏽‍❤️‍💋‍👩🏻',
+            '👩🏼‍❤️‍💋‍👩🏿',
+            '👩🏼‍❤️‍💋‍👩🏾',
+            '👩🏼‍❤️‍💋‍👩🏽',
+            '👩🏼‍❤️‍💋‍👩🏼',
+            '👩🏼‍❤️‍💋‍👩🏻',
+            '👩🏻‍❤️‍💋‍👩🏿',
+            '👩🏻‍❤️‍💋‍👩🏾',
+            '👩🏻‍❤️‍💋‍👩🏽',
+            '👩🏻‍❤️‍💋‍👩🏼',
+            '👩🏻‍❤️‍💋‍👩🏻',
+        ],
+    },
+    {
+        name: 'couple_with_heart',
+        code: '💑',
+        keywords: [
+            'couple_with_heart',
+            'couple',
+            'heart',
+            'love',
+            'romance',
+        ],
+        types: [
+            '🧑🏿‍❤️‍🧑🏾',
+            '🧑🏿‍❤️‍🧑🏽',
+            '🧑🏿‍❤️‍🧑🏼',
+            '🧑🏿‍❤️‍🧑🏻',
+            '🧑🏾‍❤️‍🧑🏿',
+            '🧑🏾‍❤️‍🧑🏽',
+            '🧑🏾‍❤️‍🧑🏼',
+            '🧑🏾‍❤️‍🧑🏻',
+            '🧑🏽‍❤️‍🧑🏿',
+            '🧑🏽‍❤️‍🧑🏾',
+            '🧑🏽‍❤️‍🧑🏼',
+            '🧑🏽‍❤️‍🧑🏻',
+            '🧑🏼‍❤️‍🧑🏿',
+            '🧑🏼‍❤️‍🧑🏾',
+            '🧑🏼‍❤️‍🧑🏽',
+            '🧑🏼‍❤️‍🧑🏻',
+            '🧑🏻‍❤️‍🧑🏿',
+            '🧑🏻‍❤️‍🧑🏾',
+            '🧑🏻‍❤️‍🧑🏽',
+            '🧑🏻‍❤️‍🧑🏼',
+            '💑🏿',
+            '💑🏾',
+            '💑🏽',
+            '💑🏼',
+            '💑🏻',
+        ],
+    },
+    {
+        name: 'couple_with_heart_woman_man',
+        code: '👩‍❤️‍👨',
+        keywords: [
+            'couple_with_heart_woman_man',
+        ],
+        types: [
+            '👩🏿‍❤️‍👨🏿',
+            '👩🏿‍❤️‍👨🏾',
+            '👩🏿‍❤️‍👨🏽',
+            '👩🏿‍❤️‍👨🏼',
+            '👩🏿‍❤️‍👨🏻',
+            '👩🏾‍❤️‍👨🏿',
+            '👩🏾‍❤️‍👨🏾',
+            '👩🏾‍❤️‍👨🏽',
+            '👩🏾‍❤️‍👨🏼',
+            '👩🏾‍❤️‍👨🏻',
+            '👩🏽‍❤️‍👨🏿',
+            '👩🏽‍❤️‍👨🏾',
+            '👩🏽‍❤️‍👨🏽',
+            '👩🏽‍❤️‍👨🏼',
+            '👩🏽‍❤️‍👨🏻',
+            '👩🏼‍❤️‍👨🏿',
+            '👩🏼‍❤️‍👨🏾',
+            '👩🏼‍❤️‍👨🏽',
+            '👩🏼‍❤️‍👨🏼',
+            '👩🏼‍❤️‍👨🏻',
+            '👩🏻‍❤️‍👨🏿',
+            '👩🏻‍❤️‍👨🏾',
+            '👩🏻‍❤️‍👨🏽',
+            '👩🏻‍❤️‍👨🏼',
+            '👩🏻‍❤️‍👨🏻',
+        ],
+    },
+    {
+        name: 'couple_with_heart_man_man',
+        code: '👨‍❤️‍👨',
+        keywords: [
+            'couple_with_heart_man_man',
+        ],
+        types: [
+            '👨🏿‍❤️‍👨🏿',
+            '👨🏿‍❤️‍👨🏾',
+            '👨🏿‍❤️‍👨🏽',
+            '👨🏿‍❤️‍👨🏼',
+            '👨🏿‍❤️‍👨🏻',
+            '👨🏾‍❤️‍👨🏿',
+            '👨🏾‍❤️‍👨🏾',
+            '👨🏾‍❤️‍👨🏽',
+            '👨🏾‍❤️‍👨🏼',
+            '👨🏾‍❤️‍👨🏻',
+            '👨🏽‍❤️‍👨🏿',
+            '👨🏽‍❤️‍👨🏾',
+            '👨🏽‍❤️‍👨🏽',
+            '👨🏽‍❤️‍👨🏼',
+            '👨🏽‍❤️‍👨🏻',
+            '👨🏼‍❤️‍👨🏿',
+            '👨🏼‍❤️‍👨🏾',
+            '👨🏼‍❤️‍👨🏽',
+            '👨🏼‍❤️‍👨🏼',
+            '👨🏼‍❤️‍👨🏻',
+            '👨🏻‍❤️‍👨🏿',
+            '👨🏻‍❤️‍👨🏾',
+            '👨🏻‍❤️‍👨🏽',
+            '👨🏻‍❤️‍👨🏼',
+            '👨🏻‍❤️‍👨🏻',
+        ],
+    },
+    {
+        name: 'couple_with_heart_woman_woman',
+        code: '👩‍❤️‍👩',
+        keywords: [
+            'couple_with_heart_woman_woman',
+        ],
+        types: [
+            '👩🏿‍❤️‍👩🏿',
+            '👩🏿‍❤️‍👩🏾',
+            '👩🏿‍❤️‍👩🏽',
+            '👩🏿‍❤️‍👩🏼',
+            '👩🏿‍❤️‍👩🏻',
+            '👩🏾‍❤️‍👩🏿',
+            '👩🏾‍❤️‍👩🏾',
+            '👩🏾‍❤️‍👩🏽',
+            '👩🏾‍❤️‍👩🏼',
+            '👩🏾‍❤️‍👩🏻',
+            '👩🏽‍❤️‍👩🏿',
+            '👩🏽‍❤️‍👩🏾',
+            '👩🏽‍❤️‍👩🏽',
+            '👩🏽‍❤️‍👩🏼',
+            '👩🏽‍❤️‍👩🏻',
+            '👩🏼‍❤️‍👩🏿',
+            '👩🏼‍❤️‍👩🏾',
+            '👩🏼‍❤️‍👩🏽',
+            '👩🏼‍❤️‍👩🏼',
+            '👩🏼‍❤️‍👩🏻',
+            '👩🏻‍❤️‍👩🏿',
+            '👩🏻‍❤️‍👩🏾',
+            '👩🏻‍❤️‍👩🏽',
+            '👩🏻‍❤️‍👩🏼',
+            '👩🏻‍❤️‍👩🏻',
+        ],
+    },
+    {
+        name: 'family',
+        code: '👪',
+        keywords: [
+            'home',
+            'parents',
+            'child',
+            'family',
+            'father',
+            'mother',
+        ],
+    },
+    {
+        name: 'family_man_woman_boy',
+        code: '👨‍👩‍👦',
+        keywords: [
+            'family_man_woman_boy',
+            'boy',
+            'family',
+            'man',
+            'woman',
+        ],
+    },
+    {
+        name: 'family_man_woman_girl',
+        code: '👨‍👩‍👧',
+        keywords: [
+            'family_man_woman_girl',
+            'family',
+            'girl',
+            'man',
+            'woman',
+        ],
+    },
+    {
+        name: 'family_man_woman_girl_boy',
+        code: '👨‍👩‍👧‍👦',
+        keywords: [
+            'family_man_woman_girl_boy',
+            'boy',
+            'family',
+            'girl',
+            'man',
+            'woman',
+        ],
+    },
+    {
+        name: 'family_man_woman_boy_boy',
+        code: '👨‍👩‍👦‍👦',
+        keywords: [
+            'family_man_woman_boy_boy',
+            'boy',
+            'family',
+            'man',
+            'woman',
+        ],
+    },
+    {
+        name: 'family_man_woman_girl_girl',
+        code: '👨‍👩‍👧‍👧',
+        keywords: [
+            'family_man_woman_girl_girl',
+            'family',
+            'girl',
+            'man',
+            'woman',
+        ],
+    },
+    {
+        name: 'family_man_man_boy',
+        code: '👨‍👨‍👦',
+        keywords: [
+            'family_man_man_boy',
+            'boy',
+            'family',
+            'man',
+        ],
+    },
+    {
+        name: 'family_man_man_girl',
+        code: '👨‍👨‍👧',
+        keywords: [
+            'family_man_man_girl',
+            'family',
+            'girl',
+            'man',
+        ],
+    },
+    {
+        name: 'family_man_man_girl_boy',
+        code: '👨‍👨‍👧‍👦',
+        keywords: [
+            'family_man_man_girl_boy',
+            'boy',
+            'family',
+            'girl',
+            'man',
+        ],
+    },
+    {
+        name: 'family_man_man_boy_boy',
+        code: '👨‍👨‍👦‍👦',
+        keywords: [
+            'family_man_man_boy_boy',
+            'boy',
+            'family',
+            'man',
+        ],
+    },
+    {
+        name: 'family_man_man_girl_girl',
+        code: '👨‍👨‍👧‍👧',
+        keywords: [
+            'family_man_man_girl_girl',
+            'family',
+            'girl',
+            'man',
+        ],
+    },
+    {
+        name: 'family_woman_woman_boy',
+        code: '👩‍👩‍👦',
+        keywords: [
+            'family_woman_woman_boy',
+            'boy',
+            'family',
+            'woman',
+        ],
+    },
+    {
+        name: 'family_woman_woman_girl',
+        code: '👩‍👩‍👧',
+        keywords: [
+            'family_woman_woman_girl',
+            'family',
+            'girl',
+            'woman',
+        ],
+    },
+    {
+        name: 'family_woman_woman_girl_boy',
+        code: '👩‍👩‍👧‍👦',
+        keywords: [
+            'family_woman_woman_girl_boy',
+            'boy',
+            'family',
+            'girl',
+            'woman',
+        ],
+    },
+    {
+        name: 'family_woman_woman_boy_boy',
+        code: '👩‍👩‍👦‍👦',
+        keywords: [
+            'family_woman_woman_boy_boy',
+            'boy',
+            'family',
+            'woman',
+        ],
+    },
+    {
+        name: 'family_woman_woman_girl_girl',
+        code: '👩‍👩‍👧‍👧',
+        keywords: [
+            'family_woman_woman_girl_girl',
+            'family',
+            'girl',
+            'woman',
+        ],
+    },
+    {
+        name: 'family_man_boy',
+        code: '👨‍👦',
+        keywords: [
+            'family_man_boy',
+        ],
+    },
+    {
+        name: 'family_man_boy_boy',
+        code: '👨‍👦‍👦',
+        keywords: [
+            'family_man_boy_boy',
+        ],
+    },
+    {
+        name: 'family_man_girl',
+        code: '👨‍👧',
+        keywords: [
+            'family_man_girl',
+        ],
+    },
+    {
+        name: 'family_man_girl_boy',
+        code: '👨‍👧‍👦',
+        keywords: [
+            'family_man_girl_boy',
+        ],
+    },
+    {
+        name: 'family_man_girl_girl',
+        code: '👨‍👧‍👧',
+        keywords: [
+            'family_man_girl_girl',
+        ],
+    },
+    {
+        name: 'family_woman_boy',
+        code: '👩‍👦',
+        keywords: [
+            'family_woman_boy',
+        ],
+    },
+    {
+        name: 'family_woman_boy_boy',
+        code: '👩‍👦‍👦',
+        keywords: [
+            'family_woman_boy_boy',
+        ],
+    },
+    {
+        name: 'family_woman_girl',
+        code: '👩‍👧',
+        keywords: [
+            'family_woman_girl',
+        ],
+    },
+    {
+        name: 'family_woman_girl_boy',
+        code: '👩‍👧‍👦',
+        keywords: [
+            'family_woman_girl_boy',
+        ],
+    },
+    {
+        name: 'family_woman_girl_girl',
+        code: '👩‍👧‍👧',
+        keywords: [
+            'family_woman_girl_girl',
+        ],
+    },
+    {
+        name: 'speaking_head',
+        code: '🗣️',
+        keywords: [
+            'speaking_head',
+        ],
+    },
+    {
+        name: 'bust_in_silhouette',
+        code: '👤',
+        keywords: [
+            'user',
+            'bust_in_silhouette',
+            'bust',
+            'silhouette',
+        ],
+    },
+    {
+        name: 'busts_in_silhouette',
+        code: '👥',
+        keywords: [
+            'users',
+            'group',
+            'team',
+            'busts_in_silhouette',
+            'bust',
+            'silhouette',
+        ],
+    },
+    {
+        name: 'people_hugging',
+        code: '🫂',
+        keywords: [
+            'people_hugging',
+        ],
+    },
+    {
+        name: 'footprints',
+        code: '👣',
+        keywords: [
+            'feet',
+            'tracks',
+            'footprints',
+            'body',
+            'clothing',
+            'footprint',
+            'print',
+        ],
+    },
+    {
+        code: 'animalsAndNature',
+        header: true,
+    },
+    {
+        name: 'monkey_face',
+        code: '🐵',
+        keywords: [
+            'monkey_face',
+            'face',
+            'monkey',
+        ],
+    },
+    {
+        name: 'monkey',
+        code: '🐒',
+        keywords: [
+            'monkey',
+        ],
+    },
+    {
+        name: 'gorilla',
+        code: '🦍',
+        keywords: [
+            'gorilla',
+        ],
+    },
+    {
+        name: 'orangutan',
+        code: '🦧',
+        keywords: [
+            'orangutan',
+        ],
+    },
+    {
+        name: 'dog',
+        code: '🐶',
+        keywords: [
+            'pet',
+            'dog',
+            'face',
+        ],
+    },
+    {
+        name: 'dog2',
+        code: '🐕',
+        keywords: [
+            'dog2',
+            'dog',
+            'pet',
+        ],
+    },
+    {
+        name: 'guide_dog',
+        code: '🦮',
+        keywords: [
+            'guide_dog',
+        ],
+    },
+    {
+        name: 'service_dog',
+        code: '🐕‍🦺',
+        keywords: [
+            'service_dog',
+        ],
+    },
+    {
+        name: 'poodle',
+        code: '🐩',
+        keywords: [
+            'dog',
+            'poodle',
+        ],
+    },
+    {
+        name: 'wolf',
+        code: '🐺',
+        keywords: [
+            'wolf',
+            'face',
+        ],
+    },
+    {
+        name: 'fox_face',
+        code: '🦊',
+        keywords: [
+            'fox_face',
+            'face',
+            'fox',
+        ],
+    },
+    {
+        name: 'raccoon',
+        code: '🦝',
+        keywords: [
+            'raccoon',
+        ],
+    },
+    {
+        name: 'cat',
+        code: '🐱',
+        keywords: [
+            'pet',
+            'cat',
+            'face',
+        ],
+    },
+    {
+        name: 'cat2',
+        code: '🐈',
+        keywords: [
+            'cat2',
+            'cat',
+            'pet',
+        ],
+    },
+    {
+        name: 'black_cat',
+        code: '🐈‍⬛',
+        keywords: [
+            'black_cat',
+        ],
+    },
+    {
+        name: 'lion',
+        code: '🦁',
+        keywords: [
+            'lion',
+            'face',
+            'leo',
+            'zodiac',
+        ],
+    },
+    {
+        name: 'tiger',
+        code: '🐯',
+        keywords: [
+            'tiger',
+            'face',
+        ],
+    },
+    {
+        name: 'tiger2',
+        code: '🐅',
+        keywords: [
+            'tiger2',
+            'tiger',
+        ],
+    },
+    {
+        name: 'leopard',
+        code: '🐆',
+        keywords: [
+            'leopard',
+        ],
+    },
+    {
+        name: 'horse',
+        code: '🐴',
+        keywords: [
+            'horse',
+            'face',
+        ],
+    },
+    {
+        name: 'racehorse',
+        code: '🐎',
+        keywords: [
+            'speed',
+            'racehorse',
+            'horse',
+            'racing',
+        ],
+    },
+    {
+        name: 'unicorn',
+        code: '🦄',
+        keywords: [
+            'unicorn',
+            'face',
+        ],
+    },
+    {
+        name: 'zebra',
+        code: '🦓',
+        keywords: [
+            'zebra',
+        ],
+    },
+    {
+        name: 'deer',
+        code: '🦌',
+        keywords: [
+            'deer',
+        ],
+    },
+    {
+        name: 'bison',
+        code: '🦬',
+        keywords: [
+            'bison',
+        ],
+    },
+    {
+        name: 'cow',
+        code: '🐮',
+        keywords: [
+            'cow',
+            'face',
+        ],
+    },
+    {
+        name: 'ox',
+        code: '🐂',
+        keywords: [
+            'ox',
+            'bull',
+            'taurus',
+            'zodiac',
+        ],
+    },
+    {
+        name: 'water_buffalo',
+        code: '🐃',
+        keywords: [
+            'water_buffalo',
+            'buffalo',
+            'water',
+        ],
+    },
+    {
+        name: 'cow2',
+        code: '🐄',
+        keywords: [
+            'cow2',
+            'cow',
+        ],
+    },
+    {
+        name: 'pig',
+        code: '🐷',
+        keywords: [
+            'pig',
+            'face',
+        ],
+    },
+    {
+        name: 'pig2',
+        code: '🐖',
+        keywords: [
+            'pig2',
+            'pig',
+            'sow',
+        ],
+    },
+    {
+        name: 'boar',
+        code: '🐗',
+        keywords: [
+            'boar',
+            'pig',
+        ],
+    },
+    {
+        name: 'pig_nose',
+        code: '🐽',
+        keywords: [
+            'pig_nose',
+            'face',
+            'nose',
+            'pig',
+        ],
+    },
+    {
+        name: 'ram',
+        code: '🐏',
+        keywords: [
+            'ram',
+            'aries',
+            'sheep',
+            'zodiac',
+        ],
+    },
+    {
+        name: 'sheep',
+        code: '🐑',
+        keywords: [
+            'sheep',
+            'ewe',
+        ],
+    },
+    {
+        name: 'goat',
+        code: '🐐',
+        keywords: [
+            'goat',
+            'capricorn',
+            'zodiac',
+        ],
+    },
+    {
+        name: 'dromedary_camel',
+        code: '🐪',
+        keywords: [
+            'desert',
+            'dromedary_camel',
+            'camel',
+            'dromedary',
+            'hump',
+        ],
+    },
+    {
+        name: 'camel',
+        code: '🐫',
+        keywords: [
+            'camel',
+            'bactrian',
+            'hump',
+        ],
+    },
+    {
+        name: 'llama',
+        code: '🦙',
+        keywords: [
+            'llama',
+        ],
+    },
+    {
+        name: 'giraffe',
+        code: '🦒',
+        keywords: [
+            'giraffe',
+        ],
+    },
+    {
+        name: 'elephant',
+        code: '🐘',
+        keywords: [
+            'elephant',
+        ],
+    },
+    {
+        name: 'mammoth',
+        code: '🦣',
+        keywords: [
+            'mammoth',
+        ],
+    },
+    {
+        name: 'rhinoceros',
+        code: '🦏',
+        keywords: [
+            'rhinoceros',
+        ],
+    },
+    {
+        name: 'hippopotamus',
+        code: '🦛',
+        keywords: [
+            'hippopotamus',
+        ],
+    },
+    {
+        name: 'mouse',
+        code: '🐭',
+        keywords: [
+            'mouse',
+            'face',
+        ],
+    },
+    {
+        name: 'mouse2',
+        code: '🐁',
+        keywords: [
+            'mouse2',
+            'mouse',
+        ],
+    },
+    {
+        name: 'rat',
+        code: '🐀',
+        keywords: [
+            'rat',
+        ],
+    },
+    {
+        name: 'hamster',
+        code: '🐹',
+        keywords: [
+            'pet',
+            'hamster',
+            'face',
+        ],
+    },
+    {
+        name: 'rabbit',
+        code: '🐰',
+        keywords: [
+            'bunny',
+            'rabbit',
+            'face',
+            'pet',
+        ],
+    },
+    {
+        name: 'rabbit2',
+        code: '🐇',
+        keywords: [
+            'rabbit2',
+            'bunny',
+            'pet',
+            'rabbit',
+        ],
+    },
+    {
+        name: 'chipmunk',
+        code: '🐿️',
+        keywords: [
+            'chipmunk',
+        ],
+    },
+    {
+        name: 'beaver',
+        code: '🦫',
+        keywords: [
+            'beaver',
+        ],
+    },
+    {
+        name: 'hedgehog',
+        code: '🦔',
+        keywords: [
+            'hedgehog',
+        ],
+    },
+    {
+        name: 'bat',
+        code: '🦇',
+        keywords: [
+            'bat',
+            'vampire',
+        ],
+    },
+    {
+        name: 'bear',
+        code: '🐻',
+        keywords: [
+            'bear',
+            'face',
+        ],
+    },
+    {
+        name: 'polar_bear',
+        code: '🐻‍❄️',
+        keywords: [
+            'polar_bear',
+        ],
+    },
+    {
+        name: 'koala',
+        code: '🐨',
+        keywords: [
+            'koala',
+            'bear',
+        ],
+    },
+    {
+        name: 'panda_face',
+        code: '🐼',
+        keywords: [
+            'panda_face',
+            'face',
+            'panda',
+        ],
+    },
+    {
+        name: 'sloth',
+        code: '🦥',
+        keywords: [
+            'sloth',
+        ],
+    },
+    {
+        name: 'otter',
+        code: '🦦',
+        keywords: [
+            'otter',
+        ],
+    },
+    {
+        name: 'skunk',
+        code: '🦨',
+        keywords: [
+            'skunk',
+        ],
+    },
+    {
+        name: 'kangaroo',
+        code: '🦘',
+        keywords: [
+            'kangaroo',
+        ],
+    },
+    {
+        name: 'badger',
+        code: '🦡',
+        keywords: [
+            'badger',
+        ],
+    },
+    {
+        name: 'feet',
+        code: '🐾',
+        keywords: [
+            'feet',
+            'paw_prints',
+            'paw',
+            'print',
+        ],
+    },
+    {
+        name: 'turkey',
+        code: '🦃',
+        keywords: [
+            'thanksgiving',
+            'turkey',
+        ],
+    },
+    {
+        name: 'chicken',
+        code: '🐔',
+        keywords: [
+            'chicken',
+        ],
+    },
+    {
+        name: 'rooster',
+        code: '🐓',
+        keywords: [
+            'rooster',
+        ],
+    },
+    {
+        name: 'hatching_chick',
+        code: '🐣',
+        keywords: [
+            'hatching_chick',
+            'baby',
+            'chick',
+            'hatching',
+        ],
+    },
+    {
+        name: 'baby_chick',
+        code: '🐤',
+        keywords: [
+            'baby_chick',
+            'baby',
+            'chick',
+        ],
+    },
+    {
+        name: 'hatched_chick',
+        code: '🐥',
+        keywords: [
+            'hatched_chick',
+            'baby',
+            'chick',
+        ],
+    },
+    {
+        name: 'bird',
+        code: '🐦',
+        keywords: [
+            'bird',
+        ],
+    },
+    {
+        name: 'penguin',
+        code: '🐧',
+        keywords: [
+            'penguin',
+        ],
+    },
+    {
+        name: 'dove',
+        code: '🕊️',
+        keywords: [
+            'peace',
+            'dove',
+        ],
+    },
+    {
+        name: 'eagle',
+        code: '🦅',
+        keywords: [
+            'eagle',
+            'bird',
+        ],
+    },
+    {
+        name: 'duck',
+        code: '🦆',
+        keywords: [
+            'duck',
+            'bird',
+        ],
+    },
+    {
+        name: 'swan',
+        code: '🦢',
+        keywords: [
+            'swan',
+        ],
+    },
+    {
+        name: 'owl',
+        code: '🦉',
+        keywords: [
+            'owl',
+            'bird',
+            'wise',
+        ],
+    },
+    {
+        name: 'dodo',
+        code: '🦤',
+        keywords: [
+            'dodo',
+        ],
+    },
+    {
+        name: 'feather',
+        code: '🪶',
+        keywords: [
+            'feather',
+        ],
+    },
+    {
+        name: 'flamingo',
+        code: '🦩',
+        keywords: [
+            'flamingo',
+        ],
+    },
+    {
+        name: 'peacock',
+        code: '🦚',
+        keywords: [
+            'peacock',
+        ],
+    },
+    {
+        name: 'parrot',
+        code: '🦜',
+        keywords: [
+            'parrot',
+        ],
+    },
+    {
+        name: 'frog',
+        code: '🐸',
+        keywords: [
+            'frog',
+            'face',
+        ],
+    },
+    {
+        name: 'crocodile',
+        code: '🐊',
+        keywords: [
+            'crocodile',
+        ],
+    },
+    {
+        name: 'turtle',
+        code: '🐢',
+        keywords: [
+            'slow',
+            'turtle',
+        ],
+    },
+    {
+        name: 'lizard',
+        code: '🦎',
+        keywords: [
+            'lizard',
+            'reptile',
+        ],
+    },
+    {
+        name: 'snake',
+        code: '🐍',
+        keywords: [
+            'snake',
+            'bearer',
+            'ophiuchus',
+            'serpent',
+            'zodiac',
+        ],
+    },
+    {
+        name: 'dragon_face',
+        code: '🐲',
+        keywords: [
+            'dragon_face',
+            'dragon',
+            'face',
+            'fairy tale',
+        ],
+    },
+    {
+        name: 'dragon',
+        code: '🐉',
+        keywords: [
+            'dragon',
+            'fairy tale',
+        ],
+    },
+    {
+        name: 'sauropod',
+        code: '🦕',
+        keywords: [
+            'dinosaur',
+            'sauropod',
+        ],
+    },
+    {
+        name: 't-rex',
+        code: '🦖',
+        keywords: [
+            'dinosaur',
+            't-rex',
+        ],
+    },
+    {
+        name: 'whale',
+        code: '🐳',
+        keywords: [
+            'sea',
+            'whale',
+            'face',
+            'spouting',
+        ],
+    },
+    {
+        name: 'whale2',
+        code: '🐋',
+        keywords: [
+            'whale2',
+            'whale',
+        ],
+    },
+    {
+        name: 'dolphin',
+        code: '🐬',
+        keywords: [
+            'dolphin',
+            'flipper',
+        ],
+    },
+    {
+        name: 'seal',
+        code: '🦭',
+        keywords: [
+            'seal',
+        ],
+    },
+    {
+        name: 'fish',
+        code: '🐟',
+        keywords: [
+            'fish',
+            'pisces',
+            'zodiac',
+        ],
+    },
+    {
+        name: 'tropical_fish',
+        code: '🐠',
+        keywords: [
+            'tropical_fish',
+            'fish',
+            'tropical',
+        ],
+    },
+    {
+        name: 'blowfish',
+        code: '🐡',
+        keywords: [
+            'blowfish',
+            'fish',
+        ],
+    },
+    {
+        name: 'shark',
+        code: '🦈',
+        keywords: [
+            'shark',
+            'fish',
+        ],
+    },
+    {
+        name: 'octopus',
+        code: '🐙',
+        keywords: [
+            'octopus',
+        ],
+    },
+    {
+        name: 'shell',
+        code: '🐚',
+        keywords: [
+            'sea',
+            'beach',
+            'shell',
+            'spiral',
+        ],
+    },
+    {
+        name: 'snail',
+        code: '🐌',
+        keywords: [
+            'slow',
+            'snail',
+        ],
+    },
+    {
+        name: 'butterfly',
+        code: '🦋',
+        keywords: [
+            'butterfly',
+            'insect',
+            'pretty',
+        ],
+    },
+    {
+        name: 'bug',
+        code: '🐛',
+        keywords: [
+            'bug',
+            'insect',
+        ],
+    },
+    {
+        name: 'ant',
+        code: '🐜',
+        keywords: [
+            'ant',
+            'insect',
+        ],
+    },
+    {
+        name: 'bee',
+        code: '🐝',
+        keywords: [
+            'bee',
+            'honeybee',
+            'insect',
+        ],
+    },
+    {
+        name: 'beetle',
+        code: '🪲',
+        keywords: [
+            'beetle',
+        ],
+    },
+    {
+        name: 'lady_beetle',
+        code: '🐞',
+        keywords: [
+            'bug',
+            'lady_beetle',
+            'beetle',
+            'insect',
+            'lady beetle',
+            'ladybird',
+            'ladybug',
+        ],
+    },
+    {
+        name: 'cricket',
+        code: '🦗',
+        keywords: [
+            'cricket',
+        ],
+    },
+    {
+        name: 'cockroach',
+        code: '🪳',
+        keywords: [
+            'cockroach',
+        ],
+    },
+    {
+        name: 'spider',
+        code: '🕷️',
+        keywords: [
+            'spider',
+        ],
+    },
+    {
+        name: 'spider_web',
+        code: '🕸️',
+        keywords: [
+            'spider_web',
+        ],
+    },
+    {
+        name: 'scorpion',
+        code: '🦂',
+        keywords: [
+            'scorpion',
+            'scorpio',
+            'scorpius',
+            'zodiac',
+        ],
+    },
+    {
+        name: 'mosquito',
+        code: '🦟',
+        keywords: [
+            'mosquito',
+        ],
+    },
+    {
+        name: 'fly',
+        code: '🪰',
+        keywords: [
+            'fly',
+        ],
+    },
+    {
+        name: 'worm',
+        code: '🪱',
+        keywords: [
+            'worm',
+        ],
+    },
+    {
+        name: 'microbe',
+        code: '🦠',
+        keywords: [
+            'germ',
+            'microbe',
+        ],
+    },
+    {
+        name: 'bouquet',
+        code: '💐',
+        keywords: [
+            'flowers',
+            'bouquet',
+            'flower',
+            'plant',
+            'romance',
+        ],
+    },
+    {
+        name: 'cherry_blossom',
+        code: '🌸',
+        keywords: [
+            'flower',
+            'spring',
+            'cherry_blossom',
+            'blossom',
+            'cherry',
+            'plant',
+        ],
+    },
+    {
+        name: 'white_flower',
+        code: '💮',
+        keywords: [
+            'white_flower',
+            'flower',
+        ],
+    },
+    {
+        name: 'rosette',
+        code: '🏵️',
+        keywords: [
+            'rosette',
+        ],
+    },
+    {
+        name: 'rose',
+        code: '🌹',
+        keywords: [
+            'flower',
+            'rose',
+            'plant',
+        ],
+    },
+    {
+        name: 'wilted_flower',
+        code: '🥀',
+        keywords: [
+            'wilted_flower',
+            'flower',
+            'wilted',
+        ],
+    },
+    {
+        name: 'hibiscus',
+        code: '🌺',
+        keywords: [
+            'hibiscus',
+            'flower',
+            'plant',
+        ],
+    },
+    {
+        name: 'sunflower',
+        code: '🌻',
+        keywords: [
+            'sunflower',
+            'flower',
+            'plant',
+            'sun',
+        ],
+    },
+    {
+        name: 'blossom',
+        code: '🌼',
+        keywords: [
+            'blossom',
+            'flower',
+            'plant',
+        ],
+    },
+    {
+        name: 'tulip',
+        code: '🌷',
+        keywords: [
+            'flower',
+            'tulip',
+            'plant',
+        ],
+    },
+    {
+        name: 'seedling',
+        code: '🌱',
+        keywords: [
+            'plant',
+            'seedling',
+            'young',
+        ],
+    },
+    {
+        name: 'potted_plant',
+        code: '🪴',
+        keywords: [
+            'potted_plant',
+        ],
+    },
+    {
+        name: 'evergreen_tree',
+        code: '🌲',
+        keywords: [
+            'wood',
+            'evergreen_tree',
+            'evergreen',
+            'plant',
+            'tree',
+        ],
+    },
+    {
+        name: 'deciduous_tree',
+        code: '🌳',
+        keywords: [
+            'wood',
+            'deciduous_tree',
+            'deciduous',
+            'plant',
+            'shedding',
+            'tree',
+        ],
+    },
+    {
+        name: 'palm_tree',
+        code: '🌴',
+        keywords: [
+            'palm_tree',
+            'palm',
+            'plant',
+            'tree',
+        ],
+    },
+    {
+        name: 'cactus',
+        code: '🌵',
+        keywords: [
+            'cactus',
+            'plant',
+        ],
+    },
+    {
+        name: 'ear_of_rice',
+        code: '🌾',
+        keywords: [
+            'ear_of_rice',
+            'ear',
+            'plant',
+            'rice',
+        ],
+    },
+    {
+        name: 'herb',
+        code: '🌿',
+        keywords: [
+            'herb',
+            'leaf',
+            'plant',
+        ],
+    },
+    {
+        name: 'shamrock',
+        code: '☘️',
+        keywords: [
+            'shamrock',
+            'plant',
+        ],
+    },
+    {
+        name: 'four_leaf_clover',
+        code: '🍀',
+        keywords: [
+            'luck',
+            'four_leaf_clover',
+            '4',
+            'clover',
+            'four',
+            'leaf',
+            'plant',
+        ],
+    },
+    {
+        name: 'maple_leaf',
+        code: '🍁',
+        keywords: [
+            'canada',
+            'maple_leaf',
+            'falling',
+            'leaf',
+            'maple',
+            'plant',
+        ],
+    },
+    {
+        name: 'fallen_leaf',
+        code: '🍂',
+        keywords: [
+            'autumn',
+            'fallen_leaf',
+            'falling',
+            'leaf',
+            'plant',
+        ],
+    },
+    {
+        name: 'leaves',
+        code: '🍃',
+        keywords: [
+            'leaf',
+            'leaves',
+            'blow',
+            'flutter',
+            'plant',
+            'wind',
+        ],
+    },
+    {
+        code: 'foodAndDrink',
+        header: true,
+    },
+    {
+        name: 'grapes',
+        code: '🍇',
+        keywords: [
+            'grapes',
+            'fruit',
+            'grape',
+            'plant',
+        ],
+    },
+    {
+        name: 'melon',
+        code: '🍈',
+        keywords: [
+            'melon',
+            'fruit',
+            'plant',
+        ],
+    },
+    {
+        name: 'watermelon',
+        code: '🍉',
+        keywords: [
+            'watermelon',
+            'fruit',
+            'plant',
+        ],
+    },
+    {
+        name: 'tangerine',
+        code: '🍊',
+        keywords: [
+            'tangerine',
+            'orange',
+            'mandarin',
+            'fruit',
+            'plant',
+        ],
+    },
+    {
+        name: 'lemon',
+        code: '🍋',
+        keywords: [
+            'lemon',
+            'citrus',
+            'fruit',
+            'plant',
+        ],
+    },
+    {
+        name: 'banana',
+        code: '🍌',
+        keywords: [
+            'fruit',
+            'banana',
+            'plant',
+        ],
+    },
+    {
+        name: 'pineapple',
+        code: '🍍',
+        keywords: [
+            'pineapple',
+            'fruit',
+            'plant',
+        ],
+    },
+    {
+        name: 'mango',
+        code: '🥭',
+        keywords: [
+            'mango',
+        ],
+    },
+    {
+        name: 'apple',
+        code: '🍎',
+        keywords: [
+            'apple',
+            'fruit',
+            'plant',
+            'red',
+        ],
+    },
+    {
+        name: 'green_apple',
+        code: '🍏',
+        keywords: [
+            'fruit',
+            'green_apple',
+            'apple',
+            'green',
+            'plant',
+        ],
+    },
+    {
+        name: 'pear',
+        code: '🍐',
+        keywords: [
+            'pear',
+            'fruit',
+            'plant',
+        ],
+    },
+    {
+        name: 'peach',
+        code: '🍑',
+        keywords: [
+            'peach',
+            'fruit',
+            'plant',
+        ],
+    },
+    {
+        name: 'cherries',
+        code: '🍒',
+        keywords: [
+            'fruit',
+            'cherries',
+            'cherry',
+            'plant',
+        ],
+    },
+    {
+        name: 'strawberry',
+        code: '🍓',
+        keywords: [
+            'fruit',
+            'strawberry',
+            'berry',
+            'plant',
+        ],
+    },
+    {
+        name: 'blueberries',
+        code: '🫐',
+        keywords: [
+            'blueberries',
+        ],
+    },
+    {
+        name: 'kiwi_fruit',
+        code: '🥝',
+        keywords: [
+            'kiwi_fruit',
+            'fruit',
+            'kiwi',
+        ],
+    },
+    {
+        name: 'tomato',
+        code: '🍅',
+        keywords: [
+            'tomato',
+            'plant',
+            'vegetable',
+        ],
+    },
+    {
+        name: 'olive',
+        code: '🫒',
+        keywords: [
+            'olive',
+        ],
+    },
+    {
+        name: 'coconut',
+        code: '🥥',
+        keywords: [
+            'coconut',
+        ],
+    },
+    {
+        name: 'avocado',
+        code: '🥑',
+        keywords: [
+            'avocado',
+            'fruit',
+        ],
+    },
+    {
+        name: 'eggplant',
+        code: '🍆',
+        keywords: [
+            'aubergine',
+            'eggplant',
+            'plant',
+            'vegetable',
+        ],
+    },
+    {
+        name: 'potato',
+        code: '🥔',
+        keywords: [
+            'potato',
+            'vegetable',
+        ],
+    },
+    {
+        name: 'carrot',
+        code: '🥕',
+        keywords: [
+            'carrot',
+            'vegetable',
+        ],
+    },
+    {
+        name: 'corn',
+        code: '🌽',
+        keywords: [
+            'corn',
+            'ear',
+            'maize',
+            'maze',
+            'plant',
+        ],
+    },
+    {
+        name: 'hot_pepper',
+        code: '🌶️',
+        keywords: [
+            'spicy',
+            'hot_pepper',
+        ],
+    },
+    {
+        name: 'bell_pepper',
+        code: '🫑',
+        keywords: [
+            'bell_pepper',
+        ],
+    },
+    {
+        name: 'cucumber',
+        code: '🥒',
+        keywords: [
+            'cucumber',
+            'pickle',
+            'vegetable',
+        ],
+    },
+    {
+        name: 'leafy_green',
+        code: '🥬',
+        keywords: [
+            'leafy_green',
+        ],
+    },
+    {
+        name: 'broccoli',
+        code: '🥦',
+        keywords: [
+            'broccoli',
+        ],
+    },
+    {
+        name: 'garlic',
+        code: '🧄',
+        keywords: [
+            'garlic',
+        ],
+    },
+    {
+        name: 'onion',
+        code: '🧅',
+        keywords: [
+            'onion',
+        ],
+    },
+    {
+        name: 'mushroom',
+        code: '🍄',
+        keywords: [
+            'mushroom',
+            'plant',
+        ],
+    },
+    {
+        name: 'peanuts',
+        code: '🥜',
+        keywords: [
+            'peanuts',
+            'nut',
+            'peanut',
+            'vegetable',
+        ],
+    },
+    {
+        name: 'chestnut',
+        code: '🌰',
+        keywords: [
+            'chestnut',
+            'plant',
+        ],
+    },
+    {
+        name: 'bread',
+        code: '🍞',
+        keywords: [
+            'toast',
+            'bread',
+            'loaf',
+        ],
+    },
+    {
+        name: 'croissant',
+        code: '🥐',
+        keywords: [
+            'croissant',
+            'bread',
+            'crescent roll',
+            'french',
+        ],
+    },
+    {
+        name: 'baguette_bread',
+        code: '🥖',
+        keywords: [
+            'baguette_bread',
+            'baguette',
+            'bread',
+            'french',
+        ],
+    },
+    {
+        name: 'flatbread',
+        code: '🫓',
+        keywords: [
+            'flatbread',
+        ],
+    },
+    {
+        name: 'pretzel',
+        code: '🥨',
+        keywords: [
+            'pretzel',
+        ],
+    },
+    {
+        name: 'bagel',
+        code: '🥯',
+        keywords: [
+            'bagel',
+        ],
+    },
+    {
+        name: 'pancakes',
+        code: '🥞',
+        keywords: [
+            'pancakes',
+            'crêpe',
+            'hotcake',
+            'pancake',
+        ],
+    },
+    {
+        name: 'waffle',
+        code: '🧇',
+        keywords: [
+            'waffle',
+        ],
+    },
+    {
+        name: 'cheese',
+        code: '🧀',
+        keywords: [
+            'cheese',
+        ],
+    },
+    {
+        name: 'meat_on_bone',
+        code: '🍖',
+        keywords: [
+            'meat_on_bone',
+            'bone',
+            'meat',
+        ],
+    },
+    {
+        name: 'poultry_leg',
+        code: '🍗',
+        keywords: [
+            'meat',
+            'chicken',
+            'poultry_leg',
+            'bone',
+            'leg',
+            'poultry',
+        ],
+    },
+    {
+        name: 'cut_of_meat',
+        code: '🥩',
+        keywords: [
+            'cut_of_meat',
+        ],
+    },
+    {
+        name: 'bacon',
+        code: '🥓',
+        keywords: [
+            'bacon',
+            'meat',
+        ],
+    },
+    {
+        name: 'hamburger',
+        code: '🍔',
+        keywords: [
+            'burger',
+            'hamburger',
+        ],
+    },
+    {
+        name: 'fries',
+        code: '🍟',
+        keywords: [
+            'fries',
+            'french',
+        ],
+    },
+    {
+        name: 'pizza',
+        code: '🍕',
+        keywords: [
+            'pizza',
+            'cheese',
+            'slice',
+        ],
+    },
+    {
+        name: 'hotdog',
+        code: '🌭',
+        keywords: [
+            'hotdog',
+            'frankfurter',
+            'hot dog',
+            'sausage',
+        ],
+    },
+    {
+        name: 'sandwich',
+        code: '🥪',
+        keywords: [
+            'sandwich',
+        ],
+    },
+    {
+        name: 'taco',
+        code: '🌮',
+        keywords: [
+            'taco',
+            'mexican',
+        ],
+    },
+    {
+        name: 'burrito',
+        code: '🌯',
+        keywords: [
+            'burrito',
+            'mexican',
+        ],
+    },
+    {
+        name: 'tamale',
+        code: '🫔',
+        keywords: [
+            'tamale',
+        ],
+    },
+    {
+        name: 'stuffed_flatbread',
+        code: '🥙',
+        keywords: [
+            'stuffed_flatbread',
+            'falafel',
+            'flatbread',
+            'gyro',
+            'kebab',
+            'stuffed',
+        ],
+    },
+    {
+        name: 'falafel',
+        code: '🧆',
+        keywords: [
+            'falafel',
+        ],
+    },
+    {
+        name: 'egg',
+        code: '🥚',
+        keywords: [
+            'egg',
+        ],
+    },
+    {
+        name: 'fried_egg',
+        code: '🍳',
+        keywords: [
+            'breakfast',
+            'fried_egg',
+            'cooking',
+            'egg',
+            'frying',
+            'pan',
+        ],
+    },
+    {
+        name: 'shallow_pan_of_food',
+        code: '🥘',
+        keywords: [
+            'paella',
+            'curry',
+            'shallow_pan_of_food',
+            'casserole',
+            'pan',
+            'shallow',
+        ],
+    },
+    {
+        name: 'stew',
+        code: '🍲',
+        keywords: [
+            'stew',
+            'pot',
+        ],
+    },
+    {
+        name: 'fondue',
+        code: '🫕',
+        keywords: [
+            'fondue',
+        ],
+    },
+    {
+        name: 'bowl_with_spoon',
+        code: '🥣',
+        keywords: [
+            'bowl_with_spoon',
+        ],
+    },
+    {
+        name: 'green_salad',
+        code: '🥗',
+        keywords: [
+            'green_salad',
+            'green',
+            'salad',
+        ],
+    },
+    {
+        name: 'popcorn',
+        code: '🍿',
+        keywords: [
+            'popcorn',
+        ],
+    },
+    {
+        name: 'butter',
+        code: '🧈',
+        keywords: [
+            'butter',
+        ],
+    },
+    {
+        name: 'salt',
+        code: '🧂',
+        keywords: [
+            'salt',
+        ],
+    },
+    {
+        name: 'canned_food',
+        code: '🥫',
+        keywords: [
+            'canned_food',
+        ],
+    },
+    {
+        name: 'bento',
+        code: '🍱',
+        keywords: [
+            'bento',
+            'box',
+        ],
+    },
+    {
+        name: 'rice_cracker',
+        code: '🍘',
+        keywords: [
+            'rice_cracker',
+            'cracker',
+            'rice',
+        ],
+    },
+    {
+        name: 'rice_ball',
+        code: '🍙',
+        keywords: [
+            'rice_ball',
+            'ball',
+            'japanese',
+            'rice',
+        ],
+    },
+    {
+        name: 'rice',
+        code: '🍚',
+        keywords: [
+            'rice',
+            'cooked',
+        ],
+    },
+    {
+        name: 'curry',
+        code: '🍛',
+        keywords: [
+            'curry',
+            'rice',
+        ],
+    },
+    {
+        name: 'ramen',
+        code: '🍜',
+        keywords: [
+            'noodle',
+            'ramen',
+            'bowl',
+            'steaming',
+        ],
+    },
+    {
+        name: 'spaghetti',
+        code: '🍝',
+        keywords: [
+            'pasta',
+            'spaghetti',
+        ],
+    },
+    {
+        name: 'sweet_potato',
+        code: '🍠',
+        keywords: [
+            'sweet_potato',
+            'potato',
+            'roasted',
+            'sweet',
+        ],
+    },
+    {
+        name: 'oden',
+        code: '🍢',
+        keywords: [
+            'oden',
+            'kebab',
+            'seafood',
+            'skewer',
+            'stick',
+        ],
+    },
+    {
+        name: 'sushi',
+        code: '🍣',
+        keywords: [
+            'sushi',
+        ],
+    },
+    {
+        name: 'fried_shrimp',
+        code: '🍤',
+        keywords: [
+            'tempura',
+            'fried_shrimp',
+            'fried',
+            'prawn',
+            'shrimp',
+        ],
+    },
+    {
+        name: 'fish_cake',
+        code: '🍥',
+        keywords: [
+            'fish_cake',
+            'cake',
+            'fish',
+            'pastry',
+            'swirl',
+        ],
+    },
+    {
+        name: 'moon_cake',
+        code: '🥮',
+        keywords: [
+            'moon_cake',
+        ],
+    },
+    {
+        name: 'dango',
+        code: '🍡',
+        keywords: [
+            'dango',
+            'dessert',
+            'japanese',
+            'skewer',
+            'stick',
+            'sweet',
+        ],
+    },
+    {
+        name: 'dumpling',
+        code: '🥟',
+        keywords: [
+            'dumpling',
+        ],
+    },
+    {
+        name: 'fortune_cookie',
+        code: '🥠',
+        keywords: [
+            'fortune_cookie',
+        ],
+    },
+    {
+        name: 'takeout_box',
+        code: '🥡',
+        keywords: [
+            'takeout_box',
+        ],
+    },
+    {
+        name: 'crab',
+        code: '🦀',
+        keywords: [
+            'crab',
+            'cancer',
+            'zodiac',
+        ],
+    },
+    {
+        name: 'lobster',
+        code: '🦞',
+        keywords: [
+            'lobster',
+        ],
+    },
+    {
+        name: 'shrimp',
+        code: '🦐',
+        keywords: [
+            'shrimp',
+            'shellfish',
+            'small',
+        ],
+    },
+    {
+        name: 'squid',
+        code: '🦑',
+        keywords: [
+            'squid',
+            'molusc',
+        ],
+    },
+    {
+        name: 'oyster',
+        code: '🦪',
+        keywords: [
+            'oyster',
+        ],
+    },
+    {
+        name: 'icecream',
+        code: '🍦',
+        keywords: [
+            'icecream',
+            'cream',
+            'dessert',
+            'ice',
+            'soft',
+            'sweet',
+        ],
+    },
+    {
+        name: 'shaved_ice',
+        code: '🍧',
+        keywords: [
+            'shaved_ice',
+            'dessert',
+            'ice',
+            'shaved',
+            'sweet',
+        ],
+    },
+    {
+        name: 'ice_cream',
+        code: '🍨',
+        keywords: [
+            'ice_cream',
+            'cream',
+            'dessert',
+            'ice',
+            'sweet',
+        ],
+    },
+    {
+        name: 'doughnut',
+        code: '🍩',
+        keywords: [
+            'doughnut',
+            'dessert',
+            'donut',
+            'sweet',
+        ],
+    },
+    {
+        name: 'cookie',
+        code: '🍪',
+        keywords: [
+            'cookie',
+            'dessert',
+            'sweet',
+        ],
+    },
+    {
+        name: 'birthday',
+        code: '🎂',
+        keywords: [
+            'party',
+            'birthday',
+            'cake',
+            'celebration',
+            'dessert',
+            'pastry',
+            'sweet',
+        ],
+    },
+    {
+        name: 'cake',
+        code: '🍰',
+        keywords: [
+            'dessert',
+            'cake',
+            'pastry',
+            'shortcake',
+            'slice',
+            'sweet',
+        ],
+    },
+    {
+        name: 'cupcake',
+        code: '🧁',
+        keywords: [
+            'cupcake',
+        ],
+    },
+    {
+        name: 'pie',
+        code: '🥧',
+        keywords: [
+            'pie',
+        ],
+    },
+    {
+        name: 'chocolate_bar',
+        code: '🍫',
+        keywords: [
+            'chocolate_bar',
+            'bar',
+            'chocolate',
+            'dessert',
+            'sweet',
+        ],
+    },
+    {
+        name: 'candy',
+        code: '🍬',
+        keywords: [
+            'sweet',
+            'candy',
+            'dessert',
+        ],
+    },
+    {
+        name: 'lollipop',
+        code: '🍭',
+        keywords: [
+            'lollipop',
+            'candy',
+            'dessert',
+            'sweet',
+        ],
+    },
+    {
+        name: 'custard',
+        code: '🍮',
+        keywords: [
+            'custard',
+            'dessert',
+            'pudding',
+            'sweet',
+        ],
+    },
+    {
+        name: 'honey_pot',
+        code: '🍯',
+        keywords: [
+            'honey_pot',
+            'honey',
+            'honeypot',
+            'pot',
+            'sweet',
+        ],
+    },
+    {
+        name: 'baby_bottle',
+        code: '🍼',
+        keywords: [
+            'milk',
+            'baby_bottle',
+            'baby',
+            'bottle',
+            'drink',
+        ],
+    },
+    {
+        name: 'milk_glass',
+        code: '🥛',
+        keywords: [
+            'milk_glass',
+            'drink',
+            'glass',
+            'milk',
+        ],
+    },
+    {
+        name: 'coffee',
+        code: '☕',
+        keywords: [
+            'cafe',
+            'espresso',
+            'coffee',
+            'beverage',
+            'drink',
+            'hot',
+            'steaming',
+            'tea',
+        ],
+    },
+    {
+        name: 'teapot',
+        code: '🫖',
+        keywords: [
+            'teapot',
+        ],
+    },
+    {
+        name: 'tea',
+        code: '🍵',
+        keywords: [
+            'green',
+            'breakfast',
+            'tea',
+            'beverage',
+            'cup',
+            'drink',
+            'teacup',
+        ],
+    },
+    {
+        name: 'sake',
+        code: '🍶',
+        keywords: [
+            'sake',
+            'bar',
+            'beverage',
+            'bottle',
+            'cup',
+            'drink',
+        ],
+    },
+    {
+        name: 'champagne',
+        code: '🍾',
+        keywords: [
+            'bottle',
+            'bubbly',
+            'celebration',
+            'champagne',
+            'bar',
+            'cork',
+            'drink',
+            'popping',
+        ],
+    },
+    {
+        name: 'wine_glass',
+        code: '🍷',
+        keywords: [
+            'wine_glass',
+            'bar',
+            'beverage',
+            'drink',
+            'glass',
+            'wine',
+        ],
+    },
+    {
+        name: 'cocktail',
+        code: '🍸',
+        keywords: [
+            'drink',
+            'cocktail',
+            'bar',
+            'glass',
+        ],
+    },
+    {
+        name: 'tropical_drink',
+        code: '🍹',
+        keywords: [
+            'summer',
+            'vacation',
+            'tropical_drink',
+            'bar',
+            'drink',
+            'tropical',
+        ],
+    },
+    {
+        name: 'beer',
+        code: '🍺',
+        keywords: [
+            'drink',
+            'beer',
+            'bar',
+            'mug',
+        ],
+    },
+    {
+        name: 'beers',
+        code: '🍻',
+        keywords: [
+            'drinks',
+            'beers',
+            'bar',
+            'beer',
+            'clink',
+            'drink',
+            'mug',
+        ],
+    },
+    {
+        name: 'clinking_glasses',
+        code: '🥂',
+        keywords: [
+            'cheers',
+            'toast',
+            'clinking_glasses',
+            'celebrate',
+            'clink',
+            'drink',
+            'glass',
+        ],
+    },
+    {
+        name: 'tumbler_glass',
+        code: '🥃',
+        keywords: [
+            'whisky',
+            'tumbler_glass',
+            'glass',
+            'liquor',
+            'shot',
+            'tumbler',
+        ],
+    },
+    {
+        name: 'cup_with_straw',
+        code: '🥤',
+        keywords: [
+            'cup_with_straw',
+        ],
+    },
+    {
+        name: 'bubble_tea',
+        code: '🧋',
+        keywords: [
+            'bubble_tea',
+        ],
+    },
+    {
+        name: 'beverage_box',
+        code: '🧃',
+        keywords: [
+            'beverage_box',
+        ],
+    },
+    {
+        name: 'mate',
+        code: '🧉',
+        keywords: [
+            'mate',
+        ],
+    },
+    {
+        name: 'ice_cube',
+        code: '🧊',
+        keywords: [
+            'ice_cube',
+        ],
+    },
+    {
+        name: 'chopsticks',
+        code: '🥢',
+        keywords: [
+            'chopsticks',
+        ],
+    },
+    {
+        name: 'plate_with_cutlery',
+        code: '🍽️',
+        keywords: [
+            'dining',
+            'dinner',
+            'plate_with_cutlery',
+        ],
+    },
+    {
+        name: 'fork_and_knife',
+        code: '🍴',
+        keywords: [
+            'cutlery',
+            'fork_and_knife',
+            'cooking',
+            'fork',
+            'knife',
+        ],
+    },
+    {
+        name: 'spoon',
+        code: '🥄',
+        keywords: [
+            'spoon',
+            'tableware',
+        ],
+    },
+    {
+        name: 'hocho',
+        code: '🔪',
+        keywords: [
+            'cut',
+            'chop',
+            'hocho',
+            'knife',
+            'cooking',
+            'tool',
+            'weapon',
+        ],
+    },
+    {
+        name: 'amphora',
+        code: '🏺',
+        keywords: [
+            'amphora',
+            'aquarius',
+            'cooking',
+            'drink',
+            'jug',
+            'tool',
+            'weapon',
+            'zodiac',
+        ],
+    },
+    {
+        code: 'travelAndPlaces',
+        header: true,
+    },
+    {
+        name: 'earth_africa',
+        code: '🌍',
+        keywords: [
+            'globe',
+            'world',
+            'international',
+            'earth_africa',
+            'africa',
+            'earth',
+            'europe',
+        ],
+    },
+    {
+        name: 'earth_americas',
+        code: '🌎',
+        keywords: [
+            'globe',
+            'world',
+            'international',
+            'earth_americas',
+            'americas',
+            'earth',
+        ],
+    },
+    {
+        name: 'earth_asia',
+        code: '🌏',
+        keywords: [
+            'globe',
+            'world',
+            'international',
+            'earth_asia',
+            'asia',
+            'australia',
+            'earth',
+        ],
+    },
+    {
+        name: 'globe_with_meridians',
+        code: '🌐',
+        keywords: [
+            'world',
+            'global',
+            'international',
+            'globe_with_meridians',
+            'earth',
+            'globe',
+            'meridians',
+        ],
+    },
+    {
+        name: 'world_map',
+        code: '🗺️',
+        keywords: [
+            'travel',
+            'world_map',
+        ],
+    },
+    {
+        name: 'japan',
+        code: '🗾',
+        keywords: [
+            'japan',
+            'map',
+        ],
+    },
+    {
+        name: 'compass',
+        code: '🧭',
+        keywords: [
+            'compass',
+        ],
+    },
+    {
+        name: 'mountain_snow',
+        code: '🏔️',
+        keywords: [
+            'mountain_snow',
+        ],
+    },
+    {
+        name: 'mountain',
+        code: '⛰️',
+        keywords: [
+            'mountain',
+        ],
+    },
+    {
+        name: 'volcano',
+        code: '🌋',
+        keywords: [
+            'volcano',
+            'eruption',
+            'mountain',
+            'weather',
+        ],
+    },
+    {
+        name: 'mount_fuji',
+        code: '🗻',
+        keywords: [
+            'mount_fuji',
+            'fuji',
+            'mountain',
+        ],
+    },
+    {
+        name: 'camping',
+        code: '🏕️',
+        keywords: [
+            'camping',
+        ],
+    },
+    {
+        name: 'beach_umbrella',
+        code: '🏖️',
+        keywords: [
+            'beach_umbrella',
+        ],
+    },
+    {
+        name: 'desert',
+        code: '🏜️',
+        keywords: [
+            'desert',
+        ],
+    },
+    {
+        name: 'desert_island',
+        code: '🏝️',
+        keywords: [
+            'desert_island',
+        ],
+    },
+    {
+        name: 'national_park',
+        code: '🏞️',
+        keywords: [
+            'national_park',
+        ],
+    },
+    {
+        name: 'stadium',
+        code: '🏟️',
+        keywords: [
+            'stadium',
+        ],
+    },
+    {
+        name: 'classical_building',
+        code: '🏛️',
+        keywords: [
+            'classical_building',
+        ],
+    },
+    {
+        name: 'building_construction',
+        code: '🏗️',
+        keywords: [
+            'building_construction',
+        ],
+    },
+    {
+        name: 'bricks',
+        code: '🧱',
+        keywords: [
+            'bricks',
+        ],
+    },
+    {
+        name: 'rock',
+        code: '🪨',
+        keywords: [
+            'rock',
+        ],
+    },
+    {
+        name: 'wood',
+        code: '🪵',
+        keywords: [
+            'wood',
+        ],
+    },
+    {
+        name: 'hut',
+        code: '🛖',
+        keywords: [
+            'hut',
+        ],
+    },
+    {
+        name: 'houses',
+        code: '🏘️',
+        keywords: [
+            'houses',
+        ],
+    },
+    {
+        name: 'derelict_house',
+        code: '🏚️',
+        keywords: [
+            'derelict_house',
+        ],
+    },
+    {
+        name: 'house',
+        code: '🏠',
+        keywords: [
+            'house',
+            'building',
+            'home',
+        ],
+    },
+    {
+        name: 'house_with_garden',
+        code: '🏡',
+        keywords: [
+            'house_with_garden',
+            'building',
+            'garden',
+            'home',
+            'house',
+        ],
+    },
+    {
+        name: 'office',
+        code: '🏢',
+        keywords: [
+            'office',
+            'building',
+        ],
+    },
+    {
+        name: 'post_office',
+        code: '🏣',
+        keywords: [
+            'post_office',
+            'building',
+            'japanese',
+            'post',
+        ],
+    },
+    {
+        name: 'european_post_office',
+        code: '🏤',
+        keywords: [
+            'european_post_office',
+            'building',
+            'european',
+            'post',
+        ],
+    },
+    {
+        name: 'hospital',
+        code: '🏥',
+        keywords: [
+            'hospital',
+            'building',
+            'doctor',
+            'medicine',
+        ],
+    },
+    {
+        name: 'bank',
+        code: '🏦',
+        keywords: [
+            'bank',
+            'building',
+        ],
+    },
+    {
+        name: 'hotel',
+        code: '🏨',
+        keywords: [
+            'hotel',
+            'building',
+        ],
+    },
+    {
+        name: 'love_hotel',
+        code: '🏩',
+        keywords: [
+            'love_hotel',
+            'building',
+            'hotel',
+            'love',
+        ],
+    },
+    {
+        name: 'convenience_store',
+        code: '🏪',
+        keywords: [
+            'convenience_store',
+            'building',
+            'convenience',
+            'store',
+        ],
+    },
+    {
+        name: 'school',
+        code: '🏫',
+        keywords: [
+            'school',
+            'building',
+        ],
+    },
+    {
+        name: 'department_store',
+        code: '🏬',
+        keywords: [
+            'department_store',
+            'building',
+            'department',
+            'store',
+        ],
+    },
+    {
+        name: 'factory',
+        code: '🏭',
+        keywords: [
+            'factory',
+            'building',
+        ],
+    },
+    {
+        name: 'japanese_castle',
+        code: '🏯',
+        keywords: [
+            'japanese_castle',
+            'building',
+            'castle',
+            'japanese',
+        ],
+    },
+    {
+        name: 'european_castle',
+        code: '🏰',
+        keywords: [
+            'european_castle',
+            'building',
+            'castle',
+            'european',
+        ],
+    },
+    {
+        name: 'wedding',
+        code: '💒',
+        keywords: [
+            'marriage',
+            'wedding',
+            'activity',
+            'chapel',
+            'romance',
+        ],
+    },
+    {
+        name: 'tokyo_tower',
+        code: '🗼',
+        keywords: [
+            'tokyo_tower',
+            'tokyo',
+            'tower',
+        ],
+    },
+    {
+        name: 'statue_of_liberty',
+        code: '🗽',
+        keywords: [
+            'statue_of_liberty',
+            'liberty',
+            'statue',
+        ],
+    },
+    {
+        name: 'church',
+        code: '⛪',
+        keywords: [
+            'church',
+            'building',
+            'christian',
+            'cross',
+            'religion',
+        ],
+    },
+    {
+        name: 'mosque',
+        code: '🕌',
+        keywords: [
+            'mosque',
+            'islam',
+            'muslim',
+            'religion',
+        ],
+    },
+    {
+        name: 'hindu_temple',
+        code: '🛕',
+        keywords: [
+            'hindu_temple',
+        ],
+    },
+    {
+        name: 'synagogue',
+        code: '🕍',
+        keywords: [
+            'synagogue',
+            'jew',
+            'jewish',
+            'religion',
+            'temple',
+        ],
+    },
+    {
+        name: 'shinto_shrine',
+        code: '⛩️',
+        keywords: [
+            'shinto_shrine',
+        ],
+    },
+    {
+        name: 'kaaba',
+        code: '🕋',
+        keywords: [
+            'kaaba',
+            'islam',
+            'muslim',
+            'religion',
+        ],
+    },
+    {
+        name: 'fountain',
+        code: '⛲',
+        keywords: [
+            'fountain',
+        ],
+    },
+    {
+        name: 'tent',
+        code: '⛺',
+        keywords: [
+            'camping',
+            'tent',
+        ],
+    },
+    {
+        name: 'foggy',
+        code: '🌁',
+        keywords: [
+            'karl',
+            'foggy',
+            'fog',
+            'weather',
+        ],
+    },
+    {
+        name: 'night_with_stars',
+        code: '🌃',
+        keywords: [
+            'night_with_stars',
+            'night',
+            'star',
+            'weather',
+        ],
+    },
+    {
+        name: 'cityscape',
+        code: '🏙️',
+        keywords: [
+            'skyline',
+            'cityscape',
+        ],
+    },
+    {
+        name: 'sunrise_over_mountains',
+        code: '🌄',
+        keywords: [
+            'sunrise_over_mountains',
+            'morning',
+            'mountain',
+            'sun',
+            'sunrise',
+            'weather',
+        ],
+    },
+    {
+        name: 'sunrise',
+        code: '🌅',
+        keywords: [
+            'sunrise',
+            'morning',
+            'sun',
+            'weather',
+        ],
+    },
+    {
+        name: 'city_sunset',
+        code: '🌆',
+        keywords: [
+            'city_sunset',
+            'building',
+            'city',
+            'dusk',
+            'evening',
+            'landscape',
+            'sun',
+            'sunset',
+            'weather',
+        ],
+    },
+    {
+        name: 'city_sunrise',
+        code: '🌇',
+        keywords: [
+            'city_sunrise',
+            'building',
+            'dusk',
+            'sun',
+            'sunset',
+            'weather',
+        ],
+    },
+    {
+        name: 'bridge_at_night',
+        code: '🌉',
+        keywords: [
+            'bridge_at_night',
+            'bridge',
+            'night',
+            'weather',
+        ],
+    },
+    {
+        name: 'hotsprings',
+        code: '♨️',
+        keywords: [
+            'hotsprings',
+            'hot',
+            'springs',
+            'steaming',
+        ],
+    },
+    {
+        name: 'carousel_horse',
+        code: '🎠',
+        keywords: [
+            'carousel_horse',
+            'activity',
+            'carousel',
+            'entertainment',
+            'horse',
+        ],
+    },
+    {
+        name: 'ferris_wheel',
+        code: '🎡',
+        keywords: [
+            'ferris_wheel',
+            'activity',
+            'amusement park',
+            'entertainment',
+            'ferris',
+            'wheel',
+        ],
+    },
+    {
+        name: 'roller_coaster',
+        code: '🎢',
+        keywords: [
+            'roller_coaster',
+            'activity',
+            'amusement park',
+            'coaster',
+            'entertainment',
+            'roller',
+        ],
+    },
+    {
+        name: 'barber',
+        code: '💈',
+        keywords: [
+            'barber',
+            'haircut',
+            'pole',
+        ],
+    },
+    {
+        name: 'circus_tent',
+        code: '🎪',
+        keywords: [
+            'circus_tent',
+            'activity',
+            'circus',
+            'entertainment',
+            'tent',
+        ],
+    },
+    {
+        name: 'steam_locomotive',
+        code: '🚂',
+        keywords: [
+            'train',
+            'steam_locomotive',
+            'engine',
+            'locomotive',
+            'railway',
+            'steam',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'railway_car',
+        code: '🚃',
+        keywords: [
+            'railway_car',
+            'car',
+            'electric',
+            'railway',
+            'train',
+            'tram',
+            'trolleybus',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'bullettrain_side',
+        code: '🚄',
+        keywords: [
+            'train',
+            'bullettrain_side',
+            'railway',
+            'shinkansen',
+            'speed',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'bullettrain_front',
+        code: '🚅',
+        keywords: [
+            'train',
+            'bullettrain_front',
+            'bullet',
+            'railway',
+            'shinkansen',
+            'speed',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'train2',
+        code: '🚆',
+        keywords: [
+            'train2',
+            'railway',
+            'train',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'metro',
+        code: '🚇',
+        keywords: [
+            'metro',
+            'subway',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'light_rail',
+        code: '🚈',
+        keywords: [
+            'light_rail',
+            'railway',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'station',
+        code: '🚉',
+        keywords: [
+            'station',
+            'railway',
+            'train',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'tram',
+        code: '🚊',
+        keywords: [
+            'tram',
+            'trolleybus',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'monorail',
+        code: '🚝',
+        keywords: [
+            'monorail',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'mountain_railway',
+        code: '🚞',
+        keywords: [
+            'mountain_railway',
+            'car',
+            'mountain',
+            'railway',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'train',
+        code: '🚋',
+        keywords: [
+            'train',
+            'car',
+            'tram',
+            'trolleybus',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'bus',
+        code: '🚌',
+        keywords: [
+            'bus',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'oncoming_bus',
+        code: '🚍',
+        keywords: [
+            'oncoming_bus',
+            'bus',
+            'oncoming',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'trolleybus',
+        code: '🚎',
+        keywords: [
+            'trolleybus',
+            'bus',
+            'tram',
+            'trolley',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'minibus',
+        code: '🚐',
+        keywords: [
+            'minibus',
+            'bus',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'ambulance',
+        code: '🚑',
+        keywords: [
+            'ambulance',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'fire_engine',
+        code: '🚒',
+        keywords: [
+            'fire_engine',
+            'engine',
+            'fire',
+            'truck',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'police_car',
+        code: '🚓',
+        keywords: [
+            'police_car',
+            'car',
+            'patrol',
+            'police',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'oncoming_police_car',
+        code: '🚔',
+        keywords: [
+            'oncoming_police_car',
+            'car',
+            'oncoming',
+            'police',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'taxi',
+        code: '🚕',
+        keywords: [
+            'taxi',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'oncoming_taxi',
+        code: '🚖',
+        keywords: [
+            'oncoming_taxi',
+            'oncoming',
+            'taxi',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'car',
+        code: '🚗',
+        keywords: [
+            'car',
+            'red_car',
+            'automobile',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'oncoming_automobile',
+        code: '🚘',
+        keywords: [
+            'oncoming_automobile',
+            'automobile',
+            'car',
+            'oncoming',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'blue_car',
+        code: '🚙',
+        keywords: [
+            'blue_car',
+            'recreational',
+            'rv',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'pickup_truck',
+        code: '🛻',
+        keywords: [
+            'pickup_truck',
+        ],
+    },
+    {
+        name: 'truck',
+        code: '🚚',
+        keywords: [
+            'truck',
+            'delivery',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'articulated_lorry',
+        code: '🚛',
+        keywords: [
+            'articulated_lorry',
+            'lorry',
+            'semi',
+            'truck',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'tractor',
+        code: '🚜',
+        keywords: [
+            'tractor',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'racing_car',
+        code: '🏎️',
+        keywords: [
+            'racing_car',
+        ],
+    },
+    {
+        name: 'motorcycle',
+        code: '🏍️',
+        keywords: [
+            'motorcycle',
+        ],
+    },
+    {
+        name: 'motor_scooter',
+        code: '🛵',
+        keywords: [
+            'motor_scooter',
+            'motor',
+            'scooter',
+        ],
+    },
+    {
+        name: 'manual_wheelchair',
+        code: '🦽',
+        keywords: [
+            'manual_wheelchair',
+        ],
+    },
+    {
+        name: 'motorized_wheelchair',
+        code: '🦼',
+        keywords: [
+            'motorized_wheelchair',
+        ],
+    },
+    {
+        name: 'auto_rickshaw',
+        code: '🛺',
+        keywords: [
+            'auto_rickshaw',
+        ],
+    },
+    {
+        name: 'bike',
+        code: '🚲',
+        keywords: [
+            'bicycle',
+            'bike',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'kick_scooter',
+        code: '🛴',
+        keywords: [
+            'kick_scooter',
+            'kick',
+            'scooter',
+        ],
+    },
+    {
+        name: 'skateboard',
+        code: '🛹',
+        keywords: [
+            'skateboard',
+        ],
+    },
+    {
+        name: 'roller_skate',
+        code: '🛼',
+        keywords: [
+            'roller_skate',
+        ],
+    },
+    {
+        name: 'busstop',
+        code: '🚏',
+        keywords: [
+            'busstop',
+            'bus',
+            'stop',
+        ],
+    },
+    {
+        name: 'motorway',
+        code: '🛣️',
+        keywords: [
+            'motorway',
+        ],
+    },
+    {
+        name: 'railway_track',
+        code: '🛤️',
+        keywords: [
+            'railway_track',
+        ],
+    },
+    {
+        name: 'oil_drum',
+        code: '🛢️',
+        keywords: [
+            'oil_drum',
+        ],
+    },
+    {
+        name: 'fuelpump',
+        code: '⛽',
+        keywords: [
+            'fuelpump',
+            'fuel',
+            'gas',
+            'pump',
+            'station',
+        ],
+    },
+    {
+        name: 'rotating_light',
+        code: '🚨',
+        keywords: [
+            '911',
+            'emergency',
+            'rotating_light',
+            'beacon',
+            'car',
+            'light',
+            'police',
+            'revolving',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'traffic_light',
+        code: '🚥',
+        keywords: [
+            'traffic_light',
+            'light',
+            'signal',
+            'traffic',
+        ],
+    },
+    {
+        name: 'vertical_traffic_light',
+        code: '🚦',
+        keywords: [
+            'semaphore',
+            'vertical_traffic_light',
+            'light',
+            'signal',
+            'traffic',
+        ],
+    },
+    {
+        name: 'stop_sign',
+        code: '🛑',
+        keywords: [
+            'stop_sign',
+            'octagonal',
+            'stop',
+        ],
+    },
+    {
+        name: 'construction',
+        code: '🚧',
+        keywords: [
+            'wip',
+            'construction',
+            'barrier',
+        ],
+    },
+    {
+        name: 'anchor',
+        code: '⚓',
+        keywords: [
+            'ship',
+            'anchor',
+            'tool',
+        ],
+    },
+    {
+        name: 'boat',
+        code: '⛵',
+        keywords: [
+            'boat',
+            'sailboat',
+            'resort',
+            'sea',
+            'vehicle',
+            'yacht',
+        ],
+    },
+    {
+        name: 'canoe',
+        code: '🛶',
+        keywords: [
+            'canoe',
+            'boat',
+        ],
+    },
+    {
+        name: 'speedboat',
+        code: '🚤',
+        keywords: [
+            'ship',
+            'speedboat',
+            'boat',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'passenger_ship',
+        code: '🛳️',
+        keywords: [
+            'cruise',
+            'passenger_ship',
+        ],
+    },
+    {
+        name: 'ferry',
+        code: '⛴️',
+        keywords: [
+            'ferry',
+        ],
+    },
+    {
+        name: 'motor_boat',
+        code: '🛥️',
+        keywords: [
+            'motor_boat',
+        ],
+    },
+    {
+        name: 'ship',
+        code: '🚢',
+        keywords: [
+            'ship',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'airplane',
+        code: '✈️',
+        keywords: [
+            'flight',
+            'airplane',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'small_airplane',
+        code: '🛩️',
+        keywords: [
+            'flight',
+            'small_airplane',
+        ],
+    },
+    {
+        name: 'flight_departure',
+        code: '🛫',
+        keywords: [
+            'flight_departure',
+            'airplane',
+            'check-in',
+            'departure',
+            'departures',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'flight_arrival',
+        code: '🛬',
+        keywords: [
+            'flight_arrival',
+            'airplane',
+            'arrivals',
+            'arriving',
+            'landing',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'parachute',
+        code: '🪂',
+        keywords: [
+            'parachute',
+        ],
+    },
+    {
+        name: 'seat',
+        code: '💺',
+        keywords: [
+            'seat',
+            'chair',
+        ],
+    },
+    {
+        name: 'helicopter',
+        code: '🚁',
+        keywords: [
+            'helicopter',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'suspension_railway',
+        code: '🚟',
+        keywords: [
+            'suspension_railway',
+            'railway',
+            'suspension',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'mountain_cableway',
+        code: '🚠',
+        keywords: [
+            'mountain_cableway',
+            'cable',
+            'gondola',
+            'mountain',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'aerial_tramway',
+        code: '🚡',
+        keywords: [
+            'aerial_tramway',
+            'aerial',
+            'cable',
+            'car',
+            'gondola',
+            'ropeway',
+            'tramway',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'artificial_satellite',
+        code: '🛰️',
+        keywords: [
+            'orbit',
+            'space',
+            'artificial_satellite',
+        ],
+    },
+    {
+        name: 'rocket',
+        code: '🚀',
+        keywords: [
+            'ship',
+            'launch',
+            'rocket',
+            'space',
+            'vehicle',
+        ],
+    },
+    {
+        name: 'flying_saucer',
+        code: '🛸',
+        keywords: [
+            'ufo',
+            'flying_saucer',
+        ],
+    },
+    {
+        name: 'bellhop_bell',
+        code: '🛎️',
+        keywords: [
+            'bellhop_bell',
+        ],
+    },
+    {
+        name: 'luggage',
+        code: '🧳',
+        keywords: [
+            'luggage',
+        ],
+    },
+    {
+        name: 'hourglass',
+        code: '⌛',
+        keywords: [
+            'time',
+            'hourglass',
+            'sand',
+            'timer',
+        ],
+    },
+    {
+        name: 'hourglass_flowing_sand',
+        code: '⏳',
+        keywords: [
+            'time',
+            'hourglass_flowing_sand',
+            'hourglass',
+            'sand',
+            'timer',
+        ],
+    },
+    {
+        name: 'watch',
+        code: '⌚',
+        keywords: [
+            'time',
+            'watch',
+            'clock',
+        ],
+    },
+    {
+        name: 'alarm_clock',
+        code: '⏰',
+        keywords: [
+            'morning',
+            'alarm_clock',
+            'alarm',
+            'clock',
+        ],
+    },
+    {
+        name: 'stopwatch',
+        code: '⏱️',
+        keywords: [
+            'stopwatch',
+        ],
+    },
+    {
+        name: 'timer_clock',
+        code: '⏲️',
+        keywords: [
+            'timer_clock',
+        ],
+    },
+    {
+        name: 'mantelpiece_clock',
+        code: '🕰️',
+        keywords: [
+            'mantelpiece_clock',
+        ],
+    },
+    {
+        name: 'clock12',
+        code: '🕛',
+        keywords: [
+            'clock12',
+            '00',
+            '12',
+            '12:00',
+            'clock',
+            'o’clock',
+            'twelve',
+        ],
+    },
+    {
+        name: 'clock1230',
+        code: '🕧',
+        keywords: [
+            'clock1230',
+            '12',
+            '12:30',
+            '30',
+            'clock',
+            'thirty',
+            'twelve',
+        ],
+    },
+    {
+        name: 'clock1',
+        code: '🕐',
+        keywords: [
+            'clock1',
+            '00',
+            '1',
+            '1:00',
+            'clock',
+            'o’clock',
+            'one',
+        ],
+    },
+    {
+        name: 'clock130',
+        code: '🕜',
+        keywords: [
+            'clock130',
+            '1',
+            '1:30',
+            '30',
+            'clock',
+            'one',
+            'thirty',
+        ],
+    },
+    {
+        name: 'clock2',
+        code: '🕑',
+        keywords: [
+            'clock2',
+            '00',
+            '2',
+            '2:00',
+            'clock',
+            'o’clock',
+            'two',
+        ],
+    },
+    {
+        name: 'clock230',
+        code: '🕝',
+        keywords: [
+            'clock230',
+            '2',
+            '2:30',
+            '30',
+            'clock',
+            'thirty',
+            'two',
+        ],
+    },
+    {
+        name: 'clock3',
+        code: '🕒',
+        keywords: [
+            'clock3',
+            '00',
+            '3',
+            '3:00',
+            'clock',
+            'o’clock',
+            'three',
+        ],
+    },
+    {
+        name: 'clock330',
+        code: '🕞',
+        keywords: [
+            'clock330',
+            '3',
+            '3:30',
+            '30',
+            'clock',
+            'thirty',
+            'three',
+        ],
+    },
+    {
+        name: 'clock4',
+        code: '🕓',
+        keywords: [
+            'clock4',
+            '00',
+            '4',
+            '4:00',
+            'clock',
+            'four',
+            'o’clock',
+        ],
+    },
+    {
+        name: 'clock430',
+        code: '🕟',
+        keywords: [
+            'clock430',
+            '30',
+            '4',
+            '4:30',
+            'clock',
+            'four',
+            'thirty',
+        ],
+    },
+    {
+        name: 'clock5',
+        code: '🕔',
+        keywords: [
+            'clock5',
+            '00',
+            '5',
+            '5:00',
+            'clock',
+            'five',
+            'o’clock',
+        ],
+    },
+    {
+        name: 'clock530',
+        code: '🕠',
+        keywords: [
+            'clock530',
+            '30',
+            '5',
+            '5:30',
+            'clock',
+            'five',
+            'thirty',
+        ],
+    },
+    {
+        name: 'clock6',
+        code: '🕕',
+        keywords: [
+            'clock6',
+            '00',
+            '6',
+            '6:00',
+            'clock',
+            'o’clock',
+            'six',
+        ],
+    },
+    {
+        name: 'clock630',
+        code: '🕡',
+        keywords: [
+            'clock630',
+            '30',
+            '6',
+            '6:30',
+            'clock',
+            'six',
+            'thirty',
+        ],
+    },
+    {
+        name: 'clock7',
+        code: '🕖',
+        keywords: [
+            'clock7',
+            '00',
+            '7',
+            '7:00',
+            'clock',
+            'o’clock',
+            'seven',
+        ],
+    },
+    {
+        name: 'clock730',
+        code: '🕢',
+        keywords: [
+            'clock730',
+            '30',
+            '7',
+            '7:30',
+            'clock',
+            'seven',
+            'thirty',
+        ],
+    },
+    {
+        name: 'clock8',
+        code: '🕗',
+        keywords: [
+            'clock8',
+            '00',
+            '8',
+            '8:00',
+            'clock',
+            'eight',
+            'o’clock',
+        ],
+    },
+    {
+        name: 'clock830',
+        code: '🕣',
+        keywords: [
+            'clock830',
+            '30',
+            '8',
+            '8:30',
+            'clock',
+            'eight',
+            'thirty',
+        ],
+    },
+    {
+        name: 'clock9',
+        code: '🕘',
+        keywords: [
+            'clock9',
+            '00',
+            '9',
+            '9:00',
+            'clock',
+            'nine',
+            'o’clock',
+        ],
+    },
+    {
+        name: 'clock930',
+        code: '🕤',
+        keywords: [
+            'clock930',
+            '30',
+            '9',
+            '9:30',
+            'clock',
+            'nine',
+            'thirty',
+        ],
+    },
+    {
+        name: 'clock10',
+        code: '🕙',
+        keywords: [
+            'clock10',
+            '00',
+            '10',
+            '10:00',
+            'clock',
+            'o’clock',
+            'ten',
+        ],
+    },
+    {
+        name: 'clock1030',
+        code: '🕥',
+        keywords: [
+            'clock1030',
+            '10',
+            '10:30',
+            '30',
+            'clock',
+            'ten',
+            'thirty',
+        ],
+    },
+    {
+        name: 'clock11',
+        code: '🕚',
+        keywords: [
+            'clock11',
+            '00',
+            '11',
+            '11:00',
+            'clock',
+            'eleven',
+            'o’clock',
+        ],
+    },
+    {
+        name: 'clock1130',
+        code: '🕦',
+        keywords: [
+            'clock1130',
+            '11',
+            '11:30',
+            '30',
+            'clock',
+            'eleven',
+            'thirty',
+        ],
+    },
+    {
+        name: 'new_moon',
+        code: '🌑',
+        keywords: [
+            'new_moon',
+            'dark',
+            'moon',
+            'space',
+            'weather',
+        ],
+    },
+    {
+        name: 'waxing_crescent_moon',
+        code: '🌒',
+        keywords: [
+            'waxing_crescent_moon',
+            'crescent',
+            'moon',
+            'space',
+            'waxing',
+            'weather',
+        ],
+    },
+    {
+        name: 'first_quarter_moon',
+        code: '🌓',
+        keywords: [
+            'first_quarter_moon',
+            'moon',
+            'quarter',
+            'space',
+            'weather',
+        ],
+    },
+    {
+        name: 'moon',
+        code: '🌔',
+        keywords: [
+            'moon',
+            'waxing_gibbous_moon',
+            'gibbous',
+            'space',
+            'waxing',
+            'weather',
+        ],
+    },
+    {
+        name: 'full_moon',
+        code: '🌕',
+        keywords: [
+            'full_moon',
+            'full',
+            'moon',
+            'space',
+            'weather',
+        ],
+    },
+    {
+        name: 'waning_gibbous_moon',
+        code: '🌖',
+        keywords: [
+            'waning_gibbous_moon',
+            'gibbous',
+            'moon',
+            'space',
+            'waning',
+            'weather',
+        ],
+    },
+    {
+        name: 'last_quarter_moon',
+        code: '🌗',
+        keywords: [
+            'last_quarter_moon',
+            'moon',
+            'quarter',
+            'space',
+            'weather',
+        ],
+    },
+    {
+        name: 'waning_crescent_moon',
+        code: '🌘',
+        keywords: [
+            'waning_crescent_moon',
+            'crescent',
+            'moon',
+            'space',
+            'waning',
+            'weather',
+        ],
+    },
+    {
+        name: 'crescent_moon',
+        code: '🌙',
+        keywords: [
+            'night',
+            'crescent_moon',
+            'crescent',
+            'moon',
+            'space',
+            'weather',
+        ],
+    },
+    {
+        name: 'new_moon_with_face',
+        code: '🌚',
+        keywords: [
+            'new_moon_with_face',
+            'face',
+            'moon',
+            'space',
+            'weather',
+        ],
+    },
+    {
+        name: 'first_quarter_moon_with_face',
+        code: '🌛',
+        keywords: [
+            'first_quarter_moon_with_face',
+            'face',
+            'moon',
+            'quarter',
+            'space',
+            'weather',
+        ],
+    },
+    {
+        name: 'last_quarter_moon_with_face',
+        code: '🌜',
+        keywords: [
+            'last_quarter_moon_with_face',
+            'face',
+            'moon',
+            'quarter',
+            'space',
+            'weather',
+        ],
+    },
+    {
+        name: 'thermometer',
+        code: '🌡️',
+        keywords: [
+            'thermometer',
+        ],
+    },
+    {
+        name: 'sunny',
+        code: '☀️',
+        keywords: [
+            'weather',
+            'sunny',
+            'bright',
+            'rays',
+            'space',
+            'sun',
+        ],
+    },
+    {
+        name: 'full_moon_with_face',
+        code: '🌝',
+        keywords: [
+            'full_moon_with_face',
+            'bright',
+            'face',
+            'full',
+            'moon',
+            'space',
+            'weather',
+        ],
+    },
+    {
+        name: 'sun_with_face',
+        code: '🌞',
+        keywords: [
+            'summer',
+            'sun_with_face',
+            'bright',
+            'face',
+            'space',
+            'sun',
+            'weather',
+        ],
+    },
+    {
+        name: 'ringed_planet',
+        code: '🪐',
+        keywords: [
+            'ringed_planet',
+        ],
+    },
+    {
+        name: 'star',
+        code: '⭐',
+        keywords: [
+            'star',
+        ],
+    },
+    {
+        name: 'star2',
+        code: '🌟',
+        keywords: [
+            'star2',
+            'glittery',
+            'glow',
+            'shining',
+            'sparkle',
+            'star',
+        ],
+    },
+    {
+        name: 'stars',
+        code: '🌠',
+        keywords: [
+            'stars',
+            'activity',
+            'falling',
+            'shooting',
+            'space',
+            'star',
+        ],
+    },
+    {
+        name: 'milky_way',
+        code: '🌌',
+        keywords: [
+            'milky_way',
+            'milky way',
+            'space',
+            'weather',
+        ],
+    },
+    {
+        name: 'cloud',
+        code: '☁️',
+        keywords: [
+            'cloud',
+            'weather',
+        ],
+    },
+    {
+        name: 'partly_sunny',
+        code: '⛅',
+        keywords: [
+            'weather',
+            'cloud',
+            'partly_sunny',
+            'sun',
+        ],
+    },
+    {
+        name: 'cloud_with_lightning_and_rain',
+        code: '⛈️',
+        keywords: [
+            'cloud_with_lightning_and_rain',
+        ],
+    },
+    {
+        name: 'sun_behind_small_cloud',
+        code: '🌤️',
+        keywords: [
+            'sun_behind_small_cloud',
+        ],
+    },
+    {
+        name: 'sun_behind_large_cloud',
+        code: '🌥️',
+        keywords: [
+            'sun_behind_large_cloud',
+        ],
+    },
+    {
+        name: 'sun_behind_rain_cloud',
+        code: '🌦️',
+        keywords: [
+            'sun_behind_rain_cloud',
+        ],
+    },
+    {
+        name: 'cloud_with_rain',
+        code: '🌧️',
+        keywords: [
+            'cloud_with_rain',
+        ],
+    },
+    {
+        name: 'cloud_with_snow',
+        code: '🌨️',
+        keywords: [
+            'cloud_with_snow',
+        ],
+    },
+    {
+        name: 'cloud_with_lightning',
+        code: '🌩️',
+        keywords: [
+            'cloud_with_lightning',
+        ],
+    },
+    {
+        name: 'tornado',
+        code: '🌪️',
+        keywords: [
+            'tornado',
+        ],
+    },
+    {
+        name: 'fog',
+        code: '🌫️',
+        keywords: [
+            'fog',
+        ],
+    },
+    {
+        name: 'wind_face',
+        code: '🌬️',
+        keywords: [
+            'wind_face',
+        ],
+    },
+    {
+        name: 'cyclone',
+        code: '🌀',
+        keywords: [
+            'swirl',
+            'cyclone',
+            'dizzy',
+            'twister',
+            'typhoon',
+            'weather',
+        ],
+    },
+    {
+        name: 'rainbow',
+        code: '🌈',
+        keywords: [
+            'rainbow',
+            'rain',
+            'weather',
+        ],
+    },
+    {
+        name: 'closed_umbrella',
+        code: '🌂',
+        keywords: [
+            'weather',
+            'rain',
+            'closed_umbrella',
+            'clothing',
+            'umbrella',
+        ],
+    },
+    {
+        name: 'open_umbrella',
+        code: '☂️',
+        keywords: [
+            'open_umbrella',
+            'clothing',
+            'rain',
+            'umbrella',
+            'weather',
+        ],
+    },
+    {
+        name: 'umbrella',
+        code: '☔',
+        keywords: [
+            'rain',
+            'weather',
+            'umbrella',
+            'clothing',
+            'drop',
+        ],
+    },
+    {
+        name: 'parasol_on_ground',
+        code: '⛱️',
+        keywords: [
+            'beach_umbrella',
+            'parasol_on_ground',
+        ],
+    },
+    {
+        name: 'zap',
+        code: '⚡',
+        keywords: [
+            'lightning',
+            'thunder',
+            'zap',
+            'danger',
+            'electric',
+            'electricity',
+            'voltage',
+        ],
+    },
+    {
+        name: 'snowflake',
+        code: '❄️',
+        keywords: [
+            'winter',
+            'cold',
+            'weather',
+            'snowflake',
+            'snow',
+        ],
+    },
+    {
+        name: 'snowman_with_snow',
+        code: '☃️',
+        keywords: [
+            'winter',
+            'christmas',
+            'snowman_with_snow',
+            'cold',
+            'snow',
+            'snowman',
+            'weather',
+        ],
+    },
+    {
+        name: 'snowman',
+        code: '⛄',
+        keywords: [
+            'winter',
+            'snowman',
+            'cold',
+            'snow',
+            'weather',
+        ],
+    },
+    {
+        name: 'comet',
+        code: '☄️',
+        keywords: [
+            'comet',
+            'space',
+        ],
+    },
+    {
+        name: 'fire',
+        code: '🔥',
+        keywords: [
+            'burn',
+            'fire',
+            'flame',
+            'tool',
+        ],
+    },
+    {
+        name: 'droplet',
+        code: '💧',
+        keywords: [
+            'water',
+            'droplet',
+            'cold',
+            'comic',
+            'drop',
+            'sweat',
+            'weather',
+        ],
+    },
+    {
+        name: 'ocean',
+        code: '🌊',
+        keywords: [
+            'sea',
+            'ocean',
+            'water',
+            'wave',
+            'weather',
+        ],
+    },
+    {
+        code: 'activities',
+        header: true,
+    },
+    {
+        name: 'jack_o_lantern',
+        code: '🎃',
+        keywords: [
+            'halloween',
+            'jack_o_lantern',
+            'activity',
+            'celebration',
+            'entertainment',
+            'jack',
+            'lantern',
+        ],
+    },
+    {
+        name: 'christmas_tree',
+        code: '🎄',
+        keywords: [
+            'christmas_tree',
+            'activity',
+            'celebration',
+            'christmas',
+            'entertainment',
+            'tree',
+        ],
+    },
+    {
+        name: 'fireworks',
+        code: '🎆',
+        keywords: [
+            'festival',
+            'celebration',
+            'fireworks',
+            'activity',
+            'entertainment',
+        ],
+    },
+    {
+        name: 'sparkler',
+        code: '🎇',
+        keywords: [
+            'sparkler',
+            'activity',
+            'celebration',
+            'entertainment',
+            'fireworks',
+            'sparkle',
+        ],
+    },
+    {
+        name: 'firecracker',
+        code: '🧨',
+        keywords: [
+            'firecracker',
+        ],
+    },
+    {
+        name: 'sparkles',
+        code: '✨',
+        keywords: [
+            'shiny',
+            'sparkles',
+            'entertainment',
+            'sparkle',
+            'star',
+        ],
+    },
+    {
+        name: 'balloon',
+        code: '🎈',
+        keywords: [
+            'party',
+            'birthday',
+            'balloon',
+            'activity',
+            'celebration',
+            'entertainment',
+        ],
+    },
+    {
+        name: 'tada',
+        code: '🎉',
+        keywords: [
+            'hooray',
+            'party',
+            'tada',
+            'activity',
+            'celebration',
+            'entertainment',
+            'popper',
+        ],
+    },
+    {
+        name: 'confetti_ball',
+        code: '🎊',
+        keywords: [
+            'confetti_ball',
+            'activity',
+            'ball',
+            'celebration',
+            'confetti',
+            'entertainment',
+        ],
+    },
+    {
+        name: 'tanabata_tree',
+        code: '🎋',
+        keywords: [
+            'tanabata_tree',
+            'activity',
+            'banner',
+            'celebration',
+            'entertainment',
+            'japanese',
+            'tree',
+        ],
+    },
+    {
+        name: 'bamboo',
+        code: '🎍',
+        keywords: [
+            'bamboo',
+            'activity',
+            'celebration',
+            'japanese',
+            'pine',
+            'plant',
+        ],
+    },
+    {
+        name: 'dolls',
+        code: '🎎',
+        keywords: [
+            'dolls',
+            'activity',
+            'celebration',
+            'doll',
+            'entertainment',
+            'festival',
+            'japanese',
+        ],
+    },
+    {
+        name: 'flags',
+        code: '🎏',
+        keywords: [
+            'flags',
+            'activity',
+            'carp',
+            'celebration',
+            'entertainment',
+            'flag',
+            'streamer',
+        ],
+    },
+    {
+        name: 'wind_chime',
+        code: '🎐',
+        keywords: [
+            'wind_chime',
+            'activity',
+            'bell',
+            'celebration',
+            'chime',
+            'entertainment',
+            'wind',
+        ],
+    },
+    {
+        name: 'rice_scene',
+        code: '🎑',
+        keywords: [
+            'rice_scene',
+            'activity',
+            'celebration',
+            'ceremony',
+            'entertainment',
+            'moon',
+        ],
+    },
+    {
+        name: 'red_envelope',
+        code: '🧧',
+        keywords: [
+            'red_envelope',
+        ],
+    },
+    {
+        name: 'ribbon',
+        code: '🎀',
+        keywords: [
+            'ribbon',
+            'celebration',
+        ],
+    },
+    {
+        name: 'gift',
+        code: '🎁',
+        keywords: [
+            'present',
+            'birthday',
+            'christmas',
+            'gift',
+            'box',
+            'celebration',
+            'entertainment',
+            'wrapped',
+        ],
+    },
+    {
+        name: 'reminder_ribbon',
+        code: '🎗️',
+        keywords: [
+            'reminder_ribbon',
+        ],
+    },
+    {
+        name: 'tickets',
+        code: '🎟️',
+        keywords: [
+            'tickets',
+        ],
+    },
+    {
+        name: 'ticket',
+        code: '🎫',
+        keywords: [
+            'ticket',
+            'activity',
+            'admission',
+            'entertainment',
+        ],
+    },
+    {
+        name: 'medal_military',
+        code: '🎖️',
+        keywords: [
+            'medal_military',
+        ],
+    },
+    {
+        name: 'trophy',
+        code: '🏆',
+        keywords: [
+            'award',
+            'contest',
+            'winner',
+            'trophy',
+            'prize',
+        ],
+    },
+    {
+        name: 'medal_sports',
+        code: '🏅',
+        keywords: [
+            'gold',
+            'winner',
+            'medal_sports',
+            'medal',
+        ],
+    },
+    {
+        name: '1st_place_medal',
+        code: '🥇',
+        keywords: [
+            'gold',
+            '1st_place_medal',
+            'first',
+            'medal',
+        ],
+    },
+    {
+        name: '2nd_place_medal',
+        code: '🥈',
+        keywords: [
+            'silver',
+            '2nd_place_medal',
+            'medal',
+            'second',
+        ],
+    },
+    {
+        name: '3rd_place_medal',
+        code: '🥉',
+        keywords: [
+            'bronze',
+            '3rd_place_medal',
+            'medal',
+            'third',
+        ],
+    },
+    {
+        name: 'soccer',
+        code: '⚽',
+        keywords: [
+            'sports',
+            'soccer',
+            'ball',
+        ],
+    },
+    {
+        name: 'baseball',
+        code: '⚾',
+        keywords: [
+            'sports',
+            'baseball',
+            'ball',
+        ],
+    },
+    {
+        name: 'softball',
+        code: '🥎',
+        keywords: [
+            'softball',
+        ],
+    },
+    {
+        name: 'basketball',
+        code: '🏀',
+        keywords: [
+            'sports',
+            'basketball',
+            'ball',
+            'hoop',
+        ],
+    },
+    {
+        name: 'volleyball',
+        code: '🏐',
+        keywords: [
+            'volleyball',
+            'ball',
+            'game',
+        ],
+    },
+    {
+        name: 'football',
+        code: '🏈',
+        keywords: [
+            'sports',
+            'football',
+            'american',
+            'ball',
+        ],
+    },
+    {
+        name: 'rugby_football',
+        code: '🏉',
+        keywords: [
+            'rugby_football',
+            'ball',
+            'football',
+            'rugby',
+        ],
+    },
+    {
+        name: 'tennis',
+        code: '🎾',
+        keywords: [
+            'sports',
+            'tennis',
+            'ball',
+            'racquet',
+        ],
+    },
+    {
+        name: 'flying_disc',
+        code: '🥏',
+        keywords: [
+            'flying_disc',
+        ],
+    },
+    {
+        name: 'bowling',
+        code: '🎳',
+        keywords: [
+            'bowling',
+            'ball',
+            'game',
+        ],
+    },
+    {
+        name: 'cricket_game',
+        code: '🏏',
+        keywords: [
+            'cricket_game',
+            'ball',
+            'bat',
+            'cricket',
+            'game',
+        ],
+    },
+    {
+        name: 'field_hockey',
+        code: '🏑',
+        keywords: [
+            'field_hockey',
+            'ball',
+            'field',
+            'game',
+            'hockey',
+            'stick',
+        ],
+    },
+    {
+        name: 'ice_hockey',
+        code: '🏒',
+        keywords: [
+            'ice_hockey',
+            'game',
+            'hockey',
+            'ice',
+            'puck',
+            'stick',
+        ],
+    },
+    {
+        name: 'lacrosse',
+        code: '🥍',
+        keywords: [
+            'lacrosse',
+        ],
+    },
+    {
+        name: 'ping_pong',
+        code: '🏓',
+        keywords: [
+            'ping_pong',
+            'ball',
+            'bat',
+            'game',
+            'paddle',
+            'table tennis',
+        ],
+    },
+    {
+        name: 'badminton',
+        code: '🏸',
+        keywords: [
+            'badminton',
+            'birdie',
+            'game',
+            'racquet',
+            'shuttlecock',
+        ],
+    },
+    {
+        name: 'boxing_glove',
+        code: '🥊',
+        keywords: [
+            'boxing_glove',
+            'boxing',
+            'glove',
+        ],
+    },
+    {
+        name: 'martial_arts_uniform',
+        code: '🥋',
+        keywords: [
+            'martial_arts_uniform',
+            'judo',
+            'karate',
+            'martial arts',
+            'taekwondo',
+            'uniform',
+        ],
+    },
+    {
+        name: 'goal_net',
+        code: '🥅',
+        keywords: [
+            'goal_net',
+            'goal',
+            'net',
+        ],
+    },
+    {
+        name: 'golf',
+        code: '⛳',
+        keywords: [
+            'golf',
+            'flag',
+            'hole',
+        ],
+    },
+    {
+        name: 'ice_skate',
+        code: '⛸️',
+        keywords: [
+            'skating',
+            'ice_skate',
+        ],
+    },
+    {
+        name: 'fishing_pole_and_fish',
+        code: '🎣',
+        keywords: [
+            'fishing_pole_and_fish',
+            'entertainment',
+            'fish',
+            'pole',
+        ],
+    },
+    {
+        name: 'diving_mask',
+        code: '🤿',
+        keywords: [
+            'diving_mask',
+        ],
+    },
+    {
+        name: 'running_shirt_with_sash',
+        code: '🎽',
+        keywords: [
+            'marathon',
+            'running_shirt_with_sash',
+            'running',
+            'sash',
+            'shirt',
+        ],
+    },
+    {
+        name: 'ski',
+        code: '🎿',
+        keywords: [
+            'ski',
+            'snow',
+        ],
+    },
+    {
+        name: 'sled',
+        code: '🛷',
+        keywords: [
+            'sled',
+        ],
+    },
+    {
+        name: 'curling_stone',
+        code: '🥌',
+        keywords: [
+            'curling_stone',
+        ],
+    },
+    {
+        name: 'dart',
         code: '🎯',
         keywords: [
+            'target',
+            'dart',
             'activity',
             'bull',
             'bullseye',
-            'dart',
             'entertainment',
             'eye',
             'game',
             'hit',
-            'target',
         ],
-        name: 'dart',
     },
     {
+        name: 'yo_yo',
+        code: '🪀',
+        keywords: [
+            'yo_yo',
+        ],
+    },
+    {
+        name: 'kite',
+        code: '🪁',
+        keywords: [
+            'kite',
+        ],
+    },
+    {
+        name: '8ball',
+        code: '🎱',
+        keywords: [
+            'pool',
+            'billiards',
+            '8ball',
+            '8',
+            '8 ball',
+            'ball',
+            'billiard',
+            'eight',
+            'game',
+        ],
+    },
+    {
+        name: 'crystal_ball',
+        code: '🔮',
+        keywords: [
+            'fortune',
+            'crystal_ball',
+            'ball',
+            'crystal',
+            'fairy tale',
+            'fantasy',
+            'tool',
+        ],
+    },
+    {
+        name: 'magic_wand',
+        code: '🪄',
+        keywords: [
+            'magic_wand',
+        ],
+    },
+    {
+        name: 'nazar_amulet',
+        code: '🧿',
+        keywords: [
+            'nazar_amulet',
+        ],
+    },
+    {
+        name: 'video_game',
         code: '🎮',
         keywords: [
+            'play',
             'controller',
+            'console',
+            'video_game',
             'entertainment',
             'game',
             'video game',
         ],
-        name: 'video_game',
     },
     {
-        code: '🕹',
-        keywords: [
-            'entertainment',
-            'game',
-            'joystick',
-            'video game',
-        ],
         name: 'joystick',
+        code: '🕹️',
+        keywords: [
+            'joystick',
+        ],
     },
     {
+        name: 'slot_machine',
+        code: '🎰',
+        keywords: [
+            'slot_machine',
+            'activity',
+            'game',
+            'slot',
+        ],
+    },
+    {
+        name: 'game_die',
         code: '🎲',
         keywords: [
             'dice',
+            'gambling',
+            'game_die',
             'die',
             'entertainment',
             'game',
         ],
-        name: 'game_die',
     },
     {
+        name: 'jigsaw',
+        code: '🧩',
+        keywords: [
+            'jigsaw',
+        ],
+    },
+    {
+        name: 'teddy_bear',
+        code: '🧸',
+        keywords: [
+            'teddy_bear',
+        ],
+    },
+    {
+        name: 'pinata',
+        code: '🪅',
+        keywords: [
+            'pinata',
+        ],
+    },
+    {
+        name: 'nesting_dolls',
+        code: '🪆',
+        keywords: [
+            'nesting_dolls',
+        ],
+    },
+    {
+        name: 'spades',
         code: '♠️',
         keywords: [
+            'spades',
             'card',
             'game',
             'spade',
             'suit',
         ],
-        name: 'spades',
     },
     {
+        name: 'hearts',
         code: '♥️',
         keywords: [
+            'hearts',
             'card',
             'game',
             'heart',
-            'hearts',
             'suit',
         ],
-        name: 'hearts',
     },
     {
+        name: 'diamonds',
         code: '♦️',
         keywords: [
+            'diamonds',
             'card',
             'diamond',
-            'diamonds',
             'game',
             'suit',
         ],
-        name: 'diamonds',
     },
     {
+        name: 'clubs',
         code: '♣️',
         keywords: [
+            'clubs',
             'card',
             'club',
-            'clubs',
             'game',
             'suit',
         ],
-        name: 'clubs',
     },
     {
+        name: 'chess_pawn',
+        code: '♟️',
+        keywords: [
+            'chess_pawn',
+        ],
+    },
+    {
+        name: 'black_joker',
         code: '🃏',
         keywords: [
+            'black_joker',
             'card',
             'entertainment',
             'game',
             'joker',
             'playing',
         ],
-        name: 'black_joker',
     },
     {
+        name: 'mahjong',
         code: '🀄',
         keywords: [
-            'game',
             'mahjong',
+            'game',
             'red',
         ],
-        name: 'mahjong',
     },
     {
+        name: 'flower_playing_cards',
         code: '🎴',
         keywords: [
+            'flower_playing_cards',
             'activity',
             'card',
             'entertainment',
@@ -7631,94 +12202,570 @@ const emojis = [
             'japanese',
             'playing',
         ],
-        name: 'flower_playing_cards',
+    },
+    {
+        name: 'performing_arts',
+        code: '🎭',
+        keywords: [
+            'theater',
+            'drama',
+            'performing_arts',
+            'activity',
+            'art',
+            'entertainment',
+            'mask',
+            'performing',
+            'theatre',
+        ],
+    },
+    {
+        name: 'framed_picture',
+        code: '🖼️',
+        keywords: [
+            'framed_picture',
+        ],
+    },
+    {
+        name: 'art',
+        code: '🎨',
+        keywords: [
+            'design',
+            'paint',
+            'art',
+            'activity',
+            'entertainment',
+            'museum',
+            'painting',
+            'palette',
+        ],
+    },
+    {
+        name: 'thread',
+        code: '🧵',
+        keywords: [
+            'thread',
+        ],
+    },
+    {
+        name: 'sewing_needle',
+        code: '🪡',
+        keywords: [
+            'sewing_needle',
+        ],
+    },
+    {
+        name: 'yarn',
+        code: '🧶',
+        keywords: [
+            'yarn',
+        ],
+    },
+    {
+        name: 'knot',
+        code: '🪢',
+        keywords: [
+            'knot',
+        ],
     },
     {
         code: 'objects',
         header: true,
     },
     {
+        name: 'eyeglasses',
+        code: '👓',
+        keywords: [
+            'glasses',
+            'eyeglasses',
+            'clothing',
+            'eye',
+            'eyewear',
+        ],
+    },
+    {
+        name: 'dark_sunglasses',
+        code: '🕶️',
+        keywords: [
+            'dark_sunglasses',
+        ],
+    },
+    {
+        name: 'goggles',
+        code: '🥽',
+        keywords: [
+            'goggles',
+        ],
+    },
+    {
+        name: 'lab_coat',
+        code: '🥼',
+        keywords: [
+            'lab_coat',
+        ],
+    },
+    {
+        name: 'safety_vest',
+        code: '🦺',
+        keywords: [
+            'safety_vest',
+        ],
+    },
+    {
+        name: 'necktie',
+        code: '👔',
+        keywords: [
+            'shirt',
+            'formal',
+            'necktie',
+            'clothing',
+        ],
+    },
+    {
+        name: 'shirt',
+        code: '👕',
+        keywords: [
+            'shirt',
+            'tshirt',
+            'clothing',
+        ],
+    },
+    {
+        name: 'jeans',
+        code: '👖',
+        keywords: [
+            'pants',
+            'jeans',
+            'clothing',
+            'trousers',
+        ],
+    },
+    {
+        name: 'scarf',
+        code: '🧣',
+        keywords: [
+            'scarf',
+        ],
+    },
+    {
+        name: 'gloves',
+        code: '🧤',
+        keywords: [
+            'gloves',
+        ],
+    },
+    {
+        name: 'coat',
+        code: '🧥',
+        keywords: [
+            'coat',
+        ],
+    },
+    {
+        name: 'socks',
+        code: '🧦',
+        keywords: [
+            'socks',
+        ],
+    },
+    {
+        name: 'dress',
+        code: '👗',
+        keywords: [
+            'dress',
+            'clothing',
+        ],
+    },
+    {
+        name: 'kimono',
+        code: '👘',
+        keywords: [
+            'kimono',
+            'clothing',
+        ],
+    },
+    {
+        name: 'sari',
+        code: '🥻',
+        keywords: [
+            'sari',
+        ],
+    },
+    {
+        name: 'one_piece_swimsuit',
+        code: '🩱',
+        keywords: [
+            'one_piece_swimsuit',
+        ],
+    },
+    {
+        name: 'swim_brief',
+        code: '🩲',
+        keywords: [
+            'swim_brief',
+        ],
+    },
+    {
+        name: 'shorts',
+        code: '🩳',
+        keywords: [
+            'shorts',
+        ],
+    },
+    {
+        name: 'bikini',
+        code: '👙',
+        keywords: [
+            'beach',
+            'bikini',
+            'clothing',
+            'swim',
+        ],
+    },
+    {
+        name: 'womans_clothes',
+        code: '👚',
+        keywords: [
+            'womans_clothes',
+            'clothing',
+            'woman',
+        ],
+    },
+    {
+        name: 'purse',
+        code: '👛',
+        keywords: [
+            'purse',
+            'clothing',
+            'coin',
+        ],
+    },
+    {
+        name: 'handbag',
+        code: '👜',
+        keywords: [
+            'bag',
+            'handbag',
+            'clothing',
+        ],
+    },
+    {
+        name: 'pouch',
+        code: '👝',
+        keywords: [
+            'bag',
+            'pouch',
+            'clothing',
+        ],
+    },
+    {
+        name: 'shopping',
+        code: '🛍️',
+        keywords: [
+            'bags',
+            'shopping',
+        ],
+    },
+    {
+        name: 'school_satchel',
+        code: '🎒',
+        keywords: [
+            'school_satchel',
+            'activity',
+            'bag',
+            'satchel',
+            'school',
+        ],
+    },
+    {
+        name: 'thong_sandal',
+        code: '🩴',
+        keywords: [
+            'thong_sandal',
+        ],
+    },
+    {
+        name: 'mans_shoe',
+        code: '👞',
+        keywords: [
+            'mans_shoe',
+            'shoe',
+            'clothing',
+            'man',
+        ],
+    },
+    {
+        name: 'athletic_shoe',
+        code: '👟',
+        keywords: [
+            'sneaker',
+            'sport',
+            'running',
+            'athletic_shoe',
+            'athletic',
+            'clothing',
+            'shoe',
+        ],
+    },
+    {
+        name: 'hiking_boot',
+        code: '🥾',
+        keywords: [
+            'hiking_boot',
+        ],
+    },
+    {
+        name: 'flat_shoe',
+        code: '🥿',
+        keywords: [
+            'flat_shoe',
+        ],
+    },
+    {
+        name: 'high_heel',
+        code: '👠',
+        keywords: [
+            'shoe',
+            'high_heel',
+            'clothing',
+            'heel',
+            'woman',
+        ],
+    },
+    {
+        name: 'sandal',
+        code: '👡',
+        keywords: [
+            'shoe',
+            'sandal',
+            'clothing',
+            'woman',
+        ],
+    },
+    {
+        name: 'ballet_shoes',
+        code: '🩰',
+        keywords: [
+            'ballet_shoes',
+        ],
+    },
+    {
+        name: 'boot',
+        code: '👢',
+        keywords: [
+            'boot',
+            'clothing',
+            'shoe',
+            'woman',
+        ],
+    },
+    {
+        name: 'crown',
+        code: '👑',
+        keywords: [
+            'king',
+            'queen',
+            'royal',
+            'crown',
+            'clothing',
+        ],
+    },
+    {
+        name: 'womans_hat',
+        code: '👒',
+        keywords: [
+            'womans_hat',
+            'clothing',
+            'hat',
+            'woman',
+        ],
+    },
+    {
+        name: 'tophat',
+        code: '🎩',
+        keywords: [
+            'hat',
+            'classy',
+            'tophat',
+            'activity',
+            'clothing',
+            'entertainment',
+            'top',
+        ],
+    },
+    {
+        name: 'mortar_board',
+        code: '🎓',
+        keywords: [
+            'education',
+            'college',
+            'university',
+            'graduation',
+            'mortar_board',
+            'activity',
+            'cap',
+            'celebration',
+            'clothing',
+            'hat',
+        ],
+    },
+    {
+        name: 'billed_cap',
+        code: '🧢',
+        keywords: [
+            'billed_cap',
+        ],
+    },
+    {
+        name: 'military_helmet',
+        code: '🪖',
+        keywords: [
+            'military_helmet',
+        ],
+    },
+    {
+        name: 'rescue_worker_helmet',
+        code: '⛑️',
+        keywords: [
+            'rescue_worker_helmet',
+        ],
+    },
+    {
+        name: 'prayer_beads',
+        code: '📿',
+        keywords: [
+            'prayer_beads',
+            'beads',
+            'clothing',
+            'necklace',
+            'prayer',
+            'religion',
+        ],
+    },
+    {
+        name: 'lipstick',
+        code: '💄',
+        keywords: [
+            'makeup',
+            'lipstick',
+            'cosmetics',
+        ],
+    },
+    {
+        name: 'ring',
+        code: '💍',
+        keywords: [
+            'wedding',
+            'marriage',
+            'engaged',
+            'ring',
+            'diamond',
+            'romance',
+        ],
+    },
+    {
+        name: 'gem',
+        code: '💎',
+        keywords: [
+            'diamond',
+            'gem',
+            'jewel',
+            'romance',
+        ],
+    },
+    {
+        name: 'mute',
         code: '🔇',
         keywords: [
+            'sound',
+            'volume',
             'mute',
             'quiet',
             'silent',
             'speaker',
-            'volume',
         ],
-        name: 'mute',
     },
     {
+        name: 'speaker',
         code: '🔈',
         keywords: [
             'speaker',
             'volume',
         ],
-        name: 'speaker',
     },
     {
+        name: 'sound',
         code: '🔉',
         keywords: [
+            'volume',
+            'sound',
             'low',
             'speaker',
-            'volume',
             'wave',
         ],
-        name: 'sound',
     },
     {
+        name: 'loud_sound',
         code: '🔊',
         keywords: [
+            'volume',
+            'loud_sound',
             '3',
             'entertainment',
             'high',
             'loud',
             'speaker',
             'three',
-            'volume',
         ],
-        name: 'loud_sound',
     },
     {
+        name: 'loudspeaker',
         code: '📢',
         keywords: [
+            'announcement',
+            'loudspeaker',
             'communication',
             'loud',
-            'loudspeaker',
             'public address',
         ],
-        name: 'loudspeaker',
     },
     {
+        name: 'mega',
         code: '📣',
         keywords: [
+            'mega',
             'cheering',
             'communication',
             'megaphone',
         ],
-        name: 'mega',
     },
     {
+        name: 'postal_horn',
         code: '📯',
         keywords: [
+            'postal_horn',
             'communication',
             'entertainment',
             'horn',
             'post',
             'postal',
         ],
-        name: 'postal_horn',
     },
     {
+        name: 'bell',
         code: '🔔',
         keywords: [
+            'sound',
+            'notification',
             'bell',
         ],
-        name: 'bell',
     },
     {
+        name: 'no_bell',
         code: '🔕',
         keywords: [
+            'volume',
+            'off',
+            'no_bell',
             'bell',
             'forbidden',
             'mute',
@@ -7728,179 +12775,207 @@ const emojis = [
             'quiet',
             'silent',
         ],
-        name: 'no_bell',
     },
     {
+        name: 'musical_score',
         code: '🎼',
         keywords: [
+            'musical_score',
             'activity',
             'entertainment',
             'music',
             'score',
         ],
-        name: 'musical_score',
     },
     {
+        name: 'musical_note',
         code: '🎵',
         keywords: [
+            'musical_note',
             'activity',
             'entertainment',
             'music',
             'note',
         ],
-        name: 'musical_note',
     },
     {
+        name: 'notes',
         code: '🎶',
         keywords: [
+            'music',
+            'notes',
             'activity',
             'entertainment',
-            'music',
             'note',
-            'notes',
         ],
-        name: 'notes',
     },
     {
-        code: '🎙',
-        keywords: [
-            'mic',
-            'microphone',
-            'music',
-            'studio',
-        ],
         name: 'studio_microphone',
+        code: '🎙️',
+        keywords: [
+            'podcast',
+            'studio_microphone',
+        ],
     },
     {
-        code: '🎚',
-        keywords: [
-            'level',
-            'music',
-            'slider',
-        ],
         name: 'level_slider',
-    },
-    {
-        code: '🎛',
+        code: '🎚️',
         keywords: [
-            'control',
-            'knobs',
-            'music',
+            'level_slider',
         ],
-        name: 'control_knobs',
     },
     {
+        name: 'control_knobs',
+        code: '🎛️',
+        keywords: [
+            'control_knobs',
+        ],
+    },
+    {
+        name: 'microphone',
         code: '🎤',
         keywords: [
+            'sing',
+            'microphone',
             'activity',
             'entertainment',
             'karaoke',
             'mic',
-            'microphone',
         ],
-        name: 'microphone',
     },
     {
+        name: 'headphones',
         code: '🎧',
         keywords: [
+            'music',
+            'earphones',
+            'headphones',
             'activity',
             'earbud',
             'entertainment',
             'headphone',
         ],
-        name: 'headphones',
     },
     {
+        name: 'radio',
         code: '📻',
         keywords: [
-            'entertainment',
+            'podcast',
             'radio',
+            'entertainment',
             'video',
         ],
-        name: 'radio',
     },
     {
+        name: 'saxophone',
         code: '🎷',
         keywords: [
+            'saxophone',
             'activity',
             'entertainment',
             'instrument',
             'music',
             'sax',
-            'saxophone',
         ],
-        name: 'saxophone',
     },
     {
+        name: 'accordion',
+        code: '🪗',
+        keywords: [
+            'accordion',
+        ],
+    },
+    {
+        name: 'guitar',
         code: '🎸',
         keywords: [
+            'rock',
+            'guitar',
             'activity',
             'entertainment',
-            'guitar',
             'instrument',
             'music',
         ],
-        name: 'guitar',
     },
     {
+        name: 'musical_keyboard',
         code: '🎹',
         keywords: [
+            'piano',
+            'musical_keyboard',
             'activity',
             'entertainment',
             'instrument',
             'keyboard',
             'music',
-            'piano',
         ],
-        name: 'musical_keyboard',
     },
     {
+        name: 'trumpet',
         code: '🎺',
         keywords: [
+            'trumpet',
             'activity',
             'entertainment',
             'instrument',
             'music',
-            'trumpet',
         ],
-        name: 'trumpet',
     },
     {
+        name: 'violin',
         code: '🎻',
         keywords: [
+            'violin',
             'activity',
             'entertainment',
             'instrument',
             'music',
-            'violin',
         ],
-        name: 'violin',
     },
     {
+        name: 'banjo',
+        code: '🪕',
+        keywords: [
+            'banjo',
+        ],
+    },
+    {
+        name: 'drum',
         code: '🥁',
         keywords: [
             'drum',
             'drumsticks',
             'music',
         ],
-        name: 'drum',
     },
     {
+        name: 'long_drum',
+        code: '🪘',
+        keywords: [
+            'long_drum',
+        ],
+    },
+    {
+        name: 'iphone',
         code: '📱',
         keywords: [
+            'smartphone',
+            'mobile',
+            'iphone',
             'cell',
             'communication',
-            'mobile',
             'phone',
             'telephone',
         ],
-        name: 'iphone',
     },
     {
+        name: 'calling',
         code: '📲',
         keywords: [
-            'arrow',
             'call',
+            'incoming',
+            'calling',
+            'arrow',
             'cell',
             'communication',
             'mobile',
@@ -7908,568 +12983,589 @@ const emojis = [
             'receive',
             'telephone',
         ],
-        name: 'calling',
     },
     {
-        code: '☎',
+        name: 'phone',
+        code: '☎️',
         keywords: [
             'phone',
             'telephone',
         ],
-        name: 'phone',
     },
     {
+        name: 'telephone_receiver',
         code: '📞',
         keywords: [
-            'communication',
             'phone',
+            'call',
+            'telephone_receiver',
+            'communication',
             'receiver',
             'telephone',
         ],
-        name: 'telephone_receiver',
     },
     {
+        name: 'pager',
         code: '📟',
         keywords: [
-            'communication',
             'pager',
+            'communication',
         ],
-        name: 'pager',
     },
     {
+        name: 'fax',
         code: '📠',
         keywords: [
-            'communication',
             'fax',
+            'communication',
         ],
-        name: 'fax',
     },
     {
+        name: 'battery',
         code: '🔋',
         keywords: [
+            'power',
             'battery',
         ],
-        name: 'battery',
     },
     {
+        name: 'electric_plug',
         code: '🔌',
         keywords: [
+            'electric_plug',
             'electric',
             'electricity',
             'plug',
         ],
-        name: 'electric_plug',
     },
     {
+        name: 'computer',
         code: '💻',
         keywords: [
+            'desktop',
+            'screen',
             'computer',
             'pc',
             'personal',
         ],
-        name: 'computer',
     },
     {
-        code: '🖥',
-        keywords: [
-            'computer',
-            'desktop',
-        ],
         name: 'desktop_computer',
+        code: '🖥️',
+        keywords: [
+            'desktop_computer',
+        ],
     },
     {
-        code: '🖨',
+        name: 'printer',
+        code: '🖨️',
         keywords: [
-            'computer',
             'printer',
         ],
-        name: 'printer',
     },
     {
+        name: 'keyboard',
         code: '⌨️',
         keywords: [
-            'computer',
             'keyboard',
+            'computer',
         ],
-        name: 'keyboard',
     },
     {
-        code: '🖱',
-        keywords: [
-            '3',
-            'button',
-            'computer',
-            'mouse',
-            'three',
-        ],
         name: 'computer_mouse',
+        code: '🖱️',
+        keywords: [
+            'computer_mouse',
+        ],
     },
     {
-        code: '🖲',
+        name: 'trackball',
+        code: '🖲️',
         keywords: [
-            'computer',
             'trackball',
         ],
-        name: 'trackball',
     },
     {
+        name: 'minidisc',
         code: '💽',
         keywords: [
+            'minidisc',
             'computer',
             'disk',
             'entertainment',
             'minidisk',
             'optical',
         ],
-        name: 'minidisc',
     },
     {
+        name: 'floppy_disk',
         code: '💾',
         keywords: [
+            'save',
+            'floppy_disk',
             'computer',
             'disk',
             'floppy',
         ],
-        name: 'floppy_disk',
     },
     {
+        name: 'cd',
         code: '💿',
         keywords: [
-            'blu-ray',
             'cd',
+            'blu-ray',
             'computer',
             'disk',
             'dvd',
             'optical',
         ],
-        name: 'cd',
     },
     {
+        name: 'dvd',
         code: '📀',
         keywords: [
+            'dvd',
             'blu-ray',
             'cd',
             'computer',
             'disk',
-            'dvd',
             'entertainment',
             'optical',
         ],
-        name: 'dvd',
     },
     {
+        name: 'abacus',
+        code: '🧮',
+        keywords: [
+            'abacus',
+        ],
+    },
+    {
+        name: 'movie_camera',
         code: '🎥',
         keywords: [
+            'film',
+            'video',
+            'movie_camera',
             'activity',
             'camera',
             'cinema',
             'entertainment',
             'movie',
         ],
-        name: 'movie_camera',
     },
     {
-        code: '🎞',
-        keywords: [
-            'cinema',
-            'entertainment',
-            'film',
-            'frames',
-            'movie',
-        ],
         name: 'film_strip',
-    },
-    {
-        code: '📽',
+        code: '🎞️',
         keywords: [
-            'cinema',
-            'entertainment',
-            'film',
-            'movie',
-            'projector',
-            'video',
+            'film_strip',
         ],
-        name: 'film_projector',
     },
     {
+        name: 'film_projector',
+        code: '📽️',
+        keywords: [
+            'film_projector',
+        ],
+    },
+    {
+        name: 'clapper',
         code: '🎬',
         keywords: [
-            'activity',
+            'film',
             'clapper',
+            'activity',
             'entertainment',
             'movie',
         ],
-        name: 'clapper',
     },
     {
+        name: 'tv',
         code: '📺',
         keywords: [
+            'tv',
             'entertainment',
             'television',
-            'tv',
             'video',
         ],
-        name: 'tv',
     },
     {
+        name: 'camera',
         code: '📷',
         keywords: [
+            'photo',
             'camera',
             'entertainment',
             'video',
         ],
-        name: 'camera',
     },
     {
+        name: 'camera_flash',
         code: '📸',
         keywords: [
+            'photo',
+            'camera_flash',
             'camera',
             'flash',
             'video',
         ],
-        name: 'camera_flash',
     },
     {
+        name: 'video_camera',
         code: '📹',
         keywords: [
+            'video_camera',
             'camera',
             'entertainment',
             'video',
         ],
-        name: 'video_camera',
     },
     {
+        name: 'vhs',
         code: '📼',
         keywords: [
+            'vhs',
             'entertainment',
             'tape',
-            'vhs',
             'video',
             'videocassette',
         ],
-        name: 'vhs',
     },
     {
+        name: 'mag',
         code: '🔍',
         keywords: [
+            'search',
+            'zoom',
+            'mag',
             'glass',
             'magnifying',
-            'search',
             'tool',
         ],
-        name: 'mag',
     },
     {
+        name: 'mag_right',
         code: '🔎',
         keywords: [
+            'mag_right',
             'glass',
             'magnifying',
             'search',
             'tool',
         ],
-        name: 'mag_right',
     },
     {
-        code: '🔬',
-        keywords: [
-            'microscope',
-            'tool',
-        ],
-        name: 'microscope',
-    },
-    {
-        code: '🔭',
-        keywords: [
-            'telescope',
-            'tool',
-        ],
-        name: 'telescope',
-    },
-    {
-        code: '📡',
-        keywords: [
-            'antenna',
-            'communication',
-            'dish',
-            'satellite',
-        ],
-        name: 'satellite',
-    },
-    {
-        code: '🕯',
+        name: 'candle',
+        code: '🕯️',
         keywords: [
             'candle',
-            'light',
         ],
-        name: 'candle',
     },
     {
+        name: 'bulb',
         code: '💡',
         keywords: [
+            'idea',
+            'light',
             'bulb',
             'comic',
             'electric',
-            'idea',
-            'light',
         ],
-        name: 'bulb',
     },
     {
+        name: 'flashlight',
         code: '🔦',
         keywords: [
-            'electric',
             'flashlight',
+            'electric',
             'light',
             'tool',
             'torch',
         ],
-        name: 'flashlight',
     },
     {
+        name: 'izakaya_lantern',
         code: '🏮',
         keywords: [
+            'izakaya_lantern',
+            'lantern',
             'bar',
             'japanese',
-            'lantern',
             'light',
             'red',
         ],
-        name: 'izakaya_lantern',
     },
     {
+        name: 'diya_lamp',
+        code: '🪔',
+        keywords: [
+            'diya_lamp',
+        ],
+    },
+    {
+        name: 'notebook_with_decorative_cover',
         code: '📔',
         keywords: [
+            'notebook_with_decorative_cover',
             'book',
             'cover',
             'decorated',
             'notebook',
         ],
-        name: 'notebook_with_decorative_cover',
     },
     {
+        name: 'closed_book',
         code: '📕',
         keywords: [
+            'closed_book',
             'book',
             'closed',
         ],
-        name: 'closed_book',
     },
     {
+        name: 'book',
         code: '📖',
         keywords: [
             'book',
+            'open_book',
             'open',
         ],
-        name: 'book',
     },
     {
+        name: 'green_book',
         code: '📗',
         keywords: [
+            'green_book',
             'book',
             'green',
         ],
-        name: 'green_book',
     },
     {
+        name: 'blue_book',
         code: '📘',
         keywords: [
+            'blue_book',
             'blue',
             'book',
         ],
-        name: 'blue_book',
     },
     {
+        name: 'orange_book',
         code: '📙',
         keywords: [
+            'orange_book',
             'book',
             'orange',
         ],
-        name: 'orange_book',
     },
     {
+        name: 'books',
         code: '📚',
         keywords: [
-            'book',
+            'library',
             'books',
+            'book',
         ],
-        name: 'books',
     },
     {
+        name: 'notebook',
         code: '📓',
         keywords: [
             'notebook',
         ],
-        name: 'notebook',
     },
     {
+        name: 'ledger',
         code: '📒',
         keywords: [
             'ledger',
             'notebook',
         ],
-        name: 'ledger',
     },
     {
+        name: 'page_with_curl',
         code: '📃',
         keywords: [
+            'page_with_curl',
             'curl',
             'document',
             'page',
         ],
-        name: 'page_with_curl',
     },
     {
+        name: 'scroll',
         code: '📜',
         keywords: [
-            'paper',
+            'document',
             'scroll',
+            'paper',
         ],
-        name: 'scroll',
     },
     {
+        name: 'page_facing_up',
         code: '📄',
         keywords: [
             'document',
+            'page_facing_up',
             'page',
         ],
-        name: 'page_facing_up',
     },
     {
+        name: 'newspaper',
         code: '📰',
         keywords: [
+            'press',
+            'newspaper',
             'communication',
             'news',
-            'newspaper',
             'paper',
         ],
-        name: 'newspaper',
     },
     {
-        code: '🗞',
-        keywords: [
-            'news',
-            'newspaper',
-            'paper',
-            'rolled',
-        ],
         name: 'newspaper_roll',
+        code: '🗞️',
+        keywords: [
+            'press',
+            'newspaper_roll',
+        ],
     },
     {
+        name: 'bookmark_tabs',
         code: '📑',
         keywords: [
+            'bookmark_tabs',
             'bookmark',
             'mark',
             'marker',
             'tabs',
         ],
-        name: 'bookmark_tabs',
     },
     {
+        name: 'bookmark',
         code: '🔖',
         keywords: [
             'bookmark',
             'mark',
         ],
-        name: 'bookmark',
     },
     {
-        code: '🏷',
+        name: 'label',
+        code: '🏷️',
         keywords: [
+            'tag',
             'label',
         ],
-        name: 'label',
     },
     {
+        name: 'moneybag',
         code: '💰',
         keywords: [
-            'bag',
             'dollar',
-            'money',
+            'cream',
             'moneybag',
+            'bag',
+            'money',
         ],
-        name: 'moneybag',
     },
     {
+        name: 'coin',
+        code: '🪙',
+        keywords: [
+            'coin',
+        ],
+    },
+    {
+        name: 'yen',
         code: '💴',
         keywords: [
+            'yen',
             'bank',
             'banknote',
             'bill',
             'currency',
             'money',
             'note',
-            'yen',
         ],
-        name: 'yen',
     },
     {
+        name: 'dollar',
         code: '💵',
         keywords: [
+            'money',
+            'dollar',
             'bank',
             'banknote',
             'bill',
             'currency',
-            'dollar',
-            'money',
             'note',
         ],
-        name: 'dollar',
     },
     {
+        name: 'euro',
         code: '💶',
         keywords: [
+            'euro',
             'bank',
             'banknote',
             'bill',
             'currency',
-            'euro',
             'money',
             'note',
         ],
-        name: 'euro',
     },
     {
+        name: 'pound',
         code: '💷',
         keywords: [
+            'pound',
             'bank',
             'banknote',
             'bill',
             'currency',
             'money',
             'note',
-            'pound',
         ],
-        name: 'pound',
     },
     {
+        name: 'money_with_wings',
         code: '💸',
         keywords: [
+            'dollar',
+            'money_with_wings',
             'bank',
             'banknote',
             'bill',
-            'dollar',
             'fly',
             'money',
             'note',
             'wings',
         ],
-        name: 'money_with_wings',
     },
     {
+        name: 'credit_card',
         code: '💳',
         keywords: [
+            'subscription',
+            'credit_card',
             'bank',
             'card',
             'credit',
             'money',
         ],
-        name: 'credit_card',
     },
     {
+        name: 'receipt',
+        code: '🧾',
+        keywords: [
+            'receipt',
+        ],
+    },
+    {
+        name: 'chart',
         code: '💹',
         keywords: [
-            'bank',
             'chart',
+            'bank',
             'currency',
             'graph',
             'growth',
@@ -8480,50 +13576,33 @@ const emojis = [
             'upward',
             'yen',
         ],
-        name: 'chart',
     },
     {
-        code: '💱',
-        keywords: [
-            'bank',
-            'currency',
-            'exchange',
-            'money',
-        ],
-        name: 'currency_exchange',
-    },
-    {
-        code: '💲',
-        keywords: [
-            'currency',
-            'dollar',
-            'money',
-        ],
-        name: 'heavy_dollar_sign',
-    },
-    {
+        name: 'envelope',
         code: '✉️',
         keywords: [
-            'e-mail',
+            'letter',
             'email',
             'envelope',
+            'e-mail',
         ],
-        name: 'envelope',
     },
     {
+        name: 'email',
         code: '📧',
         keywords: [
-            'communication',
-            'e-mail',
             'email',
+            'e-mail',
+            'communication',
             'letter',
             'mail',
         ],
-        name: 'email',
     },
     {
+        name: 'incoming_envelope',
         code: '📨',
         keywords: [
+            'incoming_envelope',
             'communication',
             'e-mail',
             'email',
@@ -8533,11 +13612,12 @@ const emojis = [
             'mail',
             'receive',
         ],
-        name: 'incoming_envelope',
     },
     {
+        name: 'envelope_with_arrow',
         code: '📩',
         keywords: [
+            'envelope_with_arrow',
             'arrow',
             'communication',
             'down',
@@ -8549,11 +13629,12 @@ const emojis = [
             'outgoing',
             'sent',
         ],
-        name: 'envelope_with_arrow',
     },
     {
+        name: 'outbox_tray',
         code: '📤',
         keywords: [
+            'outbox_tray',
             'box',
             'communication',
             'letter',
@@ -8562,11 +13643,12 @@ const emojis = [
             'sent',
             'tray',
         ],
-        name: 'outbox_tray',
     },
     {
+        name: 'inbox_tray',
         code: '📥',
         keywords: [
+            'inbox_tray',
             'box',
             'communication',
             'inbox',
@@ -8575,33 +13657,35 @@ const emojis = [
             'receive',
             'tray',
         ],
-        name: 'inbox_tray',
     },
     {
+        name: 'package',
         code: '📦',
         keywords: [
+            'shipping',
+            'package',
             'box',
             'communication',
-            'package',
             'parcel',
         ],
-        name: 'package',
     },
     {
+        name: 'mailbox',
         code: '📫',
         keywords: [
+            'mailbox',
             'closed',
             'communication',
             'flag',
             'mail',
-            'mailbox',
             'postbox',
         ],
-        name: 'mailbox',
     },
     {
+        name: 'mailbox_closed',
         code: '📪',
         keywords: [
+            'mailbox_closed',
             'closed',
             'communication',
             'flag',
@@ -8610,11 +13694,12 @@ const emojis = [
             'mailbox',
             'postbox',
         ],
-        name: 'mailbox_closed',
     },
     {
+        name: 'mailbox_with_mail',
         code: '📬',
         keywords: [
+            'mailbox_with_mail',
             'communication',
             'flag',
             'mail',
@@ -8622,11 +13707,12 @@ const emojis = [
             'open',
             'postbox',
         ],
-        name: 'mailbox_with_mail',
     },
     {
+        name: 'mailbox_with_no_mail',
         code: '📭',
         keywords: [
+            'mailbox_with_no_mail',
             'communication',
             'flag',
             'lowered',
@@ -8635,403 +13721,424 @@ const emojis = [
             'open',
             'postbox',
         ],
-        name: 'mailbox_with_no_mail',
     },
     {
+        name: 'postbox',
         code: '📮',
         keywords: [
+            'postbox',
             'communication',
             'mail',
             'mailbox',
-            'postbox',
         ],
-        name: 'postbox',
     },
     {
-        code: '🗳',
-        keywords: [
-            'ballot',
-            'box',
-        ],
         name: 'ballot_box',
-    },
-    {
-        code: '✏',
+        code: '🗳️',
         keywords: [
-            'pencil',
+            'ballot_box',
         ],
-        name: 'pencil2',
     },
     {
+        name: 'pencil2',
+        code: '✏️',
+        keywords: [
+            'pencil2',
+        ],
+    },
+    {
+        name: 'black_nib',
         code: '✒️',
         keywords: [
+            'black_nib',
             'nib',
             'pen',
         ],
-        name: 'black_nib',
     },
     {
-        code: '🖋',
-        keywords: [
-            'communication',
-            'fountain',
-            'pen',
-        ],
         name: 'fountain_pen',
+        code: '🖋️',
+        keywords: [
+            'fountain_pen',
+        ],
     },
     {
-        code: '🖊',
+        name: 'pen',
+        code: '🖊️',
         keywords: [
-            'ballpoint',
-            'communication',
             'pen',
         ],
-        name: 'pen',
     },
     {
-        code: '🖌',
-        keywords: [
-            'communication',
-            'paintbrush',
-            'painting',
-        ],
         name: 'paintbrush',
+        code: '🖌️',
+        keywords: [
+            'paintbrush',
+        ],
     },
     {
-        code: '🖍',
+        name: 'crayon',
+        code: '🖍️',
         keywords: [
-            'communication',
             'crayon',
         ],
-        name: 'crayon',
     },
     {
+        name: 'memo',
         code: '📝',
         keywords: [
-            'communication',
+            'document',
+            'note',
             'memo',
             'pencil',
+            'communication',
         ],
-        name: 'memo',
     },
     {
+        name: 'briefcase',
         code: '💼',
         keywords: [
+            'business',
             'briefcase',
         ],
-        name: 'briefcase',
     },
     {
+        name: 'file_folder',
         code: '📁',
         keywords: [
+            'directory',
+            'file_folder',
             'file',
             'folder',
         ],
-        name: 'file_folder',
     },
     {
+        name: 'open_file_folder',
         code: '📂',
         keywords: [
+            'open_file_folder',
             'file',
             'folder',
             'open',
         ],
-        name: 'open_file_folder',
     },
     {
-        code: '🗂',
-        keywords: [
-            'card',
-            'dividers',
-            'index',
-        ],
         name: 'card_index_dividers',
+        code: '🗂️',
+        keywords: [
+            'card_index_dividers',
+        ],
     },
     {
+        name: 'date',
         code: '📅',
         keywords: [
             'calendar',
+            'schedule',
             'date',
         ],
-        name: 'date',
     },
     {
+        name: 'calendar',
         code: '📆',
         keywords: [
+            'schedule',
             'calendar',
         ],
-        name: 'calendar',
     },
     {
-        code: '🗒',
-        keywords: [
-            'note',
-            'pad',
-            'spiral',
-        ],
         name: 'spiral_notepad',
-    },
-    {
-        code: '🗓',
+        code: '🗒️',
         keywords: [
-            'calendar',
-            'pad',
-            'spiral',
+            'spiral_notepad',
         ],
-        name: 'spiral_calendar',
     },
     {
+        name: 'spiral_calendar',
+        code: '🗓️',
+        keywords: [
+            'spiral_calendar',
+        ],
+    },
+    {
+        name: 'card_index',
         code: '📇',
         keywords: [
+            'card_index',
             'card',
             'index',
             'rolodex',
         ],
-        name: 'card_index',
     },
     {
+        name: 'chart_with_upwards_trend',
         code: '📈',
         keywords: [
-            'chart',
             'graph',
+            'metrics',
+            'chart_with_upwards_trend',
+            'chart',
             'growth',
             'trend',
             'upward',
         ],
-        name: 'chart_with_upwards_trend',
     },
     {
+        name: 'chart_with_downwards_trend',
         code: '📉',
         keywords: [
+            'graph',
+            'metrics',
+            'chart_with_downwards_trend',
             'chart',
             'down',
-            'graph',
             'trend',
         ],
-        name: 'chart_with_downwards_trend',
     },
     {
+        name: 'bar_chart',
         code: '📊',
         keywords: [
+            'stats',
+            'metrics',
+            'bar_chart',
             'bar',
             'chart',
             'graph',
         ],
-        name: 'bar_chart',
     },
     {
+        name: 'clipboard',
         code: '📋',
         keywords: [
             'clipboard',
         ],
-        name: 'clipboard',
     },
     {
+        name: 'pushpin',
         code: '📌',
         keywords: [
-            'pin',
+            'location',
             'pushpin',
+            'pin',
         ],
-        name: 'pushpin',
     },
     {
+        name: 'round_pushpin',
         code: '📍',
         keywords: [
+            'location',
+            'round_pushpin',
             'pin',
             'pushpin',
         ],
-        name: 'round_pushpin',
     },
     {
+        name: 'paperclip',
         code: '📎',
         keywords: [
             'paperclip',
         ],
-        name: 'paperclip',
     },
     {
-        code: '🖇',
-        keywords: [
-            'communication',
-            'link',
-            'paperclip',
-        ],
         name: 'paperclips',
+        code: '🖇️',
+        keywords: [
+            'paperclips',
+        ],
     },
     {
+        name: 'straight_ruler',
         code: '📏',
         keywords: [
+            'straight_ruler',
             'ruler',
             'straight edge',
         ],
-        name: 'straight_ruler',
     },
     {
+        name: 'triangular_ruler',
         code: '📐',
         keywords: [
+            'triangular_ruler',
             'ruler',
             'set',
             'triangle',
         ],
-        name: 'triangular_ruler',
     },
     {
+        name: 'scissors',
         code: '✂️',
         keywords: [
+            'cut',
             'scissors',
             'tool',
         ],
-        name: 'scissors',
     },
     {
-        code: '🗃',
-        keywords: [
-            'box',
-            'card',
-            'file',
-        ],
         name: 'card_file_box',
-    },
-    {
-        code: '🗄',
+        code: '🗃️',
         keywords: [
-            'cabinet',
-            'file',
+            'card_file_box',
         ],
-        name: 'file_cabinet',
     },
     {
-        code: '🗑',
+        name: 'file_cabinet',
+        code: '🗄️',
         keywords: [
+            'file_cabinet',
+        ],
+    },
+    {
+        name: 'wastebasket',
+        code: '🗑️',
+        keywords: [
+            'trash',
             'wastebasket',
         ],
-        name: 'wastebasket',
     },
     {
+        name: 'lock',
         code: '🔒',
         keywords: [
-            'closed',
+            'security',
+            'private',
             'lock',
+            'closed',
         ],
-        name: 'lock',
     },
     {
+        name: 'unlock',
         code: '🔓',
         keywords: [
+            'security',
+            'unlock',
             'lock',
             'open',
-            'unlock',
         ],
-        name: 'unlock',
     },
     {
+        name: 'lock_with_ink_pen',
         code: '🔏',
         keywords: [
+            'lock_with_ink_pen',
             'ink',
             'lock',
             'nib',
             'pen',
             'privacy',
         ],
-        name: 'lock_with_ink_pen',
     },
     {
+        name: 'closed_lock_with_key',
         code: '🔐',
         keywords: [
+            'security',
+            'closed_lock_with_key',
             'closed',
             'key',
             'lock',
             'secure',
         ],
-        name: 'closed_lock_with_key',
     },
     {
+        name: 'key',
         code: '🔑',
         keywords: [
-            'key',
             'lock',
             'password',
-        ],
-        name: 'key',
-    },
-    {
-        code: '🗝',
-        keywords: [
-            'clue',
             'key',
-            'lock',
-            'old',
         ],
-        name: 'old_key',
     },
     {
+        name: 'old_key',
+        code: '🗝️',
+        keywords: [
+            'old_key',
+        ],
+    },
+    {
+        name: 'hammer',
         code: '🔨',
         keywords: [
+            'tool',
             'hammer',
-            'tool',
         ],
-        name: 'hammer',
     },
     {
-        code: '⛏',
+        name: 'axe',
+        code: '🪓',
         keywords: [
-            'mining',
-            'pick',
-            'tool',
+            'axe',
         ],
-        name: 'pick',
     },
     {
+        name: 'pick',
+        code: '⛏️',
+        keywords: [
+            'pick',
+        ],
+    },
+    {
+        name: 'hammer_and_pick',
         code: '⚒️',
         keywords: [
+            'hammer_and_pick',
             'hammer',
             'pick',
             'tool',
         ],
-        name: 'hammer_and_pick',
     },
     {
-        code: '🛠',
-        keywords: [
-            'hammer',
-            'tool',
-            'wrench',
-        ],
         name: 'hammer_and_wrench',
+        code: '🛠️',
+        keywords: [
+            'hammer_and_wrench',
+        ],
     },
     {
-        code: '🗡',
+        name: 'dagger',
+        code: '🗡️',
         keywords: [
             'dagger',
-            'knife',
-            'weapon',
         ],
-        name: 'dagger',
     },
     {
+        name: 'crossed_swords',
         code: '⚔️',
         keywords: [
+            'crossed_swords',
             'crossed',
             'swords',
             'weapon',
         ],
-        name: 'crossed_swords',
     },
     {
+        name: 'gun',
         code: '🔫',
         keywords: [
+            'shoot',
+            'weapon',
             'gun',
             'handgun',
             'pistol',
             'revolver',
             'tool',
-            'weapon',
         ],
-        name: 'gun',
     },
     {
+        name: 'boomerang',
+        code: '🪃',
+        keywords: [
+            'boomerang',
+        ],
+    },
+    {
+        name: 'bow_and_arrow',
         code: '🏹',
         keywords: [
+            'archery',
+            'bow_and_arrow',
             'archer',
             'arrow',
             'bow',
@@ -9040,62 +14147,66 @@ const emojis = [
             'weapon',
             'zodiac',
         ],
-        name: 'bow_and_arrow',
     },
     {
-        code: '🛡',
+        name: 'shield',
+        code: '🛡️',
         keywords: [
             'shield',
-            'weapon',
         ],
-        name: 'shield',
     },
     {
+        name: 'carpentry_saw',
+        code: '🪚',
+        keywords: [
+            'carpentry_saw',
+        ],
+    },
+    {
+        name: 'wrench',
         code: '🔧',
         keywords: [
             'tool',
             'wrench',
         ],
-        name: 'wrench',
     },
     {
+        name: 'screwdriver',
+        code: '🪛',
+        keywords: [
+            'screwdriver',
+        ],
+    },
+    {
+        name: 'nut_and_bolt',
         code: '🔩',
         keywords: [
+            'nut_and_bolt',
             'bolt',
             'nut',
             'tool',
         ],
-        name: 'nut_and_bolt',
     },
     {
+        name: 'gear',
         code: '⚙️',
         keywords: [
             'gear',
             'tool',
         ],
-        name: 'gear',
     },
     {
-        code: '🗜',
-        keywords: [
-            'compression',
-            'tool',
-            'vice',
-        ],
         name: 'clamp',
-    },
-    {
-        code: '⚗️',
+        code: '🗜️',
         keywords: [
-            'alembic',
-            'chemistry',
-            'tool',
+            'clamp',
         ],
-        name: 'alembic',
     },
     {
+        name: 'balance_scale',
         code: '⚖️',
         keywords: [
+            'balance_scale',
             'balance',
             'justice',
             'libra',
@@ -9104,113 +14215,393 @@ const emojis = [
             'weight',
             'zodiac',
         ],
-        name: 'balance_scale',
     },
     {
+        name: 'probing_cane',
+        code: '🦯',
+        keywords: [
+            'probing_cane',
+        ],
+    },
+    {
+        name: 'link',
         code: '🔗',
         keywords: [
             'link',
         ],
-        name: 'link',
     },
     {
-        code: '⛓',
-        keywords: [
-            'chain',
-        ],
         name: 'chains',
+        code: '⛓️',
+        keywords: [
+            'chains',
+        ],
     },
     {
+        name: 'hook',
+        code: '🪝',
+        keywords: [
+            'hook',
+        ],
+    },
+    {
+        name: 'toolbox',
+        code: '🧰',
+        keywords: [
+            'toolbox',
+        ],
+    },
+    {
+        name: 'magnet',
+        code: '🧲',
+        keywords: [
+            'magnet',
+        ],
+    },
+    {
+        name: 'ladder',
+        code: '🪜',
+        keywords: [
+            'ladder',
+        ],
+    },
+    {
+        name: 'alembic',
+        code: '⚗️',
+        keywords: [
+            'alembic',
+            'chemistry',
+            'tool',
+        ],
+    },
+    {
+        name: 'test_tube',
+        code: '🧪',
+        keywords: [
+            'test_tube',
+        ],
+    },
+    {
+        name: 'petri_dish',
+        code: '🧫',
+        keywords: [
+            'petri_dish',
+        ],
+    },
+    {
+        name: 'dna',
+        code: '🧬',
+        keywords: [
+            'dna',
+        ],
+    },
+    {
+        name: 'microscope',
+        code: '🔬',
+        keywords: [
+            'science',
+            'laboratory',
+            'investigate',
+            'microscope',
+            'tool',
+        ],
+    },
+    {
+        name: 'telescope',
+        code: '🔭',
+        keywords: [
+            'telescope',
+            'tool',
+        ],
+    },
+    {
+        name: 'satellite',
+        code: '📡',
+        keywords: [
+            'signal',
+            'satellite',
+            'antenna',
+            'communication',
+            'dish',
+        ],
+    },
+    {
+        name: 'syringe',
         code: '💉',
         keywords: [
+            'health',
+            'hospital',
+            'needle',
+            'syringe',
             'doctor',
             'medicine',
-            'needle',
             'shot',
             'sick',
-            'syringe',
             'tool',
         ],
-        name: 'syringe',
     },
     {
+        name: 'drop_of_blood',
+        code: '🩸',
+        keywords: [
+            'drop_of_blood',
+        ],
+    },
+    {
+        name: 'pill',
         code: '💊',
         keywords: [
-            'doctor',
+            'health',
             'medicine',
             'pill',
+            'doctor',
             'sick',
         ],
-        name: 'pill',
     },
     {
-        code: '🚬',
+        name: 'adhesive_bandage',
+        code: '🩹',
         keywords: [
-            'activity',
-            'smoking',
+            'adhesive_bandage',
         ],
-        name: 'smoking',
     },
     {
-        code: '⚰',
+        name: 'stethoscope',
+        code: '🩺',
         keywords: [
-            'coffin',
-            'death',
+            'stethoscope',
         ],
-        name: 'coffin',
     },
     {
-        code: '⚱',
+        name: 'door',
+        code: '🚪',
         keywords: [
-            'death',
-            'funeral',
-            'urn',
+            'door',
         ],
-        name: 'funeral_urn',
     },
     {
-        code: '🗿',
+        name: 'elevator',
+        code: '🛗',
         keywords: [
-            'face',
-            'moyai',
-            'statue',
+            'elevator',
         ],
-        name: 'moyai',
     },
     {
-        code: '🛢',
+        name: 'mirror',
+        code: '🪞',
         keywords: [
-            'drum',
-            'oil',
+            'mirror',
         ],
-        name: 'oil_drum',
     },
     {
-        code: '🔮',
+        name: 'window',
+        code: '🪟',
         keywords: [
-            'ball',
-            'crystal',
-            'fairy tale',
-            'fantasy',
-            'fortune',
-            'tool',
+            'window',
         ],
-        name: 'crystal_ball',
     },
     {
+        name: 'bed',
+        code: '🛏️',
+        keywords: [
+            'bed',
+        ],
+    },
+    {
+        name: 'couch_and_lamp',
+        code: '🛋️',
+        keywords: [
+            'couch_and_lamp',
+        ],
+    },
+    {
+        name: 'chair',
+        code: '🪑',
+        keywords: [
+            'chair',
+        ],
+    },
+    {
+        name: 'toilet',
+        code: '🚽',
+        keywords: [
+            'wc',
+            'toilet',
+        ],
+    },
+    {
+        name: 'plunger',
+        code: '🪠',
+        keywords: [
+            'plunger',
+        ],
+    },
+    {
+        name: 'shower',
+        code: '🚿',
+        keywords: [
+            'bath',
+            'shower',
+            'water',
+        ],
+    },
+    {
+        name: 'bathtub',
+        code: '🛁',
+        keywords: [
+            'bathtub',
+            'bath',
+        ],
+    },
+    {
+        name: 'mouse_trap',
+        code: '🪤',
+        keywords: [
+            'mouse_trap',
+        ],
+    },
+    {
+        name: 'razor',
+        code: '🪒',
+        keywords: [
+            'razor',
+        ],
+    },
+    {
+        name: 'lotion_bottle',
+        code: '🧴',
+        keywords: [
+            'lotion_bottle',
+        ],
+    },
+    {
+        name: 'safety_pin',
+        code: '🧷',
+        keywords: [
+            'safety_pin',
+        ],
+    },
+    {
+        name: 'broom',
+        code: '🧹',
+        keywords: [
+            'broom',
+        ],
+    },
+    {
+        name: 'basket',
+        code: '🧺',
+        keywords: [
+            'basket',
+        ],
+    },
+    {
+        name: 'roll_of_paper',
+        code: '🧻',
+        keywords: [
+            'toilet',
+            'roll_of_paper',
+        ],
+    },
+    {
+        name: 'bucket',
+        code: '🪣',
+        keywords: [
+            'bucket',
+        ],
+    },
+    {
+        name: 'soap',
+        code: '🧼',
+        keywords: [
+            'soap',
+        ],
+    },
+    {
+        name: 'toothbrush',
+        code: '🪥',
+        keywords: [
+            'toothbrush',
+        ],
+    },
+    {
+        name: 'sponge',
+        code: '🧽',
+        keywords: [
+            'sponge',
+        ],
+    },
+    {
+        name: 'fire_extinguisher',
+        code: '🧯',
+        keywords: [
+            'fire_extinguisher',
+        ],
+    },
+    {
+        name: 'shopping_cart',
         code: '🛒',
         keywords: [
+            'shopping_cart',
             'cart',
             'shopping',
             'trolley',
         ],
-        name: 'shopping_cart',
+    },
+    {
+        name: 'smoking',
+        code: '🚬',
+        keywords: [
+            'cigarette',
+            'smoking',
+            'activity',
+        ],
+    },
+    {
+        name: 'coffin',
+        code: '⚰️',
+        keywords: [
+            'funeral',
+            'coffin',
+        ],
+    },
+    {
+        name: 'headstone',
+        code: '🪦',
+        keywords: [
+            'headstone',
+        ],
+    },
+    {
+        name: 'funeral_urn',
+        code: '⚱️',
+        keywords: [
+            'funeral_urn',
+        ],
+    },
+    {
+        name: 'moyai',
+        code: '🗿',
+        keywords: [
+            'stone',
+            'moyai',
+            'face',
+            'statue',
+        ],
+    },
+    {
+        name: 'placard',
+        code: '🪧',
+        keywords: [
+            'placard',
+        ],
     },
     {
         code: 'symbols',
         header: true,
     },
     {
+        name: 'atm',
         code: '🏧',
         keywords: [
             'atm',
@@ -9218,134 +14609,150 @@ const emojis = [
             'bank',
             'teller',
         ],
-        name: 'atm',
     },
     {
+        name: 'put_litter_in_its_place',
         code: '🚮',
         keywords: [
+            'put_litter_in_its_place',
             'litter',
             'litterbox',
         ],
-        name: 'put_litter_in_its_place',
     },
     {
+        name: 'potable_water',
         code: '🚰',
         keywords: [
+            'potable_water',
             'drink',
             'potable',
             'water',
         ],
-        name: 'potable_water',
     },
     {
+        name: 'wheelchair',
         code: '♿',
         keywords: [
-            'access',
+            'accessibility',
             'wheelchair',
+            'access',
         ],
-        name: 'wheelchair',
     },
     {
+        name: 'mens',
         code: '🚹',
         keywords: [
+            'mens',
             'lavatory',
             'man',
             'restroom',
             'wc',
         ],
-        name: 'mens',
     },
     {
+        name: 'womens',
         code: '🚺',
         keywords: [
+            'womens',
             'lavatory',
             'restroom',
             'wc',
             'woman',
         ],
-        name: 'womens',
     },
     {
+        name: 'restroom',
         code: '🚻',
         keywords: [
-            'lavatory',
+            'toilet',
             'restroom',
+            'lavatory',
             'wc',
         ],
-        name: 'restroom',
     },
     {
+        name: 'baby_symbol',
         code: '🚼',
         keywords: [
+            'baby_symbol',
             'baby',
             'changing',
         ],
-        name: 'baby_symbol',
     },
     {
+        name: 'wc',
         code: '🚾',
         keywords: [
+            'toilet',
+            'restroom',
+            'wc',
             'closet',
             'lavatory',
-            'restroom',
             'water',
-            'wc',
         ],
-        name: 'wc',
     },
     {
+        name: 'passport_control',
         code: '🛂',
         keywords: [
+            'passport_control',
             'control',
             'passport',
         ],
-        name: 'passport_control',
     },
     {
+        name: 'customs',
         code: '🛃',
         keywords: [
             'customs',
         ],
-        name: 'customs',
     },
     {
+        name: 'baggage_claim',
         code: '🛄',
         keywords: [
+            'airport',
+            'baggage_claim',
             'baggage',
             'claim',
         ],
-        name: 'baggage_claim',
     },
     {
+        name: 'left_luggage',
         code: '🛅',
         keywords: [
+            'left_luggage',
             'baggage',
             'left luggage',
             'locker',
             'luggage',
         ],
-        name: 'left_luggage',
     },
     {
-        code: '⚠',
+        name: 'warning',
+        code: '⚠️',
         keywords: [
+            'wip',
             'warning',
         ],
-        name: 'warning',
     },
     {
+        name: 'children_crossing',
         code: '🚸',
         keywords: [
+            'children_crossing',
             'child',
             'crossing',
             'pedestrian',
             'traffic',
         ],
-        name: 'children_crossing',
     },
     {
+        name: 'no_entry',
         code: '⛔',
         keywords: [
+            'limit',
+            'no_entry',
             'entry',
             'forbidden',
             'no',
@@ -9353,22 +14760,25 @@ const emojis = [
             'prohibited',
             'traffic',
         ],
-        name: 'no_entry',
     },
     {
+        name: 'no_entry_sign',
         code: '🚫',
         keywords: [
-            'entry',
+            'block',
             'forbidden',
+            'no_entry_sign',
+            'entry',
             'no',
             'not',
             'prohibited',
         ],
-        name: 'no_entry_sign',
     },
     {
+        name: 'no_bicycles',
         code: '🚳',
         keywords: [
+            'no_bicycles',
             'bicycle',
             'bike',
             'forbidden',
@@ -9377,33 +14787,36 @@ const emojis = [
             'prohibited',
             'vehicle',
         ],
-        name: 'no_bicycles',
     },
     {
+        name: 'no_smoking',
         code: '🚭',
         keywords: [
+            'no_smoking',
             'forbidden',
             'no',
             'not',
             'prohibited',
             'smoking',
         ],
-        name: 'no_smoking',
     },
     {
+        name: 'do_not_litter',
         code: '🚯',
         keywords: [
+            'do_not_litter',
             'forbidden',
             'litter',
             'no',
             'not',
             'prohibited',
         ],
-        name: 'do_not_litter',
     },
     {
+        name: 'non-potable_water',
         code: '🚱',
         keywords: [
+            'non-potable_water',
             'drink',
             'forbidden',
             'no',
@@ -9412,22 +14825,24 @@ const emojis = [
             'prohibited',
             'water',
         ],
-        name: 'non',
     },
     {
+        name: 'no_pedestrians',
         code: '🚷',
         keywords: [
+            'no_pedestrians',
             'forbidden',
             'no',
             'not',
             'pedestrian',
             'prohibited',
         ],
-        name: 'no_pedestrians',
     },
     {
+        name: 'no_mobile_phones',
         code: '📵',
         keywords: [
+            'no_mobile_phones',
             'cell',
             'communication',
             'forbidden',
@@ -9438,11 +14853,12 @@ const emojis = [
             'prohibited',
             'telephone',
         ],
-        name: 'no_mobile_phones',
     },
     {
+        name: 'underage',
         code: '🔞',
         keywords: [
+            'underage',
             '18',
             'age restriction',
             'eighteen',
@@ -9450,342 +14866,866 @@ const emojis = [
             'no',
             'not',
             'prohibited',
-            'underage',
         ],
-        name: 'underage',
     },
     {
+        name: 'radioactive',
         code: '☢️',
         keywords: [
             'radioactive',
         ],
-        name: 'radioactive',
     },
     {
+        name: 'biohazard',
         code: '☣️',
         keywords: [
             'biohazard',
         ],
-        name: 'biohazard',
     },
     {
-        code: '⬆',
-        keywords: [
-            'arrow',
-            'cardinal',
-            'direction',
-            'north',
-        ],
         name: 'arrow_up',
+        code: '⬆️',
+        keywords: [
+            'arrow_up',
+        ],
     },
     {
+        name: 'arrow_upper_right',
         code: '↗️',
         keywords: [
+            'arrow_upper_right',
             'arrow',
             'direction',
             'intercardinal',
             'northeast',
         ],
-        name: 'arrow_upper_right',
     },
     {
-        code: '➡',
-        keywords: [
-            'arrow',
-            'cardinal',
-            'direction',
-            'east',
-        ],
         name: 'arrow_right',
+        code: '➡️',
+        keywords: [
+            'arrow_right',
+        ],
     },
     {
+        name: 'arrow_lower_right',
         code: '↘️',
         keywords: [
+            'arrow_lower_right',
             'arrow',
             'direction',
             'intercardinal',
             'southeast',
         ],
-        name: 'arrow_lower_right',
     },
     {
-        code: '⬇',
-        keywords: [
-            'arrow',
-            'cardinal',
-            'direction',
-            'down',
-            'south',
-        ],
         name: 'arrow_down',
+        code: '⬇️',
+        keywords: [
+            'arrow_down',
+        ],
     },
     {
+        name: 'arrow_lower_left',
         code: '↙️',
         keywords: [
+            'arrow_lower_left',
             'arrow',
             'direction',
             'intercardinal',
             'southwest',
         ],
-        name: 'arrow_lower_left',
     },
     {
-        code: '⬅',
-        keywords: [
-            'arrow',
-            'cardinal',
-            'direction',
-            'west',
-        ],
         name: 'arrow_left',
+        code: '⬅️',
+        keywords: [
+            'arrow_left',
+        ],
     },
     {
+        name: 'arrow_upper_left',
         code: '↖️',
         keywords: [
+            'arrow_upper_left',
             'arrow',
             'direction',
             'intercardinal',
             'northwest',
         ],
-        name: 'arrow_upper_left',
     },
     {
+        name: 'arrow_up_down',
         code: '↕️',
         keywords: [
+            'arrow_up_down',
             'arrow',
         ],
-        name: 'arrow_up_down',
     },
     {
+        name: 'left_right_arrow',
         code: '↔️',
         keywords: [
+            'left_right_arrow',
             'arrow',
         ],
-        name: 'left_right_arrow',
     },
     {
-        code: '↩',
-        keywords: [
-            'arrow',
-        ],
         name: 'leftwards_arrow_with_hook',
-    },
-    {
-        code: '↪',
+        code: '↩️',
         keywords: [
-            'arrow',
+            'return',
+            'leftwards_arrow_with_hook',
         ],
-        name: 'arrow_right_hook',
     },
     {
+        name: 'arrow_right_hook',
+        code: '↪️',
+        keywords: [
+            'arrow_right_hook',
+        ],
+    },
+    {
+        name: 'arrow_heading_up',
         code: '⤴️',
         keywords: [
+            'arrow_heading_up',
             'arrow',
             'up',
         ],
-        name: 'arrow_heading_up',
     },
     {
+        name: 'arrow_heading_down',
         code: '⤵️',
         keywords: [
+            'arrow_heading_down',
             'arrow',
             'down',
         ],
-        name: 'arrow_heading_down',
     },
     {
+        name: 'arrows_clockwise',
         code: '🔃',
         keywords: [
+            'arrows_clockwise',
             'arrow',
             'clockwise',
             'reload',
         ],
-        name: 'arrows_clockwise',
     },
     {
+        name: 'arrows_counterclockwise',
         code: '🔄',
         keywords: [
+            'sync',
+            'arrows_counterclockwise',
             'anticlockwise',
             'arrow',
             'counterclockwise',
             'withershins',
         ],
-        name: 'arrows_counterclockwise',
     },
     {
+        name: 'back',
         code: '🔙',
         keywords: [
-            'arrow',
             'back',
+            'arrow',
         ],
-        name: 'back',
     },
     {
+        name: 'end',
         code: '🔚',
         keywords: [
-            'arrow',
             'end',
+            'arrow',
         ],
-        name: 'end',
     },
     {
+        name: 'on',
         code: '🔛',
         keywords: [
+            'on',
             'arrow',
             'mark',
-            'on',
         ],
-        name: 'on',
     },
     {
+        name: 'soon',
         code: '🔜',
         keywords: [
-            'arrow',
             'soon',
+            'arrow',
         ],
-        name: 'soon',
     },
     {
+        name: 'top',
         code: '🔝',
         keywords: [
-            'arrow',
             'top',
+            'arrow',
             'up',
         ],
-        name: 'top',
     },
     {
+        name: 'place_of_worship',
         code: '🛐',
         keywords: [
+            'place_of_worship',
             'religion',
             'worship',
         ],
-        name: 'place_of_worship',
     },
     {
-        code: '⚛',
-        keywords: [
-            'atheist',
-            'atom',
-        ],
         name: 'atom_symbol',
-    },
-    {
-        code: '🕉',
+        code: '⚛️',
         keywords: [
-            'hindu',
-            'om',
-            'religion',
+            'atom_symbol',
         ],
-        name: 'om',
     },
     {
+        name: 'om',
+        code: '🕉️',
+        keywords: [
+            'om',
+        ],
+    },
+    {
+        name: 'star_of_david',
         code: '✡️',
         keywords: [
+            'star_of_david',
             'david',
             'jew',
             'jewish',
             'religion',
             'star',
         ],
-        name: 'star_of_david',
     },
     {
+        name: 'wheel_of_dharma',
         code: '☸️',
         keywords: [
+            'wheel_of_dharma',
             'buddhist',
             'dharma',
             'religion',
             'wheel',
         ],
-        name: 'wheel_of_dharma',
     },
     {
-        code: '☯',
-        keywords: [
-            'religion',
-            'tao',
-            'taoist',
-            'yang',
-            'yin',
-        ],
         name: 'yin_yang',
+        code: '☯️',
+        keywords: [
+            'yin_yang',
+        ],
     },
     {
+        name: 'latin_cross',
+        code: '✝️',
+        keywords: [
+            'latin_cross',
+        ],
+    },
+    {
+        name: 'orthodox_cross',
         code: '☦️',
         keywords: [
+            'orthodox_cross',
             'christian',
             'cross',
             'religion',
         ],
-        name: 'orthodox_cross',
     },
     {
-        code: '☦',
-        keywords: [
-            'christian',
-            'cross',
-            'religion',
-        ],
-        name: 'latin_cross',
-    },
-    {
-        code: '☪',
-        keywords: [
-            'islam',
-            'muslim',
-            'religion',
-        ],
         name: 'star_and_crescent',
-    },
-    {
-        code: '☮',
+        code: '☪️',
         keywords: [
-            'peace',
+            'star_and_crescent',
         ],
-        name: 'peace_symbol',
     },
     {
+        name: 'peace_symbol',
+        code: '☮️',
+        keywords: [
+            'peace_symbol',
+        ],
+    },
+    {
+        name: 'menorah',
         code: '🕎',
         keywords: [
+            'menorah',
             'candelabrum',
             'candlestick',
-            'menorah',
             'religion',
         ],
-        name: 'menorah',
     },
     {
+        name: 'six_pointed_star',
         code: '🔯',
         keywords: [
+            'six_pointed_star',
             'fortune',
             'star',
         ],
-        name: 'six_pointed_star',
     },
     {
-        code: '♻',
+        name: 'aries',
+        code: '♈',
         keywords: [
+            'aries',
+            'ram',
+            'zodiac',
+        ],
+    },
+    {
+        name: 'taurus',
+        code: '♉',
+        keywords: [
+            'taurus',
+            'bull',
+            'ox',
+            'zodiac',
+        ],
+    },
+    {
+        name: 'gemini',
+        code: '♊',
+        keywords: [
+            'gemini',
+            'twins',
+            'zodiac',
+        ],
+    },
+    {
+        name: 'cancer',
+        code: '♋',
+        keywords: [
+            'cancer',
+            'crab',
+            'zodiac',
+        ],
+    },
+    {
+        name: 'leo',
+        code: '♌',
+        keywords: [
+            'leo',
+            'lion',
+            'zodiac',
+        ],
+    },
+    {
+        name: 'virgo',
+        code: '♍',
+        keywords: [
+            'virgo',
+            'maiden',
+            'virgin',
+            'zodiac',
+        ],
+    },
+    {
+        name: 'libra',
+        code: '♎',
+        keywords: [
+            'libra',
+            'balance',
+            'justice',
+            'scales',
+            'zodiac',
+        ],
+    },
+    {
+        name: 'scorpius',
+        code: '♏',
+        keywords: [
+            'scorpius',
+            'scorpio',
+            'scorpion',
+            'zodiac',
+        ],
+    },
+    {
+        name: 'sagittarius',
+        code: '♐',
+        keywords: [
+            'sagittarius',
+            'archer',
+            'zodiac',
+        ],
+    },
+    {
+        name: 'capricorn',
+        code: '♑',
+        keywords: [
+            'capricorn',
+            'goat',
+            'zodiac',
+        ],
+    },
+    {
+        name: 'aquarius',
+        code: '♒',
+        keywords: [
+            'aquarius',
+            'bearer',
+            'water',
+            'zodiac',
+        ],
+    },
+    {
+        name: 'pisces',
+        code: '♓',
+        keywords: [
+            'pisces',
+            'fish',
+            'zodiac',
+        ],
+    },
+    {
+        name: 'ophiuchus',
+        code: '⛎',
+        keywords: [
+            'ophiuchus',
+            'bearer',
+            'serpent',
+            'snake',
+            'zodiac',
+        ],
+    },
+    {
+        name: 'twisted_rightwards_arrows',
+        code: '🔀',
+        keywords: [
+            'shuffle',
+            'twisted_rightwards_arrows',
+            'arrow',
+            'crossed',
+        ],
+    },
+    {
+        name: 'repeat',
+        code: '🔁',
+        keywords: [
+            'loop',
+            'repeat',
+            'arrow',
+            'clockwise',
+        ],
+    },
+    {
+        name: 'repeat_one',
+        code: '🔂',
+        keywords: [
+            'repeat_one',
+            'arrow',
+            'clockwise',
+            'once',
+        ],
+    },
+    {
+        name: 'arrow_forward',
+        code: '▶️',
+        keywords: [
+            'arrow_forward',
+        ],
+    },
+    {
+        name: 'fast_forward',
+        code: '⏩',
+        keywords: [
+            'fast_forward',
+            'arrow',
+            'double',
+            'fast',
+            'forward',
+        ],
+    },
+    {
+        name: 'next_track_button',
+        code: '⏭️',
+        keywords: [
+            'next_track_button',
+        ],
+    },
+    {
+        name: 'play_or_pause_button',
+        code: '⏯️',
+        keywords: [
+            'play_or_pause_button',
+        ],
+    },
+    {
+        name: 'arrow_backward',
+        code: '◀️',
+        keywords: [
+            'arrow_backward',
+        ],
+    },
+    {
+        name: 'rewind',
+        code: '⏪',
+        keywords: [
+            'rewind',
+            'arrow',
+            'double',
+        ],
+    },
+    {
+        name: 'previous_track_button',
+        code: '⏮️',
+        keywords: [
+            'previous_track_button',
+        ],
+    },
+    {
+        name: 'arrow_up_small',
+        code: '🔼',
+        keywords: [
+            'arrow_up_small',
+            'arrow',
+            'button',
+            'red',
+        ],
+    },
+    {
+        name: 'arrow_double_up',
+        code: '⏫',
+        keywords: [
+            'arrow_double_up',
+            'arrow',
+            'double',
+        ],
+    },
+    {
+        name: 'arrow_down_small',
+        code: '🔽',
+        keywords: [
+            'arrow_down_small',
+            'arrow',
+            'button',
+            'down',
+            'red',
+        ],
+    },
+    {
+        name: 'arrow_double_down',
+        code: '⏬',
+        keywords: [
+            'arrow_double_down',
+            'arrow',
+            'double',
+            'down',
+        ],
+    },
+    {
+        name: 'pause_button',
+        code: '⏸️',
+        keywords: [
+            'pause_button',
+        ],
+    },
+    {
+        name: 'stop_button',
+        code: '⏹️',
+        keywords: [
+            'stop_button',
+        ],
+    },
+    {
+        name: 'record_button',
+        code: '⏺️',
+        keywords: [
+            'record_button',
+        ],
+    },
+    {
+        name: 'eject_button',
+        code: '⏏️',
+        keywords: [
+            'eject_button',
+        ],
+    },
+    {
+        name: 'cinema',
+        code: '🎦',
+        keywords: [
+            'film',
+            'movie',
+            'cinema',
+            'activity',
+            'camera',
+            'entertainment',
+        ],
+    },
+    {
+        name: 'low_brightness',
+        code: '🔅',
+        keywords: [
+            'low_brightness',
+            'brightness',
+            'dim',
+            'low',
+        ],
+    },
+    {
+        name: 'high_brightness',
+        code: '🔆',
+        keywords: [
+            'high_brightness',
+            'bright',
+            'brightness',
+        ],
+    },
+    {
+        name: 'signal_strength',
+        code: '📶',
+        keywords: [
+            'wifi',
+            'signal_strength',
+            'antenna',
+            'bar',
+            'cell',
+            'communication',
+            'mobile',
+            'phone',
+            'signal',
+            'telephone',
+        ],
+    },
+    {
+        name: 'vibration_mode',
+        code: '📳',
+        keywords: [
+            'vibration_mode',
+            'cell',
+            'communication',
+            'mobile',
+            'mode',
+            'phone',
+            'telephone',
+            'vibration',
+        ],
+    },
+    {
+        name: 'mobile_phone_off',
+        code: '📴',
+        keywords: [
+            'mute',
+            'off',
+            'mobile_phone_off',
+            'cell',
+            'communication',
+            'mobile',
+            'phone',
+            'telephone',
+        ],
+    },
+    {
+        name: 'female_sign',
+        code: '♀️',
+        keywords: [
+            'female_sign',
+        ],
+    },
+    {
+        name: 'male_sign',
+        code: '♂️',
+        keywords: [
+            'male_sign',
+        ],
+    },
+    {
+        name: 'transgender_symbol',
+        code: '⚧️',
+        keywords: [
+            'transgender_symbol',
+        ],
+    },
+    {
+        name: 'heavy_multiplication_x',
+        code: '✖️',
+        keywords: [
+            'heavy_multiplication_x',
+            'cancel',
+            'multiplication',
+            'multiply',
+            'x',
+        ],
+    },
+    {
+        name: 'heavy_plus_sign',
+        code: '➕',
+        keywords: [
+            'heavy_plus_sign',
+            'math',
+            'plus',
+        ],
+    },
+    {
+        name: 'heavy_minus_sign',
+        code: '➖',
+        keywords: [
+            'heavy_minus_sign',
+            'math',
+            'minus',
+        ],
+    },
+    {
+        name: 'heavy_division_sign',
+        code: '➗',
+        keywords: [
+            'heavy_division_sign',
+            'division',
+            'math',
+        ],
+    },
+    {
+        name: 'infinity',
+        code: '♾️',
+        keywords: [
+            'infinity',
+        ],
+    },
+    {
+        name: 'bangbang',
+        code: '‼️',
+        keywords: [
+            'bangbang',
+        ],
+    },
+    {
+        name: 'interrobang',
+        code: '⁉️',
+        keywords: [
+            'interrobang',
+            'exclamation',
+            'mark',
+            'punctuation',
+            'question',
+        ],
+    },
+    {
+        name: 'question',
+        code: '❓',
+        keywords: [
+            'confused',
+            'question',
+            'mark',
+            'punctuation',
+        ],
+    },
+    {
+        name: 'grey_question',
+        code: '❔',
+        keywords: [
+            'grey_question',
+            'mark',
+            'outlined',
+            'punctuation',
+            'question',
+        ],
+    },
+    {
+        name: 'grey_exclamation',
+        code: '❕',
+        keywords: [
+            'grey_exclamation',
+            'exclamation',
+            'mark',
+            'outlined',
+            'punctuation',
+        ],
+    },
+    {
+        name: 'exclamation',
+        code: '❗',
+        keywords: [
+            'bang',
+            'exclamation',
+            'heavy_exclamation_mark',
+            'mark',
+            'punctuation',
+        ],
+    },
+    {
+        name: 'wavy_dash',
+        code: '〰️',
+        keywords: [
+            'wavy_dash',
+            'dash',
+            'punctuation',
+            'wavy',
+        ],
+    },
+    {
+        name: 'currency_exchange',
+        code: '💱',
+        keywords: [
+            'currency_exchange',
+            'bank',
+            'currency',
+            'exchange',
+            'money',
+        ],
+    },
+    {
+        name: 'heavy_dollar_sign',
+        code: '💲',
+        keywords: [
+            'heavy_dollar_sign',
+            'currency',
+            'dollar',
+            'money',
+        ],
+    },
+    {
+        name: 'medical_symbol',
+        code: '⚕️',
+        keywords: [
+            'medical_symbol',
+        ],
+    },
+    {
+        name: 'recycle',
+        code: '♻️',
+        keywords: [
+            'environment',
+            'green',
             'recycle',
         ],
-        name: 'recycle',
     },
     {
+        name: 'fleur_de_lis',
+        code: '⚜️',
+        keywords: [
+            'fleur_de_lis',
+        ],
+    },
+    {
+        name: 'trident',
+        code: '🔱',
+        keywords: [
+            'trident',
+            'anchor',
+            'emblem',
+            'ship',
+            'tool',
+        ],
+    },
+    {
+        name: 'name_badge',
         code: '📛',
         keywords: [
+            'name_badge',
             'badge',
             'name',
         ],
-        name: 'name_badge',
     },
     {
-        code: '⚜',
-        keywords: [
-            'fleur-de-lis',
-        ],
-        name: 'fleur_de_lis',
-    },
-    {
+        name: 'beginner',
         code: '🔰',
         keywords: [
             'beginner',
@@ -9796,738 +15736,266 @@ const emojis = [
             'tool',
             'yellow',
         ],
-        name: 'beginner',
     },
     {
-        code: '🔱',
-        keywords: [
-            'anchor',
-            'emblem',
-            'ship',
-            'tool',
-            'trident',
-        ],
-        name: 'trident',
-    },
-    {
+        name: 'o',
         code: '⭕',
         keywords: [
-            'circle',
             'o',
+            'circle',
         ],
-        name: 'o',
     },
     {
+        name: 'white_check_mark',
         code: '✅',
         keywords: [
+            'white_check_mark',
             'check',
             'mark',
         ],
-        name: 'white_check_mark',
     },
     {
+        name: 'ballot_box_with_check',
         code: '☑️',
         keywords: [
+            'ballot_box_with_check',
             'ballot',
             'box',
             'check',
         ],
-        name: 'ballot_box_with_check',
     },
     {
+        name: 'heavy_check_mark',
         code: '✔️',
         keywords: [
+            'heavy_check_mark',
             'check',
             'mark',
         ],
-        name: 'heavy_check_mark',
     },
     {
-        code: '✖️',
-        keywords: [
-            'cancel',
-            'multiplication',
-            'multiply',
-            'x',
-        ],
-        name: 'heavy_multiplication_x',
-    },
-    {
+        name: 'x',
         code: '❌',
         keywords: [
+            'x',
             'cancel',
             'mark',
             'multiplication',
             'multiply',
-            'x',
         ],
-        name: 'x',
     },
     {
+        name: 'negative_squared_cross_mark',
         code: '❎',
         keywords: [
+            'negative_squared_cross_mark',
             'mark',
             'square',
         ],
-        name: 'negative_squared_cross_mark',
     },
     {
-        code: '➕',
-        keywords: [
-            'math',
-            'plus',
-        ],
-        name: 'heavy_plus_sign',
-    },
-    {
-        code: '➖',
-        keywords: [
-            'math',
-            'minus',
-        ],
-        name: 'heavy_minus_sign',
-    },
-    {
-        code: '➗',
-        keywords: [
-            'division',
-            'math',
-        ],
-        name: 'heavy_division_sign',
-    },
-    {
+        name: 'curly_loop',
         code: '➰',
         keywords: [
+            'curly_loop',
             'curl',
             'loop',
         ],
-        name: 'curly_loop',
     },
     {
+        name: 'loop',
         code: '➿',
         keywords: [
+            'loop',
             'curl',
             'double',
-            'loop',
         ],
-        name: 'loop',
     },
     {
-        code: '〽',
-        keywords: [
-            'mark',
-            'part',
-        ],
         name: 'part_alternation_mark',
+        code: '〽️',
+        keywords: [
+            'part_alternation_mark',
+        ],
     },
     {
+        name: 'eight_spoked_asterisk',
         code: '✳️',
         keywords: [
+            'eight_spoked_asterisk',
             'asterisk',
         ],
-        name: 'eight_spoked_asterisk',
     },
     {
+        name: 'eight_pointed_black_star',
         code: '✴️',
         keywords: [
+            'eight_pointed_black_star',
             'star',
         ],
-        name: 'eight_pointed_black_star',
     },
     {
+        name: 'sparkle',
         code: '❇️',
         keywords: [
             'sparkle',
         ],
-        name: 'sparkle',
     },
     {
-        code: '‼',
-        keywords: [
-            'bangbang',
-            'exclamation',
-            'mark',
-            'punctuation',
-        ],
-        name: 'bangbang',
-    },
-    {
-        code: '⁉️',
-        keywords: [
-            'exclamation',
-            'interrobang',
-            'mark',
-            'punctuation',
-            'question',
-        ],
-        name: 'interrobang',
-    },
-    {
-        code: '❓',
-        keywords: [
-            'mark',
-            'punctuation',
-            'question',
-        ],
-        name: 'question',
-    },
-    {
-        code: '❔',
-        keywords: [
-            'mark',
-            'outlined',
-            'punctuation',
-            'question',
-        ],
-        name: 'grey_question',
-    },
-    {
-        code: '❕',
-        keywords: [
-            'exclamation',
-            'mark',
-            'outlined',
-            'punctuation',
-        ],
-        name: 'grey_exclamation',
-    },
-    {
-        code: '❗',
-        keywords: [
-            'exclamation',
-            'mark',
-            'punctuation',
-        ],
-        name: 'exclamation',
-    },
-    {
-        code: '〰️',
-        keywords: [
-            'dash',
-            'punctuation',
-            'wavy',
-        ],
-        name: 'wavy_dash',
-    },
-    {
-        code: '©',
+        name: 'copyright',
+        code: '©️',
         keywords: [
             'copyright',
         ],
-        name: 'copyright',
     },
     {
-        code: '®',
+        name: 'registered',
+        code: '®️',
         keywords: [
             'registered',
         ],
-        name: 'registered',
     },
     {
+        name: 'tm',
         code: '™️',
         keywords: [
-            'mark',
-            'tm',
             'trademark',
+            'tm',
+            'mark',
         ],
-        name: 'tm',
     },
     {
-        code: '♈',
-        keywords: [
-            'aries',
-            'ram',
-            'zodiac',
-        ],
-        name: 'aries',
-    },
-    {
-        code: '♉',
-        keywords: [
-            'bull',
-            'ox',
-            'taurus',
-            'zodiac',
-        ],
-        name: 'taurus',
-    },
-    {
-        code: '♊',
-        keywords: [
-            'gemini',
-            'twins',
-            'zodiac',
-        ],
-        name: 'gemini',
-    },
-    {
-        code: '♋',
-        keywords: [
-            'cancer',
-            'crab',
-            'zodiac',
-        ],
-        name: 'cancer',
-    },
-    {
-        code: '♌',
-        keywords: [
-            'leo',
-            'lion',
-            'zodiac',
-        ],
-        name: 'leo',
-    },
-    {
-        code: '♍',
-        keywords: [
-            'maiden',
-            'virgin',
-            'virgo',
-            'zodiac',
-        ],
-        name: 'virgo',
-    },
-    {
-        code: '♎',
-        keywords: [
-            'balance',
-            'justice',
-            'libra',
-            'scales',
-            'zodiac',
-        ],
-        name: 'libra',
-    },
-    {
-        code: '♏',
-        keywords: [
-            'scorpio',
-            'scorpion',
-            'scorpius',
-            'zodiac',
-        ],
-        name: 'scorpius',
-    },
-    {
-        code: '♐',
-        keywords: [
-            'archer',
-            'sagittarius',
-            'zodiac',
-        ],
-        name: 'sagittarius',
-    },
-    {
-        code: '♑',
-        keywords: [
-            'capricorn',
-            'goat',
-            'zodiac',
-        ],
-        name: 'capricorn',
-    },
-    {
-        code: '♒',
-        keywords: [
-            'aquarius',
-            'bearer',
-            'water',
-            'zodiac',
-        ],
-        name: 'aquarius',
-    },
-    {
-        code: '♓',
-        keywords: [
-            'fish',
-            'pisces',
-            'zodiac',
-        ],
-        name: 'pisces',
-    },
-    {
-        code: '⛎',
-        keywords: [
-            'bearer',
-            'ophiuchus',
-            'serpent',
-            'snake',
-            'zodiac',
-        ],
-        name: 'ophiuchus',
-    },
-    {
-        code: '🔀',
-        keywords: [
-            'arrow',
-            'crossed',
-        ],
-        name: 'twisted_rightwards_arrows',
-    },
-    {
-        code: '🔁',
-        keywords: [
-            'arrow',
-            'clockwise',
-            'repeat',
-        ],
-        name: 'repeat',
-    },
-    {
-        code: '🔂',
-        keywords: [
-            'arrow',
-            'clockwise',
-            'once',
-        ],
-        name: 'repeat_one',
-    },
-    {
-        code: '▶',
-        keywords: [
-            'arrow',
-            'play',
-            'right',
-            'triangle',
-        ],
-        name: 'arrow_forward',
-    },
-    {
-        code: '⏩',
-        keywords: [
-            'arrow',
-            'double',
-            'fast',
-            'forward',
-        ],
-        name: 'fast_forward',
-    },
-    {
-        code: '⏭',
-        keywords: [
-            'arrow',
-            'next scene',
-            'next track',
-            'triangle',
-        ],
-        name: 'next_track_button',
-    },
-    {
-        code: '⏯',
-        keywords: [
-            'arrow',
-            'pause',
-            'play',
-            'right',
-            'triangle',
-        ],
-        name: 'play_or_pause_button',
-    },
-    {
-        code: '◀',
-        keywords: [
-            'arrow',
-            'left',
-            'reverse',
-            'triangle',
-        ],
-        name: 'arrow_backward',
-    },
-    {
-        code: '⏪',
-        keywords: [
-            'arrow',
-            'double',
-            'rewind',
-        ],
-        name: 'rewind',
-    },
-    {
-        code: '⏮',
-        keywords: [
-            'arrow',
-            'previous scene',
-            'previous track',
-            'triangle',
-        ],
-        name: 'previous_track_button',
-    },
-    {
-        code: '🔼',
-        keywords: [
-            'arrow',
-            'button',
-            'red',
-        ],
-        name: 'arrow_up_small',
-    },
-    {
-        code: '⏫',
-        keywords: [
-            'arrow',
-            'double',
-        ],
-        name: 'arrow_double_up',
-    },
-    {
-        code: '🔽',
-        keywords: [
-            'arrow',
-            'button',
-            'down',
-            'red',
-        ],
-        name: 'arrow_down_small',
-    },
-    {
-        code: '⏬',
-        keywords: [
-            'arrow',
-            'double',
-            'down',
-        ],
-        name: 'arrow_double_down',
-    },
-    {
-        code: '⏸',
-        keywords: [
-            'bar',
-            'double',
-            'pause',
-            'vertical',
-        ],
-        name: 'pause_button',
-    },
-    {
-        code: '⏹',
-        keywords: [
-            'square',
-            'stop',
-        ],
-        name: 'stop_button',
-    },
-    {
-        code: '⏺',
-        keywords: [
-            'circle',
-            'record',
-        ],
-        name: 'record_button',
-    },
-    {
-        code: '⏏',
-        keywords: [
-            'eject',
-        ],
-        name: 'eject_button',
-    },
-    {
-        code: '🎦',
-        keywords: [
-            'activity',
-            'camera',
-            'cinema',
-            'entertainment',
-            'film',
-            'movie',
-        ],
-        name: 'cinema',
-    },
-    {
-        code: '🔅',
-        keywords: [
-            'brightness',
-            'dim',
-            'low',
-        ],
-        name: 'low_brightness',
-    },
-    {
-        code: '🔆',
-        keywords: [
-            'bright',
-            'brightness',
-        ],
-        name: 'high_brightness',
-    },
-    {
-        code: '📶',
-        keywords: [
-            'antenna',
-            'bar',
-            'cell',
-            'communication',
-            'mobile',
-            'phone',
-            'signal',
-            'telephone',
-        ],
-        name: 'signal_strength',
-    },
-    {
-        code: '📳',
-        keywords: [
-            'cell',
-            'communication',
-            'mobile',
-            'mode',
-            'phone',
-            'telephone',
-            'vibration',
-        ],
-        name: 'vibration_mode',
-    },
-    {
-        code: '📴',
-        keywords: [
-            'cell',
-            'communication',
-            'mobile',
-            'off',
-            'phone',
-            'telephone',
-        ],
-        name: 'mobile_phone_off',
-    },
-    {
+        name: 'hash',
         code: '#️⃣',
         keywords: [
+            'number',
             'hash',
             'keycap',
             'pound',
         ],
-        name: 'hash',
     },
     {
+        name: 'asterisk',
         code: '*️⃣',
         keywords: [
             'asterisk',
             'keycap',
             'star',
         ],
-        name: 'asterisk',
     },
     {
+        name: 'zero',
         code: '0️⃣',
         keywords: [
+            'zero',
             '0',
             'keycap',
-            'zero',
         ],
-        name: 'zero',
     },
     {
+        name: 'one',
         code: '1️⃣',
         keywords: [
+            'one',
             '1',
             'keycap',
-            'one',
         ],
-        name: 'one',
     },
     {
+        name: 'two',
         code: '2️⃣',
         keywords: [
+            'two',
             '2',
             'keycap',
-            'two',
         ],
-        name: 'two',
     },
     {
+        name: 'three',
         code: '3️⃣',
         keywords: [
+            'three',
             '3',
             'keycap',
-            'three',
         ],
-        name: 'three',
     },
     {
+        name: 'four',
         code: '4️⃣',
         keywords: [
-            '4',
             'four',
+            '4',
             'keycap',
         ],
-        name: 'four',
     },
     {
+        name: 'five',
         code: '5️⃣',
         keywords: [
-            '5',
             'five',
+            '5',
             'keycap',
         ],
-        name: 'five',
     },
     {
+        name: 'six',
         code: '6️⃣',
         keywords: [
+            'six',
             '6',
             'keycap',
-            'six',
         ],
-        name: 'six',
     },
     {
+        name: 'seven',
         code: '7️⃣',
         keywords: [
+            'seven',
             '7',
             'keycap',
-            'seven',
         ],
-        name: 'seven',
     },
     {
+        name: 'eight',
         code: '8️⃣',
         keywords: [
-            '8',
             'eight',
+            '8',
             'keycap',
         ],
-        name: 'eight',
     },
     {
+        name: 'nine',
         code: '9️⃣',
         keywords: [
+            'nine',
             '9',
             'keycap',
-            'nine',
         ],
-        name: 'nine',
     },
     {
+        name: 'keycap_ten',
         code: '🔟',
         keywords: [
+            'keycap_ten',
             '10',
             'keycap',
             'ten',
         ],
-        name: 'keycap_ten',
     },
     {
-        code: '💯',
-        keywords: [
-            '100',
-            'full',
-            'hundred',
-            'score',
-        ],
-        name: '100',
-    },
-    {
+        name: 'capital_abcd',
         code: '🔠',
         keywords: [
+            'letters',
+            'capital_abcd',
             'input',
             'latin',
-            'letters',
             'uppercase',
         ],
-        name: 'capital_abcd',
     },
     {
+        name: 'abcd',
         code: '🔡',
         keywords: [
             'abcd',
@@ -10536,502 +16004,619 @@ const emojis = [
             'letters',
             'lowercase',
         ],
-        name: 'abcd',
     },
     {
+        name: '1234',
         code: '🔢',
         keywords: [
+            'numbers',
             '1234',
             'input',
-            'numbers',
         ],
-        name: '1234',
     },
     {
+        name: 'symbols',
         code: '🔣',
         keywords: [
+            'symbols',
             'input',
         ],
-        name: 'symbols',
     },
     {
+        name: 'abc',
         code: '🔤',
         keywords: [
-            'abc',
             'alphabet',
+            'abc',
             'input',
             'latin',
             'letters',
         ],
-        name: 'abc',
     },
     {
-        code: '🅰',
+        name: 'a',
+        code: '🅰️',
         keywords: [
             'a',
-            'blood',
         ],
-        name: 'a',
     },
     {
+        name: 'ab',
         code: '🆎',
         keywords: [
             'ab',
             'blood',
         ],
-        name: 'ab',
     },
     {
-        code: '🅱',
+        name: 'b',
+        code: '🅱️',
         keywords: [
             'b',
-            'blood',
         ],
-        name: 'b',
     },
     {
+        name: 'cl',
         code: '🆑',
         keywords: [
             'cl',
         ],
-        name: 'cl',
     },
     {
+        name: 'cool',
         code: '🆒',
         keywords: [
             'cool',
         ],
-        name: 'cool',
     },
     {
+        name: 'free',
         code: '🆓',
         keywords: [
             'free',
         ],
-        name: 'free',
     },
     {
+        name: 'information_source',
         code: 'ℹ️',
         keywords: [
+            'information_source',
             'i',
             'information',
         ],
-        name: 'information_source',
     },
     {
+        name: 'id',
         code: '🆔',
         keywords: [
             'id',
             'identity',
         ],
-        name: 'id',
     },
     {
-        code: 'Ⓜ',
+        name: 'm',
+        code: 'Ⓜ️',
         keywords: [
-            'circle',
             'm',
         ],
-        name: 'm',
     },
     {
+        name: 'new',
         code: '🆕',
         keywords: [
+            'fresh',
             'new',
         ],
-        name: 'new',
     },
     {
+        name: 'ng',
         code: '🆖',
         keywords: [
             'ng',
         ],
-        name: 'ng',
     },
     {
-        code: '🅾',
-        keywords: [
-            'blood',
-            'o',
-        ],
         name: 'o2',
+        code: '🅾️',
+        keywords: [
+            'o2',
+        ],
     },
     {
+        name: 'ok',
         code: '🆗',
         keywords: [
+            'yes',
             'ok',
         ],
-        name: 'ok',
     },
     {
-        code: '🅿',
+        name: 'parking',
+        code: '🅿️',
         keywords: [
             'parking',
         ],
-        name: 'parking',
     },
     {
+        name: 'sos',
         code: '🆘',
         keywords: [
             'help',
+            'emergency',
             'sos',
         ],
-        name: 'sos',
     },
     {
+        name: 'up',
         code: '🆙',
         keywords: [
-            'mark',
             'up',
+            'mark',
         ],
-        name: 'up',
     },
     {
+        name: 'vs',
         code: '🆚',
         keywords: [
-            'versus',
             'vs',
+            'versus',
         ],
-        name: 'vs',
     },
     {
+        name: 'koko',
         code: '🈁',
         keywords: [
+            'koko',
             'japanese',
         ],
-        name: 'koko',
     },
     {
-        code: '🈂',
-        keywords: [
-            'japanese',
-        ],
         name: 'sa',
-    },
-    {
-        code: '🈷',
+        code: '🈂️',
         keywords: [
-            'japanese',
+            'sa',
         ],
-        name: 'u6708',
     },
     {
+        name: 'u6708',
+        code: '🈷️',
+        keywords: [
+            'u6708',
+        ],
+    },
+    {
+        name: 'u6709',
         code: '🈶',
         keywords: [
+            'u6709',
             'japanese',
         ],
-        name: 'u6709',
     },
     {
+        name: 'u6307',
         code: '🈯',
         keywords: [
+            'u6307',
             'japanese',
         ],
-        name: 'u6307',
     },
     {
+        name: 'ideograph_advantage',
         code: '🉐',
         keywords: [
+            'ideograph_advantage',
             'japanese',
         ],
-        name: 'ideograph_advantage',
     },
     {
+        name: 'u5272',
         code: '🈹',
         keywords: [
+            'u5272',
             'japanese',
         ],
-        name: 'u5272',
     },
     {
+        name: 'u7121',
         code: '🈚',
         keywords: [
+            'u7121',
             'japanese',
         ],
-        name: 'u7121',
     },
     {
+        name: 'u7981',
         code: '🈲',
         keywords: [
+            'u7981',
             'japanese',
         ],
-        name: 'u7981',
     },
     {
+        name: 'accept',
         code: '🉑',
         keywords: [
+            'accept',
             'chinese',
         ],
-        name: 'accept',
     },
     {
+        name: 'u7533',
         code: '🈸',
         keywords: [
+            'u7533',
             'chinese',
         ],
-        name: 'u7533',
     },
     {
+        name: 'u5408',
         code: '🈴',
         keywords: [
+            'u5408',
             'chinese',
         ],
-        name: 'u5408',
     },
     {
+        name: 'u7a7a',
         code: '🈳',
         keywords: [
+            'u7a7a',
             'chinese',
         ],
-        name: 'u7a7a',
     },
     {
+        name: 'congratulations',
         code: '㊗️',
         keywords: [
+            'congratulations',
             'chinese',
             'congratulation',
-            'congratulations',
             'ideograph',
         ],
-        name: 'congratulations',
     },
     {
+        name: 'secret',
         code: '㊙️',
         keywords: [
+            'secret',
             'chinese',
             'ideograph',
-            'secret',
         ],
-        name: 'secret',
     },
     {
+        name: 'u55b6',
         code: '🈺',
         keywords: [
+            'u55b6',
             'chinese',
         ],
-        name: 'u55b6',
     },
     {
+        name: 'u6e80',
         code: '🈵',
         keywords: [
+            'u6e80',
             'chinese',
         ],
-        name: 'u6e80',
     },
     {
-        code: '▪',
+        name: 'red_circle',
+        code: '🔴',
         keywords: [
-            'geometric',
-            'square',
-        ],
-        name: 'black_small_square',
-    },
-    {
-        code: '▫',
-        keywords: [
-            'geometric',
-            'square',
-        ],
-        name: 'white_small_square',
-    },
-    {
-        code: '◻',
-        keywords: [
-            'geometric',
-            'square',
-        ],
-        name: 'white_medium_square',
-    },
-    {
-        code: '◼',
-        keywords: [
-            'geometric',
-            'square',
-        ],
-        name: 'black_medium_square',
-    },
-    {
-        code: '◽',
-        keywords: [
-            'geometric',
-            'square',
-        ],
-        name: 'white_medium_small_square',
-    },
-    {
-        code: '◾',
-        keywords: [
-            'geometric',
-            'square',
-        ],
-        name: 'black_medium_small_square',
-    },
-    {
-        code: '⬛',
-        keywords: [
-            'geometric',
-            'square',
-        ],
-        name: 'black_large_square',
-    },
-    {
-        code: '⬜',
-        keywords: [
-            'geometric',
-            'square',
-        ],
-        name: 'white_large_square',
-    },
-    {
-        code: '🔶',
-        keywords: [
-            'diamond',
-            'geometric',
-            'orange',
-        ],
-        name: 'large_orange_diamond',
-    },
-    {
-        code: '🔷',
-        keywords: [
-            'blue',
-            'diamond',
-            'geometric',
-        ],
-        name: 'large_blue_diamond',
-    },
-    {
-        code: '🔸',
-        keywords: [
-            'diamond',
-            'geometric',
-            'orange',
-        ],
-        name: 'small_orange_diamond',
-    },
-    {
-        code: '🔹',
-        keywords: [
-            'blue',
-            'diamond',
-            'geometric',
-        ],
-        name: 'small_blue_diamond',
-    },
-    {
-        code: '🔺',
-        keywords: [
+            'red_circle',
+            'circle',
             'geometric',
             'red',
         ],
-        name: 'small_red_triangle',
     },
     {
+        name: 'orange_circle',
+        code: '🟠',
+        keywords: [
+            'orange_circle',
+        ],
+    },
+    {
+        name: 'yellow_circle',
+        code: '🟡',
+        keywords: [
+            'yellow_circle',
+        ],
+    },
+    {
+        name: 'green_circle',
+        code: '🟢',
+        keywords: [
+            'green_circle',
+        ],
+    },
+    {
+        name: 'large_blue_circle',
+        code: '🔵',
+        keywords: [
+            'large_blue_circle',
+            'blue',
+            'circle',
+            'geometric',
+        ],
+    },
+    {
+        name: 'purple_circle',
+        code: '🟣',
+        keywords: [
+            'purple_circle',
+        ],
+    },
+    {
+        name: 'brown_circle',
+        code: '🟤',
+        keywords: [
+            'brown_circle',
+        ],
+    },
+    {
+        name: 'black_circle',
+        code: '⚫',
+        keywords: [
+            'black_circle',
+            'circle',
+            'geometric',
+        ],
+    },
+    {
+        name: 'white_circle',
+        code: '⚪',
+        keywords: [
+            'white_circle',
+            'circle',
+            'geometric',
+        ],
+    },
+    {
+        name: 'red_square',
+        code: '🟥',
+        keywords: [
+            'red_square',
+        ],
+    },
+    {
+        name: 'orange_square',
+        code: '🟧',
+        keywords: [
+            'orange_square',
+        ],
+    },
+    {
+        name: 'yellow_square',
+        code: '🟨',
+        keywords: [
+            'yellow_square',
+        ],
+    },
+    {
+        name: 'green_square',
+        code: '🟩',
+        keywords: [
+            'green_square',
+        ],
+    },
+    {
+        name: 'blue_square',
+        code: '🟦',
+        keywords: [
+            'blue_square',
+        ],
+    },
+    {
+        name: 'purple_square',
+        code: '🟪',
+        keywords: [
+            'purple_square',
+        ],
+    },
+    {
+        name: 'brown_square',
+        code: '🟫',
+        keywords: [
+            'brown_square',
+        ],
+    },
+    {
+        name: 'black_large_square',
+        code: '⬛',
+        keywords: [
+            'black_large_square',
+            'geometric',
+            'square',
+        ],
+    },
+    {
+        name: 'white_large_square',
+        code: '⬜',
+        keywords: [
+            'white_large_square',
+            'geometric',
+            'square',
+        ],
+    },
+    {
+        name: 'black_medium_square',
+        code: '◼️',
+        keywords: [
+            'black_medium_square',
+        ],
+    },
+    {
+        name: 'white_medium_square',
+        code: '◻️',
+        keywords: [
+            'white_medium_square',
+        ],
+    },
+    {
+        name: 'black_medium_small_square',
+        code: '◾',
+        keywords: [
+            'black_medium_small_square',
+            'geometric',
+            'square',
+        ],
+    },
+    {
+        name: 'white_medium_small_square',
+        code: '◽',
+        keywords: [
+            'white_medium_small_square',
+            'geometric',
+            'square',
+        ],
+    },
+    {
+        name: 'black_small_square',
+        code: '▪️',
+        keywords: [
+            'black_small_square',
+        ],
+    },
+    {
+        name: 'white_small_square',
+        code: '▫️',
+        keywords: [
+            'white_small_square',
+        ],
+    },
+    {
+        name: 'large_orange_diamond',
+        code: '🔶',
+        keywords: [
+            'large_orange_diamond',
+            'diamond',
+            'geometric',
+            'orange',
+        ],
+    },
+    {
+        name: 'large_blue_diamond',
+        code: '🔷',
+        keywords: [
+            'large_blue_diamond',
+            'blue',
+            'diamond',
+            'geometric',
+        ],
+    },
+    {
+        name: 'small_orange_diamond',
+        code: '🔸',
+        keywords: [
+            'small_orange_diamond',
+            'diamond',
+            'geometric',
+            'orange',
+        ],
+    },
+    {
+        name: 'small_blue_diamond',
+        code: '🔹',
+        keywords: [
+            'small_blue_diamond',
+            'blue',
+            'diamond',
+            'geometric',
+        ],
+    },
+    {
+        name: 'small_red_triangle',
+        code: '🔺',
+        keywords: [
+            'small_red_triangle',
+            'geometric',
+            'red',
+        ],
+    },
+    {
+        name: 'small_red_triangle_down',
         code: '🔻',
         keywords: [
+            'small_red_triangle_down',
             'down',
             'geometric',
             'red',
         ],
-        name: 'small_red_triangle_down',
     },
     {
+        name: 'diamond_shape_with_a_dot_inside',
         code: '💠',
         keywords: [
+            'diamond_shape_with_a_dot_inside',
             'comic',
             'diamond',
             'geometric',
             'inside',
         ],
-        name: 'diamond_shape_with_a_dot_inside',
     },
     {
+        name: 'radio_button',
         code: '🔘',
         keywords: [
+            'radio_button',
             'button',
             'geometric',
             'radio',
         ],
-        name: 'radio_button',
     },
     {
-        code: '🔲',
-        keywords: [
-            'button',
-            'geometric',
-            'square',
-        ],
-        name: 'black_square_button',
-    },
-    {
+        name: 'white_square_button',
         code: '🔳',
         keywords: [
+            'white_square_button',
             'button',
             'geometric',
             'outlined',
             'square',
         ],
-        name: 'white_square_button',
     },
     {
-        code: '⚪',
+        name: 'black_square_button',
+        code: '🔲',
         keywords: [
-            'circle',
+            'black_square_button',
+            'button',
             'geometric',
+            'square',
         ],
-        name: 'white_circle',
-    },
-    {
-        code: '⚫',
-        keywords: [
-            'circle',
-            'geometric',
-        ],
-        name: 'black_circle',
-    },
-    {
-        code: '🔴',
-        keywords: [
-            'circle',
-            'geometric',
-            'red',
-        ],
-        name: 'red_circle',
-    },
-    {
-        code: '🔵',
-        keywords: [
-            'blue',
-            'circle',
-            'geometric',
-        ],
-        name: 'large_blue_circle',
     },
     {
         code: 'flags',
         header: true,
     },
     {
+        name: 'checkered_flag',
         code: '🏁',
         keywords: [
+            'milestone',
+            'finish',
+            'checkered_flag',
             'checkered',
             'chequered',
             'flag',
             'racing',
         ],
-        name: 'checkered_flag',
     },
     {
+        name: 'triangular_flag_on_post',
         code: '🚩',
         keywords: [
+            'triangular_flag_on_post',
             'flag',
             'post',
         ],
-        name: 'triangular_flag_on_post',
     },
     {
+        name: 'crossed_flags',
         code: '🎌',
         keywords: [
+            'crossed_flags',
             'activity',
             'celebration',
             'cross',
@@ -11039,276 +16624,307 @@ const emojis = [
             'flag',
             'japanese',
         ],
-        name: 'crossed_flags',
     },
     {
+        name: 'black_flag',
         code: '🏴',
         keywords: [
+            'black_flag',
             'flag',
             'waving',
         ],
-        name: 'black_flag',
     },
     {
-        code: '🏳',
-        keywords: [
-            'flag',
-            'waving',
-        ],
         name: 'white_flag',
+        code: '🏳️',
+        keywords: [
+            'white_flag',
+        ],
     },
     {
+        name: 'rainbow_flag',
+        code: '🏳️‍🌈',
+        keywords: [
+            'pride',
+            'rainbow_flag',
+        ],
+    },
+    {
+        name: 'transgender_flag',
+        code: '🏳️‍⚧️',
+        keywords: [
+            'transgender_flag',
+        ],
+    },
+    {
+        name: 'pirate_flag',
+        code: '🏴‍☠️',
+        keywords: [
+            'pirate_flag',
+        ],
+    },
+    {
+        name: 'ascension_island',
         code: '🇦🇨',
         keywords: [
+            'ascension_island',
             'ascension',
             'flag',
             'island',
         ],
-        name: 'ascension_island',
     },
     {
+        name: 'andorra',
         code: '🇦🇩',
         keywords: [
             'andorra',
             'flag',
         ],
-        name: 'andorra',
     },
     {
+        name: 'united_arab_emirates',
         code: '🇦🇪',
         keywords: [
+            'united_arab_emirates',
             'emirates',
             'flag',
             'uae',
             'united',
         ],
-        name: 'united_arab_emirates',
     },
     {
+        name: 'afghanistan',
         code: '🇦🇫',
         keywords: [
             'afghanistan',
             'flag',
         ],
-        name: 'afghanistan',
     },
     {
+        name: 'antigua_barbuda',
         code: '🇦🇬',
         keywords: [
+            'antigua_barbuda',
             'antigua',
             'barbuda',
             'flag',
         ],
-        name: 'antigua_barbuda',
     },
     {
+        name: 'anguilla',
         code: '🇦🇮',
         keywords: [
             'anguilla',
             'flag',
         ],
-        name: 'anguilla',
     },
     {
+        name: 'albania',
         code: '🇦🇱',
         keywords: [
             'albania',
             'flag',
         ],
-        name: 'albania',
     },
     {
+        name: 'armenia',
         code: '🇦🇲',
         keywords: [
             'armenia',
             'flag',
         ],
-        name: 'armenia',
     },
     {
+        name: 'angola',
         code: '🇦🇴',
         keywords: [
             'angola',
             'flag',
         ],
-        name: 'angola',
     },
     {
+        name: 'antarctica',
         code: '🇦🇶',
         keywords: [
             'antarctica',
             'flag',
         ],
-        name: 'antarctica',
     },
     {
+        name: 'argentina',
         code: '🇦🇷',
         keywords: [
             'argentina',
             'flag',
         ],
-        name: 'argentina',
     },
     {
+        name: 'american_samoa',
         code: '🇦🇸',
         keywords: [
+            'american_samoa',
             'american',
             'flag',
             'samoa',
         ],
-        name: 'american_samoa',
     },
     {
+        name: 'austria',
         code: '🇦🇹',
         keywords: [
             'austria',
             'flag',
         ],
-        name: 'austria',
     },
     {
+        name: 'australia',
         code: '🇦🇺',
         keywords: [
             'australia',
             'flag',
         ],
-        name: 'australia',
     },
     {
+        name: 'aruba',
         code: '🇦🇼',
         keywords: [
             'aruba',
             'flag',
         ],
-        name: 'aruba',
     },
     {
+        name: 'aland_islands',
         code: '🇦🇽',
         keywords: [
+            'aland_islands',
             'åland',
             'flag',
         ],
-        name: 'aland_islands',
     },
     {
+        name: 'azerbaijan',
         code: '🇦🇿',
         keywords: [
             'azerbaijan',
             'flag',
         ],
-        name: 'azerbaijan',
     },
     {
+        name: 'bosnia_herzegovina',
         code: '🇧🇦',
         keywords: [
+            'bosnia_herzegovina',
             'bosnia',
             'flag',
             'herzegovina',
         ],
-        name: 'bosnia_herzegovina',
     },
     {
+        name: 'barbados',
         code: '🇧🇧',
         keywords: [
             'barbados',
             'flag',
         ],
-        name: 'barbados',
     },
     {
+        name: 'bangladesh',
         code: '🇧🇩',
         keywords: [
             'bangladesh',
             'flag',
         ],
-        name: 'bangladesh',
     },
     {
+        name: 'belgium',
         code: '🇧🇪',
         keywords: [
             'belgium',
             'flag',
         ],
-        name: 'belgium',
     },
     {
+        name: 'burkina_faso',
         code: '🇧🇫',
         keywords: [
+            'burkina_faso',
             'burkina faso',
             'flag',
         ],
-        name: 'burkina_faso',
     },
     {
+        name: 'bulgaria',
         code: '🇧🇬',
         keywords: [
             'bulgaria',
             'flag',
         ],
-        name: 'bulgaria',
     },
     {
+        name: 'bahrain',
         code: '🇧🇭',
         keywords: [
             'bahrain',
             'flag',
         ],
-        name: 'bahrain',
     },
     {
+        name: 'burundi',
         code: '🇧🇮',
         keywords: [
             'burundi',
             'flag',
         ],
-        name: 'burundi',
     },
     {
+        name: 'benin',
         code: '🇧🇯',
         keywords: [
             'benin',
             'flag',
         ],
-        name: 'benin',
     },
     {
+        name: 'st_barthelemy',
         code: '🇧🇱',
         keywords: [
+            'st_barthelemy',
             'barthelemy',
             'barthélemy',
             'flag',
             'saint',
         ],
-        name: 'st_barthelemy',
     },
     {
+        name: 'bermuda',
         code: '🇧🇲',
         keywords: [
             'bermuda',
             'flag',
         ],
-        name: 'bermuda',
     },
     {
+        name: 'brunei',
         code: '🇧🇳',
         keywords: [
             'brunei',
             'darussalam',
             'flag',
         ],
-        name: 'brunei',
     },
     {
+        name: 'bolivia',
         code: '🇧🇴',
         keywords: [
             'bolivia',
             'flag',
         ],
-        name: 'bolivia',
     },
     {
+        name: 'caribbean_netherlands',
         code: '🇧🇶',
         keywords: [
+            'caribbean_netherlands',
             'bonaire',
             'caribbean',
             'eustatius',
@@ -11317,86 +16933,89 @@ const emojis = [
             'saba',
             'sint',
         ],
-        name: 'caribbean_netherlands',
     },
     {
+        name: 'brazil',
         code: '🇧🇷',
         keywords: [
             'brazil',
             'flag',
         ],
-        name: 'brazil',
     },
     {
+        name: 'bahamas',
         code: '🇧🇸',
         keywords: [
             'bahamas',
             'flag',
         ],
-        name: 'bahamas',
     },
     {
+        name: 'bhutan',
         code: '🇧🇹',
         keywords: [
             'bhutan',
             'flag',
         ],
-        name: 'bhutan',
     },
     {
+        name: 'bouvet_island',
         code: '🇧🇻',
         keywords: [
+            'bouvet_island',
             'bouvet',
             'flag',
             'island',
         ],
-        name: 'bouvet_island',
     },
     {
+        name: 'botswana',
         code: '🇧🇼',
         keywords: [
             'botswana',
             'flag',
         ],
-        name: 'botswana',
     },
     {
+        name: 'belarus',
         code: '🇧🇾',
         keywords: [
             'belarus',
             'flag',
         ],
-        name: 'belarus',
     },
     {
+        name: 'belize',
         code: '🇧🇿',
         keywords: [
             'belize',
             'flag',
         ],
-        name: 'belize',
     },
     {
+        name: 'canada',
         code: '🇨🇦',
         keywords: [
             'canada',
             'flag',
         ],
-        name: 'canada',
     },
     {
+        name: 'cocos_islands',
         code: '🇨🇨',
         keywords: [
+            'keeling',
+            'cocos_islands',
             'cocos',
             'flag',
             'island',
-            'keeling',
         ],
-        name: 'cocos_islands',
     },
     {
+        name: 'congo_kinshasa',
         code: '🇨🇩',
         keywords: [
+            'congo_kinshasa',
             'congo',
             'congo-kinshasa',
             'democratic republic of congo',
@@ -11405,20 +17024,22 @@ const emojis = [
             'kinshasa',
             'republic',
         ],
-        name: 'congo_kinshasa',
     },
     {
+        name: 'central_african_republic',
         code: '🇨🇫',
         keywords: [
+            'central_african_republic',
             'central african republic',
             'flag',
             'republic',
         ],
-        name: 'central_african_republic',
     },
     {
+        name: 'congo_brazzaville',
         code: '🇨🇬',
         keywords: [
+            'congo_brazzaville',
             'brazzaville',
             'congo',
             'congo republic',
@@ -11427,287 +17048,305 @@ const emojis = [
             'republic',
             'republic of the congo',
         ],
-        name: 'congo_brazzaville',
     },
     {
+        name: 'switzerland',
         code: '🇨🇭',
         keywords: [
-            'flag',
             'switzerland',
+            'flag',
         ],
-        name: 'switzerland',
     },
     {
+        name: 'cote_divoire',
         code: '🇨🇮',
         keywords: [
+            'ivory',
+            'cote_divoire',
             'cote ivoire',
             'côte ivoire',
             'flag',
             'ivory coast',
         ],
-        name: 'cote_divoire',
     },
     {
+        name: 'cook_islands',
         code: '🇨🇰',
         keywords: [
+            'cook_islands',
             'cook',
             'flag',
             'island',
         ],
-        name: 'cook_islands',
     },
     {
+        name: 'chile',
         code: '🇨🇱',
         keywords: [
             'chile',
             'flag',
         ],
-        name: 'chile',
     },
     {
+        name: 'cameroon',
         code: '🇨🇲',
         keywords: [
             'cameroon',
             'flag',
         ],
-        name: 'cameroon',
     },
     {
+        name: 'cn',
         code: '🇨🇳',
         keywords: [
             'china',
+            'cn',
             'flag',
         ],
-        name: 'cn',
     },
     {
+        name: 'colombia',
         code: '🇨🇴',
         keywords: [
             'colombia',
             'flag',
         ],
-        name: 'colombia',
     },
     {
+        name: 'clipperton_island',
         code: '🇨🇵',
         keywords: [
+            'clipperton_island',
             'clipperton',
             'flag',
             'island',
         ],
-        name: 'clipperton_island',
     },
     {
+        name: 'costa_rica',
         code: '🇨🇷',
         keywords: [
+            'costa_rica',
             'costa rica',
             'flag',
         ],
-        name: 'costa_rica',
     },
     {
+        name: 'cuba',
         code: '🇨🇺',
         keywords: [
             'cuba',
             'flag',
         ],
-        name: 'cuba',
     },
     {
+        name: 'cape_verde',
         code: '🇨🇻',
         keywords: [
+            'cape_verde',
             'cabo',
             'cape',
             'flag',
             'verde',
         ],
-        name: 'cape_verde',
     },
     {
+        name: 'curacao',
         code: '🇨🇼',
         keywords: [
-            'antilles',
             'curacao',
+            'antilles',
             'curaçao',
             'flag',
         ],
-        name: 'curacao',
     },
     {
+        name: 'christmas_island',
         code: '🇨🇽',
         keywords: [
+            'christmas_island',
             'christmas',
             'flag',
             'island',
         ],
-        name: 'christmas_island',
     },
     {
+        name: 'cyprus',
         code: '🇨🇾',
         keywords: [
             'cyprus',
             'flag',
         ],
-        name: 'cyprus',
     },
     {
+        name: 'czech_republic',
         code: '🇨🇿',
         keywords: [
+            'czech_republic',
             'czech republic',
             'flag',
         ],
-        name: 'czech_republic',
     },
     {
+        name: 'de',
         code: '🇩🇪',
         keywords: [
             'flag',
             'germany',
+            'de',
         ],
-        name: 'de',
     },
     {
+        name: 'diego_garcia',
         code: '🇩🇬',
         keywords: [
+            'diego_garcia',
             'diego garcia',
             'flag',
         ],
-        name: 'diego_garcia',
     },
     {
+        name: 'djibouti',
         code: '🇩🇯',
         keywords: [
             'djibouti',
             'flag',
         ],
-        name: 'djibouti',
     },
     {
+        name: 'denmark',
         code: '🇩🇰',
         keywords: [
             'denmark',
             'flag',
         ],
-        name: 'denmark',
     },
     {
+        name: 'dominica',
         code: '🇩🇲',
         keywords: [
             'dominica',
             'flag',
         ],
-        name: 'dominica',
     },
     {
+        name: 'dominican_republic',
         code: '🇩🇴',
         keywords: [
+            'dominican_republic',
             'dominican republic',
             'flag',
         ],
-        name: 'dominican_republic',
     },
     {
+        name: 'algeria',
         code: '🇩🇿',
         keywords: [
             'algeria',
             'flag',
         ],
-        name: 'algeria',
     },
     {
+        name: 'ceuta_melilla',
         code: '🇪🇦',
         keywords: [
+            'ceuta_melilla',
             'ceuta',
             'flag',
             'melilla',
         ],
-        name: 'ceuta_melilla',
     },
     {
+        name: 'ecuador',
         code: '🇪🇨',
         keywords: [
             'ecuador',
             'flag',
         ],
-        name: 'ecuador',
     },
     {
+        name: 'estonia',
         code: '🇪🇪',
         keywords: [
             'estonia',
             'flag',
         ],
-        name: 'estonia',
     },
     {
+        name: 'egypt',
         code: '🇪🇬',
         keywords: [
             'egypt',
             'flag',
         ],
-        name: 'egypt',
     },
     {
+        name: 'western_sahara',
         code: '🇪🇭',
         keywords: [
+            'western_sahara',
             'flag',
             'sahara',
             'west',
             'western sahara',
         ],
-        name: 'western_sahara',
     },
     {
+        name: 'eritrea',
         code: '🇪🇷',
         keywords: [
             'eritrea',
             'flag',
         ],
-        name: 'eritrea',
     },
     {
+        name: 'es',
         code: '🇪🇸',
         keywords: [
-            'flag',
             'spain',
+            'es',
+            'flag',
         ],
-        name: 'es',
     },
     {
+        name: 'ethiopia',
         code: '🇪🇹',
         keywords: [
             'ethiopia',
             'flag',
         ],
-        name: 'ethiopia',
     },
     {
+        name: 'eu',
         code: '🇪🇺',
         keywords: [
+            'eu',
+            'european_union',
             'european union',
             'flag',
         ],
-        name: 'eu',
     },
     {
+        name: 'finland',
         code: '🇫🇮',
         keywords: [
             'finland',
             'flag',
         ],
-        name: 'finland',
     },
     {
+        name: 'fiji',
         code: '🇫🇯',
         keywords: [
             'fiji',
             'flag',
         ],
-        name: 'fiji',
     },
     {
+        name: 'falkland_islands',
         code: '🇫🇰',
         keywords: [
+            'falkland_islands',
             'falkland',
             'falklands',
             'flag',
@@ -11715,162 +17354,169 @@ const emojis = [
             'islas',
             'malvinas',
         ],
-        name: 'falkland_islands',
     },
     {
+        name: 'micronesia',
         code: '🇫🇲',
         keywords: [
-            'flag',
             'micronesia',
+            'flag',
         ],
-        name: 'micronesia',
     },
     {
+        name: 'faroe_islands',
         code: '🇫🇴',
         keywords: [
+            'faroe_islands',
             'faroe',
             'flag',
             'island',
         ],
-        name: 'faroe_islands',
     },
     {
+        name: 'fr',
         code: '🇫🇷',
         keywords: [
-            'flag',
             'france',
+            'french',
+            'fr',
+            'flag',
         ],
-        name: 'fr',
     },
     {
+        name: 'gabon',
         code: '🇬🇦',
         keywords: [
-            'flag',
             'gabon',
+            'flag',
         ],
-        name: 'gabon',
     },
     {
+        name: 'gb',
         code: '🇬🇧',
         keywords: [
-            'britain',
+            'flag',
             'british',
+            'gb',
+            'uk',
+            'britain',
             'cornwall',
             'england',
-            'flag',
             'great britain',
             'ireland',
             'northern ireland',
             'scotland',
-            'uk',
             'union jack',
             'united',
             'united kingdom',
             'wales',
         ],
-        name: 'gb',
     },
     {
+        name: 'grenada',
         code: '🇬🇩',
         keywords: [
-            'flag',
             'grenada',
+            'flag',
         ],
-        name: 'grenada',
     },
     {
+        name: 'georgia',
         code: '🇬🇪',
         keywords: [
-            'flag',
             'georgia',
+            'flag',
         ],
-        name: 'georgia',
     },
     {
+        name: 'french_guiana',
         code: '🇬🇫',
         keywords: [
+            'french_guiana',
             'flag',
             'french',
             'guiana',
         ],
-        name: 'french_guiana',
     },
     {
+        name: 'guernsey',
         code: '🇬🇬',
         keywords: [
-            'flag',
             'guernsey',
+            'flag',
         ],
-        name: 'guernsey',
     },
     {
+        name: 'ghana',
         code: '🇬🇭',
         keywords: [
-            'flag',
             'ghana',
+            'flag',
         ],
-        name: 'ghana',
     },
     {
+        name: 'gibraltar',
         code: '🇬🇮',
         keywords: [
-            'flag',
             'gibraltar',
+            'flag',
         ],
-        name: 'gibraltar',
     },
     {
+        name: 'greenland',
         code: '🇬🇱',
         keywords: [
-            'flag',
             'greenland',
+            'flag',
         ],
-        name: 'greenland',
     },
     {
+        name: 'gambia',
         code: '🇬🇲',
         keywords: [
-            'flag',
             'gambia',
+            'flag',
         ],
-        name: 'gambia',
     },
     {
+        name: 'guinea',
         code: '🇬🇳',
         keywords: [
-            'flag',
             'guinea',
+            'flag',
         ],
-        name: 'guinea',
     },
     {
+        name: 'guadeloupe',
         code: '🇬🇵',
         keywords: [
-            'flag',
             'guadeloupe',
+            'flag',
         ],
-        name: 'guadeloupe',
     },
     {
+        name: 'equatorial_guinea',
         code: '🇬🇶',
         keywords: [
+            'equatorial_guinea',
             'equatorial guinea',
             'flag',
             'guinea',
         ],
-        name: 'equatorial_guinea',
     },
     {
+        name: 'greece',
         code: '🇬🇷',
         keywords: [
-            'flag',
             'greece',
+            'flag',
         ],
-        name: 'greece',
     },
     {
+        name: 'south_georgia_south_sandwich_islands',
         code: '🇬🇸',
         keywords: [
+            'south_georgia_south_sandwich_islands',
             'flag',
             'georgia',
             'island',
@@ -11878,1206 +17524,1250 @@ const emojis = [
             'south georgia',
             'south sandwich',
         ],
-        name: 'south_georgia_south_sandwich_islands',
     },
     {
+        name: 'guatemala',
         code: '🇬🇹',
         keywords: [
-            'flag',
             'guatemala',
+            'flag',
         ],
-        name: 'guatemala',
     },
     {
+        name: 'guam',
         code: '🇬🇺',
         keywords: [
-            'flag',
             'guam',
+            'flag',
         ],
-        name: 'guam',
     },
     {
+        name: 'guinea_bissau',
         code: '🇬🇼',
         keywords: [
+            'guinea_bissau',
             'bissau',
             'flag',
             'guinea',
         ],
-        name: 'guinea_bissau',
     },
     {
+        name: 'guyana',
         code: '🇬🇾',
         keywords: [
-            'flag',
             'guyana',
+            'flag',
         ],
-        name: 'guyana',
     },
     {
+        name: 'hong_kong',
         code: '🇭🇰',
         keywords: [
+            'hong_kong',
             'china',
             'flag',
             'hong kong',
         ],
-        name: 'hong_kong',
     },
     {
+        name: 'heard_mcdonald_islands',
         code: '🇭🇲',
         keywords: [
+            'heard_mcdonald_islands',
             'flag',
             'heard',
             'island',
             'mcdonald',
         ],
-        name: 'heard_mcdonald_islands',
     },
     {
+        name: 'honduras',
         code: '🇭🇳',
         keywords: [
-            'flag',
             'honduras',
+            'flag',
         ],
-        name: 'honduras',
     },
     {
+        name: 'croatia',
         code: '🇭🇷',
         keywords: [
             'croatia',
             'flag',
         ],
-        name: 'croatia',
     },
     {
+        name: 'haiti',
         code: '🇭🇹',
         keywords: [
-            'flag',
             'haiti',
+            'flag',
         ],
-        name: 'haiti',
     },
     {
+        name: 'hungary',
         code: '🇭🇺',
         keywords: [
-            'flag',
             'hungary',
+            'flag',
         ],
-        name: 'hungary',
     },
     {
+        name: 'canary_islands',
         code: '🇮🇨',
         keywords: [
+            'canary_islands',
             'canary',
             'flag',
             'island',
         ],
-        name: 'canary_islands',
     },
     {
+        name: 'indonesia',
         code: '🇮🇩',
         keywords: [
-            'flag',
             'indonesia',
+            'flag',
         ],
-        name: 'indonesia',
     },
     {
+        name: 'ireland',
         code: '🇮🇪',
         keywords: [
-            'flag',
             'ireland',
+            'flag',
         ],
-        name: 'ireland',
     },
     {
+        name: 'israel',
         code: '🇮🇱',
         keywords: [
-            'flag',
             'israel',
+            'flag',
         ],
-        name: 'israel',
     },
     {
+        name: 'isle_of_man',
         code: '🇮🇲',
         keywords: [
+            'isle_of_man',
             'flag',
             'isle of man',
         ],
-        name: 'isle_of_man',
     },
     {
+        name: 'india',
         code: '🇮🇳',
         keywords: [
-            'flag',
             'india',
+            'flag',
         ],
-        name: 'india',
     },
     {
+        name: 'british_indian_ocean_territory',
         code: '🇮🇴',
         keywords: [
+            'british_indian_ocean_territory',
             'british',
             'chagos',
             'flag',
             'indian ocean',
             'island',
         ],
-        name: 'british_indian_ocean_territory',
     },
     {
+        name: 'iraq',
         code: '🇮🇶',
         keywords: [
-            'flag',
             'iraq',
+            'flag',
         ],
-        name: 'iraq',
     },
     {
+        name: 'iran',
         code: '🇮🇷',
         keywords: [
-            'flag',
             'iran',
+            'flag',
         ],
-        name: 'iran',
     },
     {
+        name: 'iceland',
         code: '🇮🇸',
         keywords: [
-            'flag',
             'iceland',
+            'flag',
         ],
-        name: 'iceland',
     },
     {
+        name: 'it',
         code: '🇮🇹',
         keywords: [
-            'flag',
             'italy',
+            'it',
+            'flag',
         ],
-        name: 'it',
     },
     {
+        name: 'jersey',
         code: '🇯🇪',
         keywords: [
-            'flag',
             'jersey',
+            'flag',
         ],
-        name: 'jersey',
     },
     {
+        name: 'jamaica',
         code: '🇯🇲',
         keywords: [
-            'flag',
             'jamaica',
+            'flag',
         ],
-        name: 'jamaica',
     },
     {
+        name: 'jordan',
         code: '🇯🇴',
         keywords: [
-            'flag',
             'jordan',
+            'flag',
         ],
-        name: 'jordan',
     },
     {
+        name: 'jp',
         code: '🇯🇵',
         keywords: [
-            'flag',
             'japan',
+            'jp',
+            'flag',
         ],
-        name: 'jp',
     },
     {
+        name: 'kenya',
         code: '🇰🇪',
         keywords: [
-            'flag',
             'kenya',
+            'flag',
         ],
-        name: 'kenya',
     },
     {
+        name: 'kyrgyzstan',
         code: '🇰🇬',
         keywords: [
-            'flag',
             'kyrgyzstan',
+            'flag',
         ],
-        name: 'kyrgyzstan',
     },
     {
+        name: 'cambodia',
         code: '🇰🇭',
         keywords: [
             'cambodia',
             'flag',
         ],
-        name: 'cambodia',
     },
     {
+        name: 'kiribati',
         code: '🇰🇮',
         keywords: [
-            'flag',
             'kiribati',
+            'flag',
         ],
-        name: 'kiribati',
     },
     {
+        name: 'comoros',
         code: '🇰🇲',
         keywords: [
             'comoros',
             'flag',
         ],
-        name: 'comoros',
     },
     {
+        name: 'st_kitts_nevis',
         code: '🇰🇳',
         keywords: [
+            'st_kitts_nevis',
             'flag',
             'kitts',
             'nevis',
             'saint',
         ],
-        name: 'st_kitts_nevis',
     },
     {
+        name: 'north_korea',
         code: '🇰🇵',
         keywords: [
+            'north_korea',
             'flag',
             'korea',
             'north',
             'north korea',
         ],
-        name: 'north_korea',
     },
     {
+        name: 'kr',
         code: '🇰🇷',
         keywords: [
-            'flag',
             'korea',
+            'kr',
+            'flag',
             'south',
             'south korea',
         ],
-        name: 'kr',
     },
     {
+        name: 'kuwait',
         code: '🇰🇼',
         keywords: [
-            'flag',
             'kuwait',
+            'flag',
         ],
-        name: 'kuwait',
     },
     {
+        name: 'cayman_islands',
         code: '🇰🇾',
         keywords: [
+            'cayman_islands',
             'cayman',
             'flag',
             'island',
         ],
-        name: 'cayman_islands',
     },
     {
+        name: 'kazakhstan',
         code: '🇰🇿',
         keywords: [
-            'flag',
             'kazakhstan',
+            'flag',
         ],
-        name: 'kazakhstan',
     },
     {
+        name: 'laos',
         code: '🇱🇦',
         keywords: [
-            'flag',
             'laos',
+            'flag',
         ],
-        name: 'laos',
     },
     {
+        name: 'lebanon',
         code: '🇱🇧',
         keywords: [
-            'flag',
             'lebanon',
+            'flag',
         ],
-        name: 'lebanon',
     },
     {
+        name: 'st_lucia',
         code: '🇱🇨',
         keywords: [
+            'st_lucia',
             'flag',
             'lucia',
             'saint',
         ],
-        name: 'st_lucia',
     },
     {
+        name: 'liechtenstein',
         code: '🇱🇮',
         keywords: [
-            'flag',
             'liechtenstein',
+            'flag',
         ],
-        name: 'liechtenstein',
     },
     {
+        name: 'sri_lanka',
         code: '🇱🇰',
         keywords: [
+            'sri_lanka',
             'flag',
             'sri lanka',
         ],
-        name: 'sri_lanka',
     },
     {
+        name: 'liberia',
         code: '🇱🇷',
         keywords: [
-            'flag',
             'liberia',
+            'flag',
         ],
-        name: 'liberia',
     },
     {
+        name: 'lesotho',
         code: '🇱🇸',
         keywords: [
-            'flag',
             'lesotho',
+            'flag',
         ],
-        name: 'lesotho',
     },
     {
+        name: 'lithuania',
         code: '🇱🇹',
         keywords: [
-            'flag',
             'lithuania',
+            'flag',
         ],
-        name: 'lithuania',
     },
     {
+        name: 'luxembourg',
         code: '🇱🇺',
         keywords: [
-            'flag',
             'luxembourg',
+            'flag',
         ],
-        name: 'luxembourg',
     },
     {
+        name: 'latvia',
         code: '🇱🇻',
         keywords: [
-            'flag',
             'latvia',
+            'flag',
         ],
-        name: 'latvia',
     },
     {
+        name: 'libya',
         code: '🇱🇾',
         keywords: [
-            'flag',
             'libya',
+            'flag',
         ],
-        name: 'libya',
     },
     {
+        name: 'morocco',
         code: '🇲🇦',
         keywords: [
-            'flag',
             'morocco',
+            'flag',
         ],
-        name: 'morocco',
     },
     {
+        name: 'monaco',
         code: '🇲🇨',
         keywords: [
-            'flag',
             'monaco',
+            'flag',
         ],
-        name: 'monaco',
     },
     {
+        name: 'moldova',
         code: '🇲🇩',
         keywords: [
-            'flag',
             'moldova',
+            'flag',
         ],
-        name: 'moldova',
     },
     {
+        name: 'montenegro',
         code: '🇲🇪',
         keywords: [
-            'flag',
             'montenegro',
+            'flag',
         ],
-        name: 'montenegro',
     },
     {
+        name: 'st_martin',
         code: '🇲🇫',
         keywords: [
+            'st_martin',
             'flag',
             'french',
             'martin',
             'saint',
         ],
-        name: 'st_martin',
     },
     {
+        name: 'madagascar',
         code: '🇲🇬',
         keywords: [
-            'flag',
             'madagascar',
+            'flag',
         ],
-        name: 'madagascar',
     },
     {
+        name: 'marshall_islands',
         code: '🇲🇭',
         keywords: [
+            'marshall_islands',
             'flag',
             'island',
             'marshall',
         ],
-        name: 'marshall_islands',
     },
     {
+        name: 'macedonia',
         code: '🇲🇰',
         keywords: [
-            'flag',
             'macedonia',
+            'flag',
         ],
-        name: 'macedonia',
     },
     {
+        name: 'mali',
         code: '🇲🇱',
         keywords: [
-            'flag',
             'mali',
+            'flag',
         ],
-        name: 'mali',
     },
     {
+        name: 'myanmar',
         code: '🇲🇲',
         keywords: [
             'burma',
-            'flag',
             'myanmar',
+            'flag',
         ],
-        name: 'myanmar',
     },
     {
+        name: 'mongolia',
         code: '🇲🇳',
         keywords: [
-            'flag',
             'mongolia',
+            'flag',
         ],
-        name: 'mongolia',
     },
     {
+        name: 'macau',
         code: '🇲🇴',
         keywords: [
+            'macau',
             'china',
             'flag',
             'macao',
-            'macau',
         ],
-        name: 'macau',
     },
     {
+        name: 'northern_mariana_islands',
         code: '🇲🇵',
         keywords: [
+            'northern_mariana_islands',
             'flag',
             'island',
             'mariana',
             'north',
             'northern mariana',
         ],
-        name: 'northern_mariana_islands',
     },
     {
+        name: 'martinique',
         code: '🇲🇶',
         keywords: [
-            'flag',
             'martinique',
+            'flag',
         ],
-        name: 'martinique',
     },
     {
+        name: 'mauritania',
         code: '🇲🇷',
         keywords: [
-            'flag',
             'mauritania',
+            'flag',
         ],
-        name: 'mauritania',
     },
     {
+        name: 'montserrat',
         code: '🇲🇸',
         keywords: [
-            'flag',
             'montserrat',
+            'flag',
         ],
-        name: 'montserrat',
     },
     {
+        name: 'malta',
         code: '🇲🇹',
         keywords: [
-            'flag',
             'malta',
+            'flag',
         ],
-        name: 'malta',
     },
     {
+        name: 'mauritius',
         code: '🇲🇺',
         keywords: [
-            'flag',
             'mauritius',
+            'flag',
         ],
-        name: 'mauritius',
     },
     {
+        name: 'maldives',
         code: '🇲🇻',
         keywords: [
-            'flag',
             'maldives',
+            'flag',
         ],
-        name: 'maldives',
     },
     {
+        name: 'malawi',
         code: '🇲🇼',
         keywords: [
-            'flag',
             'malawi',
+            'flag',
         ],
-        name: 'malawi',
     },
     {
+        name: 'mexico',
         code: '🇲🇽',
         keywords: [
-            'flag',
             'mexico',
+            'flag',
         ],
-        name: 'mexico',
     },
     {
+        name: 'malaysia',
         code: '🇲🇾',
         keywords: [
-            'flag',
             'malaysia',
+            'flag',
         ],
-        name: 'malaysia',
     },
     {
+        name: 'mozambique',
         code: '🇲🇿',
         keywords: [
-            'flag',
             'mozambique',
+            'flag',
         ],
-        name: 'mozambique',
     },
     {
+        name: 'namibia',
         code: '🇳🇦',
         keywords: [
-            'flag',
             'namibia',
+            'flag',
         ],
-        name: 'namibia',
     },
     {
+        name: 'new_caledonia',
         code: '🇳🇨',
         keywords: [
+            'new_caledonia',
             'flag',
             'new',
             'new caledonia',
         ],
-        name: 'new_caledonia',
     },
     {
+        name: 'niger',
         code: '🇳🇪',
         keywords: [
-            'flag',
             'niger',
+            'flag',
         ],
-        name: 'niger',
     },
     {
+        name: 'norfolk_island',
         code: '🇳🇫',
         keywords: [
+            'norfolk_island',
             'flag',
             'island',
             'norfolk',
         ],
-        name: 'norfolk_island',
     },
     {
+        name: 'nigeria',
         code: '🇳🇬',
         keywords: [
-            'flag',
             'nigeria',
+            'flag',
         ],
-        name: 'nigeria',
     },
     {
+        name: 'nicaragua',
         code: '🇳🇮',
         keywords: [
-            'flag',
             'nicaragua',
+            'flag',
         ],
-        name: 'nicaragua',
     },
     {
+        name: 'netherlands',
         code: '🇳🇱',
         keywords: [
-            'flag',
             'netherlands',
+            'flag',
         ],
-        name: 'netherlands',
     },
     {
+        name: 'norway',
         code: '🇳🇴',
         keywords: [
-            'flag',
             'norway',
+            'flag',
         ],
-        name: 'norway',
     },
     {
+        name: 'nepal',
         code: '🇳🇵',
         keywords: [
-            'flag',
             'nepal',
+            'flag',
         ],
-        name: 'nepal',
     },
     {
+        name: 'nauru',
         code: '🇳🇷',
         keywords: [
-            'flag',
             'nauru',
+            'flag',
         ],
-        name: 'nauru',
     },
     {
+        name: 'niue',
         code: '🇳🇺',
         keywords: [
-            'flag',
             'niue',
+            'flag',
         ],
-        name: 'niue',
     },
     {
+        name: 'new_zealand',
         code: '🇳🇿',
         keywords: [
+            'new_zealand',
             'flag',
             'new',
             'new zealand',
         ],
-        name: 'new_zealand',
     },
     {
+        name: 'oman',
         code: '🇴🇲',
         keywords: [
-            'flag',
             'oman',
+            'flag',
         ],
-        name: 'oman',
     },
     {
+        name: 'panama',
         code: '🇵🇦',
         keywords: [
-            'flag',
             'panama',
+            'flag',
         ],
-        name: 'panama',
     },
     {
+        name: 'peru',
         code: '🇵🇪',
         keywords: [
-            'flag',
             'peru',
+            'flag',
         ],
-        name: 'peru',
     },
     {
+        name: 'french_polynesia',
         code: '🇵🇫',
         keywords: [
+            'french_polynesia',
             'flag',
             'french',
             'polynesia',
         ],
-        name: 'french_polynesia',
     },
     {
+        name: 'papua_new_guinea',
         code: '🇵🇬',
         keywords: [
+            'papua_new_guinea',
             'flag',
             'guinea',
             'new',
             'papua new guinea',
         ],
-        name: 'papua_new_guinea',
     },
     {
+        name: 'philippines',
         code: '🇵🇭',
         keywords: [
-            'flag',
             'philippines',
+            'flag',
         ],
-        name: 'philippines',
     },
     {
+        name: 'pakistan',
         code: '🇵🇰',
         keywords: [
-            'flag',
             'pakistan',
+            'flag',
         ],
-        name: 'pakistan',
     },
     {
+        name: 'poland',
         code: '🇵🇱',
         keywords: [
-            'flag',
             'poland',
+            'flag',
         ],
-        name: 'poland',
     },
     {
+        name: 'st_pierre_miquelon',
         code: '🇵🇲',
         keywords: [
+            'st_pierre_miquelon',
             'flag',
             'miquelon',
             'pierre',
             'saint',
         ],
-        name: 'st_pierre_miquelon',
     },
     {
+        name: 'pitcairn_islands',
         code: '🇵🇳',
         keywords: [
+            'pitcairn_islands',
             'flag',
             'island',
             'pitcairn',
         ],
-        name: 'pitcairn_islands',
     },
     {
+        name: 'puerto_rico',
         code: '🇵🇷',
         keywords: [
+            'puerto_rico',
             'flag',
             'puerto rico',
         ],
-        name: 'puerto_rico',
     },
     {
+        name: 'palestinian_territories',
         code: '🇵🇸',
         keywords: [
+            'palestinian_territories',
             'flag',
             'palestine',
         ],
-        name: 'palestinian_territories',
     },
     {
+        name: 'portugal',
         code: '🇵🇹',
         keywords: [
-            'flag',
             'portugal',
+            'flag',
         ],
-        name: 'portugal',
     },
     {
+        name: 'palau',
         code: '🇵🇼',
         keywords: [
-            'flag',
             'palau',
+            'flag',
         ],
-        name: 'palau',
     },
     {
+        name: 'paraguay',
         code: '🇵🇾',
         keywords: [
-            'flag',
             'paraguay',
+            'flag',
         ],
-        name: 'paraguay',
     },
     {
+        name: 'qatar',
         code: '🇶🇦',
         keywords: [
-            'flag',
             'qatar',
+            'flag',
         ],
-        name: 'qatar',
     },
     {
+        name: 'reunion',
         code: '🇷🇪',
         keywords: [
-            'flag',
             'reunion',
+            'flag',
             'réunion',
         ],
-        name: 'reunion',
     },
     {
+        name: 'romania',
         code: '🇷🇴',
         keywords: [
-            'flag',
             'romania',
+            'flag',
         ],
-        name: 'romania',
     },
     {
+        name: 'serbia',
         code: '🇷🇸',
         keywords: [
-            'flag',
             'serbia',
+            'flag',
         ],
-        name: 'serbia',
     },
     {
+        name: 'ru',
         code: '🇷🇺',
         keywords: [
-            'flag',
             'russia',
+            'ru',
+            'flag',
         ],
-        name: 'ru',
     },
     {
+        name: 'rwanda',
         code: '🇷🇼',
         keywords: [
-            'flag',
             'rwanda',
+            'flag',
         ],
-        name: 'rwanda',
     },
     {
+        name: 'saudi_arabia',
         code: '🇸🇦',
         keywords: [
+            'saudi_arabia',
             'flag',
             'saudi arabia',
         ],
-        name: 'saudi_arabia',
     },
     {
+        name: 'solomon_islands',
         code: '🇸🇧',
         keywords: [
+            'solomon_islands',
             'flag',
             'island',
             'solomon',
         ],
-        name: 'solomon_islands',
     },
     {
+        name: 'seychelles',
         code: '🇸🇨',
         keywords: [
-            'flag',
             'seychelles',
+            'flag',
         ],
-        name: 'seychelles',
     },
     {
+        name: 'sudan',
         code: '🇸🇩',
         keywords: [
-            'flag',
             'sudan',
+            'flag',
         ],
-        name: 'sudan',
     },
     {
+        name: 'sweden',
         code: '🇸🇪',
         keywords: [
-            'flag',
             'sweden',
+            'flag',
         ],
-        name: 'sweden',
     },
     {
+        name: 'singapore',
         code: '🇸🇬',
         keywords: [
-            'flag',
             'singapore',
+            'flag',
         ],
-        name: 'singapore',
     },
     {
+        name: 'st_helena',
         code: '🇸🇭',
         keywords: [
+            'st_helena',
             'flag',
             'helena',
             'saint',
         ],
-        name: 'st_helena',
     },
     {
+        name: 'slovenia',
         code: '🇸🇮',
         keywords: [
-            'flag',
             'slovenia',
+            'flag',
         ],
-        name: 'slovenia',
     },
     {
+        name: 'svalbard_jan_mayen',
         code: '🇸🇯',
         keywords: [
+            'svalbard_jan_mayen',
             'flag',
             'jan mayen',
             'svalbard',
         ],
-        name: 'svalbard_jan_mayen',
     },
     {
+        name: 'slovakia',
         code: '🇸🇰',
         keywords: [
-            'flag',
             'slovakia',
+            'flag',
         ],
-        name: 'slovakia',
     },
     {
+        name: 'sierra_leone',
         code: '🇸🇱',
         keywords: [
+            'sierra_leone',
             'flag',
             'sierra leone',
         ],
-        name: 'sierra_leone',
     },
     {
+        name: 'san_marino',
         code: '🇸🇲',
         keywords: [
+            'san_marino',
             'flag',
             'san marino',
         ],
-        name: 'san_marino',
     },
     {
+        name: 'senegal',
         code: '🇸🇳',
         keywords: [
-            'flag',
             'senegal',
+            'flag',
         ],
-        name: 'senegal',
     },
     {
+        name: 'somalia',
         code: '🇸🇴',
         keywords: [
-            'flag',
             'somalia',
+            'flag',
         ],
-        name: 'somalia',
     },
     {
+        name: 'suriname',
         code: '🇸🇷',
         keywords: [
-            'flag',
             'suriname',
+            'flag',
         ],
-        name: 'suriname',
     },
     {
+        name: 'south_sudan',
         code: '🇸🇸',
         keywords: [
+            'south_sudan',
             'flag',
             'south',
             'south sudan',
             'sudan',
         ],
-        name: 'south_sudan',
     },
     {
+        name: 'sao_tome_principe',
         code: '🇸🇹',
         keywords: [
+            'sao_tome_principe',
             'flag',
             'principe',
             'príncipe',
             'sao tome',
             'são tomé',
         ],
-        name: 'sao_tome_principe',
     },
     {
+        name: 'el_salvador',
         code: '🇸🇻',
         keywords: [
+            'el_salvador',
             'el salvador',
             'flag',
         ],
-        name: 'el_salvador',
     },
     {
+        name: 'sint_maarten',
         code: '🇸🇽',
         keywords: [
+            'sint_maarten',
             'flag',
             'maarten',
             'sint',
         ],
-        name: 'sint_maarten',
     },
     {
+        name: 'syria',
         code: '🇸🇾',
         keywords: [
-            'flag',
             'syria',
+            'flag',
         ],
-        name: 'syria',
     },
     {
+        name: 'swaziland',
         code: '🇸🇿',
         keywords: [
-            'flag',
             'swaziland',
+            'flag',
         ],
-        name: 'swaziland',
     },
     {
+        name: 'tristan_da_cunha',
         code: '🇹🇦',
         keywords: [
+            'tristan_da_cunha',
             'flag',
             'tristan da cunha',
         ],
-        name: 'tristan_da_cunha',
     },
     {
+        name: 'turks_caicos_islands',
         code: '🇹🇨',
         keywords: [
+            'turks_caicos_islands',
             'caicos',
             'flag',
             'island',
             'turks',
         ],
-        name: 'turks_caicos_islands',
     },
     {
+        name: 'chad',
         code: '🇹🇩',
         keywords: [
             'chad',
             'flag',
         ],
-        name: 'chad',
     },
     {
+        name: 'french_southern_territories',
         code: '🇹🇫',
         keywords: [
+            'french_southern_territories',
             'antarctic',
             'flag',
             'french',
         ],
-        name: 'french_southern_territories',
     },
     {
+        name: 'togo',
         code: '🇹🇬',
         keywords: [
-            'flag',
             'togo',
+            'flag',
         ],
-        name: 'togo',
     },
     {
+        name: 'thailand',
         code: '🇹🇭',
         keywords: [
-            'flag',
             'thailand',
+            'flag',
         ],
-        name: 'thailand',
     },
     {
+        name: 'tajikistan',
         code: '🇹🇯',
         keywords: [
-            'flag',
             'tajikistan',
+            'flag',
         ],
-        name: 'tajikistan',
     },
     {
+        name: 'tokelau',
         code: '🇹🇰',
         keywords: [
-            'flag',
             'tokelau',
+            'flag',
         ],
-        name: 'tokelau',
     },
     {
+        name: 'timor_leste',
         code: '🇹🇱',
         keywords: [
+            'timor_leste',
             'east',
             'east timor',
             'flag',
             'timor-leste',
         ],
-        name: 'timor_leste',
     },
     {
+        name: 'turkmenistan',
         code: '🇹🇲',
         keywords: [
-            'flag',
             'turkmenistan',
+            'flag',
         ],
-        name: 'turkmenistan',
     },
     {
+        name: 'tunisia',
         code: '🇹🇳',
         keywords: [
-            'flag',
             'tunisia',
+            'flag',
         ],
-        name: 'tunisia',
     },
     {
+        name: 'tonga',
         code: '🇹🇴',
         keywords: [
-            'flag',
             'tonga',
+            'flag',
         ],
-        name: 'tonga',
     },
     {
+        name: 'tr',
         code: '🇹🇷',
         keywords: [
-            'flag',
             'turkey',
+            'tr',
+            'flag',
         ],
-        name: 'tr',
     },
     {
+        name: 'trinidad_tobago',
         code: '🇹🇹',
         keywords: [
+            'trinidad_tobago',
             'flag',
             'tobago',
             'trinidad',
         ],
-        name: 'trinidad_tobago',
     },
     {
+        name: 'tuvalu',
         code: '🇹🇻',
         keywords: [
-            'flag',
             'tuvalu',
+            'flag',
         ],
-        name: 'tuvalu',
     },
     {
+        name: 'taiwan',
         code: '🇹🇼',
         keywords: [
+            'taiwan',
             'china',
             'flag',
-            'taiwan',
         ],
-        name: 'taiwan',
     },
     {
+        name: 'tanzania',
         code: '🇹🇿',
         keywords: [
-            'flag',
             'tanzania',
+            'flag',
         ],
-        name: 'tanzania',
     },
     {
+        name: 'ukraine',
         code: '🇺🇦',
         keywords: [
-            'flag',
             'ukraine',
+            'flag',
         ],
-        name: 'ukraine',
     },
     {
+        name: 'uganda',
         code: '🇺🇬',
         keywords: [
-            'flag',
             'uganda',
+            'flag',
         ],
-        name: 'uganda',
     },
     {
+        name: 'us_outlying_islands',
         code: '🇺🇲',
         keywords: [
+            'us_outlying_islands',
             'america',
             'flag',
             'island',
@@ -13087,74 +18777,87 @@ const emojis = [
             'us',
             'usa',
         ],
-        name: 'us_outlying_islands',
     },
     {
+        name: 'united_nations',
+        code: '🇺🇳',
+        keywords: [
+            'united_nations',
+            'flag',
+        ],
+    },
+    {
+        name: 'us',
         code: '🇺🇸',
         keywords: [
-            'america',
             'flag',
-            'stars and stripes',
             'united',
+            'america',
+            'us',
+            'stars and stripes',
             'united states',
         ],
-        name: 'us',
     },
     {
+        name: 'uruguay',
         code: '🇺🇾',
         keywords: [
-            'flag',
             'uruguay',
+            'flag',
         ],
-        name: 'uruguay',
     },
     {
+        name: 'uzbekistan',
         code: '🇺🇿',
         keywords: [
-            'flag',
             'uzbekistan',
+            'flag',
         ],
-        name: 'uzbekistan',
     },
     {
+        name: 'vatican_city',
         code: '🇻🇦',
         keywords: [
+            'vatican_city',
             'flag',
             'vatican',
         ],
-        name: 'vatican_city',
     },
     {
+        name: 'st_vincent_grenadines',
         code: '🇻🇨',
         keywords: [
+            'st_vincent_grenadines',
             'flag',
             'grenadines',
             'saint',
             'vincent',
         ],
-        name: 'st_vincent_grenadines',
     },
     {
+        name: 'venezuela',
         code: '🇻🇪',
         keywords: [
-            'flag',
             'venezuela',
+            'flag',
         ],
-        name: 'venezuela',
     },
     {
+        name: 'british_virgin_islands',
         code: '🇻🇬',
         keywords: [
+            'british_virgin_islands',
             'british',
             'flag',
             'island',
             'virgin',
         ],
-        name: 'british_virgin_islands',
     },
     {
+        name: 'us_virgin_islands',
         code: '🇻🇮',
         keywords: [
+            'us_virgin_islands',
             'america',
             'american',
             'flag',
@@ -13165,90 +18868,115 @@ const emojis = [
             'usa',
             'virgin',
         ],
-        name: 'us_virgin_islands',
     },
     {
+        name: 'vietnam',
         code: '🇻🇳',
         keywords: [
+            'vietnam',
             'flag',
             'viet nam',
-            'vietnam',
         ],
-        name: 'vietnam',
     },
     {
+        name: 'vanuatu',
         code: '🇻🇺',
         keywords: [
-            'flag',
             'vanuatu',
+            'flag',
         ],
-        name: 'vanuatu',
     },
     {
+        name: 'wallis_futuna',
         code: '🇼🇫',
         keywords: [
+            'wallis_futuna',
             'flag',
             'futuna',
             'wallis',
         ],
-        name: 'wallis_futuna',
     },
     {
+        name: 'samoa',
         code: '🇼🇸',
         keywords: [
-            'flag',
             'samoa',
+            'flag',
         ],
-        name: 'samoa',
     },
     {
+        name: 'kosovo',
         code: '🇽🇰',
         keywords: [
-            'flag',
             'kosovo',
+            'flag',
         ],
-        name: 'kosovo',
     },
     {
+        name: 'yemen',
         code: '🇾🇪',
         keywords: [
-            'flag',
             'yemen',
+            'flag',
         ],
-        name: 'yemen',
     },
     {
+        name: 'mayotte',
         code: '🇾🇹',
         keywords: [
-            'flag',
             'mayotte',
+            'flag',
         ],
-        name: 'mayotte',
     },
     {
+        name: 'south_africa',
         code: '🇿🇦',
         keywords: [
+            'south_africa',
             'flag',
             'south',
             'south africa',
         ],
-        name: 'south_africa',
     },
     {
+        name: 'zambia',
         code: '🇿🇲',
         keywords: [
-            'flag',
             'zambia',
+            'flag',
         ],
-        name: 'zambia',
     },
     {
+        name: 'zimbabwe',
         code: '🇿🇼',
         keywords: [
-            'flag',
             'zimbabwe',
+            'flag',
         ],
-        name: 'zimbabwe',
+    },
+    {
+        name: 'england',
+        code: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
+        keywords: [
+            'england',
+            'flag',
+        ],
+    },
+    {
+        name: 'scotland',
+        code: '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
+        keywords: [
+            'scotland',
+            'flag',
+        ],
+    },
+    {
+        name: 'wales',
+        code: '🏴󠁧󠁢󠁷󠁬󠁳󠁿',
+        keywords: [
+            'wales',
+            'flag',
+        ],
     },
 ];
 
