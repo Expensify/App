@@ -172,7 +172,7 @@ class ReportScreen extends React.Component {
             return;
         }
 
-        Report.fetchChatReportsByIDs([reportIDFromPath], true);
+        Report.openReport(reportIDFromPath);
     }
 
     /**
