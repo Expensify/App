@@ -1,8 +1,52 @@
-import React, {Component} from 'react';
-import BasePopoverMenu from './BasePopoverMenu';
-import {propTypes, defaultProps} from './popoverMenuPropTypes';
+import _ from 'underscore';
+import React, {PureComponent} from 'react';
+import {View} from 'react-native';
+import Popover from '../Popover';
+import styles from '../../styles/styles';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import MenuItem from '../MenuItem';
+import {
+    propTypes as createMenuPropTypes,
+    defaultProps,
+} from './popoverMenuPropTypes';
+import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
+import Text from '../Text';
+import KeyboardShortcut from '../../libs/KeyboardShortcut';
+import CONST from '../../CONST';
 
-class PopoverMenu extends Component {
+const propTypes = {
+    ...createMenuPropTypes,
+    ...windowDimensionsPropTypes,
+};
+
+class PopoverMenu extends PureComponent {
+    constructor(props) {
+        super(props);
+        this.state = {
+            focusedIndex: -1,
+        };
+        this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
+        this.resetFocusAndHideModal = this.resetFocusAndHideModal.bind(this);
+        this.removeKeyboardListener = this.removeKeyboardListener.bind(this);
+        this.attachKeyboardListener = this.attachKeyboardListener.bind(this);
+    }
+
+    componentDidUpdate(prevProps) {
+        if (this.props.isVisible === prevProps.isVisible) {
+            return;
+        }
+
+        if (this.props.isVisible) {
+            this.attachKeyboardListener();
+        } else {
+            this.removeKeyboardListener();
+        }
+    }
+
+    componentWillUnmount() {
+        this.removeKeyboardListener();
+    }
+
     /**
      * Set the item's `onSelected` action to fire after the menu popup closes
      * @param {{onSelected: function}} item
@@ -18,14 +62,79 @@ class PopoverMenu extends Component {
         this.props.onItemSelected(item);
     }
 
+    attachKeyboardListener() {
+        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
+        this.unsubscribeEnterKey = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
+            if (this.state.focusedIndex === -1) {
+                return;
+            }
+            this.selectItem(this.props.menuItems[this.state.focusedIndex]);
+            this.updateFocusedIndex(-1); // Reset the focusedIndex on selecting any menu
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
+    }
+
+    removeKeyboardListener() {
+        if (!this.unsubscribeEnterKey) {
+            return;
+        }
+        this.unsubscribeEnterKey();
+    }
+
+    /**
+     * @param {Number} index
+     */
+    updateFocusedIndex(index) {
+        this.setState({focusedIndex: index});
+    }
+
+    resetFocusAndHideModal() {
+        this.updateFocusedIndex(-1); // Reset the focusedIndex on modal hide
+        this.removeKeyboardListener();
+        this.onMenuHide();
+    }
+
     render() {
         return (
-            <BasePopoverMenu
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...this.props}
-                onMenuHide={this.onMenuHide}
-                onItemSelected={item => this.selectItem(item)}
-            />
+            <Popover
+                anchorPosition={this.props.anchorPosition}
+                onClose={this.props.onClose}
+                isVisible={this.props.isVisible}
+                onModalHide={this.resetFocusAndHideModal}
+                animationIn={this.props.animationIn}
+                animationOut={this.props.animationOut}
+                disableAnimation={this.props.disableAnimation}
+                fromSidebarMediumScreen={this.props.fromSidebarMediumScreen}
+            >
+                <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
+                    {!_.isEmpty(this.props.headerText) && (
+                        <View style={styles.createMenuItem}>
+                            <Text
+                                style={[styles.createMenuHeaderText, styles.ml3]}
+                            >
+                                {this.props.headerText}
+                            </Text>
+                        </View>
+                    )}
+                    <ArrowKeyFocusManager
+                        focusedIndex={this.state.focusedIndex}
+                        maxIndex={this.props.menuItems.length - 1}
+                        onFocusedIndexChanged={this.updateFocusedIndex}
+                    >
+                        {_.map(this.props.menuItems, (item, menuIndex) => (
+                            <MenuItem
+                                key={item.text}
+                                icon={item.icon}
+                                iconWidth={item.iconWidth}
+                                iconHeight={item.iconHeight}
+                                title={item.text}
+                                description={item.description}
+                                onPress={() => this.selectItem(item)}
+                                focused={this.state.focusedIndex === menuIndex}
+                            />
+                        ))}
+                    </ArrowKeyFocusManager>
+                </View>
+            </Popover>
         );
     }
 }
@@ -33,4 +142,4 @@ class PopoverMenu extends Component {
 PopoverMenu.propTypes = propTypes;
 PopoverMenu.defaultProps = defaultProps;
 
-export default PopoverMenu;
+export default withWindowDimensions(PopoverMenu);
