@@ -72,6 +72,9 @@ const propTypes = {
     /** Allow the full composer to be opened */
     setIsFullComposerAvailable: PropTypes.func,
 
+    /** Whether the composer is full size */
+    isComposerFullSize: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -97,6 +100,7 @@ const defaultProps = {
     },
     isFullComposerAvailable: false,
     setIsFullComposerAvailable: () => {},
+    isComposerFullSize: false,
 };
 
 const IMAGE_EXTENSIONS = {

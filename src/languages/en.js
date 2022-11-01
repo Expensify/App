@@ -19,6 +19,7 @@ export default {
         save: 'Save',
         saveChanges: 'Save changes',
         password: 'Password',
+        workspaces: 'Workspaces',
         profile: 'Profile',
         payments: 'Payments',
         preferences: 'Preferences',
@@ -815,6 +816,10 @@ export default {
             growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
             unavailable: 'Unavailable workspace',
         },
+        emptyWorkspace: {
+            title: 'Create a new workspace',
+            subtitle: 'Workspaces are where you\'ll chat with your team, reimburse expenses, issue cards, send invoices, pay bills, and more — all in one place.',
+        },
         new: {
             newWorkspace: 'New workspace',
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
@@ -971,9 +976,10 @@ export default {
         skinTonePickerLabel: 'Change default skin tone',
         headers: {
             frequentlyUsed: 'Frequently Used',
-            smileysAndPeople: 'Smileys & People',
+            smileysAndEmotion: 'Smileys & Emotion',
+            peopleAndBody: 'People & Body',
             animalsAndNature: 'Animals & Nature',
-            foodAndDrinks: 'Food & Drinks',
+            foodAndDrink: 'Food & Drinks',
             travelAndPlaces: 'Travel & Places',
             activities: 'Activities',
             objects: 'Objects',
