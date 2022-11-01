@@ -102,6 +102,7 @@ class PopoverMenu extends PureComponent {
                 onModalHide={this.resetFocusAndHideModal}
                 animationIn={this.props.animationIn}
                 animationOut={this.props.animationOut}
+                animationInTiming={this.props.animationInTiming}
                 disableAnimation={this.props.disableAnimation}
                 fromSidebarMediumScreen={this.props.fromSidebarMediumScreen}
             >
