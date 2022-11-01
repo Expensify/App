@@ -29,6 +29,7 @@ class PopoverMenu extends PureComponent {
         this.resetFocusAndHideModal = this.resetFocusAndHideModal.bind(this);
         this.removeKeyboardListener = this.removeKeyboardListener.bind(this);
         this.attachKeyboardListener = this.attachKeyboardListener.bind(this);
+        this.onMenuHide = () => {};
     }
 
     componentDidUpdate(prevProps) {
