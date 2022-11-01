@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.2.21-4",
+  "version": "1.2.22-3",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -85,7 +85,7 @@
     "react-collapse": "^5.1.0",
     "react-content-loader": "^6.1.0",
     "react-dom": "18.1.0",
-    "react-native": "npm:@expensify/react-native@0.70.5",
+    "react-native": "npm:@expensify/react-native@0.70.4-alpha.1",
     "react-native-blob-util": "^0.16.2",
     "react-native-collapsible": "^1.6.0",
     "react-native-config": "^1.4.5",
@@ -171,7 +171,7 @@
     "jest": "^26.6.3",
     "jest-circus": "^26.6.3",
     "jest-cli": "^26.6.3",
-    "metro-react-native-babel-preset": "^0.72.1",
+    "metro-react-native-babel-preset": "^0.73.3",
     "mock-fs": "^4.13.0",
     "portfinder": "^1.0.28",
     "pusher-js-mock": "^0.3.3",
@@ -189,6 +189,9 @@
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.9.3",
     "webpack-merge": "^5.8.0"
+  },
+  "overrides": {
+    "react-native": "$react-native"
   },
   "engines": {
     "node": "16.15.1",
