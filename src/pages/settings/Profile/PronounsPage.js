@@ -45,7 +45,7 @@ class PronounsPage extends Component {
     /**
      * @param {String} pronouns
      */
-        setPronouns(pronouns) {
+    setPronouns(pronouns) {
         const hasSelfSelectedPronouns = pronouns === CONST.PRONOUNS.SELF_SELECT;
         this.pronouns = hasSelfSelectedPronouns ? '' : pronouns;
 
@@ -76,16 +76,16 @@ class PronounsPage extends Component {
      */
     validate(values) {
         const errors = {};
-
+        
         const [hasPronounError] = ValidationUtils.doesFailCharacterLimitAfterTrim(
             CONST.FORM_CHARACTER_LIMIT,
             [values.pronouns],
         );
-
+        
         if (hasPronounError) {
             errors.pronouns = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
         }
-
+        
         return errors;
     }
 
@@ -113,7 +113,7 @@ class PronounsPage extends Component {
                     enabledWhenOffline
                 >
                     <Text style={[styles.mb6]}>
-                        {this.props.translate('displayNamePage.isShownOnProfile')}
+                        {this.props.translate('pronounsPage.isShownOnProfile')}
                     </Text>
                     <View>
                         <Picker
