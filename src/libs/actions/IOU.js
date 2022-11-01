@@ -216,7 +216,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         comment,
         iouReportID: iouReport.reportID,
         chatReportID: chatReport.reportID,
-        transactionID: NumberUtils.rand64(),
+        transactionID: optimisticReportAction.originalMessage.IOUTransactionID,
         reportActionID: optimisticReportAction.reportActionID,
         clientID: optimisticReportAction.sequenceNumber,
     }, {optimisticData, successData, failureData});
