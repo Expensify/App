@@ -15,23 +15,28 @@
                     <span>{{ hub.title }}</span>
                 </div>
                 <ul class="nested-treeview">
+                    <!-- First display sections with nested articles -->
                     {% for section in hub.sections %}
                         <li>
-                            <!-- sections may have nested articles, or they may be just a single article. -->
-                            {% if section.articles %}
-                                <a href="#{{ section.href }}">{{ section.title }}</a>
-                                <ul>
-                                    {% for article in section.articles %}
-                                        <li>
-                                            <a href="/articles/{{ hub.href }}/{{ article.href }}">
-                                                {{ article.title }}
-                                            </a>
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            {% else %}
-                                <a href="/articles/{{ hub.href }}/{{ section.href }}">{{ section.title }}</a>
-                            {% endif %}
+                            <a href="#{{ section.href }}">{{ section.title }}</a>
+                            <ul>
+                                {% for article in section.articles %}
+                                    <li>
+                                        <a href="/articles/{{ hub.href }}/{{ article.href }}">
+                                            {{ article.title }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                    {% endfor %}
+
+                    <!-- Then display standalone articles -->
+                    {% for article in hub.articles %}
+                        <li>
+                            <a href="/articles/{{ hub.href }}/{{ article.href }}">
+                                {{ article.title }}
+                            </a>
                         </li>
                     {% endfor %}
                 </ul>
