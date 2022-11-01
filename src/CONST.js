@@ -262,9 +262,6 @@ const CONST = {
             REMOVED_FROM_POLICY: 'removedFromPolicy',
             POLICY_DELETED: 'policyDeleted',
         },
-        ERROR: {
-            INACCESSIBLE_REPORT: 'Report not found',
-        },
         MESSAGE: {
             TYPE: {
                 COMMENT: 'COMMENT',
