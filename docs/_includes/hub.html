@@ -1,4 +1,5 @@
-{% assign hub = site.data.routes.hubs | where: "href", include.href | first %}
+{% assign activeHub = page.url | remove: "/hubs/" | remove: ".html" %}
+{% assign hub = site.data.routes.hubs | where: "href", activeHub | first %}
 
 <h1 class="title">
     {{ hub.title }}
