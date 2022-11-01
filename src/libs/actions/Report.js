@@ -247,12 +247,11 @@ function fetchIOUReportID(debtorEmail) {
  * when we find an inaccessible chat
  * @param {Array} chatList
  * @param {Boolean} shouldRedirectIfInaccessible
- * @returns {Promise<Object[]>} only used internally when fetchAllReports() is called
  */
 function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
     let fetchedReports;
     const simplifiedReports = {};
-    return DeprecatedAPI.GetReportSummaryList({reportIDList: chatList.join(',')})
+    DeprecatedAPI.GetReportSummaryList({reportIDList: chatList.join(',')})
         .then(({reportSummaryList, jsonCode}) => {
             Log.info('[Report] successfully fetched report data', false, {chatList});
             fetchedReports = reportSummaryList;
