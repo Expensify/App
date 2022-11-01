@@ -14,7 +14,6 @@ import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
 import * as IOUUtils from '../IOUUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
-import * as NumberUtils from '../NumberUtils';
 import DateUtils from '../DateUtils';
 
 let chatReports;
