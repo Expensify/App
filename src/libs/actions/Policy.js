@@ -117,16 +117,41 @@ function updateLastAccessedWorkspace(policyID) {
  *
  * @param {String} policyID
  */
-function navigateToPolicy(policyID) {
-    Navigation.navigate(policyID ? ROUTES.getWorkspaceInitialRoute(policyID) : ROUTES.HOME);
-}
+function deleteWorkspace(policyID, reports) {
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                errors: null,
+            },
+        },
+        ..._.map(reports, ({reportID}) => ({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS.CLOSED,
+                hasDraft: false,
+            },
+        })),
+    ];
 
-/**
- * @param {String} [name]
- */
-function createAndNavigate(name = '') {
-    create(name).then(navigateToPolicy);
-}
+    // Restore the old report stateNum and statusNum
+    const failureData = [
+        ..._.map(reports, ({
+            reportID, stateNum, statusNum, hasDraft,
+        }) => ({
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                stateNum,
+                statusNum,
+                hasDraft,
+            },
+        })),
+    ];
 
 /**
  * Delete the policy
