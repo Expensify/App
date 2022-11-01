@@ -26,8 +26,8 @@ import AddressForm from './AddressForm';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import Form from '../../components/Form';
-import AddressSearch from '../../components/AddressSearch';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
+import * as FormActions from '../../libs/actions/FormActions';
 
 const propTypes = {
     /** The bank account currently in setup */
@@ -142,6 +142,8 @@ class CompanyStep extends React.Component {
         const shouldDisableCompanyName = bankAccountID && ReimbursementAccountUtils.getDefaultStateForField(this.props, 'companyName');
         const shouldDisableCompanyTaxID = bankAccountID && ReimbursementAccountUtils.getDefaultStateForField(this.props, 'companyTaxID');
 
+        FormActions.setErrors(ONYXKEYS.FORMS.COMPANY_STEP_FORM, this.props.reimbursementAccount.errors);
+
         return (
             <>
                 <HeaderWithCloseButton
@@ -160,7 +162,6 @@ class CompanyStep extends React.Component {
                     onSubmit={this.submit}
                     submitButtonText={this.props.translate('common.saveAndContinue')}
                     style={[styles.mh5, styles.flexGrow1]}
-
                 >
                     <Text>{this.props.translate('companyStep.subtitle')}</Text>
                     <TextInput
