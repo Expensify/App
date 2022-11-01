@@ -44,23 +44,6 @@ class BaseScreenWrapper extends React.Component {
         });
     }
 
-    /**
-     * We explicitly want to ignore if props.modal changes, and only want to rerender if
-     * any of the other props **used for the rendering output** is changed.
-     * @param {Object} nextProps
-     * @param {Object} nextState
-     * @returns {boolean}
-     */
-    shouldComponentUpdate(nextProps, nextState) {
-        return this.state !== nextState
-            || this.props.children !== nextProps.children
-            || this.props.network.isOffline !== nextProps.network.isOffline
-            || this.props.includePaddingBottom !== nextProps.includePaddingBottom
-            || this.props.includePaddingTop !== nextProps.includePaddingTop
-            || this.props.isSmallScreenWidth !== nextProps.isSmallScreenWidth
-            || this.props.keyboardAvoidingViewBehavior !== nextProps.keyboardAvoidingViewBehavior;
-    }
-
     componentWillUnmount() {
         if (this.unsubscribeEscapeKey) {
             this.unsubscribeEscapeKey();
