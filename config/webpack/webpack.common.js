@@ -42,6 +42,15 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         path: path.resolve(__dirname, '../../dist'),
         publicPath: '/',
     },
+    stats: {
+        warningsFilter: [
+            // @react-navigation for web uses the legacy modules (related to react-native-reanimated)
+            // This results in 33 warnings with stack traces that appear during build and each time we make a change
+            // We can't do anything about the warnings, and they only get in the way, so we suppress them
+            './node_modules/@react-navigation/drawer/lib/module/views/legacy/Drawer.js',
+            './node_modules/@react-navigation/drawer/lib/module/views/legacy/Overlay.js',
+        ],
+    },
     plugins: [
         new CleanWebpackPlugin(),
         new HtmlWebpackPlugin({
@@ -110,18 +119,6 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                     new RegExp(`node_modules/(?!(${includeModules})/).*|.native.js$`),
                 ],
             },
-            {
-                test: /\.js$/,
-                loader: 'eslint-loader',
-                exclude: [
-                    /node_modules|\.native\.js$/,
-                ],
-                options: {
-                    cache: false,
-                    emitWarning: true,
-                    configFile: path.resolve(__dirname, '../../.eslintrc.js'),
-                },
-            },
 
             // Rule for react-native-web-webview
             {
@@ -176,11 +173,6 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         extensions: ['.web.js', (platform === 'web') ? '.website.js' : '.desktop.js', '.js', '.jsx'],
         fallback: {
             'process/browser': require.resolve('process/browser'),
-        },
-    },
-    devServer: {
-        client: {
-            overlay: false,
         },
     },
 });

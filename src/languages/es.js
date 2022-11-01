@@ -19,6 +19,7 @@ export default {
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
         password: 'Contraseña',
+        workspaces: 'Espacios de trabajo',
         profile: 'Perfil',
         payments: 'Pagos',
         preferences: 'Preferencias',
@@ -823,6 +824,10 @@ export default {
             growlMessageOnDeleteError: 'No se puede eliminar el espacio de trabajo porque tiene informes que están siendo procesados',
             unavailable: 'Espacio de trabajo no disponible',
         },
+        emptyWorkspace: {
+            title: 'Crear un nuevo espacio de trabajo',
+            subtitle: 'En los espacios de trabajo es donde puedes chatear con tu equipo, reembolsar gastos, emitir tarjetas, enviar y pagar facturas y mas — todo en un mismo lugar',
+        },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
             getTheExpensifyCardAndMore: 'Consigue la Tarjeta Expensify y más',
@@ -979,9 +984,10 @@ export default {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
         headers: {
             frequentlyUsed: 'Usado frecuentemente',
-            smileysAndPeople: 'Emoticonos y personas',
+            smileysAndEmotion: 'Emoticonos y emociones',
+            peopleAndBody: 'Personas y Cuerpo',
             animalsAndNature: 'Animales y naturaleza',
-            foodAndDrinks: 'Alimentos y bebidas',
+            foodAndDrink: 'Alimentos y bebidas',
             travelAndPlaces: 'Viajes y lugares',
             activities: 'Actividades',
             objects: 'Objetos',

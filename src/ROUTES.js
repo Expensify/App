@@ -24,6 +24,7 @@ export default {
     SETTINGS_PROFILE: 'settings/profile',
     SETTINGS_DISPLAY_NAME: 'settings/profile/display-name',
     SETTINGS_PREFERENCES: 'settings/preferences',
+    SETTINGS_WORKSPACES: 'settings/workspaces',
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
     SETTINGS_PASSWORD: 'settings/security/password',
