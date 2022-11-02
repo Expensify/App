@@ -1,7 +1,8 @@
 name: Create new version
 
 on:
-  workflow_call:
+
+  workflow_dispatch:
     inputs:
       SEMVER_LEVEL:
         description: One of {BUILD, PATCH, MINOR, MAJOR}
