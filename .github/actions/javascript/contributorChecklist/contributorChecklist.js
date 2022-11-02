@@ -143,8 +143,8 @@ getPullRequestBody()
     .then(() => getAllComments())
     .then(comments => combinedData.push(...comments))
     .then(() => {
-        let authorChecklistComplete = false;
-        let reviewerChecklistComplete = false;
+        let authorChecklistComment = null;
+        let reviewerChecklistComment = null;
 
         const authorChecklistNumber = countCheckedBoxes(completedAuthorChecklist);
         const reviewerChecklistNumber = countCheckedBoxes(completedReviewerChecklist);
@@ -154,22 +154,34 @@ getPullRequestBody()
             const comment = combinedData[i];
             const commentChecklistNumber = countCheckedBoxes(comment);
 
-            if (commentChecklistNumber >= authorChecklistNumber - 2 && commentChecklistNumber <= authorChecklistNumber + 2 && !comment.includes('[ ]')) {
-                authorChecklistComplete = true;
+            if (
+                reviewerChecklistComment !== i
+                && authorChecklistComment !== i
+                && commentChecklistNumber >= authorChecklistNumber - 2
+                && commentChecklistNumber <= authorChecklistNumber + 2
+                && !comment.includes('[ ]')
+            ) {
+                authorChecklistComment = i;
             }
 
-            if (commentChecklistNumber >= reviewerChecklistNumber - 2 && commentChecklistNumber <= reviewerChecklistNumber + 2 && !comment.includes('[ ]')) {
-                reviewerChecklistComplete = true;
+            if (
+                reviewerChecklistComment !== i
+                && authorChecklistComment !== i
+                && commentChecklistNumber >= reviewerChecklistNumber - 2
+                && commentChecklistNumber <= reviewerChecklistNumber + 2
+                && !comment.includes('[ ]')
+            ) {
+                reviewerChecklistComment = i;
             }
         }
 
-        if (verifyingAuthorChecklist && !authorChecklistComplete) {
+        if (verifyingAuthorChecklist && authorChecklistComment === null) {
             console.log('Make sure you are using the most up to date checklist found here: https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md');
             core.setFailed('PR Author Checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
             return;
         }
 
-        if (!verifyingAuthorChecklist && !reviewerChecklistComplete) {
+        if (!verifyingAuthorChecklist && reviewerChecklistComment === null) {
             console.log('Make sure you are using the most up to date checklist found here: https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md');
             core.setFailed('PR Reviewer Checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
             return;
