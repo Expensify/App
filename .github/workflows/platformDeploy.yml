@@ -138,7 +138,7 @@ jobs:
           bundler-cache: true
 
       - name: Install cocoapods
-        uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
+        uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
         with:
           timeout_minutes: 10
           max_attempts: 5
