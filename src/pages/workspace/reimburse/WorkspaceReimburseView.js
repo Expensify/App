@@ -137,7 +137,7 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     setRate(inputValue) {
-        const value = inputValue.replace(/[^0-9.]/g, '');
+        const value = inputValue.replace(/[^0-9.,]/g, '');
 
         const decimalSeparator = this.props.toLocaleDigit('.');
         const rateValueRegex = RegExp(String.raw`^\d{1,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,3})?$`, 'i');
