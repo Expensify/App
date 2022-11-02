@@ -545,7 +545,14 @@ function getReportName(report, policies = {}) {
     const participants = report.participants || [];
     const participantsWithoutCurrentUser = _.without(participants, sessionEmail);
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
-    return _.map(participantsWithoutCurrentUser, login => getDisplayNameForParticipant(allPersonalDetails[login], isMultipleParticipantReport)).join(', ');
+    return _.map(participantsWithoutCurrentUser, (login) => {
+        const loginDetailsForPerson = allPersonalDetails[login] || {
+            login,
+            displayName: Str.removeSMSDomain(login),
+            avatar: getDefaultAvatar(login),
+        };
+        return getDisplayNameForParticipant(loginDetailsForPerson, isMultipleParticipantReport)
+    }).join(', ');
 }
 
 /**
