@@ -80,7 +80,10 @@ describe('EmojiTest', () => {
 
     it('replaces emoji codes with emojis inside a text', () => {
         const text = 'Hi :smile::wave:';
-        expect(EmojiUtils.replaceEmojis(text)).toBe('Hi 😄👋');
+        const replacedResults = EmojiUtils.replaceEmojis(text);
+        expect(replacedResults.newText).toBe('Hi 😄👋');
+        expect(replacedResults.lastReplacedSelection.start).toEqual(5);
+        expect(replacedResults.lastReplacedSelection.end).toEqual(11);
     });
 
     it('suggests emojis when typing emojis prefix after colon', () => {
