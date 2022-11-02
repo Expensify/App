@@ -10,6 +10,11 @@ jobs:
     steps:
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
+      - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
+        with:
+          ruby-version: '2.7'
+          bundler-cache: true
+
       - name: Build APK
         run: npm run android-build-e2e
 
@@ -28,6 +33,7 @@ jobs:
         with:
           name: run_with_uploads
           project_arn: ${{ secrets.AWS_PROJECT_ARN }}
+          device_pool_arn: ${{ secrets.AWS_DEVICE_POOL_ARN }}
           app_file: android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk
           app_type: ANDROID_APP
           test_type: APPIUM_NODE
