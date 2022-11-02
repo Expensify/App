@@ -544,7 +544,7 @@ function getReportName(report, policies = {}) {
     // Not a room or PolicyExpenseChat, generate title from participants
     const participants = report.participants || [];
     const participantsWithoutCurrentUser = _.without(participants, sessionEmail);
-    const isMultipleParticipantReport = participants.length > 1;
+    const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
     return _.map(participantsWithoutCurrentUser, login => getDisplayNameForParticipant(allPersonalDetails[login], isMultipleParticipantReport)).join(', ');
 }
 
