@@ -71,9 +71,8 @@ class WorkspaceReimburseView extends React.Component {
             unitID: lodashGet(distanceCustomUnit, 'customUnitID', ''),
             unitName: lodashGet(distanceCustomUnit, 'name', ''),
             unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
-            rateID: lodashGet(distanceCustomUnit, 'rates[0].customUnitRateID', ''),
-            rateName: lodashGet(distanceCustomUnit, 'rates[0].name', ''),
-            rateValue: this.getRateDisplayValue(lodashGet(distanceCustomUnit, 'rates[0].rate', 0) / 100),
+            unitRateID: lodashGet(customUnitRate, 'customUnitRateID', ''),
+            unitRateValue: this.getUnitRateValue(customUnitRate),
             outputCurrency: lodashGet(props, 'policy.outputCurrency', ''),
         };
 
@@ -108,7 +107,7 @@ class WorkspaceReimburseView extends React.Component {
                 unitName: lodashGet(distanceCustomUnit, 'name', ''),
                 unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
                 unitRateID: lodashGet(customUnitRate, 'customUnitRateID'),
-                unitRateValue: this.getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / 100),
+                unitRateValue: this.getUnitRateValue(customUnitRate),
             });
         }
 
@@ -120,6 +119,10 @@ class WorkspaceReimburseView extends React.Component {
         Policy.openWorkspaceReimburseView(this.props.policy.id);
     }
 
+    getUnitRateValue(customUnitRate) {
+        return this.getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET);
+    }
+
     getRateDisplayValue(value) {
         const numValue = parseFloat(value);
         if (Number.isNaN(numValue)) {
@@ -129,8 +132,12 @@ class WorkspaceReimburseView extends React.Component {
         return numValue.toFixed(3);
     }
 
-    setRate(value) {
-        const isInvalidRateValue = value !== '' && !CONST.REGEX.RATE_VALUE.test(value);
+    setRate(inputValue) {
+        const value = inputValue.replace(/[^0-9.]/g, '');
+
+        const decimalSeparator = this.props.toLocaleDigit('.');
+        const rateValueRegex = RegExp(String.raw`^\d{1,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,3})?$`, 'i');
+        const isInvalidRateValue = value !== '' && !rateValueRegex.test(value);
 
         const updatedValue = !isInvalidRateValue ? this.getRateDisplayValue(value) : this.state.unitRateValue;
         this.setState({unitRateValue: value}, () => {
@@ -303,7 +310,7 @@ class WorkspaceReimburseView extends React.Component {
                                     <TextInput
                                         label={this.props.translate('workspace.reimburse.trackDistanceRate')}
                                         placeholder={this.state.outputCurrency}
-                                        onChangeText={value => this.setRate(value.replace(/[^0-9.]/g, ''))}
+                                        onChangeText={value => this.setRate(value)}
                                         value={this.state.unitRateValue}
                                         autoCompleteType="off"
                                         autoCorrect={false}
