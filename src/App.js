@@ -4,6 +4,7 @@ import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import Onyx from 'react-native-onyx';
+import {PortalProvider} from '@gorhom/portal';
 import CustomStatusBar from './components/CustomStatusBar';
 import ErrorBoundary from './components/ErrorBoundary';
 import Expensify from './Expensify';
@@ -31,21 +32,23 @@ const fill = {flex: 1};
 
 const App = () => (
     <GestureHandlerRootView style={fill}>
-        <ComposeProviders
-            components={[
-                OnyxProvider,
-                SafeAreaProvider,
-                SafeArea,
-                LocaleContextProvider,
-                HTMLEngineProvider,
-                WindowDimensionsProvider,
-            ]}
-        >
-            <CustomStatusBar />
-            <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                <Expensify />
-            </ErrorBoundary>
-        </ComposeProviders>
+        <PortalProvider>
+            <ComposeProviders
+                components={[
+                    OnyxProvider,
+                    SafeAreaProvider,
+                    SafeArea,
+                    LocaleContextProvider,
+                    HTMLEngineProvider,
+                    WindowDimensionsProvider,
+                ]}
+            >
+                <CustomStatusBar />
+                <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                    <Expensify />
+                </ErrorBoundary>
+            </ComposeProviders>
+        </PortalProvider>
     </GestureHandlerRootView>
 );
 

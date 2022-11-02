@@ -2708,7 +2708,6 @@ const styles = {
         right: 0,
         bottom: 0,
         backgroundColor: themeColors.dragAndDropBackground,
-        opacity: 0.96,
         zIndex: 2,
     },
 

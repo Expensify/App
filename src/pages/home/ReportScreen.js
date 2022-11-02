@@ -5,6 +5,7 @@ import {Platform, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {Freeze} from 'react-freeze';
+import {PortalHost} from '@gorhom/portal';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
@@ -307,6 +308,7 @@ class ReportScreen extends React.Component {
                                         />
                                     </>
                                 )}
+                            <PortalHost name="DropZone" />
                         </View>
                     </FullPageNotFoundView>
                 </ScreenWrapper>
