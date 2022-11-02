@@ -183,6 +183,7 @@ class SearchPage extends Component {
                                 hideAdditionalOptionStates
                                 showTitleTooltip
                                 shouldShowOptions={didScreenTransitionEnd}
+                                shouldDelayFocus
                             />
                         </View>
                     </>

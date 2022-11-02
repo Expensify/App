@@ -8,9 +8,7 @@ import variables from '../variables';
  */
 export default function getCardStyles(isSmallScreenWidth, screenWidth) {
     return {
-        position: 'fixed',
         width: isSmallScreenWidth ? screenWidth : variables.sideBarWidth,
-        right: 0,
-        height: '100%',
+        alignSelf: 'flex-end',
     };
 }
