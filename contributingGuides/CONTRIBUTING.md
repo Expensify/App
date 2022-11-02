@@ -24,8 +24,8 @@ At this time, we are not hiring contractors in Crimea, North Korea, Russia, Iran
 ## Slack channels
 All contributors should be a member of **two** Slack channels:
 
-1. #expensify-open-source -- used to ask any **general questions** and make **feature requests**.
-2. #expensify-bugs -- used to report **bugs**.
+1. #expensify-open-source -- used to ask **general questions**, facilitate **discussions**, and make **feature requests**.
+2. #expensify-bugs -- used to discuss or report **bugs** specifically.
 
 To request an invite to these two Slack channels, just email contributors@expensify.com with the subject `Slack Channel Invites` and include a link to your Upwork profile. We'll send you an invite! 
 
@@ -46,20 +46,20 @@ New contributors are limited to working on one job at a time, however experience
 Please be aware that compensation for any support in solving an issue is provided **entirely at Expensify’s discretion**. Personal time or resources applied towards investigating a proposal **will not guarantee compensation**. Compensation is only guaranteed to those who **[propose a solution and get hired for that job](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#propose-a-solution-for-the-job)**. We understand there may be cases where a selected proposal may take inspiration from a previous proposal. Unfortunately, it’s not possible for us to evaluate every individual case and we have no process that can efficiently do so. Issues with higher rewards come with higher risk factors so try to keep things civil and make the best proposal you can. Once again, **any information provided may not necessarily lead to you getting hired for that issue or compensated in any way.**
 
 ## Finding Jobs
-A job may be a bug fix or new feature. There are two ways you can find a job that you can contribute to:
+A job could be fixing a bug or working on a new feature. There are two ways you can find a job that you can contribute to:
 
 #### Finding a job that Expensify posted
 This is the most common scenario for contributors. The Expensify team posts new jobs to the Upwork job list [here](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2) (you must be signed in to Upwork to view jobs). Each job in Upwork has a corresponding GitHub issue, which will include instructions to follow. You can also view all open jobs in the Expensify/App GH repository by searching for GH issues with the [`Help Wanted` label](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22). Lastly, you can follow the [@ExpensifyOSS](https://twitter.com/ExpensifyOSS) Twitter account to see a live feed of jobs that are posted.
 
 #### Proposing a job that Expensify hasn't posted
-It’s possible that you found a new bug or new feature that we haven’t posted as a job to the [GitHub repository](https://github.com/Expensify/App/issues?q=is%3Aissue). This is an opportunity to propose a job, and (optionally) a solution for that job. If it's a valid job proposal that we choose to implement by deploying it to production — either internally or via an external contributor — then we will compensate you $250 for identifying and proposing the bug or feature. If the bug or feature is fixed by a PR that is not associated with your proposal, the contributor is not eligible for compensation unless they can find the PR that fixed it and prove their porposal preceded the one associated with the PR.
+It’s possible that you found a new bug or new feature that we haven’t posted as a job to the [GitHub repository](https://github.com/Expensify/App/issues?q=is%3Aissue). This is an opportunity to propose a job, and (optionally) a solution for that job. If it's a valid job proposal that we choose to implement by deploying it to production — either internally or via an external contributor — then we will compensate you $250 for identifying and proposing the bug or feature. If the bug or feature is fixed by a PR that is not associated with your proposal, then you will not be eligible for the corresponding compensation unless you can find the PR that fixed it and prove your proposal came first.
 - Note: If you get assigned the job you proposed **and** you complete the job, this $250 for identifying the improvement is *in addition to* the reward you will be paid for completing the job.
 - Note about proposed bugs or features: Expensify has the right not to pay the $250 reward if the suggested bug or feature is already planned. Currently, Expensify plans to implement all features of the old Expensify app in New Expensify.
 
 Please follow these steps to propose a job:
 
 1. Check to ensure a GH issue does not already exist for this job in the [New Expensify Issue list](https://github.com/Expensify/App/issues).
-2. Check to ensure the `Bug:` or `Feature Request:` was not already rasied in Slack (specifically the #expensify-bugs or #expensify-open-source [Slack channels](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#slack-channels)). Use your best judgement by searching for similar titles and issue descriptions.
+2. Check to ensure the `Bug:` or `Feature Request:` was not already posted in Slack (specifically the #expensify-bugs or #expensify-open-source [Slack channels](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#slack-channels)). Use your best judgement by searching for similar titles and issue descriptions.
 3. If your bug or new feature matches with an existing issue, please comment on that Slack thread or GitHub issue with your findings if you think it will help solve the issue.
 4. If there is no existing GitHub issue or Upwork job, check if the issue is happening on prod (as opposed to only happening on dev)
 5. If the issue is just in dev then it means it's a new issue and has not been deployed to production. In this case, you should try to find the offending PR and comment in the issue tied to the PR and ask the assigned users to add the `DeployBlockerCash` label. If you can't find it, follow the reporting instructions in the next item, but note that the issue is a regression only found in dev and not in prod.
