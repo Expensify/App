@@ -94,6 +94,7 @@ function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) 
         avatar: fullPolicyOrPolicySummary.avatar
             || lodashGet(fullPolicyOrPolicySummary, 'value.avatar', ''),
         customUnits: lodashGet(fullPolicyOrPolicySummary, 'value.customUnits', {}),
+        lastModified: lodashGet(fullPolicyOrPolicySummary, 'value.lastModified', 0),
     };
 }
 
@@ -127,18 +128,22 @@ function deleteWorkspace(policyID, reports) {
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS.CLOSED,
+                hasDraft: false,
             },
         })),
     ];
 
     // Restore the old report stateNum and statusNum
     const failureData = [
-        ..._.map(reports, ({reportID, stateNum, statusNum}) => ({
+        ..._.map(reports, ({
+            reportID, stateNum, statusNum, hasDraft,
+        }) => ({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 stateNum,
                 statusNum,
+                hasDraft,
             },
         })),
     ];
@@ -496,8 +501,9 @@ function hideWorkspaceAlertMessage(policyID) {
  * @param {String} policyID
  * @param {Object} currentCustomUnit
  * @param {Object} newCustomUnit
+ * @param {Number} lastModified
  */
-function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit) {
+function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, lastModified) {
     const optimisticData = [
         {
             onyxMethod: 'merge',
@@ -549,6 +555,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit) {
 
     API.write('UpdateWorkspaceCustomUnit', {
         policyID,
+        lastModified,
         customUnit: JSON.stringify(newCustomUnit),
     }, {optimisticData, successData, failureData});
 }
@@ -558,8 +565,9 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit) {
  * @param {Object} currentCustomUnitRate
  * @param {String} customUnitID
  * @param {Object} newCustomUnitRate
+ * @param {Number} lastModified
  */
-function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, newCustomUnitRate) {
+function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, newCustomUnitRate, lastModified) {
     const optimisticData = [
         {
             onyxMethod: 'merge',
@@ -622,6 +630,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
     API.write('UpdateWorkspaceCustomUnitRate', {
         policyID,
         customUnitID,
+        lastModified,
         customUnitRate: JSON.stringify(newCustomUnitRate),
     }, {optimisticData, successData, failureData});
 }
@@ -663,6 +672,15 @@ function clearDeleteWorkspaceError(policyID) {
         pendingAction: null,
         errors: null,
     });
+}
+
+/**
+ * Removes the workspace after failure to create.
+ *
+ * @param {String} policyID
+ */
+function removeWorkspace(policyID) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, null);
 }
 
 /**
@@ -846,11 +864,6 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false) {
         }],
         failureData: [{
             onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: null,
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
             value: null,
         },
@@ -952,4 +965,5 @@ export {
     createWorkspace,
     openWorkspaceMembersPage,
     openWorkspaceInvitePage,
+    removeWorkspace,
 };

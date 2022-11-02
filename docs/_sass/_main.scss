@@ -279,6 +279,9 @@ button {
 }
 
 #content-area {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
     margin-left: 0;
     padding: 80px 24px 24px 24px;
 
@@ -549,6 +552,10 @@ button {
     @include breakpoint($breakpoint-tablet) {
         display: block;
     }
+}
+
+.get-help {
+    margin-top: auto;
 }
 
 .floating-concierge-button {
