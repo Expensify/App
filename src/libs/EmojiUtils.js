@@ -54,25 +54,6 @@ function trimEmojiUnicode(emojiCode) {
 }
 
 /**
- * Validates that this string is composed of a single emoji
- *
- * @param {String} message
- * @returns {Boolean}
- */
-function isSingleEmoji(message) {
-    const match = message.match(CONST.REGEX.EMOJIS);
-
-    if (!match) {
-        return false;
-    }
-
-    const matchedEmoji = match[0];
-    const matchedUnicode = getEmojiUnicode(matchedEmoji);
-    const currentMessageUnicode = trimEmojiUnicode(getEmojiUnicode(message));
-    return matchedUnicode === currentMessageUnicode;
-}
-
-/**
  * Validates that this message contains only emojis
  *
  * @param {String} message
@@ -88,7 +69,7 @@ function containsOnlyEmojis(message) {
 
     const codes = [];
     _.map(match, emoji => _.map(getEmojiUnicode(emoji).split(' '), (code) => {
-        if (code !== CONST.EMOJI_INVISIBLE_CODEPOINT) {
+        if (!CONST.EMOJI_INVISIBLE_CODEPOINTS.includes(code)) {
             codes.push(code);
         }
         return code;
@@ -96,7 +77,7 @@ function containsOnlyEmojis(message) {
 
     // Emojis are stored as multiple characters, so we're using spread operator
     // to iterate over the actual emojis, not just characters that compose them
-    const messageCodes = _.filter(_.map([...trimmedMessage], char => getEmojiUnicode(char)), string => string.length > 0 && string !== CONST.EMOJI_INVISIBLE_CODEPOINT);
+    const messageCodes = _.filter(_.map([...trimmedMessage], char => getEmojiUnicode(char)), string => string.length > 0 && !CONST.EMOJI_INVISIBLE_CODEPOINTS.includes(string));
     return codes.length === messageCodes.length;
 }
 
@@ -254,11 +235,11 @@ function suggestEmojis(text, limit = 5) {
 }
 
 export {
-    isSingleEmoji,
     getDynamicHeaderIndices,
     mergeEmojisWithFrequentlyUsedEmojis,
     addToFrequentlyUsedEmojis,
     containsOnlyEmojis,
     replaceEmojis,
     suggestEmojis,
+    trimEmojiUnicode,
 };
