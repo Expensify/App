@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -36,11 +35,9 @@ const policies = {
 
 Onyx.init({keys: ONYXKEYS});
 
-beforeAll(() => {
-    return waitForPromisesToResolve()
-        .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS, participantsPersonalDetails))
-        .then(() => Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail}));
-});
+beforeAll(() => waitForPromisesToResolve()
+    .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS, participantsPersonalDetails))
+    .then(() => Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail})));
 beforeEach(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.DEFAULT_LOCALE).then(waitForPromisesToResolve));
 
 describe('ReportUtils', () => {
