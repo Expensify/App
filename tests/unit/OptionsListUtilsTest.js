@@ -273,7 +273,8 @@ describe('OptionsListUtils', () => {
             },
         });
         Onyx.registerLogger(() => {});
-        return waitForPromisesToResolve();
+        return waitForPromisesToResolve()
+            .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS, PERSONAL_DETAILS));
     });
 
     it('getSearchOptions()', () => {
@@ -301,12 +302,16 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports[0].text).toBe('Mister Fantastic');
         expect(results.recentReports[1].text).toBe('Iron Man, Mister Fantastic');
 
-        // When we filter again but provide a searchValue that should match with periods
-        results = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS_WITH_PERIODS, 'barryallen@expensify.com');
+        return waitForPromisesToResolve()
+            .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS, PERSONAL_DETAILS_WITH_PERIODS))
+            .then(() => {
+                // When we filter again but provide a searchValue that should match with periods
+                results = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS_WITH_PERIODS, 'barryallen@expensify.com');
 
-        // Then we expect to have the personal detail with period filtered
-        expect(results.recentReports.length).toBe(1);
-        expect(results.recentReports[0].text).toBe('The Flash');
+                // Then we expect to have the personal detail with period filtered
+                expect(results.recentReports.length).toBe(1);
+                expect(results.recentReports[0].text).toBe('The Flash');
+            });
     });
 
     it('getNewChatOptions()', () => {
