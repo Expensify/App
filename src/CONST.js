@@ -262,9 +262,6 @@ const CONST = {
             REMOVED_FROM_POLICY: 'removedFromPolicy',
             POLICY_DELETED: 'policyDeleted',
         },
-        ERROR: {
-            INACCESSIBLE_REPORT: 'Report not found',
-        },
         MESSAGE: {
             TYPE: {
                 COMMENT: 'COMMENT',
@@ -348,7 +345,6 @@ const CONST = {
         SEARCH_RENDER: 'search_render',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',
-        HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
         SWITCH_REPORT: 'switch_report',
         SIDEBAR_LOADED: 'sidebar_loaded',
         COLD: 'cold',
