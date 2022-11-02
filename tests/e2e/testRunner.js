@@ -24,11 +24,9 @@ const killApp = require('./utils/killApp');
 const launchApp = require('./utils/launchApp');
 const createServerInstance = require('./server');
 const installApp = require('./utils/installApp');
-const reversePort = require('./utils/androidReversePort');
 const math = require('./measure/math');
 const writeTestStats = require('./measure/writeTestStats');
 const withFailTimeout = require('./utils/withFailTimeout');
-const startRecordingVideo = require('./utils/startRecordingVideo');
 
 const args = process.argv.slice(2);
 
@@ -121,8 +119,6 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
             const progressText = `(${testIndex + 1}/${numOfTests}) Running test '${config.name}' (iteration ${i + 1}/${RUNS})`;
             testLog.updateText(progressText);
 
-            const stopVideoRecording = startRecordingVideo();
-
             await restartApp();
 
             // Wait for a test to finish by waiting on its done call to the http server
@@ -134,10 +130,8 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
                         resolve();
                     });
                 }), progressText);
-                await stopVideoRecording(false);
             } catch (e) {
                 // When we fail due to a timeout it's interesting to take a screenshot of the emulator to see whats going on
-                await stopVideoRecording(true);
                 testLog.done();
                 throw e; // Rethrow to abort execution
             }

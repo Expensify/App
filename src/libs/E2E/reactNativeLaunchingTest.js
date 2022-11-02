@@ -12,7 +12,7 @@ Performance.markStart('regularAppStart');
 import '../../../index';
 Performance.markEnd('regularAppStart');
 
-import E2EConfig from '../../../e2e/config';
+import E2EConfig from '../../../tests/e2e/config';
 import E2EClient from './client';
 
 console.debug('==========================');

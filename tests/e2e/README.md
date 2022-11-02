@@ -32,7 +32,7 @@ It will run the tests of a test case multiple time to average out the results.
 
 ## Adding tests
 
-To add a test checkout the [designed guide](./ADDING_TESTS.md).
+To add a test checkout the [designed guide](tests/e2e/ADDING_TESTS.md).
 
 ## Structure
 
