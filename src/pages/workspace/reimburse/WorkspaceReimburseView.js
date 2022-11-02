@@ -83,6 +83,7 @@ class WorkspaceReimburseView extends React.Component {
 
         this.debounceUpdateOnCursorMove = this.debounceUpdateOnCursorMove.bind(this);
         this.updateRateValueDebounced = _.debounce(this.updateRateValue.bind(this), 1000);
+        this.updatedValue = this.state.unitRateValue;
     }
 
     componentDidMount() {
@@ -103,6 +104,7 @@ class WorkspaceReimburseView extends React.Component {
                 unitRateID: lodashGet(customUnitRate, 'customUnitRateID'),
                 unitRateValue: this.getUnitRateValue(customUnitRate),
             });
+            this.updatedValue = this.getUnitRateValue(customUnitRate);
         }
 
         const reconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
@@ -141,10 +143,12 @@ class WorkspaceReimburseView extends React.Component {
         const rateValueRegex = RegExp(String.raw`^\d{1,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,3})?$`, 'i');
         const isInvalidRateValue = value !== '' && !rateValueRegex.test(value);
 
-        const updatedValue = !isInvalidRateValue ? this.getRateDisplayValue(value) : this.state.unitRateValue;
+        if (!isInvalidRateValue) {
+            this.updatedValue = this.getRateDisplayValue(value);
+        }
         this.setState({unitRateValue: value}, () => {
             // Set the corrected value with a delay and sync to the server
-            this.updateRateValueDebounced(updatedValue);
+            this.updateRateValueDebounced(this.updatedValue);
         });
     }
 
