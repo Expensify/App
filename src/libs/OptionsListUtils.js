@@ -11,7 +11,6 @@ import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
 import Navigation from './Navigation/Navigation';
 import * as LoginUtils from './LoginUtils';
-import {getDisplayName} from './actions/PersonalDetails';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
