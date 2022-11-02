@@ -98,6 +98,7 @@ function formatPersonalDetails(personalDetailsList) {
         const phoneNumber = details.phoneNumber || '';
         const avatar = details.avatar || details.avatarThumbnail || ReportUtils.getDefaultAvatar(login);
         const avatarThumbnail = getAvatarThumbnail(details, sanitizedLogin);
+        const validated = details.validated || false;
         formattedResult[sanitizedLogin] = {
             login: sanitizedLogin,
             displayName,
@@ -109,6 +110,7 @@ function formatPersonalDetails(personalDetailsList) {
             phoneNumber,
             avatar,
             avatarThumbnail,
+            validated,
         };
     });
     return formattedResult;
