@@ -6,7 +6,7 @@ on:
 jobs:
   e2e-tests:
     name: "Run e2e performance regression tests"
-    runs-on: macos-latest
+    runs-on: macos-12
     steps:
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
@@ -16,6 +16,8 @@ jobs:
           bundler-cache: true
 
       - name: Build APK
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME_11_X64 }}
         run: npm run android-build-e2e
 
       - name: Zip built APK
