@@ -300,7 +300,7 @@ describe('OptionsListUtils', () => {
         // Value with latest lastMessageTimestamp should be at the top.
         expect(results.recentReports.length).toBe(2);
         expect(results.recentReports[0].text).toBe('Mister Fantastic');
-        expect(results.recentReports[1].text).toBe('Iron Man, Mister Fantastic');
+        expect(results.recentReports[1].text).toBe('Mister Fantastic');
 
         return waitForPromisesToResolve()
             .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS, PERSONAL_DETAILS_WITH_PERIODS))
