@@ -114,6 +114,10 @@ function getCurrentRequest() {
     return currentRequest;
 }
 
+/**
+ * Returns a promise that resolves when the last request on the queue responds.
+ * @returns {Promise}
+ */
 function getIsReadyPromise() {
     if (!isSequentialQueueRunning) {
         return Promise.resolve();
