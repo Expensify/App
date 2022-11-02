@@ -214,6 +214,8 @@ function hasActiveFreePolicy(policies) {
         return false;
     }
 
+    // If there are no add or delete pending actions the only option left is an update
+    // pendingAction, in which case we should return true.
     return true;
 }
 
