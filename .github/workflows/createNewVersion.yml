@@ -34,22 +34,6 @@ on:
         default: BUILD
         type: string
 
-    outputs:
-      NEW_VERSION:
-        description: The new version string
-        value: ${{ jobs.createNewVersion.outputs.NEW_VERSION }}
-
-    secrets:
-      LARGE_SECRET_PASSPHRASE:
-        description: Passphrase used to decrypt GPG key
-        required: true
-      OS_BOTIFY_TOKEN:
-        description: Token for the OSBotify user
-        required: true
-      SLACK_WEBHOOK:
-        description: Webhook used to comment in slack
-        required: true
-
 jobs:
   validateActor:
     runs-on: ubuntu-latest
