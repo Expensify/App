@@ -42,7 +42,7 @@ class DatePicker extends React.Component {
      */
     setDate(text) {
         if (!text) {
-            this.props.onInputChange(null);
+            this.props.onInputChange('');
             return;
         }
 
