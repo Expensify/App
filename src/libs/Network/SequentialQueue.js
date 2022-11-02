@@ -66,8 +66,8 @@ function flush() {
             process()
                 .finally(() => {
                     isSequentialQueueRunning = false;
-                    currentRequest = null;
                     resolveIsReadyPromise();
+                    currentRequest = null;
                 });
         },
     });
