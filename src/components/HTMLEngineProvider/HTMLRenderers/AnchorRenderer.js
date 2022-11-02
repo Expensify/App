@@ -30,7 +30,6 @@ const AnchorRenderer = (props) => {
                                     && !attrHref.startsWith(CONFIG.EXPENSIFY.CONCIERGE_URL)
                                     && attrHref.replace(CONFIG.EXPENSIFY.EXPENSIFY_URL, '');
 
-
     const navigateToLink = () => {
         // There can be messages from Concierge with links to specific NewDot reports. Those URLs look like this:
         // https://www.expensify.com.dev/newdotreport?reportID=3429600449838908 and they have a target="_blank" attribute. This is so that when a user is on OldDot,
