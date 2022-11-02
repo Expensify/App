@@ -518,18 +518,17 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
  * Get the title for a report.
  *
  * @param {Object} report
- * @param {Object} [personalDetailsForParticipants]
  * @param {Object} [policies]
  * @returns {String}
  */
-function getReportName(report, personalDetailsForParticipants = {}, policies = {}) {
+function getReportName(report, policies = {}) {
     let formattedName;
     if (isChatRoom(report)) {
         formattedName = report.reportName;
     }
 
     if (isPolicyExpenseChat(report)) {
-        const reportOwnerPersonalDetails = personalDetailsForParticipants[report.ownerEmail];
+        const reportOwnerPersonalDetails = allPersonalDetails[report.ownerEmail];
         const reportOwnerDisplayName = getDisplayNameForParticipant(reportOwnerPersonalDetails) || report.ownerEmail || report.reportName;
         formattedName = report.isOwnPolicyExpenseChat ? getPolicyName(report, policies) : reportOwnerDisplayName;
     }
@@ -543,10 +542,10 @@ function getReportName(report, personalDetailsForParticipants = {}, policies = {
     }
 
     // Not a room or PolicyExpenseChat, generate title from participants
-    const participants = _.without(lodashGet(report, 'participants', []), sessionEmail);
+    const participants = report.participants || [];
+    const participantsWithoutCurrentUser = _.without(participants, sessionEmail);
     const isMultipleParticipantReport = participants.length > 1;
-    const participantsToGetTheNamesOf = _.isEmpty(personalDetailsForParticipants) ? participants : personalDetailsForParticipants;
-    return _.map(participantsToGetTheNamesOf, participant => getDisplayNameForParticipant(participant, isMultipleParticipantReport)).join(', ');
+    return _.map(participantsWithoutCurrentUser, login => getDisplayNameForParticipant(allPersonalDetails[login], isMultipleParticipantReport)).join(', ');
 }
 
 /**
