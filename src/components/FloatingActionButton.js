@@ -73,7 +73,7 @@ class FloatingActionButton extends PureComponent {
         });
 
         return (
-            <KeyboardAvoidingView>
+            <KeyboardAvoidingView behavior="height">
                 <Tooltip absolute text={this.props.translate('common.new')}>
                     <AnimatedPressable
                         accessibilityLabel={this.props.accessibilityLabel}
