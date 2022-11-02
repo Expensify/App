@@ -49,21 +49,25 @@ class PDFView extends PureComponent {
             ? pdfContainerWidth : variables.pdfPageMaxWidth;
         const pageWidth = this.props.isSmallScreenWidth ? this.state.windowWidth - 30 : pageWidthOnLargeScreen;
 
-        return (
-            <View
-                style={[styles.PDFView, this.props.style]}
-                onLayout={event => this.setState({windowWidth: event.nativeEvent.layout.width})}
-            >
-                <Document
-                    loading={<FullScreenLoadingIndicator />}
-                    file={this.props.sourceURL}
-                    options={{
-                        cMapUrl: 'cmaps/',
-                        cMapPacked: true,
+        const outerContainerStyle = [
+            styles.w100,
+            styles.h100,
+            styles.justifyContentCenter,
+            styles.alignItemsCenter,
+        ];
 
-                    }}
-                    externalLinkTarget="_blank"
-                    onLoadSuccess={this.onDocumentLoadSuccess}
+        // If we're requesting a password then we need to hide - but still render -
+        // the PDF component.
+        const pdfContainerStyle = this.state.shouldRequestPassword
+            ? [styles.PDFView, styles.noSelect, this.props.style, styles.invisible]
+            : [styles.PDFView, styles.noSelect, this.props.style];
+
+        return (
+            <View style={outerContainerStyle}>
+                <View
+                    focusable
+                    style={pdfContainerStyle}
+                    onLayout={event => this.setState({windowWidth: event.nativeEvent.layout.width})}
                 >
                     {
                         Array.from(
