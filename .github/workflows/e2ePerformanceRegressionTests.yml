@@ -9,7 +9,7 @@ jobs:
   e2e-tests:
     if: ${{ github.event.label.name == 'e2e' }}
     name: "Run e2e performance regression tests"
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
