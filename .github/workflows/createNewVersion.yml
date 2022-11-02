@@ -55,6 +55,12 @@ jobs:
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
+      - uses: roryabraham/turnstyle@d50d3ffc3f2c8d280dec4cd802c1c735fcda77c8
+        with:
+          poll-interval-seconds: 10
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
       - name: Create new branch
         run: |
           git pull
