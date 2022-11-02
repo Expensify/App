@@ -13,6 +13,7 @@ import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
 import Navigation from './Navigation/Navigation';
 import * as LoginUtils from './LoginUtils';
+import {getDisplayName} from './actions/PersonalDetails';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -267,13 +268,10 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
 
     const personalDetailMap = getPersonalDetailsForLogins(logins, personalDetails);
     const personalDetailList = _.values(personalDetailMap);
-    const isArchivedRoom = ReportUtils.isArchivedRoom(report);
-    const hasMultipleParticipants = personalDetailList.length > 1 || isChatRoom || isPolicyExpenseChat;
-    const personalDetail = personalDetailList[0];
-    const hasOutstandingIOU = lodashGet(report, 'hasOutstandingIOU', false);
-    const iouReport = hasOutstandingIOU
-        ? lodashGet(iouReports, `${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, {})
-        : {};
+    const personalDetail = personalDetailList[0] || {};
+    let hasMultipleParticipants = personalDetailList.length > 1;
+    let subtitle;
+    let reportName;
 
     const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
     const lastMessageTextFromReport = ReportUtils.isReportMessageAttachment({text: lodashGet(report, 'lastMessageText', ''), html: lodashGet(report, 'lastMessageHtml', '')})
@@ -337,7 +335,9 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
                 ? lastMessageText
                 : Str.removeSMSDomain(personalDetail.login);
         }
+        reportName = ReportUtils.getReportName(report, policies);
     } else {
+        reportName = ReportUtils.getDisplayNameForParticipant(logins[0]);
         result.keyForList = personalDetail.login;
         result.alternateText = Str.removeSMSDomain(personalDetail.login);
     }
@@ -356,7 +356,6 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
 
-    const reportName = ReportUtils.getReportName(report, policies);
     result.text = reportName;
     result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
     result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
