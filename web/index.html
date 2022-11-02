@@ -98,7 +98,7 @@
        var intervalId = setInterval(() => {
             passedMiliseconds += 250
             rootMounted =  root.children.length > 0
-            if(passedMiliseconds >= minMilisecondsToWait && rootMounted) {
+            if (passedMiliseconds >= minMilisecondsToWait && rootMounted) {
                 splash.parentNode.removeChild(splash)
                 clearInterval(intervalId)
             }
