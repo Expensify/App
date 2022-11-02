@@ -482,17 +482,6 @@ function Inbox_CallUser(parameters) {
 }
 
 /**
- * @param {Object} parameters
- * @param {String} parameters.reportIDList
- * @returns {Promise}
- */
-function GetReportSummaryList(parameters) {
-    const commandName = 'Get';
-    requireParameters(['reportIDList'], parameters, commandName);
-    return Network.post(commandName, {...parameters, returnValueList: 'reportSummaryList'});
-}
-
-/**
  * Transfer Wallet balance and takes either the bankAccoundID or fundID
  * @param {Object} parameters
  * @param {String} [parameters.bankAccountID]
@@ -529,7 +518,6 @@ export {
     GetIOUReport,
     GetFullPolicy,
     GetPolicySummaryList,
-    GetReportSummaryList,
     Graphite_Timer,
     Inbox_CallUser,
     PayIOU,
