@@ -13,7 +13,7 @@ const propTypes = {
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     /** Callback fired when a field changes. Passes args as {[fieldName]: val} */
-    onFieldChange: PropTypes.func.isRequired,
+    onFieldChange: PropTypes.func,
 
     /** Form values */
     values: PropTypes.shape({
@@ -88,6 +88,7 @@ const defaultProps = {
         ssnLast4: '',
     },
     shouldSaveDraft: false,
+    onFieldChange: () => {},
 };
 
 const IdentityForm = (props) => {
