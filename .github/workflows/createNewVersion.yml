@@ -1,7 +1,6 @@
 name: Create new version
 
 on:
-
   workflow_call:
     inputs:
       SEMVER_LEVEL:
