@@ -244,6 +244,9 @@ function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = f
                 Navigation.navigate(ROUTES.REPORT);
                 return;
             }
+            if (!iouReportObject) {
+                return;
+            }
             setLocalIOUReportData(iouReportObject);
             return iouReportObject;
         });
@@ -504,6 +507,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 isLoadingReportActions: true,
+                isLoadingMoreReportActions: false,
                 lastVisitedTimestamp: Date.now(),
                 lastReadSequenceNumber: getMaxSequenceNumber(reportID),
             },
@@ -585,6 +589,7 @@ function reconnect(reportID) {
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     isLoadingReportActions: true,
+                    isLoadingMoreReportActions: false,
                 },
             }],
             successData: [{
@@ -1058,6 +1063,9 @@ function addPolicyReport(policy, reportName, visibility) {
         false,
         '',
         visibility,
+
+        // The room might contain all policy members so notifying always should be opt-in only.
+        CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
     );
 
     // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
@@ -1343,4 +1351,5 @@ export {
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
     clearIOUError,
+    getMaxSequenceNumber,
 };
