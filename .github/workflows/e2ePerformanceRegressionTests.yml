@@ -26,7 +26,7 @@ jobs:
           aws-region: us-west-2
 
       - name: Schedule test run
-        uses: realm/aws-devicefarm/test-application@v1
+        uses: realm/aws-devicefarm/test-application@master
         with:
           name: run_with_uploads
           project_arn: ${{ secrets.AWS_PROJECT_ARN }}
