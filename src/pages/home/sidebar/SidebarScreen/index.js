@@ -21,17 +21,16 @@ const SidebarScreen = (props) => {
     };
 
     return (
-        <>
-            <BaseSidebarScreen
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-            />
+        <BaseSidebarScreen
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+        >
             <PopoverModal
                 ref={el => popoverModal = el}
                 onShowCreateMenu={createDragoverListener}
                 onHideCreateMenu={removeDragoverListener}
             />
-        </>
+        </BaseSidebarScreen>
     );
 };
 

@@ -1027,6 +1027,10 @@ const styles = {
         },
     },
 
+    floatingActionButtonContainer: {
+        bottom: 0,
+    },
+
     floatingActionButton: {
         backgroundColor: themeColors.buttonSuccessBG,
         position: 'absolute',

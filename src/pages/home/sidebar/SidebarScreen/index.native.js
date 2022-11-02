@@ -4,13 +4,12 @@ import BaseSidebarScreen from './BaseSidebarScreen';
 import PopoverModal from './PopoverModal';
 
 const SidebarScreen = props => (
-    <>
-        <BaseSidebarScreen
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-        />
+    <BaseSidebarScreen
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+    >
         <PopoverModal />
-    </>
+    </BaseSidebarScreen>
 );
 
 SidebarScreen.propTypes = sidebarPropTypes;
