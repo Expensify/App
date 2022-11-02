@@ -363,25 +363,69 @@ function BankAccount_SetupWithdrawal(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.reportIDList
+ * @param {Number} [parameters.latitude]
+ * @param {Number} [parameters.longitude]
  * @returns {Promise}
  */
-function GetReportSummaryList(parameters) {
-    const commandName = 'Get';
-    requireParameters(['reportIDList'], parameters, commandName);
-    return Network.post(commandName, {...parameters, returnValueList: 'reportSummaryList'});
+function GetLocalCurrency(parameters) {
+    const commandName = 'GetLocalCurrency';
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @returns {Promise}
+ */
+function User_IsUsingExpensifyCard() {
+    return Network.post('User_IsUsingExpensifyCard', {});
 }
 
 /**
  * @param {Object} parameters
  * @param {String} parameters.policyID
- * @param {String} parameters.reportName
- * @param {String} parameters.visibility
- * @return {Promise}
+ * @param {String} parameters.customUnitID
+ * @param {String} parameters.value
+ * @returns {Promise}
  */
-function CreatePolicyRoom(parameters) {
-    const commandName = 'CreatePolicyRoom';
-    requireParameters(['policyID', 'reportName', 'visibility'], parameters, commandName);
+function Policy_CustomUnitRate_Update(parameters) {
+    const commandName = 'Policy_CustomUnitRate_Update';
+    requireParameters(['policyID', 'customUnitID', 'customUnitRate'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} [parameters.policyID]
+ * @returns {Promise}
+ */
+function Policy_Delete(parameters) {
+    const commandName = 'Policy_Delete';
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.policyID
+ * @param {Array} parameters.emailList
+ * @returns {Promise}
+ */
+function Policy_Employees_Remove(parameters) {
+    const commandName = 'Policy_Employees_Remove';
+    requireParameters(['policyID', 'emailList'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.taskID
+ * @param {String} parameters.policyID
+ * @param {String} parameters.firstName
+ * @param {String} parameters.lastName
+ * @param {String} parameters.phoneNumber
+ * @returns {Promise}
+ */
+function Inbox_CallUser(parameters) {
+    const commandName = 'Inbox_CallUser';
+    requireParameters(['taskID', 'policyID', 'firstName', 'lastName', 'phoneNumber'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -423,7 +467,8 @@ export {
     Get,
     GetStatementPDF,
     GetIOUReport,
-    GetReportSummaryList,
+    GetFullPolicy,
+    GetPolicySummaryList,
     Graphite_Timer,
     PayIOU,
     PayWithWallet,
