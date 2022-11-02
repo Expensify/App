@@ -5,7 +5,6 @@ on:
 
 jobs:
   e2e-tests:
-    if: ${{ github.event.label.name == 'e2e' }}
     name: "Run e2e performance regression tests"
     runs-on: macos-latest
     steps:
