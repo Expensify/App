@@ -99,13 +99,12 @@ function getOrderedReportIDs(reportIDFromRoute) {
 
     // Get all the display names for our reports in an easy to access property so we don't have to keep
     // re-running the logic
+    const before = Date.now();
     const filteredReportsWithReportName = _.map(filteredReports, (report) => {
-        const personalDetailMap = OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails);
-        return {
-            ...report,
-            reportDisplayName: ReportUtils.getReportName(report, personalDetailMap, policies),
-        };
+        report.reportDisplayName = ReportUtils.getReportName(report, policies);
+        return report;
     });
+    console.log('!!!', Date.now() - before)
 
     // Sorting the reports works like this:
     // - When in default mode, reports will be ordered by most recently updated (in descending order) so that the most recently updated are at the top
@@ -296,7 +295,7 @@ function getOptionData(reportID) {
         result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
 
-    const reportName = ReportUtils.getReportName(report, personalDetailMap, policies);
+    const reportName = ReportUtils.getReportName(report, policies);
     result.text = reportName;
     result.subtitle = subtitle;
     result.participantsList = personalDetailList;

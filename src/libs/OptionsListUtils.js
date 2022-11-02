@@ -368,7 +368,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
 
-    const reportName = ReportUtils.getReportName(report, personalDetailMap, policies);
+    const reportName = ReportUtils.getReportName(report, policies);
     result.text = reportName;
     result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
     result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
