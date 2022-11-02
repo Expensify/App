@@ -1392,7 +1392,7 @@ const defaultNewActionSubscriber = {
 let newActionSubscriber = defaultNewActionSubscriber;
 
 /**
- * Enables the Report actions file to let the ReportActionsView that a new comment has arrived in realtime for the current report
+ * Enables the Report actions file to let the ReportActionsView know that a new comment has arrived in realtime for the current report
  *
  * @param {String} reportID
  * @param {Function} callback
