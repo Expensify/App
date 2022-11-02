@@ -1,9 +1,7 @@
 name: Run e2e performance regression tests
 
 on:
-  workflow_dispatch:
-  pull_request:
-    types: [labeled]
+  push:
 
 jobs:
   e2e-tests:
