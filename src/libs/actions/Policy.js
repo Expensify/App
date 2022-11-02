@@ -4,7 +4,6 @@ import lodashGet from 'lodash/get';
 import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import Str from 'expensify-common/lib/str';
 import {escapeRegExp} from 'lodash';
-import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
@@ -46,21 +45,6 @@ Onyx.connect({
         sessionEmail = lodashGet(val, 'email', '');
     },
 });
-
-/**
- * Simplifies the employeeList response into an object mapping employee email to a default employee list entry
- *
- * @param {Object} employeeList
- * @returns {Object}
- */
-function getSimplifiedEmployeeList(employeeList) {
-    return _.chain(employeeList)
-        .pluck('email')
-        .flatten()
-        .unique()
-        .reduce((map, email) => ({...map, [email]: {}}), {})
-        .value();
-}
 
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
