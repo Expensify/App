@@ -99,8 +99,8 @@ runs:
     - name: Check changed files
       if: ${{ inputs.TARGET_BRANCH == 'main' }}
       id: changedFiles
-      # Version: 3.3.0
-      uses: umani/changed-files@1d252c611c64289d35243fc37ece7323ea5e93e1
+      # TODO: Remove and switch back to upstream when https://github.com/umani/changed-files/pull/27 is merged
+      uses: roryabraham/changed-files@c14fad74000cf77ff62b7f78cfd34c2124665c35
       with:
         repo-token: ${{ github.token }}
         pr-number: ${{ steps.createPullRequest.outputs.PR_NUMBER }}
