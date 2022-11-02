@@ -7,3 +7,4 @@
         <bitmap android:src="@mipmap/bootsplash_logo" android:gravity="center" />
     </item>
 </layer-list>
+
