@@ -67,6 +67,7 @@ class ReportActionsView extends React.Component {
         super(props);
 
         this.didLayout = false;
+        this.didSubscribeToReportTypingEvents = false;
 
         this.unsubscribeVisibilityListener = null;
 
@@ -100,7 +101,6 @@ class ReportActionsView extends React.Component {
             this.setState({newMarkerSequenceNumber: 0});
         });
 
-        Report.subscribeToReportTypingEvents(this.props.report.reportID);
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
             if (!ReportActionComposeFocusManager.isFocused()) {
                 return;
@@ -233,6 +233,16 @@ class ReportActionsView extends React.Component {
             && ReportUtils.isUnread(this.props.report);
         if (didManuallyMarkReportAsUnread) {
             this.setState({newMarkerSequenceNumber: this.props.report.lastReadSequenceNumber + 1});
+        }
+
+        // Preventing the subscribe event fail when the creating the report/workspace room optimistically. Check if the optimistic
+        // `OpenReport` or `AddWorkspaceRoom` success by `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` is set to null.
+        // The other reports created will have empty field on `pendingFields`.
+        const didReportSuccessfullyCreated = !this.props.report.pendingFields
+            || (!this.props.report.pendingFields.addWorkspaceRoom && !this.props.report.pendingFields.createChat);
+        if (!this.didSubscribeToReportTypingEvents && didReportSuccessfullyCreated) {
+            Report.subscribeToReportTypingEvents(this.props.report.reportID);
+            this.didSubscribeToReportTypingEvents = true;
         }
     }
 
