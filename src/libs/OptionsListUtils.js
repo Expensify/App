@@ -198,11 +198,7 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
         if (isChatRoomOrPolicyExpenseChat) {
             const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report, policies);
 
-            // When running tests, chatRoomSubtitle can be undefined due to the Localize() stuff being mocked in the tests.
-            // It's OK to ignore this and just add a null check in here to keep code from crashing.
-            if (chatRoomSubtitle) {
-                Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
-            }
+            Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
         } else {
             searchTerms = searchTerms.concat(report.participants);
         }
@@ -308,7 +304,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
         result.allReportErrors = getAllReportErrors(report, reportActions);
         result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-        result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom : null;
+        result.pendingAction = report.pendingFields ? (report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat) : null;
         result.ownerEmail = report.ownerEmail;
         result.reportID = report.reportID;
         result.isUnread = ReportUtils.isUnread(report);
