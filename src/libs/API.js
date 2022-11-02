@@ -105,6 +105,10 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
  * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  */
 function read(command, apiCommandParameters, onyxData) {
+    // We need to ensure all the write requests on the sequential queue have responded first before running read requests.
+    // This is because if we make write requests offline, their optimisticData can get overwritten by responses from
+    // lightweight read requests that access the same Onyx key and modify its value before the write request has had a chance to update it after responding.
+    // This prevents the "flickering" effect.
     SequentialQueue.getIsReadyPromise().then(() => makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ));
 }
 
