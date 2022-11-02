@@ -99,12 +99,10 @@ function getOrderedReportIDs(reportIDFromRoute) {
 
     // Get all the display names for our reports in an easy to access property so we don't have to keep
     // re-running the logic
-    const before = Date.now();
     const filteredReportsWithReportName = _.map(filteredReports, (report) => {
         report.reportDisplayName = ReportUtils.getReportName(report, policies);
         return report;
     });
-    console.log('!!!', Date.now() - before)
 
     // Sorting the reports works like this:
     // - When in default mode, reports will be ordered by most recently updated (in descending order) so that the most recently updated are at the top
