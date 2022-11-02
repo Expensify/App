@@ -20,6 +20,7 @@ import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 import ROUTES from '../ROUTES';
+import * as PersonalDetails from '../libs/actions/PersonalDetails';
 
 const propTypes = {
     /** Whether screen is used to create group chat */
@@ -134,17 +135,20 @@ class NewChatPage extends Component {
     /**
      * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
      *
-     * @param {Array} userLogins list of user logins.
+     * @param {Object} option option.
      */
-    getOrCreateChatReport(userLogins) {
+    getOrCreateChatReport(option) {
+        const userLogins = _.pluck(option, 'login');
         const formattedUserLogins = _.map(userLogins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
         let newChat = {};
+        let newPersonalDetail = {};
         const chat = ReportUtils.getChatByParticipants(formattedUserLogins);
         if (!chat) {
             newChat = ReportUtils.buildOptimisticChatReport(formattedUserLogins);
+            newPersonalDetail = PersonalDetails.buildNewPersonalDetails(option);
         }
         const reportID = chat ? chat.reportID : newChat.reportID;
-        Report.openReport(reportID, newChat.participants, newChat);
+        Report.openReport(reportID, newChat.participants, newChat, newPersonalDetail);
         Navigation.navigate(ROUTES.getReportRoute(reportID));
     }
 
@@ -198,7 +202,7 @@ class NewChatPage extends Component {
      * @param {Object} option
      */
     createChat(option) {
-        this.getOrCreateChatReport([option.login]);
+        this.getOrCreateChatReport([option]);
     }
 
     /**
@@ -206,11 +210,10 @@ class NewChatPage extends Component {
      * or navigates to the existing chat if one with those participants already exists.
      */
     createGroup() {
-        const userLogins = _.pluck(this.state.selectedOptions, 'login');
-        if (userLogins.length < 1) {
+        if (this.state.selectedOptions.length < 1) {
             return;
         }
-        this.getOrCreateChatReport(userLogins);
+        this.getOrCreateChatReport(this.state.selectedOptions);
     }
 
     render() {

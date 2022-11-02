@@ -697,8 +697,9 @@ function addComment(reportID, text) {
  * @param {String} reportID
  * @param {Array} participantList The list of users that are included in a new chat, not including the user creating it
  * @param {Object} newReportObject The optimistic report object created when making a new chat, saved as optimistic data
+ * @param {Object} newPersonalDetail The optimistic personal object created when making a new chat, saved as optimistic data
  */
-function openReport(reportID, participantList = [], newReportObject = {}) {
+function openReport(reportID, participantList = [], newReportObject = {}, newPersonalDetail = {}) {
     const onyxData = {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -746,6 +747,11 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail),
+        };
+        onyxData.optimisticData[2] = {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: newPersonalDetail,
         };
     }
     API.write('OpenReport',

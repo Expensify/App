@@ -12,6 +12,7 @@ import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../ReportUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
+import * as OptionsListUtils from '../OptionsListUtils';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -386,6 +387,44 @@ function clearAvatarErrors() {
     });
 }
 
+/**
+ *
+ * @param {Object} detail
+ * @returns {Object}
+ */
+function buildNewPersonalDetail(detail) {
+    const login = Str.isValidPhone(detail.login) ? OptionsListUtils.addSMSDomainIfPhoneNumber(detail.login).toLowerCase() : detail.login.toLowerCase();
+    return {
+        avatar: detail.icons[0],
+        avatarHighResolution: detail.icons[0],
+        login,
+        displayName: login,
+        firstName: '',
+        lastName: '',
+        payPalMeAddress: '',
+        pronouns: '',
+        timezone: CONST.DEFAULT_TIME_ZONE,
+        validated: false,
+    };
+}
+
+/**
+ *
+ * @param {Array} options
+ * @returns {Object}
+ */
+function buildNewPersonalDetails(options) {
+    const newPersonalDetails = _.filter(options, (o) => {
+        const login = Str.isValidPhone(o.login) ? OptionsListUtils.addSMSDomainIfPhoneNumber(o.login).toLowerCase() : o.login.toLowerCase();
+        return !personalDetails[login];
+    });
+    return _.reduce(newPersonalDetails, (acc, cur) => {
+        const personalDetail = buildNewPersonalDetail(cur);
+        acc[personalDetail.login] = personalDetail;
+        return acc;
+    }, {});
+}
+
 export {
     formatPersonalDetails,
     getFromReportParticipants,
@@ -398,4 +437,5 @@ export {
     extractFirstAndLastNameFromAvailableDetails,
     updateProfile,
     clearAvatarErrors,
+    buildNewPersonalDetails,
 };
