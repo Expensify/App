@@ -356,28 +356,11 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
 
-    const tooltipText = ReportUtils.getReportParticipantsTitle(lodashGet(report, ['participants'], []));
-    const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
-    const reportName = ReportUtils.getReportName(report, personalDetailMap, policies);
-    let alternateText;
-    if (isChatRoom || isPolicyExpenseChat) {
-        alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
-            ? lastMessageText
-            : subtitle;
-    } else {
-        alternateText = (showChatPreviewLine && lastMessageText)
-            ? lastMessageText
-            : Str.removeSMSDomain(personalDetail.login);
-    }
-    return {
-        text: reportName,
-        alternateText,
-        brickRoadIndicator: getBrickRoadIndicatorStatusForReport(report, reportActions),
-        icons: ReportUtils.getIcons(report, personalDetails, policies, lodashGet(personalDetail, ['avatar'])),
-        tooltipText,
-        ownerEmail: lodashGet(report, ['ownerEmail']),
-        subtitle,
-        participantsList: personalDetailList,
+    const reportName = ReportUtils.getReportName(report, policies);
+    result.text = reportName;
+    result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
+    result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
+    result.subtitle = subtitle;
 
         // It doesn't make sense to provide a login in the case of a report with multiple participants since
         // there isn't any one single login to refer to for a report.
