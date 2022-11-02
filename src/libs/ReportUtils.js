@@ -472,12 +472,14 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
  * @param {String} participant.displayName
  * @param {String} participant.firstName
  * @param {String} participant.login
- * @param {Boolean} [shouldUseShortForm]
  * @returns {String}
  */
-function getDisplayNameForParticipant(participant, shouldUseShortForm = false) {
+function getDisplayNameForParticipant(participant) {
     if (!participant) {
         return '';
+    }
+    if (lodashGet(participant, 'firstName', '')) {
+        return participant.firstName;
     }
 
     const loginWithoutSMSDomain = Str.removeSMSDomain(participant.login);
@@ -485,9 +487,8 @@ function getDisplayNameForParticipant(participant, shouldUseShortForm = false) {
     if (Str.isSMSLogin(longName)) {
         longName = LocalePhoneNumber.toLocalPhone(preferredLocale, longName);
     }
-    const shortName = participant.firstName || longName;
 
-    return shouldUseShortForm ? shortName : longName;
+    return longName;
 }
 
 /**
@@ -689,8 +690,7 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
  */
 function getIOUReportActionMessage(type, total, participants, comment, currency) {
     const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
-    const isMultipleParticipantReport = participants.length > 1;
-    const displayNames = _.map(participants, participant => getDisplayNameForParticipant(allPersonalDetails[participant.login], isMultipleParticipantReport) || participant.login);
+    const displayNames = _.map(participants, participant => getDisplayNameForParticipant(allPersonalDetails[participant.login]) || participant.login);
     const from = displayNames.length < 3
         ? displayNames.join(' and ')
         : `${displayNames.slice(0, -1).join(', ')}, and ${_.last(displayNames)}`;
