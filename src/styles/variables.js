@@ -37,7 +37,7 @@ export default {
     iconSizeExtraLarge: 40,
     iconSizeSuperLarge: 60,
     emojiSize: 20,
-    emojiLineHeight: 27,
+    emojiLineHeight: 24,
     iouAmountTextSize: 40,
     mobileResponsiveWidthBreakpoint: 800,
     tabletResponsiveWidthBreakpoint: 1024,
