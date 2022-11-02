@@ -155,9 +155,7 @@ getPullRequestBody()
             const commentChecklistNumber = countCheckedBoxes(comment);
 
             if (
-                reviewerChecklistComment !== i
-                && authorChecklistComment !== i
-                && commentChecklistNumber >= authorChecklistNumber - 2
+                commentChecklistNumber >= authorChecklistNumber - 2
                 && commentChecklistNumber <= authorChecklistNumber + 2
                 && !comment.includes('[ ]')
             ) {
@@ -165,8 +163,7 @@ getPullRequestBody()
             }
 
             if (
-                reviewerChecklistComment !== i
-                && authorChecklistComment !== i
+                authorChecklistComment !== i
                 && commentChecklistNumber >= reviewerChecklistNumber - 2
                 && commentChecklistNumber <= reviewerChecklistNumber + 2
                 && !comment.includes('[ ]')
