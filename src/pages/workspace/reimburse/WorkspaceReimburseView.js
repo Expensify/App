@@ -66,7 +66,7 @@ class WorkspaceReimburseView extends React.Component {
             unitName: lodashGet(distanceCustomUnit, 'name', ''),
             unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
             unitRateID: lodashGet(customUnitRate, 'customUnitRateID', ''),
-            unitRateValue: this.getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET),
+            unitRateValue: this.getUnitRateValue(customUnitRate),
             outputCurrency: lodashGet(props, 'policy.outputCurrency', ''),
         };
 
@@ -101,7 +101,7 @@ class WorkspaceReimburseView extends React.Component {
                 unitName: lodashGet(distanceCustomUnit, 'name', ''),
                 unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
                 unitRateID: lodashGet(customUnitRate, 'customUnitRateID'),
-                unitRateValue: this.getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / 100),
+                unitRateValue: this.getUnitRateValue(customUnitRate),
             });
         }
 
@@ -111,6 +111,10 @@ class WorkspaceReimburseView extends React.Component {
         }
 
         Policy.openWorkspaceReimburseView(this.props.policy.id);
+    }
+
+    getUnitRateValue(customUnitRate) {
+        return this.getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET);
     }
 
     getRateDisplayValue(value) {
@@ -130,7 +134,9 @@ class WorkspaceReimburseView extends React.Component {
         return numValue.toFixed(3);
     }
 
-    setRate(value) {
+    setRate(inputValue) {
+        const value = inputValue.replace(/[^0-9.]/g, '');
+
         const decimalSeparator = this.props.toLocaleDigit('.');
         const rateValueRegex = RegExp(String.raw`^\d{1,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,3})?$`, 'i');
         const isInvalidRateValue = value !== '' && !rateValueRegex.test(value);
@@ -235,7 +241,7 @@ class WorkspaceReimburseView extends React.Component {
                                     <TextInput
                                         label={this.props.translate('workspace.reimburse.trackDistanceRate')}
                                         placeholder={this.state.outputCurrency}
-                                        onChangeText={value => this.setRate(value.replace(/[^0-9.]/g, ''))}
+                                        onChangeText={value => this.setRate(value)}
                                         value={this.state.unitRateValue}
                                         autoCompleteType="off"
                                         autoCorrect={false}
