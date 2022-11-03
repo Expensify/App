@@ -47,10 +47,8 @@ const TextLink = (props) => {
     };
 
     /**
-     *
      * @param {Event} event
      */
-
     const openLinkIfEnterKeyPressed = (event) => {
         if (event.key !== 'Enter') {
             return;
