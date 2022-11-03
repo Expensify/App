@@ -1,19 +1,28 @@
 import React from 'react';
-import sidebarPropTypes from './sidebarPropTypes';
+import {withOnyx} from 'react-native-onyx';
+import compose from '../../../../libs/compose';
+import withWindowDimensions from '../../../../components/withWindowDimensions';
+import withLocalize from '../../../../components/withLocalize';
+import ONYXKEYS from '../../../../ONYXKEYS';
+import {sidebarPropTypes, sidebarDefaultProps} from './sidebarPropTypes';
 import BaseSidebarScreen from './BaseSidebarScreen';
-import PopoverModal from './PopoverModal';
 
-const SidebarScreen = props => (
-    <>
-        <BaseSidebarScreen
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-        />
-        <PopoverModal />
-    </>
-);
+// eslint-disable-next-line react/jsx-props-no-spreading
+const SidebarScreen = props => <BaseSidebarScreen {...props} />;
 
 SidebarScreen.propTypes = sidebarPropTypes;
+SidebarScreen.defaultProps = sidebarDefaultProps;
 SidebarScreen.displayName = 'SidebarScreen';
 
-export default SidebarScreen;
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+    withOnyx({
+        allPolicies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+    }),
+)(SidebarScreen);

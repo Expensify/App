@@ -80,6 +80,11 @@ function dismissWorkspaceError(policyID, pendingAction) {
         Policy.clearDeleteWorkspaceError(policyID);
         return;
     }
+
+    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        Policy.removeWorkspace(policyID);
+        return;
+    }
     throw new Error('Not implemented');
 }
 
@@ -122,7 +127,6 @@ class WorkspacesListPage extends Component {
                 brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
                 pendingAction: policy.pendingAction,
                 isPolicy: true,
-                errors: policy.errors,
                 dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
                 disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             }))
