@@ -38,18 +38,6 @@ function ChangePassword(parameters) {
 }
 
 /**
- * @param {object} parameters
- * @param {string} parameters.emailList
- * @returns {Promise}
- */
-function CreateChatReport(parameters) {
-    const commandName = 'CreateChatReport';
-    requireParameters(['emailList'],
-        parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
  * @param {Object} parameters
  * @param {String} parameters.email
  * @returns {Promise}
@@ -510,7 +498,6 @@ function GetStatementPDF(parameters) {
 export {
     BankAccount_SetupWithdrawal,
     ChangePassword,
-    CreateChatReport,
     CreateLogin,
     DeleteLogin,
     Get,
