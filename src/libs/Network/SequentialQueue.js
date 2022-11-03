@@ -119,9 +119,6 @@ function getCurrentRequest() {
  * @returns {Promise}
  */
 function waitForIdle() {
-    if (!isSequentialQueueRunning) {
-        return Promise.resolve();
-    }
     return isReadyPromise;
 }
 
