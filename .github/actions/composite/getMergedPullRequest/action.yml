@@ -5,6 +5,8 @@ runs:
   using: composite
   steps:
     - shell: bash
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
       run: |
         PR_DATA=$(gh pr list \
           --state merged \
