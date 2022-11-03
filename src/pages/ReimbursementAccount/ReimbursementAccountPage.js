@@ -11,6 +11,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import ReimbursementAccountLoadingIndicator from '../../components/ReimbursementAccountLoadingIndicator';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
+import BankAccount from '../../libs/models/BankAccount';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
@@ -22,6 +23,7 @@ import networkPropTypes from '../../components/networkPropTypes';
 // Steps
 import BankAccountStep from './BankAccountStep';
 import CompanyStep from './CompanyStep';
+import ContinueBankAccountSetup from './ContinueBankAccountSetup';
 import RequestorStep from './RequestorStep';
 import ValidationStep from './ValidationStep';
 import ACHContractStep from './ACHContractStep';
@@ -173,6 +175,13 @@ class ReimbursementAccountPage extends React.Component {
                 <ReimbursementAccountLoadingIndicator
                     isSubmittingVerificationsData={isSubmittingVerificationsData}
                 />
+            );
+        }
+
+        const hasInProgressVBBA = achData.bankAccountID && achData.status !== BankAccount.STATE.OPEN;
+        if (hasInProgressVBBA && !this.props.reimbursementAccount.isReadyToContinue) {
+            return (
+                <ContinueBankAccountSetup />
             );
         }
 

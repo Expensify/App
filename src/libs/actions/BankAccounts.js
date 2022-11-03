@@ -48,6 +48,14 @@ function clearOnfidoToken() {
     Onyx.merge(ONYXKEYS.ONFIDO_TOKEN, '');
 }
 
+function setReadyToContinue() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isReadyToContinue: true});
+}
+
+function clearReadyToContinue() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isReadyToContinue: null});
+}
+
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
  *
@@ -327,8 +335,10 @@ export {
     clearPersonalBankAccount,
     clearPlaid,
     clearOnfidoToken,
+    clearReadyToContinue,
     connectBankAccountWithPlaid,
     deletePaymentBankAccount,
+    setReadyToContinue,
     updateBeneficialOwnersForBankAccount,
     updateCompanyInformationForBankAccount,
     updatePersonalInformationForBankAccount,
