@@ -10,6 +10,6 @@ jobs:
     if: github.actor != 'OSBotify'
     steps:
       - name: authorChecklist.js
-        uses: Expensify/App/.github/actions/javascript/authorChecklist@tgolen-github-action-new-checklist
+        uses: Expensify/App/.github/actions/javascript/authorChecklist@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
