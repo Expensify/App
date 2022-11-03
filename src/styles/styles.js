@@ -342,7 +342,7 @@ const styles = {
 
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeLarge,
         justifyContent: 'center',
         ...spacing.ph3,
@@ -361,12 +361,11 @@ const styles = {
     },
 
     buttonSmall: {
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeSmall,
         paddingTop: 6,
-        paddingRight: 10,
+        paddingHorizontal: 14,
         paddingBottom: 6,
-        paddingLeft: 10,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
