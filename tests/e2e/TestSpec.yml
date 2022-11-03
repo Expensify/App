@@ -8,6 +8,7 @@ phases:
       - nvm install 16.15.1
 
       - ls -R
+      - find .
 
       # Fetch latest code from GitHub
       - git clone https://github.com/AndrewGable/App.git Git-App
