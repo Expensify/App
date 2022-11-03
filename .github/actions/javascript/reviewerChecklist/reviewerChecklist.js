@@ -1,8 +1,8 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const _ = require('underscore');
-const GitHubUtils = require('../../../libs/GithubUtils');
 const https = require('https');
+const GitHubUtils = require('../../../libs/GithubUtils');
 
 const pathToReviewerChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/contributingGuides/REVIEWER_CHECKLIST.md';
 const reviewerChecklistStartsWith = '## Reviewer Checklist';
@@ -16,10 +16,10 @@ function getNumberOfItemsFromReviewerChecklist() {
     return new Promise((resolve, reject) => {
         https.get(pathToReviewerChecklist, (res) => {
             let fileContents = '';
-            res.on('data', function (chunk) {
+            res.on('data', (chunk) => {
                 fileContents += chunk;
             });
-            res.on('end', function () {
+            res.on('end', () => {
                 const numberOfChecklistItems = (fileContents.match(/- \[ \]/g) || []).length;
                 resolve(numberOfChecklistItems);
             });
@@ -69,11 +69,11 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
             for (let i = 0; i < combinedComments.length; i++) {
                 // Skip all other comments if we already found the reviewer checklist
                 if (foundReviewerChecklist) {
-                    continue;
+                    return;
                 }
 
                 const whitespace = /([\n\r])/gm;
-                const comment = combinedData[i].replace(whitespace, '');
+                const comment = combinedComments[i].replace(whitespace, '');
 
                 // Found the reviewer checklist, so count how many completed checklist items there are
                 if (comment.startsWith(reviewerChecklistStartsWith)) {
