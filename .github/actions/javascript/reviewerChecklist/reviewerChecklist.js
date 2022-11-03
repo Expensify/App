@@ -1,6 +1,5 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
-const _ = require('underscore');
 const https = require('https');
 const GitHubUtils = require('../../../libs/GithubUtils');
 
