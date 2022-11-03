@@ -8,7 +8,7 @@ jobs:
     name: "Run e2e performance regression tests"
     runs-on: macos-12
     steps:
-      - uses: Expensify/App/.github/actions/composite/setupNode@andrew-aws-df
+      - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
         with:
@@ -52,11 +52,7 @@ jobs:
           test_spec_type: APPIUM_NODE_TEST_SPEC
           remote_src: false
           file_artifacts: |
-            Git-App/tests/e2e/.results/current.json
-            Git-App/tests/e2e/.results/baseline.json
-            Git-App/tests/e2e/.results/compare.json
-            Git-App/tests/e2e/.results/debug.log
-            Git-App/tests/e2e/.results/output.md
+            Customer Artifacts.zip
 
       - name: Debug
         run: find .

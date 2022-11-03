@@ -27,8 +27,4 @@ phases:
       - cat tests/e2e/.results/output.md
 
 artifacts:
-- $WORKING_DIRECTORY/Git-App/tests/e2e/.results/current.json
-- $WORKING_DIRECTORY/Git-App/tests/e2e/.results/compare.json
-- $WORKING_DIRECTORY/Git-App/tests/e2e/.results/baseline.json
-- $WORKING_DIRECTORY/Git-App/tests/e2e/.results/debug.log
-- $WORKING_DIRECTORY/Git-App/tests/e2e/.results/output.md
+- $WORKING_DIRECTORY
