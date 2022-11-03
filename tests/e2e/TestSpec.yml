@@ -37,8 +37,8 @@ phases:
 # And also let you specify the location of your test logs and artifacts which you want to be collected by Device Farm.
 # These logs and artifacts will be available through ListArtifacts API in Device Farm.
 artifacts:
-- Git-App/tests/e2e/.results/current.json
-- Git-App/tests/e2e/.results/compare.json
-- Git-App/tests/e2e/.results/baseline.json
-- Git-App/tests/e2e/.results/debug.log
-- Git-App/tests/e2e/.results/output.md
+- $WORKING_DIRECTORY/Git-App/tests/e2e/.results/current.json
+- $WORKING_DIRECTORY/Git-App/tests/e2e/.results/compare.json
+- $WORKING_DIRECTORY/Git-App/tests/e2e/.results/baseline.json
+- $WORKING_DIRECTORY/Git-App/tests/e2e/.results/debug.log
+- $WORKING_DIRECTORY/Git-App/tests/e2e/.results/output.md
