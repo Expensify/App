@@ -45,7 +45,7 @@ class WorkspaceCardPage extends React.Component {
                 route={this.props.route}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_CARD}
             >
-                {(hasVBA, policyID, isUsingECard) => (
+                {(policyID, isUsingECard) => (
                     <>
                         {!hasVBBA && (
                             <WorkspaceCardNoVBAView policyID={policyID} />

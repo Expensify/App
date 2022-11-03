@@ -91,7 +91,7 @@ class WorkspaceSettingsPage extends React.Component {
                     route={this.props.route}
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_SETTINGS}
                 >
-                    {hasVBA => (
+                    {() => (
                         <Form
                             formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
                             submitButtonText={this.props.translate('workspace.editor.save')}

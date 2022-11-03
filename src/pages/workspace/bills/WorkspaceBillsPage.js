@@ -45,7 +45,7 @@ class WorkspaceBillsPage extends React.Component {
                 route={this.props.route}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BILLS}
             >
-                {(hasVBA, policyID) => (
+                {(policyID) => (
                     <>
                         {!hasVBBA && (
                             <WorkspaceBillsNoVBAView policyID={policyID} />
