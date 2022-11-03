@@ -169,7 +169,7 @@ class ReimbursementAccountPage extends React.Component {
             );
         }
 
-        const hasInProgressVBBA = achData.bankAccountID && achData.status !== BankAccount.STATE.OPEN;
+        const hasInProgressVBBA = achData.bankAccountID && achData.state !== BankAccount.STATE.OPEN;
         if (hasInProgressVBBA && !this.props.reimbursementAccount.isReadyToContinue) {
             return (
                 <ContinueBankAccountSetup />
