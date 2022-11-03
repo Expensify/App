@@ -496,7 +496,7 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
 
     const loginWithoutSMSDomain = Str.removeSMSDomain(personalDetails.login);
     let longName = personalDetails.displayName || loginWithoutSMSDomain;
-    if (Str.isSMSLogin(longName)) {
+    if (longName === loginWithoutSMSDomain && Str.isSMSLogin(longName)) {
         longName = LocalePhoneNumber.toLocalPhone(preferredLocale, longName);
     }
     const shortName = personalDetails.firstName || longName;
@@ -1095,6 +1095,7 @@ export {
     isPolicyExpenseChat,
     getDefaultAvatar,
     getIcons,
+    getDisplayNameForParticipant,
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
     getReportName,
