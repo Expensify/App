@@ -118,7 +118,7 @@ function getCurrentRequest() {
  * Returns a promise that resolves when the last request on the queue responds.
  * @returns {Promise}
  */
-function getIsReadyPromise() {
+function waitForIdle() {
     if (!isSequentialQueueRunning) {
         return Promise.resolve();
     }
@@ -130,5 +130,5 @@ export {
     getCurrentRequest,
     isRunning,
     push,
-    getIsReadyPromise,
+    waitForIdle,
 };
