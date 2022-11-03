@@ -74,6 +74,18 @@ const defaultProps = {
 };
 
 class ReimbursementAccountPage extends React.Component {
+    constructor(props) {
+        super(props);
+        this.continue = this.continue.bind(this);
+
+        const achData = lodashGet(this.props, 'reimbursementAccount.achData', {});
+        const hasInProgressVBBA = achData.bankAccountID && achData.state !== BankAccount.STATE.OPEN;
+        console.log(hasInProgressVBBA);
+        this.state = {
+            isReadyToContinue: !hasInProgressVBBA,
+        };
+    }
+
     componentDidMount() {
         this.fetchData();
     }
@@ -157,6 +169,13 @@ class ReimbursementAccountPage extends React.Component {
         BankAccounts.fetchFreePlanVerifiedBankAccount(stepToOpen !== CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT ? stepToOpen : '');
     }
 
+    continue() {
+        console.log('set state');
+        this.setState({
+            isReadyToContinue: true,
+        });
+    }
+
     render() {
         // The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
         // user left off. This view will refer to the achData as the single source of truth to determine which route to
@@ -179,9 +198,11 @@ class ReimbursementAccountPage extends React.Component {
         }
 
         const hasInProgressVBBA = achData.bankAccountID && achData.state !== BankAccount.STATE.OPEN;
-        if (hasInProgressVBBA && !this.props.reimbursementAccount.isReadyToContinue) {
+        if (hasInProgressVBBA && !this.state.isReadyToContinue) {
             return (
-                <ContinueBankAccountSetup />
+                <ContinueBankAccountSetup
+                    continue={this.continue}
+                />
             );
         }
 
