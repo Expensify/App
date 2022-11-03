@@ -1,15 +1,15 @@
 import React, {PureComponent} from 'react';
 import {
-    Pressable, Animated, Easing,
+    Pressable, Animated, Easing, KeyboardAvoidingView,
 } from 'react-native';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
-import themeColors from '../../styles/themes/default';
-import fabPropTypes from './fabPropTypes';
-import Tooltip from '../Tooltip';
-import withLocalize from '../withLocalize';
+import PropTypes from 'prop-types';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
+import styles from '../styles/styles';
+import * as StyleUtils from '../styles/StyleUtils';
+import themeColors from '../styles/themes/default';
+import Tooltip from './Tooltip';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const AnimatedIcon = Animated.createAnimatedComponent(Icon);
 AnimatedIcon.displayName = 'AnimatedIcon';
@@ -17,7 +17,17 @@ AnimatedIcon.displayName = 'AnimatedIcon';
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 AnimatedPressable.displayName = 'AnimatedPressable';
 
-class FAB extends PureComponent {
+const propTypes = {
+    // Callback to fire on request to toggle the FloatingActionButton
+    onPress: PropTypes.func.isRequired,
+
+    // Current state (active or not active) of the component
+    isActive: PropTypes.bool.isRequired,
+
+    ...withLocalizePropTypes,
+};
+
+class FloatingActionButton extends PureComponent {
     constructor(props) {
         super(props);
         this.animatedValue = new Animated.Value(props.isActive ? 1 : 0);
@@ -63,22 +73,25 @@ class FAB extends PureComponent {
         });
 
         return (
-            <Tooltip absolute text={this.props.translate('common.new')}>
-                <AnimatedPressable
-                    accessibilityLabel={this.props.accessibilityLabel}
-                    accessibilityRole={this.props.accessibilityRole}
-                    onPress={this.props.onPress}
-                    style={[
-                        styles.floatingActionButton,
-                        StyleUtils.getAnimatedFABStyle(rotate, backgroundColor),
-                    ]}
-                >
-                    <AnimatedIcon src={Expensicons.Plus} fill={fill} />
-                </AnimatedPressable>
-            </Tooltip>
+            <KeyboardAvoidingView behavior="padding">
+                <Tooltip absolute text={this.props.translate('common.new')}>
+                    <AnimatedPressable
+                        accessibilityLabel={this.props.accessibilityLabel}
+                        accessibilityRole={this.props.accessibilityRole}
+                        onPress={this.props.onPress}
+                        style={[
+                            styles.floatingActionButton,
+                            StyleUtils.getAnimatedFABStyle(rotate, backgroundColor),
+                        ]}
+                    >
+                        <AnimatedIcon src={Expensicons.Plus} fill={fill} />
+                    </AnimatedPressable>
+                </Tooltip>
+            </KeyboardAvoidingView>
         );
     }
 }
 
-FAB.propTypes = fabPropTypes;
-export default withLocalize(FAB);
+FloatingActionButton.propTypes = propTypes;
+
+export default withLocalize(FloatingActionButton);

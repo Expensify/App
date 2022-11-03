@@ -95,10 +95,6 @@ class LoginForm extends React.Component {
             return;
         }
         this.input.focus();
-
-        if (this.state.login) {
-            this.clearLogin();
-        }
     }
 
     /**

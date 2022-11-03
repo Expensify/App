@@ -33,7 +33,7 @@ jobs:
     steps:
       - name: Get user permissions
         id: getUserPermissions
-        run: echo "::set-output name=PERMISSION::$(gh api /repos/${{ github.repository }}/collaborators/${{ github.actor }}/permission | jq -r '.permission')"
+        run: echo "PERMISSION=$(gh api /repos/${{ github.repository }}/collaborators/${{ github.actor }}/permission | jq -r '.permission')" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
@@ -55,7 +55,8 @@ jobs:
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
-      - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
+      # TODO: Point back at upstream when https://github.com/softprops/turnstyle/pull/46 is merged
+      - uses: roryabraham/turnstyle@d50d3ffc3f2c8d280dec4cd802c1c735fcda77c8
         with:
           poll-interval-seconds: 10
         env:

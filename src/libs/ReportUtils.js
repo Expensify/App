@@ -300,7 +300,7 @@ function getChatRoomSubtitle(report, policiesMap) {
         return Localize.translateLocal('workspace.common.workspace');
     }
     if (isArchivedRoom(report)) {
-        return report.oldPolicyName;
+        return report.oldPolicyName || '';
     }
     return getPolicyName(report, policiesMap);
 }
@@ -379,11 +379,13 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
     const hasMultipleParticipants = participantsWithoutExpensifyEmails.length > 1;
     const reportRecipient = personalDetails[participantsWithoutExpensifyEmails[0]];
     const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
+    const isReportParticipantValidated = lodashGet(reportRecipient, 'validated', false);
     return !hasMultipleParticipants
         && !isChatRoom(report)
         && reportRecipient
         && reportRecipientTimezone
-        && reportRecipientTimezone.selected;
+        && reportRecipientTimezone.selected
+        && isReportParticipantValidated;
 }
 
 /**
@@ -480,7 +482,7 @@ function getDisplayNameForParticipant(participant, shouldUseShortForm = false) {
 
     const loginWithoutSMSDomain = Str.removeSMSDomain(participant.login);
     let longName = participant.displayName || loginWithoutSMSDomain;
-    if (Str.isSMSLogin(longName)) {
+    if (longName === loginWithoutSMSDomain && Str.isSMSLogin(longName)) {
         longName = LocalePhoneNumber.toLocalPhone(preferredLocale, longName);
     }
     const shortName = participant.firstName || longName;
@@ -645,10 +647,19 @@ function buildOptimisticReportAction(sequenceNumber, text, file) {
     };
 }
 
-/*
+/**
  * Builds an optimistic IOU report with a randomly generated reportID
+ *
+ * @param {String} ownerEmail - Email of the person generating the IOU.
+ * @param {String} userEmail - Email of the other person participating in the IOU.
+ * @param {Number} total - IOU amount in cents.
+ * @param {String} chatReportID - Report ID of the chat where the IOU is.
+ * @param {String} currency - IOU currency.
+ * @param {String} locale - Locale where the IOU is created
+ *
+ * @returns {Object}
  */
-function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportID, currency, locale) {
+function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, currency, locale) {
     const formattedTotal = NumberFormatUtils.format(locale,
         total, {
             style: 'currency',
@@ -659,7 +670,7 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
         chatReportID,
         currency,
         hasOutstandingIOU: true,
-        managerEmail: recipientEmail,
+        managerEmail: userEmail,
         ownerEmail,
         reportID: generateReportID(),
         state: CONST.REPORT.STATE.SUBMITTED,
@@ -669,22 +680,59 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
 }
 
 /**
+ * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
+ * @param {Number} total - IOU total in cents
+ * @param {Array} participants - List of logins for the IOU participants, excluding the current user login
+ * @param {String} comment - IOU comment
+ * @param {String} currency - IOU currency
+ * @returns {Array}
+ */
+function getIOUReportActionMessage(type, total, participants, comment, currency) {
+    const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
+    const isMultipleParticipantReport = participants.length > 1;
+    const displayNames = _.map(participants, participant => getDisplayNameForParticipant(allPersonalDetails[participant.login], isMultipleParticipantReport) || participant.login);
+    const from = displayNames.length < 3
+        ? displayNames.join(' and ')
+        : `${displayNames.slice(0, -1).join(', ')}, and ${_.last(displayNames)}`;
+
+    let iouMessage;
+    switch (type) {
+        case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
+            iouMessage = `Requested ${amount} from ${from}${comment && ` for ${comment}`}`;
+            break;
+        case CONST.IOU.REPORT_ACTION_TYPE.SPLIT:
+            iouMessage = `Split ${amount} with ${from}${comment && ` for ${comment}`}`;
+            break;
+        default:
+            break;
+    }
+
+    return [{
+        html: iouMessage,
+        text: iouMessage,
+        isEdited: false,
+        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+    }];
+}
+
+/**
  * Builds an optimistic IOU reportAction object
  *
  * @param {Number} sequenceNumber - Caller is responsible for providing a best guess at what the next sequenceNumber will be.
- * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay).
+ * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split).
  * @param {Number} amount - IOU amount in cents.
+ * @param {String} currency - IOU currency.
  * @param {String} comment - User comment for the IOU.
+ * @param {Array}  participants - An array with participants details.
  * @param {String} paymentType - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
- * @param {String} existingIOUTransactionID - Only required if the IOUReportAction type is oneOf(cancel, decline). Generates a randomID as default.
- * @param {Number} existingIOUReportID - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
+ * @param {String} iouTransactionID - Only required if the IOUReportAction type is oneOf(cancel, decline). Generates a randomID as default.
+ * @param {String} iouReportID - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = 0) {
-    const currency = lodashGet(currentUserPersonalDetails, 'localCurrencyCode');
-    const IOUTransactionID = existingIOUTransactionID || NumberUtils.rand64();
-    const IOUReportID = existingIOUReportID || generateReportID();
+function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, comment, participants, paymentType = '', iouTransactionID = '', iouReportID = '') {
+    const IOUTransactionID = iouTransactionID || NumberUtils.rand64();
+    const IOUReportID = iouReportID || generateReportID();
     const originalMessage = {
         amount,
         comment,
@@ -703,6 +751,11 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, p
         originalMessage.paymentType = paymentType;
     }
 
+    // IOUs of type split only exist in group DMs and those don't have an iouReport so we need to delete the IOUReportID key
+    if (type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
+        delete originalMessage.IOUReportID;
+    }
+
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: currentUserAccountID,
@@ -712,6 +765,7 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, p
         clientID: NumberUtils.generateReportActionClientID(),
         isAttachment: false,
         originalMessage,
+        message: getIOUReportActionMessage(type, amount, participants, comment, currency),
         person: [{
             style: 'strong',
             text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
@@ -736,6 +790,7 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, comment, p
  * @param {Boolean} isOwnPolicyExpenseChat
  * @param {String} oldPolicyName
  * @param {String} visibility
+ * @param {String} notificationPreference
  * @returns {Object}
  */
 function buildOptimisticChatReport(
@@ -747,6 +802,7 @@ function buildOptimisticChatReport(
     isOwnPolicyExpenseChat = false,
     oldPolicyName = '',
     visibility = undefined,
+    notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
 ) {
     return {
         chatType,
@@ -760,7 +816,7 @@ function buildOptimisticChatReport(
         lastMessageTimestamp: 0,
         lastVisitedTimestamp: 0,
         maxSequenceNumber: 0,
-        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
+        notificationPreference,
         oldPolicyName,
         ownerEmail,
         participants: participantList,
@@ -826,15 +882,35 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         null,
         false,
         policyName,
+        null,
+
+        // #announce contains all policy members so notifying always should be opt-in only.
+        CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
     );
     const announceChatReportID = announceChatData.reportID;
     const announceReportActionData = buildOptimisticCreatedReportAction(announceChatData.ownerEmail);
 
-    const adminsChatData = buildOptimisticChatReport([currentUserEmail], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, null, false, policyName);
+    const adminsChatData = buildOptimisticChatReport(
+        [currentUserEmail],
+        CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
+        CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+        policyID,
+        null,
+        false,
+        policyName,
+    );
     const adminsChatReportID = adminsChatData.reportID;
     const adminsReportActionData = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
 
-    const expenseChatData = buildOptimisticChatReport([currentUserEmail], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserEmail, true, policyName);
+    const expenseChatData = buildOptimisticChatReport(
+        [currentUserEmail],
+        '',
+        CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        policyID,
+        currentUserEmail,
+        true,
+        policyName,
+    );
     const expenseChatReportID = expenseChatData.reportID;
     const expenseReportActionData = buildOptimisticCreatedReportAction(expenseChatData.ownerEmail);
 
@@ -1007,6 +1083,7 @@ export {
     isPolicyExpenseChat,
     getDefaultAvatar,
     getIcons,
+    getDisplayNameForParticipant,
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
     getReportName,
@@ -1022,4 +1099,5 @@ export {
     buildOptimisticReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
+    getIOUReportActionMessage,
 };

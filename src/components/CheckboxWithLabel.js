@@ -39,6 +39,9 @@ const propTypes = {
     /** Error text to display */
     errorText: PropTypes.string,
 
+    /** Value for checkbox. This prop is intended to be set by Form.js only */
+    value: PropTypes.bool,
+
     /** The default value for the checkbox */
     defaultValue: PropTypes.bool,
 
@@ -46,9 +49,11 @@ const propTypes = {
     forwardedRef: PropTypes.func,
 
     /** The ID used to uniquely identify the input in a Form */
+    /* eslint-disable-next-line react/no-unused-prop-types */
     inputID: PropTypes.string,
 
     /** Saves a draft of the input value when used in a form */
+    /* eslint-disable-next-line react/no-unused-prop-types */
     shouldSaveDraft: PropTypes.bool,
 };
 
@@ -60,6 +65,7 @@ const defaultProps = {
     errorText: '',
     shouldSaveDraft: false,
     isChecked: false,
+    value: false,
     defaultValue: false,
     forwardedRef: () => {},
 };
@@ -68,7 +74,7 @@ class CheckboxWithLabel extends React.Component {
     constructor(props) {
         super(props);
 
-        this.isChecked = props.defaultValue || props.isChecked;
+        this.isChecked = props.value || props.defaultValue || props.isChecked;
         this.LabelComponent = props.LabelComponent;
 
         this.toggleCheckbox = this.toggleCheckbox.bind(this);
@@ -89,8 +95,6 @@ class CheckboxWithLabel extends React.Component {
                         label={this.props.label}
                         hasError={Boolean(this.props.errorText)}
                         forwardedRef={this.props.forwardedRef}
-                        inputID={this.props.inputID}
-                        shouldSaveDraft={this.props.shouldSaveDraft}
                     />
                     <TouchableOpacity
                         focusable={false}
