@@ -1,6 +1,8 @@
 name: PR Author Checklist
 
-on: pull_request
+on:
+  pull_request:
+    types: [opened, edited, reopened]
 
 jobs:
   checklist:
