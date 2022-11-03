@@ -1,0 +1,13 @@
+name: PR Reviewer Checklist
+
+on: pull_request_review
+
+jobs:
+  checklist:
+    runs-on: ubuntu-latest
+    if: github.actor != 'OSBotify'
+    steps:
+      - name: reviewerChecklist.js
+        uses: Expensify/App/.github/actions/javascript/reviewerChecklist@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

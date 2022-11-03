@@ -1,0 +1,13 @@
+name: PR Author Checklist
+
+on: pull_request
+
+jobs:
+  checklist:
+    runs-on: ubuntu-latest
+    if: github.actor != 'OSBotify'
+    steps:
+      - name: authorChecklist.js
+        uses: Expensify/App/.github/actions/javascript/authorChecklist@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
