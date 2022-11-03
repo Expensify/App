@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import {createRef} from 'react';
 import lodashGet from 'lodash/get';
-import lodashMerge from 'lodash/merge';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as DeprecatedAPI from '../deprecatedAPI';
@@ -107,12 +106,7 @@ function openPaymentsPage() {
         ],
     };
 
-    return API.read('OpenPaymentsPage', {
-        // We're passing this to have the data returned in the right format.
-        // This can be removed when the massageData parameter
-        // is removed from here https://github.com/Expensify/Web-Expensify/blob/main/lib/BankAccountAPI.php#L1064.
-        massageData: true,
-    }, onyxData);
+    return API.read('OpenPaymentsPage', {}, onyxData);
 }
 
 /**
@@ -321,7 +315,7 @@ function dismissSuccessfulTransferBalancePage() {
  * @returns {Boolean}
  */
 function hasPaymentMethodError(bankList, cardList) {
-    const combinedPaymentMethods = lodashMerge(bankList, cardList);
+    const combinedPaymentMethods = {...bankList, ...cardList};
     return _.some(combinedPaymentMethods, item => !_.isEmpty(item.errors));
 }
 
