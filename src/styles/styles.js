@@ -692,8 +692,8 @@ const styles = {
         justifyContent: 'center',
         height: '100%',
         backgroundColor: themeColors.componentBG,
-        borderWidth: 2,
-        borderColor: themeColors.border,
+        borderBottomWidth: 2,
+        borderBottomColor: themeColors.border,
         overflow: 'hidden',
     },
 
