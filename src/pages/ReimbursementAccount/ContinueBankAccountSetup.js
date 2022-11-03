@@ -76,6 +76,7 @@ const ContinueBankAccountSetup = props => (
 );
 
 ContinueBankAccountSetup.propTypes = propTypes;
+ContinueBankAccountSetup.displayName = 'ContinueBankAccountSetup';
 
 export default compose(
     withPolicy,
