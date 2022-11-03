@@ -115,7 +115,7 @@ function getCurrentRequest() {
 }
 
 /**
- * Returns a promise that resolves when the last request on the queue responds.
+ * Returns a promise that resolves when the sequential queue is done processing all persisted write requests.
  * @returns {Promise}
  */
 function waitForIdle() {
