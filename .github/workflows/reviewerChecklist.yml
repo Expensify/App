@@ -7,8 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.actor != 'OSBotify'
     steps:
-      - name: contributorChecklist.js
-        uses: Expensify/App/.github/actions/javascript/contributorChecklist@main
+      - name: reviewerChecklist.js
+        uses: Expensify/App/.github/actions/javascript/reviewerChecklist@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CHECKLIST: 'reviewer'
