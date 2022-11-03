@@ -52,11 +52,11 @@ jobs:
           test_spec_type: APPIUM_NODE_TEST_SPEC
           remote_src: false
           file_artifacts: |
-            tests/e2e/.results/current.json
-            tests/e2e/.results/baseline.json
-            tests/e2e/.results/compare.json
-            tests/e2e/.results/debug.log
-            tests/e2e/.results/output.md
+            Git-App/tests/e2e/.results/current.json
+            Git-App/tests/e2e/.results/baseline.json
+            Git-App/tests/e2e/.results/compare.json
+            Git-App/tests/e2e/.results/debug.log
+            Git-App/tests/e2e/.results/output.md
 
       - name: Debug
         run: find .
