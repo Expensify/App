@@ -92,8 +92,6 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
 }
 
 getNumberOfItemsFromReviewerChecklist()
-    .then((numberOfChecklistItems) => {
-        checkIssueForCompletedChecklist(numberOfChecklistItems);
-    }, (err) => {
+    .then(checkIssueForCompletedChecklist, (err) => {
         console.error(err);
     });
