@@ -60,16 +60,23 @@ function getPullRequestBody() {
 function checkIssueForCompletedChecklist(numberOfChecklistItems) {
     getPullRequestBody()
         .then((pullRequestBody) => {
-            const numberOfFinishedChecklistItems = (pullRequestBody.match(/\[x\]/g) || []).length;
+            const numberOfFinishedChecklistItems = (pullRequestBody.match(/- \[x\]/g) || []).length;
+            const numberOfUnfinishedChecklistItems = (pullRequestBody.match(/- \[ \]/g) || []).length;
 
-            if (numberOfFinishedChecklistItems !== numberOfChecklistItems) {
-                console.log(`You completed ${numberOfFinishedChecklistItems} out of ${numberOfChecklistItems} checklist items`);
-                console.log(`Make sure you are using the most up to date checklist found here: ${pathToAuthorChecklist}`);
-                core.setFailed('PR Author Checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+            const maxCompletedItems = numberOfChecklistItems + 2;
+            const minCompletedItems = numberOfChecklistItems - 2;
+
+            console.log(`You completed ${numberOfFinishedChecklistItems} out of ${numberOfChecklistItems} checklist items`);
+
+            if (numberOfUnfinishedChecklistItems >= minCompletedItems
+                && numberOfFinishedChecklistItems <= maxCompletedItems
+                && numberOfUnfinishedChecklistItems === 0) {
+                console.log('PR Author checklist is complete 🎉');
                 return;
             }
 
-            console.log('PR Author checklist is complete 🎉');
+            console.log(`Make sure you are using the most up to date checklist found here: ${pathToAuthorChecklist}`);
+            core.setFailed('PR Author Checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
         });
 }
 

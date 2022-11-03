@@ -30,7 +30,7 @@ function getNumberOfItemsFromReviewerChecklist() {
                 fileContents += chunk;
             });
             res.on('end', function () {
-                const numberOfChecklistItems = (fileContents.match(/-[ ]/g) || []).length;
+                const numberOfChecklistItems = (fileContents.match(/- \[ \]/g) || []).length;
                 resolve(numberOfChecklistItems);
             });
         })
@@ -73,6 +73,7 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
         .then(() => {
             let foundReviewerChecklist = false;
             let numberOfFinishedChecklistItems = 0;
+            let numberOfUnfinishedChecklistItems = 0;
 
             // Once we've gathered all the data, loop through each comment and look to see if it contains the reviewer checklist
             for (let i = 0; i < combinedComments.length; i++) {
@@ -87,17 +88,25 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
                 // Found the reviewer checklist, so count how many completed checklist items there are
                 if (comment.startsWith(reviewerChecklistStartsWith)) {
                     foundReviewerChecklist = true;
-                    numberOfFinishedChecklistItems = (comment.match(/-[x]/g) || []).length;
+                    numberOfFinishedChecklistItems = (comment.match(/- \[x\]/g) || []).length;
+                    numberOfUnfinishedChecklistItems = (comment.match(/- \[ \]/g) || []).length;
                 }
             }
 
-            if (numberOfFinishedChecklistItems !== numberOfChecklistItems) {
-                console.log(`Make sure you are using the most up to date checklist found here: ${pathToReviewerChecklist}`);
-                core.setFailed('PR Reviewer Checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+            const maxCompletedItems = numberOfChecklistItems + 2;
+            const minCompletedItems = numberOfChecklistItems - 2;
+
+            console.log(`You completed ${numberOfFinishedChecklistItems} out of ${numberOfChecklistItems} checklist items`);
+
+            if (numberOfUnfinishedChecklistItems >= minCompletedItems
+                && numberOfFinishedChecklistItems <= maxCompletedItems
+                && numberOfUnfinishedChecklistItems === 0) {
+                console.log('PR Author checklist is complete 🎉');
                 return;
             }
 
-            console.log('PR Reviewer checklist is complete 🎉');
+            console.log(`Make sure you are using the most up to date checklist found here: ${pathToReviewerChecklist}`);
+            core.setFailed('PR Reviewer Checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
         });
 }
 
