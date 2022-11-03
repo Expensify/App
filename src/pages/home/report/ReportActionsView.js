@@ -235,9 +235,10 @@ class ReportActionsView extends React.Component {
             this.setState({newMarkerSequenceNumber: this.props.report.lastReadSequenceNumber + 1});
         }
 
-        // Preventing the subscribe event fail when the creating the report/workspace room optimistically. Check if the optimistic
-        // `OpenReport` or `AddWorkspaceRoom` success by `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` is set to null.
-        // The other reports created will have empty field on `pendingFields`.
+        // Ensures subscription event succeeds when the report/workspace room is created optimistically.
+        //  Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
+        // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
+        // Existing reports created will have empty fields for `pendingFields`.
         const didCreateReportSuccessfully = !this.props.report.pendingFields
             || (!this.props.report.pendingFields.addWorkspaceRoom && !this.props.report.pendingFields.createChat);
         if (!this.didSubscribeToReportTypingEvents && didCreateReportSuccessfully) {
