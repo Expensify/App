@@ -30,6 +30,9 @@ const picker = {
     paddingBottom: 8,
     paddingTop: 23,
     height: 52,
+    borderTopWidth: 0,
+    borderLeftWidth: 0,
+    borderRightWidth: 0,
     borderBottomWidth: 1,
     borderBottomStyle: 'solid',
     borderBottomColor: themeColors.border,
@@ -797,7 +800,7 @@ const styles = {
     },
     pickerLabel: {
         position: 'absolute',
-        left: 12,
+        left: 0,
         top: 7,
     },
     picker: (disabled = false, error = false, focused = false) => ({
@@ -811,12 +814,12 @@ const styles = {
             cursor: disabled ? 'not-allowed' : 'pointer',
             ...picker,
             ...(focused && {borderBottomColor: themeColors.borderFocus}),
-            ...(error && {borderColor: themeColors.badgeDangerBG}),
+            ...(error && {borderBottomColor: themeColors.badgeDangerBG}),
         },
         inputNative: {
             ...picker,
-            ...(focused && {borderColor: themeColors.borderFocus}),
-            ...(error && {borderColor: themeColors.badgeDangerBG}),
+            ...(focused && {borderBottomColor: themeColors.borderFocus}),
+            ...(error && {borderBottomColor: themeColors.badgeDangerBG}),
         },
     }),
 
