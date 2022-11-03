@@ -690,17 +690,17 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
 function getIOUReportActionMessage(type, total, participants, comment, currency) {
     const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
     const displayNames = _.map(participants, participant => getDisplayNameForParticipant(allPersonalDetails[participant.login], true) || participant.login);
-    const from = displayNames.length < 3
+    const who = displayNames.length < 3
         ? displayNames.join(' and ')
         : `${displayNames.slice(0, -1).join(', ')}, and ${_.last(displayNames)}`;
 
     let iouMessage;
     switch (type) {
         case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
-            iouMessage = `Requested ${amount} from ${from}${comment && ` for ${comment}`}`;
+            iouMessage = `Requested ${amount} from ${who}${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.SPLIT:
-            iouMessage = `Split ${amount} with ${from}${comment && ` for ${comment}`}`;
+            iouMessage = `Split ${amount} with ${who}${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.CANCEL:
             iouMessage = `Cancelled the ${amount} request${comment && ` for ${comment}`}`;
@@ -709,7 +709,7 @@ function getIOUReportActionMessage(type, total, participants, comment, currency)
             iouMessage = `Declined the ${amount} request${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
-            iouMessage = `Paid ${amount} to ${from}${comment && ` for ${comment}`}`;
+            iouMessage = `Paid ${amount} to ${who}${comment && ` for ${comment}`}`;
             break;
         default:
             break;
