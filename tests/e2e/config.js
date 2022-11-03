@@ -1,4 +1,4 @@
-const OUTPUT_DIR = 'e2e/.results';
+const OUTPUT_DIR = 'tests/e2e/.results';
 
 /**
  * @typedef TestConfig

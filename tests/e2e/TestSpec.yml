@@ -8,7 +8,7 @@ phases:
       - nvm install 16.15.1
 
       # Fetch latest code from GitHub
-      - git clone https://github.com/Expensify/App.git Git-App
+      - git clone https://github.com/AndrewGable/App.git Git-App
       - cd $DEVICEFARM_TEST_PACKAGE_PATH/Git-App
       - git checkout andrew-aws-df
       - npm install
