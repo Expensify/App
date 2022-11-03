@@ -8,6 +8,6 @@ jobs:
     if: github.actor != 'OSBotify'
     steps:
       - name: reviewerChecklist.js
-        uses: Expensify/App/.github/actions/javascript/reviewerChecklist@2957451812b741cf2aa315eaff8325191d8641bb
+        uses: Expensify/App/.github/actions/javascript/reviewerChecklist@53a2907afbcee71a4842e5d1ae5093085456fef9
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
