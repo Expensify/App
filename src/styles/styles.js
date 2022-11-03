@@ -689,24 +689,22 @@ const styles = {
 
     textInputContainer: {
         flex: 1,
-        borderRadius: variables.componentBorderRadiusNormal,
         justifyContent: 'center',
         height: '100%',
         backgroundColor: themeColors.componentBG,
-        borderWidth: 1,
+        borderWidth: 2,
         borderColor: themeColors.border,
         overflow: 'hidden',
     },
 
     textInputLabel: {
         position: 'absolute',
-        left: 11,
+        left: 0,
         top: 0,
         fontSize: variables.fontSizeNormal,
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         width: '100%',
-        textAlign: 'left',
     },
 
     textInputLabelBackground: {
@@ -715,8 +713,6 @@ const styles = {
         width: '100%',
         height: 25,
         backgroundColor: themeColors.componentBG,
-        borderTopRightRadius: variables.componentBorderRadiusNormal,
-        borderTopLeftRadius: variables.componentBorderRadiusNormal,
     },
 
     textInputLabelDesktop: {
@@ -738,7 +734,6 @@ const styles = {
         color: themeColors.text,
         paddingTop: 23,
         paddingBottom: 8,
-        paddingHorizontal: 11,
         borderWidth: 0,
     },
 
