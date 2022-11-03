@@ -10,7 +10,6 @@ module.exports =
 
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
-const _ = __nccwpck_require__(3571);
 const https = __nccwpck_require__(7211);
 const GitHubUtils = __nccwpck_require__(7999);
 
@@ -74,7 +73,7 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
 
             console.log(`You completed ${numberOfFinishedChecklistItems} out of ${numberOfChecklistItems} checklist items with ${numberOfUnfinishedChecklistItems} unfinished items`);
 
-            if (numberOfUnfinishedChecklistItems >= minCompletedItems
+            if (numberOfFinishedChecklistItems >= minCompletedItems
                 && numberOfFinishedChecklistItems <= maxCompletedItems
                 && numberOfUnfinishedChecklistItems === 0) {
                 console.log('PR Reviewer checklist is complete 🎉');

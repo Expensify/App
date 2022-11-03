@@ -58,11 +58,8 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
             const minCompletedItems = numberOfChecklistItems - 2;
 
             console.log(`You completed ${numberOfFinishedChecklistItems} out of ${numberOfChecklistItems} checklist items with ${numberOfUnfinishedChecklistItems} unfinished items`);
-            console.log('maxCompletedItems', maxCompletedItems);
-            console.log('minCompletedItems', minCompletedItems);
-            console.log('numberOfUnfinishedChecklistItems === 0', numberOfUnfinishedChecklistItems === 0);
 
-            if (numberOfUnfinishedChecklistItems >= minCompletedItems
+            if (numberOfFinishedChecklistItems >= minCompletedItems
                 && numberOfFinishedChecklistItems <= maxCompletedItems
                 && numberOfUnfinishedChecklistItems === 0) {
                 console.log('PR Author checklist is complete 🎉');
