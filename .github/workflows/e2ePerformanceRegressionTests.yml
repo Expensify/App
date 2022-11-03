@@ -15,12 +15,6 @@ jobs:
           ruby-version: '2.7'
           bundler-cache: true
 
-      - name: debug
-        run: |
-          ls -la
-          ls -la android
-          ls -la android/app
-
       - name: Build APK
         env:
           JAVA_HOME: ${{ env.JAVA_HOME_11_X64 }}
