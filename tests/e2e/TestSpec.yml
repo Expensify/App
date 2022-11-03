@@ -24,7 +24,7 @@ phases:
     commands:
       - echo "Starting tests"
       - npm run test:e2e -- --skipInstallDeps --skipBuild
-      - cat tests/e2e/.results/output.md
+      - ls -la $WORKING_DIRECTORY
 
 artifacts:
 - $WORKING_DIRECTORY
