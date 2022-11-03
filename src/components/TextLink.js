@@ -34,10 +34,8 @@ const TextLink = (props) => {
     const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
 
     /**
-     *
      * @param {Event} event
      */
-
     const openLink = (event) => {
         event.preventDefault();
         if (props.onPress) {
