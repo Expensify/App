@@ -571,6 +571,8 @@ function navigateToAndOpenReport(userLogins) {
         newChat = ReportUtils.buildOptimisticChatReport(formattedUserLogins);
     }
     const reportID = chat ? chat.reportID : newChat.reportID;
+
+    // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
     openReport(reportID, newChat.participants, newChat);
     Navigation.navigate(ROUTES.getReportRoute(reportID));
 }
