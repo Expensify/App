@@ -33,7 +33,7 @@ const picker = {
     borderTopWidth: 0,
     borderLeftWidth: 0,
     borderRightWidth: 0,
-    borderBottomWidth: 1,
+    borderBottomWidth: 2,
     borderBottomStyle: 'solid',
     borderBottomColor: themeColors.border,
 };
