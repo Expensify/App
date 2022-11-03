@@ -27,6 +27,8 @@ import MenuItem from '../../components/MenuItem';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
+    continue: PropTypes.func.isRequired,
+
     /** ACH data for the withdrawal account actively being set up */
     reimbursementAccount: reimbursementAccountPropTypes,
 
@@ -45,15 +47,6 @@ const defaultProps = {
 };
 
 class ContinueBankAccountSetup extends React.Component {
-    constructor(props) {
-        super(props);
-        this.setReadyToContinue = this.setReadyToContinue.bind(this);
-    }
-
-    setReadyToContinue() {
-        BankAccounts.setReadyToContinue();
-    }
-
     render() {
         return (
             <ScreenWrapper>
@@ -78,7 +71,7 @@ class ContinueBankAccountSetup extends React.Component {
                         </Section>
                         <Button
                             text={this.props.translate('workspace.bankAccount.continueWithSetup')}
-                            onPress={this.setReadyToContinue}
+                            onPress={this.props.continue}
                             icon={Expensicons.Bank}
                             style={[styles.mt2, styles.buttonCTA]}
                             iconStyles={[styles.buttonCTAIcon]}
