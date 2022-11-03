@@ -482,7 +482,7 @@ function getDisplayNameForParticipant(participant, shouldUseShortForm = false) {
 
     const loginWithoutSMSDomain = Str.removeSMSDomain(participant.login);
     let longName = participant.displayName || loginWithoutSMSDomain;
-    if (Str.isSMSLogin(longName)) {
+    if (longName === loginWithoutSMSDomain && Str.isSMSLogin(longName)) {
         longName = LocalePhoneNumber.toLocalPhone(preferredLocale, longName);
     }
     const shortName = participant.firstName || longName;
