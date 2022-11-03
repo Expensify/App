@@ -36,7 +36,7 @@ class AddPayPalMePage extends React.Component {
         super(props);
 
         this.state = {
-            payPalMeUsername: props.payPalMeData.description,
+            payPalMeUsername: props.payPalMeData.description || '',
             payPalMeUsernameError: false,
         };
         this.setPayPalMeUsername = this.setPayPalMeUsername.bind(this);
@@ -101,10 +101,8 @@ class AddPayPalMePage extends React.Component {
                         onPress={this.setPayPalMeUsername}
                         pressOnEnter
                         style={[styles.mt3]}
-                        isDisabled={(this.state.payPalMeUsername === this.props.payPalMeData.description) || _.isEmpty(this.state.payPalMeUsername.trim())}
-                        text={this.props.payPalMeData.description
-                            ? this.props.translate('addPayPalMePage.editPayPalAccount')
-                            : this.props.translate('addPayPalMePage.addPayPalAccount')}
+                        isDisabled={_.isEmpty(this.state.payPalMeUsername.trim())}
+                        text={this.props.translate('addPayPalMePage.addPayPalAccount')}
                     />
                 </FixedFooter>
             </ScreenWrapper>
