@@ -2,7 +2,6 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {ScrollView} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import * as Expensicons from '../../components/Icon/Expensicons';
@@ -14,7 +13,6 @@ import * as BankAccounts from '../../libs/actions/BankAccounts';
 import compose from '../../libs/compose';
 import BankAccount from '../../libs/models/BankAccount';
 import Navigation from '../../libs/Navigation/Navigation';
-import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
 import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import Section from '../../components/Section';
@@ -97,11 +95,6 @@ ContinueBankAccountSetup.propTypes = propTypes;
 ContinueBankAccountSetup.defaultProps = defaultProps;
 
 export default compose(
-    withLocalize,
-    withOnyx({
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-    }),
     withPolicy,
+    withLocalize,
 )(ContinueBankAccountSetup);
