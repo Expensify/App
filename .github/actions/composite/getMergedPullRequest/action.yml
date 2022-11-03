@@ -1,0 +1,17 @@
+name: Get merged pull request
+description: Find details about the merged pull request
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        PR_DATA=$(gh pr list \
+          --state merged \
+          --base ${{ github.ref }} \
+          --search ${{ github.sha }} \
+          --json 'author,number,labels' \
+          --jq '.[] | {author: .author.login, labels: [.labels[] | .name], number: .number}')
+        echo "NUMBER=$(jq -r '.number' <<< $PR_DATA)" >> "$GITHUB_OUTPUT"
+        echo "AUTHOR=$(jq -r '.author' <<< $PR_DATA)" >> "$GITHUB_OUTPUT"
+        echo "LABELS=$(jq '.labels'" <<< $PR_DATA)" >> "$GITHUB_OUTPUT"
