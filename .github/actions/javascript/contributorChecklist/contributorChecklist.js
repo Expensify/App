@@ -5,24 +5,7 @@ const GitHubUtils = require('../../../libs/GithubUtils');
 const https = require('https');
 
 const pathToReviewerChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/contributingGuides/REVIEWER_CHECKLIST.md';
-
-function downloadReviewerChecklist() {
-    https.get(pathToReviewerChecklist, (res) => {
-        let fileContents = '';
-        res.on('data', function (chunk) {
-            fileContents += chunk;
-        });
-        res.on('end', function () {
-            console.log(fileContents);
-        });
-    })
-        .on('error', (err) => {
-            console.error(err);
-        });
-}
-
-downloadReviewerChecklist();
-return;
+const reviewerChecklistStartsWith = '## Reviewer Checklist';
 
 /* eslint-disable max-len */
 const completedAuthorChecklist = `- [x] I linked the correct issue in the \`### Fixed Issues\` section above
@@ -116,6 +99,56 @@ const completedReviewerChecklist = `- [x] I have verified the author checklist i
 - [x] If the PR modifies a generic component, I tested and verified that those changes do not break usages of that component in the rest of the App (i.e. if a shared library or component like \`Avatar\` is modified, I verified that \`Avatar\` is working as expected in all cases)
 - [x] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
 - [x] I have checked off every checkbox in the PR reviewer checklist, including those that don't apply to this PR.`;
+
+/**
+ * @returns {Promise}
+ */
+function getNumberOfItemsFromAuthorChecklist() {
+    return new Promise((resolve) => {
+        const numberOfChecklistItems = (completedAuthorChecklist.match(/-[x]/g) || []).length;
+        resolve(numberOfChecklistItems);
+    });
+}
+
+/**
+ * @returns {Promise}
+ */
+function getNumberOfItemsFromReviewerChecklist() {
+    return new Promise((resolve, reject) => {
+        https.get(pathToReviewerChecklist, (res) => {
+            let fileContents = '';
+            res.on('data', function (chunk) {
+                fileContents += chunk;
+            });
+            res.on('end', function () {
+                const numberOfChecklistItems = (fileContents.match(/-[ ]/g) || []).length;
+                resolve(numberOfChecklistItems);
+            });
+        })
+            .on('error', reject);
+    });
+}
+
+function checkIssueForCompletedChecklist(verifyingAuthorChecklist, numberOfChecklistItems) {
+
+}
+
+// The author checklist is being checklist
+getNumberOfItemsFromAuthorChecklist()
+    .then((numberOfChecklistItems) => {
+        checkIssueForCompletedChecklist(true, numberOfChecklistItems);
+    }, (err) => {
+        console.error(err);
+    });
+
+// The reviewer checklist is being checked
+getNumberOfItemsFromReviewerChecklist()
+    .then((numberOfChecklistItems) => {
+        checkIssueForCompletedChecklist(false, numberOfChecklistItems);
+    }, (err) => {
+        console.error(err);
+    });
+return;
 
 // True if we are validating an author checklist, otherwise we are validating a reviewer checklist
 const verifyingAuthorChecklist = core.getInput('CHECKLIST', {required: true}) === 'contributor';
