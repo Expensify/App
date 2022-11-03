@@ -2,6 +2,27 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 const _ = require('underscore');
 const GitHubUtils = require('../../../libs/GithubUtils');
+const https = require('https');
+
+const pathToReviewerChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/contributingGuides/REVIEWER_CHECKLIST.md';
+
+function downloadReviewerChecklist() {
+    https.get(pathToReviewerChecklist, (res) => {
+        let fileContents = '';
+        res.on('data', function (chunk) {
+            fileContents += chunk;
+        });
+        res.on('end', function () {
+            console.log(fileContents);
+        });
+    })
+        .on('error', (err) => {
+            console.error(err);
+        });
+}
+
+downloadReviewerChecklist();
+return;
 
 /* eslint-disable max-len */
 const completedAuthorChecklist = `- [x] I linked the correct issue in the \`### Fixed Issues\` section above
