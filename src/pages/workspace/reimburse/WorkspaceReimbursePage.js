@@ -28,8 +28,8 @@ const WorkspaceReimbursePage = props => (
         route={props.route}
         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
     >
-        {hasVBA => (
-            <WorkspaceReimburseView policy={props.policy} hasVBA={hasVBA} />
+        {()) => (
+            <WorkspaceReimburseView policy={props.policy}/>
         )}
     </WorkspacePageWithSections>
 );
