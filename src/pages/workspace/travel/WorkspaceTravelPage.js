@@ -1,10 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
+import {withOnyx} from 'react-native-onyx';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import WorkspacePageWithSections from '../WorkspacePageWithSections';
+import * as BankAccounts from '../../../libs/actions/BankAccounts';
+import BankAccount from '../../../libs/models/BankAccount';
+import compose from '../../../libs/compose';
+import CONST from '../../../CONST';
+import ONYXKEYS from '../../../ONYXKEYS';import WorkspacePageWithSections from '../WorkspacePageWithSections';
 import WorkspaceTravelNoVBAView from './WorkspaceTravelNoVBAView';
 import WorkspaceTravelVBAView from './WorkspaceTravelVBAView';
-import CONST from '../../../CONST';
 
 const propTypes = {
     /** The route object passed to this page from the navigator */
@@ -19,27 +24,48 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceTravelPage = props => (
-    <WorkspacePageWithSections
-        shouldUseScrollView
-        headerText={props.translate('workspace.common.travel')}
-        route={props.route}
-        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_TRAVEL}
-    >
-        {(hasVBA, policyID) => (
-            <>
-                {!hasVBA && (
-                    <WorkspaceTravelNoVBAView policyID={policyID} />
+const defaultProps = {
+    reimbursementAccount: {},
+};
+
+class WorkspaceTravelPage extends React.Component {
+    componentDidMount() {
+        BankAccounts.openWorkspaceView();
+    }
+
+    render() {
+        const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
+        const hasVBBA = achState === BankAccount.STATE.OPEN;
+        return (
+            <WorkspacePageWithSections
+                shouldUseScrollView
+                headerText={this.props.translate('workspace.common.travel')}
+                route={this.props.route}
+                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_TRAVEL}
+            >
+                {(hasVBA, policyID) => (
+                    <>
+                        {!hasVBBA && (
+                            <WorkspaceTravelNoVBAView policyID={policyID} />
+                        )}
+                        {hasVBBA && (
+                            <WorkspaceTravelVBAView />
+                        )}
+                    </>
                 )}
-                {hasVBA && (
-                    <WorkspaceTravelVBAView />
-                )}
-            </>
-        )}
-    </WorkspacePageWithSections>
-);
+            </WorkspacePageWithSections>
+        );
+    }
+}
 
 WorkspaceTravelPage.propTypes = propTypes;
-WorkspaceTravelPage.displayName = 'WorkspaceTravelPage';
+WorkspaceTravelPage.defaultProps = defaultProps;
 
-export default withLocalize(WorkspaceTravelPage);
+export default compose(
+    withOnyx({
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+    }),
+    withLocalize,
+)(WorkspaceTravelPage);
