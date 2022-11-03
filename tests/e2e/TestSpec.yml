@@ -7,7 +7,7 @@ phases:
       - . $NVM_DIR/nvm.sh
       - nvm install 16.15.1
 
-      - ls -la
+      - ls -R
 
       # Fetch latest code from GitHub
       - git clone https://github.com/AndrewGable/App.git Git-App
