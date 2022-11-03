@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import Emoji from '../../assets/emojis';
 import * as EmojiUtils from '../../src/libs/EmojiUtils';
+import baseAddEmojiToComposer from '../../src/libs/addEmojiToComposer';
 
 describe('EmojiTest', () => {
     it('matches all the emojis in the list', () => {
@@ -100,5 +101,22 @@ describe('EmojiTest', () => {
     it('correct suggests emojis accounting for keywords', () => {
         const text = ':thumb';
         expect(EmojiUtils.suggestEmojis(text)).toEqual([{code: '👍', name: '+1'}, {code: '👎', name: '-1'}]);
+    });
+
+    it('should insert emoji correctly with a whitespace within a text given a selection', () => {
+        const res = baseAddEmojiToComposer({
+            emoji: '😄',
+            text: 'add emoji here',
+            textInput: {
+                setTextAndSelection: jest.fn(),
+            },
+            selection: {
+                start: 4,
+                end: 4,
+            },
+        });
+
+        expect(res.newText).toEqual('add 😄 emoji here');
+        expect(res.newSelection).toEqual({start: 7, end: 7});
     });
 });

@@ -20,8 +20,9 @@ function baseAddEmojiToComposer({
     textInput,
     selection,
 }) {
-    const newText = text.slice(0, selection.start) + emoji + text.slice(selection.end, text.length);
-    const newSelectionStart = selection.start + emoji.length;
+    const emojiWithSpace = `${emoji} `;
+    const newText = text.slice(0, selection.start) + emojiWithSpace + text.slice(selection.end, text.length);
+    const newSelectionStart = selection.start + emojiWithSpace.length;
     const newSelection = {
         start: newSelectionStart,
         end: newSelectionStart,
