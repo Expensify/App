@@ -32,52 +32,61 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-class ContinueBankAccountSetup extends React.Component {
-    render() {
-        return (
-            <ScreenWrapper>
-                <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)}>
-                    <HeaderWithCloseButton
-                        title={this.props.translate('workspace.common.bankAccount')}
-                        subtitle={lodashGet(this.props.policy, 'name')}
-                        onCloseButtonPress={Navigation.dismissModal}
-                        onBackButtonPress={Navigation.goBack}
-                        shouldShowGetAssistanceButton
-                        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                        shouldShowBackButton
-                    />
-                    <ScrollView style={styles.flex1}>
-                        <Section
-                            title={this.props.translate('workspace.bankAccount.almostDone')}
-                            icon={Illustrations.BankArrowPink}
-                        >
-                            <Text>
-                                {this.props.translate('workspace.bankAccount.youreAlmostDone')}
-                            </Text>
-                        </Section>
-                        <Button
-                            text={this.props.translate('workspace.bankAccount.continueWithSetup')}
-                            onPress={this.props.continue}
-                            icon={Expensicons.Bank}
-                            style={[styles.mt2, styles.buttonCTA]}
-                            iconStyles={[styles.buttonCTAIcon]}
-                            shouldShowRightIcon
-                            large
-                            success
-                        />
-                        <MenuItem
-                            title={this.props.translate('workspace.bankAccount.startOver')}
-                            icon={Expensicons.RotateLeft}
-                            onPress={BankAccounts.requestResetFreePlanBankAccount}
-                            shouldShowRightIcon
-                        />
-                    </ScrollView>
-                    <WorkspaceResetBankAccountModal />
-                </FullPageNotFoundView>
-            </ScreenWrapper>
-        );
-    }
-}
+const WorkspaceReimbursePage = props => (
+    <WorkspacePageWithSections
+        shouldUseScrollView
+        headerText={props.translate('workspace.common.reimburse')}
+        route={props.route}
+        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
+    >
+        {hasVBA => (
+            <WorkspaceReimburseView policy={props.policy} hasVBA={hasVBA} />
+        )}
+    </WorkspacePageWithSections>
+);
+
+const ContinueBankAccountSetup = props => (
+    <ScreenWrapper>
+        <FullPageNotFoundView shouldShow={_.isEmpty(props.policy)}>
+            <HeaderWithCloseButton
+                title={props.translate('workspace.common.bankAccount')}
+                subtitle={lodashGet(props.policy, 'name')}
+                onCloseButtonPress={Navigation.dismissModal}
+                onBackButtonPress={Navigation.goBack}
+                shouldShowGetAssistanceButton
+                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
+                shouldShowBackButton
+            />
+            <ScrollView style={styles.flex1}>
+                <Section
+                    title={props.translate('workspace.bankAccount.almostDone')}
+                    icon={Illustrations.BankArrowPink}
+                >
+                    <Text>
+                        {props.translate('workspace.bankAccount.youreAlmostDone')}
+                    </Text>
+                </Section>
+                <Button
+                    text={props.translate('workspace.bankAccount.continueWithSetup')}
+                    onPress={props.continue}
+                    icon={Expensicons.Bank}
+                    style={[styles.mt2, styles.buttonCTA]}
+                    iconStyles={[styles.buttonCTAIcon]}
+                    shouldShowRightIcon
+                    large
+                    success
+                />
+                <MenuItem
+                    title={props.translate('workspace.bankAccount.startOver')}
+                    icon={Expensicons.RotateLeft}
+                    onPress={BankAccounts.requestResetFreePlanBankAccount}
+                    shouldShowRightIcon
+                />
+            </ScrollView>
+            <WorkspaceResetBankAccountModal />
+        </FullPageNotFoundView>
+    </ScreenWrapper>
+);
 
 ContinueBankAccountSetup.propTypes = propTypes;
 
