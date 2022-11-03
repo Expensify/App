@@ -236,7 +236,7 @@ class ReportActionsView extends React.Component {
         }
 
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
-        //  Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
+        // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
         // Existing reports created will have empty fields for `pendingFields`.
         const didCreateReportSuccessfully = !this.props.report.pendingFields
