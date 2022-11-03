@@ -27,15 +27,12 @@ const picker = {
     fontFamily: fontFamily.GTA,
     fontSize: variables.fontSizeNormal,
     lineHeight: variables.fontSizeNormalHeight,
-    paddingHorizontal: 11,
     paddingBottom: 8,
     paddingTop: 23,
     height: 52,
-    borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: themeColors.border,
-    borderRadius: variables.componentBorderRadiusNormal,
-    textAlign: 'left',
+    borderBottomWidth: 1,
+    borderBottomStyle: 'solid',
+    borderBottomColor: themeColors.border,
 };
 
 const link = {
@@ -795,7 +792,6 @@ const styles = {
 
     pickerContainer: {
         borderWidth: 0,
-        borderRadius: variables.componentBorderRadiusNormal,
         justifyContent: 'center',
         backgroundColor: themeColors.componentBG,
     },
@@ -814,7 +810,7 @@ const styles = {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
             ...picker,
-            ...(focused && {borderColor: themeColors.borderFocus}),
+            ...(focused && {borderBottomColor: themeColors.borderFocus}),
             ...(error && {borderColor: themeColors.badgeDangerBG}),
         },
         inputNative: {
@@ -835,7 +831,7 @@ const styles = {
 
     textInputReversed: addOutlineWidth({
         backgroundColor: themeColors.heading,
-        borderColor: themeColors.text,
+        borderBottomColor: themeColors.text,
         color: themeColors.textReversed,
     }, 0),
 
