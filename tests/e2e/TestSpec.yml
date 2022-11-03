@@ -7,18 +7,11 @@ phases:
       - . $NVM_DIR/nvm.sh
       - nvm install 16.15.1
 
-      - ls -R
-      - find .
-
       # Fetch latest code from GitHub
       - git clone https://github.com/AndrewGable/App.git Git-App
       - cd $DEVICEFARM_TEST_PACKAGE_PATH/Git-App
       - git checkout andrew-aws-df
       - npm install
-
-      # Move compiled APK to correct location
-      - mkdir -p android/app/build/outputs/apk/e2eRelease/
-      - cp ../app-e2eRelease.apk android/app/build/outputs/apk/e2eRelease/
 
       # Reverse ports using AWS magic
       - PORT=4723
@@ -33,9 +26,6 @@ phases:
       - npm run test:e2e -- --skipInstallDeps --skipBuild
       - cat tests/e2e/.results/output.md
 
-# The artifacts phase lets you specify the location where your tests logs, device logs will be stored.
-# And also let you specify the location of your test logs and artifacts which you want to be collected by Device Farm.
-# These logs and artifacts will be available through ListArtifacts API in Device Farm.
 artifacts:
 - $WORKING_DIRECTORY/Git-App/tests/e2e/.results/current.json
 - $WORKING_DIRECTORY/Git-App/tests/e2e/.results/compare.json
