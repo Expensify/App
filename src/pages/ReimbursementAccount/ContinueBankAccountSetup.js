@@ -3,32 +3,26 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {ScrollView} from 'react-native';
 import _ from 'underscore';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as Illustrations from '../../components/Icon/Illustrations';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import Text from '../../components/Text';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
-import compose from '../../libs/compose';
-import BankAccount from '../../libs/models/BankAccount';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
-import Section from '../../components/Section';
-import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
-import styles from '../../styles/styles';
-import CONST from '../../CONST';
-import withPolicy from '../workspace/withPolicy';
 import Button from '../../components/Button';
-import MenuItem from '../../components/MenuItem';
+import compose from '../../libs/compose';
+import CONST from '../../CONST';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import MenuItem from '../../components/MenuItem';
+import Navigation from '../../libs/Navigation/Navigation';
+import styles from '../../styles/styles';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import Section from '../../components/Section';
+import Text from '../../components/Text';
+import withPolicy from '../workspace/withPolicy';
+import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
 
 const propTypes = {
     continue: PropTypes.func.isRequired,
-
-    /** ACH data for the withdrawal account actively being set up */
-    reimbursementAccount: reimbursementAccountPropTypes,
 
     /** Policy values needed in the component */
     policy: PropTypes.shape({
@@ -36,12 +30,6 @@ const propTypes = {
     }).isRequired,
 
     ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    reimbursementAccount: {
-        isLoading: true,
-    },
 };
 
 class ContinueBankAccountSetup extends React.Component {
@@ -92,7 +80,6 @@ class ContinueBankAccountSetup extends React.Component {
 }
 
 ContinueBankAccountSetup.propTypes = propTypes;
-ContinueBankAccountSetup.defaultProps = defaultProps;
 
 export default compose(
     withPolicy,
