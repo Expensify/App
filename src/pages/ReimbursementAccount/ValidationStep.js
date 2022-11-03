@@ -26,6 +26,7 @@ import Section from '../../components/Section';
 import CONST from '../../CONST';
 import Button from '../../components/Button';
 import MenuItem from '../../components/MenuItem';
+import Enable2FAPrompt from './Enable2FAPrompt';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -182,6 +183,9 @@ class ValidationStep extends React.Component {
                                 keyboardType="decimal-pad"
                             />
                         </View>
+                        <View style={[styles.mln5, styles.mrn5]}>
+                            <Enable2FAPrompt />
+                        </View>
                     </Form>
                 )}
                 {isVerifying && (
@@ -210,6 +214,7 @@ class ValidationStep extends React.Component {
                             onPress={BankAccounts.requestResetFreePlanBankAccount}
                             shouldShowRightIcon
                         />
+                        <Enable2FAPrompt />
                     </View>
                 )}
             </View>
