@@ -33,21 +33,10 @@ function getNumberOfItemsFromAuthorChecklist() {
 }
 
 /**
- * @returns {Promise}
- */
-function getPullRequestBody() {
-    return GitHubUtils.octokit.pulls.get({
-        owner: GitHubUtils.GITHUB_OWNER,
-        repo: GitHubUtils.APP_REPO,
-        pull_number: issue,
-    }).then(({data: pullRequestComment}) => pullRequestComment.body);
-}
-
-/**
  * @param {Number} numberOfChecklistItems
  */
 function checkIssueForCompletedChecklist(numberOfChecklistItems) {
-    getPullRequestBody()
+    GitHubUtils.getPullRequestBody(issue)
         .then((pullRequestBody) => {
             const contentAfterStartOfAuthorChecklist = fileContents.split(authorChecklistStartsWith).pop();
             const contentOfAuthorChecklist = contentAfterStartOfAuthorChecklist.split(reviewerChecklistStartsWith).shift();

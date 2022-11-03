@@ -29,36 +29,12 @@ function getNumberOfItemsFromReviewerChecklist() {
 }
 
 /**
- * @returns {Promise}
- */
-function getAllReviewComments() {
-    return GitHubUtils.paginate(GitHubUtils.octokit.pulls.listReviews, {
-        owner: GitHubUtils.GITHUB_OWNER,
-        repo: GitHubUtils.APP_REPO,
-        pull_number: issue,
-        per_page: 100,
-    }, response => _.map(response.data, review => review.body));
-}
-
-/**
- * @returns {Promise}
- */
-function getAllComments() {
-    return GitHubUtils.paginate(GitHubUtils.octokit.issues.listComments, {
-        owner: GitHubUtils.GITHUB_OWNER,
-        repo: GitHubUtils.APP_REPO,
-        issue_number: issue,
-        per_page: 100,
-    }, response => _.map(response.data, comment => comment.body));
-}
-
-/**
  * @param {Number} numberOfChecklistItems
  */
 function checkIssueForCompletedChecklist(numberOfChecklistItems) {
-    getAllReviewComments()
+    GitHubUtils.getAllReviewComments(issue)
         .then(reviewComments => combinedComments.push(...reviewComments))
-        .then(() => getAllComments())
+        .then(() => GitHubUtils.getAllComments(issue))
         .then(comments => combinedComments.push(...comments))
         .then(() => {
             let foundReviewerChecklist = false;
