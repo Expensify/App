@@ -25,7 +25,7 @@ function getNumberOfItemsFromAuthorChecklist() {
                 const contentAfterStartOfAuthorChecklist = fileContents.split(authorChecklistStartsWith).pop();
                 const contentBeforeStartOfReviewerChecklist = contentAfterStartOfAuthorChecklist.split(reviewerChecklistStartsWith).shift();
 
-                const numberOfChecklistItems = (contentBeforeStartOfReviewerChecklist.match(/-[ ]/g) || []).length;
+                const numberOfChecklistItems = (contentBeforeStartOfReviewerChecklist.match(/\[ \]/g) || []).length;
                 resolve(numberOfChecklistItems);
             });
         })
@@ -50,9 +50,10 @@ function getPullRequestBody() {
 function checkIssueForCompletedChecklist(numberOfChecklistItems) {
     getPullRequestBody()
         .then((pullRequestBody) => {
-            const numberOfFinishedChecklistItems = (pullRequestBody.match(/-[x]/g) || []).length;
+            const numberOfFinishedChecklistItems = (pullRequestBody.match(/\[x\]/g) || []).length;
 
             if (numberOfFinishedChecklistItems !== numberOfChecklistItems) {
+                console.log(`You completed ${numberOfFinishedChecklistItems} out of ${numberOfChecklistItems} checklist items`);
                 console.log(`Make sure you are using the most up to date checklist found here: ${pathToAuthorChecklist}`);
                 core.setFailed('PR Author Checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
                 return;
