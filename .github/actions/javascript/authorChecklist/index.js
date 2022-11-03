@@ -51,7 +51,7 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
             const contentAfterStartOfAuthorChecklist = pullRequestBody.split(authorChecklistStartsWith).pop();
             const contentOfAuthorChecklist = contentAfterStartOfAuthorChecklist.split(reviewerChecklistStartsWith).shift();
 
-            const numberOfFinishedChecklistItems = (contentOfAuthorChecklist.match(/- \[x\]/g) || []).length;
+            const numberOfFinishedChecklistItems = (contentOfAuthorChecklist.match(/- \[x\]/gi) || []).length;
             const numberOfUnfinishedChecklistItems = (contentOfAuthorChecklist.match(/- \[ \]/g) || []).length;
 
             const maxCompletedItems = numberOfChecklistItems + 2;

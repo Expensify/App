@@ -53,7 +53,7 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
                 // Found the reviewer checklist, so count how many completed checklist items there are
                 if (comment.startsWith(reviewerChecklistStartsWith)) {
                     foundReviewerChecklist = true;
-                    numberOfFinishedChecklistItems = (comment.match(/- \[x\]/g) || []).length;
+                    numberOfFinishedChecklistItems = (comment.match(/- \[x\]/gi) || []).length;
                     numberOfUnfinishedChecklistItems = (comment.match(/- \[ \]/g) || []).length;
                 }
             }
