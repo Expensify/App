@@ -35,10 +35,6 @@ const propTypes = {
         }).isRequired,
     }).isRequired,
 
-    /** From Onyx */
-    /** Bank account currently in setup */
-    reimbursementAccount: reimbursementAccountPropTypes,
-
     /** User Data from Onyx */
     user: userPropTypes,
 
@@ -65,33 +61,14 @@ const propTypes = {
 const defaultProps = {
     children: () => {},
     user: {},
-    reimbursementAccount: {},
     footer: null,
     guidesCallTaskID: '',
     shouldUseScrollView: false,
 };
 
 class WorkspacePageWithSections extends React.Component {
-    componentDidMount() {
-        this.fetchData();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (!prevProps.network.isOffline || this.props.network.isOffline) {
-            return;
-        }
-
-        this.fetchData();
-    }
-
-    fetchData() {
-        const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
-        BankAccounts.fetchFreePlanVerifiedBankAccount('', achState);
-    }
 
     render() {
-        const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
-        const hasVBA = achState === BankAccount.STATE.OPEN;
         const isUsingECard = lodashGet(this.props.user, 'isUsingExpensifyCard', false);
         const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyName = lodashGet(this.props.policy, 'name');
@@ -115,12 +92,12 @@ class WorkspacePageWithSections extends React.Component {
                         >
                             <View style={[styles.w100, styles.flex1]}>
 
-                                {this.props.children(hasVBA, policyID, isUsingECard)}
+                                {this.props.children(policyID, isUsingECard)}
 
                             </View>
                         </ScrollView>
                     )
-                    : this.props.children(hasVBA, policyID, isUsingECard)}
+                    : this.props.children(policyID, isUsingECard)}
                 {this.props.footer}
             </ScreenWrapper>
         );
