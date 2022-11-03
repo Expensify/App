@@ -32,19 +32,6 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceReimbursePage = props => (
-    <WorkspacePageWithSections
-        shouldUseScrollView
-        headerText={props.translate('workspace.common.reimburse')}
-        route={props.route}
-        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
-    >
-        {hasVBA => (
-            <WorkspaceReimburseView policy={props.policy} hasVBA={hasVBA} />
-        )}
-    </WorkspacePageWithSections>
-);
-
 const ContinueBankAccountSetup = props => (
     <ScreenWrapper>
         <FullPageNotFoundView shouldShow={_.isEmpty(props.policy)}>
