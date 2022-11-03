@@ -63,7 +63,7 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
 
             console.log(`You completed ${numberOfFinishedChecklistItems} out of ${numberOfChecklistItems} checklist items with ${numberOfUnfinishedChecklistItems} unfinished items`);
 
-            if (numberOfUnfinishedChecklistItems >= minCompletedItems
+            if (numberOfFinishedChecklistItems >= minCompletedItems
                 && numberOfFinishedChecklistItems <= maxCompletedItems
                 && numberOfUnfinishedChecklistItems === 0) {
                 console.log('PR Reviewer checklist is complete 🎉');
