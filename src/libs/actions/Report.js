@@ -357,6 +357,9 @@ function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = f
                 Navigation.navigate(ROUTES.REPORT);
                 return;
             }
+            if (!iouReportObject) {
+                return;
+            }
             setLocalIOUReportData(iouReportObject);
             return iouReportObject;
         });
@@ -689,39 +692,68 @@ function addComment(reportID, text) {
 
 /**
  * Gets the latest page of report actions and updates the last read message
+ * If a chat with the passed reportID is not found, we will create a chat based on the passed participantList
  *
  * @param {String} reportID
+ * @param {Array} participantList The list of users that are included in a new chat, not including the user creating it
+ * @param {Object} newReportObject The optimistic report object created when making a new chat, saved as optimistic data
  */
-function openReport(reportID) {
+function openReport(reportID, participantList = [], newReportObject = {}) {
+    const onyxData = {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                isLoadingReportActions: true,
+                isLoadingMoreReportActions: false,
+                lastVisitedTimestamp: Date.now(),
+                lastReadSequenceNumber: getMaxSequenceNumber(reportID),
+            },
+        }],
+        successData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                isLoadingReportActions: false,
+                pendingFields: {
+                    createChat: null,
+                },
+                errorFields: {
+                    createChat: null,
+                },
+                isOptimisticReport: false,
+            },
+        }],
+    };
+
+    // If we are creating a new report, we need to add the optimistic report data and a report action
+    if (!_.isEmpty(newReportObject)) {
+        onyxData.optimisticData[0].value = {
+            ...onyxData.optimisticData[0].value,
+            ...newReportObject,
+            pendingFields: {
+                createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+            isOptimisticReport: true,
+        };
+
+        // Change the method to set for new reports because it doesn't exist yet, is faster,
+        // and we need the data to be available when we navigate to the chat page
+        onyxData.optimisticData[0].onyxMethod = CONST.ONYX.METHOD.SET;
+
+        // Also create a report action so that the page isn't endlessly loading
+        onyxData.optimisticData[1] = {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail),
+        };
+    }
     API.write('OpenReport',
         {
             reportID,
+            emailList: participantList ? participantList.join(',') : '',
         },
-        {
-            optimisticData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    isLoadingReportActions: true,
-                    lastVisitedTimestamp: Date.now(),
-                    lastReadSequenceNumber: getMaxSequenceNumber(reportID),
-                },
-            }],
-            successData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    isLoadingReportActions: false,
-                },
-            }],
-            failureData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                value: {
-                    isLoadingReportActions: false,
-                },
-            }],
-        });
+        onyxData);
 }
 
 /**
@@ -738,6 +770,7 @@ function reconnect(reportID) {
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     isLoadingReportActions: true,
+                    isLoadingMoreReportActions: false,
                 },
             }],
             successData: [{
@@ -1211,6 +1244,9 @@ function addPolicyReport(policy, reportName, visibility) {
         false,
         '',
         visibility,
+
+        // The room might contain all policy members so notifying always should be opt-in only.
+        CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
     );
 
     // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
@@ -1271,7 +1307,7 @@ function addPolicyReport(policy, reportName, visibility) {
 /**
  * @param {String} reportID The reportID of the policy report (workspace room)
  */
-function navigateToConciergeChatAndDeletePolicyReport(reportID) {
+function navigateToConciergeChatAndDeleteReport(reportID) {
     navigateToConciergeChat();
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, null);
@@ -1396,6 +1432,12 @@ function viewNewReportAction(reportID, action) {
         return;
     }
 
+    // Don't show a notification if no comment exists
+    if (!_.some(action.message, f => f.type === 'COMMENT')) {
+        Log.info('[LOCAL_NOTIFICATION] No notification because no comments exist for the current report');
+        return;
+    }
+
     Log.info('[LOCAL_NOTIFICATION] Creating notification');
     LocalNotification.showCommentNotification({
         reportAction: action,
@@ -1483,7 +1525,7 @@ export {
     navigateToConciergeChat,
     setReportWithDraft,
     addPolicyReport,
-    navigateToConciergeChatAndDeletePolicyReport,
+    navigateToConciergeChatAndDeleteReport,
     setIsComposerFullSize,
     markCommentAsUnread,
     readNewestAction,
@@ -1493,4 +1535,5 @@ export {
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
     clearIOUError,
+    getMaxSequenceNumber,
 };

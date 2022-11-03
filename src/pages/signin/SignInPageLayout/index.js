@@ -1,14 +1,11 @@
-import _ from 'underscore';
 import React from 'react';
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import SignInPageContent from './SignInPageContent';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import SVGImage from '../../../components/SVGImage';
 import styles from '../../../styles/styles';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import * as Link from '../../../libs/actions/Link';
 import variables from '../../../styles/variables';
+import SignInPageGraphics from './SignInPageGraphics';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -24,40 +21,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const backgroundStyle = StyleUtils.getLoginPagePromoStyle();
-
 const SignInPageLayout = (props) => {
-    const content = (
-        <SignInPageContent
-            welcomeText={props.welcomeText}
-            shouldShowWelcomeText={props.shouldShowWelcomeText}
-        >
-            {props.children}
-        </SignInPageContent>
-    );
-
-    const hasRedirect = !_.isEmpty(backgroundStyle.redirectUri);
-
-    const graphicLayout = (
-        <Pressable
-            style={[
-                styles.flex1,
-                StyleUtils.getBackgroundColorStyle(backgroundStyle.backgroundColor),
-            ]}
-            onPress={() => {
-                Link.openExternalLink(backgroundStyle.redirectUri);
-            }}
-            disabled={!hasRedirect}
-        >
-            <SVGImage
-                width="100%"
-                height="100%"
-                src={backgroundStyle.backgroundImageUri}
-                resizeMode="contain"
-            />
-        </Pressable>
-    );
-
     let containerStyles = [styles.flex1, styles.signInPageInner];
     let contentContainerStyles = [styles.flex1, styles.flexRow];
 
@@ -73,10 +37,19 @@ const SignInPageLayout = (props) => {
 
     return (
         <View style={containerStyles}>
-            {isLongMediumScreenWidth && graphicLayout}
+            {isLongMediumScreenWidth && (
+                <SignInPageGraphics />
+            )}
             <View style={contentContainerStyles}>
-                {content}
-                {!props.isSmallScreenWidth && !isLongMediumScreenWidth && graphicLayout}
+                <SignInPageContent
+                    welcomeText={props.welcomeText}
+                    shouldShowWelcomeText={props.shouldShowWelcomeText}
+                >
+                    {props.children}
+                </SignInPageContent>
+                {!props.isSmallScreenWidth && !isLongMediumScreenWidth && (
+                    <SignInPageGraphics />
+                )}
             </View>
         </View>
     );

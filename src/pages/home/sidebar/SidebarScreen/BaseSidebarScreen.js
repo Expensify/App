@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import styles from '../../../../styles/styles';
 import SidebarLinks from '../SidebarLinks';
 import PopoverMenu from '../../../../components/PopoverMenu';
-import FAB from '../../../../components/FAB';
+import FloatingActionButton from '../../../../components/FloatingActionButton';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
@@ -22,10 +22,10 @@ import withDrawerState from '../../../../components/withDrawerState';
 
 const propTypes = {
 
-    /* Callback function when the menu is shown */
+    /** Callback function when the menu is shown */
     onShowCreateMenu: PropTypes.func,
 
-    /* Callback function before the menu is hidden */
+    /** Callback function before the menu is hidden */
     onHideCreateMenu: PropTypes.func,
 
     /** reportID in the current navigation state */
@@ -117,7 +117,7 @@ class BaseSidebarScreen extends Component {
                                 isDrawerOpen={this.props.isDrawerOpen}
                                 reportIDFromRoute={this.props.reportIDFromRoute}
                             />
-                            <FAB
+                            <FloatingActionButton
                                 accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
                                 accessibilityRole="button"
                                 isActive={this.state.isCreateMenuActive}

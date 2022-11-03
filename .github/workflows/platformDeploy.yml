@@ -10,7 +10,7 @@ on:
 
 env:
   SHOULD_DEPLOY_PRODUCTION: ${{ github.event_name == 'release' }}
-  DEVELOPER_DIR: /Applications/Xcode_13.2.1.app/Contents/Developer
+  DEVELOPER_DIR: /Applications/Xcode_14.0.1.app/Contents/Developer
 
 jobs:
   validateActor:
@@ -33,7 +33,7 @@ jobs:
     steps:
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
-      - uses: ruby/setup-ruby@08245253a76fa4d1e459b7809579c62bd9eb718a
+      - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
         with:
           ruby-version: '2.7'
           bundler-cache: true
@@ -93,7 +93,7 @@ jobs:
     name: Build and deploy Desktop
     needs: validateActor
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
-    runs-on: macos-11
+    runs-on: macos-12
     steps:
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
@@ -128,17 +128,17 @@ jobs:
     name: Build and deploy iOS
     needs: validateActor
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
-    runs-on: macos-11
+    runs-on: macos-12
     steps:
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
-      - uses: ruby/setup-ruby@08245253a76fa4d1e459b7809579c62bd9eb718a
+      - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
         with:
           ruby-version: '2.7'
           bundler-cache: true
 
       - name: Install cocoapods
-        uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
+        uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -269,7 +269,7 @@ jobs:
     if: ${{ success() }}
     needs: [android, desktop, iOS, web]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
 
       - name: Set version
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"

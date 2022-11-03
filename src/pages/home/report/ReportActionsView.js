@@ -67,6 +67,7 @@ class ReportActionsView extends React.Component {
         super(props);
 
         this.didLayout = false;
+        this.didSubscribeToReportTypingEvents = false;
 
         this.unsubscribeVisibilityListener = null;
 
@@ -84,7 +85,8 @@ class ReportActionsView extends React.Component {
         this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
-        this.scrollToBottomAndMarkReportAsRead = this.scrollToBottomAndMarkReportAsRead.bind(this);
+        this.scrollToUnreadMsgAndMarkReportAsRead = this.scrollToUnreadMsgAndMarkReportAsRead.bind(this);
+        this.openReportIfNecessary = this.openReportIfNecessary.bind(this);
     }
 
     componentDidMount() {
@@ -95,11 +97,10 @@ class ReportActionsView extends React.Component {
 
             // If the app user becomes active and they have no unread actions we clear the new marker to sync their device
             // e.g. they could have read these messages on another device and only just become active here
-            Report.openReport(this.props.report.reportID);
+            this.openReportIfNecessary();
             this.setState({newMarkerSequenceNumber: 0});
         });
 
-        Report.subscribeToReportTypingEvents(this.props.report.reportID);
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
             if (!ReportActionComposeFocusManager.isFocused()) {
                 return;
@@ -108,7 +109,7 @@ class ReportActionsView extends React.Component {
         });
 
         if (this.getIsReportFullyVisible()) {
-            Report.openReport(this.props.report.reportID);
+            this.openReportIfNecessary();
         }
     }
 
@@ -167,7 +168,7 @@ class ReportActionsView extends React.Component {
         const wasNetworkChangeDetected = lodashGet(prevProps.network, 'isOffline') && !lodashGet(this.props.network, 'isOffline');
         if (wasNetworkChangeDetected) {
             if (isReportFullyVisible) {
-                Report.openReport(this.props.report.reportID);
+                this.openReportIfNecessary();
             } else {
                 Report.reconnect(this.props.report.reportID);
             }
@@ -215,7 +216,7 @@ class ReportActionsView extends React.Component {
                     ? 0
                     : this.props.report.lastReadSequenceNumber + 1,
             });
-            Report.openReport(this.props.report.reportID);
+            this.openReportIfNecessary();
         }
 
         // When the user navigates to the LHN the ReportActionsView doesn't unmount and just remains hidden.
@@ -232,6 +233,17 @@ class ReportActionsView extends React.Component {
             && ReportUtils.isUnread(this.props.report);
         if (didManuallyMarkReportAsUnread) {
             this.setState({newMarkerSequenceNumber: this.props.report.lastReadSequenceNumber + 1});
+        }
+
+        // Ensures subscription event succeeds when the report/workspace room is created optimistically.
+        // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
+        // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
+        // Existing reports created will have empty fields for `pendingFields`.
+        const didCreateReportSuccessfully = !this.props.report.pendingFields
+            || (!this.props.report.pendingFields.addWorkspaceRoom && !this.props.report.pendingFields.createChat);
+        if (!this.didSubscribeToReportTypingEvents && didCreateReportSuccessfully) {
+            Report.subscribeToReportTypingEvents(this.props.report.reportID);
+            this.didSubscribeToReportTypingEvents = true;
         }
     }
 
@@ -253,6 +265,15 @@ class ReportActionsView extends React.Component {
     getIsReportFullyVisible() {
         const isSidebarCoveringReportView = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
         return Visibility.isVisible() && !isSidebarCoveringReportView;
+    }
+
+    // If the report is optimistic (AKA not yet created) we don't need to call openReport again
+    openReportIfNecessary() {
+        if (this.props.report.isOptimisticReport) {
+            return;
+        }
+
+        Report.openReport(this.props.report.reportID);
     }
 
     /**
@@ -280,8 +301,8 @@ class ReportActionsView extends React.Component {
         Report.readOldestAction(this.props.report.reportID, oldestActionSequenceNumber);
     }
 
-    scrollToBottomAndMarkReportAsRead() {
-        ReportScrollManager.scrollToBottom();
+    scrollToUnreadMsgAndMarkReportAsRead() {
+        ReportScrollManager.scrollToIndex({animated: true, index: this.props.report.maxSequenceNumber - this.state.newMarkerSequenceNumber}, false);
         Report.readNewestAction(this.props.report.reportID);
     }
 
@@ -340,7 +361,7 @@ class ReportActionsView extends React.Component {
                     <>
                         <FloatingMessageCounter
                             isActive={this.state.isFloatingMessageCounterVisible && this.state.newMarkerSequenceNumber > 0}
-                            onClick={this.scrollToBottomAndMarkReportAsRead}
+                            onClick={this.scrollToUnreadMsgAndMarkReportAsRead}
                         />
                         <ReportActionsList
                             report={this.props.report}

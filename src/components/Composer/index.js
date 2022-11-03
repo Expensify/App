@@ -72,6 +72,9 @@ const propTypes = {
     /** Allow the full composer to be opened */
     setIsFullComposerAvailable: PropTypes.func,
 
+    /** Whether the composer is full size */
+    isComposerFullSize: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -97,6 +100,7 @@ const defaultProps = {
     },
     isFullComposerAvailable: false,
     setIsFullComposerAvailable: () => {},
+    isComposerFullSize: false,
 };
 
 const IMAGE_EXTENSIONS = {
@@ -290,7 +294,7 @@ class Composer extends React.Component {
             const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
 
             // If HTML has img tag, then fetch images from it.
-            if (embeddedImages.length > 0) {
+            if (embeddedImages.length > 0 && embeddedImages[0].src) {
                 fetch(embeddedImages[0].src)
                     .then((response) => {
                         if (!response.ok) { throw Error(response.statusText); }
