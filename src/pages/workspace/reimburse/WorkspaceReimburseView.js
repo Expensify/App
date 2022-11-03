@@ -195,6 +195,9 @@ class WorkspaceReimburseView extends React.Component {
         const numValue = parseFloat(value);
 
         if (_.isNaN(numValue)) {
+            if (value === '') {
+                this.setState({unitRateValue: value});
+            }
             return;
         }
 
