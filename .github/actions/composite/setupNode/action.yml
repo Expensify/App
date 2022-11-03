@@ -13,4 +13,5 @@ runs:
         node-version-file: '.nvmrc'
         cache: npm
 
-    - run: npm ci
+    - name: Install NPM
+      run: npm ci
