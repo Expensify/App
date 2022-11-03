@@ -12,8 +12,9 @@ runs:
           --state merged \
           --base ${{ github.ref }} \
           --search ${{ github.sha }} \
-          --json 'author,number,labels' \
-          --jq '.[] | {author: .author.login, labels: [.labels[] | .name], number: .number}')
+          --json 'author,number,labels,url' \
+          --jq '.[] | {author: .author.login, labels: [.labels[] | .name], number: .number, url: .url}')
         echo "NUMBER=$(jq -r '.number' <<< $PR_DATA)" >> "$GITHUB_OUTPUT"
         echo "AUTHOR=$(jq -r '.author' <<< $PR_DATA)" >> "$GITHUB_OUTPUT"
-        echo "LABELS=$(jq '.labels'" <<< $PR_DATA)" >> "$GITHUB_OUTPUT"
+        echo "LABELS=$(jq '.labels' <<< $PR_DATA)" >> "$GITHUB_OUTPUT"
+        echo "URL=$(jq -r '.url' <<< $PR_DATA)" >> "$GITHUB_OUTPUT"
