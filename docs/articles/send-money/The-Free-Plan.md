@@ -21,15 +21,7 @@ The free plan is ideal for start-ups and small businesses to manage expenses. Wi
 - Navigate to new.expensify.com, enter your company email address, and set a password
 - Click the **green “+”** button and select **_New workspace_**
 
-<img class="image" width="400" src="/assets/images/new-workspace.png">
-
-Once you’ve created your Workspace, you should receive a message from Concierge encouraging you to chat with your Setup Specialist.
-
-<img class="image" width="800" src="/assets/images/chat-with-concierge-setup.png">
-
-- Click the link sent to you by Concierge, and your designated Setup Specialist will guide you through how to configure your company setup.
-
-<img class="image" width="400" src="/assets/images/chat-with-setup-specialist.png">
+Once you’ve created your Workspace, you should receive a message from Concierge encouraging you to chat with your Setup Specialist. Click the link sent to you by Concierge, and your designated Setup Specialist will guide you through how to configure your company setup.
 
 Once you’ve completed your company setup, you should have done the following:
 
@@ -42,12 +34,9 @@ Once you’ve completed your company setup, you should have done the following:
 - To use the Expensify Card, you must invite them to your workspace via your company email address (i.e., admin@companyemail.com and NOT admin@gmail.com).
 
 # Managing the Free Plan
-To access your workspace settings, click your profile icon and then on your workspace name:
+To access your workspace settings, click your profile icon and then on your workspace name.
 
-<img class="image" width="400" src="/assets/images/profile-settings.png">
-<img class="image" width="400" src="/assets/images/workspace-settings.png">
-
-This menu allows you to manage your workspace members, issue additional Expensify Cards, and utilize this plan’s various bill pay and payment options.
+This settings menu allows you to manage your workspace members, issue additional Expensify Cards, and utilize this plan’s various bill pay and payment options.
 
 # FAQs
 ## Do I need a business bank account to use the Free Plan?
