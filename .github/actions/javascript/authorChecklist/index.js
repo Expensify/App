@@ -10,9 +10,8 @@ module.exports =
 
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
-const _ = __nccwpck_require__(3571);
-const GitHubUtils = __nccwpck_require__(7999);
 const https = __nccwpck_require__(7211);
+const GitHubUtils = __nccwpck_require__(7999);
 
 const pathToAuthorChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md';
 const authorChecklistStartsWith = '### PR Author Checklist';
@@ -26,10 +25,10 @@ function getNumberOfItemsFromAuthorChecklist() {
     return new Promise((resolve, reject) => {
         https.get(pathToAuthorChecklist, (res) => {
             let fileContents = '';
-            res.on('data', function (chunk) {
+            res.on('data', (chunk) => {
                 fileContents += chunk;
             });
-            res.on('end', function () {
+            res.on('end', () => {
                 // Currently, both the author and reviewer checklists are in the PR template file, so we need to do a little bit of parsing the PR description to get just the author
                 // checklist.
                 const contentAfterStartOfAuthorChecklist = fileContents.split(authorChecklistStartsWith).pop();
