@@ -1087,7 +1087,6 @@ export {
     isPolicyExpenseChat,
     getDefaultAvatar,
     getIcons,
-    getDisplayNameForParticipant,
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
     getReportName,
