@@ -11,9 +11,12 @@ import compose from '../../libs/compose';
 import * as Policy from '../../libs/actions/Policy';
 import Icon from '../../components/Icon';
 import * as Expensicons from '../../components/Icon/Expensicons';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
 import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
+import BankAccount from '../../libs/models/BankAccount';
 import defaultTheme from '../../styles/themes/default';
 import CONST from '../../CONST';
+import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import Picker from '../../components/Picker';
 import TextInput from '../../components/TextInput';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
@@ -24,6 +27,10 @@ import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoun
 import Form from '../../components/Form';
 
 const propTypes = {
+    /** From Onyx */
+    /** Bank account currently in setup */
+    reimbursementAccount: reimbursementAccountPropTypes,
+
     ...policyPropTypes,
     ...withLocalizePropTypes,
 };
@@ -39,6 +46,10 @@ class WorkspaceSettingsPage extends React.Component {
         this.submit = this.submit.bind(this);
         this.getCurrencyItems = this.getCurrencyItems.bind(this);
         this.validate = this.validate.bind(this);
+    }
+
+    componentDidMount() {
+        BankAccounts.openWorkspaceView();
     }
 
     /**
@@ -71,6 +82,8 @@ class WorkspaceSettingsPage extends React.Component {
     }
 
     render() {
+        const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
+        const hasVBBA = achState === BankAccount.STATE.OPEN;
         return (
             <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)}>
                 <WorkspacePageWithSections
@@ -125,7 +138,7 @@ class WorkspaceSettingsPage extends React.Component {
                                         inputID="currency"
                                         label={this.props.translate('workspace.editor.currencyInputLabel')}
                                         items={this.getCurrencyItems()}
-                                        isDisabled={hasVBA}
+                                        isDisabled={hasVBBA}
                                         defaultValue={this.props.policy.outputCurrency}
                                     />
                                 </View>
@@ -147,7 +160,12 @@ WorkspaceSettingsPage.defaultProps = defaultProps;
 export default compose(
     withPolicy,
     withOnyx({
-        currencyList: {key: ONYXKEYS.CURRENCY_LIST},
+        currencyList: {
+            key: ONYXKEYS.CURRENCY_LIST,
+        },
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
     }),
     withLocalize,
     withNetwork(),
