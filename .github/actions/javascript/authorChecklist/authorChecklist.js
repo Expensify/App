@@ -38,7 +38,7 @@ function getNumberOfItemsFromAuthorChecklist() {
 function checkIssueForCompletedChecklist(numberOfChecklistItems) {
     GitHubUtils.getPullRequestBody(issue)
         .then((pullRequestBody) => {
-            const contentAfterStartOfAuthorChecklist = fileContents.split(authorChecklistStartsWith).pop();
+            const contentAfterStartOfAuthorChecklist = pullRequestBody.split(authorChecklistStartsWith).pop();
             const contentOfAuthorChecklist = contentAfterStartOfAuthorChecklist.split(reviewerChecklistStartsWith).shift();
 
             const numberOfFinishedChecklistItems = (contentOfAuthorChecklist.match(/- \[x\]/g) || []).length;
