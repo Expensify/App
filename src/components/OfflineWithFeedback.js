@@ -50,8 +50,7 @@ const propTypes = {
     errorRowStyles: stylePropTypes,
 
     /** User draft to update message */
-    // eslint-disable-next-line react/forbid-prop-types
-    draftMessage: PropTypes.any,
+    draftMessage: PropTypes.string,
 
     ...withLocalizePropTypes,
 };
