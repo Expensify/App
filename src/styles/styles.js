@@ -2761,6 +2761,20 @@ const styles = {
         fontSize: variables.fontSizeSmall,
         ...spacing.ph2,
     },
+
+    workspaceSection: {
+        backgroundColor: colors.gray1,
+        borderRadius: variables.componentBorderRadiusCard,
+        marginVertical: 10,
+        marginHorizontal: 16,
+        padding: 20,
+        width: 'auto',
+        textAlign: 'left',
+    },
+
+    workspaceMenuItem: {
+        paddingHorizontal: 0,
+    },
 };
 
 export default styles;

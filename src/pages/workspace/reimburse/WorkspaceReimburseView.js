@@ -7,6 +7,7 @@ import TextInput from '../../../components/TextInput';
 import Picker from '../../../components/Picker';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
+import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
@@ -193,7 +194,7 @@ class WorkspaceReimburseView extends React.Component {
                 <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)}>
                     <Section
                         title={this.props.translate('workspace.reimburse.captureReceipts')}
-                        icon={Illustrations.ReceiptYellow}
+                        icon={Illustrations.MoneyReceipts}
                         menuItems={[
                             {
                                 title: this.props.translate('workspace.reimburse.viewAllReceipts'),
@@ -201,10 +202,13 @@ class WorkspaceReimburseView extends React.Component {
                                 icon: Expensicons.Receipt,
                                 shouldShowRightIcon: true,
                                 iconRight: Expensicons.NewWindow,
+                                iconFill: themeColors.buttonSuccessBG,
+                                wrapperStyle: [styles.workspaceMenuItem],
                             },
                         ]}
+                        containerStyles={[styles.workspaceSection]}
                     >
-                        <View style={[styles.mv4, styles.flexRow, styles.flexWrap]}>
+                        <View style={[styles.mv3, styles.flexRow, styles.flexWrap]}>
                             <Text>
                                 {this.props.translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
                                 <CopyTextToClipboard
@@ -219,8 +223,9 @@ class WorkspaceReimburseView extends React.Component {
                     <Section
                         title={this.props.translate('workspace.reimburse.trackDistance')}
                         icon={Illustrations.GpsTrackOrange}
+                        containerStyles={[styles.workspaceSection]}
                     >
-                        <View style={[styles.mv4]}>
+                        <View style={[styles.mv3]}>
                             <Text>{this.props.translate('workspace.reimburse.trackDistanceCopy')}</Text>
                         </View>
                         <OfflineWithFeedback
@@ -261,8 +266,9 @@ class WorkspaceReimburseView extends React.Component {
                         <Section
                             title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
                             icon={Illustrations.JewelBoxGreen}
+                            containerStyles={[styles.workspaceSection]}
                         >
-                            <View style={[styles.mv4]}>
+                            <View style={[styles.mv3]}>
                                 <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
                             </View>
                             <Button
@@ -290,8 +296,9 @@ class WorkspaceReimburseView extends React.Component {
                                     iconRight: Expensicons.NewWindow,
                                 },
                             ]}
+                            containerStyles={[styles.workspaceSection]}
                         >
-                            <View style={[styles.mv4]}>
+                            <View style={[styles.mv3]}>
                                 <Text>{this.props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
                             </View>
                         </Section>

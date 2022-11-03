@@ -17,6 +17,7 @@ import RocketOrange from '../../../assets/images/product-illustrations/rocket--o
 import TadaYellow from '../../../assets/images/product-illustrations/tada--yellow.svg';
 import TadaBlue from '../../../assets/images/product-illustrations/tada--blue.svg';
 import GpsTrackOrange from '../../../assets/images/product-illustrations/gps-track--orange.svg';
+import MoneyReceipts from '../../../assets/images/product-illustrations/simple-illustration__money-receipts.svg';
 
 export {
     BankArrowPink,
@@ -38,4 +39,5 @@ export {
     TadaYellow,
     TadaBlue,
     GpsTrackOrange,
+    MoneyReceipts,
 };
