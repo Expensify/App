@@ -585,9 +585,6 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
                 [optimisticReportAction.sequenceNumber]: {
                     ...optimisticReportAction,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCancelFailureMessage', {type}),
-                    },
                 },
             },
         },
