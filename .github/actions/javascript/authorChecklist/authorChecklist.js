@@ -49,13 +49,16 @@ function getPullRequestBody() {
 function checkIssueForCompletedChecklist(numberOfChecklistItems) {
     getPullRequestBody()
         .then((pullRequestBody) => {
-            const numberOfFinishedChecklistItems = (pullRequestBody.match(/- \[x\]/g) || []).length;
-            const numberOfUnfinishedChecklistItems = (pullRequestBody.match(/- \[ \]/g) || []).length;
+            const contentAfterStartOfAuthorChecklist = fileContents.split(authorChecklistStartsWith).pop();
+            const contentOfAuthorChecklist = contentAfterStartOfAuthorChecklist.split(reviewerChecklistStartsWith).shift();
+
+            const numberOfFinishedChecklistItems = (contentOfAuthorChecklist.match(/- \[x\]/g) || []).length;
+            const numberOfUnfinishedChecklistItems = (contentOfAuthorChecklist.match(/- \[ \]/g) || []).length;
 
             const maxCompletedItems = numberOfChecklistItems + 2;
             const minCompletedItems = numberOfChecklistItems - 2;
 
-            console.log(`You completed ${numberOfFinishedChecklistItems} out of ${numberOfChecklistItems} checklist items`);
+            console.log(`You completed ${numberOfFinishedChecklistItems} out of ${numberOfChecklistItems} checklist items with ${numberOfUnfinishedChecklistItems} unfinished items`);
 
             if (numberOfUnfinishedChecklistItems >= minCompletedItems
                 && numberOfFinishedChecklistItems <= maxCompletedItems
