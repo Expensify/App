@@ -466,7 +466,8 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
 }
 
 /**
- * Gets the personal details for a login by looking in the allPersonalDetails from Onyx. If it doesn't exist in Onyx, then a default object is constructed.
+ * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
+ * then a default object is constructed.
  * @param {String} login
  * @returns {Object}
  */
