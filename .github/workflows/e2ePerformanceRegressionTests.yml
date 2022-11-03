@@ -15,6 +15,10 @@ jobs:
           ruby-version: '2.7'
           bundler-cache: true
 
+      # Cache gradle to improve Android build time
+      - name: Gradle cache
+        uses: gradle/gradle-build-action@v2
+
       - name: Build APK
         env:
           JAVA_HOME: ${{ env.JAVA_HOME_11_X64 }}
