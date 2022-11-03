@@ -51,11 +51,27 @@ jobs:
           test_spec_file: tests/e2e/TestSpec.yml
           test_spec_type: APPIUM_NODE_TEST_SPEC
           remote_src: false
-          file_artifacts: |
-            Customer Artifacts.zip
+          file_artifacts: Customer Artifacts.zip
+
+      - name: Unzip Artifacts
+        run: unzip Customer Artifacts.zip
 
       - name: Debug
-        run: find .
+        run: find Host_Machine_Files
 
       - name: Print results
-        run: cat tests/e2e/.results/*
+        run: cat Host_Machine_Files/$WORKING_DIRECTORY/compare.json
+
+      - name: Set env
+        run: echo "OUTPUT=$(cat Host_Machine_Files/$WORKING_DIRECTORY/compare.json)" >> $OUTPUT
+
+      - name: Comment on PR
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: ${{ env.OUTPUT }}
+            })
