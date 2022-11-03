@@ -36,7 +36,7 @@ jobs:
       - name: Schedule test run
         uses: realm/aws-devicefarm/test-application@master
         with:
-          name: run_with_uploads
+          name: App E2E Performance Regression Tests
           project_arn: ${{ secrets.AWS_PROJECT_ARN }}
           device_pool_arn: ${{ secrets.AWS_DEVICE_POOL_ARN }}
           app_file: app-e2eRelease.apk
@@ -47,3 +47,15 @@ jobs:
           test_spec_file: tests/e2e/TestSpec.yml
           test_spec_type: APPIUM_NODE_TEST_SPEC
           remote_src: false
+          file_artifacts: |
+            tests/e2e/.results/current.json
+            tests/e2e/.results/baseline.json
+            tests/e2e/.results/compare.json
+            tests/e2e/.results/debug.log
+            tests/e2e/.results/output.md
+
+      - name: Debug
+        run: find .
+
+      - name: Print results
+        run: cat tests/e2e/.results/*

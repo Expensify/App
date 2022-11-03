@@ -37,4 +37,10 @@ phases:
 # These logs and artifacts will be available through ListArtifacts API in Device Farm.
 artifacts:
 - $DEVICEFARM_LOG_DIR
-- $DEVICEFARM_TEST_PACKAGE_PATH/Git-App/e2e
+
+# Custom artifacts
+- $DEVICEFARM_TEST_PACKAGE_PATH/Git-App/tests/e2e/.results/current.json
+- $DEVICEFARM_TEST_PACKAGE_PATH/Git-App/tests/e2e/.results/compare.json
+- $DEVICEFARM_TEST_PACKAGE_PATH/Git-App/tests/e2e/.results/baseline.json
+- $DEVICEFARM_TEST_PACKAGE_PATH/Git-App/tests/e2e/.results/debug.log
+- $DEVICEFARM_TEST_PACKAGE_PATH/Git-App/tests/e2e/.results/output.md
