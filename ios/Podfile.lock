@@ -975,7 +975,7 @@ SPEC CHECKSUMS:
   React-jsinspector: 0f08037401626246e5c760871a023769b9815619
   React-logger: 0a8e62c840f534936c2cb2c96d0e6d507010e862
   react-native-blob-util: c3b0faecd2919db568e9d552084396f3e50b57c7
-  react-native-cameraroll: 2957f2bce63ae896a848fbe0d5352c1bd4d20866
+  react-native-cameraroll: 60ac50a5209777cbccfe8d7a62d0743a9da87060
   react-native-config: 7cd105e71d903104e8919261480858940a6b9c0e
   react-native-document-picker: f68191637788994baed5f57d12994aa32cf8bf88
   react-native-flipper: dc5290261fbeeb2faec1bdc57ae6dd8d562e1de4
@@ -984,9 +984,9 @@ SPEC CHECKSUMS:
   react-native-netinfo: 1a6035d3b9780221d407c277ebfb5722ace00658
   react-native-pdf: 33c622cbdf776a649929e8b9d1ce2d313347c4fa
   react-native-plaid-link-sdk: 77052f329310ff5a36ddda276793f40d27c02bc4
-  react-native-progress-bar-android: be43138ab7da30d51fc038bafa98e9ed594d0c40
+  react-native-progress-bar-android: ce95a69f11ac580799021633071368d08aaf9ad8
   react-native-progress-view: 4d3bbe6a099ba027b1fedb1548c2c87f74249b70
-  react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
+  react-native-render-html: 786d150a8e38d3d299bc21dc4848c5d70edc5a5f
   react-native-safe-area-context: 99b24a0c5acd0d5dcac2b1a7f18c49ea317be99a
   react-native-webview: e771bc375f789ebfa02a26939a57dbc6fa897336
   React-perflogger: d4c9c4cfcc30a0d6cca35ddbd40a85ad4d3e4db1
@@ -1002,9 +1002,9 @@ SPEC CHECKSUMS:
   React-runtimeexecutor: a0bd76a1162262d2945d467f6b978116e740904f
   ReactCommon: cf8ef38ad293cc8a30b02f858bd16719b64a985b
   RNCAsyncStorage: 0c357f3156fcb16c8589ede67cc036330b6698ca
-  RNCClipboard: 41d8d918092ae8e676f18adada19104fa3e68495
+  RNCClipboard: 5e299c6df8e0c98f3d7416b86ae563d3a9f768a3
   RNCPicker: 0b65be85fe7954fbb2062ef079e3d1cde252d888
-  RNDateTimePicker: 7658208086d86d09e1627b5c34ba0cf237c60140
+  RNDateTimePicker: c9911be59b1f8670b9f244b85af3a7c295e175ed
   RNFastImage: 1f2cab428712a4baaf78d6169eaec7f622556dd7
   RNFBAnalytics: f76bfa164ac235b00505deb9fc1776634056898c
   RNFBApp: 729c0666395b1953198dc4a1ec6deb8fbe1c302e
