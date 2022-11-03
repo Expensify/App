@@ -240,7 +240,7 @@ class ReportActionsView extends React.Component {
         // The other reports created will have empty field on `pendingFields`.
         const didCreateReportSuccessfully = !this.props.report.pendingFields
             || (!this.props.report.pendingFields.addWorkspaceRoom && !this.props.report.pendingFields.createChat);
-        if (!this.didSubscribeToReportTypingEvents && didReportSuccessfullyCreated) {
+        if (!this.didSubscribeToReportTypingEvents && didCreateReportSuccessfully) {
             Report.subscribeToReportTypingEvents(this.props.report.reportID);
             this.didSubscribeToReportTypingEvents = true;
         }
