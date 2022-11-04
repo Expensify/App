@@ -15,6 +15,11 @@ hubs:
         articles:
           - href: The-Free-Plan
             title: The Free Plan
+      - href: chat
+        title: Chat
+        articles:
+          - href: Everything-About-Chat
+            title: Everything About Chat
 
   - href: request-money
     title: Request money
