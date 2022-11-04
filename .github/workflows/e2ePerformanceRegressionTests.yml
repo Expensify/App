@@ -20,8 +20,6 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Build APK
-#        env:
-#          JAVA_HOME: ${{ env.JAVA_HOME_11_X64 }}
         run: npm run android-build-e2e
 
       - name: Copy APK
@@ -56,11 +54,14 @@ jobs:
       - name: Unzip Artifacts
         run: unzip Customer\ Artifacts.zip
 
+      - name: debug
+        run: find .
+
       - name: Print results
-        run: cat ./Host_Machine_Files/$WORKING_DIRECTORY/compare.json
+        run: cat ./Host_Machine_Files/$WORKING_DIRECTORY/output.md
 
       - name: Set env
-        run: echo "OUTPUT=$(cat ./Host_Machine_Files/$WORKING_DIRECTORY/compare.json)" >> $OUTPUT
+        run: echo "OUTPUT=$(cat ./Host_Machine_Files/$WORKING_DIRECTORY/output.md)" >> $OUTPUT
 
       - name: Comment on PR
         uses: actions/github-script@v6
