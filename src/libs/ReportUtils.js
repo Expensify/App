@@ -466,26 +466,41 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
 }
 
 /**
+ * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
+ * then a default object is constructed.
+ * @param {String} login
+ * @returns {Object}
+ */
+function getPersonalDetailsForLogin(login) {
+    if (!login) {
+        return {};
+    }
+    return (allPersonalDetails && allPersonalDetails[login]) || {
+        login,
+        displayName: Str.removeSMSDomain(login),
+        avatar: getDefaultAvatar(login),
+    };
+}
+
+/**
  * Get the displayName for a single report participant.
  *
- * @param {Object} participant
- * @param {String} participant.displayName
- * @param {String} participant.firstName
- * @param {String} participant.login
+ * @param {String} login
  * @param {Boolean} [shouldUseShortForm]
  * @returns {String}
  */
-function getDisplayNameForParticipant(participant, shouldUseShortForm = false) {
-    if (!participant) {
+function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
+    if (!login) {
         return '';
     }
+    const personalDetails = getPersonalDetailsForLogin(login);
 
-    const loginWithoutSMSDomain = Str.removeSMSDomain(participant.login);
-    let longName = participant.displayName || loginWithoutSMSDomain;
+    const loginWithoutSMSDomain = Str.removeSMSDomain(personalDetails.login);
+    let longName = personalDetails.displayName || loginWithoutSMSDomain;
     if (longName === loginWithoutSMSDomain && Str.isSMSLogin(longName)) {
         longName = LocalePhoneNumber.toLocalPhone(preferredLocale, longName);
     }
-    const shortName = participant.firstName || longName;
+    const shortName = personalDetails.firstName || longName;
 
     return shouldUseShortForm ? shortName : longName;
 }
@@ -497,7 +512,7 @@ function getDisplayNameForParticipant(participant, shouldUseShortForm = false) {
  */
 function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) {
     return _.map(participants, (participant) => {
-        const displayName = getDisplayNameForParticipant(participant, isMultipleParticipantReport);
+        const displayName = getDisplayNameForParticipant(participant.login, isMultipleParticipantReport);
         const tooltip = Str.removeSMSDomain(participant.login);
 
         let pronouns = participant.pronouns;
@@ -518,19 +533,17 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
  * Get the title for a report.
  *
  * @param {Object} report
- * @param {Object} [personalDetailsForParticipants]
  * @param {Object} [policies]
  * @returns {String}
  */
-function getReportName(report, personalDetailsForParticipants = {}, policies = {}) {
+function getReportName(report, policies = {}) {
     let formattedName;
     if (isChatRoom(report)) {
         formattedName = report.reportName;
     }
 
     if (isPolicyExpenseChat(report)) {
-        const reportOwnerPersonalDetails = personalDetailsForParticipants[report.ownerEmail];
-        const reportOwnerDisplayName = getDisplayNameForParticipant(reportOwnerPersonalDetails) || report.ownerEmail || report.reportName;
+        const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerEmail) || report.ownerEmail || report.reportName;
         formattedName = report.isOwnPolicyExpenseChat ? getPolicyName(report, policies) : reportOwnerDisplayName;
     }
 
@@ -543,10 +556,10 @@ function getReportName(report, personalDetailsForParticipants = {}, policies = {
     }
 
     // Not a room or PolicyExpenseChat, generate title from participants
-    const participants = _.without(lodashGet(report, 'participants', []), sessionEmail);
-    const isMultipleParticipantReport = participants.length > 1;
-    const participantsToGetTheNamesOf = _.isEmpty(personalDetailsForParticipants) ? participants : personalDetailsForParticipants;
-    return _.map(participantsToGetTheNamesOf, participant => getDisplayNameForParticipant(participant, isMultipleParticipantReport)).join(', ');
+    const participants = (report && report.participants) || [];
+    const participantsWithoutCurrentUser = _.without(participants, sessionEmail);
+    const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
+    return _.map(participantsWithoutCurrentUser, login => getDisplayNameForParticipant(login, isMultipleParticipantReport)).join(', ');
 }
 
 /**
@@ -689,8 +702,7 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
  */
 function getIOUReportActionMessage(type, total, participants, comment, currency) {
     const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
-    const isMultipleParticipantReport = participants.length > 1;
-    const displayNames = _.map(participants, participant => getDisplayNameForParticipant(allPersonalDetails[participant.login], isMultipleParticipantReport) || participant.login);
+    const displayNames = _.map(participants, participant => getDisplayNameForParticipant(participant.login, true) || participant.login);
     const from = displayNames.length < 3
         ? displayNames.join(' and ')
         : `${displayNames.slice(0, -1).join(', ')}, and ${_.last(displayNames)}`;
@@ -1083,7 +1095,6 @@ export {
     isPolicyExpenseChat,
     getDefaultAvatar,
     getIcons,
-    getDisplayNameForParticipant,
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
     getReportName,
@@ -1100,4 +1111,5 @@ export {
     shouldReportBeInOptionList,
     getChatByParticipants,
     getIOUReportActionMessage,
+    getDisplayNameForParticipant,
 };
