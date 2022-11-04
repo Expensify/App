@@ -59,7 +59,7 @@ html,
 body {
     height: 100%;
     min-height: 100%;
-    background: $color-white;
+    background: $color-super-dark-green;
 }
 
 hr {
@@ -144,7 +144,7 @@ button {
 
     &.success {
         background-color: $color-green;
-        color: $color-white;
+        color: $color-super-dark-green;
         width: 100%;
 
         &:hover {
