@@ -56,14 +56,11 @@ jobs:
       - name: Unzip Artifacts
         run: unzip Customer\ Artifacts.zip
 
-      - name: Debug
-        run: find Host_Machine_Files
-
       - name: Print results
-        run: cat Host_Machine_Files/$WORKING_DIRECTORY/compare.json
+        run: cat ./Host_Machine_Files/$WORKING_DIRECTORY/compare.json
 
       - name: Set env
-        run: echo "OUTPUT=$(cat Host_Machine_Files/$WORKING_DIRECTORY/compare.json)" >> $OUTPUT
+        run: echo "OUTPUT=$(cat ./Host_Machine_Files/$WORKING_DIRECTORY/compare.json)" >> $OUTPUT
 
       - name: Comment on PR
         uses: actions/github-script@v6
