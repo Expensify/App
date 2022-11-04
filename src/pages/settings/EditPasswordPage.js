@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Form from '../../components/Form';
@@ -34,17 +34,11 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-class EditPasswordScreen extends Component {
+class EditPasswordPage extends Component {
     constructor(props) {
         super(props);
         this.submit = this.submit.bind(this);
         this.validate = this.validate.bind(this);
-
-        this.errorKeysMap = {
-            currentPassword: 'passwordPage.errors.currentPassword',
-            newPasswordSameAsOld: 'passwordPage.errors.newPasswordSameAsOld',
-            newPassword: 'passwordPage.errors.newPassword',
-        };
     }
 
     /**
@@ -54,15 +48,15 @@ class EditPasswordScreen extends Component {
     validate(values) {
         const errors = {};
         if (!values.currentPassword) {
-            errors.currentPassword = this.props.translate(this.errorKeysMap.currentPassword);
+            errors.currentPassword = this.props.translate('passwordPage.errors.currentPassword');
         }
 
         if (!values.newPassword || !ValidationUtils.isValidPassword(values.newPassword)) {
-            errors.newPassword = this.props.translate(this.errorKeysMap.newPassword);
+            errors.newPassword = this.props.translate('passwordPage.errors.newPassword');
         }
 
         if (values.currentPassword && values.newPassword && _.isEqual(values.currentPassword, values.newPassword)) {
-            errors.newPasswordSameAsOld = this.props.translate(this.errorKeysMap.newPasswordSameAsOld);
+            errors.newPasswordSameAsOld = this.props.translate('passwordPage.errors.newPasswordSameAsOld');
         }
         return errors;
     }
@@ -76,13 +70,8 @@ class EditPasswordScreen extends Component {
 
     render() {
         return (
-            <ScrollView
-                style={styles.flex1}
-                contentContainerStyle={styles.p5}
-
-                // Allow the user to click show password while password input is focused.
-                // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                keyboardShouldPersistTaps="always"
+            <View
+                style={[styles.flex1, styles.p5]}
             >
                 <Text style={[styles.mb6]}>
                     {this.props.translate('passwordPage.changingYourPasswordPrompt')}
@@ -91,7 +80,7 @@ class EditPasswordScreen extends Component {
                     formID={ONYXKEYS.FORMS.EDIT_PASSWORD_FORM}
                     validate={this.validate}
                     onSubmit={this.submit}
-                    submitButtonText={this.props.translate('common.save')}
+                    submitButtonText={this.props.translate('passwordPage.changePassword')}
                 >
                     <View style={styles.mb6}>
                         <TextInput
@@ -113,10 +102,7 @@ class EditPasswordScreen extends Component {
                         />
 
                         <Text
-                            style={[
-                                styles.textLabelSupporting,
-                                styles.mt1,
-                            ]}
+                            style={[styles.textLabelSupporting, styles.mt1]}
                         >
                             {this.props.translate('passwordPage.newPasswordPrompt')}
                         </Text>
@@ -128,13 +114,13 @@ class EditPasswordScreen extends Component {
                         </Text>
                     )}
                 </Form>
-            </ScrollView>
+            </View>
         );
     }
 }
 
-EditPasswordScreen.propTypes = propTypes;
-EditPasswordScreen.defaultProps = defaultProps;
+EditPasswordPage.propTypes = propTypes;
+EditPasswordPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -142,8 +128,5 @@ export default compose(
         account: {
             key: ONYXKEYS.ACCOUNT,
         },
-        requestCallForm: {
-            key: ONYXKEYS.FORMS.REQUEST_CALL_FORM,
-        },
     }),
-)(EditPasswordScreen);
+)(EditPasswordPage);

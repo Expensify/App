@@ -43,7 +43,7 @@ class UnauthenticatedUser extends Component {
     }
 
     onResendValidationLink() {
-        Session.updateSessionLoginAndResendValidationLink(this.props.currentUserPersonalDetails.login);
+        Session.resendValidationLink(this.props.currentUserPersonalDetails.login);
     }
 
     render() {

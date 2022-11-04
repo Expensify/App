@@ -14,7 +14,7 @@ const propTypes = {
 const defaultProps = {
 };
 
-class ResendValidationLinkScreen extends Component {
+class ResendValidationLinkPage extends Component {
     render() {
         return (
             <ScreenWrapper onTransitionEnd={() => {
@@ -39,7 +39,7 @@ class ResendValidationLinkScreen extends Component {
     }
 }
 
-ResendValidationLinkScreen.propTypes = propTypes;
-ResendValidationLinkScreen.defaultProps = defaultProps;
+ResendValidationLinkPage.propTypes = propTypes;
+ResendValidationLinkPage.defaultProps = defaultProps;
 
-export default withLocalize(ResendValidationLinkScreen);
+export default withLocalize(ResendValidationLinkPage);

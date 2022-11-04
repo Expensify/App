@@ -8,8 +8,8 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
-import EditPasswordScreen from './EditPasswordScreen';
-import PasswordConfirmationScreen from './PasswordConfirmationScreen';
+import EditPasswordScreen from './EditPasswordPage';
+import PasswordConfirmationPage from './PasswordConfirmationPage';
 import UnauthenticatedUser from './UnauthenticatedUser';
 import * as Session from '../../libs/actions/Session';
 
@@ -42,7 +42,7 @@ class PasswordPage extends Component {
 
     showMainScreen() {
         if (!_.isEmpty(this.props.account.success)) {
-            return <PasswordConfirmationScreen />;
+            return <PasswordConfirmationPage />;
         }
         if (this.props.user.validated) {
             return <EditPasswordScreen />;

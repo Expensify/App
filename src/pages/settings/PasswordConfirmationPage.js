@@ -12,7 +12,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const PasswordConfirmationScreen = props => (
+const PasswordConfirmationPage = props => (
     <>
         <View style={[styles.screenCenteredContainer, styles.alignItemsCenter]}>
             <Image
@@ -44,7 +44,7 @@ const PasswordConfirmationScreen = props => (
     </>
 );
 
-PasswordConfirmationScreen.propTypes = propTypes;
-PasswordConfirmationScreen.displayName = 'PasswordConfirmationScreen';
+PasswordConfirmationPage.propTypes = propTypes;
+PasswordConfirmationPage.displayName = 'PasswordConfirmationPage';
 
-export default withLocalize(PasswordConfirmationScreen);
+export default withLocalize(PasswordConfirmationPage);

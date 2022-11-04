@@ -247,7 +247,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const SettingsPasswordPage = require('../../../pages/settings/ResendValidationLinkScreen').default;
+            const SettingsPasswordPage = require('../../../pages/settings/ResendValidationLinkPage').default;
             return SettingsPasswordPage;
         },
         name: 'Settings_Resend_Validation_Link',

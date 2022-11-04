@@ -96,7 +96,15 @@ function resendValidationLink(login = credentials.login) {
             errors: null,
             message: null,
         },
-    }];
+    },
+    {
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.CREDENTIALS,
+        value: {
+            login,
+        },
+    },
+    ];
     const successData = [{
         onyxMethod: CONST.ONYX.METHOD.MERGE,
         key: ONYXKEYS.ACCOUNT,
@@ -565,11 +573,6 @@ function authenticatePusher(socketID, channelName, callback) {
     });
 }
 
-function updateSessionLoginAndResendValidationLink(login) {
-    Onyx.merge(ONYXKEYS.CREDENTIALS, {login});
-    resendValidationLink();
-}
-
 export {
     beginSignIn,
     updatePasswordAndSignin,
@@ -589,5 +592,4 @@ export {
     changePasswordAndSignIn,
     invalidateCredentials,
     invalidateAuthToken,
-    updateSessionLoginAndResendValidationLink,
 };
