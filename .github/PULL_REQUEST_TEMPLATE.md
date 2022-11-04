@@ -50,11 +50,11 @@ For example:
 
 - [ ] Verify that no errors appear in the JS console
 
-### PR Review Checklist
+### PR Author Checklist
 <!--
-This is a checklist for PR authors & reviewers. Please make sure to complete all tasks and check them off once you do, or else Expensify has the right not to merge your PR!
+This is a checklist for PR authors. Please make sure to complete all tasks and check them off once you do, or else your PR will not be merged!
 -->
-#### PR Author Checklist
+
 - [ ] I linked the correct issue in the `### Fixed Issues` section above
 - [ ] I wrote clear testing steps that cover the changes made in this PR
     - [ ] I added steps for local testing in the `Tests` section

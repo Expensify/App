@@ -37,7 +37,7 @@ const propTypes = {
     setIsFullComposerAvailable: PropTypes.func,
 
     /** Whether the composer is full size */
-    isComposerFullSize: PropTypes.bool.isRequired,
+    isComposerFullSize: PropTypes.bool,
 
     /** General styles to apply to the text input */
     // eslint-disable-next-line react/forbid-prop-types
@@ -57,6 +57,7 @@ const defaultProps = {
     },
     isFullComposerAvailable: false,
     setIsFullComposerAvailable: () => {},
+    isComposerFullSize: false,
     style: null,
 };
 
