@@ -28,7 +28,7 @@ const propTypes = {
     canBeRejected: PropTypes.bool,
 
     /** Type of the reject transaction button */
-    rejectButtonType: PropTypes.oneOf(['decline', 'cancel']).isRequired,
+    rejectButtonType: PropTypes.oneOf([CONST.IOU.REPORT_ACTION_TYPE.DECLINE, CONST.IOU.REPORT_ACTION_TYPE.CANCEL]).isRequired,
 
     ...withLocalizePropTypes,
 };
