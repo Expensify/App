@@ -124,7 +124,7 @@ describe('Sidebar', () => {
                 });
         });
 
-        it('doesn\'t change the order when adding a draft to the active report', () => {
+        it('changes the order when adding a draft to the active report', () => {
             // Given three reports in the recently updated order of 3, 2, 1
             // And the first report has a draft
             // And the currently viewed report is the first report
@@ -147,7 +147,7 @@ describe('Sidebar', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
                 }))
 
-                // Then there should be a pencil icon and report one should still be the last one because putting a draft on the active report should not change it's location
+                // Then there should be a pencil icon and report one should be the first one because putting a draft on the active report should change its location
                 // in the ordered list
                 .then(() => {
                     const pencilIcon = sidebarLinks.getAllByAccessibilityHint('Pencil Icon');
@@ -155,9 +155,9 @@ describe('Sidebar', () => {
 
                     const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
                     expect(displayNames).toHaveLength(3);
-                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
-                    expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
-                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('One, Two');
+                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two'); // this has `hasDraft` flag enabled so it will be on top
+                    expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Five, Six');
+                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
                 });
         });
 

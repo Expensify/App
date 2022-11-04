@@ -49,7 +49,7 @@ Onyx.connect({
  * @param {Number} amount
  * @param {String} currency
  * @param {String} recipientEmail
- * @param {String} participant
+ * @param {Object} participant
  * @param {String} comment
  */
 function requestMoney(report, amount, currency, recipientEmail, participant, comment) {
