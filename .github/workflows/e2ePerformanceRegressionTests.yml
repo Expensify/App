@@ -51,22 +51,17 @@ jobs:
           remote_src: false
           file_artifacts: Customer Artifacts.zip
 
-      - name: Unzip Artifacts
+      - name: Unzip AWS Device Farm results
         run: unzip Customer\ Artifacts.zip
 
-      - name: debug
-        run: find .
-
-      - name: Print results
-        run: cat ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md
-
-      - name: Set env
+      - name: Set output of AWS Device Farm into GitHub ENV
         run: |
           echo 'OUTPUT<<EOF' >> $GITHUB_ENV
           cat ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
-      - uses: mshick/add-pr-comment@v1
+      - name: Leave output of AWS Device Farm as a PR comment
+        uses: mshick/add-pr-comment@v1
         with:
           message: ${{ env.OUTPUT }}
           repo-token: ${{ secrets.GITHUB_TOKEN }}
