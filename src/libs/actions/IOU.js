@@ -166,6 +166,7 @@ function requestMoney(report, amount, currency, recipientEmail, debtorEmail, deb
             iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`],
             recipientEmail,
             amount,
+            currency,
         );
     } else {
         iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, preferredLocale);
