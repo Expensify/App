@@ -38,7 +38,9 @@ class UnauthenticatedUser extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (!prevProps.account.isLoading || this.props.account.isLoading) { return; }
+        if (!prevProps.account.isLoading || this.props.account.isLoading) {
+            return;
+        }
         Navigation.navigate(ROUTES.SETTINGS_RESEND_VALIDATION_LINK);
     }
 
