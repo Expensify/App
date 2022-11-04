@@ -67,6 +67,7 @@ class ReportActionsView extends React.Component {
         super(props);
 
         this.didLayout = false;
+        this.didSubscribeToReportTypingEvents = false;
 
         this.unsubscribeVisibilityListener = null;
 
@@ -84,7 +85,7 @@ class ReportActionsView extends React.Component {
         this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
-        this.scrollToBottomAndMarkReportAsRead = this.scrollToBottomAndMarkReportAsRead.bind(this);
+        this.scrollToUnreadMsgAndMarkReportAsRead = this.scrollToUnreadMsgAndMarkReportAsRead.bind(this);
         this.openReportIfNecessary = this.openReportIfNecessary.bind(this);
     }
 
@@ -100,7 +101,6 @@ class ReportActionsView extends React.Component {
             this.setState({newMarkerSequenceNumber: 0});
         });
 
-        Report.subscribeToReportTypingEvents(this.props.report.reportID);
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
             if (!ReportActionComposeFocusManager.isFocused()) {
                 return;
@@ -234,6 +234,17 @@ class ReportActionsView extends React.Component {
         if (didManuallyMarkReportAsUnread) {
             this.setState({newMarkerSequenceNumber: this.props.report.lastReadSequenceNumber + 1});
         }
+
+        // Ensures subscription event succeeds when the report/workspace room is created optimistically.
+        // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
+        // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
+        // Existing reports created will have empty fields for `pendingFields`.
+        const didCreateReportSuccessfully = !this.props.report.pendingFields
+            || (!this.props.report.pendingFields.addWorkspaceRoom && !this.props.report.pendingFields.createChat);
+        if (!this.didSubscribeToReportTypingEvents && didCreateReportSuccessfully) {
+            Report.subscribeToReportTypingEvents(this.props.report.reportID);
+            this.didSubscribeToReportTypingEvents = true;
+        }
     }
 
     componentWillUnmount() {
@@ -290,8 +301,8 @@ class ReportActionsView extends React.Component {
         Report.readOldestAction(this.props.report.reportID, oldestActionSequenceNumber);
     }
 
-    scrollToBottomAndMarkReportAsRead() {
-        ReportScrollManager.scrollToBottom();
+    scrollToUnreadMsgAndMarkReportAsRead() {
+        ReportScrollManager.scrollToIndex({animated: true, index: this.props.report.maxSequenceNumber - this.state.newMarkerSequenceNumber}, false);
         Report.readNewestAction(this.props.report.reportID);
     }
 
@@ -350,7 +361,7 @@ class ReportActionsView extends React.Component {
                     <>
                         <FloatingMessageCounter
                             isActive={this.state.isFloatingMessageCounterVisible && this.state.newMarkerSequenceNumber > 0}
-                            onClick={this.scrollToBottomAndMarkReportAsRead}
+                            onClick={this.scrollToUnreadMsgAndMarkReportAsRead}
                         />
                         <ReportActionsList
                             report={this.props.report}

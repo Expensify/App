@@ -493,6 +493,10 @@ const styles = {
         backgroundColor: themeColors.activeComponentBG,
     },
 
+    fontWeightBold: {
+        fontWeight: fontWeightBold,
+    },
+
     touchableButtonImage: {
         alignItems: 'center',
         height: variables.componentSizeNormal,
@@ -1571,6 +1575,14 @@ const styles = {
         borderRadius: 24,
     },
 
+    horizontalStackedAvatar: {
+        height: 28,
+        width: 28,
+        backgroundColor: colors.white,
+        borderRadius: 33,
+        paddingTop: 2,
+    },
+
     singleSubscript: {
         height: variables.iconSizeNormal,
         width: variables.iconSizeNormal,
@@ -1699,6 +1711,43 @@ const styles = {
         marginRight: variables.componentSizeNormal - 28,
         height: variables.avatarSizeSmall,
         width: variables.avatarSizeSmall,
+    },
+
+    horizontalStackedAvatar1: {
+        left: -19,
+        top: -79,
+        zIndex: 2,
+    },
+
+    horizontalStackedAvatar2: {
+        left: 1,
+        top: -51,
+        zIndex: 3,
+    },
+
+    horizontalStackedAvatar3: {
+        left: 21,
+        top: -23,
+        zIndex: 4,
+    },
+
+    horizontalStackedAvatar4: {
+        top: 5,
+        left: 41,
+        zIndex: 5,
+    },
+
+    horizontalStackedAvatar4Overlay: {
+        top: -107,
+        left: 41,
+        height: 28,
+        width: 28,
+        borderWidth: 2,
+        borderStyle: 'solid',
+        borderColor: colors.white,
+        backgroundColor: themeColors.opaqueAvatar,
+        borderRadius: 24,
+        zIndex: 6,
     },
 
     modalViewContainer: {
@@ -2125,7 +2174,10 @@ const styles = {
     },
 
     iouPreviewBoxLoading: {
-        minHeight: 47,
+        // When a new IOU request arrives it is very briefly in a loading state, so set the minimum height of the container to 94 to match the rendered height after loading.
+        // Otherwise, the IOU request pay button will not be fully visible and the user will have to scroll up to reveal the entire IOU request container.
+        // See https://github.com/Expensify/App/issues/10283.
+        minHeight: 94,
         width: '100%',
     },
 
@@ -2574,7 +2626,6 @@ const styles = {
     },
 
     keyboardShortcutModalContainer: {
-        maxWidth: 600,
         maxHeight: '100%',
         flex: '0 0 auto',
     },
@@ -2675,6 +2726,11 @@ const styles = {
         userSelect: 'text',
     },
 
+    userSelectNone: {
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+    },
+
     screenCenteredContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -2693,6 +2749,17 @@ const styles = {
         paddingHorizontal: 20,
         maxWidth: 450,
         alignSelf: 'center',
+    },
+
+    textPill: {
+        ellipsizeMode: 'end',
+        backgroundColor: colors.gray2,
+        borderRadius: 10,
+        overflow: 'hidden',
+        paddingVertical: 2,
+        flexShrink: 1,
+        fontSize: variables.fontSizeSmall,
+        ...spacing.ph2,
     },
 };
 

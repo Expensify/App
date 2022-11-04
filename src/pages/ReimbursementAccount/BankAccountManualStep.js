@@ -122,7 +122,6 @@ class BankAccountManualStep extends React.Component {
                             </View>
                         )}
                         defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'acceptTerms', false)}
-                        shouldSaveDraft
                     />
                 </Form>
             </>
