@@ -195,10 +195,9 @@ class ReportActionItem extends Component {
                                             ReportActions.clearReportActionErrors(this.props.report.reportID, this.props.action.sequenceNumber);
                                         }
                                     }}
-                                    pendingAction={this.props.action.pendingAction}
+                                    pendingAction={this.props.draftMessage ? null : this.props.action.pendingAction}
                                     errors={this.props.action.errors}
                                     errorRowStyles={[styles.ml10, styles.mr2]}
-                                    draftMessage={this.props.draftMessage}
                                 >
                                     {!this.props.displayAsGroup
                                         ? (
