@@ -164,6 +164,65 @@ class SidebarLinks extends React.Component {
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
 
+/**
+ * This function (and the few below it), narrow down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
+ * and makes the entire component more performant because it's not re-rendering when a bunch of properties change which aren't ever used in the UI.
+ * @param {Object} [report]
+ * @returns {Object|undefined}
+ */
+const reportSelector = report => report && ({
+    reportID: report.reportID,
+    participants: report.participants,
+    hasDraft: report.hasDraft,
+    isPinned: report.isPinned,
+    errorFields: {
+        addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
+    },
+    maxSequenceNumber: report.maxSequenceNumber,
+    lastReadSequenceNumber: report.lastReadSequenceNumber,
+    lastMessageText: report.lastMessageText,
+    lastMessageTimestamp: report.lastMessageTimestamp,
+    iouReportID: report.iouReportID,
+    hasOutstandingIOU: report.hasOutstandingIOU,
+    statusNum: report.statusNum,
+    stateNum: report.stateNum,
+    chatType: report.chatType,
+    policyID: report.policyID,
+});
+
+/**
+ * @param {Object} [personalDetails]
+ * @returns {Object|undefined}
+ */
+const personalDetailsSelector = personalDetails => _.reduce(personalDetails, (finalPersonalDetails, personalData, login) => {
+    // It's OK to do param-reassignment in _.reduce() because we absolutely know the starting state of finalPersonalDetails
+    // eslint-disable-next-line no-param-reassign
+    finalPersonalDetails[login] = {
+        login: personalData.login,
+        displayName: personalData.displayName,
+        firstName: personalData.firstName,
+        avatar: personalData.avatar,
+    };
+    return finalPersonalDetails;
+}, {});
+
+/**
+ * @param {Object} [reportActions]
+ * @returns {Object|undefined}
+ */
+const reportActionsSelector = reportActions => reportActions && _.map(reportActions, reportAction => ({
+    errors: reportAction.errors,
+}));
+
+/**
+ * @param {Object} [policy]
+ * @returns {Object|undefined}
+ */
+const policySelector = policy => policy && ({
+    type: policy.type,
+    name: policy.name,
+});
+
 export default compose(
     withLocalize,
     withCurrentUserPersonalDetails,
@@ -176,39 +235,11 @@ export default compose(
         // with 10,000 withOnyx() connections, it would have unknown performance implications.
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
-            selector: report => report && ({
-                reportID: report.reportID,
-                participants: report.participants,
-                hasDraft: report.hasDraft,
-                isPinned: report.isPinned,
-                errorFields: {
-                    addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
-                },
-                maxSequenceNumber: report.maxSequenceNumber,
-                lastReadSequenceNumber: report.lastReadSequenceNumber,
-                lastMessageText: report.lastMessageText,
-                lastMessageTimestamp: report.lastMessageTimestamp,
-                iouReportID: report.iouReportID,
-                hasOutstandingIOU: report.hasOutstandingIOU,
-                statusNum: report.statusNum,
-                stateNum: report.stateNum,
-                chatType: report.chatType,
-                policyID: report.policyID,
-            }),
+            selector: reportSelector,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-            selector: personalDetails => _.reduce(personalDetails, (finalPersonalDetails, personalData, login) => {
-                // It's OK to do param-reassignment in _.reduce() because we absolutely know the starting state of finalPersonalDetails
-                // eslint-disable-next-line no-param-reassign
-                finalPersonalDetails[login] = {
-                    login: personalData.login,
-                    displayName: personalData.displayName,
-                    firstName: personalData.firstName,
-                    avatar: personalData.avatar,
-                };
-                return finalPersonalDetails;
-            }, {}),
+            selector: personalDetailsSelector,
         },
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
@@ -218,16 +249,11 @@ export default compose(
         },
         reportActions: {
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-            selector: reportActions => reportActions && _.map(reportActions, reportAction => ({
-                errors: reportAction.errors,
-            })),
+            selector: reportActionsSelector,
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-            selector: policy => policy && ({
-                type: policy.type,
-                name: policy.name,
-            }),
+            selector: policySelector,
         },
         preferredLocale: {
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
