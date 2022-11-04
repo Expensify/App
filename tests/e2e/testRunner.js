@@ -65,9 +65,9 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
     }
     progress.done();
 
-    // Install app and reverse ports
+    // Install app
     let progressLog = Logger.progressInfo('Installing app');
-    await installApp('android');
+    await installApp('android', baselineOrCompare);
     progressLog.done();
 
     // Start the HTTP server

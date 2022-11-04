@@ -2,7 +2,8 @@ const {APP_PACKAGE} = require('../config');
 const execAsync = require('./execAsync');
 const Logger = require('./logger');
 
-const APP_PATH_FROM_ROOT = '../app-e2eRelease.apk';
+const BASELINE_APP_PATH_FROM_ROOT = '../app-e2eRelease-baseline.apk';
+const COMPARE_APP_PATH_FROM_ROOT = '../app-e2eRelease-compare.apk';
 
 /**
  * Installs the app on the currently connected device for the given platform.
@@ -10,14 +11,16 @@ const APP_PATH_FROM_ROOT = '../app-e2eRelease.apk';
  * @param {string} platform
  * @returns {Promise<void>}
  */
-module.exports = function (platform = 'android') {
+module.exports = function (platform = 'android', baselineOrCompare = 'baseline') {
     if (platform !== 'android') {
         throw new Error(`installApp() missing implementation for platform: ${platform}`);
     }
+
+    const apk = baselineOrCompare === 'baseline' ? BASELINE_APP_PATH_FROM_ROOT : COMPARE_APP_PATH_FROM_ROOT;
 
     // Uninstall first, then install
     return execAsync(`adb uninstall ${APP_PACKAGE}`).catch((e) => {
         // Ignore errors
         Logger.warn('Failed to uninstall app:', e);
-    }).finally(() => execAsync(`adb install ${APP_PATH_FROM_ROOT}`));
+    }).finally(() => execAsync(`adb install ${apk}`));
 };
