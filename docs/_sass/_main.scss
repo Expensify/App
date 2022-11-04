@@ -169,9 +169,9 @@ button {
 
 #lhn {
     position: fixed;
-    background-color: $color-gray1;
+    background-color: $color-darker-green;
     box-sizing: border-box;
-    border-right-color: $color-gray2;
+    border-right-color: $color-dark-green;
     border-right-width: 1px;
     border-style: solid;
     width: 100%;
@@ -407,10 +407,10 @@ button {
     font-weight: bold;
     cursor: pointer;
     color: $color-white;
-    background-color: $color-gray1;
+    background-color: $color-darker-green;
 
     &:hover {
-        background-color: darken($color-gray1, 1%);
+        background-color: darken($color-darker-green, 1%);
     }
 
     .row {
