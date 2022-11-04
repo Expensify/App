@@ -48,6 +48,7 @@ class CompanyStep extends React.Component {
         this.submit = this.submit.bind(this);
         this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
+        this.clearErrors = inputKeys => ReimbursementAccountUtils.clearErrors(this.props, inputKeys);
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
 
@@ -93,7 +94,6 @@ class CompanyStep extends React.Component {
             website: 'bankAccount.error.website',
             companyTaxID: 'bankAccount.error.taxID',
             incorporationDate: 'bankAccount.error.incorporationDate',
-            incorporationDateFuture: 'bankAccount.error.incorporationDateFuture',
             incorporationType: 'bankAccount.error.companyType',
             hasNoConnectionToCannabis: 'bankAccount.error.restrictedBusiness',
             incorporationState: 'bankAccount.error.incorporationState',
@@ -109,9 +109,6 @@ class CompanyStep extends React.Component {
         this.setState(newState);
         ReimbursementAccount.updateReimbursementAccountDraft(newState);
         this.clearError(inputKey);
-        if (inputKey === 'incorporationDate') {
-            this.clearError('incorporationDateFuture');
-        }
     }
 
     /**
@@ -144,12 +141,8 @@ class CompanyStep extends React.Component {
             errors.companyTaxID = true;
         }
 
-        if (!ValidationUtils.isValidDate(this.state.incorporationDate)) {
-            errors.incorporationDate = true;
-        }
-
         if (!ValidationUtils.isValidPastDate(this.state.incorporationDate)) {
-            errors.incorporationDateFuture = true;
+            errors.incorporationDate = true;
         }
 
         if (!ValidationUtils.isValidUSPhone(this.state.companyPhone, true)) {
@@ -229,10 +222,14 @@ class CompanyStep extends React.Component {
                                 city: 'addressCity',
                                 zipCode: 'addressZipCode',
                             };
+                            const renamedValues = {};
                             _.each(values, (value, inputKey) => {
                                 const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
-                                this.clearErrorAndSetValue(renamedInputKey, value);
+                                renamedValues[renamedInputKey] = value;
                             });
+                            this.setState(renamedValues);
+                            this.clearErrors(_.keys(renamedValues));
+                            ReimbursementAccount.updateReimbursementAccountDraft(renamedValues);
                         }}
                     />
                     <TextInput
@@ -277,7 +274,7 @@ class CompanyStep extends React.Component {
                             onInputChange={value => this.clearErrorAndSetValue('incorporationDate', value)}
                             defaultValue={this.state.incorporationDate}
                             placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
-                            errorText={this.getErrorText('incorporationDate') || this.getErrorText('incorporationDateFuture')}
+                            errorText={this.getErrorText('incorporationDate')}
                             maximumDate={new Date()}
                         />
                     </View>
