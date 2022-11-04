@@ -54,7 +54,7 @@ jobs:
           file_artifacts: Customer Artifacts.zip
 
       - name: Unzip Artifacts
-        run: unzip Customer Artifacts.zip
+        run: unzip Customer\ Artifacts.zip
 
       - name: Debug
         run: find Host_Machine_Files
