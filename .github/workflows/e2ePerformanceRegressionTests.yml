@@ -58,7 +58,7 @@ jobs:
         run: find .
 
       - name: Print results
-        run: cat ./Host_Machine_Files/$WORKING_DIRECTORY/output.md
+        run: cat ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md
 
       - name: Set env
         run: echo "OUTPUT=$(cat ./Host_Machine_Files/$WORKING_DIRECTORY/output.md)" >> $OUTPUT
