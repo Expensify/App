@@ -616,7 +616,6 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
             value: {
                 [optimisticReportAction.sequenceNumber]: {
-                    ...optimisticReportAction,
                     pendingAction: null,
                     errors: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCancelFailureMessage', {type}),
