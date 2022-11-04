@@ -4,6 +4,7 @@ import {View, Animated, Keyboard} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashExtend from 'lodash/extend';
+import _ from 'underscore';
 import CONST from '../CONST';
 import Modal from './Modal';
 import AttachmentView from './AttachmentView';
@@ -164,6 +165,17 @@ class AttachmentModal extends PureComponent {
                 isAttachmentInvalid: true,
                 attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.attachmentTooSmall'),
                 attachmentInvalidReason: this.props.translate('attachmentPicker.sizeNotMet'),
+            });
+            return false;
+        }
+
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
+        if (!_.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
+            const invalidReason = `${this.props.translate('attachmentPicker.notAllowedExtension')} ${CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS.join(', ')}`;
+            this.setState({
+                isAttachmentInvalid: true,
+                attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.wrongFileType'),
+                attachmentInvalidReason: invalidReason,
             });
             return false;
         }
