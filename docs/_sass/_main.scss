@@ -146,6 +146,9 @@ button {
         background-color: $color-green;
         color: $color-super-dark-green;
         width: 100%;
+        border-radius: 100px;
+        padding-left: 20px;
+        padding-right: 20px;
 
         &:hover {
             background-color: desaturate($color-green, 15%);
