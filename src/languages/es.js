@@ -773,8 +773,8 @@ export default {
         letsChatCTA: 'Sí, vamos a chatear',
         letsChatText: 'Gracias. Necesitamos tu ayuda para verificar la información, pero podemos hacerlo rápidamente a través del chat. ¿Estás listo?',
         letsChatTitle: '¡Vamos a chatear!',
-        enable2FATitle: '¡Evite el fraude, habilite la seguridad de dos factores!',
-        enable2FAText: 'Nos tomamos muy en serio su seguridad, así que configure la autenticación de dos factores para su cuenta ahora. Eso nos permitirá disputar las transacciones digitales de Expensify Card y reducirá su riesgo de fraude.',
+        enable2FATitle: 'Evita fraudes, activa la autenticación de dos factores!',
+        enable2FAText: 'Tu seguridad es importante para nosotros, por favor configura la autenticación de dos factores ahora. Eso nos permitirá disputar transacciones de la Tarjeta Expensify y reducirá tu riesgo de fraude.',
         secureYourAccount: 'Asegure su cuenta',
     },
     beneficialOwnersStep: {
