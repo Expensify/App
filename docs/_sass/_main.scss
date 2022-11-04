@@ -98,7 +98,7 @@ h3,
 h4,
 h5,
 h6 {
-    color: $color-dark;
+    color: $color-white;
     font-weight: bold;
     padding-bottom: 12px;
 }
@@ -132,7 +132,7 @@ textarea {
     font-weight: 400;
     font-family: "GTAmericaExp-Regular", "Helvetica Neue", "Helvetica", Arial, sans-serif;
     font-size: 16px;
-    color: $color-dark;
+    color: $color-white;
 }
 
 button {
@@ -269,7 +269,7 @@ button {
     .selected {
         cursor: auto;
         font-weight: bold;
-        color: $color-dark;
+        color: $color-white;
     }
 
     .hide {
@@ -379,7 +379,7 @@ button {
 
     .selected-article {
         font-weight: bold;
-        color: $color-dark;
+        color: $color-white;
     }
 
     .home-link {
@@ -406,7 +406,7 @@ button {
     padding: 28px;
     font-weight: bold;
     cursor: pointer;
-    color: $color-dark;
+    color: $color-white;
     background-color: $color-gray1;
 
     &:hover {
