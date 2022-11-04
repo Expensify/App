@@ -100,11 +100,12 @@ function getOrderedReportIDs(reportIDFromRoute) {
     // Get all the display names for our reports in an easy to access property so we don't have to keep
     // re-running the logic
     const filteredReportsWithReportName = _.map(filteredReports, (report) => {
-        const personalDetailMap = OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails);
-        return {
-            ...report,
-            reportDisplayName: ReportUtils.getReportName(report, personalDetailMap, policies),
-        };
+        // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
+        // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
+        // the reportDisplayName property to the report object directly.
+        // eslint-disable-next-line no-param-reassign
+        report.reportDisplayName = ReportUtils.getReportName(report, policies);
+        return report;
     });
 
     // Sorting the reports works like this:
@@ -296,7 +297,7 @@ function getOptionData(reportID) {
         result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
 
-    const reportName = ReportUtils.getReportName(report, personalDetailMap, policies);
+    const reportName = ReportUtils.getReportName(report, policies);
     result.text = reportName;
     result.subtitle = subtitle;
     result.participantsList = personalDetailList;

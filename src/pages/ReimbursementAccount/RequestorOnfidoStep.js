@@ -56,13 +56,14 @@ class RequestorOnfidoStep extends React.Component {
                     <Onfido
                         sdkToken={this.props.onfidoToken}
                         onUserExit={() => {
-                            // We're taking the user back to the company step. They will need to come back to the requestor step to make the Onfido flow appear again.
-                            BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
+                            BankAccounts.clearOnfidoToken();
+                            BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
                         }}
                         onError={() => {
-                            // In case of any unexpected error we log it to the server, show a growl, and return the user back to the company step so they can try again.
+                            // In case of any unexpected error we log it to the server, show a growl, and return the user back to the requestor step so they can try again.
                             Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
-                            BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
+                            BankAccounts.clearOnfidoToken();
+                            BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
                         }}
                         onSuccess={(onfidoData) => {
                             this.submit(onfidoData);
