@@ -39,6 +39,14 @@ New contributors are limited to working on one job at a time, however experience
 
 Please be aware that compensation for any support in solving an issue is provided **entirely at Expensify’s discretion**. Personal time or resources applied towards investigating a proposal **will not guarantee compensation**. Compensation is only guaranteed to those who **[propose a solution and get hired for that job](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#propose-a-solution-for-the-job)**. We understand there may be cases where a selected proposal may take inspiration from a previous proposal. Unfortunately, it’s not possible for us to evaluate every individual case and we have no process that can efficiently do so. Issues with higher rewards come with higher risk factors so try to keep things civil and make the best proposal you can. Once again, **any information provided may not necessarily lead to you getting hired for that issue or compensated in any way.**
 
+**Important:** Payment amounts are variable, dependent on when your PR is merged. Your PR will be reviewed by a Contributor+ (C+) team member and an internal engineer.  All tests must pass and all code must pass lint checks before a merge. 
+
+**Payment timeline** all based on the day the contributor has an accepted proposal and is assigned to the Github issue
+- Merged PR within 3 business days - 50% **bonus**
+- Merged PR within 6 business days - 0% bonus 
+- Merged PR within 9 business days - 50% **penalty**  
+- No PR within 12 business days - **Contract terminated**  
+
 ## Finding Jobs
 There are two ways you can find a job that you can contribute to:
 
