@@ -111,6 +111,7 @@ const IMAGE_EXTENSIONS = {
 
 const COPY_DROP_EFFECT = 'copy';
 const NONE_DROP_EFFECT = 'none';
+const RESPONSIVE_BREAKPOINT = 800;
 
 /**
  * Enable Markdown parsing.
@@ -134,8 +135,9 @@ class Composer extends React.Component {
         this.paste = this.paste.bind(this);
 
         this.dropZone = document.getElementById(CONST.REPORT.DROP_NATIVE_ID);
-        this.dropZoneRect = this.dropZone.getBoundingClientRect();
+        this.dropZoneRect = this.calculateDropZoneClientReact();
         this.dragNDropListener = this.dragNDropListener.bind(this);
+        this.dragNDropWindowResizeListener = this.dragNDropWindowResizeListener.bind(this);
         this.dropZoneDragHandler = this.dropZoneDragHandler.bind(this);
         this.dropZoneDragListener = this.dropZoneDragListener.bind(this);
 
@@ -171,6 +173,7 @@ class Composer extends React.Component {
             document.addEventListener('dragenter', this.dragNDropListener);
             document.addEventListener('dragleave', this.dragNDropListener);
             document.addEventListener('drop', this.dragNDropListener);
+            window.addEventListener('resize', this.dragNDropWindowResizeListener);
             this.textInput.addEventListener('paste', this.handlePaste);
             this.textInput.addEventListener('wheel', this.handleWheel);
         }
@@ -205,8 +208,28 @@ class Composer extends React.Component {
         document.removeEventListener('dragenter', this.dragNDropListener);
         document.removeEventListener('dragleave', this.dragNDropListener);
         document.removeEventListener('drop', this.dragNDropListener);
+        window.removeEventListener('resize', this.dragNDropWindowResizeListener);
         this.textInput.removeEventListener('paste', this.handlePaste);
         this.textInput.removeEventListener('wheel', this.handleWheel);
+    }
+
+    dragNDropWindowResizeListener() {
+        // Update bounding client rect on window resize
+        this.dropZoneRect = this.calculateDropZoneClientReact();
+    }
+
+    calculateDropZoneClientReact() {
+        const boundingClientRect = this.dropZone.getBoundingClientRect();
+
+        // Handle edge case when we are under responsive breakpoint the browser doesn't normalize rect.left to 0 and rect.right to window.innerWidth
+        return {
+            width: boundingClientRect.width,
+            left: window.innerWidth <= RESPONSIVE_BREAKPOINT ? 0 : boundingClientRect.left,
+            right: window.innerWidth <= RESPONSIVE_BREAKPOINT
+                ? window.innerWidth : boundingClientRect.right,
+            top: boundingClientRect.top,
+            bottom: boundingClientRect.bottom,
+        };
     }
 
     /**
@@ -219,20 +242,19 @@ class Composer extends React.Component {
                 // Continuous event -> can hurt performance, be careful when subscribing
                 // eslint-disable-next-line no-param-reassign
                 event.dataTransfer.dropEffect = COPY_DROP_EFFECT;
-                this.dropZoneDragState = 'dragover';
                 this.props.onDragOver(event);
                 break;
             case 'dragenter':
                 // Avoid reporting onDragEnter for children views -> not performant
                 if (this.dropZoneDragState === 'dragleave') {
-                // eslint-disable-next-line no-param-reassign
-                    event.dataTransfer.dropEffect = COPY_DROP_EFFECT;
                     this.dropZoneDragState = 'dragenter';
+                    // eslint-disable-next-line no-param-reassign
+                    event.dataTransfer.dropEffect = COPY_DROP_EFFECT;
                     this.props.onDragEnter(event);
                 }
                 break;
             case 'dragleave':
-                if (this.dropZoneDragState === 'dragenter' || this.dropZoneDragState === 'dragover') {
+                if (this.dropZoneDragState === 'dragenter') {
                     if (
                         event.clientY < this.dropZoneRect.top
                         || event.clientY >= this.dropZoneRect.bottom
