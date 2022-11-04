@@ -27,11 +27,11 @@ jobs:
 
 # TODO: Uncomment before merge
 #      - name: Checkout "Baseline"
-#        run: git checkout origin main
+#        run: git checkout main
 
 # TODO: Delete before merge
       - name: Checkout "Baseline"
-        run: git checkout origin andrew-baseline
+        run: git checkout andrew-baseline
 
       - name: Build "Baseline" APK
         run: npm run android-build-e2e
