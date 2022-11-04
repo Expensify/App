@@ -13,6 +13,26 @@ class BasePicker extends React.Component {
         this.executeOnCloseAndOnBlur = this.executeOnCloseAndOnBlur.bind(this);
     }
 
+    componentDidMount() {
+        this.setDefaultValue();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.items === this.props.items) {
+            return;
+        }
+        this.setDefaultValue();
+    }
+
+    setDefaultValue() {
+        // When there is only 1 element in the selector, we do the user a favor and automatically select it for them
+        // so they don't have to spend extra time selecting the only possible value.
+        if (this.props.value || !this.props.items || this.props.items.length !== 1 || !this.props.onInputChange) {
+            return;
+        }
+        this.props.onInputChange(this.props.items[0].key);
+    }
+
     executeOnCloseAndOnBlur() {
         // Picker's onClose is not executed on Web and Desktop, so props.onClose has to be called with onBlur callback.
         this.props.onClose();

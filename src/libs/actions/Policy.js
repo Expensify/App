@@ -4,7 +4,6 @@ import lodashGet from 'lodash/get';
 import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import Str from 'expensify-common/lib/str';
 import {escapeRegExp} from 'lodash';
-import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
@@ -48,56 +47,6 @@ Onyx.connect({
 });
 
 /**
- * Simplifies the employeeList response into an object mapping employee email to a default employee list entry
- *
- * @param {Object} employeeList
- * @returns {Object}
- */
-function getSimplifiedEmployeeList(employeeList) {
-    return _.chain(employeeList)
-        .pluck('email')
-        .flatten()
-        .unique()
-        .reduce((map, email) => ({...map, [email]: {}}), {})
-        .value();
-}
-
-/**
- * Takes a full policy that is returned from the policyList and simplifies it so we are only storing
- * the pieces of data that we need to in Onyx
- *
- * @param {Object} fullPolicyOrPolicySummary
- * @param {String} fullPolicyOrPolicySummary.id
- * @param {String} fullPolicyOrPolicySummary.name
- * @param {String} fullPolicyOrPolicySummary.role
- * @param {String} fullPolicyOrPolicySummary.type
- * @param {String} fullPolicyOrPolicySummary.outputCurrency
- * @param {String} [fullPolicyOrPolicySummary.avatar]
- * @param {String} [fullPolicyOrPolicySummary.value.avatar]
- * @param {Object} [fullPolicyOrPolicySummary.value.employeeList]
- * @param {Object} [fullPolicyOrPolicySummary.value.customUnits]
- * @param {Boolean} isFromFullPolicy,
- * @returns {Object}
- */
-function getSimplifiedPolicyObject(fullPolicyOrPolicySummary, isFromFullPolicy) {
-    return {
-        isFromFullPolicy,
-        id: fullPolicyOrPolicySummary.id,
-        name: fullPolicyOrPolicySummary.name,
-        role: fullPolicyOrPolicySummary.role,
-        type: fullPolicyOrPolicySummary.type,
-        owner: fullPolicyOrPolicySummary.owner,
-        outputCurrency: fullPolicyOrPolicySummary.outputCurrency,
-
-        // "GetFullPolicy" and "GetPolicySummaryList" returns different policy objects. If policy is retrieved by "GetFullPolicy",
-        // avatar will be nested within the key "value"
-        avatar: fullPolicyOrPolicySummary.avatar
-            || lodashGet(fullPolicyOrPolicySummary, 'value.avatar', ''),
-        customUnits: lodashGet(fullPolicyOrPolicySummary, 'value.customUnits', {}),
-    };
-}
-
-/**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  * @param {String|null} policyID
  */
@@ -127,18 +76,22 @@ function deleteWorkspace(policyID, reports) {
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS.CLOSED,
+                hasDraft: false,
             },
         })),
     ];
 
     // Restore the old report stateNum and statusNum
     const failureData = [
-        ..._.map(reports, ({reportID, stateNum, statusNum}) => ({
+        ..._.map(reports, ({
+            reportID, stateNum, statusNum, hasDraft,
+        }) => ({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 stateNum,
                 statusNum,
+                hasDraft,
             },
         })),
     ];
@@ -152,26 +105,6 @@ function deleteWorkspace(policyID, reports) {
     if (policyID === lastAccessedWorkspacePolicyID) {
         updateLastAccessedWorkspace(null);
     }
-}
-
-/**
- * @param {String} policyID
- */
-function loadFullPolicy(policyID) {
-    DeprecatedAPI.GetFullPolicy(policyID)
-        .then((data) => {
-            if (data.jsonCode !== 200) {
-                return;
-            }
-
-            const policy = lodashGet(data, 'policyList[0]', {});
-            if (!policy.id) {
-                return;
-            }
-
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, getSimplifiedPolicyObject(policy, true));
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, getSimplifiedEmployeeList(lodashGet(policy, 'value.employeeList', {})));
-        });
 }
 
 /**
@@ -496,8 +429,9 @@ function hideWorkspaceAlertMessage(policyID) {
  * @param {String} policyID
  * @param {Object} currentCustomUnit
  * @param {Object} newCustomUnit
+ * @param {Number} lastModified
  */
-function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit) {
+function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, lastModified) {
     const optimisticData = [
         {
             onyxMethod: 'merge',
@@ -549,6 +483,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit) {
 
     API.write('UpdateWorkspaceCustomUnit', {
         policyID,
+        lastModified,
         customUnit: JSON.stringify(newCustomUnit),
     }, {optimisticData, successData, failureData});
 }
@@ -558,8 +493,9 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit) {
  * @param {Object} currentCustomUnitRate
  * @param {String} customUnitID
  * @param {Object} newCustomUnitRate
+ * @param {Number} lastModified
  */
-function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, newCustomUnitRate) {
+function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, newCustomUnitRate, lastModified) {
     const optimisticData = [
         {
             onyxMethod: 'merge',
@@ -622,6 +558,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
     API.write('UpdateWorkspaceCustomUnitRate', {
         policyID,
         customUnitID,
+        lastModified,
         customUnitRate: JSON.stringify(newCustomUnitRate),
     }, {optimisticData, successData, failureData});
 }
@@ -663,6 +600,15 @@ function clearDeleteWorkspaceError(policyID) {
         pendingAction: null,
         errors: null,
     });
+}
+
+/**
+ * Removes the workspace after failure to create.
+ *
+ * @param {String} policyID
+ */
+function removeWorkspace(policyID) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, null);
 }
 
 /**
@@ -846,11 +792,6 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false) {
         }],
         failureData: [{
             onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: null,
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
             value: null,
         },
@@ -927,7 +868,6 @@ function openWorkspaceInvitePage(policyID, clientMemberEmails) {
 }
 
 export {
-    loadFullPolicy,
     removeMembers,
     addMembersToWorkspace,
     isAdminOfFreePolicy,
@@ -952,4 +892,5 @@ export {
     createWorkspace,
     openWorkspaceMembersPage,
     openWorkspaceInvitePage,
+    removeWorkspace,
 };
