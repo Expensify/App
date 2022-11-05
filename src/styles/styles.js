@@ -31,9 +31,7 @@ const picker = {
     paddingBottom: 8,
     paddingTop: 23,
     height: 52,
-    borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: themeColors.border,
+    borderWidth: 0,
     borderRadius: variables.componentBorderRadiusNormal,
     textAlign: 'left',
 };
@@ -530,9 +528,7 @@ const styles = {
             paddingTop: 6,
             paddingBottom: 6,
             borderRadius: variables.componentBorderRadius,
-            borderWidth: 1,
-            borderColor: themeColors.border,
-            borderStyle: 'solid',
+            borderWidth: 0,
             color: themeColors.text,
             height: variables.componentSizeSmall,
             opacity: 1,
@@ -545,9 +541,7 @@ const styles = {
             paddingRight: 25,
             paddingTop: 6,
             paddingBottom: 6,
-            borderWidth: 1,
-            borderColor: themeColors.border,
-            borderStyle: 'solid',
+            borderWidth: 0,
             borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
             appearance: 'none',
@@ -563,9 +557,7 @@ const styles = {
             paddingRight: 25,
             paddingTop: 6,
             paddingBottom: 6,
-            borderWidth: 1,
-            borderColor: themeColors.border,
-            borderStyle: 'solid',
+            borderWidth: 0,
             borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
             height: variables.componentSizeSmall,
@@ -799,7 +791,9 @@ const styles = {
     },
 
     pickerContainer: {
-        borderWidth: 0,
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderColor: themeColors.border,
         borderRadius: variables.componentBorderRadiusNormal,
         justifyContent: 'center',
         backgroundColor: themeColors.componentBG,
@@ -809,7 +803,7 @@ const styles = {
         left: 12,
         top: 7,
     },
-    picker: (disabled = false, error = false, focused = false) => ({
+    picker: (disabled = false) => ({
         iconContainer: {
             top: 16,
             right: 11,
@@ -819,13 +813,9 @@ const styles = {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
             ...picker,
-            ...(focused && {borderColor: themeColors.borderFocus}),
-            ...(error && {borderColor: themeColors.badgeDangerBG}),
         },
         inputNative: {
             ...picker,
-            ...(focused && {borderColor: themeColors.borderFocus}),
-            ...(error && {borderColor: themeColors.badgeDangerBG}),
         },
     }),
 
