@@ -303,6 +303,8 @@ export default {
         syncing: 'Sincronizando',
     },
     addSecondaryLoginPage: {
+        enterValidEmail: 'Please enter a valid email',
+        enterValidPassword: 'Please enter a valid password',
         addPhoneNumber: 'Agregar número de teléfono',
         addEmailAddress: 'Agregar dirección de email',
         enterPreferredPhoneNumberToSendValidationLink: 'Escribe tu número de teléfono y contraseña para recibir el enlace de validación.',
