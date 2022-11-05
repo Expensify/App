@@ -42,7 +42,7 @@ These three features ensure you can live in the moment and settle up afterward.
 \* If paying with a Bank Account, follow the prompts to connect your bank to Expensify.
 \*\* If paying with a Debit Card, enter your card details and tap Save.
 
-#FAQs
+# FAQs
 ## Send Money Payment: Why is the option to Pay With Expensify not visible to me?
 If “I’ll Settle Elsewhere” is showing for you when you’re trying to send money, this is because we don’t support money movement through Expensify in your jurisdiction yet. You can use “I’ll settle elsewhere” if you want to track the payments for audit in Expensify.
 
