@@ -16,7 +16,7 @@ Our suite of money movement features enables you to request money owed by an ind
 
 These three features ensure you can live in the moment and settle up afterward.
 
-# How to Request Money:
+# How to Request Money
 - Select the Green **+** button and choose **Request Money**
 - Enter the amount **$** they owe and click **Next**
 - Search for the user or enter their email!
@@ -25,14 +25,14 @@ These three features ensure you can live in the moment and settle up afterward.
 - If you change your mind, all you have to do is click **Cancel**
 - The user will be able to **Settle up outside of Expensify** or pay you via **Venmo** or **PayPal.me**
 
-# How to Split a Bill:
+# How to Split a Bill
 - Select the Green **+** button and choose **Split Bill**
 - Enter the total amount for the bill and click **Next**
 - Search for users or enter their emails and **Select**
 - Enter a reason for the split
 - The split is then shared equally between the attendees
 
-# How to Send Money:
+# How to Send Money
 - Click the green **+** button and select **Send Money**
 - Enter an **amount > Next**
 - Enter the **email address** or **phone number** (including area code) of the person you’re paying
