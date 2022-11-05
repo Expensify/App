@@ -470,7 +470,11 @@ button {
         font-weight: normal;
 
         &.with-min-height {
-            min-height: 48px;
+            min-height: 68px;
+
+            @include breakpoint($breakpoint-tablet) {
+                min-height: 48px;
+            }
         }
     }
 }
