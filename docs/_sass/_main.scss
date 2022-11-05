@@ -455,7 +455,11 @@ button {
 
     h3.title {
         padding: 0;
-        margin: 0 0 8px 0;
+        margin: 0;
+
+        &.hub {
+            margin: 0 0 8px 0;
+        }
     }
 
 
