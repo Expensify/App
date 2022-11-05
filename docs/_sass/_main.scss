@@ -468,6 +468,10 @@ button {
         padding: 0;
         margin: 0;
         font-weight: normal;
+
+        &.with-min-height {
+            min-height: 48px;
+        }
     }
 }
 
