@@ -390,12 +390,12 @@ button {
 .cards-group {
     display: grid;
     grid-template-columns: auto;
-    row-gap: 12px;
-    column-gap: 4%;
+    row-gap: 20px;
+    column-gap: 20px;
     padding-bottom: 20px;
 
     @include breakpoint($breakpoint-desktop) {
-        grid-template-columns: 48% 48%;
+        grid-template-columns: auto auto;
     }
 }
 
