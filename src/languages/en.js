@@ -352,6 +352,7 @@ export default {
         defaultContact: 'Default contact method:',
         okayGotIt: 'Okay, Got it',
         closeAccountError: 'Unable to close account',
+        enterYourDefaultContactMethod: 'Please enter your default contact method to close your account.',
     },
     passwordPage: {
         changePassword: 'Change password',
