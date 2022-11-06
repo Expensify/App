@@ -127,7 +127,7 @@ class ReportDetailsPage extends Component {
                             <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                                 <View style={[styles.alignSelfCenter, styles.w100]}>
                                     <DisplayNames
-                                        fullTitle={ReportUtils.getReportName(this.props.report, this.props.personalDetails, this.props.policies)}
+                                        fullTitle={ReportUtils.getReportName(this.props.report, this.props.policies)}
                                         displayNamesWithTooltips={displayNamesWithTooltips}
                                         tooltipEnabled
                                         numberOfLines={1}
