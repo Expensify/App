@@ -84,7 +84,7 @@ class EditPasswordPage extends Component {
                 >
                     <View style={styles.mb6}>
                         <TextInput
-                            label={`${this.props.translate('passwordPage.currentPassword')}*`}
+                            label={this.props.translate('passwordPage.currentPassword')}
                             secureTextEntry
                             autoCompleteType="password"
                             textContentType="password"
@@ -94,7 +94,7 @@ class EditPasswordPage extends Component {
                     </View>
                     <View style={styles.mb6}>
                         <TextInput
-                            label={`${this.props.translate('passwordPage.newPassword')}*`}
+                            label={this.props.translate('passwordPage.newPassword')}
                             secureTextEntry
                             autoCompleteType="password"
                             textContentType="password"
