@@ -86,7 +86,7 @@ class DetailsPage extends React.PureComponent {
             const login = lodashGet(this.props.route.params, 'login');
             details = {
                 login,
-                displayName: ReportUtils.getDisplayNameForParticipant({login}),
+                displayName: ReportUtils.getDisplayNameForParticipant(login),
                 avatar: ReportUtils.getDefaultAvatar(),
             };
         }
