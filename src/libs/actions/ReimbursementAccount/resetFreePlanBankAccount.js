@@ -21,29 +21,36 @@ function resetFreePlanBankAccount() {
             ownerEmail: store.getCredentials().login,
         },
         {
-            optimisticData: [{
-                onyxMethod: 'set',
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {
-                    achData: {},
-                    shouldShowResetModal: false,
+            optimisticData: [
+                {
+                    onyxMethod: 'set',
+                    key: ONYXKEYS.ONFIDO_TOKEN,
+                    value: '',
                 },
-            },
-            {
-                onyxMethod: 'set',
-                key: ONYXKEYS.PLAID_DATA,
-                value: {},
-            },
-            {
-                onyxMethod: 'set',
-                key: ONYXKEYS.PLAID_LINK_TOKEN,
-                value: '',
-            },
-            {
-                onyxMethod: 'set',
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
-                value: null,
-            }],
+                {
+                    onyxMethod: 'set',
+                    key: ONYXKEYS.PLAID_DATA,
+                    value: {},
+                },
+                {
+                    onyxMethod: 'set',
+                    key: ONYXKEYS.PLAID_LINK_TOKEN,
+                    value: '',
+                },
+                {
+                    onyxMethod: 'set',
+                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    value: {
+                        achData: {},
+                        shouldShowResetModal: false,
+                    },
+                },
+                {
+                    onyxMethod: 'set',
+                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+                    value: null,
+                }
+            ],
         });
 }
 

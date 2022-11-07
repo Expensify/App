@@ -123,10 +123,6 @@ export default {
                     Workspace_Members: {
                         path: ROUTES.WORKSPACE_MEMBERS,
                     },
-                    Workspace_BankAccount: {
-                        path: ROUTES.WORKSPACE_BANK_ACCOUNT,
-                        exact: true,
-                    },
                     Workspace_Invite: {
                         path: ROUTES.WORKSPACE_INVITE,
                     },

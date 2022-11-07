@@ -81,7 +81,7 @@ class ReimbursementAccountPage extends React.Component {
         const achData = lodashGet(this.props, 'reimbursementAccount.achData', {});
         const hasInProgressVBBA = achData.bankAccountID && achData.state !== BankAccount.STATE.OPEN;
         this.state = {
-            isReadyToContinue: !hasInProgressVBBA,
+            shouldShowContinueSetupButton: hasInProgressVBBA,
         };
     }
 
@@ -170,7 +170,7 @@ class ReimbursementAccountPage extends React.Component {
 
     continue() {
         this.setState({
-            isReadyToContinue: true,
+            shouldShowContinueSetupButton: false,
         });
     }
 
@@ -196,7 +196,7 @@ class ReimbursementAccountPage extends React.Component {
         }
 
         const hasInProgressVBBA = achData.bankAccountID && achData.state !== BankAccount.STATE.OPEN;
-        if (hasInProgressVBBA && !this.state.isReadyToContinue) {
+        if (hasInProgressVBBA && this.state.shouldShowContinueSetupButton) {
             return (
                 <ContinueBankAccountSetup
                     continue={this.continue}

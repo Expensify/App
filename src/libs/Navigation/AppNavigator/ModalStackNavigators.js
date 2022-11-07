@@ -373,13 +373,6 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const ReimbursementAccountPage = require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default;
-            return ReimbursementAccountPage;
-        },
-        name: 'Workspace_BankAccount',
-    },
-    {
-        getComponent: () => {
             const WorkspaceInvitePage = require('../../../pages/workspace/WorkspaceInvitePage').default;
             return WorkspaceInvitePage;
         },
