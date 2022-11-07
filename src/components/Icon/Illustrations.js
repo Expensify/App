@@ -17,6 +17,7 @@ import RocketOrange from '../../../assets/images/product-illustrations/rocket--o
 import TadaYellow from '../../../assets/images/product-illustrations/tada--yellow.svg';
 import TadaBlue from '../../../assets/images/product-illustrations/tada--blue.svg';
 import GpsTrackOrange from '../../../assets/images/product-illustrations/gps-track--orange.svg';
+import UserVerifyBlue from '../../../assets/images/product-illustrations/user-verify--blue.svg';
 
 export {
     BankArrowPink,
@@ -38,4 +39,5 @@ export {
     TadaYellow,
     TadaBlue,
     GpsTrackOrange,
+    UserVerifyBlue,
 };

@@ -72,6 +72,7 @@ import ReceiptSearch from '../../../assets/images/receipt-search.svg';
 import Rotate from '../../../assets/images/rotate.svg';
 import RotateLeft from '../../../assets/images/rotate-left.svg';
 import Send from '../../../assets/images/send.svg';
+import Shield from '../../../assets/images/shield.svg';
 import Sync from '../../../assets/images/sync.svg';
 import ThreeDots from '../../../assets/images/three-dots.svg';
 import Transfer from '../../../assets/images/transfer.svg';
@@ -162,6 +163,7 @@ export {
     Rotate,
     RotateLeft,
     Send,
+    Shield,
     Sync,
     ThreeDots,
     Transfer,

@@ -16,12 +16,12 @@ const propTypes = {
 const Enable2FAPrompt = props => (
     <Section
         title={props.translate('validationStep.enable2FATitle')}
-        icon={Illustrations.MoneyEnvelopeBlue}
+        icon={Illustrations.UserVerifyBlue}
         menuItems={[
             {
                 title: props.translate('validationStep.secureYourAccount'),
                 onPress: () => Link.openOldDotLink(`settings?param={"section":"account","action":"enableTwoFactorAuth","exitTo":"${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}"}`),
-                icon: Expensicons.Send,
+                icon: Expensicons.Shield,
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
             },
