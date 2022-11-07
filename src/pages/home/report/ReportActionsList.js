@@ -21,7 +21,7 @@ import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** Position of the "New" line marker */
-    newMarkerSequenceNumber: PropTypes.number.isRequired,
+    newMarkerReportActionID: PropTypes.number.isRequired,
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -39,7 +39,7 @@ const propTypes = {
     })).isRequired,
 
     /** The sequence number of the most recent IOU report connected with the shown report */
-    mostRecentIOUReportSequenceNumber: PropTypes.number,
+    mostRecentIOUReportActionID: PropTypes.number,
 
     /** Are we loading more report actions? */
     isLoadingMoreReportActions: PropTypes.bool,
@@ -59,7 +59,7 @@ const propTypes = {
 
 const defaultProps = {
     personalDetails: {},
-    mostRecentIOUReportSequenceNumber: undefined,
+    mostRecentIOUReportActionID: undefined,
     isLoadingMoreReportActions: false,
 };
 
@@ -128,10 +128,8 @@ class ReportActionsList extends React.Component {
         item,
         index,
     }) {
-        // When the new indicator should not be displayed we explicitly set it to 0. The marker should never be shown above the
-        // created action (which will have sequenceNumber of 0) so we use 0 to indicate "hidden".
-        const shouldDisplayNewIndicator = this.props.newMarkerSequenceNumber > 0
-            && item.action.sequenceNumber === this.props.newMarkerSequenceNumber
+        const shouldDisplayNewIndicator = this.props.newMarkerReportActionID
+            && item.action.reportActionID === this.props.newMarkerReportActionID
             && !ReportActionsUtils.isDeletedAction(item.action);
         return (
             <ReportActionItem
@@ -139,7 +137,7 @@ class ReportActionsList extends React.Component {
                 action={item.action}
                 displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.props.sortedReportActions, index)}
                 shouldDisplayNewIndicator={shouldDisplayNewIndicator}
-                isMostRecentIOUReportAction={item.action.sequenceNumber === this.props.mostRecentIOUReportSequenceNumber}
+                isMostRecentIOUReportAction={item.action.reportActionID === this.props.mostRecentIOUReportActionID}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
             />
@@ -168,7 +166,7 @@ class ReportActionsList extends React.Component {
     render() {
         // Native mobile does not render updates flatlist the changes even though component did update called.
         // To notify there something changes we can use extraData prop to flatlist
-        const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.newMarkerSequenceNumber : undefined;
+        const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.newMarkerReportActionID : undefined;
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
         return (
             <Animated.View style={[StyleUtils.fade(this.state.fadeInAnimation), styles.flex1]}>
