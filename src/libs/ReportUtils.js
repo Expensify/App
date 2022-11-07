@@ -953,9 +953,9 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
  * @returns {Boolean}
  */
 function isUnread(report) {
-    const lastReadSequenceNumber = report.lastReadSequenceNumber || 0;
-    const maxSequenceNumber = report.maxSequenceNumber || 0;
-    return lastReadSequenceNumber < maxSequenceNumber;
+    const lastMessageTimestamp = report.lastMessageTimestamp || 0;
+    const lastReadTimestamp = report.lastReadTimestamp || 0;
+    return lastReadTimestamp < lastMessageTimestamp;
 }
 
 /**
