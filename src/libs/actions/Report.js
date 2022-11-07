@@ -814,6 +814,8 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
  */
 function readNewestAction(reportID) {
     const sequenceNumber = getMaxSequenceNumber(reportID);
+    //const sortedReportActions = ReportActionsUtils.getSortedReportActions(props.reportActions);
+    //const lastAction = _.last(this.sortedReportActions);
     API.write('ReadNewestAction',
         {
             reportID,
