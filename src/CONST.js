@@ -315,6 +315,7 @@ const CONST = {
         MAX_ROOM_NAME_LENGTH: 80,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
         OWNER_EMAIL_FAKE: '__FAKE__',
+        DEFAULT_REPORT_NAME: 'Chat Report',
     },
     COMPOSER: {
         MAX_LINES: 16,
