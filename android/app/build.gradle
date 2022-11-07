@@ -279,11 +279,9 @@ android {
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
 
-    // Manually set the react-native version to resolve this issue: https://github.com/facebook/react-native/issues/35210
-    implementation ("com.facebook.react:react-native") version {
-        strictly "0.70.4"
-    }
-    
+    //noinspection GradleDynamicVersion
+    implementation "com.facebook.react:react-native:+"  // From node_modules
+
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
 
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
