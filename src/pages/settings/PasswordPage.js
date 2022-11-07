@@ -8,7 +8,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
-import EditPasswordScreen from './EditPasswordPage';
+import EditPasswordPage from './EditPasswordPage';
 import PasswordConfirmationPage from './PasswordConfirmationPage';
 import UnauthenticatedUser from './UnauthenticatedUser';
 import * as Session from '../../libs/actions/Session';
@@ -45,7 +45,7 @@ class PasswordPage extends Component {
             return <PasswordConfirmationPage />;
         }
         if (this.props.user.validated) {
-            return <EditPasswordScreen />;
+            return <EditPasswordPage />;
         }
         return <UnauthenticatedUser />;
     }
