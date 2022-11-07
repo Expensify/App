@@ -94,6 +94,7 @@ class ReportFooter extends React.Component {
                                 contentContainerStyle={this.props.isComposerFullSize ? styles.flex1 : {}}
                             >
                                 <ReportActionCompose
+                                    key={this.props.report.reportID}
                                     onSubmit={this.props.onSubmitComment}
                                     reportID={this.props.report.reportID.toString()}
                                     reportActions={this.props.reportActions}
