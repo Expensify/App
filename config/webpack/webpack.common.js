@@ -5,6 +5,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const dotenv = require('dotenv');
 const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
+const HtmlInlineScriptPlugin = require('html-inline-script-webpack-plugin');
 const CustomVersionFilePlugin = require('./CustomVersionFilePlugin');
 
 const includeModules = [
@@ -31,10 +32,11 @@ const includeModules = [
 const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
     mode: 'production',
     devtool: 'source-map',
-    entry: [
-        'babel-polyfill',
-        './index.js',
-    ],
+    entry: {
+        main: ['babel-polyfill',
+            './index.js'],
+        splash: ['./web/splash/splash.js'],
+    },
     output: {
         filename: '[name]-[hash].bundle.js',
         path: path.resolve(__dirname, '../../dist'),
@@ -55,6 +57,12 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             template: 'web/index.html',
             filename: 'index.html',
             usePolyfillIO: platform === 'web',
+        }),
+        new HtmlInlineScriptPlugin({
+            scriptMatchPattern: [/splash.+[.]js$/],
+        }),
+        new ProvidePlugin({
+            process: 'process/browser',
         }),
 
         // Copies favicons into the dist/ folder to use for unread status
@@ -141,6 +149,16 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                         loader: '@svgr/webpack',
                     },
                 ],
+            },
+            {
+                test: /splash.css$/i,
+                use: [{
+                    loader: 'style-loader',
+                    options: {
+                        insert: 'head',
+                        injectType: 'singletonStyleTag',
+                    },
+                }],
             },
             {
                 test: /\.css$/i,
