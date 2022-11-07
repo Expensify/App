@@ -269,7 +269,7 @@ class BasePaymentsPage extends React.Component {
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                <View style={styles.flex1}>
+                <View style={[styles.flex1, styles.pb4]}>
                     {Permissions.canUseWallet(this.props.betas) && (
                         <>
                             <View style={[styles.mv5]}>
@@ -313,7 +313,7 @@ class BasePaymentsPage extends React.Component {
                         contentContainerStyle={styles.flex1}
                         onClose={() => PaymentMethods.clearWalletError()}
                         errors={this.props.userWallet.errors}
-                        errorRowStyles={[styles.ph6, styles.pv2]}
+                        errorRowStyles={[styles.ph6]}
                     >
                         <PaymentMethodList
                             onPress={this.paymentMethodPressed}
