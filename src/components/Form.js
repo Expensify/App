@@ -233,7 +233,7 @@ class Form extends React.Component {
                             }}
                             containerStyles={[styles.mh0, styles.mt5]}
                             enabledWhenOffline={this.props.enabledWhenOffline}
-                            tempDisablePressOnEnter
+                            disablePressOnEnter
                         />
                         )}
                     </View>

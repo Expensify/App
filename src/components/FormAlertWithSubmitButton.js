@@ -39,7 +39,7 @@ const propTypes = {
     /** Temporarily disable press on enter, this will be removed when all instances of
      * submit event handler is replaced with FormSubmit component
       */
-    tempDisablePressOnEnter: PropTypes.bool,
+    disablePressOnEnter: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -50,7 +50,7 @@ const defaultProps = {
     isLoading: false,
     onFixTheErrorsLinkPressed: () => {},
     enabledWhenOffline: false,
-    tempDisablePressOnEnter: false,
+    disablePressOnEnter: false,
 };
 
 const FormAlertWithSubmitButton = props => (
@@ -71,7 +71,7 @@ const FormAlertWithSubmitButton = props => (
         ) : (
             <Button
                 success
-                pressOnEnter={!props.tempDisablePressOnEnter}
+                pressOnEnter={!props.disablePressOnEnter}
                 text={props.buttonText}
                 onPress={props.onSubmit}
                 isDisabled={props.isDisabled}
