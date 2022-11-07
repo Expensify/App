@@ -42,6 +42,10 @@ allprojects {
     configurations.all {
         resolutionStrategy {
             force 'org.xerial:sqlite-jdbc:3.34.0'
+
+            // Manually set the react-native version to resolve this upstream issue: https://github.com/facebook/react-native/issues/35210
+            def REACT_NATIVE_VERSION = new File(['node', '--print',"JSON.parse(require('fs').readFileSync(require.resolve('react-native/package.json'), 'utf-8')).version"].execute(null, rootDir).text.trim())
+            force "com.facebook.react:react-native:" + REACT_NATIVE_VERSION
         }
     }
     repositories {
