@@ -19,11 +19,11 @@ jobs:
       - name: Gradle cache
         uses: gradle/gradle-build-action@v2
 
-      - name: Build "Current" APK
+      - name: Build "Compare" APK
         run: npm run android-build-e2e
 
-      - name: Copy "Current" APK
-        run: cp android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk app-e2eRelease-current.apk
+      - name: Copy "Compare" APK
+        run: cp android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk app-e2eRelease-compare.apk
 
 # TODO: Uncomment before merge
 #      - name: Checkout "Baseline"
@@ -36,10 +36,10 @@ jobs:
       - name: Build "Baseline" APK
         run: npm run android-build-e2e
 
-      - name: Copy "Current" APK
+      - name: Copy "Compare" APK
         run: cp android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk app-e2eRelease-baseline.apk
 
-      - name: Zip both "Baseline" and "Current" built APKs
+      - name: Zip both "Baseline" and "Compare" built APKs
         run: zip APKs.zip *.apk
 
       - name: Configure AWS credentials
