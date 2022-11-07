@@ -36,11 +36,14 @@ jobs:
       - name: Build "Baseline" APK
         run: npm run android-build-e2e
 
-      - name: Copy "Compare" APK
+      - name: Copy "Baseline" APK
         run: cp android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk app-e2eRelease-baseline.apk
 
       - name: Zip entire directory
         run: zip -r App.zip .
+
+      - name: Debug
+        run: ls -la
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
