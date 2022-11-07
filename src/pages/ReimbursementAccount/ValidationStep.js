@@ -27,12 +27,19 @@ import CONST from '../../CONST';
 import Button from '../../components/Button';
 import MenuItem from '../../components/MenuItem';
 import Enable2FAPrompt from './Enable2FAPrompt';
+import PropTypes from 'prop-types';
 
 const propTypes = {
     ...withLocalizePropTypes,
 
     /** Bank account currently in setup */
     reimbursementAccount: reimbursementAccountPropTypes,
+
+    account: PropTypes.shape({
+
+        /** If user has Two factor authentication enabled */
+        requiresTwoFactorAuth: PropTypes.bool,
+    }),
 };
 
 const defaultProps = {
@@ -40,6 +47,9 @@ const defaultProps = {
         errorFields: {},
         errors: {},
         maxAttemptsReached: false,
+    },
+    account: {
+        requiresTwoFactorAuth: false,
     },
 };
 
@@ -117,6 +127,7 @@ class ValidationStep extends React.Component {
 
         const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');
         const isVerifying = !maxAttemptsReached && state === BankAccount.STATE.VERIFYING;
+        const requiresTwoFactorAuth = lodashGet(this.props, 'account.requiresTwoFactorAuth');
 
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
@@ -183,9 +194,11 @@ class ValidationStep extends React.Component {
                                 keyboardType="decimal-pad"
                             />
                         </View>
-                        <View style={[styles.mln5, styles.mrn5]}>
-                            <Enable2FAPrompt />
-                        </View>
+                        {!requiresTwoFactorAuth && (
+                            <View style={[styles.mln5, styles.mrn5]}>
+                                <Enable2FAPrompt />
+                            </View>
+                        )}
                     </Form>
                 )}
                 {isVerifying && (
@@ -214,7 +227,9 @@ class ValidationStep extends React.Component {
                             onPress={BankAccounts.requestResetFreePlanBankAccount}
                             shouldShowRightIcon
                         />
-                        <Enable2FAPrompt />
+                        {!requiresTwoFactorAuth && (
+                            <Enable2FAPrompt />
+                        )}
                     </View>
                 )}
             </View>
@@ -230,6 +245,9 @@ export default compose(
     withOnyx({
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        account: {
+            key: ONYXKEYS.ACCOUNT,
         },
     }),
 )(ValidationStep);
