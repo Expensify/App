@@ -19,6 +19,7 @@ import Performance from '../../../../libs/Performance';
 import * as Welcome from '../../../../libs/actions/Welcome';
 import {sidebarPropTypes, sidebarDefaultProps} from './sidebarPropTypes';
 import withDrawerState from '../../../../components/withDrawerState';
+import KeyboardShortcutsModal from '../../../../components/KeyboardShortcutsModal';
 
 const propTypes = {
 
@@ -124,6 +125,7 @@ class BaseSidebarScreen extends Component {
                                 onPress={this.showCreateMenu}
                             />
                         </View>
+                        <KeyboardShortcutsModal />
                         <PopoverMenu
                             onClose={this.hideCreateMenu}
                             isVisible={this.state.isCreateMenuActive}
