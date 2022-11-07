@@ -308,7 +308,13 @@ class BasePaymentsPage extends React.Component {
                     >
                         {this.props.translate('paymentsPage.paymentMethodsTitle')}
                     </Text>
-                    <OfflineWithFeedback onClose={() => PaymentMethods.clearWalletError()} errors={this.props.userWallet.errors} errorRowStyles={[styles.ph6, styles.pv2]}>
+                    <OfflineWithFeedback
+                        style={styles.flex1}
+                        contentContainerStyle={styles.flex1}
+                        onClose={() => PaymentMethods.clearWalletError()}
+                        errors={this.props.userWallet.errors}
+                        errorRowStyles={[styles.ph6, styles.pv2]}
+                    >
                         <PaymentMethodList
                             onPress={this.paymentMethodPressed}
                             style={[styles.flex4]}
