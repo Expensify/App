@@ -310,6 +310,7 @@ dependencies {
     implementation platform("com.google.firebase:firebase-bom:29.0.3")
     implementation "com.google.firebase:firebase-perf"
     implementation "com.google.firebase:firebase-crashlytics"
+    implementation 'com.google.firebase:firebase-messaging'
 
     // GIF support
     implementation 'com.facebook.fresco:fresco:2.5.0'
