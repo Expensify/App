@@ -221,6 +221,7 @@ class RequestorStep extends React.Component {
                                 ssnLast4: this.state.ssnLast4,
                             }}
                             errors={this.props.reimbursementAccount.errorFields}
+                            translate={this.props.translate}
                         />
                         <CheckboxWithLabel
                             isChecked={this.state.isControllingOfficer}
