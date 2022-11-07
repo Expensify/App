@@ -162,6 +162,16 @@ function getMicroseconds() {
 }
 
 /**
+ * Returns the current time in milliseconds in the format expected by the database
+ * @returns {String}
+ */
+function currentDBTime() {
+    return new Date().toISOString()
+        .replace('T', ' ')
+        .replace('Z', '');
+}
+
+/**
  * @namespace DateUtils
  */
 const DateUtils = {
@@ -173,6 +183,7 @@ const DateUtils = {
     canUpdateTimezone,
     setTimezoneUpdated,
     getMicroseconds,
+    currentDBTime,
 };
 
 export default DateUtils;
