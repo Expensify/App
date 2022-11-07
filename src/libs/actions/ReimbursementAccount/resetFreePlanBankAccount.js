@@ -2,7 +2,6 @@ import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as store from './store';
 import * as API from '../../API';
-import BankAccount from '../../models/BankAccount';
 
 /**
  * Reset user's reimbursement account. This will delete the bank account.
@@ -50,7 +49,7 @@ function resetFreePlanBankAccount() {
                     onyxMethod: 'set',
                     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
                     value: null,
-                }
+                },
             ],
         });
 }
