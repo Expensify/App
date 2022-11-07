@@ -188,18 +188,6 @@ function PersonalDetails_Update(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.reportID
- * @param {String} parameters.transactionID
- * @returns {Promise}
- */
-function RejectTransaction(parameters) {
-    const commandName = 'RejectTransaction';
-    requireParameters(['reportID', 'transactionID'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.email
  * @returns {Promise}
  */
@@ -367,7 +355,6 @@ export {
     PayWithWallet,
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
-    RejectTransaction,
     ResendValidateCode,
     SetNameValuePair,
     SetPassword,
