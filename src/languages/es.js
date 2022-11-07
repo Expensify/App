@@ -119,7 +119,7 @@ export default {
         chooseFromGallery: 'Elegir de la galería',
         chooseDocument: 'Elegir documento',
         attachmentTooLarge: 'Archivo adjunto demasiado grande',
-        sizeExceeded: 'El archivo adjunto supera el límite de 50 MB.',
+        sizeExceeded: 'El archivo adjunto supera el límite de 24 MB.',
         attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
         sizeNotMet: 'El archivo adjunto debe ser mas grande que 240 bytes',
         wrongFileType: 'El tipo del archivo adjunto es incorrecto',
@@ -262,6 +262,8 @@ export default {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
             genericCreateFailureMessage: 'Error inesperado solicitando dinero, por favor inténtalo más tarde',
+            genericCancelFailureMessage: ({type}) => `Error inesperado al ${type === 'decline' ? 'rechazar' : 'cancelar'} la solicitud de dinero, por favor inténtalo más tarde`,
+
         },
     },
     notificationPreferences: {
