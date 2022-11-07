@@ -38,6 +38,7 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes,
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
+import DragAndDrop from '../../../components/DragAndDrop';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
@@ -611,15 +612,7 @@ class ReportActionCompose extends React.Component {
                                     )}
                                 </AttachmentPicker>
                                 <View style={styles.textInputComposeSpacing}>
-                                    <Composer
-                                        autoFocus={!this.props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || this.isEmptyChat())}
-                                        multiline
-                                        ref={this.setTextInputRef}
-                                        textAlignVertical="top"
-                                        placeholder={inputPlaceholder}
-                                        placeholderTextColor={themeColors.placeholderText}
-                                        onChangeText={comment => this.updateComment(comment, true)}
-                                        onKeyPress={this.triggerHotkeyActions}
+                                    <DragAndDrop
                                         onDragEnter={() => {
                                             this.setState({isDraggingOver: true});
                                         }}
@@ -637,21 +630,32 @@ class ReportActionCompose extends React.Component {
                                             displayFileInModal(file);
                                             this.setState({isDraggingOver: false});
                                         }}
-                                        style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
-                                        maxLines={this.state.maxLines}
-                                        onFocus={() => this.setIsFocused(true)}
-                                        onBlur={() => this.setIsFocused(false)}
-                                        onPasteFile={displayFileInModal}
-                                        shouldClear={this.state.textInputShouldClear}
-                                        onClear={() => this.setTextInputShouldClear(false)}
-                                        isDisabled={isComposeDisabled || isBlockedFromConcierge}
-                                        selection={this.state.selection}
-                                        onSelectionChange={this.onSelectionChange}
-                                        isFullComposerAvailable={this.state.isFullComposerAvailable}
-                                        setIsFullComposerAvailable={this.setIsFullComposerAvailable}
-                                        isComposerFullSize={this.props.isComposerFullSize}
-                                        value={this.state.value}
-                                    />
+                                    >
+                                        <Composer
+                                            autoFocus={!this.props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || this.isEmptyChat())}
+                                            multiline
+                                            ref={this.setTextInputRef}
+                                            textAlignVertical="top"
+                                            placeholder={inputPlaceholder}
+                                            placeholderTextColor={themeColors.placeholderText}
+                                            onChangeText={comment => this.updateComment(comment, true)}
+                                            onKeyPress={this.triggerHotkeyActions}
+                                            style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
+                                            maxLines={this.state.maxLines}
+                                            onFocus={() => this.setIsFocused(true)}
+                                            onBlur={() => this.setIsFocused(false)}
+                                            onPasteFile={displayFileInModal}
+                                            shouldClear={this.state.textInputShouldClear}
+                                            onClear={() => this.setTextInputShouldClear(false)}
+                                            isDisabled={isComposeDisabled || isBlockedFromConcierge}
+                                            selection={this.state.selection}
+                                            onSelectionChange={this.onSelectionChange}
+                                            isFullComposerAvailable={this.state.isFullComposerAvailable}
+                                            setIsFullComposerAvailable={this.setIsFullComposerAvailable}
+                                            isComposerFullSize={this.props.isComposerFullSize}
+                                            value={this.state.value}
+                                        />
+                                    </DragAndDrop>
                                 </View>
                             </>
                         )}

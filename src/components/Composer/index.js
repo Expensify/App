@@ -8,9 +8,9 @@ import RNTextInput from '../RNTextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
-import CONST from '../../CONST';
 import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
 import getNumberOfLines from '../../libs/ComposerUtils/index';
+import DragAndDrop from '../DragAndDrop';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -37,18 +37,6 @@ const propTypes = {
 
     /** When the input has cleared whoever owns this input should know about it */
     onClear: PropTypes.func,
-
-    /** Callback to fire when a file has being dragged over the text input & report body */
-    onDragOver: PropTypes.func,
-
-    /** Callback to fire when a file has been dragged into the text input & report body */
-    onDragEnter: PropTypes.func,
-
-    /** Callback to fire when the user is no longer dragging over the text input & report body */
-    onDragLeave: PropTypes.func,
-
-    /** Callback to fire when a file is dropped on the text input & report body */
-    onDrop: PropTypes.func,
 
     /** Whether or not this TextInput is disabled. */
     isDisabled: PropTypes.bool,
@@ -86,10 +74,6 @@ const defaultProps = {
     shouldClear: false,
     onClear: () => {},
     style: null,
-    onDragEnter: () => {},
-    onDragOver: () => {},
-    onDragLeave: () => {},
-    onDrop: () => {},
     isDisabled: false,
     autoFocus: false,
     forwardedRef: null,
@@ -113,10 +97,6 @@ const IMAGE_EXTENSIONS = {
     'image/webp': 'webp',
 };
 
-const COPY_DROP_EFFECT = 'copy';
-const NONE_DROP_EFFECT = 'none';
-const RESPONSIVE_BREAKPOINT = 800;
-
 /**
  * Enable Markdown parsing.
  * On web we like to have the Text Input field always focused so the user can easily type a new chat
@@ -138,19 +118,6 @@ class Composer extends React.Component {
         };
         this.paste = this.paste.bind(this);
 
-        this.dropZone = document.getElementById(CONST.REPORT.DROP_NATIVE_ID);
-        this.dropZoneRect = this.calculateDropZoneClientReact();
-        this.dragNDropListener = this.dragNDropListener.bind(this);
-        this.dragNDropWindowResizeListener = this.dragNDropWindowResizeListener.bind(this);
-        this.dropZoneDragHandler = this.dropZoneDragHandler.bind(this);
-        this.dropZoneDragListener = this.dropZoneDragListener.bind(this);
-
-        /*
-        Last detected drag state on the dropzone -> we start with dragleave since user is not dragging initially.
-        This state is updated when drop zone is left/entered entirely(not taking the children in the account) or entire window is left
-        */
-        this.dropZoneDragState = 'dragleave';
-
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
@@ -171,13 +138,6 @@ class Composer extends React.Component {
         // There is no onPaste or onDrag for TextInput in react-native so we will add event
         // listeners here and unbind when the component unmounts
         if (this.textInput) {
-            // Firefox will not allow dropping unless we call preventDefault on the dragover event
-            // We listen on document to extend the Drop area beyond Composer
-            document.addEventListener('dragover', this.dragNDropListener);
-            document.addEventListener('dragenter', this.dragNDropListener);
-            document.addEventListener('dragleave', this.dragNDropListener);
-            document.addEventListener('drop', this.dragNDropListener);
-            window.addEventListener('resize', this.dragNDropWindowResizeListener);
             this.textInput.addEventListener('paste', this.handlePaste);
             this.textInput.addEventListener('wheel', this.handleWheel);
         }
@@ -208,98 +168,8 @@ class Composer extends React.Component {
             return;
         }
 
-        document.removeEventListener('dragover', this.dragNDropListener);
-        document.removeEventListener('dragenter', this.dragNDropListener);
-        document.removeEventListener('dragleave', this.dragNDropListener);
-        document.removeEventListener('drop', this.dragNDropListener);
-        window.removeEventListener('resize', this.dragNDropWindowResizeListener);
         this.textInput.removeEventListener('paste', this.handlePaste);
         this.textInput.removeEventListener('wheel', this.handleWheel);
-    }
-
-    dragNDropWindowResizeListener() {
-        // Update bounding client rect on window resize
-        this.dropZoneRect = this.calculateDropZoneClientReact();
-    }
-
-    calculateDropZoneClientReact() {
-        const boundingClientRect = this.dropZone.getBoundingClientRect();
-
-        // Handle edge case when we are under responsive breakpoint the browser doesn't normalize rect.left to 0 and rect.right to window.innerWidth
-        return {
-            width: boundingClientRect.width,
-            left: window.innerWidth <= RESPONSIVE_BREAKPOINT ? 0 : boundingClientRect.left,
-            right: window.innerWidth <= RESPONSIVE_BREAKPOINT
-                ? window.innerWidth : boundingClientRect.right,
-            top: boundingClientRect.top,
-            bottom: boundingClientRect.bottom,
-        };
-    }
-
-    /**
-     * @param {Object} event native Event
-     */
-    dropZoneDragHandler(event) {
-        // Setting dropEffect for dragover is required for '+' icon on certain platforms/browsers (eg. Safari)
-        switch (event.type) {
-            case 'dragover':
-                // Continuous event -> can hurt performance, be careful when subscribing
-                // eslint-disable-next-line no-param-reassign
-                event.dataTransfer.dropEffect = COPY_DROP_EFFECT;
-                this.props.onDragOver(event);
-                break;
-            case 'dragenter':
-                // Avoid reporting onDragEnter for children views -> not performant
-                if (this.dropZoneDragState === 'dragleave') {
-                    this.dropZoneDragState = 'dragenter';
-                    // eslint-disable-next-line no-param-reassign
-                    event.dataTransfer.dropEffect = COPY_DROP_EFFECT;
-                    this.props.onDragEnter(event);
-                }
-                break;
-            case 'dragleave':
-                if (this.dropZoneDragState === 'dragenter') {
-                    if (
-                        event.clientY < this.dropZoneRect.top
-                        || event.clientY >= this.dropZoneRect.bottom
-                        || event.clientX < this.dropZoneRect.left
-                        || event.clientX >= this.dropZoneRect.right
-                    ) {
-                        this.dropZoneDragState = 'dragleave';
-                        this.props.onDragLeave(event);
-                    }
-                }
-                break;
-            case 'drop':
-                this.dropZoneDragState = 'dragleave';
-                this.props.onDrop(event);
-                break;
-            default: break;
-        }
-    }
-
-    /**
-     * Handles all types of drag-N-drop events on the drop zone associated with composer
-     *
-     * @param {Object} event native Event
-     */
-    dropZoneDragListener(event) {
-        event.preventDefault();
-        if (this.dropZone.contains(event.target)) {
-            this.dropZoneDragHandler(event);
-        } else {
-            // eslint-disable-next-line no-param-reassign
-            event.dataTransfer.dropEffect = NONE_DROP_EFFECT;
-        }
-    }
-
-    /**
-     * Handles all types of drag-N-drop events on the composer and associated drop zone if it exists
-     *
-     * @param {Object} event native Event
-     */
-    dragNDropListener(event) {
-        this.dropZoneDragListener(event);
     }
 
     /**
@@ -468,7 +338,19 @@ class Composer extends React.Component {
 Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
 
+const ComposerWithDragAndDrop = props => (
+    <DragAndDrop onDragOver={props.onDragOver} onDragLeave={props.onDragLeave} onDragEnter={props.onDragEnter} onDrop={props.onDrop}>
+        <Composer
+           // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            ref={props.ref}
+        />
+    </DragAndDrop>
+);
+
+ComposerWithDragAndDrop.propTypes = {...DragAndDrop.propTypes, ...Composer.propTypes};
+
 export default withLocalize(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <Composer {...props} forwardedRef={ref} />
+    <ComposerWithDragAndDrop {...props} forwardedRef={ref} />
 )));
