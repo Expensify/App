@@ -98,7 +98,7 @@ const DetailsPage = (props) => {
             const login = lodashGet(this.props.route.params, 'login');
             details = {
                 login,
-                displayName: ReportUtils.getDisplayNameForParticipant({login}),
+                displayName: ReportUtils.getDisplayNameForParticipant(login),
                 avatar: ReportUtils.getDefaultAvatar(),
             };
         }
