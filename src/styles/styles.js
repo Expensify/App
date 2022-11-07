@@ -2751,7 +2751,7 @@ const styles = {
         alignSelf: 'center',
     },
 
-    dragAndDropOverlay: {
+    fullScreenTransparentOverlay: {
         position: 'absolute',
         width: '100%',
         height: '100%',
@@ -2759,7 +2759,7 @@ const styles = {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: themeColors.dragAndDropBackground,
+        backgroundColor: themeColors.transparentAppBackground,
         zIndex: 2,
     },
 

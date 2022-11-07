@@ -49,5 +49,5 @@ export default {
     placeholderText: colors.gray3,
     heroCard: colors.blue,
     uploadPreviewActivityIndicator: colors.gray1,
-    dragAndDropBackground: 'rgba(255, 255, 255, 0.96)',
+    transparentAppBackground: 'rgba(255, 255, 255, 0.96)',
 };

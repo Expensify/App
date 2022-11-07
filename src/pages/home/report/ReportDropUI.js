@@ -12,7 +12,7 @@ const propTypes = {
 
 const ReportDropUI = props => (
     <Portal hostName="DropZone">
-        <View style={[styles.dragAndDropOverlay, styles.alignItemsCenter, styles.justifyContentCenter]}>
+        <View style={[styles.fullScreenTransparentOverlay, styles.alignItemsCenter, styles.justifyContentCenter]}>
             <View style={styles.mb3}>
                 <DragAndDropIcon width={100} height={100} />
             </View>
