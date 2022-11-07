@@ -39,8 +39,8 @@ jobs:
       - name: Copy "Compare" APK
         run: cp android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk app-e2eRelease-baseline.apk
 
-      - name: Zip both "Baseline" and "Compare" built APKs
-        run: zip APKs.zip *.apk
+      - name: Zip entire directory
+        run: zip -r App.zip .
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -58,7 +58,7 @@ jobs:
           app_file: app-e2eRelease-baseline.apk
           app_type: ANDROID_APP
           test_type: APPIUM_NODE
-          test_package_file: APKs.zip
+          test_package_file: App.zip
           test_package_type: APPIUM_NODE_TEST_PACKAGE
           test_spec_file: tests/e2e/TestSpec.yml
           test_spec_type: APPIUM_NODE_TEST_SPEC

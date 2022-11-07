@@ -9,7 +9,7 @@ const COMPARE_APP_PATH_FROM_ROOT = '../app-e2eRelease-compare.apk';
  * Installs the app on the currently connected device for the given platform.
  * It removes the app first if it already exists, so it's a clean installation.
  *
- * @param {string} platform
+ * @param {String} platform
  * @param {String} baselineOrCompare
  * @returns {Promise<void>}
  */

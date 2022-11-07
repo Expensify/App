@@ -3,17 +3,13 @@ version: 0.1
 phases:
   install:
     commands:
-      - export NVM_DIR=$HOME/.nvm
-      - . $NVM_DIR/nvm.sh
-      - nvm install 16.15.1
-
+      # Debug - Remove before merge
       - ls -la
 
-      # Fetch latest code from GitHub
-      - git clone https://github.com/AndrewGable/App.git Git-App
-      - cd $DEVICEFARM_TEST_PACKAGE_PATH/Git-App
-      - git checkout andrew-aws-df
-      - npm install
+      # Install correct version of node
+      - export NVM_DIR=$HOME/.nvm
+      - . $NVM_DIR/nvm.sh
+      - nvm use
 
       # Reverse ports using AWS magic
       - PORT=4723
@@ -24,7 +20,6 @@ phases:
 
   test:
     commands:
-      - echo "Starting tests"
       - npm run test:e2e -- --skipInstallDeps --skipBuild
 
 artifacts:
