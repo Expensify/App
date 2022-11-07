@@ -2,7 +2,6 @@ import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
-import moment from 'moment';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';

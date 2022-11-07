@@ -49,7 +49,7 @@ function getLocalMomentFromTimestamp(locale, datetime, currentSelectedTimezone =
     if (!datetime) {
         return moment.tz(currentSelectedTimezone);
     }
-    return moment.unix(datetime).tz(currentSelectedTimezone);
+    return moment(datetime).tz(currentSelectedTimezone);
 }
 
 /**
