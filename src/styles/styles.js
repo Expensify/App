@@ -3,7 +3,6 @@ import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
 import fontWeightBold from './fontWeight/bold';
 import variables from './variables';
-import colors from './colors';
 import spacing from './utilities/spacing';
 import sizing from './utilities/sizing';
 import flex from './utilities/flex';
@@ -22,7 +21,7 @@ import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
 
 const picker = {
-    backgroundColor: 'transparent',
+    backgroundColor: themeColors.transparent,
     color: themeColors.text,
     fontFamily: fontFamily.GTA,
     fontSize: variables.fontSizeNormal,
@@ -285,11 +284,11 @@ const styles = {
     },
 
     textWhite: {
-        color: colors.white,
+        color: themeColors.appBG,
     },
 
     textBlue: {
-        color: colors.blue,
+        color: themeColors.link,
     },
 
     textUppercase: {
@@ -321,7 +320,7 @@ const styles = {
     },
 
     bgDark: {
-        backgroundColor: colors.dark,
+        backgroundColor: themeColors.inverse,
     },
 
     opacity0: {
@@ -333,7 +332,7 @@ const styles = {
     },
 
     textDanger: {
-        color: colors.red,
+        color: themeColors.dangerButton,
     },
 
     borderRadiusNormal: {
@@ -349,7 +348,7 @@ const styles = {
     },
 
     buttonText: {
-        color: themeColors.heading,
+        color: themeColors.textWhite,
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
@@ -478,11 +477,11 @@ const styles = {
     },
 
     buttonSuccessText: {
-        color: themeColors.textReversed,
+        color: themeColors.text,
     },
 
     buttonDangerText: {
-        color: themeColors.textReversed,
+        color: themeColors.text,
     },
 
     hoveredComponentBG: {
@@ -830,12 +829,12 @@ const styles = {
     }),
 
     disabledText: {
-        color: colors.gray3,
+        color: themeColors.icons,
     },
 
     inputDisabled: {
-        backgroundColor: colors.gray1,
-        color: colors.gray3,
+        backgroundColor: themeColors.highlightBG,
+        color: themeColors.icons,
     },
 
     textInputReversed: addOutlineWidth({
@@ -851,7 +850,7 @@ const styles = {
     noOutline: addOutlineWidth({}, 0),
 
     errorOutline: {
-        borderColor: colors.red,
+        borderColor: themeColors.dangerButton,
     },
 
     textLabelSupporting: {
@@ -920,14 +919,14 @@ const styles = {
         fontFamily: fontFamily.GTA,
         fontWeight: fontWeightBold,
         fontSize: variables.fontSizeHero,
-        color: colors.white,
+        color: themeColors.appBG,
         lineHeight: variables.lineHeightHero,
     },
 
     signInPageHeroDescription: {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
-        color: colors.white,
+        color: themeColors.appBG,
     },
 
     signInPageFormContainer: {
@@ -1340,7 +1339,7 @@ const styles = {
     },
 
     chatItemMessageLink: {
-        color: colors.blue,
+        color: themeColors.link,
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
         lineHeight: 20,
@@ -1578,7 +1577,7 @@ const styles = {
     horizontalStackedAvatar: {
         height: 28,
         width: 28,
-        backgroundColor: colors.white,
+        backgroundColor: themeColors.appBG,
         borderRadius: 33,
         paddingTop: 2,
     },
@@ -1744,7 +1743,7 @@ const styles = {
         width: 28,
         borderWidth: 2,
         borderStyle: 'solid',
-        borderColor: colors.white,
+        borderColor: themeColors.appBG,
         backgroundColor: themeColors.opaqueAvatar,
         borderRadius: 24,
         zIndex: 6,
@@ -1886,7 +1885,7 @@ const styles = {
     },
 
     notFoundTextHeader: {
-        color: colors.blue,
+        color: themeColors.link,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: 150,
@@ -1900,7 +1899,7 @@ const styles = {
     },
 
     notFoundButtonText: {
-        color: colors.blue,
+        color: themeColors.link,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: 15,
@@ -1912,7 +1911,7 @@ const styles = {
 
     defaultModalContainer: {
         backgroundColor: themeColors.componentBG,
-        borderColor: colors.transparent,
+        borderColor: themeColors.transparent,
     },
 
     reportActionContextMenuMiniButton: {
@@ -1989,7 +1988,7 @@ const styles = {
         right: 0,
         bottom: 0,
         left: 0,
-        backgroundColor: colors.dark,
+        backgroundColor: themeColors.inverse,
         opacity: 0.5,
     },
 
@@ -2104,11 +2103,11 @@ const styles = {
         justifyContent: 'center',
         borderRadius: 20,
         padding: 15,
-        backgroundColor: colors.green,
+        backgroundColor: themeColors.successButton,
     },
 
     switchInactive: {
-        backgroundColor: colors.gray2,
+        backgroundColor: themeColors.borders,
     },
 
     switchThumb: {
@@ -2117,7 +2116,7 @@ const styles = {
         borderRadius: 11,
         position: 'absolute',
         left: 4,
-        backgroundColor: colors.white,
+        backgroundColor: themeColors.appBG,
     },
 
     radioButtonContainer: {
@@ -2143,7 +2142,7 @@ const styles = {
     },
 
     checkedContainer: {
-        backgroundColor: colors.blue,
+        backgroundColor: themeColors.link,
     },
 
     iouAmountText: {
@@ -2241,7 +2240,7 @@ const styles = {
     },
 
     navigatorFullScreenLoading: {
-        backgroundColor: colors.gray1,
+        backgroundColor: themeColors.highlightBG,
         opacity: 1,
     },
 
@@ -2294,7 +2293,7 @@ const styles = {
     }),
 
     growlNotificationBox: {
-        backgroundColor: colors.dark,
+        backgroundColor: themeColors.inverse,
         borderRadius: variables.componentBorderRadiusNormal,
         alignItems: 'center',
         flexDirection: 'row',
@@ -2666,7 +2665,7 @@ const styles = {
     },
 
     iPhoneXSafeArea: {
-        backgroundColor: colors.black,
+        backgroundColor: themeColors.inverse,
         flex: 1,
     },
 
@@ -2753,7 +2752,7 @@ const styles = {
 
     textPill: {
         ellipsizeMode: 'end',
-        backgroundColor: colors.gray2,
+        backgroundColor: themeColors.borders,
         borderRadius: 10,
         overflow: 'hidden',
         paddingVertical: 2,
