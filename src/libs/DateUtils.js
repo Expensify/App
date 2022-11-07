@@ -34,26 +34,26 @@ Onyx.connect({
 
 /**
  * Gets the user's stored time-zone NVP and returns a localized
- * Moment object for the given timestamp
+ * Moment object for the given ISO-formatted datetime string
  *
  * @param {String} locale
- * @param {Number} timestamp
+ * @param {String} datetime
  * @param {String} [currentSelectedTimezone]
  *
  * @returns  {Moment}
  *
  * @private
  */
-function getLocalMomentFromTimestamp(locale, timestamp, currentSelectedTimezone = timezone.selected) {
+function getLocalMomentFromTimestamp(locale, datetime, currentSelectedTimezone = timezone.selected) {
     moment.locale(locale);
-    if (!timestamp) {
+    if (!datetime) {
         return moment.tz(currentSelectedTimezone);
     }
-    return moment.unix(timestamp).tz(currentSelectedTimezone);
+    return moment.unix(datetime).tz(currentSelectedTimezone);
 }
 
 /**
- * Formats a timestamp to local date and time string
+ * Formats an ISO-formatted datetime string to local date and time string
  *
  * e.g.
  *
@@ -61,13 +61,13 @@ function getLocalMomentFromTimestamp(locale, timestamp, currentSelectedTimezone 
  * Jan 20, 2019 at 5:30 PM    anything over 1 year ago
  *
  * @param {String} locale
- * @param {Number} timestamp
+ * @param {String} datetime
  * @param {Boolean} includeTimeZone
  *
  * @returns {String}
  */
-function timestampToDateTime(locale, timestamp, includeTimeZone = false) {
-    const date = getLocalMomentFromTimestamp(locale, timestamp);
+function timestampToDateTime(locale, datetime, includeTimeZone = false) {
+    const date = getLocalMomentFromTimestamp(locale, datetime);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
 
     const todayAt = Localize.translate(locale, 'common.todayAt');
@@ -86,7 +86,7 @@ function timestampToDateTime(locale, timestamp, includeTimeZone = false) {
 }
 
 /**
- * Converts a timestamp into a localized string representation
+ * Converts an ISO-formatted datetime string into a localized string representation
  * that's relative to current moment in time.
  *
  * e.g.
@@ -99,12 +99,12 @@ function timestampToDateTime(locale, timestamp, includeTimeZone = false) {
  * Jan 20, 2019         anything over 1 year
  *
  * @param {String} locale
- * @param {Number} timestamp
+ * @param {String} datetime
  *
  * @returns {String}
  */
-function timestampToRelative(locale, timestamp) {
-    const date = getLocalMomentFromTimestamp(locale, timestamp);
+function timestampToRelative(locale, datetime) {
+    const date = getLocalMomentFromTimestamp(locale, datetime);
 
     return moment(date).fromNow();
 }

@@ -96,14 +96,14 @@ class LocaleContextProvider extends React.Component {
     }
 
     /**
-     * @param {Number} timestamp
+     * @param {String} datetime - ISO-formatted datetime string
      * @param {Boolean} [includeTimezone]
      * @returns {String}
      */
-    timestampToDateTime(timestamp, includeTimezone) {
+    timestampToDateTime(datetime, includeTimezone) {
         return DateUtils.timestampToDateTime(
             this.props.preferredLocale,
-            timestamp,
+            datetime,
             includeTimezone,
         );
     }
