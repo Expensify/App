@@ -357,6 +357,9 @@ function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = f
                 Navigation.navigate(ROUTES.REPORT);
                 return;
             }
+            if (!iouReportObject) {
+                return;
+            }
             setLocalIOUReportData(iouReportObject);
             return iouReportObject;
         });
@@ -702,6 +705,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 isLoadingReportActions: true,
+                isLoadingMoreReportActions: false,
                 lastVisitedTimestamp: Date.now(),
                 lastReadSequenceNumber: getMaxSequenceNumber(reportID),
             },
@@ -766,6 +770,7 @@ function reconnect(reportID) {
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     isLoadingReportActions: true,
+                    isLoadingMoreReportActions: false,
                 },
             }],
             successData: [{
@@ -1379,6 +1384,27 @@ function setIsComposerFullSize(reportID, isComposerFullSize) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, isComposerFullSize);
 }
 
+const defaultNewActionSubscriber = {
+    reportID: '',
+    callback: () => {},
+};
+
+let newActionSubscriber = defaultNewActionSubscriber;
+
+/**
+ * Enables the Report actions file to let the ReportActionsView know that a new comment has arrived in realtime for the current report
+ *
+ * @param {String} reportID
+ * @param {Function} callback
+ * @returns {Function}
+ */
+function subscribeToNewActionEvent(reportID, callback) {
+    newActionSubscriber = {callback, reportID};
+    return () => {
+        newActionSubscriber = defaultNewActionSubscriber;
+    };
+}
+
 /**
  * @param {String} reportID
  * @param {Object} action
@@ -1393,7 +1419,10 @@ function viewNewReportAction(reportID, action) {
     if (isFromCurrentUser) {
         updatedReportObject.lastVisitedTimestamp = Date.now();
         updatedReportObject.lastReadSequenceNumber = action.sequenceNumber;
-        updatedReportObject.maxSequenceNumber = action.sequenceNumber;
+    }
+
+    if (reportID === newActionSubscriber.reportID) {
+        newActionSubscriber.callback(isFromCurrentUser, updatedReportObject.maxSequenceNumber);
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
@@ -1473,12 +1502,6 @@ Onyx.connect({
                 return;
             }
 
-            // We don't want to process any new actions that have a pendingAction field as this means they are "optimistic" and no notifications
-            // should be created for them
-            if (!_.isEmpty(action.pendingAction)) {
-                return;
-            }
-
             if (!action.timestamp) {
                 return;
             }
@@ -1531,4 +1554,5 @@ export {
     clearPolicyRoomNameErrors,
     clearIOUError,
     getMaxSequenceNumber,
+    subscribeToNewActionEvent,
 };

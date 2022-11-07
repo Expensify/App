@@ -115,6 +115,8 @@ class IOUModal extends Component {
         const participantsWithDetails = _.map(OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails), personalDetails => ({
             login: personalDetails.login,
             text: personalDetails.displayName,
+            firstName: lodashGet(personalDetails, 'firstName', ''),
+            lastName: lodashGet(personalDetails, 'lastName', ''),
             alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
             icons: [personalDetails.avatar],
             keyForList: personalDetails.login,
@@ -309,45 +311,42 @@ class IOUModal extends Component {
     }
 
     /**
-     * Create the IOU transaction
-     *
-     * @param {Array} [splits]
+     * @param {Array} selectedParticipants
      */
-    createTransaction(splits) {
+    createTransaction(selectedParticipants) {
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
 
-        // Only splits from a group DM has a reportID
-        // Check if reportID is a number
-        if (splits && CONST.REGEX.NUMBER.test(reportID)) {
-            IOU.createIOUSplitGroup({
-                comment: this.state.comment,
-
-                // should send in cents to API
-                amount: Math.round(this.state.amount * 100),
-                currency: this.props.iou.selectedCurrencyCode,
-                splits,
-                reportID,
-            });
+        // IOUs created from a group report will have a reportID param in the route.
+        // Since the user is already viewing the report, we don't need to navigate them to the report
+        if (this.props.hasMultipleParticipants && CONST.REGEX.NUMBER.test(reportID)) {
+            IOU.splitBill(
+                selectedParticipants,
+                this.props.currentUserPersonalDetails.login,
+                this.state.amount,
+                this.state.comment,
+                this.props.iou.selectedCurrencyCode,
+                this.props.preferredLocale,
+            );
             return;
         }
 
-        if (splits) {
-            IOU.createIOUSplit({
-                comment: this.state.comment,
-
-                // Send in cents to API.
-                amount: Math.round(this.state.amount * 100),
-                currency: this.props.iou.selectedCurrencyCode,
-                splits,
-            });
+        // If the IOU is created from the global create menu, we also navigate the user to the group report
+        if (this.props.hasMultipleParticipants) {
+            IOU.splitBillAndOpenReport(
+                selectedParticipants,
+                this.props.currentUserPersonalDetails.login,
+                this.state.amount,
+                this.state.comment,
+                this.props.iou.selectedCurrencyCode,
+                this.props.preferredLocale,
+            );
             return;
         }
-
         IOU.requestMoney(this.props.report,
             Math.round(this.state.amount * 100),
             this.props.iou.selectedCurrencyCode,
             this.props.currentUserPersonalDetails.login,
-            OptionsListUtils.addSMSDomainIfPhoneNumber(this.state.participants[0].login),
+            selectedParticipants[0],
             this.state.comment);
     }
 

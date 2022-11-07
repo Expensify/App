@@ -28,7 +28,7 @@ const propTypes = {
     network: networkPropTypes.isRequired,
 
     /** When the button is opened via an IOU, ID for the chatReport that the IOU is linked to */
-    chatReportID: PropTypes.number,
+    chatReportID: PropTypes.string,
 
     ...withLocalizePropTypes,
 };
@@ -36,7 +36,7 @@ const propTypes = {
 const defaultProps = {
     currency: CONST.CURRENCY.USD,
     shouldShowPaypal: false,
-    chatReportID: 0,
+    chatReportID: '',
 };
 
 class SettlementButton extends React.Component {
