@@ -138,12 +138,12 @@ class PopoverReportActionContextMenu extends React.Component {
         this.getContextMenuMeasuredLocation().then(({x, y}) => {
             this.setState({
                 cursorRelativePosition: {
-                    horizontal: nativeEvent.pageX - x,
-                    vertical: nativeEvent.pageY - y,
+                    horizontal: nativeEvent.absoluteX - x,
+                    vertical: nativeEvent.absoluteY - y,
                 },
                 popoverAnchorPosition: {
-                    horizontal: nativeEvent.pageX,
-                    vertical: nativeEvent.pageY,
+                    horizontal: nativeEvent.absoluteX,
+                    vertical: nativeEvent.absoluteY,
                 },
                 type,
                 reportID,
