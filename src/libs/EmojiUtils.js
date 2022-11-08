@@ -4,6 +4,7 @@ import moment from 'moment';
 import Str from 'expensify-common/lib/str';
 import CONST from '../CONST';
 import * as User from './actions/User';
+import emojisTrie from './EmojiTrie';
 
 /**
  * Get the unicode code of an emoji in base 16.
@@ -53,25 +54,6 @@ function trimEmojiUnicode(emojiCode) {
 }
 
 /**
- * Validates that this string is composed of a single emoji
- *
- * @param {String} message
- * @returns {Boolean}
- */
-function isSingleEmoji(message) {
-    const match = message.match(CONST.REGEX.EMOJIS);
-
-    if (!match) {
-        return false;
-    }
-
-    const matchedEmoji = match[0];
-    const matchedUnicode = getEmojiUnicode(matchedEmoji);
-    const currentMessageUnicode = trimEmojiUnicode(getEmojiUnicode(message));
-    return matchedUnicode === currentMessageUnicode;
-}
-
-/**
  * Validates that this message contains only emojis
  *
  * @param {String} message
@@ -87,7 +69,7 @@ function containsOnlyEmojis(message) {
 
     const codes = [];
     _.map(match, emoji => _.map(getEmojiUnicode(emoji).split(' '), (code) => {
-        if (code !== CONST.EMOJI_INVISIBLE_CODEPOINT) {
+        if (!CONST.EMOJI_INVISIBLE_CODEPOINTS.includes(code)) {
             codes.push(code);
         }
         return code;
@@ -95,7 +77,7 @@ function containsOnlyEmojis(message) {
 
     // Emojis are stored as multiple characters, so we're using spread operator
     // to iterate over the actual emojis, not just characters that compose them
-    const messageCodes = _.filter(_.map([...trimmedMessage], char => getEmojiUnicode(char)), string => string.length > 0 && string !== CONST.EMOJI_INVISIBLE_CODEPOINT);
+    const messageCodes = _.filter(_.map([...trimmedMessage], char => getEmojiUnicode(char)), string => string.length > 0 && !CONST.EMOJI_INVISIBLE_CODEPOINTS.includes(string));
     return codes.length === messageCodes.length;
 }
 
@@ -201,10 +183,65 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
     User.updateFrequentlyUsedEmojis(frequentEmojiList);
 }
 
+/**
+ * Replace any emoji name in a text with the emoji icon
+ * @param {String} text
+ * @returns {String}
+ */
+function replaceEmojis(text) {
+    let newText = text;
+    const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
+    if (!emojiData || emojiData.length === 0) {
+        return text;
+    }
+    for (let i = 0; i < emojiData.length; i++) {
+        const checkEmoji = emojisTrie.search(emojiData[i].slice(1, -1));
+        if (checkEmoji && checkEmoji.metaData.code) {
+            newText = newText.replace(emojiData[i], checkEmoji.metaData.code);
+        }
+    }
+    return newText;
+}
+
+/**
+ * Suggest emojis when typing emojis prefix after colon
+ * @param {String} text
+ * @param {Number} [limit] - matching emojis limit
+ * @returns {Array}
+ */
+function suggestEmojis(text, limit = 5) {
+    const emojiData = text.match(CONST.REGEX.EMOJI_SUGGESTIONS);
+    if (emojiData) {
+        const matching = [];
+        const nodes = emojisTrie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1));
+        for (let j = 0; j < nodes.length; j++) {
+            if (nodes[j].metaData.code && !_.find(matching, obj => obj.name === nodes[j].name)) {
+                if (matching.length === limit) {
+                    return matching;
+                }
+                matching.unshift({code: nodes[j].metaData.code, name: nodes[j].name});
+            }
+            const suggestions = nodes[j].metaData.suggestions;
+            for (let i = 0; i < suggestions.length; i++) {
+                if (matching.length === limit) {
+                    return matching;
+                }
+                if (!_.find(matching, obj => obj.name === suggestions[i].name)) {
+                    matching.unshift(suggestions[i]);
+                }
+            }
+        }
+        return matching;
+    }
+    return [];
+}
+
 export {
-    isSingleEmoji,
     getDynamicHeaderIndices,
     mergeEmojisWithFrequentlyUsedEmojis,
     addToFrequentlyUsedEmojis,
     containsOnlyEmojis,
+    replaceEmojis,
+    suggestEmojis,
+    trimEmojiUnicode,
 };

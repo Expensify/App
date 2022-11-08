@@ -91,7 +91,7 @@ const ReportWelcomeText = (props) => {
                         {roomWelcomeMessage.phrase1}
                     </Text>
                     <Text style={[styles.textStrong]} onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}>
-                        {ReportUtils.getReportName(props.report, props.personalDetails, props.policies)}
+                        {ReportUtils.getReportName(props.report, props.policies)}
                     </Text>
                     <Text>
                         {roomWelcomeMessage.phrase2}
@@ -108,7 +108,7 @@ const ReportWelcomeText = (props) => {
                         displayName, pronouns, tooltip,
                     }, index) => (
                         <Text key={`${displayName}${pronouns}${index}`}>
-                            <Tooltip text={tooltip}>
+                            <Tooltip text={tooltip} containerStyles={[styles.dInline]}>
                                 <Text style={[styles.textStrong]} onPress={() => Navigation.navigate(ROUTES.getDetailsRoute(participants[index]))}>
                                     {displayName}
                                 </Text>

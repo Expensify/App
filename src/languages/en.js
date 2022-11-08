@@ -19,6 +19,7 @@ export default {
         save: 'Save',
         saveChanges: 'Save changes',
         password: 'Password',
+        workspaces: 'Workspaces',
         profile: 'Profile',
         payments: 'Payments',
         preferences: 'Preferences',
@@ -81,7 +82,7 @@ export default {
         error: {
             invalidAmount: 'Invalid amount',
             acceptedTerms: 'You must accept the Terms of Service to continue',
-            phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+            phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
         please: 'Please',
         contactUs: 'contact us',
@@ -118,7 +119,7 @@ export default {
         chooseFromGallery: 'Choose from gallery',
         chooseDocument: 'Choose document',
         attachmentTooLarge: 'Attachment too large',
-        sizeExceeded: 'Attachment size is larger than 50 MB limit.',
+        sizeExceeded: 'Attachment size is larger than 24 MB limit.',
         attachmentTooSmall: 'Attachment too small',
         sizeNotMet: 'Attachment size must be greater than 240 bytes',
         wrongFileType: 'Attachment is the wrong type',
@@ -235,6 +236,8 @@ export default {
         buttonSearch: 'Search',
         buttonMySettings: 'My settings',
         fabNewChat: 'New chat(Floating Action)',
+        chatPinned: 'Chat pinned',
+        draftedMessage: 'Drafted message',
     },
     iou: {
         amount: 'Amount',
@@ -258,6 +261,8 @@ export default {
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
+            genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
+            genericCancelFailureMessage: ({type}) => `Unexpected error ${type === 'decline' ? 'declining' : 'cancelling'} the money request, please try again later`,
         },
     },
     notificationPreferences: {
@@ -297,6 +302,12 @@ export default {
         online: 'Online',
         offline: 'Offline',
         syncing: 'Syncing',
+    },
+    displayNamePage: {
+        headerTitle: 'Display name',
+        isShownOnProfile: 'Your display name is shown on your profile.',
+        john: 'John',
+        doe: 'Doe',
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add phone number',
@@ -412,7 +423,7 @@ export default {
             notOwnerOfFund: 'There was an error setting this card as your default payment method.',
             setDefaultFailure: 'Something went wrong. Please chat with Concierge for further assistance.',
         },
-        addBankAccountFailure: 'And unexpected error occurred while trying to add your bank account. Please try again.',
+        addBankAccountFailure: 'An unexpected error occurred while trying to add your bank account. Please try again.',
     },
     transferAmountPage: {
         transfer: ({amount}) => `Transfer${amount ? ` ${amount}` : ''}`,
@@ -565,7 +576,6 @@ export default {
             addressStreet: 'Please enter a valid street address that is not a PO Box',
             addressState: 'Please select a valid state',
             incorporationDate: 'Please enter a valid date',
-            incorporationDateFuture: 'Incorporation date cannot be in the future',
             incorporationState: 'Please enter a valid state',
             industryCode: 'Please enter a valid industry classification code. Must be 6 digits.',
             restrictedBusiness: 'Please confirm company is not on the list of restricted businesses',
@@ -812,6 +822,10 @@ export default {
             growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
             unavailable: 'Unavailable workspace',
         },
+        emptyWorkspace: {
+            title: 'Create a new workspace',
+            subtitle: 'Workspaces are where you\'ll chat with your team, reimburse expenses, issue cards, send invoices, pay bills, and more — all in one place.',
+        },
         new: {
             newWorkspace: 'New workspace',
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
@@ -953,8 +967,8 @@ export default {
         },
         error: {
             phoneNumberExtension: 'Please enter a valid phone extension number',
-            firstName: 'Please provide your first name so our guides know how to address you!',
-            lastName: 'Please provide your last name so our guides know how to address you!',
+            firstName: 'Please provide your first name',
+            lastName: 'Please provide your last name',
             firstNameLength: 'First name shouldn\'t be longer than 50 characters',
             lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
         },
@@ -968,9 +982,10 @@ export default {
         skinTonePickerLabel: 'Change default skin tone',
         headers: {
             frequentlyUsed: 'Frequently Used',
-            smileysAndPeople: 'Smileys & People',
+            smileysAndEmotion: 'Smileys & Emotion',
+            peopleAndBody: 'People & Body',
             animalsAndNature: 'Animals & Nature',
-            foodAndDrinks: 'Food & Drinks',
+            foodAndDrink: 'Food & Drinks',
             travelAndPlaces: 'Travel & Places',
             activities: 'Activities',
             objects: 'Objects',
