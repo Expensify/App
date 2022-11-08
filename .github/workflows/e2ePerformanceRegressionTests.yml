@@ -19,6 +19,15 @@ jobs:
       - name: Gradle cache
         uses: gradle/gradle-build-action@v2
 
+      - name: Debug
+        run: ls -la
+
+      - name: Bundle
+        run: |
+          npm install -g npm-bundle
+          npm-bundle
+          zip -r MyTests.zip *.tgz
+
       - name: Build "Compare" APK
         run: npm run android-build-e2e
 
@@ -41,15 +50,6 @@ jobs:
 
       - name: Zip entire directory
         run: zip -r App.zip .
-
-      - name: Bundle
-        run: |
-          npm install -g npm-bundle
-          npm-bundle
-          zip -r MyTests.zip *.tgz
-
-      - name: Debug
-        run: ls -la
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
