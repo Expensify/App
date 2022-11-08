@@ -27,9 +27,6 @@ const propTypes = {
     closeAccount: PropTypes.shape({
         /** Error message if previous attempt to close account was unsuccessful */
         error: PropTypes.string,
-
-        /** Is account currently being closed? */
-        isLoading: PropTypes.bool,
     }),
 
     /** Session of currently logged in user */
@@ -43,7 +40,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    closeAccount: {error: '', isLoading: false},
+    closeAccount: {error: ''},
 };
 
 class CloseAccountPage extends Component {
