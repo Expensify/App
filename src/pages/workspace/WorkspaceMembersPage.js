@@ -129,7 +129,7 @@ class WorkspaceMembersPage extends React.Component {
     toggleAllUsers() {
         this.setState({showTooltipForLogin: ''});
         let policyMemberList = lodashGet(this.props, 'policyMemberList', {});
-        policyMemberList = lodashFilter(_.keys(policyMemberList), policyMember => policyMemberList[policyMember].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        policyMemberList = _.filter(_.keys(policyMemberList), policyMember => policyMemberList[policyMember].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const removableMembers = _.without(policyMemberList, this.props.session.email, this.props.policy.owner);
         this.setState(prevState => ({
             selectedEmployees: removableMembers.length !== prevState.selectedEmployees.length
