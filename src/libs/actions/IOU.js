@@ -337,6 +337,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 existingIOUReport,
                 currentUserEmail,
                 splitAmount,
+                currency,
             );
             oneOnOneChatReport.hasOutstandingIOU = oneOnOneIOUReport.total !== 0;
         } else {
