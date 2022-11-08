@@ -14,7 +14,6 @@ import * as Report from '../../libs/actions/Report';
 import AttachmentView from '../AttachmentView';
 import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
-import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import reportPropTypes from '../../pages/reportPropTypes';
@@ -99,7 +98,6 @@ class AttachmentCarousel extends React.Component {
     makeStateWithReports() {
         let page;
         const actionsArr = ReportActionsUtils.getSortedReportActions(this.props.reportActions);
-        console.log(actionsArr);
         const attachments = _.reduce(actionsArr, (attachmentsAccumulator, {action: reportAction}) => {
             if (reportAction.originalMessage && reportAction.originalMessage.html) {
                 const matchesIt = reportAction.originalMessage.html.matchAll(CONST.REGEX.ATTACHMENT_DATA);
@@ -110,11 +108,8 @@ class AttachmentCarousel extends React.Component {
                         || (!this.state.sourceURL && src[2].includes(this.props.sourceURL))) {
                         page = attachmentsAccumulator.length;
                     }
-                    const url = src[2].replace(
-                        CONFIG.EXPENSIFY.EXPENSIFY_URL,
-                        CONFIG.EXPENSIFY.URL_API_ROOT,
-                    );
-                    attachmentsAccumulator.push({sourceURL: url, file: {name: name[2]}});
+                    const {pathname} = new URL(src[2]);
+                    attachmentsAccumulator.push({sourceURL: pathname, file: {name: name[2]}});
                 }
             }
             return attachmentsAccumulator;
