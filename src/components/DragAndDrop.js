@@ -22,7 +22,7 @@ const propTypes = {
     onDrop: PropTypes.func,
 
     /** Rendered child component */
-    children: PropTypes.node.isRequired,
+    children: PropTypes.node,
 };
 
 const defaultProps = {
@@ -30,6 +30,7 @@ const defaultProps = {
     onDragOver: () => {},
     onDragLeave: () => {},
     onDrop: () => {},
+    children: null,
 };
 
 export default class DragAndDrop extends React.Component {
@@ -110,10 +111,14 @@ export default class DragAndDrop extends React.Component {
             case 'dragleave':
                 if (this.dropZoneDragState === 'dragenter') {
                     if (
-                        event.clientY < this.dropZoneRect.top
-                        || event.clientY >= this.dropZoneRect.bottom
-                        || event.clientX < this.dropZoneRect.left
-                        || event.clientX >= this.dropZoneRect.right
+                        event.clientY <= this.dropZoneRect.top
+                                || event.clientY >= this.dropZoneRect.bottom
+                                || event.clientX <= this.dropZoneRect.left
+                                || event.clientX >= this.dropZoneRect.right
+                                || (event.target.getAttribute('id') === 'drop' && !event.relatedTarget)
+
+                                // Firefox specific
+                                || (event.originalTarget.tagName === 'path' && !event.relatedTarget)
                     ) {
                         this.dropZoneDragState = 'dragleave';
                         this.props.onDragLeave(event);
