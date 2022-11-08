@@ -107,6 +107,65 @@ function getOrderedReportIDs(reportIDFromRoute) {
         report.reportDisplayName = ReportUtils.getReportName(report, policies);
     });
 
+    // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
+    // 1. Pinned - Always sorted by reportDisplayName
+    // 2. Outstanding IOUs - Always sorted by iouReportAmount with the largest amounts at the top of the group
+    // 3. Drafts - Always sorted by reportDisplayName
+    // 4. Non-archived reports
+    //      - Sorted by lastMessageTimestamp in default (most recent) view mode
+    //      - Sorted by reportDisplayName in GSD (focus) view mode
+    // 5. Archived reports
+    //      - Sorted by lastMessageTimestamp in default (most recent) view mode
+    //      - Sorted by reportDisplayName in GSD (focus) view mode
+
+    // Put all of the reports into their groups
+    const reportGroups = _.groupBy(reportsToDisplay, (report) => {
+        if (report.isPinned) {
+            return 'isPinned';
+        }
+
+        if (report.hasOutstandingIOU && !report.isIOUReportOwner) {
+            return 'hasOutstandingIOU';
+        }
+
+        if (report.hasDraft) {
+            return 'hasDraft';
+        }
+
+        if (ReportUtils.isArchivedRoom(report)) {
+            return 'archived';
+        }
+
+        return 'nonArchived';
+    });
+
+    // Now we can sort each group accordingly
+    const sortedGroups = {};
+    _.each(reportGroups, (reportGroup, groupName) => {
+        let sortedGroup;
+        switch (groupName) {
+            case 'hasOutstandingIOU':
+                sortedGroup = _.sortBy(reportGroup, 'iouReportAmount').reverse();
+                break;
+
+            case 'isPinned':
+            case 'hasDraft':
+                sortedGroup = _.sortBy(reportGroup, 'reportDisplayName');
+                break;
+
+            case 'archived':
+            case 'nonArchived':
+                sortedGroup = _.sortBy(reportGroup, isInDefaultMode ? 'lastMessageTimestamp' : 'reportDisplayName');
+                break;
+
+            default:
+                break;
+        }
+
+        // The sorted groups only need to contain the reportID because that's all that needs returned from getOrderedReportIDs()
+        sortedGroups[groupName] = _.pluck(sortedGroup, 'reportID');
+    });
+
     // Sorting the reports works like this:
     // - When in default mode, reports will be ordered by most recently updated (in descending order) so that the most recently updated are at the top
     // - When in GSD mode, reports are ordered by their display name so they are alphabetical (in ascending order)
