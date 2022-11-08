@@ -323,7 +323,7 @@ class WorkspaceMembersPage extends React.Component {
                         confirmText={this.props.translate('common.remove')}
                         cancelText={this.props.translate('common.cancel')}
                     />
-                    <View style={[styles.w100,styles.alignItemsCenter,styles.flex1]}>
+                    <View style={[styles.w100, styles.alignItemsCenter, styles.flex1]}>
                         <View style={[styles.w100, styles.flexRow, styles.pt5, styles.ph5]}>
                             <Button
                                 medium
@@ -359,7 +359,7 @@ class WorkspaceMembersPage extends React.Component {
                                 data={data}
                                 keyExtractor={item => item.login}
                                 showsVerticalScrollIndicator
-                                style={[styles.ph5,styles.pb5]}
+                                style={[styles.ph5, styles.pb5]}
                             />
                         </View>
                     </View>
