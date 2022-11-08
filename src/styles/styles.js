@@ -413,7 +413,7 @@ const styles = {
     },
 
     buttonSuccess: {
-        backgroundColor: themeColors.buttonSuccessBG,
+        backgroundColor: themeColors.success,
         borderWidth: 0,
     },
 
@@ -422,21 +422,21 @@ const styles = {
     },
 
     buttonSuccessHovered: {
-        backgroundColor: themeColors.buttonSuccessHoveredBG,
+        backgroundColor: themeColors.successHover,
         borderWidth: 0,
     },
 
     buttonDanger: {
-        backgroundColor: themeColors.buttonDangerBG,
+        backgroundColor: themeColors.danger,
         borderWidth: 0,
     },
 
     buttonDangerDisabled: {
-        backgroundColor: themeColors.buttonDangerDisabledBG,
+        backgroundColor: themeColors.dangerDisabled,
     },
 
     buttonDangerHovered: {
-        backgroundColor: themeColors.buttonDangerPressedBG,
+        backgroundColor: themeColors.dangerHover,
         borderWidth: 0,
     },
 
@@ -578,7 +578,7 @@ const styles = {
     },
 
     badge: {
-        backgroundColor: themeColors.badgeDefaultBG,
+        backgroundColor: themeColors.border,
         borderRadius: 14,
         height: variables.iconSizeNormal,
         flexDirection: 'row',
@@ -587,19 +587,19 @@ const styles = {
     },
 
     badgeSuccess: {
-        backgroundColor: themeColors.badgeSuccessBG,
+        backgroundColor: themeColors.success,
     },
 
     badgeSuccessPressed: {
-        backgroundColor: themeColors.badgeSuccessPressedBG,
+        backgroundColor: themeColors.successHover,
     },
 
     badgeDanger: {
-        backgroundColor: themeColors.badgeDangerBG,
+        backgroundColor: themeColors.danger,
     },
 
     badgeDangerPressed: {
-        backgroundColor: themeColors.badgeDangerPressedBG,
+        backgroundColor: themeColors.dangerPressed,
     },
 
     badgeText: {
@@ -620,7 +620,7 @@ const styles = {
     },
 
     borderColorDanger: {
-        borderColor: themeColors.badgeDangerBG,
+        borderColor: themeColors.danger,
     },
 
     headerText: {
@@ -813,9 +813,13 @@ const styles = {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
             ...picker,
+            ...(focused && {borderColor: themeColors.borderFocus}),
+            ...(error && {borderColor: themeColors.danger}),
         },
         inputNative: {
             ...picker,
+            ...(focused && {borderColor: themeColors.borderFocus}),
+            ...(error && {borderColor: themeColors.danger}),
         },
     }),
 
@@ -878,7 +882,7 @@ const styles = {
     },
 
     formSuccess: {
-        color: themeColors.textSuccess,
+        color: themeColors.success,
         fontSize: variables.fontSizeLabel,
         lineHeight: 18,
         marginBottom: 4,
@@ -975,7 +979,7 @@ const styles = {
 
     statusIndicator: {
         borderColor: themeColors.sidebar,
-        backgroundColor: themeColors.buttonDangerBG,
+        backgroundColor: themeColors.danger,
         borderRadius: 6,
         borderWidth: 2,
         position: 'absolute',
@@ -988,7 +992,7 @@ const styles = {
 
     statusIndicatorLarge: {
         borderColor: themeColors.componentBG,
-        backgroundColor: themeColors.buttonDangerBG,
+        backgroundColor: themeColors.danger,
         borderRadius: 8,
         borderWidth: 2,
         position: 'absolute',
@@ -1000,7 +1004,7 @@ const styles = {
     },
 
     statusIndicatorOnline: {
-        backgroundColor: themeColors.online,
+        backgroundColor: themeColors.success,
     },
 
     avatarWithIndicator: {
@@ -1018,7 +1022,7 @@ const styles = {
     },
 
     floatingActionButton: {
-        backgroundColor: themeColors.buttonSuccessBG,
+        backgroundColor: themeColors.success,
         position: 'absolute',
         height: variables.componentSizeLarge,
         width: variables.componentSizeLarge,
@@ -2105,11 +2109,11 @@ const styles = {
         justifyContent: 'center',
         borderRadius: 20,
         padding: 15,
-        backgroundColor: themeColors.buttonSuccessBG,
+        backgroundColor: themeColors.success,
     },
 
     switchInactive: {
-        backgroundColor: themeColors.borders,
+        backgroundColor: themeColors.border,
     },
 
     switchThumb: {
@@ -2300,7 +2304,7 @@ const styles = {
         alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        shadowColor: '#000',
+        shadowColor: themeColors.shadow,
         ...spacing.p5,
     },
 
@@ -2697,7 +2701,7 @@ const styles = {
     },
 
     sliderKnob: {
-        backgroundColor: themeColors.badgeSuccessBG,
+        backgroundColor: themeColors.success,
         position: 'absolute',
         height: variables.sliderKnobSize,
         width: variables.sliderKnobSize,
@@ -2748,7 +2752,7 @@ const styles = {
 
     textPill: {
         ellipsizeMode: 'end',
-        backgroundColor: themeColors.borders,
+        backgroundColor: themeColors.border,
         borderRadius: 10,
         overflow: 'hidden',
         paddingVertical: 2,
