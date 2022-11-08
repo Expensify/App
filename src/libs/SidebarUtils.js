@@ -112,64 +112,57 @@ function getOrderedReportIDs(reportIDFromRoute) {
     // 5. Archived reports
     //      - Sorted by lastMessageTimestamp in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
-    const reportGroups = _.groupBy(reportsToDisplay, (report) => {
+    let pinnedReports = [];
+    let outstandingIOUReports = [];
+    let draftReports = [];
+    let nonArchivedReports = [];
+    let archivedReports = [];
+
+    _.each(reportsToDisplay, (report) => {
         if (report.isPinned) {
-            return 'isPinned';
+            pinnedReports.push(report);
+            return;
         }
 
         if (report.hasOutstandingIOU && !report.isIOUReportOwner) {
-            return 'hasOutstandingIOU';
+            outstandingIOUReports.push(report);
+            return;
         }
 
         if (report.hasDraft) {
-            return 'hasDraft';
+            draftReports.push(report);
+            return;
         }
 
         if (ReportUtils.isArchivedRoom(report)) {
-            return 'archived';
+            archivedReports.push(report);
+            return;
         }
 
-        return 'nonArchived';
+        nonArchivedReports.push(report);
     });
 
-    // Now each group can be sorted accordingly
-    const sortedGroups = {};
-    _.each(reportGroups, (reportGroup, groupName) => {
-        let sortedGroup;
-        switch (groupName) {
-            case 'hasOutstandingIOU':
-                sortedGroup = _.sortBy(reportGroup, 'iouReportAmount').reverse();
-                break;
+    // Sort each group of reports accordingly
+    pinnedReports = _.sortBy(pinnedReports, 'reportDisplayName');
+    outstandingIOUReports = _.sortBy(outstandingIOUReports, 'iouReportAmount').reverse();
+    draftReports = _.sortBy(draftReports, 'reportDisplayName');
+    nonArchivedReports = _.sortBy(nonArchivedReports, isInDefaultMode ? 'lastMessageTimestamp' : 'reportDisplayName');
+    archivedReports = _.sortBy(archivedReports, isInDefaultMode ? 'lastMessageTimestamp' : 'reportDisplayName');
 
-            case 'isPinned':
-            case 'hasDraft':
-                sortedGroup = _.sortBy(reportGroup, 'reportDisplayName');
-                break;
+    // For archived and non-archived reports, ensure that most recent reports are at the top by reversing the order of the arrays because underscore will only sort them in ascending order
+    if (isInDefaultMode) {
+        nonArchivedReports.reverse();
+        archivedReports.reverse();
+    }
 
-            case 'archived':
-            case 'nonArchived':
-                sortedGroup = _.sortBy(reportGroup, isInDefaultMode ? 'lastMessageTimestamp' : 'reportDisplayName');
-                if (isInDefaultMode) {
-                    sortedGroup.reverse();
-                }
-                break;
-
-            default:
-                break;
-        }
-
-        // The sorted groups only need to contain the reportID because that's all that needs returned from getOrderedReportIDs()
-        sortedGroups[groupName] = _.pluck(sortedGroup, 'reportID');
-    });
-
-    // Now that we have all the report IDs grouped and sorted, they must be flattened into an array to be returned.
+    // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
-    return []
-        .concat(sortedGroups.isPinned || [])
-        .concat(sortedGroups.hasOutstandingIOU || [])
-        .concat(sortedGroups.hasDraft || [])
-        .concat(sortedGroups.nonArchived || [])
-        .concat(sortedGroups.archived || []);
+    return _.pluck([]
+        .concat(pinnedReports)
+        .concat(outstandingIOUReports)
+        .concat(draftReports)
+        .concat(nonArchivedReports)
+        .concat(archivedReports), 'reportID');
 }
 
 /**
