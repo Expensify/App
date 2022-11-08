@@ -219,6 +219,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsDisplayNamePage = require('../../../pages/settings/Profile/DisplayNamePage').default;
+            return SettingsDisplayNamePage;
+        },
+        name: 'Settings_Display_Name',
+    },
+    {
+        getComponent: () => {
             const SettingsAddSecondaryLoginPage = require('../../../pages/settings/AddSecondaryLoginPage').default;
             return SettingsAddSecondaryLoginPage;
         },

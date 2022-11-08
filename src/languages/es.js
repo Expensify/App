@@ -304,6 +304,12 @@ export default {
         offline: 'Desconectado',
         syncing: 'Sincronizando',
     },
+    displayNamePage: {
+        headerTitle: 'Nombre',
+        isShownOnProfile: 'Este nombre es visible en su perfil.',
+        john: 'Juan',
+        doe: 'Nadie',
+    },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Agregar número de teléfono',
         addEmailAddress: 'Agregar dirección de email',
