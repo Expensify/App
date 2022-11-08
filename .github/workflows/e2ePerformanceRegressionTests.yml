@@ -16,34 +16,37 @@ jobs:
           bundler-cache: true
 
       # Cache gradle to improve Android build time
-      - name: Gradle cache
-        uses: gradle/gradle-build-action@v2
-
-      - name: Build "Compare" APK
-        run: npm run android-build-e2e
-
-      - name: Copy "Compare" APK
-        run: cp android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk app-e2eRelease-compare.apk
-
-# TODO: Uncomment before merge
+#      - name: Gradle cache
+#        uses: gradle/gradle-build-action@v2
+#
+#      - name: Build "Compare" APK
+#        run: npm run android-build-e2e
+#
+#      - name: Copy "Compare" APK
+#        run: cp android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk app-e2eRelease-compare.apk
+#
+## TODO: Uncomment before merge
+##      - name: Checkout "Baseline"
+##        run: git checkout main
+#
+## TODO: Delete before merge
 #      - name: Checkout "Baseline"
-#        run: git checkout main
-
-# TODO: Delete before merge
-      - name: Checkout "Baseline"
-        run: git checkout andrew-baseline
-
-      - name: Build "Baseline" APK
-        run: npm run android-build-e2e
-
-      - name: Copy "Baseline" APK
-        run: cp android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk app-e2eRelease-baseline.apk
+#        run: git checkout andrew-baseline
+#
+#      - name: Build "Baseline" APK
+#        run: npm run android-build-e2e
+#
+#      - name: Copy "Baseline" APK
+#        run: cp android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk app-e2eRelease-baseline.apk
 
       - name: Bundle
         run: |
           npm install -g npm-bundle
           npm-bundle
           zip -r MyTests.zip *.tgz
+
+      - name: Debug
+        run: ls -la
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
