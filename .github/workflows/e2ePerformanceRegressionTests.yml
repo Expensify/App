@@ -67,6 +67,7 @@ jobs:
           test_spec_type: APPIUM_NODE_TEST_SPEC
           remote_src: false
           file_artifacts: Customer Artifacts.zip
+          cleanup: true
 
       - name: Unzip AWS Device Farm results
         run: unzip Customer\ Artifacts.zip
