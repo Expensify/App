@@ -49,21 +49,22 @@ const restartApp = async () => {
 };
 
 const runTestsOnBranch = async (branch, baselineOrCompare) => {
-    // Switch branch and install dependencies
-    const progress = Logger.progressInfo(`Preparing ${baselineOrCompare} tests on branch '${branch}'`);
-    await execAsync(`git checkout ${branch}`);
+    if (!args.includes('--skipInstallDeps') && !args.includes('--skipBuild')) {
+        // Switch branch and install dependencies
+        Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}'`);
+        await execAsync(`git checkout ${branch}`);
+    }
 
     if (!args.includes('--skipInstallDeps')) {
-        progress.updateText(`Preparing ${baselineOrCompare} tests on branch '${branch}' - npm install`);
+        Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}' - npm install`);
         await execAsync('npm i');
     }
 
     // Build app
     if (!args.includes('--skipBuild')) {
-        progress.updateText(`Preparing ${baselineOrCompare} tests on branch '${branch}' - building app`);
+        Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}' - building app`);
         await execAsync('npm run android-build-e2e');
     }
-    progress.done();
 
     // Install app
     let progressLog = Logger.progressInfo('Installing app');
