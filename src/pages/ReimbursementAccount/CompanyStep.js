@@ -115,20 +115,22 @@ class CompanyStep extends React.Component {
             errors.hasNoConnectionToCannabis = this.props.translate('bankAccount.error.restrictedBusiness');
         }
 
-        // BankAccounts.setBankAccountFormValidationErrors(errors);
-        // BankAccounts.updateReimbursementAccountDraft(values);
-
         return errors;
     }
 
     submit(values) {
-        const incorporationDate = moment(values.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING);
-        BankAccounts.setupWithdrawalAccount({
+        const bankAccount = {
+            // Fields from BankAccount step
+            ...ReimbursementAccountUtils.getBankAccountFields(this.props, ['bankAccountID', 'routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
+
+            // Fields from Company step
             ...values,
-            incorporationDate,
+            incorporationDate: moment(values.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING),
             companyTaxID: values.companyTaxID.replace(CONST.REGEX.NON_NUMERIC, ''),
             companyPhone: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(values.companyPhone),
-        });
+        };
+
+        BankAccounts.updateCompanyInformationForBankAccount(bankAccount);
     }
 
     render() {
@@ -161,6 +163,7 @@ class CompanyStep extends React.Component {
                         containerStyles={[styles.mt4]}
                         disabled={shouldDisableCompanyName}
                         defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'companyName')}
+                        shouldSaveDraft
                     />
                     <AddressForm
                         translate={this.props.translate}
@@ -177,12 +180,14 @@ class CompanyStep extends React.Component {
                         keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                         placeholder={this.props.translate('common.phoneNumberPlaceholder')}
                         defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'companyPhone')}
+                        shouldSaveDraft
                     />
                     <TextInput
                         inputID="website"
                         label={this.props.translate('companyStep.companyWebsite')}
                         containerStyles={[styles.mt4]}
                         defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'website')}
+                        shouldSaveDraft
                     />
                     <TextInput
                         inputID="companyTaxID"
@@ -192,6 +197,7 @@ class CompanyStep extends React.Component {
                         disabled={shouldDisableCompanyTaxID}
                         placeholder={this.props.translate('companyStep.taxIDNumberPlaceholder')}
                         defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'companyTaxID')}
+                        shouldSaveDraft
                     />
                     <View style={styles.mt4}>
                         <Picker
@@ -200,6 +206,7 @@ class CompanyStep extends React.Component {
                             items={_.map(this.props.translate('companyStep.incorporationTypes'), (label, value) => ({value, label}))}
                             placeholder={{value: '', label: '-'}}
                             defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'incorporationType')}
+                            shouldSaveDraft
                         />
                     </View>
                     <View style={styles.mt4}>
@@ -209,6 +216,7 @@ class CompanyStep extends React.Component {
                             placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
                             maximumDate={new Date()}
                             defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'incorporationDate')}
+                            shouldSaveDraft
                         />
                     </View>
                     <View style={styles.mt4}>
@@ -216,6 +224,7 @@ class CompanyStep extends React.Component {
                             inputID="incorporationState"
                             label={this.props.translate('companyStep.incorporationState')}
                             defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'incorporationState')}
+                            shouldSaveDraft
                         />
                     </View>
                     <CheckboxWithLabel
@@ -233,6 +242,7 @@ class CompanyStep extends React.Component {
                             </>
                         )}
                         style={[styles.mt4]}
+                        shouldSaveDraft
                     />
                 </Form>
             </>
