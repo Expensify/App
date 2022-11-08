@@ -323,8 +323,8 @@ class WorkspaceMembersPage extends React.Component {
                         confirmText={this.props.translate('common.remove')}
                         cancelText={this.props.translate('common.cancel')}
                     />
-                    <View style={[styles.pageWrapper, styles.flex1]}>
-                        <View style={[styles.w100, styles.flexRow]}>
+                    <View style={[styles.w100,styles.alignItemsCenter,styles.flex1]}>
+                        <View style={[styles.w100, styles.flexRow, styles.pt5, styles.ph5]}>
                             <Button
                                 medium
                                 success
@@ -341,7 +341,7 @@ class WorkspaceMembersPage extends React.Component {
                             />
                         </View>
                         <View style={[styles.w100, styles.mt4, styles.flex1]}>
-                            <View style={[styles.peopleRow]}>
+                            <View style={[styles.peopleRow, styles.ph5, styles.pb5]}>
                                 <View style={[styles.peopleRowCell]}>
                                     <Checkbox
                                         isChecked={this.state.selectedEmployees.length === removableMembers.length && removableMembers.length !== 0}
@@ -358,7 +358,8 @@ class WorkspaceMembersPage extends React.Component {
                                 renderItem={this.renderItem}
                                 data={data}
                                 keyExtractor={item => item.login}
-                                showsVerticalScrollIndicator={false}
+                                showsVerticalScrollIndicator
+                                style={[styles.ph5,styles.pb5]}
                             />
                         </View>
                     </View>
