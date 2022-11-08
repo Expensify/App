@@ -1,9 +1,10 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
+import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
@@ -27,7 +28,6 @@ import CONST from '../../CONST';
 import Button from '../../components/Button';
 import MenuItem from '../../components/MenuItem';
 import Enable2FAPrompt from './Enable2FAPrompt';
-import PropTypes from 'prop-types';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -171,7 +171,7 @@ class ValidationStep extends React.Component {
                                 {this.props.translate('validationStep.descriptionCTA')}
                             </Text>
                         </View>
-                        <View style={[styles.mv5, styles.flex1]}>
+                        <View style={[styles.mv5]}>
                             <TextInput
                                 inputID="amount1"
                                 shouldSaveDraft
@@ -202,7 +202,7 @@ class ValidationStep extends React.Component {
                     </Form>
                 )}
                 {isVerifying && (
-                    <View style={[styles.flex1]}>
+                    <ScrollView style={[styles.flex1]}>
                         <Section
                             title={this.props.translate('workspace.bankAccount.letsFinishInChat')}
                             icon={Illustrations.ConciergeBlue}
@@ -230,7 +230,7 @@ class ValidationStep extends React.Component {
                         {!requiresTwoFactorAuth && (
                             <Enable2FAPrompt />
                         )}
-                    </View>
+                    </ScrollView>
                 )}
             </View>
         );
