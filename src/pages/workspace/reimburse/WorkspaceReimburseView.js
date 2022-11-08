@@ -203,10 +203,10 @@ class WorkspaceReimburseView extends React.Component {
                                 shouldShowRightIcon: true,
                                 iconRight: Expensicons.NewWindow,
                                 iconFill: themeColors.buttonSuccessBG,
-                                wrapperStyle: [styles.workspaceMenuItem],
+                                wrapperStyle: [styles.cardMenuItem],
                             },
                         ]}
-                        containerStyles={[styles.workspaceSection]}
+                        containerStyles={[styles.cardSection]}
                     >
                         <View style={[styles.mv3, styles.flexRow, styles.flexWrap]}>
                             <Text>
@@ -222,8 +222,8 @@ class WorkspaceReimburseView extends React.Component {
 
                     <Section
                         title={this.props.translate('workspace.reimburse.trackDistance')}
-                        icon={Illustrations.GpsTrackOrange}
-                        containerStyles={[styles.workspaceSection]}
+                        icon={Illustrations.TrackShoe}
+                        containerStyles={[styles.cardSection]}
                     >
                         <View style={[styles.mv3]}>
                             <Text>{this.props.translate('workspace.reimburse.trackDistanceCopy')}</Text>
@@ -265,8 +265,8 @@ class WorkspaceReimburseView extends React.Component {
                     {!this.props.hasVBA && (
                         <Section
                             title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
-                            icon={Illustrations.JewelBoxGreen}
-                            containerStyles={[styles.workspaceSection]}
+                            icon={Illustrations.OpenSafe}
+                            containerStyles={[styles.cardSection]}
                         >
                             <View style={[styles.mv3]}>
                                 <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
@@ -296,7 +296,7 @@ class WorkspaceReimburseView extends React.Component {
                                     iconRight: Expensicons.NewWindow,
                                 },
                             ]}
-                            containerStyles={[styles.workspaceSection]}
+                            containerStyles={[styles.cardSection]}
                         >
                             <View style={[styles.mv3]}>
                                 <Text>{this.props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>

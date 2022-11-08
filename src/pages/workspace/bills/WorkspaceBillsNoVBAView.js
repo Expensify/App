@@ -24,9 +24,10 @@ const WorkspaceBillsNoVBAView = props => (
 
         <Section
             title={props.translate('workspace.bills.unlockOnlineBillPayment')}
-            icon={Illustrations.JewelBoxPink}
+            icon={Illustrations.LockOpen}
+            containerStyles={[styles.cardSection]}
         >
-            <View style={[styles.mv4]}>
+            <View style={[styles.mv3]}>
                 <Text>{props.translate('workspace.bills.unlockNoVBACopy')}</Text>
             </View>
             <Button

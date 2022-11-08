@@ -2762,18 +2762,20 @@ const styles = {
         ...spacing.ph2,
     },
 
-    workspaceSection: {
-        backgroundColor: colors.gray1,
+    cardSection: {
+        backgroundColor: themeColors.cardBackground,
         borderRadius: variables.componentBorderRadiusCard,
-        marginVertical: 10,
+        marginBottom: 20,
         marginHorizontal: 16,
         padding: 20,
         width: 'auto',
         textAlign: 'left',
     },
 
-    workspaceMenuItem: {
+    cardMenuItem: {
         paddingHorizontal: 0,
+        borderRadius: variables.componentBorderRadiusNormal,
+        paddingVertical: 6,
     },
 };
 

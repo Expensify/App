@@ -17,7 +17,16 @@ import RocketOrange from '../../../assets/images/product-illustrations/rocket--o
 import TadaYellow from '../../../assets/images/product-illustrations/tada--yellow.svg';
 import TadaBlue from '../../../assets/images/product-illustrations/tada--blue.svg';
 import GpsTrackOrange from '../../../assets/images/product-illustrations/gps-track--orange.svg';
-import MoneyReceipts from '../../../assets/images/product-illustrations/simple-illustration__money-receipts.svg';
+import MoneyReceipts from '../../../assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
+import PinkBill from '../../../assets/images/simple-illustrations/simple-illustration__bill.svg';
+import CreditCardsNew from '../../../assets/images/simple-illustrations/simple-illustration__credit-cards.svg';
+import InvoiceBlue from '../../../assets/images/simple-illustrations/simple-illustration__invoice.svg';
+import LockOpen from '../../../assets/images/simple-illustrations/simple-illustration__lockopen.svg';
+import Luggage from '../../../assets/images/simple-illustrations/simple-illustration__luggage.svg';
+import MoneyIntoWallet from '../../../assets/images/simple-illustrations/simple-illustration__moneyintowallet.svg';
+import MoneyWings from '../../../assets/images/simple-illustrations/simple-illustration__moneywings.svg';
+import OpenSafe from '../../../assets/images/simple-illustrations/simple-illustration__opensafe.svg';
+import TrackShoe from '../../../assets/images/simple-illustrations/simple-illustration__track-shoe.svg';
 
 export {
     BankArrowPink,
@@ -40,4 +49,13 @@ export {
     TadaBlue,
     GpsTrackOrange,
     MoneyReceipts,
+    PinkBill,
+    CreditCardsNew,
+    InvoiceBlue,
+    LockOpen,
+    Luggage,
+    MoneyIntoWallet,
+    MoneyWings,
+    OpenSafe,
+    TrackShoe,
 };
