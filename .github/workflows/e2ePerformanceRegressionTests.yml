@@ -42,6 +42,12 @@ jobs:
       - name: Zip entire directory
         run: zip -r App.zip .
 
+      - name: Bundle
+        run: |
+          npm install -g npm-bundle
+          npm-bundle
+          zip -r MyTests.zip *.tgz
+
       - name: Debug
         run: ls -la
 
@@ -61,7 +67,7 @@ jobs:
           app_file: app-e2eRelease-baseline.apk
           app_type: ANDROID_APP
           test_type: APPIUM_NODE
-          test_package_file: App.zip
+          test_package_file: MyTests.zip
           test_package_type: APPIUM_NODE_TEST_PACKAGE
           test_spec_file: tests/e2e/TestSpec.yml
           test_spec_type: APPIUM_NODE_TEST_SPEC
