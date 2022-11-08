@@ -95,24 +95,23 @@ function getOrderedReportIDs(reportIDFromRoute) {
     const isInDefaultMode = !isInGSDMode;
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies));
+    const reportsToDisplay = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies));
 
     // Get all the display names for our reports in an easy to access property so we don't have to keep
     // re-running the logic
-    const filteredReportsWithReportName = _.map(filteredReports, (report) => {
+    _.each(reportsToDisplay, (report) => {
         // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
         // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
         // the reportDisplayName property to the report object directly.
         // eslint-disable-next-line no-param-reassign
         report.reportDisplayName = ReportUtils.getReportName(report, policies);
-        return report;
     });
 
     // Sorting the reports works like this:
     // - When in default mode, reports will be ordered by most recently updated (in descending order) so that the most recently updated are at the top
     // - When in GSD mode, reports are ordered by their display name so they are alphabetical (in ascending order)
     // - Regardless of mode, all archived reports should remain at the bottom
-    const orderedReports = _.sortBy(filteredReportsWithReportName, (report) => {
+    const orderedReports = _.sortBy(reportsToDisplay, (report) => {
         if (ReportUtils.isArchivedRoom(report)) {
             return isInDefaultMode
 
@@ -128,7 +127,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
         return isInDefaultMode ? report.lastMessageTimestamp : report.reportDisplayName;
     });
 
-    // Apply the decsending order to reports when in default mode
+    // Apply the descending order to reports when in default mode
     if (isInDefaultMode) {
         orderedReports.reverse();
     }
