@@ -123,7 +123,7 @@ class ImageWithSizeCalculation extends PureComponent {
     render() {
         const headers = this.props.isAuthTokenRequired ? ({
             headers: {
-                'X-Chat-Img-Authorization': lodashGet(this.props.session, 'encryptedAuthToken', ''),
+                'X-Chat-Attachment-Token': lodashGet(this.props.session, 'encryptedAuthToken', ''),
             },
         }) : {};
         return (
