@@ -12,9 +12,9 @@ import AttachmentView from './AttachmentView';
 import AttachmentCarousel from './AttachmentCarousel';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
-import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
 import themeColors from '../styles/themes/default';
+import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import compose from '../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import Button from './Button';
@@ -98,10 +98,11 @@ class AttachmentModal extends PureComponent {
 
     /**
      * Helps to navigate between next/previous attachments
-     * @param {Object} param
+     * by setting sourceURL and file in state
+     * @param {Object} attachmentData
      */
-    onNavigate(param) {
-        this.setState(param);
+    onNavigate(attachmentData) {
+        this.setState(attachmentData);
     }
 
     /**

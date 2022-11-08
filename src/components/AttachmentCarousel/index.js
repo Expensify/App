@@ -2,33 +2,45 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'lodash';
+import _ from 'underscore';
 import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import CarouselActions from './CarouselActions';
 import Button from '../Button';
+import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
+import * as Report from '../../libs/actions/Report';
+
 import AttachmentView from '../AttachmentView';
 import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
-import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
 import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
+import reportPropTypes from '../../pages/reportPropTypes';
+import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 
 const propTypes = {
     /** sourceUrl is used to determine the starting index in the array of attachments */
     sourceURL: PropTypes.string,
 
+    /** Callback to update the parent modal's state with a sourceUrl and name from the attachments array */
+    onNavigate: PropTypes.func,
+
+    /** The report currently being looked at */
+    report: reportPropTypes,
+
     /** Object of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
-    /** Callback to update the parent modal's state with a sourceUrl and name from the attachments array */
-    onNavigate: PropTypes.func,
 };
 
 const defaultProps = {
     sourceURL: '',
+    report: {
+        isLoadingMoreReportActions: false,
+        reportId: '',
+    },
     reportActions: {},
     onNavigate: () => {},
 };
@@ -38,15 +50,16 @@ class AttachmentCarousel extends React.Component {
         super(props);
 
         this.canUseTouchScreen = canUseTouchScreen();
-        this.makeAndSetArrowState = this.makeAndSetArrowState.bind(this);
+        this.makeStateWithReports = this.makeStateWithReports.bind(this);
+        this.loadMoreChats = this.loadMoreChats.bind(this);
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
         this.onShowArrow = this.onShowArrow.bind(this);
 
-        this.state = {showArrows: this.canUseTouchScreen};
+        this.state = {shouldShowArrow: this.canUseTouchScreen};
     }
 
     componentDidMount() {
-        this.makeAndSetArrowState();
+        this.makeStateWithReports();
     }
 
     componentDidUpdate(prevProps) {
@@ -55,15 +68,15 @@ class AttachmentCarousel extends React.Component {
         if (prevReportSize === currReportSize) {
             return;
         }
-        this.makeAndSetArrowState();
+        this.makeStateWithReports();
     }
 
     /**
      * Toggles the visibility of the arrows
-     * @param {Boolean} showArrows
+     * @param {Boolean} shouldShowArrow
      */
-    onShowArrow(showArrows) {
-        this.setState({showArrows});
+    onShowArrow(shouldShowArrow) {
+        this.setState({shouldShowArrow});
     }
 
     /**
@@ -81,12 +94,13 @@ class AttachmentCarousel extends React.Component {
     }
 
     /**
-     * this will be called to set up an attachment array and finding an index
+     * This is called when there are new reports to set the state
      */
-    makeAndSetArrowState() {
+    makeStateWithReports() {
         let page;
-        const actionsArr = _.values(this.props.reportActions);
-        const attachments = _.reduce(actionsArr, (attachmentsAccumulator, reportAction) => {
+        const actionsArr = ReportActionsUtils.getSortedReportActions(this.props.reportActions);
+        console.log(actionsArr);
+        const attachments = _.reduce(actionsArr, (attachmentsAccumulator, {action: reportAction}) => {
             if (reportAction.originalMessage && reportAction.originalMessage.html) {
                 const matchesIt = reportAction.originalMessage.html.matchAll(CONST.REGEX.ATTACHMENT_DATA);
                 const matches = [...matchesIt];
@@ -112,9 +126,34 @@ class AttachmentCarousel extends React.Component {
             attachments,
             sourceURL,
             file,
-            isBackDisabled: page === 0,
-            isForwardDisabled: page === attachments.length - 1,
+            isForwardDisabled: page === 0,
+            isBackDisabled: page === attachments.length - 1,
         });
+    }
+
+    /**
+     * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
+     * displaying.
+     */
+    loadMoreChats() {
+        // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
+        if (this.props.report.isLoadingMoreReportActions) {
+            return;
+        }
+
+        const minSequenceNumber = _.chain(this.props.reportActions)
+            .pluck('sequenceNumber')
+            .min()
+            .value();
+
+        if (minSequenceNumber === 0) {
+            return;
+        }
+
+        // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
+        // case just get everything starting from 0.
+        const oldestActionSequenceNumber = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
+        Report.readOldestAction(this.props.report.reportID, oldestActionSequenceNumber);
     }
 
     /**
@@ -122,11 +161,15 @@ class AttachmentCarousel extends React.Component {
      * @param {Number} deltaSlide
     */
     cycleThroughAttachments(deltaSlide) {
-        if ((deltaSlide < 0 && this.state.isBackDisabled) || (deltaSlide > 0 && this.state.isForwardDisabled)) {
+        if ((deltaSlide < 0 && this.state.isForwardDisabled) || (deltaSlide > 0 && this.state.isBackDisabled)) {
             return;
         }
+
         this.setState(({attachments, page}) => {
             const nextIndex = page + deltaSlide;
+            if (nextIndex < 10) {
+                this.loadMoreChats();
+            }
             const {sourceURL, file} = this.getAttachment(attachments[nextIndex]);
             this.props.onNavigate({sourceURL, file});
             return {
@@ -150,7 +193,7 @@ class AttachmentCarousel extends React.Component {
                 onMouseEnter={() => this.onShowArrow(true)}
                 onMouseLeave={() => this.onShowArrow(false)}
             >
-                {this.state.showArrows && (
+                {this.state.shouldShowArrow && (
                     <>
                         <Button
                             medium
@@ -158,7 +201,7 @@ class AttachmentCarousel extends React.Component {
                             icon={Expensicons.BackArrow}
                             iconFill={themeColors.text}
                             iconStyles={[styles.mr0, {PointerEvent: 'auto'}]}
-                            onPress={() => this.cycleThroughAttachments(-1)}
+                            onPress={() => this.cycleThroughAttachments(1)}
                             isDisabled={this.state.isBackDisabled}
                         />
                         <Button
@@ -167,7 +210,7 @@ class AttachmentCarousel extends React.Component {
                             icon={Expensicons.ArrowRight}
                             iconFill={themeColors.text}
                             iconStyles={[styles.mr0, {PointerEvent: 'auto'}]}
-                            onPress={() => this.cycleThroughAttachments(1)}
+                            onPress={() => this.cycleThroughAttachments(-1)}
                             isDisabled={this.state.isForwardDisabled}
                         />
                     </>
@@ -177,10 +220,10 @@ class AttachmentCarousel extends React.Component {
                     styles={[styles.attachmentModalArrowsContainer]}
                     canSwipeLeft={!this.state.isBackDisabled}
                     canSwipeRight={!this.state.isForwardDisabled}
-                    onPress={() => this.canUseTouchScreen && this.onShowArrow(!this.state.showArrows)}
+                    onPress={() => this.canUseTouchScreen && this.onShowArrow(!this.state.shouldShowArrow)}
                     onCycleThroughAttachments={this.cycleThroughAttachments}
                 >
-                    <AttachmentView onPress={() => this.onShowArrow(!this.state.showArrows)} sourceURL={this.state.sourceURL} file={this.state.file} />
+                    <AttachmentView onPress={() => this.onShowArrow(!this.state.shouldShowArrow)} sourceURL={this.state.sourceURL} file={this.state.file} />
                 </CarouselActions>
 
             </View>
@@ -193,12 +236,11 @@ AttachmentCarousel.propTypes = propTypes;
 AttachmentCarousel.defaultProps = defaultProps;
 
 export default withOnyx({
+    report: {
+        key: ({reportId}) => `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
+    },
     reportActions: {
         key: ({reportId}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
         canEvict: false,
-    },
-    isLoadingInitialReportActions: {
-        key: ({reportId}) => `${ONYXKEYS.COLLECTION.IS_LOADING_INITIAL_REPORT_ACTIONS}${reportId}`,
-        initWithStoredValues: false,
     },
 })(AttachmentCarousel);
