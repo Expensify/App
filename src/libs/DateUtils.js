@@ -103,7 +103,7 @@ function datetimeToCalendarTime(locale, datetime, includeTimeZone = false) {
  *
  * @returns {String}
  */
-function timestampToRelative(locale, datetime) {
+function datetimeToRelative(locale, datetime) {
     const date = getLocalMomentFromDatetime(locale, datetime);
 
     return moment(date).fromNow();
@@ -175,7 +175,7 @@ function currentDBTime() {
  * @namespace DateUtils
  */
 const DateUtils = {
-    timestampToRelative,
+    datetimeToRelative,
     datetimeToCalendarTime,
     startCurrentDateUpdater,
     getLocalMomentFromDatetime,
