@@ -46,7 +46,7 @@ jobs:
           zip -r MyTests.zip *.tgz
 
       - name: Debug
-        run: ls -la
+        run: ls -hla
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
