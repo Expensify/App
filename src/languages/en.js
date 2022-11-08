@@ -119,7 +119,7 @@ export default {
         chooseFromGallery: 'Choose from gallery',
         chooseDocument: 'Choose document',
         attachmentTooLarge: 'Attachment too large',
-        sizeExceeded: 'Attachment size is larger than 50 MB limit.',
+        sizeExceeded: 'Attachment size is larger than 24 MB limit.',
         attachmentTooSmall: 'Attachment too small',
         sizeNotMet: 'Attachment size must be greater than 240 bytes',
         wrongFileType: 'Attachment is the wrong type',
@@ -262,6 +262,7 @@ export default {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
             genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
+            genericCancelFailureMessage: ({type}) => `Unexpected error ${type === 'decline' ? 'declining' : 'cancelling'} the money request, please try again later`,
         },
     },
     notificationPreferences: {
@@ -301,6 +302,12 @@ export default {
         online: 'Online',
         offline: 'Offline',
         syncing: 'Syncing',
+    },
+    displayNamePage: {
+        headerTitle: 'Display name',
+        isShownOnProfile: 'Your display name is shown on your profile.',
+        john: 'John',
+        doe: 'Doe',
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add phone number',
