@@ -14,6 +14,7 @@ import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
 import AnchorForCommentsOnly from '../../AnchorForCommentsOnly';
 import AnchorForAttachmentsOnly from '../../AnchorForAttachmentsOnly';
+import * as Url from '../../../libs/Url';
 
 const AnchorRenderer = (props) => {
     const htmlAttribs = props.tnode.attributes;
@@ -23,12 +24,13 @@ const AnchorRenderer = (props) => {
     const displayName = lodashGet(props.tnode, 'domNode.children[0].data', '');
     const parentStyle = lodashGet(props.tnode, 'parent.styles.nativeTextRet', {});
     const attrHref = htmlAttribs.href || '';
+    const attrLocation = Url.getLocation(attrHref);
+    const attrPath = attrLocation.pathname + attrLocation.search + attrLocation.hash;
     const internalNewExpensifyPath = (attrHref.startsWith(CONST.NEW_EXPENSIFY_URL) && attrHref.replace(CONST.NEW_EXPENSIFY_URL, ''))
         || (attrHref.startsWith(CONST.STAGING_NEW_EXPENSIFY_URL) && attrHref.replace(CONST.STAGING_NEW_EXPENSIFY_URL, ''));
-    const internalExpensifyPath = attrHref.startsWith(CONFIG.EXPENSIFY.EXPENSIFY_URL)
-                                    && !attrHref.startsWith(CONFIG.EXPENSIFY.CONCIERGE_URL)
-                                    && attrHref.replace(CONFIG.EXPENSIFY.EXPENSIFY_URL, '');
-
+    const internalExpensifyPath = Url.hasSameOrigin(attrHref, CONFIG.EXPENSIFY.EXPENSIFY_URL)
+                                    && !attrPath.startsWith(CONFIG.EXPENSIFY.CONCIERGE_PATHNAME)
+                                    && attrPath.replace('/', '');
     const navigateToLink = () => {
         // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
         // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
