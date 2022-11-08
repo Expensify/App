@@ -16,7 +16,6 @@ export default {
     greenHover: '#00C271',
     red: '#F25730',
     redHover: '#DE4822',
-    redDisabled: '#F25730',
     yellow: '#FED607',
     transparent: 'transparent',
 

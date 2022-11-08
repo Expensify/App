@@ -1,5 +1,4 @@
 import CONST from '../../CONST';
-import colors from '../colors';
 import variables from '../variables';
 import themeColors from '../themes/default';
 
@@ -30,7 +29,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             };
             modalContainerStyle = {
                 // Shadow Styles
-                shadowColor: colors.black,
+                shadowColor: themeColors.inverse,
                 shadowOffset: {
                     width: 0,
                     height: 0,
@@ -62,7 +61,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             };
             modalContainerStyle = {
                 // Shadow Styles
-                shadowColor: colors.black,
+                shadowColor: themeColors.inverse,
                 shadowOffset: {
                     width: 0,
                     height: 0,
@@ -96,7 +95,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             };
             modalContainerStyle = {
                 // Shadow Styles
-                shadowColor: colors.black,
+                shadowColor: themeColors.inverse,
                 shadowOffset: {
                     width: 0,
                     height: 0,
