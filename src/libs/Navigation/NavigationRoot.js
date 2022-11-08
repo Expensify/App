@@ -5,8 +5,7 @@ import * as Navigation from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import Log from '../Log';
-import colors from '../../styles/colors';
+import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 
 // https://reactnavigation.org/docs/themes
@@ -14,7 +13,7 @@ const navigationTheme = {
     ...DefaultTheme,
     colors: {
         ...DefaultTheme.colors,
-        background: colors.gray1,
+        background: themeColors.appBG,
     },
 };
 

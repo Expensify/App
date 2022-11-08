@@ -286,7 +286,7 @@ const styles = {
     },
 
     textWhite: {
-        color: themeColors.appBG,
+        color: themeColors.textLight,
     },
 
     textBlue: {
@@ -350,7 +350,7 @@ const styles = {
     },
 
     buttonText: {
-        color: themeColors.textWhite,
+        color: themeColors.text,
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
@@ -447,7 +447,7 @@ const styles = {
 
     buttonDropdown: {
         borderLeftWidth: 1,
-        borderColor: themeColors.textReversed,
+        borderColor: themeColors.text,
     },
 
     noRightBorderRadius: {
@@ -820,12 +820,12 @@ const styles = {
     }),
 
     disabledText: {
-        color: themeColors.icons,
+        color: themeColors.icon,
     },
 
     inputDisabled: {
         backgroundColor: themeColors.highlightBG,
-        color: themeColors.icons,
+        color: themeColors.icon,
     },
 
     textInputReversed: addOutlineWidth({
@@ -1679,7 +1679,7 @@ const styles = {
     },
 
     avatarInnerText: {
-        color: themeColors.textReversed,
+        color: themeColors.textLight,
         fontSize: variables.fontSizeSmall,
         lineHeight: undefined,
         marginLeft: -3,
@@ -1687,7 +1687,7 @@ const styles = {
     },
 
     avatarInnerTextSmall: {
-        color: themeColors.textReversed,
+        color: themeColors.textLight,
         fontSize: variables.fontSizeExtraSmall,
         lineHeight: undefined,
         marginLeft: -2,
@@ -1995,7 +1995,7 @@ const styles = {
     },
 
     avatarInnerTextChat: {
-        color: themeColors.textReversed,
+        color: themeColors.textLight,
         fontSize: variables.fontSizeNormal,
         left: 1,
         textAlign: 'center',
@@ -2105,7 +2105,7 @@ const styles = {
         justifyContent: 'center',
         borderRadius: 20,
         padding: 15,
-        backgroundColor: themeColors.successButton,
+        backgroundColor: themeColors.buttonSuccessBG,
     },
 
     switchInactive: {
