@@ -47,7 +47,7 @@ class AddSecondaryLoginPage extends Component {
     }
 
     componentWillUnmount() {
-        User.clearUserErrorMessage();
+        User.clearSecondaryLoginFormError();
     }
 
     /**

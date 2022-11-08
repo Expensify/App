@@ -171,7 +171,7 @@ function updateNewsletterSubscription(isSubscribed) {
  * @param {String} password
  * @returns {Promise}
  */
- function setSecondaryLoginAndNavigate(login, password) {
+function setSecondaryLoginAndNavigate(login, password) {
     Onyx.merge(ONYXKEYS.FORMS.SECONDARY_LOGIN_FORM, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
 
     return DeprecatedAPI.User_SecondaryLogin_Send({
@@ -437,8 +437,8 @@ function setShouldUseStagingServer(shouldUseStagingServer) {
     Onyx.merge(ONYXKEYS.USER, {shouldUseStagingServer});
 }
 
-function clearUserErrorMessage() {
-    Onyx.merge(ONYXKEYS.USER, {error: ''});
+function clearSecondaryLoginFormError() {
+    Onyx.merge(ONYXKEYS.FORMS.SECONDARY_LOGIN_FORM, {error: ''});
 }
 
 /**
@@ -490,7 +490,7 @@ export {
     subscribeToUserEvents,
     updatePreferredSkinTone,
     setShouldUseStagingServer,
-    clearUserErrorMessage,
+    clearSecondaryLoginFormError,
     subscribeToExpensifyCardUpdates,
     updateFrequentlyUsedEmojis,
     joinScreenShare,
