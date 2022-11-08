@@ -1,5 +1,10 @@
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
+import lodashMerge from 'lodash/merge';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import Onyx from 'react-native-onyx';
+import moment from 'moment';
+import * as CollectionUtils from './CollectionUtils';
 import CONST from '../CONST';
 
 /**
@@ -62,7 +67,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
     }
 
     // Comments are only grouped if they happen within 5 minutes of each other
-    if (currentAction.action.timestamp - previousAction.action.timestamp > 300) {
+    if (moment(currentAction.action.created).unix() - moment(previousAction.action.created).unix() > 300) {
         return false;
     }
 

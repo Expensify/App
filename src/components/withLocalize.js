@@ -19,10 +19,10 @@ const withLocalizePropTypes = {
     /** Formats number formatted according to locale and options */
     numberFormat: PropTypes.func.isRequired,
 
-    /** Converts a timestamp into a localized string representation that's relative to current moment in time */
+    /** Converts a datetime into a localized string representation that's relative to current moment in time */
     datetimeToRelative: PropTypes.func.isRequired,
 
-    /** Formats a timestamp to local date and time string */
+    /** Formats a datetime to local date and time string */
     datetimeToCalendarTime: PropTypes.func.isRequired,
 
     /** Returns a locally converted phone number without the country code */
@@ -88,11 +88,11 @@ class LocaleContextProvider extends React.Component {
     }
 
     /**
-     * @param {Number} timestamp
+     * @param {String} datetime
      * @returns {String}
      */
-    datetimeToRelative(timestamp) {
-        return DateUtils.datetimeToRelative(this.props.preferredLocale, timestamp);
+    datetimeToRelative(datetime) {
+        return DateUtils.datetimeToRelative(this.props.preferredLocale, datetime);
     }
 
     /**
