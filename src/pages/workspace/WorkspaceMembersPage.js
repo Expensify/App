@@ -1,7 +1,6 @@
 import React from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import lodashFilter from 'lodash/filter';
 
 import {
     View, FlatList, TouchableOpacity,
