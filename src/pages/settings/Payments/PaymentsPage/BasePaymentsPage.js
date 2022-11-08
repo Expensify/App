@@ -269,7 +269,7 @@ class BasePaymentsPage extends React.Component {
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                <View style={[styles.flex1, styles.pb4]}>
+                <View style={[styles.flex1, styles.mb4]}>
                     {Permissions.canUseWallet(this.props.betas) && (
                         <>
                             <View style={[styles.mv5]}>
