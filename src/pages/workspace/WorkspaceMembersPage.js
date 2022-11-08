@@ -49,6 +49,7 @@ const propTypes = {
     ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
+    network: networkPropTypes.isRequired,
 };
 
 const defaultProps = policyDefaultProps;
