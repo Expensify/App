@@ -48,7 +48,6 @@ class CloseAccountPage extends Component {
         super(props);
 
         this.onSubmit = this.onSubmit.bind(this);
-        this.validate = this.validate.bind(this);
     }
 
     onSubmit(values) {
