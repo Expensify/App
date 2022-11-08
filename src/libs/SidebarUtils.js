@@ -156,6 +156,9 @@ function getOrderedReportIDs(reportIDFromRoute) {
             case 'archived':
             case 'nonArchived':
                 sortedGroup = _.sortBy(reportGroup, isInDefaultMode ? 'lastMessageTimestamp' : 'reportDisplayName');
+                if (isInDefaultMode) {
+                    sortedGroup.reverse();
+                }
                 break;
 
             default:
@@ -165,6 +168,14 @@ function getOrderedReportIDs(reportIDFromRoute) {
         // The sorted groups only need to contain the reportID because that's all that needs returned from getOrderedReportIDs()
         sortedGroups[groupName] = _.pluck(sortedGroup, 'reportID');
     });
+
+    // Now that we have all the report IDs grouped and sorted, they must be flattened into an array to be returned
+    return []
+        .concat(sortedGroups.isPinned || [])
+        .concat(sortedGroups.hasOutstandingIOU || [])
+        .concat(sortedGroups.hasDraft || [])
+        .concat(sortedGroups.nonArchived || [])
+        .concat(sortedGroups.archived || []);
 
     // Sorting the reports works like this:
     // - When in default mode, reports will be ordered by most recently updated (in descending order) so that the most recently updated are at the top
