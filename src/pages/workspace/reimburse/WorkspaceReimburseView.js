@@ -19,7 +19,6 @@ import CONST from '../../../CONST';
 import Button from '../../../components/Button';
 import getPermittedDecimalSeparator from '../../../libs/getPermittedDecimalSeparator';
 import {withNetwork} from '../../../components/OnyxProvider';
-import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ReimbursementAccount from '../../../libs/actions/ReimbursementAccount';
 import networkPropTypes from '../../../components/networkPropTypes';
@@ -67,7 +66,7 @@ class WorkspaceReimburseView extends React.Component {
             unitName: lodashGet(distanceCustomUnit, 'name', ''),
             unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
             unitRateID: lodashGet(customUnitRate, 'customUnitRateID', ''),
-            unitRateValue: this.getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET),
+            unitRateValue: this.getUnitRateValue(customUnitRate),
             outputCurrency: lodashGet(props, 'policy.outputCurrency', ''),
         };
 
@@ -84,6 +83,7 @@ class WorkspaceReimburseView extends React.Component {
 
         this.debounceUpdateOnCursorMove = this.debounceUpdateOnCursorMove.bind(this);
         this.updateRateValueDebounced = _.debounce(this.updateRateValue.bind(this), 1000);
+        this.updatedValue = this.state.unitRateValue;
     }
 
     componentDidMount() {
@@ -102,8 +102,9 @@ class WorkspaceReimburseView extends React.Component {
                 unitName: lodashGet(distanceCustomUnit, 'name', ''),
                 unitValue: lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'),
                 unitRateID: lodashGet(customUnitRate, 'customUnitRateID'),
-                unitRateValue: this.getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / 100),
+                unitRateValue: this.getUnitRateValue(customUnitRate),
             });
+            this.updatedValue = this.getUnitRateValue(customUnitRate);
         }
 
         const reconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
@@ -112,6 +113,10 @@ class WorkspaceReimburseView extends React.Component {
         }
 
         Policy.openWorkspaceReimburseView(this.props.policy.id);
+    }
+
+    getUnitRateValue(customUnitRate) {
+        return this.getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET);
     }
 
     getRateDisplayValue(value) {
@@ -131,16 +136,19 @@ class WorkspaceReimburseView extends React.Component {
         return numValue.toFixed(3);
     }
 
-    setRate(value) {
+    setRate(inputValue) {
+        const value = inputValue.replace(/[^0-9.,]/g, '');
+
         const decimalSeparator = this.props.toLocaleDigit('.');
         const rateValueRegex = RegExp(String.raw`^\d{1,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,3})?$`, 'i');
         const isInvalidRateValue = value !== '' && !rateValueRegex.test(value);
 
-        this.setState(prevState => ({
-            unitRateValue: !isInvalidRateValue ? this.getRateDisplayValue(value) : prevState.unitRateValue,
-        }), () => {
+        if (!isInvalidRateValue) {
+            this.updatedValue = this.getRateDisplayValue(value);
+        }
+        this.setState({unitRateValue: value}, () => {
             // Set the corrected value with a delay and sync to the server
-            this.updateRateValueDebounced(this.state.unitRateValue);
+            this.updateRateValueDebounced(this.updatedValue);
         });
     }
 
@@ -176,6 +184,9 @@ class WorkspaceReimburseView extends React.Component {
         const numValue = this.getNumericValue(value);
 
         if (_.isNaN(numValue)) {
+            if (value === '') {
+                this.setState({unitRateValue: value});
+            }
             return;
         }
 
@@ -190,113 +201,110 @@ class WorkspaceReimburseView extends React.Component {
     render() {
         return (
             <>
-                <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)}>
+                <Section
+                    title={this.props.translate('workspace.reimburse.captureReceipts')}
+                    icon={Illustrations.ReceiptYellow}
+                    menuItems={[
+                        {
+                            title: this.props.translate('workspace.reimburse.viewAllReceipts'),
+                            onPress: () => Link.openOldDotLink(`expenses?policyIDList=${this.props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`),
+                            icon: Expensicons.Receipt,
+                            shouldShowRightIcon: true,
+                            iconRight: Expensicons.NewWindow,
+                        },
+                    ]}
+                >
+                    <View style={[styles.mv4, styles.flexRow, styles.flexWrap]}>
+                        <Text>
+                            {this.props.translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
+                            <CopyTextToClipboard
+                                text="receipts@expensify.com"
+                                textStyles={[styles.textBlue]}
+                            />
+                            <Text>{this.props.translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
+                        </Text>
+                    </View>
+                </Section>
+
+                <Section
+                    title={this.props.translate('workspace.reimburse.trackDistance')}
+                    icon={Illustrations.GpsTrackOrange}
+                >
+                    <View style={[styles.mv4]}>
+                        <Text>{this.props.translate('workspace.reimburse.trackDistanceCopy')}</Text>
+                    </View>
+                    <OfflineWithFeedback
+                        errors={{
+                            ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'errors'], {}),
+                            ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'errors'], {}),
+                        }}
+                        pendingAction={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'pendingAction'])
+                                || lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'pendingAction'])}
+                        onClose={() => Policy.clearCustomUnitErrors(this.props.policy.id, this.state.unitID, this.state.unitRateID)}
+                    >
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mv2]}>
+                            <View style={[styles.rateCol]}>
+                                <TextInput
+                                    label={this.props.translate('workspace.reimburse.trackDistanceRate')}
+                                    placeholder={this.state.outputCurrency}
+                                    onChangeText={value => this.setRate(value)}
+                                    value={this.state.unitRateValue}
+                                    autoCompleteType="off"
+                                    autoCorrect={false}
+                                    keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+                                    onKeyPress={this.debounceUpdateOnCursorMove}
+                                    maxLength={12}
+                                />
+                            </View>
+                            <View style={[styles.unitCol]}>
+                                <Picker
+                                    label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
+                                    items={this.unitItems}
+                                    value={this.state.unitValue}
+                                    onInputChange={value => this.setUnit(value)}
+                                />
+                            </View>
+                        </View>
+                    </OfflineWithFeedback>
+                </Section>
+                {this.props.hasVBA ? (
                     <Section
-                        title={this.props.translate('workspace.reimburse.captureReceipts')}
-                        icon={Illustrations.ReceiptYellow}
+                        title={this.props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
+                        icon={Illustrations.BankUserGreen}
                         menuItems={[
                             {
-                                title: this.props.translate('workspace.reimburse.viewAllReceipts'),
-                                onPress: () => Link.openOldDotLink(`expenses?policyIDList=${this.props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`),
-                                icon: Expensicons.Receipt,
+                                title: this.props.translate('workspace.reimburse.reimburseReceipts'),
+                                onPress: () => Link.openOldDotLink(`reports?policyID=${this.props.policy.id}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`),
+                                icon: Expensicons.Bank,
                                 shouldShowRightIcon: true,
                                 iconRight: Expensicons.NewWindow,
                             },
                         ]}
                     >
-                        <View style={[styles.mv4, styles.flexRow, styles.flexWrap]}>
-                            <Text>
-                                {this.props.translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
-                                <CopyTextToClipboard
-                                    text="receipts@expensify.com"
-                                    textStyles={[styles.textBlue]}
-                                />
-                                <Text>{this.props.translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
-                            </Text>
+                        <View style={[styles.mv4]}>
+                            <Text>{this.props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
                         </View>
                     </Section>
-
+                ) : (
                     <Section
-                        title={this.props.translate('workspace.reimburse.trackDistance')}
-                        icon={Illustrations.GpsTrackOrange}
+                        title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
+                        icon={Illustrations.JewelBoxGreen}
                     >
                         <View style={[styles.mv4]}>
-                            <Text>{this.props.translate('workspace.reimburse.trackDistanceCopy')}</Text>
+                            <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
                         </View>
-                        <OfflineWithFeedback
-                            errors={{
-                                ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'errors'], {}),
-                                ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'errors'], {}),
-                            }}
-                            pendingAction={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'pendingAction'])
-                                || lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'pendingAction'])}
-                            onClose={() => Policy.clearCustomUnitErrors(this.props.policy.id, this.state.unitID, this.state.unitRateID)}
-                        >
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mv2]}>
-                                <View style={[styles.rateCol]}>
-                                    <TextInput
-                                        label={this.props.translate('workspace.reimburse.trackDistanceRate')}
-                                        placeholder={this.state.outputCurrency}
-                                        onChangeText={value => this.setRate(value)}
-                                        value={this.state.unitRateValue}
-                                        autoCompleteType="off"
-                                        autoCorrect={false}
-                                        keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
-                                        onKeyPress={this.debounceUpdateOnCursorMove}
-                                    />
-                                </View>
-                                <View style={[styles.unitCol]}>
-                                    <Picker
-                                        label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
-                                        items={this.unitItems}
-                                        value={this.state.unitValue}
-                                        onInputChange={value => this.setUnit(value)}
-                                    />
-                                </View>
-                            </View>
-                        </OfflineWithFeedback>
+                        <Button
+                            text={this.props.translate('workspace.common.bankAccount')}
+                            onPress={() => ReimbursementAccount.navigateToBankAccountRoute(this.props.policy.id)}
+                            icon={Expensicons.Bank}
+                            style={[styles.mt4]}
+                            iconStyles={[styles.buttonCTAIcon]}
+                            shouldShowRightIcon
+                            large
+                            success
+                        />
                     </Section>
-
-                    {!this.props.hasVBA && (
-                        <Section
-                            title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
-                            icon={Illustrations.JewelBoxGreen}
-                        >
-                            <View style={[styles.mv4]}>
-                                <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
-                            </View>
-                            <Button
-                                text={this.props.translate('workspace.common.bankAccount')}
-                                onPress={() => ReimbursementAccount.navigateToBankAccountRoute(this.props.policy.id)}
-                                icon={Expensicons.Bank}
-                                style={[styles.mt4]}
-                                iconStyles={[styles.buttonCTAIcon]}
-                                shouldShowRightIcon
-                                large
-                                success
-                            />
-                        </Section>
-                    )}
-                    {this.props.hasVBA && (
-                        <Section
-                            title={this.props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
-                            icon={Illustrations.BankUserGreen}
-                            menuItems={[
-                                {
-                                    title: this.props.translate('workspace.reimburse.reimburseReceipts'),
-                                    onPress: () => Link.openOldDotLink(`reports?policyID=${this.props.policy.id}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`),
-                                    icon: Expensicons.Bank,
-                                    shouldShowRightIcon: true,
-                                    iconRight: Expensicons.NewWindow,
-                                },
-                            ]}
-                        >
-                            <View style={[styles.mv4]}>
-                                <Text>{this.props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
-                            </View>
-                        </Section>
-                    )}
-                </FullPageNotFoundView>
+                )}
             </>
         );
     }
