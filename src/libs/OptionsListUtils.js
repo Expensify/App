@@ -116,7 +116,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
             };
         }
 
-        if (login == CONST.EMAIL.CONCIERGE) {
+        if (login === CONST.EMAIL.CONCIERGE) {
             personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
         }
 
