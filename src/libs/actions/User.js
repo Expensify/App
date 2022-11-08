@@ -171,8 +171,8 @@ function updateNewsletterSubscription(isSubscribed) {
  * @param {String} password
  * @returns {Promise}
  */
-function setSecondaryLoginAndNavigate(login, password) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
+ function setSecondaryLoginAndNavigate(login, password) {
+    Onyx.merge(ONYXKEYS.FORMS.SECONDARY_LOGIN_FORM, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
 
     return DeprecatedAPI.User_SecondaryLogin_Send({
         email: login,
@@ -195,9 +195,9 @@ function setSecondaryLoginAndNavigate(login, password) {
             error = Localize.translateLocal('common.error.phoneNumber');
         }
 
-        Onyx.merge(ONYXKEYS.USER, {error});
+        Onyx.merge(ONYXKEYS.FORMS.SECONDARY_LOGIN_FORM, {error});
     }).finally(() => {
-        Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
+        Onyx.merge(ONYXKEYS.FORMS.SECONDARY_LOGIN_FORM, {isLoading: false});
     });
 }
 
