@@ -152,7 +152,7 @@ export default compose(
     withWindowDimensions,
     withOnyx({
         closeAccount: {
-            key: ONYXKEYS.CLOSE_ACCOUNT,
+            key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM,
         },
         session: {
             key: ONYXKEYS.SESSION,
