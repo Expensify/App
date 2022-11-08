@@ -112,6 +112,8 @@ class AddSecondaryLoginPage extends Component {
                     </Text>
                     <View style={styles.mb6}>
                         <TextInput
+                            autoFocus
+                            shouldDelayFocus
                             label={this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
                                 ? 'common.phoneNumber'
                                 : 'profilePage.emailAddress')}
