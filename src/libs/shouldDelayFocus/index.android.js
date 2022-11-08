@@ -1,2 +1,2 @@
-// At android the keyboard doesn't open when we use autoFocus because of page opening transition, so we have to delay the focus.
+// When using transitions on Android, we need to delay focusing the text inputs for the keyboard to open.
 export default true;
