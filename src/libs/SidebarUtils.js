@@ -86,11 +86,6 @@ Onyx.connect({
  * @returns {String[]} An array of reportIDs sorted in the proper order
  */
 function getOrderedReportIDs(reportIDFromRoute) {
-    let recentReportOptions = [];
-    const pinnedReportOptions = [];
-    const iouDebtReportOptions = [];
-    const draftReportOptions = [];
-
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInGSDMode;
 
