@@ -117,8 +117,6 @@ function getOrderedReportIDs(reportIDFromRoute) {
     // 5. Archived reports
     //      - Sorted by lastMessageTimestamp in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
-
-    // Put all of the reports into their groups
     const reportGroups = _.groupBy(reportsToDisplay, (report) => {
         if (report.isPinned) {
             return 'isPinned';
@@ -139,7 +137,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
         return 'nonArchived';
     });
 
-    // Now we can sort each group accordingly
+    // Now each group can be sorted accordingly
     const sortedGroups = {};
     _.each(reportGroups, (reportGroup, groupName) => {
         let sortedGroup;
@@ -176,64 +174,6 @@ function getOrderedReportIDs(reportIDFromRoute) {
         .concat(sortedGroups.hasDraft || [])
         .concat(sortedGroups.nonArchived || [])
         .concat(sortedGroups.archived || []);
-
-    // Sorting the reports works like this:
-    // - When in default mode, reports will be ordered by most recently updated (in descending order) so that the most recently updated are at the top
-    // - When in GSD mode, reports are ordered by their display name so they are alphabetical (in ascending order)
-    // - Regardless of mode, all archived reports should remain at the bottom
-    const orderedReports = _.sortBy(reportsToDisplay, (report) => {
-        if (ReportUtils.isArchivedRoom(report)) {
-            return isInDefaultMode
-
-                // -Infinity is used here because there is no chance that a report will ever have an older timestamp than -Infinity and it ensures that archived reports
-                // will always be listed last
-                ? -Infinity
-
-                // Similar logic is used for 'ZZZZZZZZZZZZZ' to reasonably assume that no report will ever have a report name that will be listed alphabetically after this, ensuring that
-                // archived reports will be listed last
-                : 'ZZZZZZZZZZZZZ';
-        }
-
-        return isInDefaultMode ? report.lastMessageTimestamp : report.reportDisplayName;
-    });
-
-    // Apply the descending order to reports when in default mode
-    if (isInDefaultMode) {
-        orderedReports.reverse();
-    }
-
-    // Put all the reports into the different buckets
-    for (let i = 0; i < orderedReports.length; i++) {
-        const report = orderedReports[i];
-
-        // If the report is pinned and we are using the option to display pinned reports on top then we need to
-        // collect the pinned reports so we can sort them alphabetically once they are collected
-        if (report.isPinned) {
-            pinnedReportOptions.push(report);
-        } else if (report.hasOutstandingIOU && !report.isIOUReportOwner) {
-            iouDebtReportOptions.push(report);
-        } else if (report.hasDraft) {
-            draftReportOptions.push(report);
-        } else {
-            recentReportOptions.push(report);
-        }
-    }
-
-    // Prioritizing reports with draft comments, add them before the normal recent report options
-    // and sort them by report name.
-    const sortedDraftReports = _.sortBy(draftReportOptions, 'reportDisplayName');
-    recentReportOptions = sortedDraftReports.concat(recentReportOptions);
-
-    // Prioritizing IOUs the user owes, add them before the normal recent report options and reports
-    // with draft comments.
-    const sortedIOUReports = _.sortBy(iouDebtReportOptions, 'iouReportAmount').reverse();
-    recentReportOptions = sortedIOUReports.concat(recentReportOptions);
-
-    // If we are prioritizing our pinned reports then shift them to the front and sort them by report name
-    const sortedPinnedReports = _.sortBy(pinnedReportOptions, 'reportDisplayName');
-    recentReportOptions = sortedPinnedReports.concat(recentReportOptions);
-
-    return _.pluck(recentReportOptions, 'reportID');
 }
 
 /**
