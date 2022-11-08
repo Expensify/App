@@ -67,7 +67,7 @@ function getLocalMomentFromDatetime(locale, datetime, currentSelectedTimezone = 
  *
  * @returns {String}
  */
-function timestampToDateTime(locale, datetime, includeTimeZone = false) {
+function datetimeToCalendarTime(locale, datetime, includeTimeZone = false) {
     const date = getLocalMomentFromDatetime(locale, datetime);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
 
@@ -177,7 +177,7 @@ function currentDBTime() {
  */
 const DateUtils = {
     timestampToRelative,
-    timestampToDateTime,
+    datetimeToCalendarTime,
     startCurrentDateUpdater,
     getLocalMomentFromDatetime,
     getCurrentTimezone,

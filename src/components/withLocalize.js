@@ -23,7 +23,7 @@ const withLocalizePropTypes = {
     timestampToRelative: PropTypes.func.isRequired,
 
     /** Formats a timestamp to local date and time string */
-    timestampToDateTime: PropTypes.func.isRequired,
+    datetimeToCalendarTime: PropTypes.func.isRequired,
 
     /** Returns a locally converted phone number without the country code */
     toLocalPhone: PropTypes.func.isRequired,
@@ -60,7 +60,7 @@ class LocaleContextProvider extends React.Component {
             translate: this.translate.bind(this),
             numberFormat: this.numberFormat.bind(this),
             timestampToRelative: this.timestampToRelative.bind(this),
-            timestampToDateTime: this.timestampToDateTime.bind(this),
+            datetimeToCalendarTime: this.datetimeToCalendarTime.bind(this),
             fromLocalPhone: this.fromLocalPhone.bind(this),
             toLocalPhone: this.toLocalPhone.bind(this),
             fromLocaleDigit: this.fromLocaleDigit.bind(this),
@@ -100,8 +100,8 @@ class LocaleContextProvider extends React.Component {
      * @param {Boolean} [includeTimezone]
      * @returns {String}
      */
-    timestampToDateTime(datetime, includeTimezone) {
-        return DateUtils.timestampToDateTime(
+    datetimeToCalendarTime(datetime, includeTimezone) {
+        return DateUtils.datetimeToCalendarTime(
             this.props.preferredLocale,
             datetime,
             includeTimezone,
