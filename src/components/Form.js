@@ -49,6 +49,9 @@ const propTypes = {
     /** Should the button be enabled when offline */
     enabledWhenOffline: PropTypes.bool,
 
+    /** Whether the action is dangerous */
+    isDangerousAction: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -60,6 +63,7 @@ const defaultProps = {
     },
     draftValues: {},
     enabledWhenOffline: false,
+    isDangerousAction: false,
 };
 
 class Form extends React.Component {
@@ -234,6 +238,7 @@ class Form extends React.Component {
                             }}
                             containerStyles={[styles.mh0, styles.mt5]}
                             enabledWhenOffline={this.props.enabledWhenOffline}
+                            isDangerousAction={this.props.isDangerousAction}
                         />
                         )}
                     </View>
