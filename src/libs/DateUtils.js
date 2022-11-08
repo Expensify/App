@@ -33,7 +33,7 @@ Onyx.connect({
 });
 
 /**
- * Gets the user's stored time-zone NVP and returns a localized
+ * Gets the user's stored time zone NVP and returns a localized
  * Moment object for the given ISO-formatted datetime string
  *
  * @param {String} locale
@@ -44,7 +44,7 @@ Onyx.connect({
  *
  * @private
  */
-function getLocalMomentFromTimestamp(locale, datetime, currentSelectedTimezone = timezone.selected) {
+function getLocalMomentFromDatetime(locale, datetime, currentSelectedTimezone = timezone.selected) {
     moment.locale(locale);
     if (!datetime) {
         return moment.tz(currentSelectedTimezone);
@@ -67,7 +67,7 @@ function getLocalMomentFromTimestamp(locale, datetime, currentSelectedTimezone =
  * @returns {String}
  */
 function timestampToDateTime(locale, datetime, includeTimeZone = false) {
-    const date = getLocalMomentFromTimestamp(locale, datetime);
+    const date = getLocalMomentFromDatetime(locale, datetime);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
 
     const todayAt = Localize.translate(locale, 'common.todayAt');
@@ -104,7 +104,7 @@ function timestampToDateTime(locale, datetime, includeTimeZone = false) {
  * @returns {String}
  */
 function timestampToRelative(locale, datetime) {
-    const date = getLocalMomentFromTimestamp(locale, datetime);
+    const date = getLocalMomentFromDatetime(locale, datetime);
 
     return moment(date).fromNow();
 }
@@ -178,7 +178,7 @@ const DateUtils = {
     timestampToRelative,
     timestampToDateTime,
     startCurrentDateUpdater,
-    getLocalMomentFromTimestamp,
+    getLocalMomentFromDatetime,
     getCurrentTimezone,
     canUpdateTimezone,
     setTimezoneUpdated,
