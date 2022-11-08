@@ -17,7 +17,7 @@ function setDefaultData() {
 }
 
 export {
-    // eslint-disable-next-line import/prefer-default-exporst
+    // eslint-disable-next-line import/prefer-default-export
     clearError,
     setDefaultData,
 };
