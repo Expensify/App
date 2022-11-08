@@ -29,7 +29,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             };
             modalContainerStyle = {
                 // Shadow Styles
-                shadowColor: themeColors.inverse,
+                shadowColor: themeColors.shadow,
                 shadowOffset: {
                     width: 0,
                     height: 0,
@@ -61,7 +61,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             };
             modalContainerStyle = {
                 // Shadow Styles
-                shadowColor: themeColors.inverse,
+                shadowColor: themeColors.shadow,
                 shadowOffset: {
                     width: 0,
                     height: 0,
@@ -95,7 +95,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             };
             modalContainerStyle = {
                 // Shadow Styles
-                shadowColor: themeColors.inverse,
+                shadowColor: themeColors.shadow,
                 shadowOffset: {
                     width: 0,
                     height: 0,

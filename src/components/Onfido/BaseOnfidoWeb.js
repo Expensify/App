@@ -7,7 +7,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import onfidoPropTypes from './onfidoPropTypes';
 import CONST from '../../CONST';
 import variables from '../../styles/variables';
-import colors from '../../styles/colors';
+import themeColors from '../../styles/themes/default';
 import fontWeightBold from '../../styles/fontWeight/bold';
 import fontFamily from '../../styles/fontFamily';
 import Log from '../../libs/Log';
