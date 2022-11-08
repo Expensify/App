@@ -167,7 +167,8 @@ function getOrderedReportIDs(reportIDFromRoute) {
         sortedGroups[groupName] = _.pluck(sortedGroup, 'reportID');
     });
 
-    // Now that we have all the report IDs grouped and sorted, they must be flattened into an array to be returned
+    // Now that we have all the report IDs grouped and sorted, they must be flattened into an array to be returned.
+    // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
     return []
         .concat(sortedGroups.isPinned || [])
         .concat(sortedGroups.hasOutstandingIOU || [])
