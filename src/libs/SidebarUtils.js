@@ -99,7 +99,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
         // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
         // the reportDisplayName property to the report object directly.
         // eslint-disable-next-line no-param-reassign
-        report.reportDisplayName = ReportUtils.getReportName(report, policies);
+        report.displayName = ReportUtils.getReportName(report, policies);
     });
 
     // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
@@ -143,11 +143,11 @@ function getOrderedReportIDs(reportIDFromRoute) {
     });
 
     // Sort each group of reports accordingly
-    pinnedReports = _.sortBy(pinnedReports, 'reportDisplayName');
+    pinnedReports = _.sortBy(pinnedReports, report => report.displayName.toLowerCase());
     outstandingIOUReports = _.sortBy(outstandingIOUReports, 'iouReportAmount').reverse();
-    draftReports = _.sortBy(draftReports, 'reportDisplayName');
-    nonArchivedReports = _.sortBy(nonArchivedReports, isInDefaultMode ? 'lastMessageTimestamp' : 'reportDisplayName');
-    archivedReports = _.sortBy(archivedReports, isInDefaultMode ? 'lastMessageTimestamp' : 'reportDisplayName');
+    draftReports = _.sortBy(draftReports, report => report.displayName.toLowerCase());
+    nonArchivedReports = _.sortBy(nonArchivedReports, report => (isInDefaultMode ? report.lastMessageTimestamp : report.displayName.toLowerCase()));
+    archivedReports = _.sortBy(archivedReports, report => (isInDefaultMode ? report.lastMessageTimestamp : report.displayName.toLowerCase()));
 
     // For archived and non-archived reports, ensure that most recent reports are at the top by reversing the order of the arrays because underscore will only sort them in ascending order
     if (isInDefaultMode) {
