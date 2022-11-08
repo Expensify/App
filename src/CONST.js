@@ -15,8 +15,11 @@ const CONST = {
     ANIMATION_IN_TIMING: 100,
 
     API_ATTACHMENT_VALIDATIONS: {
-        // 50 megabytes in bytes
-        MAX_SIZE: 52428800,
+        // Same as the PHP layer allows
+        ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml', 'mp3', 'mp4', 'mov'],
+
+        // 24 megabytes in bytes
+        MAX_SIZE: 25165824,
 
         // An arbitrary size, but the same minimum as in the PHP layer
         MIN_SIZE: 240,
@@ -658,6 +661,8 @@ const CONST = {
             PAY: 'pay',
             CREATE: 'create',
             SPLIT: 'split',
+            DECLINE: 'decline',
+            CANCEL: 'cancel',
         },
         AMOUNT_MAX_LENGTH: 10,
     },
