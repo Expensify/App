@@ -14,16 +14,12 @@ import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
 import TextInput from '../../components/TextInput';
-import userPropTypes from './userPropTypes';
 import * as LoginUtils from '../../libs/LoginUtils';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import Form from '../../components/Form';
 
 const propTypes = {
-    /* Onyx Props */
-    user: userPropTypes,
 
     // Route object from navigation
     route: PropTypes.shape({
@@ -38,7 +34,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    user: {},
     route: {},
 };
 
@@ -136,11 +131,6 @@ class AddSecondaryLoginPage extends Component {
                             onSubmitEditing={this.onSubmit}
                         />
                     </View>
-                    {!_.isEmpty(this.props.user.error) && (
-                        <Text style={styles.formError}>
-                            {this.props.user.error}
-                        </Text>
-                    )}
                 </Form>
             </ScreenWrapper>
         );
@@ -150,11 +140,4 @@ class AddSecondaryLoginPage extends Component {
 AddSecondaryLoginPage.propTypes = propTypes;
 AddSecondaryLoginPage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        user: {
-            key: ONYXKEYS.USER,
-        },
-    }),
-)(AddSecondaryLoginPage);
+export default withLocalize(AddSecondaryLoginPage);
