@@ -311,8 +311,8 @@ export default {
         doe: 'Nadie',
     },
     addSecondaryLoginPage: {
-        enterValidEmail: 'Please enter a valid email',
-        enterValidPassword: 'Please enter a valid password',
+        enterValidEmail: 'Por favor ingresa un email válido.',
+        enterValidPassword: 'Por favor ingresa una clave válida.',
         addPhoneNumber: 'Agregar número de teléfono',
         addEmailAddress: 'Agregar dirección de email',
         enterPreferredPhoneNumberToSendValidationLink: 'Escribe tu número de teléfono y contraseña para recibir el enlace de validación.',
