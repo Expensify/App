@@ -170,7 +170,7 @@ SidebarLinks.defaultProps = defaultProps;
  * @param {Object} [report]
  * @returns {Object|undefined}
  */
-const reportSelector = report => report && ({
+const reportSelector = report => report && console.log(report) && ({
     reportID: report.reportID,
     participants: report.participants,
     hasDraft: report.hasDraft,

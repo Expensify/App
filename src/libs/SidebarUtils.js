@@ -92,14 +92,16 @@ function getOrderedReportIDs(reportIDFromRoute) {
     // Filter out all the reports that shouldn't be displayed
     const reportsToDisplay = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies));
 
-    // Get all the display names for our reports in an easy to access property so we don't have to keep
-    // re-running the logic
+    // There are a few properties that need to be calculated for the report which are used when sorting reports.
     _.each(reportsToDisplay, (report) => {
         // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
         // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
         // the reportDisplayName property to the report object directly.
         // eslint-disable-next-line no-param-reassign
         report.displayName = ReportUtils.getReportName(report, policies);
+
+        // eslint-disable-next-line no-param-reassign
+        report.iouReportAmount = ReportUtils.getIOUTotal(report, iouReports);
     });
 
     // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
@@ -278,13 +280,8 @@ function getOptionData(reportID) {
         result.alternateText = lastMessageText || Str.removeSMSDomain(personalDetail.login);
     }
 
-    if (result.hasOutstandingIOU) {
-        const iouReport = (iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`]) || null;
-        if (iouReport) {
-            result.isIOUReportOwner = iouReport.ownerEmail === currentUserLogin;
-            result.iouReportAmount = iouReport.total;
-        }
-    }
+    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, currentUserLogin, iouReports);
+    result.iouReportAmount = ReportUtils.getIOUTotal(result, iouReports);
 
     if (!hasMultipleParticipants) {
         result.login = personalDetail.login;

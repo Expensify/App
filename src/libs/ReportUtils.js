@@ -967,7 +967,6 @@ function isUnread(report) {
  * @param {Object} iouReports
  * @returns {boolean}
  */
-
 function hasOutstandingIOU(report, currentUserLogin, iouReports) {
     if (!report || !report.iouReportID || _.isUndefined(report.hasOutstandingIOU)) {
         return false;
@@ -983,6 +982,39 @@ function hasOutstandingIOU(report, currentUserLogin, iouReports) {
     }
 
     return report.hasOutstandingIOU;
+}
+
+/**
+ * @param {Object} report
+ * @param {String} report.iouReportID
+ * @param {Object} iouReports
+ * @returns {null|Number}
+ */
+function getIOUTotal(report, iouReports) {
+    if (report.hasOutstandingIOU) {
+        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`] || null;
+        if (iouReport) {
+            return iouReport.total;
+        }
+    }
+    return null;
+}
+
+/**
+ * @param {Object} report
+ * @param {String} report.iouReportID
+ * @param {String} currentUserLogin
+ * @param {Object} iouReports
+ * @returns {null|Boolean}
+ */
+function isIOUOwnedByCurrentUser(report, currentUserLogin, iouReports) {
+    if (report.hasOutstandingIOU) {
+        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`] || null;
+        if (iouReport) {
+            return iouReport.ownerEmail === currentUserLogin;
+        }
+    }
+    return null;
 }
 
 /**
@@ -1098,6 +1130,8 @@ export {
     hasExpensifyEmails,
     hasExpensifyGuidesEmails,
     hasOutstandingIOU,
+    isIOUOwnedByCurrentUser,
+    getIOUTotal,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
     chatIncludesConcierge,
