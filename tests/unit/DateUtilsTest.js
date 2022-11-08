@@ -4,10 +4,10 @@ import DateUtils from '../../src/libs/DateUtils';
 const datetime = '2022-11-07 00:00:00';
 const locale = 'en';
 
-describe('DateUtils/getLocalMomentFromTimestamp', () => {
+describe('DateUtils/getLocalMomentFromDatetime', () => {
     it('should return a moment object with the correct date and time', () => {
         const timezone = 'America/Los_Angeles';
-        const localMoment = DateUtils.getLocalMomentFromTimestamp(locale, datetime, timezone);
+        const localMoment = DateUtils.getLocalMomentFromDatetime(locale, datetime, timezone);
         expect(moment.isMoment(localMoment)).toBe(true);
         expect(moment(localMoment).format()).toEqual('2022-11-06T16:00:00-08:00');
     });
