@@ -62,7 +62,7 @@ class AddSecondaryLoginPage extends Component {
 
     /**
      * @param {Object} values - form input values passed by the Form component
-     * @returns {Boolean}
+     * @returns {Object}
      */
     validate(values) {
         const errors = {};
