@@ -1,7 +1,6 @@
 import React from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-
 import {
     View, FlatList, TouchableOpacity,
 } from 'react-native';
