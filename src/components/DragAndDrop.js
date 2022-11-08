@@ -1,43 +1,41 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import CONST from '../CONST';
 
 import variables from '../styles/variables';
 
 const COPY_DROP_EFFECT = 'copy';
 const NONE_DROP_EFFECT = 'none';
 
-const propTypes = {
+const DragAndDropCallbackPropTypes = {
     /** Callback to fire when a file has being dragged over the text input & report body */
-    onDragOver: PropTypes.func,
+    onDragOver: PropTypes.func.isRequired,
 
     /** Callback to fire when a file has been dragged into the text input & report body */
-    onDragEnter: PropTypes.func,
+    onDragEnter: PropTypes.func.isRequired,
 
     /** Callback to fire when the user is no longer dragging over the text input & report body */
-    onDragLeave: PropTypes.func,
+    onDragLeave: PropTypes.func.isRequired,
 
     /** Callback to fire when a file is dropped on the text input & report body */
-    onDrop: PropTypes.func,
-
-    /** Rendered child component */
-    children: PropTypes.node,
+    onDrop: PropTypes.func.isRequired,
 };
 
-const defaultProps = {
-    onDragEnter: () => {},
-    onDragOver: () => {},
-    onDragLeave: () => {},
-    onDrop: () => {},
-    children: null,
+const propTypes = {
+    /** Rendered child component */
+    children: PropTypes.node.isRequired,
+
+    /** Rendered child component */
+    dropZoneId: PropTypes.string.isRequired,
+
+    ...DragAndDropCallbackPropTypes,
 };
 
 export default class DragAndDrop extends React.Component {
     constructor(props) {
         super(props);
 
-        this.dropZone = document.getElementById(CONST.REPORT.DROP_NATIVE_ID);
+        this.dropZone = document.getElementById(props.dropZoneId);
         this.dropZoneRect = this.calculateDropZoneClientReact();
         this.dragNDropListener = this.dragNDropListener.bind(this);
 
@@ -163,5 +161,7 @@ export default class DragAndDrop extends React.Component {
 }
 
 DragAndDrop.propTypes = propTypes;
-DragAndDrop.defaultProps = defaultProps;
 
+export {
+    DragAndDropCallbackPropTypes,
+};

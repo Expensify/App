@@ -10,7 +10,8 @@ import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
 import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
 import getNumberOfLines from '../../libs/ComposerUtils/index';
-import DragAndDrop from '../DragAndDrop';
+import DragAndDrop, {DragAndDropCallbackPropTypes} from '../DragAndDrop';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -339,7 +340,7 @@ Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
 
 const ComposerWithDragAndDrop = props => (
-    <DragAndDrop onDragOver={props.onDragOver} onDragLeave={props.onDragLeave} onDragEnter={props.onDragEnter} onDrop={props.onDrop}>
+    <DragAndDrop onDragOver={props.onDragOver} onDragLeave={props.onDragLeave} onDragEnter={props.onDragEnter} onDrop={props.onDrop} dropZoneId={CONST.REPORT.DROP_NATIVE_ID}>
         <Composer
            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
@@ -348,7 +349,7 @@ const ComposerWithDragAndDrop = props => (
     </DragAndDrop>
 );
 
-ComposerWithDragAndDrop.propTypes = {...DragAndDrop.propTypes, ...Composer.propTypes};
+ComposerWithDragAndDrop.propTypes = {...DragAndDropCallbackPropTypes, ...Composer.propTypes};
 
 export default withLocalize(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */

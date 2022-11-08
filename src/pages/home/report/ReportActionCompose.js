@@ -38,7 +38,6 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes,
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
-import DragAndDrop from '../../../components/DragAndDrop';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import VirtualKeyboard from '../../../libs/VirtualKeyboard';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
@@ -627,6 +626,7 @@ class ReportActionCompose extends React.Component {
                                         onDragLeave={() => {
                                             this.setState({isDraggingOver: false});
                                         }}
+                                        onDragOver={() => {}}
                                         onDrop={(e) => {
                                             e.preventDefault();
 
