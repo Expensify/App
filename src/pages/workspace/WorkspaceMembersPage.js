@@ -341,7 +341,7 @@ class WorkspaceMembersPage extends React.Component {
                             />
                         </View>
                         <View style={[styles.w100, styles.mt4, styles.flex1]}>
-                            <View style={[styles.peopleRow, styles.ph5, styles.pb5]}>
+                            <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
                                 <View style={[styles.peopleRowCell]}>
                                     <Checkbox
                                         isChecked={this.state.selectedEmployees.length === removableMembers.length && removableMembers.length !== 0}
