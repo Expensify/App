@@ -195,7 +195,12 @@ class AvatarWithImagePicker extends React.Component {
                     return;
                 }
 
-                this.setState({isAvatarCropModalOpen: true, imageUri: image.uri, imageName: image.name, imageType: image.type});
+                this.setState({
+                    isAvatarCropModalOpen: true,
+                    imageUri: image.uri,
+                    imageName: image.name,
+                    imageType: image.type,
+                });
             });
     }
 
