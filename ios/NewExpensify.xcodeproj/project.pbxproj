@@ -74,6 +74,14 @@
 		3981452A2C7340EBBA2B9BD1 /* GTAmericaExpMono-BdIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExpMono-BdIt.otf"; path = "../assets/fonts/GTAmericaExpMono-BdIt.otf"; sourceTree = "<group>"; };
 		3EDF186626B8D2CBA203E08D /* libPods-NewExpensify.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NewExpensify.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5150E5D0D7F74DBA8D7C1914 /* GTAmericaExpMono-RgIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExpMono-RgIt.otf"; path = "../assets/fonts/GTAmericaExpMono-RgIt.otf"; sourceTree = "<group>"; };
+		5935414E2915C8CF001E81A5 /* ExpensifyNeue-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ExpensifyNeue-Regular.otf"; sourceTree = "<group>"; };
+		5935414F2915C8CF001E81A5 /* ExpensifyNeue-BoldItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ExpensifyNeue-BoldItalic.otf"; sourceTree = "<group>"; };
+		593541502915C8CF001E81A5 /* ExpensifyNeue-Italic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ExpensifyNeue-Italic.otf"; sourceTree = "<group>"; };
+		593541512915C8CF001E81A5 /* ExpensifyNeue-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ExpensifyNeue-Bold.otf"; sourceTree = "<group>"; };
+		593541522915C8DF001E81A5 /* ExpensifyMono-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ExpensifyMono-Bold.otf"; sourceTree = "<group>"; };
+		593541532915C8DF001E81A5 /* ExpensifyMono-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ExpensifyMono-Regular.otf"; sourceTree = "<group>"; };
+		593541542915C8ED001E81A5 /* ExpensifyNewKansas-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ExpensifyNewKansas-Medium.otf"; sourceTree = "<group>"; };
+		593541552915C8ED001E81A5 /* ExpensifyNewKansas-MediumItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ExpensifyNewKansas-MediumItalic.otf"; sourceTree = "<group>"; };
 		67D5C3A6A7FA417C8A853FC1 /* GTAmericaExp-Light.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Light.otf"; path = "../assets/fonts/GTAmericaExp-Light.otf"; sourceTree = "<group>"; };
 		7041848326A8E40900E09F4D /* RCTStartupTimer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTStartupTimer.h; path = NewExpensify/RCTStartupTimer.h; sourceTree = "<group>"; };
 		7041848426A8E47D00E09F4D /* RCTStartupTimer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = RCTStartupTimer.m; path = NewExpensify/RCTStartupTimer.m; sourceTree = "<group>"; };
@@ -206,6 +214,14 @@
 			isa = PBXGroup;
 			children = (
 				A5AAD008CBD84A6CAEB9AC97 /* GTAmericaExp-Bold.otf */,
+				593541512915C8CF001E81A5 /* ExpensifyNeue-Bold.otf */,
+				593541522915C8DF001E81A5 /* ExpensifyMono-Bold.otf */,
+				593541532915C8DF001E81A5 /* ExpensifyMono-Regular.otf */,
+				593541542915C8ED001E81A5 /* ExpensifyNewKansas-Medium.otf */,
+				593541552915C8ED001E81A5 /* ExpensifyNewKansas-MediumItalic.otf */,
+				5935414F2915C8CF001E81A5 /* ExpensifyNeue-BoldItalic.otf */,
+				593541502915C8CF001E81A5 /* ExpensifyNeue-Italic.otf */,
+				5935414E2915C8CF001E81A5 /* ExpensifyNeue-Regular.otf */,
 				67D5C3A6A7FA417C8A853FC1 /* GTAmericaExp-Light.otf */,
 				AE65058949E14DA5A2D5435D /* GTAmericaExp-Medium.otf */,
 				8C7003903C1E4957824899BB /* GTAmericaExp-Regular.otf */,
