@@ -5,6 +5,7 @@ import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import HttpsError from './Errors/HttpsError';
+import * as Environment from './Environment/Environment';
 
 let shouldUseStagingServer = false;
 Onyx.connect({
@@ -98,7 +99,16 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
 
     let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.URL_API_ROOT;
 
-    if (CONFIG.IS_IN_STAGING && shouldUseStagingServer) {
+    // getEnvironment promise returns the environment based on ENVIRONMENT Config for web/desktop.
+    // Additionally for ios/android betaChecker.isBetaBuild() does the version check
+    // environment is initialized as null as the default set in CONFIG.js always takes precedence
+    let environment = null;
+    Environment.getEnvironment()
+        .then((env) => {
+            environment = env;
+        });
+
+    if (environment !== CONST.ENVIRONMENT.PRODUCTION && shouldUseStagingServer) {
         apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.STAGING_SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.STAGING_EXPENSIFY_URL;
     }
 
