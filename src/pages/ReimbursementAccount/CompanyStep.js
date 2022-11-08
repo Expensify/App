@@ -27,7 +27,6 @@ import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import Form from '../../components/Form';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
-import * as FormActions from '../../libs/actions/FormActions';
 
 const propTypes = {
     /** The bank account currently in setup */
@@ -59,72 +58,67 @@ class CompanyStep extends React.Component {
 
     /**
      * @param {Object} values - form input values passed by the Form component
-     * @returns {Object} - object values error strings
+     * @returns {Object} - Object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
     validate(values) {
-        const errorTexts = {};
+        const errors = {};
+
+        if (!values.companyName) {
+            errors.companyName = this.props.translate('bankAccount.error.companyName');
+        }
 
         if (!values.addressStreet || !ValidationUtils.isValidAddress(values.addressStreet)) {
-            errorTexts.addressStreet = this.props.translate('bankAccount.error.addressStreet');
+            errors.addressStreet = this.props.translate('bankAccount.error.addressStreet');
         }
 
         if (!values.addressZipCode || !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-            errorTexts.addressZipCode = this.props.translate('bankAccount.error.zipCode');
+            errors.addressZipCode = this.props.translate('bankAccount.error.zipCode');
         }
 
         if (!values.addressCity) {
-            errorTexts.addressCity = this.props.translate('bankAccount.error.addressCity');
+            errors.addressCity = this.props.translate('bankAccount.error.addressCity');
         }
 
         if (!values.addressState) {
-            errorTexts.addressState = this.props.translate('bankAccount.error.addressState');
-        }
-
-        if (!values.website || !ValidationUtils.isValidURL(values.website)) {
-            errorTexts.website = this.props.translate('bankAccount.error.website');
-        }
-
-        if (!values.companyTaxID || !ValidationUtils.isValidTaxID(values.companyTaxID)) {
-            errorTexts.companyTaxID = this.props.translate('bankAccount.error.taxID');
-        }
-
-        if (!values.incorporationType) {
-            errorTexts.incorporationType = this.props.translate('bankAccount.error.companyType');
-        }
-
-        if (!values.incorporationDate || !ValidationUtils.isValidDate(values.incorporationDate)) {
-            errorTexts.incorporationDate = this.props.translate('bankAccount.error.incorporationDate');
-        }
-
-        if (!values.incorporationDate || !ValidationUtils.isValidPastDate(values.incorporationDate)) {
-            errorTexts.incorporationDateFuture = this.props.translate('bankAccount.error.incorporationDateFuture');
-        }
-
-        if (!values.incorporationState) {
-            errorTexts.incorporationState = this.props.translate('bankAccount.error.incorporationState');
+            errors.addressState = this.props.translate('bankAccount.error.addressState');
         }
 
         if (!values.companyPhone || !ValidationUtils.isValidUSPhone(values.companyPhone, true)) {
-            errorTexts.companyPhone = this.props.translate('bankAccount.error.phoneNumber');
+            errors.companyPhone = this.props.translate('bankAccount.error.phoneNumber');
         }
 
-        if (!values.companyName) {
-            errorTexts.companyName = this.props.translate('bankAccount.error.companyName');
+        if (!values.website || !ValidationUtils.isValidURL(values.website)) {
+            errors.website = this.props.translate('bankAccount.error.website');
+        }
+
+        if (!values.companyTaxID || !ValidationUtils.isValidTaxID(values.companyTaxID)) {
+            errors.companyTaxID = this.props.translate('bankAccount.error.taxID');
+        }
+
+        if (!values.incorporationType) {
+            errors.incorporationType = this.props.translate('bankAccount.error.companyType');
+        }
+
+        if (!values.incorporationDate || !ValidationUtils.isValidDate(values.incorporationDate)) {
+            errors.incorporationDate = this.props.translate('bankAccount.error.incorporationDate');
+        }
+
+        if (!values.incorporationDate || !ValidationUtils.isValidPastDate(values.incorporationDate)) {
+            errors.incorporationDateFuture = this.props.translate('bankAccount.error.incorporationDateFuture');
+        }
+
+        if (!values.incorporationState) {
+            errors.incorporationState = this.props.translate('bankAccount.error.incorporationState');
         }
 
         if (!values.hasNoConnectionToCannabis) {
-            errorTexts.hasNoConnectionToCannabis = this.props.translate('bankAccount.error.restrictedBusiness');
+            errors.hasNoConnectionToCannabis = this.props.translate('bankAccount.error.restrictedBusiness');
         }
 
-        const errors = {};
-        _.each(errorTexts, (key) => {
-            errors[key] = true;
-        });
+        // BankAccounts.setBankAccountFormValidationErrors(errors);
+        // BankAccounts.updateReimbursementAccountDraft(values);
 
-        BankAccounts.setBankAccountFormValidationErrors(errors);
-        BankAccounts.updateReimbursementAccountDraft(values);
-
-        return errorTexts;
+        return errors;
     }
 
     submit(values) {
@@ -142,8 +136,6 @@ class CompanyStep extends React.Component {
         const shouldDisableCompanyName = bankAccountID && ReimbursementAccountUtils.getDefaultStateForField(this.props, 'companyName');
         const shouldDisableCompanyTaxID = bankAccountID && ReimbursementAccountUtils.getDefaultStateForField(this.props, 'companyTaxID');
 
-        FormActions.setErrors(ONYXKEYS.FORMS.COMPANY_STEP_FORM, this.props.reimbursementAccount.errors);
-
         return (
             <>
                 <HeaderWithCloseButton
@@ -156,12 +148,11 @@ class CompanyStep extends React.Component {
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 <Form
-                    ref={el => this.form = el}
-                    formID={ONYXKEYS.FORMS.COMPANY_STEP_FORM}
+                    formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
                     validate={this.validate}
                     onSubmit={this.submit}
                     submitButtonText={this.props.translate('common.saveAndContinue')}
-                    style={[styles.mh5, styles.flexGrow1]}
+                    style={[styles.ph5, styles.flexGrow1]}
                 >
                     <Text>{this.props.translate('companyStep.subtitle')}</Text>
                     <TextInput
