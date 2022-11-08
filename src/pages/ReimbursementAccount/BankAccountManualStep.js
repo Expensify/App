@@ -92,6 +92,8 @@ class BankAccountManualStep extends React.Component {
                         source={exampleCheckImage(this.props.preferredLocale)}
                     />
                     <TextInput
+                        autoFocus
+                        shouldDelayFocus
                         inputID="routingNumber"
                         label={this.props.translate('bankAccount.routingNumber')}
                         defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'routingNumber', '')}
