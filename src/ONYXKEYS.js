@@ -178,6 +178,7 @@ export default {
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
         PROFILE_SETTINGS_FORM: 'profileSettingsForm',
         DISPLAY_NAME_FORM: 'displayNameForm',
+        EDIT_PASSWORD_FORM: 'editPasswordForm',
     },
 
     // Whether we should show the compose input or not

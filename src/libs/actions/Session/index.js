@@ -565,6 +565,11 @@ function authenticatePusher(socketID, channelName, callback) {
     });
 }
 
+function updateSessionLoginAndResendValidationLink(login) {
+    Onyx.merge(ONYXKEYS.CREDENTIALS, {login});
+    resendValidationLink();
+}
+
 export {
     beginSignIn,
     updatePasswordAndSignin,
@@ -584,4 +589,5 @@ export {
     changePasswordAndSignIn,
     invalidateCredentials,
     invalidateAuthToken,
+    updateSessionLoginAndResendValidationLink,
 };

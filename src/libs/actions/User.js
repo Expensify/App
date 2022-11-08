@@ -42,21 +42,21 @@ function updatePassword(oldPassword, password) {
         optimisticData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.ACCOUNT,
-                value: {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true},
+                key: ONYXKEYS.FORMS.EDIT_PASSWORD_FORM,
+                value: {isLoading: true},
             },
         ],
         successData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.ACCOUNT,
+                key: ONYXKEYS.FORMS.EDIT_PASSWORD_FORM,
                 value: {isLoading: false},
             },
         ],
         failureData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.ACCOUNT,
+                key: ONYXKEYS.FORMS.EDIT_PASSWORD_FORM,
                 value: {isLoading: false},
             },
         ],

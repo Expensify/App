@@ -52,6 +52,10 @@ export default {
                         path: ROUTES.SETTINGS_PASSWORD,
                         exact: true,
                     },
+                    Settings_Resend_Validation_Link: {
+                        path: ROUTES.SETTINGS_RESEND_VALIDATION_LINK,
+                        exact: true,
+                    },
                     Settings_Security: {
                         path: ROUTES.SETTINGS_SECURITY,
                         exact: true,

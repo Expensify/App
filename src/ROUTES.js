@@ -28,6 +28,7 @@ export default {
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
     SETTINGS_PASSWORD: 'settings/security/password',
+    SETTINGS_RESEND_VALIDATION_LINK: 'settings/security/password/resendValidationLink',
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_PAYMENTS: 'settings/payments',
