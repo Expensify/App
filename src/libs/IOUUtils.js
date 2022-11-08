@@ -50,11 +50,11 @@ function calculateAmount(participants, total, isDefaultUser = false) {
  * @returns {Object}
  */
 function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
-    const iouReportUpdate = {...iouReport};
-
-    if (currency && currency !== iouReport.currency && isNetworkOffline) {
-        return iouReportUpdate;
+    if (currency !== iouReport.currency && isNetworkOffline) {
+        return iouReport;
     }
+
+    const iouReportUpdate = {...iouReport};
 
     if (actorEmail === iouReport.ownerEmail) {
         iouReportUpdate.total += type === CONST.IOU.REPORT_ACTION_TYPE.CANCEL ? -amount : amount;
