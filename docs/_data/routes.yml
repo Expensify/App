@@ -9,17 +9,28 @@ hubs:
     title: Send money
     description: With only a couple of clicks, send money to your friends or coworkers using NewExpensify.
     icon: /assets/images/send.svg
+    articles:
+      - href: Request-and-Send-Money
+        title: Request and Send Money
     sections:
       - href: workspaces
         title: Workspaces
         articles:
           - href: The-Free-Plan
             title: The Free Plan
+      - href: chat
+        title: Chat
+        articles:
+          - href: Everything-About-Chat
+            title: Everything About Chat
 
   - href: request-money
     title: Request money
     icon: /assets/images/money-circle.svg
     description: Request money for work expenses, bills, or a night out with friends using NewExpensify.
+    articles:
+      - href: Request-and-Send-Money
+        title: Request and Send Money
 
   - href: other
     title: Other

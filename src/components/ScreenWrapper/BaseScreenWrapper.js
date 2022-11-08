@@ -10,7 +10,6 @@ import onScreenTransitionEnd from '../../libs/onScreenTransitionEnd';
 import * as StyleUtils from '../../styles/StyleUtils';
 import styles from '../../styles/styles';
 import HeaderGap from '../HeaderGap';
-import KeyboardShortcutsModal from '../KeyboardShortcutsModal';
 import OfflineIndicator from '../OfflineIndicator';
 import compose from '../../libs/compose';
 import withNavigation from '../withNavigation';
@@ -87,7 +86,6 @@ class BaseScreenWrapper extends React.Component {
                                         })
                                         : this.props.children
                                 }
-                                <KeyboardShortcutsModal />
                                 {this.props.isSmallScreenWidth && (
                                     <OfflineIndicator />
                                 )}
