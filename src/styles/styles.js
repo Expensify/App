@@ -334,7 +334,7 @@ const styles = {
     },
 
     textDanger: {
-        color: themeColors.dangerButton,
+        color: themeColors.danger,
     },
 
     borderRadiusNormal: {
@@ -845,7 +845,7 @@ const styles = {
     noOutline: addOutlineWidth({}, 0),
 
     errorOutline: {
-        borderColor: themeColors.dangerButton,
+        borderColor: themeColors.danger,
     },
 
     textLabelSupporting: {
