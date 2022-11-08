@@ -1,7 +1,7 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {Freeze} from 'react-freeze';
@@ -146,20 +146,20 @@ class ReportScreen extends React.Component {
     }
 
     /**
-     * When reports change there's a brief time content is not ready to be displayed
-     * It Should show the loader if it's the first time we are opening the report
+     * When false the ReportActionsView will completely unmount and we will show a loader until it returns true.
      *
      * @returns {Boolean}
      */
-    shouldShowLoader() {
+    isReportReadyForDisplay() {
         const reportIDFromPath = getReportID(this.props.route);
 
-        // This means there are no reportActions at all to display, but it is still in the process of loading the next set of actions.
-        const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
+        // We need to wait for the initial app data to load as it tells us which reports are unread. Waiting will allow the new marker to be set
+        // correctly when the report mounts. If we don't do this, the report may initialize in the "read" state and the marker won't be set at all.
+        const isLoadingInitialAppData = this.props.isLoadingInitialAppData;
 
         // This is necessary so that when we are retrieving the next report data from Onyx the ReportActionsView will remount completely
         const isTransitioning = this.props.report && this.props.report.reportID !== reportIDFromPath;
-        return !reportIDFromPath || isLoadingInitialReportActions || !this.props.report.reportID || isTransitioning;
+        return reportIDFromPath && this.props.report.reportID && !isTransitioning && !isLoadingInitialAppData;
     }
 
     fetchReportIfNeeded() {
@@ -216,7 +216,10 @@ class ReportScreen extends React.Component {
         const reportID = getReportID(this.props.route);
         const addWorkspaceRoomOrChatPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(this.props.report, 'pendingFields.createChat');
         const addWorkspaceRoomOrChatErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom') || lodashGet(this.props.report, 'errorFields.createChat');
-        const screenWrapperStyle = [styles.appContent, {marginTop: this.state.viewportOffsetTop}];
+        const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}];
+
+        // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
+        const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
         return (
             <Freeze
                 freeze={this.props.isSmallScreenWidth && this.props.isDrawerOpen}
@@ -231,7 +234,6 @@ class ReportScreen extends React.Component {
             >
                 <ScreenWrapper
                     style={screenWrapperStyle}
-                    keyboardAvoidingViewBehavior={Platform.OS === 'android' ? '' : 'padding'}
                 >
                     <FullPageNotFoundView
                         shouldShow={!this.props.report.reportID}
@@ -245,7 +247,7 @@ class ReportScreen extends React.Component {
                         <OfflineWithFeedback
                             pendingAction={addWorkspaceRoomOrChatPendingAction}
                             errors={addWorkspaceRoomOrChatErrors}
-                            errorRowStyles={styles.dNone}
+                            shouldShowErrorMessages={false}
                         >
                             <HeaderView
                                 reportID={reportID}
@@ -281,32 +283,35 @@ class ReportScreen extends React.Component {
                                 this.setState({skeletonViewContainerHeight});
                             }}
                         >
-                            {this.shouldShowLoader()
-                                ? (
-                                    <ReportActionsSkeletonView
-                                        containerHeight={this.state.skeletonViewContainerHeight}
-                                    />
-                                )
-                                : (
-                                    <>
-                                        <ReportActionsView
-                                            reportActions={this.props.reportActions}
-                                            report={this.props.report}
-                                            session={this.props.session}
-                                            isComposerFullSize={this.props.isComposerFullSize}
-                                            isDrawerOpen={this.props.isDrawerOpen}
-                                        />
-                                        <ReportFooter
-                                            errors={addWorkspaceRoomOrChatErrors}
-                                            pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                            isOffline={this.props.network.isOffline}
-                                            reportActions={this.props.reportActions}
-                                            report={this.props.report}
-                                            isComposerFullSize={this.props.isComposerFullSize}
-                                            onSubmitComment={this.onSubmitComment}
-                                        />
-                                    </>
-                                )}
+                            {this.isReportReadyForDisplay() && (
+                                <ReportActionsView
+                                    reportActions={this.props.reportActions}
+                                    report={this.props.report}
+                                    session={this.props.session}
+                                    isComposerFullSize={this.props.isComposerFullSize}
+                                    isDrawerOpen={this.props.isDrawerOpen}
+                                    parentViewHeight={this.state.skeletonViewContainerHeight}
+                                />
+                            )}
+
+                            {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
+                            we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
+                            {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions) && (
+                                <ReportActionsSkeletonView
+                                    containerHeight={this.state.skeletonViewContainerHeight}
+                                />
+                            )}
+                            {this.isReportReadyForDisplay() && !isLoadingInitialReportActions && (
+                                <ReportFooter
+                                    errors={addWorkspaceRoomOrChatErrors}
+                                    pendingAction={addWorkspaceRoomOrChatPendingAction}
+                                    isOffline={this.props.network.isOffline}
+                                    reportActions={this.props.reportActions}
+                                    report={this.props.report}
+                                    isComposerFullSize={this.props.isComposerFullSize}
+                                    onSubmitComment={this.onSubmitComment}
+                                />
+                            )}
                         </View>
                     </FullPageNotFoundView>
                 </ScreenWrapper>
@@ -351,6 +356,9 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        isLoadingInitialAppData: {
+            key: ONYXKEYS.IS_LOADING_INITIAL_APP_DATA,
         },
     }),
 )(ReportScreen);

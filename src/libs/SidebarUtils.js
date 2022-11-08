@@ -100,11 +100,12 @@ function getOrderedReportIDs(reportIDFromRoute) {
     // Get all the display names for our reports in an easy to access property so we don't have to keep
     // re-running the logic
     const filteredReportsWithReportName = _.map(filteredReports, (report) => {
-        const personalDetailMap = OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails);
-        return {
-            ...report,
-            reportDisplayName: ReportUtils.getReportName(report, personalDetailMap, policies),
-        };
+        // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
+        // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
+        // the reportDisplayName property to the report object directly.
+        // eslint-disable-next-line no-param-reassign
+        report.reportDisplayName = ReportUtils.getReportName(report, policies);
+        return report;
     });
 
     // Sorting the reports works like this:
@@ -142,10 +143,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
             pinnedReportOptions.push(report);
         } else if (report.hasOutstandingIOU && !report.isIOUReportOwner) {
             iouDebtReportOptions.push(report);
-
-        // If the active report has a draft, we do not put it in the group of draft reports because we want it to maintain it's current position. Otherwise the report's position
-        // jumps around in the LHN and it's kind of confusing to the user to see the LHN reorder when they start typing a comment on a report.
-        } else if (report.hasDraft && report.reportID !== reportIDFromRoute) {
+        } else if (report.hasDraft) {
             draftReportOptions.push(report);
         } else {
             recentReportOptions.push(report);
@@ -187,6 +185,8 @@ function getOptionData(reportID) {
     const result = {
         text: null,
         alternateText: null,
+        pendingAction: null,
+        allReportErrors: null,
         brickRoadIndicator: null,
         icons: null,
         tooltipText: null,
@@ -220,7 +220,9 @@ function getOptionData(reportID) {
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
-    result.brickRoadIndicator = OptionsListUtils.getBrickRoadIndicatorStatusForReport(report, reportActions);
+    result.pendingAction = report.pendingFields ? (report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat) : null;
+    result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
+    result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerEmail = report.ownerEmail;
     result.reportID = report.reportID;
     result.isUnread = ReportUtils.isUnread(report);
@@ -292,7 +294,7 @@ function getOptionData(reportID) {
         result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
 
-    const reportName = ReportUtils.getReportName(report, personalDetailMap, policies);
+    const reportName = ReportUtils.getReportName(report, policies);
     result.text = reportName;
     result.subtitle = subtitle;
     result.participantsList = personalDetailList;

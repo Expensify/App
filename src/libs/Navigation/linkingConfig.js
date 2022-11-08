@@ -36,6 +36,10 @@ export default {
                     Settings_Root: {
                         path: ROUTES.SETTINGS,
                     },
+                    Settings_Workspaces: {
+                        path: ROUTES.SETTINGS_WORKSPACES,
+                        exact: true,
+                    },
                     Settings_Preferences: {
                         path: ROUTES.SETTINGS_PREFERENCES,
                         exact: true,
@@ -82,6 +86,10 @@ export default {
                     },
                     Settings_Profile: {
                         path: ROUTES.SETTINGS_PROFILE,
+                        exact: true,
+                    },
+                    Settings_Display_Name: {
+                        path: ROUTES.SETTINGS_DISPLAY_NAME,
                         exact: true,
                     },
                     Settings_About: {

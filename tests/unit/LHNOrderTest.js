@@ -5,8 +5,9 @@ import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import CONST from '../../src/CONST';
 
-// Be sure to include the mocked permissions library or else the beta tests won't work
+// Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');
+jest.mock('../../src/components/Icon/Expensicons');
 
 const ONYXKEYS = {
     PERSONAL_DETAILS: 'personalDetails',
@@ -18,6 +19,7 @@ const ONYXKEYS = {
         REPORT_ACTIONS: 'reportActions_',
         REPORT_IOUS: 'reportIOUs_',
     },
+    NETWORK: 'network',
 };
 
 describe('Sidebar', () => {
@@ -25,6 +27,9 @@ describe('Sidebar', () => {
         keys: ONYXKEYS,
         registerStorageEventListener: () => {},
     }));
+
+    // Initialize the network key for OfflineWithFeedback
+    beforeEach(() => Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false}));
 
     // Clear out Onyx after each test so that each test starts with a clean slate
     afterEach(() => {
@@ -119,7 +124,7 @@ describe('Sidebar', () => {
                 });
         });
 
-        it('doesn\'t change the order when adding a draft to the active report', () => {
+        it('changes the order when adding a draft to the active report', () => {
             // Given three reports in the recently updated order of 3, 2, 1
             // And the first report has a draft
             // And the currently viewed report is the first report
@@ -142,7 +147,7 @@ describe('Sidebar', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
                 }))
 
-                // Then there should be a pencil icon and report one should still be the last one because putting a draft on the active report should not change it's location
+                // Then there should be a pencil icon and report one should be the first one because putting a draft on the active report should change its location
                 // in the ordered list
                 .then(() => {
                     const pencilIcon = sidebarLinks.getAllByAccessibilityHint('Pencil Icon');
@@ -150,9 +155,9 @@ describe('Sidebar', () => {
 
                     const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
                     expect(displayNames).toHaveLength(3);
-                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
-                    expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
-                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('One, Two');
+                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two'); // this has `hasDraft` flag enabled so it will be on top
+                    expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Five, Six');
+                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
                 });
         });
 
