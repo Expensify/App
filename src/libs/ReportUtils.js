@@ -702,19 +702,27 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
  */
 function getIOUReportActionMessage(type, total, participants, comment, currency) {
     const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
-    const isMultipleParticipantReport = participants.length > 1;
-    const displayNames = _.map(participants, participant => getDisplayNameForParticipant(participant.login, isMultipleParticipantReport) || participant.login);
-    const from = displayNames.length < 3
+    const displayNames = _.map(participants, participant => getDisplayNameForParticipant(participant.login, true));
+    const who = displayNames.length < 3
         ? displayNames.join(' and ')
         : `${displayNames.slice(0, -1).join(', ')}, and ${_.last(displayNames)}`;
 
     let iouMessage;
     switch (type) {
         case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
-            iouMessage = `Requested ${amount} from ${from}${comment && ` for ${comment}`}`;
+            iouMessage = `Requested ${amount} from ${who}${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.SPLIT:
-            iouMessage = `Split ${amount} with ${from}${comment && ` for ${comment}`}`;
+            iouMessage = `Split ${amount} with ${who}${comment && ` for ${comment}`}`;
+            break;
+        case CONST.IOU.REPORT_ACTION_TYPE.CANCEL:
+            iouMessage = `Cancelled the ${amount} request${comment && ` for ${comment}`}`;
+            break;
+        case CONST.IOU.REPORT_ACTION_TYPE.DECLINE:
+            iouMessage = `Declined the ${amount} request${comment && ` for ${comment}`}`;
+            break;
+        case CONST.IOU.REPORT_ACTION_TYPE.PAY:
+            iouMessage = `Paid ${amount} to ${who}${comment && ` for ${comment}`}`;
             break;
         default:
             break;
@@ -734,7 +742,7 @@ function getIOUReportActionMessage(type, total, participants, comment, currency)
  * @param {Number} sequenceNumber - Caller is responsible for providing a best guess at what the next sequenceNumber will be.
  * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split).
  * @param {Number} amount - IOU amount in cents.
- * @param {String} currency - IOU currency.
+ * @param {String} currency
  * @param {String} comment - User comment for the IOU.
  * @param {Array}  participants - An array with participants details.
  * @param {String} paymentType - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
