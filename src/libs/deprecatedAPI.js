@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 import requireParameters from './requireParameters';
 import * as Request from './Request';
 import * as Network from './Network';
@@ -126,34 +125,6 @@ function GetIOUReport(parameters) {
 }
 
 /**
- * @returns {Promise}
- * @param {String} policyID
- */
-function GetFullPolicy(policyID) {
-    if (!_.isString(policyID)) {
-        throw new Error('[API] Must include a single policyID with calls to API.GetFullPolicy');
-    }
-
-    const commandName = 'Get';
-    const parameters = {
-        returnValueList: 'policyList',
-        policyIDList: policyID,
-    };
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @returns {Promise}
- */
-function GetPolicySummaryList() {
-    const commandName = 'Get';
-    const parameters = {
-        returnValueList: 'policySummaryList',
-    };
-    return Network.post(commandName, parameters);
-}
-
-/**
  * @param {Object} parameters
  * @param {String} parameters.name
  * @param {Number} parameters.value
@@ -217,43 +188,6 @@ function PersonalDetails_Update(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Object} parameters.name
- * @param {Object} parameters.value
- * @returns {Promise}
- */
-function PreferredLocale_Update(parameters) {
-    const commandName = 'PreferredLocale_Update';
-    requireParameters(['name', 'value'],
-        parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {Number} parameters.reportID
- * @param {String} parameters.transactionID
- * @returns {Promise}
- */
-function RejectTransaction(parameters) {
-    const commandName = 'RejectTransaction';
-    requireParameters(['reportID', 'transactionID'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {Number} parameters.reportID
- * @returns {Promise}
- */
-function Report_GetHistory(parameters) {
-    const commandName = 'Report_GetHistory';
-    requireParameters(['reportID'],
-        parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.email
  * @returns {Promise}
  */
@@ -302,17 +236,6 @@ function User_SecondaryLogin_Send(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {File|Object} parameters.file
- * @returns {Promise}
- */
-function User_UploadAvatar(parameters) {
-    const commandName = 'User_UploadAvatar';
-    requireParameters(['file'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {Number} parameters.accountID
  * @param {String} parameters.validateCode
  * @returns {Promise}
@@ -321,57 +244,6 @@ function ValidateEmail(parameters) {
     const commandName = 'ValidateEmail';
     requireParameters(['accountID', 'validateCode'], parameters, commandName);
     return Network.post(commandName, parameters);
-}
-
-/**
- * Create a new IOUTransaction
- *
- * @param {Object} parameters
- * @param {String} parameters.comment
- * @param {Array} parameters.debtorEmail
- * @param {String} parameters.currency
- * @param {String} parameters.amount
- * @returns {Promise}
- */
-function CreateIOUTransaction(parameters) {
-    const commandName = 'CreateIOUTransaction';
-    requireParameters(['comment', 'debtorEmail', 'currency', 'amount'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * Create a new IOU Split
- *
- * @param {Object} parameters
- * @param {String} parameters.splits
- * @param {String} parameters.currency
- * @param {String} parameters.reportID
- * @param {String} parameters.amount
- * @param {String} parameters.comment
- * @returns {Promise}
- */
-function CreateIOUSplit(parameters) {
-    const commandName = 'CreateIOUSplit';
-    requireParameters(['splits', 'currency', 'amount', 'reportID'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {String} firstName
- * @param {String} lastName
- * @param {String} dob
- * @returns {Promise}
- */
-function Wallet_GetOnfidoSDKToken(firstName, lastName, dob) {
-    return Network.post('Wallet_GetOnfidoSDKToken', {
-        // We need to pass this so we can request a token with the correct referrer
-        // This value comes from a cross-platform module which returns true for native
-        // platforms and false for non-native platforms.
-        isViaExpensifyCashNative,
-        firstName,
-        lastName,
-        dob,
-    }, CONST.NETWORK.METHOD.POST, true);
 }
 
 /**
@@ -387,21 +259,6 @@ function Wallet_Activate(parameters) {
     const commandName = 'Wallet_Activate';
     requireParameters(['currentStep'], parameters, commandName);
     return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
-}
-
-/**
- * @param {Object} parameters
- * @param {Object[]} parameters.employees
- * @param {String} parameters.welcomeNote
- * @param {String} parameters.policyID
- * @returns {Promise}
- */
-function Policy_Employees_Merge(parameters) {
-    const commandName = 'Policy_Employees_Merge';
-    requireParameters(['employees', 'welcomeNote', 'policyID'], parameters, commandName);
-
-    // Always include returnPersonalDetails to ensure we get the employee's personal details in the response
-    return Network.post(commandName, {...parameters, returnPersonalDetails: true});
 }
 
 /**
@@ -444,74 +301,6 @@ function BankAccount_SetupWithdrawal(parameters) {
         CONST.NETWORK.METHOD.POST,
         true,
     );
-}
-
-/**
- * @param {Object} parameters
- * @param {Number} [parameters.latitude]
- * @param {Number} [parameters.longitude]
- * @returns {Promise}
- */
-function GetLocalCurrency(parameters) {
-    const commandName = 'GetLocalCurrency';
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @returns {Promise}
- */
-function User_IsUsingExpensifyCard() {
-    return Network.post('User_IsUsingExpensifyCard', {});
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.policyID
- * @param {String} parameters.customUnitID
- * @param {String} parameters.value
- * @returns {Promise}
- */
-function Policy_CustomUnitRate_Update(parameters) {
-    const commandName = 'Policy_CustomUnitRate_Update';
-    requireParameters(['policyID', 'customUnitID', 'customUnitRate'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} [parameters.policyID]
- * @returns {Promise}
- */
-function Policy_Delete(parameters) {
-    const commandName = 'Policy_Delete';
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.policyID
- * @param {Array} parameters.emailList
- * @returns {Promise}
- */
-function Policy_Employees_Remove(parameters) {
-    const commandName = 'Policy_Employees_Remove';
-    requireParameters(['policyID', 'emailList'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.taskID
- * @param {String} parameters.policyID
- * @param {String} parameters.firstName
- * @param {String} parameters.lastName
- * @param {String} parameters.phoneNumber
- * @returns {Promise}
- */
-function Inbox_CallUser(parameters) {
-    const commandName = 'Inbox_CallUser';
-    requireParameters(['taskID', 'policyID', 'firstName', 'lastName', 'phoneNumber'], parameters, commandName);
-    return Network.post(commandName, parameters);
 }
 
 /**
@@ -560,34 +349,18 @@ export {
     Get,
     GetStatementPDF,
     GetIOUReport,
-    GetFullPolicy,
-    GetPolicySummaryList,
     GetReportSummaryList,
     Graphite_Timer,
-    Inbox_CallUser,
     PayIOU,
     PayWithWallet,
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
-    Policy_Employees_Merge,
-    RejectTransaction,
-    Report_GetHistory,
     ResendValidateCode,
     SetNameValuePair,
     SetPassword,
     User_SignUp,
-    User_IsUsingExpensifyCard,
     User_SecondaryLogin_Send,
-    User_UploadAvatar,
-    CreateIOUTransaction,
-    CreateIOUSplit,
     ValidateEmail,
     Wallet_Activate,
-    Wallet_GetOnfidoSDKToken,
     TransferWalletBalance,
-    GetLocalCurrency,
-    Policy_CustomUnitRate_Update,
-    Policy_Employees_Remove,
-    PreferredLocale_Update,
-    Policy_Delete,
 };

@@ -19,6 +19,7 @@ export default {
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
         password: 'Contraseña',
+        workspaces: 'Espacios de trabajo',
         profile: 'Perfil',
         payments: 'Pagos',
         preferences: 'Preferencias',
@@ -118,7 +119,7 @@ export default {
         chooseFromGallery: 'Elegir de la galería',
         chooseDocument: 'Elegir documento',
         attachmentTooLarge: 'Archivo adjunto demasiado grande',
-        sizeExceeded: 'El archivo adjunto supera el límite de 50 MB.',
+        sizeExceeded: 'El archivo adjunto supera el límite de 24 MB.',
         attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
         sizeNotMet: 'El archivo adjunto debe ser mas grande que 240 bytes',
         wrongFileType: 'El tipo del archivo adjunto es incorrecto',
@@ -260,6 +261,9 @@ export default {
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
+            genericCreateFailureMessage: 'Error inesperado solicitando dinero, por favor inténtalo más tarde',
+            genericCancelFailureMessage: ({type}) => `Error inesperado al ${type === 'decline' ? 'rechazar' : 'cancelar'} la solicitud de dinero, por favor inténtalo más tarde`,
+
         },
     },
     notificationPreferences: {
@@ -299,6 +303,12 @@ export default {
         online: 'En línea',
         offline: 'Desconectado',
         syncing: 'Sincronizando',
+    },
+    displayNamePage: {
+        headerTitle: 'Nombre',
+        isShownOnProfile: 'Este nombre es visible en su perfil.',
+        john: 'Juan',
+        doe: 'Nadie',
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Agregar número de teléfono',
@@ -374,7 +384,6 @@ export default {
         yourPayPalUsername: 'Tu usuario de PayPal',
         addPayPalAccount: 'Agregar cuenta de PayPal',
         growlMessageOnSave: 'Su nombre de usuario de PayPal se agregó correctamente',
-        editPayPalAccount: 'Actualizar cuenta de PayPal',
         formatError: 'Usuario PayPal.me no válido',
     },
     addDebitCardPage: {
@@ -567,7 +576,6 @@ export default {
             addressStreet: 'Ingresa una calle de dirección válida que no sea un apartado postal',
             addressState: 'Por favor, selecciona un estado',
             incorporationDate: 'Ingresa una fecha válida',
-            incorporationDateFuture: 'La fecha de incorporación no puede ser futura',
             incorporationState: 'Ingresa un estado válido',
             industryCode: 'Ingresa un código de clasificación de industria válido',
             restrictedBusiness: 'Confirma que la empresa no está en la lista de negocios restringidos',
@@ -816,6 +824,10 @@ export default {
             growlMessageOnDeleteError: 'No se puede eliminar el espacio de trabajo porque tiene informes que están siendo procesados',
             unavailable: 'Espacio de trabajo no disponible',
         },
+        emptyWorkspace: {
+            title: 'Crear un nuevo espacio de trabajo',
+            subtitle: 'En los espacios de trabajo es donde puedes chatear con tu equipo, reembolsar gastos, emitir tarjetas, enviar y pagar facturas y mas — todo en un mismo lugar',
+        },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
             getTheExpensifyCardAndMore: 'Consigue la Tarjeta Expensify y más',
@@ -972,9 +984,10 @@ export default {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
         headers: {
             frequentlyUsed: 'Usado frecuentemente',
-            smileysAndPeople: 'Emoticonos y personas',
+            smileysAndEmotion: 'Emoticonos y emociones',
+            peopleAndBody: 'Personas y Cuerpo',
             animalsAndNature: 'Animales y naturaleza',
-            foodAndDrinks: 'Alimentos y bebidas',
+            foodAndDrink: 'Alimentos y bebidas',
             travelAndPlaces: 'Viajes y lugares',
             activities: 'Actividades',
             objects: 'Objetos',

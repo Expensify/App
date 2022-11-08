@@ -357,6 +357,9 @@ function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = f
                 Navigation.navigate(ROUTES.REPORT);
                 return;
             }
+            if (!iouReportObject) {
+                return;
+            }
             setLocalIOUReportData(iouReportObject);
             return iouReportObject;
         });
@@ -702,6 +705,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 isLoadingReportActions: true,
+                isLoadingMoreReportActions: false,
                 lastVisitedTimestamp: Date.now(),
                 lastReadSequenceNumber: getMaxSequenceNumber(reportID),
             },
@@ -766,6 +770,7 @@ function reconnect(reportID) {
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     isLoadingReportActions: true,
+                    isLoadingMoreReportActions: false,
                 },
             }],
             successData: [{
@@ -1239,6 +1244,9 @@ function addPolicyReport(policy, reportName, visibility) {
         false,
         '',
         visibility,
+
+        // The room might contain all policy members so notifying always should be opt-in only.
+        CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
     );
 
     // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
@@ -1376,6 +1384,27 @@ function setIsComposerFullSize(reportID, isComposerFullSize) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, isComposerFullSize);
 }
 
+const defaultNewActionSubscriber = {
+    reportID: '',
+    callback: () => {},
+};
+
+let newActionSubscriber = defaultNewActionSubscriber;
+
+/**
+ * Enables the Report actions file to let the ReportActionsView know that a new comment has arrived in realtime for the current report
+ *
+ * @param {String} reportID
+ * @param {Function} callback
+ * @returns {Function}
+ */
+function subscribeToNewActionEvent(reportID, callback) {
+    newActionSubscriber = {callback, reportID};
+    return () => {
+        newActionSubscriber = defaultNewActionSubscriber;
+    };
+}
+
 /**
  * @param {String} reportID
  * @param {Object} action
@@ -1390,7 +1419,10 @@ function viewNewReportAction(reportID, action) {
     if (isFromCurrentUser) {
         updatedReportObject.lastVisitedTimestamp = Date.now();
         updatedReportObject.lastReadSequenceNumber = action.sequenceNumber;
-        updatedReportObject.maxSequenceNumber = action.sequenceNumber;
+    }
+
+    if (reportID === newActionSubscriber.reportID) {
+        newActionSubscriber.callback(isFromCurrentUser, updatedReportObject.maxSequenceNumber);
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
@@ -1421,6 +1453,12 @@ function viewNewReportAction(reportID, action) {
 
     // If the comment came from Concierge let's not show a notification since we already show one for expensify.com
     if (lodashGet(action, 'actorEmail') === CONST.EMAIL.CONCIERGE) {
+        return;
+    }
+
+    // Don't show a notification if no comment exists
+    if (!_.some(action.message, f => f.type === 'COMMENT')) {
+        Log.info('[LOCAL_NOTIFICATION] No notification because no comments exist for the current report');
         return;
     }
 
@@ -1461,12 +1499,6 @@ Onyx.connect({
             }
 
             if (ReportActionsUtils.isDeletedAction(action)) {
-                return;
-            }
-
-            // We don't want to process any new actions that have a pendingAction field as this means they are "optimistic" and no notifications
-            // should be created for them
-            if (!_.isEmpty(action.pendingAction)) {
                 return;
             }
 
@@ -1521,4 +1553,6 @@ export {
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
     clearIOUError,
+    getMaxSequenceNumber,
+    subscribeToNewActionEvent,
 };

@@ -117,21 +117,42 @@ AppState.addEventListener('change', (nextAppState) => {
  */
 function openApp() {
     API.read('OpenApp', {policyIDList}, {
-        optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-            value: true,
-        }],
-        successData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-            value: false,
-        }],
-        failureData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-            value: false,
-        }],
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                value: true,
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_INITIAL_APP_DATA,
+                value: true,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                value: false,
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_INITIAL_APP_DATA,
+                value: false,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                value: false,
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_INITIAL_APP_DATA,
+                value: false,
+            },
+        ],
     });
 }
 
@@ -139,7 +160,7 @@ function openApp() {
  * Refreshes data when the app reconnects
  */
 function reconnectApp() {
-    API.read('ReconnectApp', {policyIDListExcludingWorkspacesCreatedOffline}, {
+    API.write('ReconnectApp', {policyIDListExcludingWorkspacesCreatedOffline}, {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
