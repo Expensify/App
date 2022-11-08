@@ -294,26 +294,28 @@ class SidebarLinks extends React.Component {
                         />
                     </TouchableOpacity>
                 </View>
-                <OptionsList
-                    contentContainerStyles={[
-                        styles.sidebarListContainer,
-                        {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
-                    ]}
-                    sections={sections}
-                    focusedIndex={_.findIndex(this.state.orderedReports, (
-                        option => option.reportID === activeReportID
-                    ))}
-                    onSelectRow={(option) => {
-                        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
-                        this.props.onLinkClick();
-                    }}
-                    optionBackgroundColor={themeColors.sidebar}
-                    hideSectionHeaders
-                    showTitleTooltip
-                    disableFocusOptions={this.props.isSmallScreenWidth}
-                    optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
-                    onLayout={App.setSidebarLoaded}
-                />
+                <Freeze freeze={this.props.isSmallScreenWidth && !this.props.isDrawerOpen && this.isSidebarLoaded}>
+                    <LHNOptionsList
+                        contentContainerStyles={[
+                            styles.sidebarListContainer,
+                            {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
+                        ]}
+                        data={optionListItems}
+                        focusedIndex={_.findIndex(optionListItems, (
+                            option => option.toString() === this.props.reportIDFromRoute
+                        ))}
+                        onSelectRow={(option) => {
+                            Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+                            this.props.onLinkClick();
+                        }}
+                        shouldDisableFocusOptions={this.props.isSmallScreenWidth}
+                        optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
+                        onLayout={() => {
+                            App.setSidebarLoaded();
+                            this.isSidebarLoaded = true;
+                        }}
+                    />
+                </Freeze>
             </View>
         );
     }
