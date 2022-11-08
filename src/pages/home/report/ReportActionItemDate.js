@@ -14,7 +14,7 @@ const propTypes = {
 
 const ReportActionItemDate = props => (
     <Text style={[styles.chatItemMessageHeaderTimestamp]}>
-        {props.timestampToDateTime(props.created)}
+        {props.datetimeToCalendarTime(props.created)}
     </Text>
 );
 

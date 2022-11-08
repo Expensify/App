@@ -13,8 +13,8 @@ describe('DateUtils/getLocalMomentFromDatetime', () => {
     });
 });
 
-describe('DateUtils/timestampToDateTime', () => {
+describe('DateUtils/datetimeToCalendarTime', () => {
     it('should return a moment object with the correct date and time', () => {
-        expect(DateUtils.timestampToDateTime(locale, datetime)).toBe('Yesterday at 4:00 PM');
+        expect(DateUtils.datetimeToCalendarTime(locale, datetime)).toBe('Yesterday at 4:00 PM');
     });
 });
