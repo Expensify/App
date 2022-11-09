@@ -1012,6 +1012,7 @@ function deleteReportComment(reportID, reportAction) {
     const optimisticReport = {
         lastMessageText,
         lastReadSequenceNumber,
+        maxSequenceNumber: lastReadSequenceNumber,
     };
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
