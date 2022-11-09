@@ -36,12 +36,11 @@ function getSortedReportActions(reportActions) {
  * @param {Array} reportActions
  * @returns {Number}
  */
-function getMostRecentIOUReportSequenceNumber(reportActions) {
+function getMostRecentIOUReportActionID(reportActions) {
     return _.chain(reportActions)
-        .sortBy('sequenceNumber')
-        .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU)
+        .where({actionName: CONST.REPORT.ACTIONS.TYPE.IOU})
         .max(action => action.sequenceNumber)
-        .value().sequenceNumber;
+        .value().reportActionID;
 }
 
 /**
@@ -78,7 +77,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
 
 export {
     getSortedReportActions,
-    getMostRecentIOUReportSequenceNumber,
+    getMostRecentIOUReportActionID,
     isDeletedAction,
     isConsecutiveActionMadeByPreviousActor,
 };
