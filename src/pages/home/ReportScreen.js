@@ -228,7 +228,9 @@ class ReportScreen extends React.Component {
                         style={screenWrapperStyle}
                     >
                         <ReportHeaderSkeletonView />
-                        <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
+                        <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
+                            <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} shouldShowComposer />
+                        </View>
                     </ScreenWrapper>
                 )}
             >
@@ -299,17 +301,20 @@ class ReportScreen extends React.Component {
                             {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions) && (
                                 <ReportActionsSkeletonView
                                     containerHeight={this.state.skeletonViewContainerHeight}
+                                    shouldShowComposer
                                 />
                             )}
-                            <ReportFooter
-                                errors={addWorkspaceRoomOrChatErrors}
-                                pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                isOffline={this.props.network.isOffline}
-                                reportActions={this.props.reportActions}
-                                report={this.props.report}
-                                isComposerFullSize={this.props.isComposerFullSize}
-                                onSubmitComment={this.onSubmitComment}
-                            />
+                            {this.isReportReadyForDisplay() && !isLoadingInitialReportActions && (
+                                <ReportFooter
+                                    errors={addWorkspaceRoomOrChatErrors}
+                                    pendingAction={addWorkspaceRoomOrChatPendingAction}
+                                    isOffline={this.props.network.isOffline}
+                                    reportActions={this.props.reportActions}
+                                    report={this.props.report}
+                                    isComposerFullSize={this.props.isComposerFullSize}
+                                    onSubmitComment={this.onSubmitComment}
+                                />
+                            )}
                         </View>
                     </FullPageNotFoundView>
                 </ScreenWrapper>
