@@ -98,12 +98,12 @@ class ReportActionsList extends React.Component {
      * Create a unique key for each action in the FlatList.
      * We use the reportActionID that is a string representation of a random 64-bit int, which should be
      * random enough to avoid collisions
-     * @param {Object} item
-     * @param {Object} item.action
+     * @param {Object} reportAction
+     * @param {String} reportAction.reportActionID
      * @return {String}
      */
-    keyExtractor(item) {
-        return `${item.action.clientID}${item.action.reportActionID}`;
+    keyExtractor(reportAction) {
+        return reportAction.reportActionID;
     }
 
     /**
@@ -132,7 +132,7 @@ class ReportActionsList extends React.Component {
                 action={reportAction}
                 displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.props.sortedReportActions, index)}
                 shouldDisplayNewIndicator={shouldDisplayNewIndicator}
-                isMostRecentIOUReportAction={item.action.reportActionID === this.props.mostRecentIOUReportActionID}
+                isMostRecentIOUReportAction={reportAction.reportActionID === this.props.mostRecentIOUReportActionID}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
             />

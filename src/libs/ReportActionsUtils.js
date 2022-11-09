@@ -67,7 +67,7 @@ function isDeletedAction(reportAction) {
  */
 function getMostRecentIOUReportActionID(reportActions) {
     const iouActions = _.where(reportActions, {actionName: CONST.REPORT.ACTIONS.TYPE.IOU});
-    if (_.empty(iouActions)) {
+    if (_.isEmpty(iouActions)) {
         return null;
     }
 
@@ -94,17 +94,17 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
     }
 
     // Comments are only grouped if they happen within 5 minutes of each other
-    if (currentAction.action.timestamp - previousAction.action.timestamp > 300) {
+    if (currentAction.timestamp - previousAction.timestamp > 300) {
         return false;
     }
 
     // Do not group if previous or current action was a renamed action
-    if (previousAction.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
-        || currentAction.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+    if (previousAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
+        || currentAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
         return false;
     }
 
-    return currentAction.action.actorEmail === previousAction.action.actorEmail;
+    return currentAction.actorEmail === previousAction.actorEmail;
 }
 
 /**
