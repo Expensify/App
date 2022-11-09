@@ -155,6 +155,9 @@ export default {
     // Is report data loading?
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
 
+    // Are we loading the initial app data?
+    IS_LOADING_INITIAL_APP_DATA: 'isLoadingInitialAppData',
+
     // Is Keyboard shortcuts modal open?
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
 
@@ -173,6 +176,8 @@ export default {
         REQUEST_CALL_FORM: 'requestCallForm',
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
+        PROFILE_SETTINGS_FORM: 'profileSettingsForm',
+        DISPLAY_NAME_FORM: 'displayNameForm',
     },
 
     // Whether we should show the compose input or not
