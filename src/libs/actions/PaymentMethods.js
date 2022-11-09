@@ -143,17 +143,25 @@ function openPaymentsPage() {
  *
  */
 function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, isOptimisticData = true) {
-    return [
+    const onyxData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.USER_WALLET,
             value: {
                 walletLinkedAccountID: bankAccountID || fundID,
                 walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
-                errors: null,
             },
         },
-        {
+    ];
+
+    // Don't clear the error if this is not the optimistic data, otherwise,
+    // we end up clearing the error that came from the server in case of failure
+    if (isOptimisticData) {
+        onyxData[0].value.errors = null;
+    }
+
+    if (previousPaymentMethod) {
+        onyxData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: previousPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
             value: {
@@ -161,8 +169,11 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
                     isDefault: !isOptimisticData,
                 },
             },
-        },
-        {
+        });
+    }
+
+    if (currentPaymentMethod) {
+        onyxData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: currentPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
             value: {
@@ -170,8 +181,10 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
                     isDefault: isOptimisticData,
                 },
             },
-        },
-    ];
+        });
+    }
+
+    return onyxData;
 }
 
 /**
