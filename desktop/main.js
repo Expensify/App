@@ -93,23 +93,26 @@ const manuallyCheckForUpdates = (menuItem, browserWindow) => {
     menuItem.enabled = false;
 
     autoUpdater.checkForUpdates()
+        .catch(error => ({error}))
         .then((result) => {
             const downloadPromise = result && result.downloadPromise;
-            const icon = `${__dirname}/../icon-dev.png`;
-            const type = 'info';
 
             if (downloadPromise) {
                 dialog.showMessageBox(browserWindow, {
-                    icon,
-                    type,
+                    type: 'info',
                     message: 'Update Available',
                     detail: 'The new version will be available shortly. We’ll notify you when we’re ready to apply the update',
                     buttons: ['Can’t wait to update'],
                 });
+            } else if (result && result.error) {
+                dialog.showMessageBox(browserWindow, {
+                    type: 'error',
+                    message: 'Update check failed',
+                    detail: 'We were unable to check for updates at this time',
+                });
             } else {
                 dialog.showMessageBox(browserWindow, {
-                    icon,
-                    type,
+                    type: 'info',
                     message: 'Update Not Available',
                     detail: 'We don’t have an update right now, but you get a star 🌟 for trying',
                     buttons: ['Funny', 'Not Funny', 'Close'],
