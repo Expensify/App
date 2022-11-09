@@ -9,9 +9,11 @@ import baseAddEmojiToComposer from './baseAddEmojiToComposer';
  * @param {String} params.text The text where the emoji should be added
  * @param {String} params.emoji The emoji to add
  * @param {Object} params.textInput
- * @param {{start: Number, end: Number}} params.selection
+ * @param {Object} params.selection
+ * @param {Number} params.selection.start
+ * @param {Number} params.selection.end
  *
- * @return {{ newSelection: {start: Number, end: Number}, newText: String }} results
+ * @return {Object} results
  */
 function addEmojiToComposerTextInput(params) {
     const {selection, textInput} = params;

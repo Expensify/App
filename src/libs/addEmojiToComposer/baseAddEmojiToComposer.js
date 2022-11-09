@@ -14,7 +14,7 @@
  * @param {Number} params.selection.start
  * @param {Number} params.selection.end
  *
- * @return {{ newSelection: {start: Number, end: Number}, newText: String }} results
+ * @return {Object} results
  */
 function baseAddEmojiToComposer({
     text,
