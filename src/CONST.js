@@ -576,6 +576,7 @@ const CONST = {
         STEP: {
             // In the order they appear in the Wallet flow
             ADDITIONAL_DETAILS: 'AdditionalDetailsStep',
+            ADDITIONAL_DETAILS_KBA: 'AdditionalDetailsKBAStep',
             ONFIDO: 'OnfidoStep',
             TERMS: 'TermsStep',
             ACTIVATE: 'ActivateStep',
