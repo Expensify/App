@@ -54,6 +54,17 @@ function signInAndGetApp() {
             return TestHelper.signInWithTestUser(USER_ACCOUNT_ID, USER_EMAIL, undefined, undefined, 'User');
         })
         .then(() => {
+            const MOMENT_TEN_MINUTES_AGO = moment().subtract(10, 'minutes');
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+                reportID: REPORT_ID,
+                reportName: 'Chat Report',
+                maxSequenceNumber: 1,
+                lastReadSequenceNumber: 0,
+                lastMessageTimestamp: MOMENT_TEN_MINUTES_AGO.utc().valueOf(),
+                lastMessageText: "\ud83d\udc4b Hey there, I'm Concierge! If you have any questions about Expensify, you can a",
+                participants: ['concierge@expensify.com'],
+            });
+
             // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
             AppActions.setSidebarLoaded(true);
             return waitForPromisesToResolve();
@@ -68,6 +79,9 @@ describe('NewChatTest', () => {
         return signInAndGetApp()
             .then((testInstance) => {
                 app = testInstance;
+
+                // Verify that the green plus button is on the page
+                app.getByA11yLabel('New chat(Floating Action)');
                 app.debug();
             });
     });
