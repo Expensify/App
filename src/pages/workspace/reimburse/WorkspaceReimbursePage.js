@@ -44,14 +44,15 @@ const WorkspaceReimbursePage = (props) => {
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
         >
             {() => (
-                <WorkspaceReimburseView policy={props.policy} hasVBBA={hasVBBA}/>
+                <WorkspaceReimburseView policy={props.policy} hasVBBA={hasVBBA} />
             )}
         </WorkspacePageWithSections>
     );
 };
 
-WorkspaceReimbursePage.propTypes = propTypes;
+WorkspaceReimbursePage.defaultProps = defaultProps;
 WorkspaceReimbursePage.displayName = 'WorkspaceReimbursePage';
+WorkspaceReimbursePage.propTypes = propTypes;
 
 export default compose(
     withPolicy,

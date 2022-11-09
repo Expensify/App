@@ -60,8 +60,7 @@ const defaultProps = {
     shouldUseScrollView: false,
 };
 
-
-const WorkspacePageWithSections = props => {
+const WorkspacePageWithSections = (props) => {
     const isUsingECard = lodashGet(props.user, 'isUsingExpensifyCard', false);
     const policyID = lodashGet(props.route, 'params.policyID');
     const policyName = lodashGet(props.policy, 'name');
