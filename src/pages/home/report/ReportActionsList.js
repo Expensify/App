@@ -109,7 +109,7 @@ class ReportActionsList extends React.Component {
      * @return {String}
      */
     keyExtractor(item) {
-        return `${item.action.clientID}${item.action.reportActionID}${item.action.sequenceNumber}`;
+        return `${item.action.clientID}${item.action.reportActionID}`;
     }
 
     /**
@@ -151,15 +151,22 @@ class ReportActionsList extends React.Component {
      * higher z-index than the one below it. This prevents issues where the ReportActionContextMenu overlapping between
      * rows is hidden beneath other rows.
      *
-     * @param {Object} index - The ReportAction item in the FlatList.
-     * @param {Object|Array} style – The default styles of the CellRendererComponent provided by the CellRenderer.
+     * @param {Object} cellData
+     * @param {Object} cellData.item - The ReportAction item in the FlatList.
+     * @param {Number} cellData.index – The index of the item in the FlatList
+     * @param {Object|Array} cellData.style – The default styles of the CellRendererComponent provided by the CellRenderer.
      * @param {Object} props – All the other Props provided to the CellRendererComponent by default.
-     * @returns {React.Component}
+     * @returns {JSX.Element}
      */
-    renderCell({item, style, ...props}) {
+    renderCell({
+        item,
+        index,
+        style,
+        ...props
+    }) {
         const cellStyle = [
             style,
-            {zIndex: item.action.sequenceNumber},
+            {zIndex: index},
         ];
         // eslint-disable-next-line react/jsx-props-no-spreading
         return <View style={cellStyle} {...props} />;
