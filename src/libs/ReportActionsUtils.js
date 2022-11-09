@@ -29,12 +29,12 @@ Onyx.connect({
  * Note: this sorts the array in-place instead of returning a copy
  *
  * @param {Array} reportActions
+ * @returns {Array}
  */
 function sortReportActions(reportActions) {
     if (!_.isArray(reportActions)) {
         throw new Error(`ReportActionsUtils::sortReportActions requires an array, received ${typeof reportActions}`);
     }
-
     reportActions.sort((first, second) => {
         if (first.created !== second.created) {
             return first.created < second.created ? -1 : 1;
@@ -46,6 +46,7 @@ function sortReportActions(reportActions) {
 
         return first.reportActionID < second.reportActionID ? -1 : 1;
     });
+    return reportActions;
 }
 
 /**
@@ -56,26 +57,6 @@ function isDeletedAction(reportAction) {
     // A deleted comment has either an empty array or an object with html field with empty string as value
     const message = lodashGet(reportAction, 'message', []);
     return message.length === 0 || lodashGet(message, [0, 'html']) === '';
-}
-
-/**
- * Sorts the report actions by sequence number, filters out any that should not be shown and formats them for display.
- *
- * @param {Array} reportActions
- * @returns {Array}
- */
-function getSortedReportActions(reportActions) {
-    return _.chain(reportActions)
-        .sortBy('sequenceNumber')
-        .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
-
-            // All comment actions are shown unless they are deleted and non-pending
-            || (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && (!isDeletedAction(action) || !_.isEmpty(action.pendingAction)))
-            || action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
-            || action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED)
-        .map((item, index) => ({action: item, index}))
-        .value()
-        .reverse();
 }
 
 /**
@@ -180,7 +161,6 @@ export {
     sortReportActions,
     getOptimisticLastReadSequenceNumberForDeletedAction,
     getLastVisibleMessageText,
-    getSortedReportActions,
     getMostRecentIOUReportActionID,
     isDeletedAction,
     isConsecutiveActionMadeByPreviousActor,
