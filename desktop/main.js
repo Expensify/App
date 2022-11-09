@@ -1,5 +1,6 @@
 const {
     app,
+    dialog,
     BrowserWindow,
     Menu,
     MenuItem,
@@ -81,6 +82,51 @@ const quitAndInstallWithUpdate = () => {
 };
 
 /**
+ * Menu Item callback to triggers an update check
+ * @param {MenuItem} menuItem
+ * @param {BrowserWindow} browserWindow
+ */
+const manuallyCheckForUpdates = (menuItem, browserWindow) => {
+    // Disable item until the check (and download) is complete
+    // eslint: menu item flags like enabled or visible can be dynamically toggled by mutating the object
+    // eslint-disable-next-line no-param-reassign
+    menuItem.enabled = false;
+
+    autoUpdater.checkForUpdates()
+        .then((result) => {
+            const downloadPromise = result && result.downloadPromise;
+            const icon = `${__dirname}/../icon-dev.png`;
+            const type = 'info';
+
+            if (downloadPromise) {
+                dialog.showMessageBox(browserWindow, {
+                    icon,
+                    type,
+                    message: 'Update Available',
+                    detail: 'The new version will be available shortly. We’ll notify you when we’re ready to apply the update',
+                    buttons: ['Can’t wait to update'],
+                });
+            } else {
+                dialog.showMessageBox(browserWindow, {
+                    icon,
+                    type,
+                    message: 'Update Not Available',
+                    detail: 'We don’t have an update right now, but you get a star 🌟 for trying',
+                    buttons: ['Funny', 'Not Funny', 'Close'],
+                    cancelId: 2,
+                });
+            }
+
+            // By returning the `downloadPromise` we keep "check for updates" disabled if any updates are being downloaded
+            return downloadPromise;
+        })
+        .finally(() => {
+            // eslint-disable-next-line no-param-reassign
+            menuItem.enabled = true;
+        });
+};
+
+/**
  * Trigger event to show keyboard shortcuts
  * @param {BrowserWindow} browserWindow
  */
@@ -91,11 +137,19 @@ const showKeyboardShortcutsModal = (browserWindow) => {
     browserWindow.webContents.send(ELECTRON_EVENTS.SHOW_KEYBOARD_SHORTCUTS_MODAL);
 };
 
-// Defines the system-level menu item for manually triggering an update after
+// Defines the system-level menu item to manually apply an update
+// This menu item should become visible after an update is download and ready to be applied
 const updateAppMenuItem = new MenuItem({
     label: 'Update New Expensify',
-    enabled: false,
+    visible: false,
     click: quitAndInstallWithUpdate,
+});
+
+// System-level menu item to manually check for App updates
+const checkForUpdateMenuItem = new MenuItem({
+    label: 'Check For Updates',
+    visible: true,
+    click: manuallyCheckForUpdates,
 });
 
 // Defines the system-level menu item for opening keyboard shortcuts modal
@@ -109,7 +163,8 @@ const electronUpdater = browserWindow => ({
     init: () => {
         autoUpdater.on(ELECTRON_EVENTS.UPDATE_DOWNLOADED, (info) => {
             downloadedVersion = info.version;
-            updateAppMenuItem.enabled = true;
+            updateAppMenuItem.visible = true;
+            checkForUpdateMenuItem.visible = false;
             if (browserWindow.isVisible()) {
                 browserWindow.webContents.send(ELECTRON_EVENTS.UPDATE_DOWNLOADED, info.version);
             } else {
@@ -221,7 +276,8 @@ const mainWindow = (() => {
 
             const appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');
             appMenu.submenu.insert(1, updateAppMenuItem);
-            appMenu.submenu.insert(2, keyboardShortcutsMenu);
+            appMenu.submenu.insert(2, checkForUpdateMenuItem);
+            appMenu.submenu.insert(3, keyboardShortcutsMenu);
 
             // On mac, pressing cmd++ actually sends a cmd+=. cmd++ is generally the zoom in shortcut, but this is
             // not properly listened for by electron. Adding in an invisible cmd+= listener fixes this.
