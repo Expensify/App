@@ -25,6 +25,9 @@ import networkPropTypes from '../../../components/networkPropTypes';
 import Log from '../../../libs/Log';
 
 const propTypes = {
+    /** has free plan VBBA setup */
+    hasVBBA: PropTypes.bool.isRequired,
+
     /** Policy values needed in the component */
     policy: PropTypes.shape({
         id: PropTypes.string,
@@ -267,7 +270,7 @@ class WorkspaceReimburseView extends React.Component {
                         </View>
                     </OfflineWithFeedback>
                 </Section>
-                {this.props.hasVBA ? (
+                {this.props.hasVBBA ? (
                     <Section
                         title={this.props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
                         icon={Illustrations.BankUserGreen}
