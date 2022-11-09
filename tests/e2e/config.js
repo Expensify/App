@@ -17,7 +17,7 @@ module.exports = {
     SERVER_PORT: 4723,
 
     // The amount of times a test should be executed for average performance metrics
-    RUNS: 30,
+    RUNS: 15,
 
     DEFAULT_BASELINE_BRANCH: 'main',
 
@@ -25,7 +25,7 @@ module.exports = {
     DROP_WORST: 8,
 
     // The amount of runs that should happen without counting test results
-    WARM_UP_RUNS: 3,
+    WARM_UP_RUNS: 0,
 
     OUTPUT_DIR,
 

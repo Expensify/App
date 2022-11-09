@@ -52,7 +52,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-2
 
-      - name: Schedule test run
+      - name: Schedule AWS Device Farm test run
         uses: AndrewGable/aws-devicefarm/test-application@andrew-upload
         with:
           name: App E2E Performance Regression Tests
