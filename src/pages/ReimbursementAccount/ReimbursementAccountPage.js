@@ -11,6 +11,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import ReimbursementAccountLoadingIndicator from '../../components/ReimbursementAccountLoadingIndicator';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
+import BankAccount from '../../libs/models/BankAccount';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
@@ -22,6 +23,7 @@ import networkPropTypes from '../../components/networkPropTypes';
 // Steps
 import BankAccountStep from './BankAccountStep';
 import CompanyStep from './CompanyStep';
+import ContinueBankAccountSetup from './ContinueBankAccountSetup';
 import RequestorStep from './RequestorStep';
 import ValidationStep from './ValidationStep';
 import ACHContractStep from './ACHContractStep';
@@ -72,6 +74,17 @@ const defaultProps = {
 };
 
 class ReimbursementAccountPage extends React.Component {
+    constructor(props) {
+        super(props);
+        this.continue = this.continue.bind(this);
+
+        const achData = lodashGet(this.props, 'reimbursementAccount.achData', {});
+        const hasInProgressVBBA = achData.bankAccountID && achData.state !== BankAccount.STATE.OPEN;
+        this.state = {
+            shouldShowContinueSetupButton: hasInProgressVBBA,
+        };
+    }
+
     componentDidMount() {
         this.fetchData();
     }
@@ -155,6 +168,12 @@ class ReimbursementAccountPage extends React.Component {
         BankAccounts.fetchFreePlanVerifiedBankAccount(stepToOpen !== CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT ? stepToOpen : '');
     }
 
+    continue() {
+        this.setState({
+            shouldShowContinueSetupButton: false,
+        });
+    }
+
     render() {
         // The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
         // user left off. This view will refer to the achData as the single source of truth to determine which route to
@@ -172,6 +191,15 @@ class ReimbursementAccountPage extends React.Component {
             return (
                 <ReimbursementAccountLoadingIndicator
                     isSubmittingVerificationsData={isSubmittingVerificationsData}
+                />
+            );
+        }
+
+        const hasInProgressVBBA = achData.bankAccountID && achData.state !== BankAccount.STATE.OPEN;
+        if (hasInProgressVBBA && this.state.shouldShowContinueSetupButton) {
+            return (
+                <ContinueBankAccountSetup
+                    continue={this.continue}
                 />
             );
         }

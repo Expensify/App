@@ -119,7 +119,7 @@ export default {
         chooseFromGallery: 'Elegir de la galería',
         chooseDocument: 'Elegir documento',
         attachmentTooLarge: 'Archivo adjunto demasiado grande',
-        sizeExceeded: 'El archivo adjunto supera el límite de 50 MB.',
+        sizeExceeded: 'El archivo adjunto supera el límite de 24 MB.',
         attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
         sizeNotMet: 'El archivo adjunto debe ser mas grande que 240 bytes',
         wrongFileType: 'El tipo del archivo adjunto es incorrecto',
@@ -305,6 +305,12 @@ export default {
         offline: 'Desconectado',
         syncing: 'Sincronizando',
     },
+    displayNamePage: {
+        headerTitle: 'Nombre',
+        isShownOnProfile: 'Este nombre es visible en su perfil.',
+        john: 'Juan',
+        doe: 'Nadie',
+    },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Agregar número de teléfono',
         addEmailAddress: 'Agregar dirección de email',
@@ -379,7 +385,6 @@ export default {
         yourPayPalUsername: 'Tu usuario de PayPal',
         addPayPalAccount: 'Agregar cuenta de PayPal',
         growlMessageOnSave: 'Su nombre de usuario de PayPal se agregó correctamente',
-        editPayPalAccount: 'Actualizar cuenta de PayPal',
         formatError: 'Usuario PayPal.me no válido',
     },
     addDebitCardPage: {
