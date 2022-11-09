@@ -101,7 +101,10 @@ class ReportActionsView extends React.Component {
         });
 
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
-            if (!ReportActionComposeFocusManager.isFocused()) {
+            // When the keyboard shows up and then
+            // if not focused on the report action composer or the current scroll position is not at the bottom
+            // we won't scroll to the bottom here.
+            if (!ReportActionComposeFocusManager.isFocused() || this.currentScrollOffset !== 0) {
                 return;
             }
             ReportScrollManager.scrollToBottom();
