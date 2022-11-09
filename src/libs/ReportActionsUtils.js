@@ -82,14 +82,17 @@ function getSortedReportActions(reportActions) {
  * Finds most recent IOU report action number.
  *
  * @param {Array} reportActions
- * @returns {Number}
+ * @returns {String}
  */
-function getMostRecentIOUReportSequenceNumber(reportActions) {
-    return _.chain(reportActions)
-        .sortBy('sequenceNumber')
-        .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU)
-        .max(action => action.sequenceNumber)
-        .value().sequenceNumber;
+function getMostRecentIOUReportActionID(reportActions) {
+    // TODO: HOLD on https://github.com/Expensify/App/pull/12604
+    const iouActions = _.where(reportActions, {actionName: CONST.REPORT.ACTIONS.TYPE.IOU});
+    if (_.empty(iouActions)) {
+        return null;
+    }
+
+    sortReportActions(iouActions);
+    return _.last(iouActions).reportActionID;
 }
 
 /**
@@ -179,7 +182,7 @@ export {
     getOptimisticLastReadSequenceNumberForDeletedAction,
     getLastVisibleMessageText,
     getSortedReportActions,
-    getMostRecentIOUReportSequenceNumber,
+    getMostRecentIOUReportActionID,
     isDeletedAction,
     isConsecutiveActionMadeByPreviousActor,
 };
