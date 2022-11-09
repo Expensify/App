@@ -120,6 +120,38 @@ function isAdminOfFreePolicy(policies) {
 }
 
 /**
+* Check if the user has any active free policies (aka workspaces)
+*
+* @param {Array} policies
+* @returns {Boolean}
+*/
+function hasActiveFreePolicy(policies) {
+    const adminFreePolicies = _.filter(policies, policy => policy
+        && policy.type === CONST.POLICY.TYPE.FREE
+        && policy.role === CONST.POLICY.ROLE.ADMIN);
+
+    if (adminFreePolicies.length === 0) {
+        return false;
+    }
+
+    if (_.some(adminFreePolicies, policy => !policy.pendingAction)) {
+        return true;
+    }
+
+    if (_.some(adminFreePolicies, policy => policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)) {
+        return true;
+    }
+
+    if (_.some(adminFreePolicies, policy => policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
+        return false;
+    }
+
+    // If there are no add or delete pending actions the only option left is an update
+    // pendingAction, in which case we should return true.
+    return true;
+}
+
+/**
  * Remove the passed members from the policy employeeList
  *
  * @param {Array} members
@@ -871,6 +903,7 @@ export {
     removeMembers,
     addMembersToWorkspace,
     isAdminOfFreePolicy,
+    hasActiveFreePolicy,
     setWorkspaceErrors,
     clearCustomUnitErrors,
     hideWorkspaceAlertMessage,
