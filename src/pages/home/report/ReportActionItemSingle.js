@@ -89,7 +89,7 @@ const ReportActionItemSingle = (props) => {
                         >
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment
-                                    key={`person-${props.action.sequenceNumber}-${index}`}
+                                    key={`person-${props.action.reportActionID}-${index}`}
                                     fragment={fragment}
                                     tooltipText={props.action.actorEmail}
                                     isAttachment={props.action.isAttachment}
