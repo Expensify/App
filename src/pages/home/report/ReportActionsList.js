@@ -159,10 +159,10 @@ class ReportActionsList extends React.Component {
      * @returns {JSX.Element}
      */
     renderCell({
-       item,
-       index,
-       style,
-       ...props
+        item,
+        index,
+        style,
+        ...props
     }) {
         const cellStyle = [
             style,
