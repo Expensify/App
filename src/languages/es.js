@@ -360,7 +360,7 @@ export default {
         defaultContact: 'Método de contacto predeterminado:',
         okayGotIt: 'Ok, entendido',
         closeAccountError: 'No se pudo cerrar tu cuenta',
-        enterYourDefaultContactMethod: 'Please enter your default contact method to close your account.',
+        enterYourDefaultContactMethod: 'Por favor ingresa tu método de contacto predeterminado para cerrar tu cuenta.',
     },
     passwordPage: {
         changePassword: 'Cambiar contraseña',
