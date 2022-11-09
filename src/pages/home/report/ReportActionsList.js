@@ -158,7 +158,12 @@ class ReportActionsList extends React.Component {
      * @param {Object} props – All the other Props provided to the CellRendererComponent by default.
      * @returns {JSX.Element}
      */
-    renderCell({item, index, style, ...props}) {
+    renderCell({
+       item,
+       index,
+       style,
+       ...props
+    }) {
         const cellStyle = [
             style,
             {zIndex: index},
