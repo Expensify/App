@@ -39,11 +39,11 @@ jobs:
       - name: Copy "Baseline" APK
         run: cp android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk app-e2eRelease-baseline.apk
 
+      - name: Checkout previous branch for JS Code
+        run: git checkout -
+
       - name: Zip everything up
         run: zip -r App.zip .
-
-      - name: Debug
-        run: ls -lha
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
