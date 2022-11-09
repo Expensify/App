@@ -6,8 +6,8 @@ phases:
       # Install correct version of node
       - export NVM_DIR=$HOME/.nvm
       - . $NVM_DIR/nvm.sh
-      - nvm install
-      - nvm use
+      - nvm install "$(<.nvmrc)"
+      - nvm use "$(<.nvmrc)"
 
       # Reverse ports using AWS magic
       - PORT=4723
