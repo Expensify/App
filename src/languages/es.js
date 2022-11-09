@@ -108,6 +108,7 @@ export default {
         maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
         youAppearToBeOffline: 'Parece que estás desconectado.',
         thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
+        areYouSure: '¿Estás seguro?',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',

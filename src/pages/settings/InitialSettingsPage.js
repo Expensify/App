@@ -270,9 +270,9 @@ class InitialSettingsPage extends React.Component {
                         {_.map(this.getDefaultMenuItems(), (item, index) => this.getMenuItem(item, index))}
 
                         <ConfirmModal
-                            title={this.props.translate('baseUpdateAppModal.updateApp')}
+                            title={this.props.translate('common.areYouSure')}
                             prompt={this.props.translate('baseUpdateAppModal.updatePrompt')}
-                            confirmText={this.props.translate('baseUpdateAppModal.updateApp')}
+                            confirmText={this.props.translate('initialSettingsPage.signOut')}
                             cancelText={this.props.translate('common.cancel')}
                             isVisible={this.state.shouldShowSignoutConfirmModal}
                             onConfirm={this.signout}
