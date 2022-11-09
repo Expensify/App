@@ -1,24 +1,16 @@
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import {Linking, AppState} from 'react-native';
+import {Linking} from 'react-native';
 import {fireEvent, render} from '@testing-library/react-native';
-import lodashGet from 'lodash/get';
 import moment from 'moment';
 import App from '../../src/App';
-import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import waitForPromisesToResolveWithAct from '../utils/waitForPromisesToResolveWithAct';
 import * as TestHelper from '../utils/TestHelper';
 import appSetup from '../../src/setup';
-import fontWeightBold from '../../src/styles/fontWeight/bold';
+import translations from '../../src/languages/en';
 import * as AppActions from '../../src/libs/actions/App';
-import * as NumberUtils from '../../src/libs/NumberUtils';
-import LocalNotification from '../../src/libs/Notification/LocalNotification';
-import * as Report from '../../src/libs/actions/Report';
-import * as CollectionUtils from '../../src/libs/CollectionUtils';
-
-jest.mock('../../src/libs/Notification/LocalNotification');
 
 beforeAll(() => {
     // In this test, we are generically mocking the responses of all API requests by mocking fetch() and having it
@@ -37,6 +29,7 @@ beforeAll(() => {
 const REPORT_ID = '1';
 const USER_ACCOUNT_ID = 1;
 const USER_EMAIL = 'user@test.com';
+const OTHER_USER_EMAIL = 'otheruser@test.com';
 
 /**
  * Sets up a test with a logged in user that has one unread chat from another user. Returns the <App/> test instance.
@@ -81,8 +74,16 @@ describe('NewChatTest', () => {
                 app = testInstance;
 
                 // Verify that the green plus button is on the page
-                app.getByA11yLabel('New chat(Floating Action)');
-                app.debug();
+                const greenPlusButton = app.getByA11yLabel('New chat(Floating Action)');
+                return fireEvent(greenPlusButton, 'press');
+            })
+            .then(() => {
+                const newChat = app.getByText(translations.sidebarScreen.newChat);
+                return fireEvent(newChat, 'press');
+            })
+            .then(() => {
+                const input = app.getByPlaceholderText(translations.optionsSelector.nameEmailOrPhoneNumber);
+                fireEvent(input, 'onChangeText', OTHER_USER_EMAIL);
             });
     });
 });
