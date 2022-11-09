@@ -4,6 +4,7 @@ import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import Onyx from 'react-native-onyx';
+import crashlytics from '@react-native-firebase/crashlytics';
 import CustomStatusBar from './components/CustomStatusBar';
 import ErrorBoundary from './components/ErrorBoundary';
 import Expensify from './Expensify';
@@ -14,6 +15,14 @@ import ComposeProviders from './components/ComposeProviders';
 import SafeArea from './components/SafeArea';
 import * as Environment from './libs/Environment/Environment';
 import {WindowDimensionsProvider} from './components/withWindowDimensions';
+import CONFIG from './CONFIG';
+
+// We do not want to send crash reports if we are on a locally built release version of the app.
+// Crashlytics is disabled by default for debug builds, but not local release builds so we are using
+// an environment variable to enable them in the staging & production apps and opt-out everywhere else.
+if (!CONFIG.SEND_CRASH_REPORTS) {
+    crashlytics().then(config => config.setCrashlyticsCollectionEnabled(false));
+}
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
