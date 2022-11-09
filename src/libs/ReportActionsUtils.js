@@ -85,7 +85,6 @@ function getSortedReportActions(reportActions) {
  * @returns {String}
  */
 function getMostRecentIOUReportActionID(reportActions) {
-    // TODO: HOLD on https://github.com/Expensify/App/pull/12604
     const iouActions = _.where(reportActions, {actionName: CONST.REPORT.ACTIONS.TYPE.IOU});
     if (_.empty(iouActions)) {
         return null;
