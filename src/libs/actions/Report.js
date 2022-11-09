@@ -945,14 +945,9 @@ function deleteReportComment(reportID, reportAction) {
     // If we are deleting the last visible message, let's find the previous visible one
     // and update the lastMessageText in the chat preview.
     const optimisticReport = {
-        lastMessageText: ReportActions.getLastVisibleMessageText(reportID, {
-            [sequenceNumber]: {
-                message: [{
-                    html: '',
-                    text: '',
-                }],
-            },
-        }),
+        lastMessageText,
+        lastReadSequenceNumber,
+        maxSequenceNumber: lastReadSequenceNumber,
     };
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
