@@ -1,15 +1,26 @@
 const _ = require('underscore');
-const {DROP_WORST} = require('../config');
 
-// Simple outlier removal, where we remove at the head and tail entries
-const filterOutliers = (data) => {
-    // Copy the values, rather than operating on references to existing values
-    const values = [...data].sort();
-    const removePerSide = Math.ceil(DROP_WORST / 2);
-    values.splice(0, removePerSide);
-    values.splice(values.length - removePerSide);
-    return values;
+const filterOutliersViaIQR = (data) => {
+    let q1;
+    let q3;
+
+    const values = data.slice().sort((a, b) => a - b);
+
+    if ((values.length / 4) % 1 === 0) {
+        q1 = (1 / 2) * (values[(values.length / 4)] + values[(values.length / 4) + 1]);
+        q3 = (1 / 2) * (values[(values.length * (3 / 4))] + values[(values.length * (3 / 4)) + 1]);
+    } else {
+        q1 = values[Math.floor((values.length / 4) + 1)];
+        q3 = values[Math.ceil((values.length * (3 / 4)) + 1)];
+    }
+
+    const iqr = q3 - q1;
+    const maxValue = q3 + (iqr * 1.5);
+    const minValue = q1 - (iqr * 1.5);
+
+    return _.filter(values, x => (x >= minValue) && (x <= maxValue));
 };
+
 const mean = arr => _.reduce(arr, (a, b) => a + b, 0) / arr.length;
 
 const std = (arr) => {
@@ -18,7 +29,7 @@ const std = (arr) => {
 };
 
 const getStats = (entries) => {
-    const cleanedEntries = filterOutliers(entries);
+    const cleanedEntries = filterOutliersViaIQR(entries);
     const meanDuration = mean(cleanedEntries);
     const stdevDuration = std(cleanedEntries);
 
