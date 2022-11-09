@@ -4,6 +4,7 @@ import {
     TNodeChildrenRenderer,
 } from 'react-native-render-html';
 import lodashGet from 'lodash/get';
+import lodashReplace from 'lodash/replace';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import * as HTMLEngineUtils from '../htmlEngineUtils';
 import * as Link from '../../../libs/actions/Link';
@@ -24,13 +25,11 @@ const AnchorRenderer = (props) => {
     const displayName = lodashGet(props.tnode, 'domNode.children[0].data', '');
     const parentStyle = lodashGet(props.tnode, 'parent.styles.nativeTextRet', {});
     const attrHref = htmlAttribs.href || '';
-    const attrLocation = Url.getLocation(attrHref);
-    const attrPath = attrLocation.pathname + attrLocation.search + attrLocation.hash;
-    const internalNewExpensifyPath = (attrHref.startsWith(CONST.NEW_EXPENSIFY_URL) && attrHref.replace(CONST.NEW_EXPENSIFY_URL, ''))
-        || (attrHref.startsWith(CONST.STAGING_NEW_EXPENSIFY_URL) && attrHref.replace(CONST.STAGING_NEW_EXPENSIFY_URL, ''));
+    const attrPath = lodashReplace(Url.getURLObject(attrHref).path, '/', '');
+    const internalNewExpensifyPath = (Url.hasSameOrigin(attrHref, CONST.NEW_EXPENSIFY_URL) || Url.hasSameOrigin(attrHref, CONST.STAGING_NEW_EXPENSIFY_URL)) && attrPath;
     const internalExpensifyPath = Url.hasSameOrigin(attrHref, CONFIG.EXPENSIFY.EXPENSIFY_URL)
                                     && !attrPath.startsWith(CONFIG.EXPENSIFY.CONCIERGE_PATHNAME)
-                                    && attrPath.replace('/', '');
+                                    && attrPath;
     const navigateToLink = () => {
         // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
         // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)

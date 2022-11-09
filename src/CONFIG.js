@@ -54,7 +54,7 @@ export default {
         PARTNER_PASSWORD: lodashGet(Config, 'EXPENSIFY_PARTNER_PASSWORD', 'e21965746fd75f82bb66'),
         EXPENSIFY_CASH_REFERER: 'ecash',
         CONCIERGE_URL: conciergeUrl,
-        CONCIERGE_PATHNAME: '/concierge/',
+        CONCIERGE_PATHNAME: 'concierge/',
     },
     IS_IN_PRODUCTION: Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__,
     IS_IN_STAGING: ENVIRONMENT === CONST.ENVIRONMENT.STAGING,

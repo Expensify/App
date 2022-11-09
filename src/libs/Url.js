@@ -15,13 +15,11 @@ function addTrailingForwardSlash(url) {
  * @param {String} href
  * @returns {Object}
  */
-function getLocation(href) {
+function getURLObject(href) {
     const reURLInformation = new RegExp([
         '^(https?:)//', // protocol
         '(([^:/?#]*)(?::([0-9]+))?)', // host (hostname and port)
-        '(/{0,1}[^?#]*)', // pathname
-        '(\\?[^#]*|)', // search
-        '(#.*|)$', // hash
+        '([^]*)', // pathname
     ].join(''));
     const match = href.match(reURLInformation) || [];
     return {
@@ -30,9 +28,7 @@ function getLocation(href) {
         host: match[2],
         hostname: match[3],
         port: match[4],
-        pathname: match[5],
-        search: match[6],
-        hash: match[7],
+        path: match[5],
     };
 }
 
@@ -43,8 +39,8 @@ function getLocation(href) {
  * @returns {Boolean}
  */
 function hasSameOrigin(url1, url2) {
-    const host1 = getLocation(url1).hostname;
-    const host2 = getLocation(url2).hostname;
+    const host1 = getURLObject(url1).hostname;
+    const host2 = getURLObject(url2).hostname;
     if (!host1 || !host2) { return false; }
     const host1WithoutW3 = host1.startsWith('www.') ? host1.replace('www.', '') : host1;
     const host2WithoutW3 = host2.startsWith('www.') ? host2.replace('www.', '') : host2;
@@ -55,5 +51,5 @@ export {
     // eslint-disable-next-line import/prefer-default-export
     addTrailingForwardSlash,
     hasSameOrigin,
-    getLocation,
+    getURLObject,
 };
