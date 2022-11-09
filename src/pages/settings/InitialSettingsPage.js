@@ -178,7 +178,7 @@ class InitialSettingsPage extends React.Component {
             {
                 translationKey: 'initialSettingsPage.signOut',
                 icon: Expensicons.Exit,
-                action: () => { signout(false); },
+                action: () => { this.signout(false); },
             }
         ]);
     }
@@ -276,6 +276,7 @@ class InitialSettingsPage extends React.Component {
                             cancelText={this.props.translate('common.cancel')}
                             isVisible={this.state.shouldShowSignoutConfirmModal}
                             onConfirm={this.signout}
+                            onCancel={() => this.toggleSignoutConfirmModal(false)}
                         />
 
                     </View>
