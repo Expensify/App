@@ -48,7 +48,7 @@ const propTypes = {
     })).isRequired,
 
     /** The ID of the most recent IOU report action connected with the shown report */
-    mostRecentIOUReportActionID: PropTypes.number,
+    mostRecentIOUReportActionID: PropTypes.string,
 
     /** Are we loading more report actions? */
     isLoadingMoreReportActions: PropTypes.bool,
@@ -68,7 +68,7 @@ const propTypes = {
 
 const defaultProps = {
     personalDetails: {},
-    mostRecentIOUReportActionID: undefined,
+    mostRecentIOUReportActionID: '',
     isLoadingMoreReportActions: false,
 };
 

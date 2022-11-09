@@ -34,7 +34,7 @@ function getSortedReportActions(reportActions) {
  * Finds most recent IOU report action number.
  *
  * @param {Array} reportActions
- * @returns {Number}
+ * @returns {String}
  */
 function getMostRecentIOUReportActionID(reportActions) {
     return _.chain(reportActions)
