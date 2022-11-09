@@ -22,6 +22,20 @@ const includeModules = [
     '@react-navigation/drawer',
 ].join('|');
 
+const envToLogoSuffixMap = {
+    production: '',
+    staging: 'stg',
+    dev: 'dev',
+};
+
+function mapEnvToLogoSuffix(envFile) {
+    let env = envFile.split('.')[2];
+    if (typeof env === 'undefined') {
+        env = 'dev';
+    }
+    return envToLogoSuffixMap[env];
+}
+
 /**
  * Get a production grade config for web or desktop
  * @param {Object} env
@@ -143,6 +157,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             // Load svg images
             {
                 test: /\.svg$/,
+                resourceQuery: {not: [/raw/]},
                 exclude: /node_modules/,
                 use: [
                     {
@@ -164,10 +179,15 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 test: /\.css$/i,
                 use: ['style-loader', 'css-loader'],
             },
+            {
+                resourceQuery: /raw/,
+                type: 'asset/source',
+            },
         ],
     },
     resolve: {
         alias: {
+            logo$: path.resolve(__dirname, `../../assets/images/new-expensify-${mapEnvToLogoSuffix(envFile)}.svg`),
             'react-native-config': 'react-web-config',
             'react-native$': '@expensify/react-native-web',
             'react-native-web': '@expensify/react-native-web',
