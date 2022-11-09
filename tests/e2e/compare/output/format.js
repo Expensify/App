@@ -17,7 +17,7 @@ const formatPercentChange = (value) => {
     return `${value >= 0 ? '+' : '-'}${formatPercent(absValue)}`;
 };
 
-const formatDuration = duration => `${duration.toFixed(1)} ms`;
+const formatDuration = duration => `${duration.toFixed(3)} ms`;
 
 const formatDurationChange = (value) => {
     if (value > 0) {
