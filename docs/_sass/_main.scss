@@ -315,6 +315,16 @@ button {
         }
     }
 
+    h1::before, h2::before {
+        @include maxBreakpoint($breakpoint-tablet) {
+            display: block;
+            content: ' ';
+            height: 80px; 
+            margin-top: -80px;
+            visibility: hidden;
+        }
+    }
+
     .article {
         img {
             display: block;
