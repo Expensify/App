@@ -5,6 +5,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import DragAndDropIcon from '../../../../assets/images/drag-and-drop.svg';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
+import CONST from '../../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -12,7 +13,7 @@ const propTypes = {
 
 const ReportDropUI = props => (
     <Portal hostName="DropZone">
-        <View nativeID="drop" style={[styles.fullScreenTransparentOverlay, styles.alignItemsCenter, styles.justifyContentCenter]}>
+        <View nativeID={CONST.REPORT.ACTIVE_DROP_NATIVE_ID} style={[styles.fullScreenTransparentOverlay, styles.alignItemsCenter, styles.justifyContentCenter]}>
             <View style={styles.mb3}>
                 <DragAndDropIcon width={100} height={100} />
             </View>

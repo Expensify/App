@@ -620,6 +620,8 @@ class ReportActionCompose extends React.Component {
                                         placeholderTextColor={themeColors.placeholderText}
                                         onChangeText={comment => this.updateComment(comment, true)}
                                         onKeyPress={this.triggerHotkeyActions}
+                                        dropZoneId={CONST.REPORT.DROP_NATIVE_ID}
+                                        activeDropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID}
                                         onDragEnter={() => {
                                             this.setState({isDraggingOver: true});
                                         }}

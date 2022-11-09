@@ -2,12 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 
-import variables from '../styles/variables';
+import variables from '../../styles/variables';
 
 const COPY_DROP_EFFECT = 'copy';
 const NONE_DROP_EFFECT = 'none';
 
-const DragAndDropCallbackPropTypes = {
+const DragAndDropPropTypes = {
     /** Callback to fire when a file has being dragged over the text input & report body */
     onDragOver: PropTypes.func.isRequired,
 
@@ -19,18 +19,24 @@ const DragAndDropCallbackPropTypes = {
 
     /** Callback to fire when a file is dropped on the text input & report body */
     onDrop: PropTypes.func.isRequired,
+
+    /** Id of the element on which we want to detect drag */
+    dropZoneId: PropTypes.string.isRequired,
+
+    /** Id of the element which is shown while drag is active */
+    activeDropZoneId: PropTypes.string.isRequired,
 };
 
 const propTypes = {
+    ...DragAndDropPropTypes,
+
     /** Rendered child component */
     children: PropTypes.node.isRequired,
-
-    /** Rendered child component */
-    dropZoneId: PropTypes.string.isRequired,
-
-    ...DragAndDropCallbackPropTypes,
 };
 
+/*
+* When using this compo
+*/
 export default class DragAndDrop extends React.Component {
     constructor(props) {
         super(props);
@@ -54,16 +60,29 @@ export default class DragAndDrop extends React.Component {
         document.addEventListener('dragover', this.dragNDropListener);
         document.addEventListener('dragenter', this.dragNDropListener);
         document.addEventListener('dragleave', this.dragNDropListener);
+        document.addEventListener('dragend', this.dragNDropListener);
         document.addEventListener('drop', this.dragNDropListener);
         window.addEventListener('resize', this.dragNDropWindowResizeListener);
+
+        // Make sure we are in dragleave state when mouse enters the drop zone without active drag.
+        // This is important workaround for Webkit and Gecko to cancel drag if drag finished on the file manager that sits on top of the browser window
+        this.dropZone.addEventListener('mouseenter', (event) => {
+            if (!this.dropZoneDragState === 'dragenter') {
+                return;
+            }
+            this.dropZoneDragState = 'dragleave';
+            this.props.onDragLeave(event);
+        });
     }
 
     componentWillUnmount() {
         document.removeEventListener('dragover', this.dragNDropListener);
         document.removeEventListener('dragenter', this.dragNDropListener);
         document.removeEventListener('dragleave', this.dragNDropListener);
+        document.removeEventListener('dragend', this.dragNDropListener);
         document.removeEventListener('drop', this.dragNDropListener);
         window.removeEventListener('resize', this.dragNDropWindowResizeListener);
+        this.dropZone.removeEventListener('mouseenter');
     }
 
     dragNDropWindowResizeListener() {
@@ -113,10 +132,9 @@ export default class DragAndDrop extends React.Component {
                                 || event.clientY >= this.dropZoneRect.bottom
                                 || event.clientX <= this.dropZoneRect.left
                                 || event.clientX >= this.dropZoneRect.right
-                                || (event.target.getAttribute('id') === 'drop' && !event.relatedTarget)
 
-                                // Firefox specific
-                                || (event.originalTarget.tagName === 'path' && !event.relatedTarget)
+                                // Cancel drag when file manager is on top of the drop zone area - works only on chromium
+                                || (!!window.chrome && event.target.getAttribute('id') === this.props.activeDropZoneId && !event.relatedTarget)
                     ) {
                         this.dropZoneDragState = 'dragleave';
                         this.props.onDragLeave(event);
@@ -163,5 +181,5 @@ export default class DragAndDrop extends React.Component {
 DragAndDrop.propTypes = propTypes;
 
 export {
-    DragAndDropCallbackPropTypes,
+    DragAndDropPropTypes,
 };

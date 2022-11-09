@@ -10,8 +10,7 @@ import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
 import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
 import getNumberOfLines from '../../libs/ComposerUtils/index';
-import DragAndDrop, {DragAndDropCallbackPropTypes} from '../DragAndDrop';
-import CONST from '../../CONST';
+import DragAndDrop, {DragAndDropPropTypes} from '../DragAndDrop';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -63,6 +62,8 @@ const propTypes = {
 
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
+
+    ...DragAndDropPropTypes,
 
     ...withLocalizePropTypes,
 };
@@ -319,19 +320,28 @@ class Composer extends React.Component {
         propStyles.outline = 'none';
         const propsWithoutStyles = _.omit(this.props, 'style');
         return (
-            <RNTextInput
-                autoComplete="off"
-                placeholderTextColor={themeColors.placeholderText}
-                ref={el => this.textInput = el}
-                selection={this.state.selection}
-                onChange={this.shouldCallUpdateNumberOfLines}
-                onSelectionChange={this.onSelectionChange}
-                numberOfLines={this.state.numberOfLines}
-                style={propStyles}
+            <DragAndDrop
+                onDragOver={this.props.onDragOver}
+                onDragLeave={this.props.onDragLeave}
+                onDragEnter={this.props.onDragEnter}
+                onDrop={this.props.onDrop}
+                dropZoneId={this.props.dropZoneId}
+                activeDropZoneId={this.props.activeDropZoneId}
+            >
+                <RNTextInput
+                    autoComplete="off"
+                    placeholderTextColor={themeColors.placeholderText}
+                    ref={el => this.textInput = el}
+                    selection={this.state.selection}
+                    onChange={this.shouldCallUpdateNumberOfLines}
+                    onSelectionChange={this.onSelectionChange}
+                    numberOfLines={this.state.numberOfLines}
+                    style={propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...propsWithoutStyles}
-                disabled={this.props.isDisabled}
-            />
+                    {...propsWithoutStyles}
+                    disabled={this.props.isDisabled}
+                />
+            </DragAndDrop>
         );
     }
 }
@@ -339,19 +349,7 @@ class Composer extends React.Component {
 Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
 
-const ComposerWithDragAndDrop = props => (
-    <DragAndDrop onDragOver={props.onDragOver} onDragLeave={props.onDragLeave} onDragEnter={props.onDragEnter} onDrop={props.onDrop} dropZoneId={CONST.REPORT.DROP_NATIVE_ID}>
-        <Composer
-           // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            ref={props.ref}
-        />
-    </DragAndDrop>
-);
-
-ComposerWithDragAndDrop.propTypes = {...DragAndDropCallbackPropTypes, ...Composer.propTypes};
-
 export default withLocalize(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <ComposerWithDragAndDrop {...props} forwardedRef={ref} />
+    <Composer {...props} forwardedRef={ref} />
 )));
