@@ -147,6 +147,33 @@ function getOptimisticLastReadSequenceNumberForDeletedAction(reportID, actionsTo
     return sortedActions[lastMessageIndex].sequenceNumber;
 }
 
+/**
+ * Sort an array of reportActions by their created timestamp,
+ * using actionName as a secondary sorting parameter,
+ * finally falling back on reportActionID in case multiple reportActions of the same actionName are created in the same millisecond.
+ *
+ * Note: this sorts the array in-place instead of returning a copy
+ *
+ * @param {Array} reportActions
+ */
+function sortReportActions(reportActions) {
+    if (!_.isArray(reportActions)) {
+        throw new Error(`ReportActionsUtils::sortReportActions requires an array, received ${typeof reportActions}`);
+    }
+
+    reportActions.sort((first, second) => {
+        if (first.created !== second.created) {
+            return first.created < second.created ? -1 : 1;
+        }
+
+        if (first.actionName !== second.actionName) {
+            return CONST.REPORT_ACTION_TYPE_SORT_ORDER[first.actionName] - CONST.REPORT_ACTION_TYPE_SORT_ORDER[second.actionName];
+        }
+
+        return first.reportActionID < second.reportActionID ? -1 : 1;
+    });
+}
+
 export {
     getOptimisticLastReadSequenceNumberForDeletedAction,
     getLastVisibleMessageText,
@@ -154,4 +181,5 @@ export {
     getMostRecentIOUReportSequenceNumber,
     isDeletedAction,
     isConsecutiveActionMadeByPreviousActor,
+    sortReportActions,
 };
