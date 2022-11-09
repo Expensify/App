@@ -19,6 +19,15 @@ Onyx.connect({
     callback: val => shouldFailAllRequests = (val && _.isBoolean(val.shouldFailAllRequests)) ? val.shouldFailAllRequests : false,
 });
 
+// getEnvironment promise returns the environment based on ENVIRONMENT Config for web/desktop.
+// Additionally, for iOS/android betaChecker.isBetaBuild() does the version check
+// environment is initialized as null as the default set in CONFIG.js always takes precedence
+let environment = null;
+Environment.getEnvironment()
+    .then((env) => {
+        environment = env;
+    });
+
 // We use the AbortController API to terminate pending request in `cancelPendingRequests`
 let cancellationController = new AbortController();
 
@@ -99,16 +108,7 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
 
     let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.URL_API_ROOT;
 
-    // getEnvironment promise returns the environment based on ENVIRONMENT Config for web/desktop.
-    // Additionally for ios/android betaChecker.isBetaBuild() does the version check
-    // environment is initialized as null as the default set in CONFIG.js always takes precedence
-    let environment = null;
-    Environment.getEnvironment()
-        .then((env) => {
-            environment = env;
-        });
-
-    if (environment !== CONST.ENVIRONMENT.PRODUCTION && shouldUseStagingServer) {
+    if (environment === CONST.ENVIRONMENT.STAGING && shouldUseStagingServer) {
         apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.STAGING_SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.STAGING_EXPENSIFY_URL;
     }
 
