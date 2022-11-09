@@ -49,8 +49,10 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
     mode: 'production',
     devtool: 'source-map',
     entry: {
-        main: ['babel-polyfill',
-            './index.js'],
+        main: [
+            'babel-polyfill',
+            './index.js',
+        ],
         splash: ['./web/splash/splash.js'],
     },
     output: {
