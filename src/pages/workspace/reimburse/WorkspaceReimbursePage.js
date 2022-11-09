@@ -1,11 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import BankAccount from '../../../libs/models/BankAccount';
 import CONST from '../../../CONST';
 import compose from '../../../libs/compose';
-import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../ONYXKEYS';
 import reimbursementAccountPropTypes from '../../ReimbursementAccount/reimbursementAccountPropTypes';
 import withPolicy, {policyPropTypes} from '../withPolicy';
@@ -29,7 +29,11 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceReimbursePage = props => {
+const defaultProps = {
+    reimbursementAccount: {},
+};
+
+const WorkspaceReimbursePage = (props) => {
     const achState = lodashGet(props.reimbursementAccount, 'achData.state', '');
     const hasVBBA = achState === BankAccount.STATE.OPEN;
     return (

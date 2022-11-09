@@ -8,11 +8,15 @@ import BankAccount from '../../../libs/models/BankAccount';
 import compose from '../../../libs/compose';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
+import reimbursementAccountPropTypes from '../../ReimbursementAccount/reimbursementAccountPropTypes';
 import WorkspacePageWithSections from '../WorkspacePageWithSections';
 import WorkspaceInvoicesNoVBAView from './WorkspaceInvoicesNoVBAView';
 import WorkspaceInvoicesVBAView from './WorkspaceInvoicesVBAView';
 
 const propTypes = {
+    /** Bank account currently in setup */
+    reimbursementAccount: reimbursementAccountPropTypes,
+
     /** The route object passed to this page from the navigator */
     route: PropTypes.shape({
         /** Each parameter passed via the URL */
@@ -44,7 +48,7 @@ class WorkspaceInvoicesPage extends React.Component {
                 route={this.props.route}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INVOICES}
             >
-                {(policyID) => (
+                {policyID => (
                     <>
                         {!hasVBBA && (
                             <WorkspaceInvoicesNoVBAView policyID={policyID} />

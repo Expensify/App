@@ -8,12 +8,16 @@ import BankAccount from '../../../libs/models/BankAccount';
 import compose from '../../../libs/compose';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
+import reimbursementAccountPropTypes from '../../ReimbursementAccount/reimbursementAccountPropTypes';
 import WorkspaceCardNoVBAView from './WorkspaceCardNoVBAView';
 import WorkspaceCardVBANoECardView from './WorkspaceCardVBANoECardView';
 import WorkspaceCardVBAWithECardView from './WorkspaceCardVBAWithECardView';
 import WorkspacePageWithSections from '../WorkspacePageWithSections';
 
 const propTypes = {
+    /** Bank account currently in setup */
+    reimbursementAccount: reimbursementAccountPropTypes,
+
     /** The route object passed to this page from the navigator */
     route: PropTypes.shape({
         /** Each parameter passed via the URL */

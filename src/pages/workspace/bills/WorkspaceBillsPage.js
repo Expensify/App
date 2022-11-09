@@ -8,12 +8,16 @@ import BankAccount from '../../../libs/models/BankAccount';
 import compose from '../../../libs/compose';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
+import reimbursementAccountPropTypes from '../../ReimbursementAccount/reimbursementAccountPropTypes';
 import withPolicy from '../withPolicy';
 import WorkspaceBillsNoVBAView from './WorkspaceBillsNoVBAView';
 import WorkspaceBillsVBAView from './WorkspaceBillsVBAView';
 import WorkspacePageWithSections from '../WorkspacePageWithSections';
 
 const propTypes = {
+    /** Bank account currently in setup */
+    reimbursementAccount: reimbursementAccountPropTypes,
+
     /** The route object passed to this page from the navigator */
     route: PropTypes.shape({
         /** Each parameter passed via the URL */
@@ -45,7 +49,7 @@ class WorkspaceBillsPage extends React.Component {
                 route={this.props.route}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BILLS}
             >
-                {(policyID) => (
+                {policyID => (
                     <>
                         {!hasVBBA && (
                             <WorkspaceBillsNoVBAView policyID={policyID} />

@@ -12,19 +12,11 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
-import BankAccount from '../../libs/models/BankAccount';
-import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import userPropTypes from '../settings/userPropTypes';
 import withPolicy from './withPolicy';
-import {withNetwork} from '../../components/OnyxProvider';
-import networkPropTypes from '../../components/networkPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
-    /** Information about the network from Onyx */
-    network: networkPropTypes.isRequired,
-
     /** The text to display in the header */
     headerText: PropTypes.string.isRequired,
 
@@ -68,46 +60,45 @@ const defaultProps = {
     shouldUseScrollView: false,
 };
 
-class WorkspacePageWithSections extends React.Component {
 
-    render() {
-        const isUsingECard = lodashGet(this.props.user, 'isUsingExpensifyCard', false);
-        const policyID = lodashGet(this.props.route, 'params.policyID');
-        const policyName = lodashGet(this.props.policy, 'name');
+const WorkspacePageWithSections = props => {
+    const isUsingECard = lodashGet(props.user, 'isUsingExpensifyCard', false);
+    const policyID = lodashGet(props.route, 'params.policyID');
+    const policyName = lodashGet(props.policy, 'name');
 
-        return (
-            <ScreenWrapper>
-                <FullPageNotFoundView shouldShowBackButton={false} shouldShow={_.isEmpty(this.props.policy)}>
-                    <HeaderWithCloseButton
-                        title={this.props.headerText}
-                        subtitle={policyName}
-                        shouldShowGetAssistanceButton
-                        guidesCallTaskID={this.props.guidesCallTaskID}
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
-                    />
-                    {this.props.shouldUseScrollView
-                        ? (
-                            <ScrollView
-                                keyboardShouldPersistTaps="handled"
-                                style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
-                            >
-                                <View style={[styles.w100, styles.flex1]}>
-                                    {this.props.children(policyID, isUsingECard)}
-                                </View>
-                            </ScrollView>
-                        )
-                        : this.props.children(policyID, isUsingECard)}
-                    {this.props.footer}
-                </FullPageNotFoundView>
-            </ScreenWrapper>
-        );
-    }
-}
+    return (
+        <ScreenWrapper>
+            <FullPageNotFoundView shouldShowBackButton={false} shouldShow={_.isEmpty(props.policy)}>
+                <HeaderWithCloseButton
+                    title={props.headerText}
+                    subtitle={policyName}
+                    shouldShowGetAssistanceButton
+                    guidesCallTaskID={props.guidesCallTaskID}
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
+                />
+                {props.shouldUseScrollView
+                    ? (
+                        <ScrollView
+                            keyboardShouldPersistTaps="handled"
+                            style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
+                        >
+                            <View style={[styles.w100, styles.flex1]}>
+                                {props.children(policyID, isUsingECard)}
+                            </View>
+                        </ScrollView>
+                    )
+                    : props.children(policyID, isUsingECard)}
+                {props.footer}
+            </FullPageNotFoundView>
+        </ScreenWrapper>
+    );
+};
 
-WorkspacePageWithSections.propTypes = propTypes;
 WorkspacePageWithSections.defaultProps = defaultProps;
+WorkspacePageWithSections.displayName = 'WorkspacePageWithSections';
+WorkspacePageWithSections.propTypes = propTypes;
 
 export default compose(
     withLocalize,
@@ -120,5 +111,4 @@ export default compose(
         },
     }),
     withPolicy,
-    withNetwork(),
 )(WorkspacePageWithSections);
