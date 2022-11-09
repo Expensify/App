@@ -126,6 +126,10 @@ const webViewStyles = {
             marginTop: 0,
             marginBottom: 0,
         },
+        h1: {
+            fontSize: variables.fontSizeLarge,
+            marginBottom: 8,
+        },
     },
 
     baseFontStyle: {
