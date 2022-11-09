@@ -127,10 +127,13 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
             value: {
                 walletLinkedAccountID: bankAccountID || fundID,
                 walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
-                errors: null,
             },
         },
     ];
+
+    if (isOptimisticData) {
+        onxyData[0].value.errors = null;
+    }
 
     if (previousPaymentMethod) {
         onxyData.push({
