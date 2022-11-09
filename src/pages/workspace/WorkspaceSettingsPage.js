@@ -85,6 +85,7 @@ class WorkspaceSettingsPage extends React.Component {
                             style={[styles.mh5, styles.mt5, styles.flexGrow1]}
                             validate={this.validate}
                             onSubmit={this.submit}
+                            enabledWhenOffline
                         >
                             <OfflineWithFeedback
                                 pendingAction={lodashGet(this.props.policy, 'pendingFields.avatar', null)}
