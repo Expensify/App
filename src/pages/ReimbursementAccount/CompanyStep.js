@@ -31,13 +31,17 @@ import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropT
 const propTypes = {
     /** The bank account currently in setup */
     /* eslint-disable-next-line react/no-unused-prop-types */
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: reimbursementAccountPropTypes,
 
     /** The draft values of the bank account being setup */
     /* eslint-disable-next-line react/no-unused-prop-types */
     reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
 
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    reimbursementAccount: {},
 };
 
 class CompanyStep extends React.Component {
@@ -167,6 +171,12 @@ class CompanyStep extends React.Component {
                     />
                     <AddressForm
                         translate={this.props.translate}
+                        defaultValues={{
+                            street: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressStreet'),
+                            city: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressCity'),
+                            state: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressState'),
+                            zipCode: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'addressZipCode'),
+                        }}
                         inputKeys={{
                             street: 'addressStreet', city: 'addressCity', state: 'addressState', zipCode: 'addressZipCode',
                         }}
@@ -251,6 +261,8 @@ class CompanyStep extends React.Component {
 }
 
 CompanyStep.propTypes = propTypes;
+CompanyStep.defaultProps = defaultProps;
+
 export default compose(
     withLocalize,
     withOnyx({
