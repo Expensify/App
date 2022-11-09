@@ -1,7 +1,7 @@
 export default {
     dark: '#0b1b34',
     black: '#000000',
-    blue: '#5AB0FF',
+    blue: '#0185ff',
     blueHover: '#B0D9FF',
     floralwhite: '#fffaf0',
     orange: '#FF7101',
@@ -24,6 +24,8 @@ export default {
     greenIcons: '#8B9C8F',
     greenSupportingText: '#C9D3C5',
     white: '#FFFFFF',
+    blueLink: '#5AB0FF',
+    blueLinkHover: '#B0D9FF',
     greenDefaultButton: '#184E3D',
     greenDefaultButtonHover: '#2C6755',
     greenDefaultButtonPressed: '#467164',
