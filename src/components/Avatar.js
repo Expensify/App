@@ -1,7 +1,8 @@
 import React, {PureComponent} from 'react';
-import {Image, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import FastImage from '@pieter-pot/react-native-fast-image';
 import stylePropTypes from '../styles/stylePropTypes';
 import Icon from './Icon';
 import themeColors from '../styles/themes/default';
@@ -72,7 +73,7 @@ class Avatar extends PureComponent {
                         />
                     )
                     : (
-                        <Image
+                        <FastImage
                             source={{uri: this.props.source}}
                             defaultSource={getAvatarDefaultSource(this.props.source)}
                             style={imageStyle}
