@@ -3,6 +3,7 @@ import {View, ScrollView, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
+import { withNetwork } from '../../components/OnyxProvider';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
@@ -28,6 +29,7 @@ import cardPropTypes from '../../components/cardPropTypes';
 import * as Wallet from '../../libs/actions/Wallet';
 import walletTermsPropTypes from '../EnablePayments/walletTermsPropTypes';
 import * as PolicyUtils from '../../libs/PolicyUtils';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const propTypes = {
     /* Onyx Props */
@@ -96,6 +98,11 @@ class InitialSettingsPage extends React.Component {
         this.getWalletBalance = this.getWalletBalance.bind(this);
         this.getDefaultMenuItems = this.getDefaultMenuItems.bind(this);
         this.getMenuItem = this.getMenuItem.bind(this);
+        this.signout = this.signout.bind(this);
+
+        this.state = {
+            shouldShowSignoutConfirmModal: false,
+        };
     }
 
     componentDidMount() {
@@ -171,9 +178,23 @@ class InitialSettingsPage extends React.Component {
             {
                 translationKey: 'initialSettingsPage.signOut',
                 icon: Expensicons.Exit,
-                action: Session.signOutAndRedirectToSignIn,
-            },
+                action: () => { signout(false); },
+            }
         ]);
+    }
+
+    signout(shouldForceSignout = false) {
+        if (!this.props.network.isOffline || shouldForceSignout) {
+            Session.signOutAndRedirectToSignIn();
+            return;
+        }
+
+        // When offline, warn the user that any actions they took while offline will be lost if they sign out
+        this.toggleSignoutConfirmModal(true);
+    }
+
+    toggleSignoutConfirmModal(value) {
+        this.setState({ shouldShowSignoutConfirmModal: value });
     }
 
     getMenuItem(item, index) {
@@ -247,6 +268,16 @@ class InitialSettingsPage extends React.Component {
                             )}
                         </View>
                         {_.map(this.getDefaultMenuItems(), (item, index) => this.getMenuItem(item, index))}
+
+                        <ConfirmModal
+                            title={this.props.translate('baseUpdateAppModal.updateApp')}
+                            prompt={this.props.translate('baseUpdateAppModal.updatePrompt')}
+                            confirmText={this.props.translate('baseUpdateAppModal.updateApp')}
+                            cancelText={this.props.translate('common.cancel')}
+                            isVisible={this.state.shouldShowSignoutConfirmModal}
+                            onConfirm={this.signout}
+                        />
+
                     </View>
                 </ScrollView>
             </ScreenWrapper>
@@ -286,4 +317,5 @@ export default compose(
             key: ONYXKEYS.WALLET_TERMS,
         },
     }),
+    withNetwork(),
 )(InitialSettingsPage);
