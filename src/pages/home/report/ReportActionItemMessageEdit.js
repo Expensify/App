@@ -219,7 +219,7 @@ class ReportActionItemMessageEdit extends React.Component {
     }
 
     render() {
-        const hasExceededMaxCommentLength = this.state.exceededCommentLength != null;
+        const hasExceededMaxCommentLength = this.state.exceededCommentLength !== undefined;
         return (
             <View style={styles.chatItemMessage}>
                 <View

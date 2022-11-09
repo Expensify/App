@@ -533,7 +533,7 @@ class ReportActionCompose extends React.Component {
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
         const inputPlaceholder = this.getInputPlaceholder();
-        const hasExceededMaxCommentLength = this.state.exceededCommentLength != null;
+        const hasExceededMaxCommentLength = this.state.exceededCommentLength !== undefined;
 
         return (
             <View style={[
