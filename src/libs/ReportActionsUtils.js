@@ -57,12 +57,11 @@ function getSortedReportActions(reportActions) {
  * @param {Array} reportActions
  * @returns {Number}
  */
-function getMostRecentIOUReportSequenceNumber(reportActions) {
+function getMostRecentIOUReportActionID(reportActions) {
     return _.chain(reportActions)
-        .sortBy('sequenceNumber')
-        .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU)
+        .where({actionName: CONST.REPORT.ACTIONS.TYPE.IOU})
         .max(action => action.sequenceNumber)
-        .value().sequenceNumber;
+        .value().reportActionID;
 }
 
 /**
@@ -151,7 +150,7 @@ export {
     getOptimisticLastReadSequenceNumberForDeletedAction,
     getLastVisibleMessageText,
     getSortedReportActions,
-    getMostRecentIOUReportSequenceNumber,
+    getMostRecentIOUReportActionID,
     isDeletedAction,
     isConsecutiveActionMadeByPreviousActor,
 };
