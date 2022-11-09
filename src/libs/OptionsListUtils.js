@@ -293,6 +293,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
     const personalDetail = personalDetailList[0] || {};
     let hasMultipleParticipants = personalDetailList.length > 1;
     let subtitle;
+    let reportName;
 
     result.participantsList = personalDetailList;
 
@@ -349,7 +350,9 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
                 ? lastMessageText
                 : Str.removeSMSDomain(personalDetail.login);
         }
+        reportName = ReportUtils.getReportName(report, policies);
     } else {
+        reportName = ReportUtils.getDisplayNameForParticipant(logins[0]);
         result.keyForList = personalDetail.login;
         result.alternateText = Str.removeSMSDomain(personalDetail.login);
     }
@@ -368,7 +371,6 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
 
-    const reportName = ReportUtils.getReportName(report, personalDetailMap, policies);
     result.text = reportName;
     result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
     result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
