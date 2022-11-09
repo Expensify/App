@@ -2,8 +2,8 @@ const {APP_PACKAGE} = require('../config');
 const execAsync = require('./execAsync');
 const Logger = require('./logger');
 
-const BASELINE_APP_PATH_FROM_ROOT = '../app-e2eRelease-baseline.apk';
-const COMPARE_APP_PATH_FROM_ROOT = '../app-e2eRelease-compare.apk';
+const BASELINE_APP_PATH_FROM_ROOT = './app-e2eRelease-baseline.apk';
+const COMPARE_APP_PATH_FROM_ROOT = './app-e2eRelease-compare.apk';
 
 /**
  * Installs the app on the currently connected device for the given platform.
