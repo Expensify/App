@@ -11,6 +11,11 @@ describe('ReportActionsUtils', () => {
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
                     reportActionID: '8401445780099176',
                 },
+                {
+                    created: '2022-11-09 22:27:01.600',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    reportActionID: '6401435781022176',
+                },
 
                 // These are all created in the same millisecond, but have different actionName
                 {
@@ -99,6 +104,11 @@ describe('ReportActionsUtils', () => {
                     created: '2022-11-09 22:26:48.789',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
                     reportActionID: '2962390724708756',
+                },
+                {
+                    created: '2022-11-09 22:27:01.600',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    reportActionID: '6401435781022176',
                 },
                 {
                     created: '2022-11-09 22:27:01.825',

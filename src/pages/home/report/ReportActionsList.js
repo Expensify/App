@@ -118,8 +118,8 @@ class ReportActionsList extends React.Component {
      * @returns {React.Component}
      */
     renderItem({
+        item: reportAction,
         index,
-        ...reportAction
     }) {
         // When the new indicator should not be displayed we explicitly set it to 0. The marker should never be shown above the
         // created action (which will have sequenceNumber of 0) so we use 0 to indicate "hidden".
