@@ -87,6 +87,11 @@ describe('EmojiTest', () => {
         expect(replacedResults.lastReplacedSelection.end).toEqual(11);
     });
 
+    it('will not add a space after the last emoji if there is text after it', () => {
+        const text = 'Hi :smile::wave:no space after last emoji';
+        expect(EmojiUtils.replaceEmojis(text).newText).toBe('Hi 😄👋no space after last emoji');
+    });
+
     it('suggests emojis when typing emojis prefix after colon', () => {
         const text = 'Hi :coffin';
         expect(EmojiUtils.suggestEmojis(text)).toEqual([{code: '⚰️', name: 'coffin'}]);
