@@ -146,10 +146,8 @@ const BankAccountStep = (props) => {
                 </Section>
                 {!props.user.validated && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
-                        <Text style={[styles.mutedTextLabel, styles.mr4]}>
-                            <Icon src={Expensicons.Exclamation} fill={colors.red} />
-                        </Text>
-                        <Text style={styles.mutedTextLabel}>
+                        <Icon src={Expensicons.Exclamation} fill={colors.red} />
+                        <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>
                             {props.translate('bankAccount.validateAccountError')}
                         </Text>
                     </View>
