@@ -98,7 +98,7 @@
 
 @font-face {
     font-family: ExpensifyNeue-Bd;
-    font-weight: 400;
+    font-weight: 700;
     font-style: normal;
     src: url('https://www.expensify.com/font/ExpensifyNeue-Bold.woff') format('woff'), url('https://www.expensify.com/font/ExpensifyNeue-Bold.woff2') format('woff2');
 }
@@ -112,9 +112,23 @@
 
 @font-face {
     font-family: ExpensifyNeue-BdIt;
-    font-weight: 400;
+    font-weight: 700;
     font-style: normal;
     src: url('https://www.expensify.com/font/ExpensifyNeue-BoldItalic.woff') format('woff'), url('https://www.expensify.com/font/ExpensifyNeue-BoldItalic.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: ExpensifyMono-Rg;
+    font-weight: 400;
+    font-style: normal;
+    src: url('https://www.expensify.com/font/ExpensifyMono-Regular.woff') format('woff'), url('https://www.expensify.com/font/ExpensifyMono-Regular.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: ExpensifyMono-Bd;
+    font-weight: 700;
+    font-style: normal;
+    src: url('https://www.expensify.com/font/ExpensifyMono-Bold.woff') format('woff'), url('https://www.expensify.com/font/ExpensifyMono-Bold.woff2') format('woff2');
 }
 
 * {
