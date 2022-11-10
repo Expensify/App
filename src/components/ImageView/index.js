@@ -3,11 +3,16 @@ import PropTypes from 'prop-types';
 import {
     View, Image, Pressable,
 } from 'react-native';
+import FastImage from '@pieter-pot/react-native-fast-image';
+import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
+import compose from '../../libs/compose';
+import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     /** URL to full-sized image */
@@ -205,8 +210,13 @@ class ImageView extends PureComponent {
                     style={[styles.imageViewContainer, styles.overflowHidden]}
                     onLayout={this.onContainerLayoutChanged}
                 >
-                    <Image
-                        source={{uri: this.props.url}}
+                    <FastImage
+                        source={{
+                            uri: this.props.url,
+                            headers: {
+                                'X-Chat-Attachment-Token': lodashGet(this.props.session, 'encryptedAuthToken', ''),
+                            },
+                        }}
                         style={this.state.zoomScale === 0 ? undefined : [
                             styles.w100,
                             styles.h100,
@@ -214,7 +224,7 @@ class ImageView extends PureComponent {
 
                         // When Image dimensions are lower than the container boundary(zoomscale <= 1), use `contain` to render the image with natural dimensions.
                         // Both `center` and `contain` keeps the image centered on both x and y axis.
-                        resizeMode={this.state.zoomScale > 1 ? 'center' : 'contain'}
+                        resizeMode={this.state.zoomScale > 1 ? FastImage.resizeMode.center : FastImage.resizeMode.contain}
                         onLoadStart={this.imageLoadingStart}
                         onLoadEnd={this.imageLoadingEnd}
                     />
@@ -248,13 +258,13 @@ class ImageView extends PureComponent {
                     onPressIn={this.onContainerPressIn}
                     onPress={this.onContainerPress}
                 >
-                    <Image
+                    <FastImage
                         source={{uri: this.props.url}}
                         style={this.state.zoomScale === 0 ? undefined : [
                             styles.h100,
                             styles.w100,
                         ]} // Hide image until zoomScale calculated to prevent showing preview with wrong dimensions.
-                        resizeMode="contain"
+                        resizeMode={FastImage.resizeMode.contain}
                         onLoadStart={this.imageLoadingStart}
                         onLoadEnd={this.imageLoadingEnd}
                     />
@@ -271,4 +281,6 @@ class ImageView extends PureComponent {
 }
 
 ImageView.propTypes = propTypes;
-export default withWindowDimensions(ImageView);
+export default compose(withWindowDimensions, withOnyx({
+    session: {key: ONYXKEYS.SESSION},
+}))(ImageView);
