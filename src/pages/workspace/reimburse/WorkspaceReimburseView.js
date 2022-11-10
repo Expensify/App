@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
@@ -17,6 +18,10 @@ import compose from '../../../libs/compose';
 import * as Policy from '../../../libs/actions/Policy';
 import CONST from '../../../CONST';
 import Button from '../../../components/Button';
+import ONYXKEYS from '../../../ONYXKEYS';
+import * as BankAccounts from '../../../libs/actions/BankAccounts';
+import BankAccount from '../../../libs/models/BankAccount';
+import reimbursementAccountPropTypes from '../../ReimbursementAccount/reimbursementAccountPropTypes';
 import getPermittedDecimalSeparator from '../../../libs/getPermittedDecimalSeparator';
 import {withNetwork} from '../../../components/OnyxProvider';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
@@ -58,7 +63,18 @@ const propTypes = {
         lastModified: PropTypes.number,
     }).isRequired,
 
+    /** From Onyx */
+    /** Bank account attached to free plan */
+    reimbursementAccount: reimbursementAccountPropTypes,
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    reimbursementAccount: {},
 };
 
 class WorkspaceReimburseView extends React.Component {
@@ -210,6 +226,8 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     render() {
+        const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
+        const hasVBA = achState === BankAccount.STATE.OPEN;
         return (
             <>
                 <Section
@@ -277,7 +295,7 @@ class WorkspaceReimburseView extends React.Component {
                         </View>
                     </OfflineWithFeedback>
                 </Section>
-                {this.props.hasVBA ? (
+                {hasVBA ? (
                     <Section
                         title={this.props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
                         icon={Illustrations.BankUserGreen}
@@ -343,14 +361,16 @@ class WorkspaceReimburseView extends React.Component {
     }
 }
 
+WorkspaceReimburseView.defaultProps = defaultProps;
 WorkspaceReimburseView.propTypes = propTypes;
 WorkspaceReimburseView.displayName = 'WorkspaceReimburseView';
 
 export default compose(
     withLocalize,
+    withNetwork(),
     withOnyx({
-        policy: {
-            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
 )(WorkspaceReimburseView);
