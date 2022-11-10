@@ -19,6 +19,7 @@ import Performance from '../../../../libs/Performance';
 import * as Welcome from '../../../../libs/actions/Welcome';
 import {sidebarPropTypes, sidebarDefaultProps} from './sidebarPropTypes';
 import withDrawerState from '../../../../components/withDrawerState';
+import withNavigationFocus from '../../../../components/withNavigationFocus';
 import KeyboardShortcutsModal from '../../../../components/KeyboardShortcutsModal';
 
 const propTypes = {
@@ -62,10 +63,51 @@ class BaseSidebarScreen extends Component {
         Welcome.show({routes, showCreateMenu: this.showCreateMenu});
     }
 
+    componentDidUpdate(prevProps) {
+        if (!this.didBecomeInactive(prevProps)) {
+            return;
+        }
+
+        // Hide menu manually when other pages are opened using shortcut key
+        this.hideCreateMenu();
+    }
+
+    didBecomeInactive(prevProps) {
+        // When Report page is just opened
+        if (!this.props.isDrawerOpen && prevProps.isDrawerOpen) {
+            return true;
+        }
+
+        // When other page is just opened
+        if (!this.props.isFocused && prevProps.isFocused) {
+            return true;
+        }
+
+        return false;
+    }
+
+    isInactive() {
+        // When drawer is closed and Report page is open
+        if (this.props.isSmallScreenWidth && !this.props.isDrawerOpen) {
+            return true;
+        }
+
+        // When other page is open
+        if (!this.props.isFocused) {
+            return true;
+        }
+
+        return false;
+    }
+
     /**
      * Method called when we click the floating action button
      */
     showCreateMenu() {
+        if (this.isInactive()) {
+            // Prevent showing menu when click FAB icon quickly after opening other pages
+            return;
+        }
         this.setState({
             isCreateMenuActive: true,
         });
@@ -76,6 +118,10 @@ class BaseSidebarScreen extends Component {
      * Method called when avatar is clicked
      */
     navigateToSettings() {
+        if (this.state.isCreateMenuActive) {
+            // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
+            return;
+        }
         Navigation.navigate(ROUTES.SETTINGS);
     }
 
@@ -85,6 +131,9 @@ class BaseSidebarScreen extends Component {
      * Selecting an item on CreateMenu or closing it by clicking outside of the modal component
      */
     hideCreateMenu() {
+        if (!this.state.isCreateMenuActive) {
+            return;
+        }
         this.props.onHideCreateMenu();
         this.setState({
             isCreateMenuActive: false,
@@ -116,6 +165,7 @@ class BaseSidebarScreen extends Component {
                                 onAvatarClick={this.navigateToSettings}
                                 isSmallScreenWidth={this.props.isSmallScreenWidth}
                                 isDrawerOpen={this.props.isDrawerOpen}
+                                isMenuOpen={this.state.isCreateMenuActive}
                                 reportIDFromRoute={this.props.reportIDFromRoute}
                             />
                             <FloatingActionButton
@@ -193,4 +243,4 @@ class BaseSidebarScreen extends Component {
 BaseSidebarScreen.propTypes = propTypes;
 BaseSidebarScreen.defaultProps = defaultProps;
 
-export default withDrawerState(BaseSidebarScreen);
+export default withDrawerState(withNavigationFocus(BaseSidebarScreen));

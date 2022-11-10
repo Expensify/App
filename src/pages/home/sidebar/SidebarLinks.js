@@ -84,7 +84,20 @@ const defaultProps = {
 
 class SidebarLinks extends React.Component {
     showSearchPage() {
+        if (this.props.isMenuOpen) {
+            // Prevent opening Search page when click Search icon quickly after clicking FAB icon
+            return;
+        }
         Navigation.navigate(ROUTES.SEARCH);
+    }
+
+    showReportPage(reportID) {
+        if (this.props.isMenuOpen) {
+            // Prevent opening Report page when click LHN row quickly after clicking FAB icon
+            return;
+        }
+        Navigation.navigate(ROUTES.getReportRoute(reportID));
+        this.props.onLinkClick();
     }
 
     render() {
@@ -121,7 +134,7 @@ class SidebarLinks extends React.Component {
                             accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
                             accessibilityRole="button"
                             style={[styles.flexRow, styles.ph5]}
-                            onPress={this.showSearchPage}
+                            onPress={() => this.showSearchPage()}
                         >
                             <Icon src={Expensicons.MagnifyingGlass} />
                         </TouchableOpacity>
@@ -147,10 +160,7 @@ class SidebarLinks extends React.Component {
                         focusedIndex={_.findIndex(optionListItems, (
                             option => option.toString() === this.props.reportIDFromRoute
                         ))}
-                        onSelectRow={(option) => {
-                            Navigation.navigate(ROUTES.getReportRoute(option.reportID));
-                            this.props.onLinkClick();
-                        }}
+                        onSelectRow={option => this.showReportPage(option.reportID)}
                         shouldDisableFocusOptions={this.props.isSmallScreenWidth}
                         optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
                         onLayout={App.setSidebarLoaded}
