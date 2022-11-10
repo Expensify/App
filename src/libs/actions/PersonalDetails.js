@@ -317,7 +317,7 @@ function updatePronouns(pronouns) {
  * @param {String} firstName
  * @param {String} lastName
  */
- function updateDisplayName(firstName, lastName) {
+function updateDisplayName(firstName, lastName) {
     API.write('UpdateDisplayName', {firstName, lastName}, {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
