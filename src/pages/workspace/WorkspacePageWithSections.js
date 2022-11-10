@@ -40,7 +40,7 @@ const propTypes = {
     }).isRequired,
 
     /** From Onyx */
-    /** Bank account currently in setup */
+    /** Bank account attached to free plan */
     reimbursementAccount: reimbursementAccountPropTypes,
 
     /** User Data from Onyx */
@@ -90,7 +90,7 @@ class WorkspacePageWithSections extends React.Component {
     }
 
     fetchData() {
-        if (this.props.shouldSkipVBBACall) {
+        if (!this.props.shouldSkipVBBACall) {
             const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
             BankAccounts.openWorkspaceView();
         }
