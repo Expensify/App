@@ -9,7 +9,6 @@ export default class CustomStatusBar extends React.Component {
     componentDidMount() {
         StatusBar.setBarStyle('dark-content');
         StatusBar.setBackgroundColor('transparent');
-        StatusBar.setTranslucent(true);
     }
 
     render() {
