@@ -720,6 +720,39 @@ function payIOUReport({
     return promiseWithHandlers;
 }
 
+/**
+ * @param {Array} params
+ */
+function sendMoneyWithWallet(params) {
+    API.write('SendMoneyWithWallet',
+        {
+            params,
+        },
+        {
+            optimisticData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.chatReportID}`,
+                value: {
+                    isLoading: true,
+                },
+            }],
+            successData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                },
+            }],
+            failureData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                },
+            }],
+        });
+}
+
 export {
     cancelMoneyRequest,
     splitBill,
