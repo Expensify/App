@@ -1,38 +1,37 @@
+{% assign activeHub = page.url | remove: "/hubs/" | remove: ".html" %}
+
 <ul class="lhn-items">
     <li class="home-link">
-        {% if include.activeHub == "home" %}
+        {% if page.url == "/" %}
             <div class="selected">Home</div>
         {% else %}
-            <a href="/main">Home</a>
+            <a href="/">Home</a>
         {% endif %}
     </li>
 
-    {% for hub in site.data.hubs %}
-        {% if hub.href == include.activeHub %}
+    {% for hub in site.data.routes.hubs %}
+        {% if hub.href == activeHub %}
             <li>
                 <div class="icon-with-link selected">
                     <i class="fa-solid fa-angle-down icon"></i>
                     <span>{{ hub.title }}</span>
                 </div>
                 <ul class="nested-treeview">
-                    {% for stage in hub.stages %}
+                    <!-- First display sections with nested articles -->
+                    {% for section in hub.sections %}
                         <li>
-                            <!-- Stages may have nested articles, or they may be just a single article. -->
-                            {% if stage.articles %}
-                                <a href="#{{ stage.href }}">{{ stage.title }}</a>
-                                <ul>
-                                    {% for article in stage.articles %}
-                                        <li>
-                                            <a href="/articles/{{ hub.href }}/{{ article.href }}">
-                                                {{ article.title }}
-                                            </a>
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            {% else %}
-                                <a href="/articles/{{ hub.href }}/{{ stage.href }}">{{ stage.title }}</a>
-                            {% endif %}
+                            <a href="#{{ section.href }}">{{ section.title }}</a>
+                            <ul>
+                                {% for article in section.articles %}
+                                    {% include lhn-article-link.html hub=hub.href href=article.href title=article.title %}
+                                {% endfor %}
+                            </ul>
                         </li>
+                    {% endfor %}
+
+                    <!-- Then display standalone articles -->
+                    {% for article in hub.articles %}
+                        {% include lhn-article-link.html hub=hub.href href=article.href title=article.title %}
                     {% endfor %}
                 </ul>
             </li>

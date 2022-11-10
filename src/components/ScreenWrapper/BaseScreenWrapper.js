@@ -10,7 +10,6 @@ import onScreenTransitionEnd from '../../libs/onScreenTransitionEnd';
 import * as StyleUtils from '../../styles/StyleUtils';
 import styles from '../../styles/styles';
 import HeaderGap from '../HeaderGap';
-import KeyboardShortcutsModal from '../KeyboardShortcutsModal';
 import OfflineIndicator from '../OfflineIndicator';
 import compose from '../../libs/compose';
 import withNavigation from '../withNavigation';
@@ -42,23 +41,6 @@ class BaseScreenWrapper extends React.Component {
             this.setState({didScreenTransitionEnd: true});
             this.props.onTransitionEnd();
         });
-    }
-
-    /**
-     * We explicitly want to ignore if props.modal changes, and only want to rerender if
-     * any of the other props **used for the rendering output** is changed.
-     * @param {Object} nextProps
-     * @param {Object} nextState
-     * @returns {boolean}
-     */
-    shouldComponentUpdate(nextProps, nextState) {
-        return this.state !== nextState
-            || this.props.children !== nextProps.children
-            || this.props.network.isOffline !== nextProps.network.isOffline
-            || this.props.includePaddingBottom !== nextProps.includePaddingBottom
-            || this.props.includePaddingTop !== nextProps.includePaddingTop
-            || this.props.isSmallScreenWidth !== nextProps.isSmallScreenWidth
-            || this.props.keyboardAvoidingViewBehavior !== nextProps.keyboardAvoidingViewBehavior;
     }
 
     componentWillUnmount() {
@@ -104,7 +86,6 @@ class BaseScreenWrapper extends React.Component {
                                         })
                                         : this.props.children
                                 }
-                                <KeyboardShortcutsModal />
                                 {this.props.isSmallScreenWidth && (
                                     <OfflineIndicator />
                                 )}
