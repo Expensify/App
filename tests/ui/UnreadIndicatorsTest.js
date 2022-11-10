@@ -130,7 +130,7 @@ function signInAndGetAppWithUnreadChat() {
             // Simulate setting an unread report and personal details
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                 reportID: REPORT_ID,
-                reportName: 'Chat Report',
+                reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                 maxSequenceNumber: 9,
                 lastReadSequenceNumber: 1,
                 lastMessageTimestamp: MOMENT_TEN_MINUTES_AGO.utc().valueOf(),
@@ -265,7 +265,7 @@ describe('Unread Indicators', () => {
                 const NEW_REPORT_CREATED_MOMENT = moment();
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${NEW_REPORT_ID}`, {
                     reportID: NEW_REPORT_ID,
-                    reportName: 'Chat Report',
+                    reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                     maxSequenceNumber: 1,
                     lastReadSequenceNumber: 0,
                     lastMessageTimestamp: NEW_REPORT_CREATED_MOMENT.utc().valueOf(),
