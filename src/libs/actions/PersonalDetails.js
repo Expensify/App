@@ -310,6 +310,7 @@ function updatePronouns(pronouns) {
             },
         }],
     });
+    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
 /**
