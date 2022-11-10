@@ -304,6 +304,12 @@ export default {
         offline: 'Desconectado',
         syncing: 'Sincronizando',
     },
+    displayNamePage: {
+        headerTitle: 'Nombre',
+        isShownOnProfile: 'Este nombre es visible en su perfil.',
+        john: 'Juan',
+        doe: 'Nadie',
+    },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Agregar número de teléfono',
         addEmailAddress: 'Agregar dirección de email',
@@ -378,7 +384,6 @@ export default {
         yourPayPalUsername: 'Tu usuario de PayPal',
         addPayPalAccount: 'Agregar cuenta de PayPal',
         growlMessageOnSave: 'Su nombre de usuario de PayPal se agregó correctamente',
-        editPayPalAccount: 'Actualizar cuenta de PayPal',
         formatError: 'Usuario PayPal.me no válido',
     },
     addDebitCardPage: {
