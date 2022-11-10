@@ -735,6 +735,25 @@ function sendMoneyWithWallet(params) {
         '',
         params.iouReport.reportID,
     );
+    const optimisticChatReport = ReportUtils.buildOptimisticIOUReportAction(
+        newSequenceNumber,
+        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+        amount,
+        currency,
+        comment,
+        [participant],
+        '',
+        '',
+        params.iouReport.reportID,
+    );
+    const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(
+        recipientEmail,
+        debtorEmail,
+        amount,
+        chatReport.reportID,
+        currency,
+        preferredLocale
+    );
 
     API.write('SendMoneyWithWallet',
         {
@@ -747,7 +766,7 @@ function sendMoneyWithWallet(params) {
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.chatReportID}`,
                     value: {
                         [params.reportActionID]: {
-                            // …<iouReportAction>,
+                            optimisticIouReportAction,
                             // Set pendingAction state for pattern B
                             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                         },
@@ -770,7 +789,7 @@ function sendMoneyWithWallet(params) {
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.chatReportID}`,
                     value: {
                     [params.reportActionID]: {
-                    …<iouReportAction>,
+                    optimisticIouReportAction,
                     pendingAction: null,
                     error : {
                     [DateUtils.getMicroseconds()]: Localize.translateLocal(iou.error.genericCreateFailureMessage'),
