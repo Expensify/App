@@ -340,6 +340,7 @@ export default {
         },
         security: 'Security',
         signOut: 'Sign out',
+        signOutConfirmationText: 'You\'ll lose any offline changes if you sign-out.',
         versionLetter: 'v',
         readTheTermsAndPrivacyPolicy: {
             phrase1: 'Read the',

@@ -341,6 +341,7 @@ export default {
         },
         security: 'Seguridad',
         signOut: 'Desconectar',
+        signOutConfirmationText: '',
         versionLetter: 'v',
         readTheTermsAndPrivacyPolicy: {
             phrase1: 'Leer los',
