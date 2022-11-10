@@ -35,7 +35,7 @@ import * as Expensicons from '../../components/Icon/Expensicons';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
-    personalDetails: personalDetailsPropType.isRequired,
+    personalDetails: personalDetailsPropType,
 
     /** URL Route params */
     route: PropTypes.shape({
@@ -293,7 +293,7 @@ class WorkspaceMembersPage extends React.Component {
             if (email !== this.props.session.email && email !== this.props.policy.owner) {
                 removableMembers.push(email);
             }
-            const details = this.props.personalDetails[email] || {displayName: email, login: email, avatar: Expensicons.FallbackAvatar};
+            const details = lodashGet(this.props.personalDetails, email, {displayName: email, login: email, avatar: Expensicons.FallbackAvatar});
             data.push({
                 ...policyMember,
                 ...details,
