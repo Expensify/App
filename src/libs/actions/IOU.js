@@ -724,6 +724,18 @@ function payIOUReport({
  * @param {Array} params
  */
 function sendMoneyWithWallet(params) {
+    const optimisticIouReportAction = ReportUtils.buildOptimisticIOUReportAction(
+        newSequenceNumber,
+        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+        amount,
+        currency,
+        comment,
+        [participant],
+        '',
+        '',
+        params.iouReport.reportID,
+    );
+
     API.write('SendMoneyWithWallet',
         {
             params,
