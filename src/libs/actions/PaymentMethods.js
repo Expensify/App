@@ -132,7 +132,6 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
     ];
 
     // Only clear the error if this is optimistic data. If this is failure data, we do not want to clear the error that came from the server.
-    // we end up clearing the error that came from the server in case of failure
     if (isOptimisticData) {
         onyxData[0].value.errors = null;
     }
