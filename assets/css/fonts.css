@@ -89,6 +89,34 @@
     src: url('https://www.expensify.com/font/GT-America-Exp-Mono-Bold-Italic.eot') format('embedded-opentype'), url('https://www.expensify.com/font/GT-America-Exp-Mono-Bold-Italic.woff') format('woff'), url('https://www.expensify.com/font/GT-America-Exp-Mono-Bold-Italic.woff2') format('woff2');
 }
 
+@font-face {
+    font-family: ExpensifyNeue-Rg;
+    font-weight: 400;
+    font-style: normal;
+    src: url('https://www.expensify.com/font/ExpensifyNeue-Regular.woff') format('woff'), url('https://www.expensify.com/font/ExpensifyNeue-Regular.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: ExpensifyNeue-Bd;
+    font-weight: 400;
+    font-style: normal;
+    src: url('https://www.expensify.com/font/ExpensifyNeue-Bold.woff') format('woff'), url('https://www.expensify.com/font/ExpensifyNeue-Bold.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: ExpensifyNeue-It;
+    font-weight: 400;
+    font-style: normal;
+    src: url('https://www.expensify.com/font/ExpensifyNeue-Italic.woff') format('woff'), url('https://www.expensify.com/font/ExpensifyNeue-Italic.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: ExpensifyNeue-BdIt;
+    font-weight: 400;
+    font-style: normal;
+    src: url('https://www.expensify.com/font/ExpensifyNeue-BoldItalic.woff') format('woff'), url('https://www.expensify.com/font/ExpensifyNeue-BoldItalic.woff2') format('woff2');
+}
+
 * {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
