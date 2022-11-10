@@ -324,6 +324,10 @@ function verifyIdentityForBankAccount(bankAccountID, onfidoData) {
     }, getVBBADataForOnyx());
 }
 
+function openWorkspaceView() {
+    API.read('OpenWorkspaceView');
+}
+
 export {
     addPersonalBankAccount,
     connectBankAccountManually,
@@ -340,6 +344,7 @@ export {
     updateCompanyInformationForBankAccount,
     updatePersonalInformationForBankAccount,
     updatePlaidData,
+    openWorkspaceView,
     validateBankAccount,
     verifyIdentityForBankAccount,
 };
