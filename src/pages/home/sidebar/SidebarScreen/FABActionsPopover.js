@@ -45,7 +45,7 @@ const defaultProps = {
  * Responsible for rendering the {@link PopoverMenu}, and the accompanying
  * FAB that can open or close the menu.
  */
-class PopoverModal extends React.Component {
+class FABActionsPopover extends React.Component {
     constructor(props) {
         super(props);
 
@@ -153,8 +153,8 @@ class PopoverModal extends React.Component {
     }
 }
 
-PopoverModal.propTypes = propTypes;
-PopoverModal.defaultProps = defaultProps;
+FABActionsPopover.propTypes = propTypes;
+FABActionsPopover.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -167,4 +167,4 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
     }),
-)(PopoverModal);
+)(FABActionsPopover);
