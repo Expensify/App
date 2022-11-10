@@ -13,6 +13,8 @@ import * as ReportUtils from '../ReportUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import * as OptionsListUtils from '../OptionsListUtils';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -99,6 +101,7 @@ function formatPersonalDetails(personalDetailsList) {
         const phoneNumber = details.phoneNumber || '';
         const avatar = details.avatar || details.avatarThumbnail || ReportUtils.getDefaultAvatar(login);
         const avatarThumbnail = getAvatarThumbnail(details, sanitizedLogin);
+        const validated = details.validated || false;
         formattedResult[sanitizedLogin] = {
             login: sanitizedLogin,
             displayName,
@@ -110,6 +113,7 @@ function formatPersonalDetails(personalDetailsList) {
             phoneNumber,
             avatar,
             avatarThumbnail,
+            validated,
         };
     });
     return formattedResult;
@@ -260,6 +264,12 @@ function setPersonalDetails(details, shouldGrowl) {
         });
 }
 
+/**
+ * @param {String} firstName
+ * @param {String} lastName
+ * @param {String} pronouns
+ * @param {Object} timezone
+ */
 function updateProfile(firstName, lastName, pronouns, timezone) {
     API.write('UpdateProfile', {
         firstName,
@@ -284,6 +294,30 @@ function updateProfile(firstName, lastName, pronouns, timezone) {
             },
         }],
     });
+}
+
+/**
+ * @param {String} firstName
+ * @param {String} lastName
+ */
+function updateDisplayName(firstName, lastName) {
+    API.write('UpdateDisplayName', {firstName, lastName}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    firstName,
+                    lastName,
+                    displayName: getDisplayName(currentUserEmail, {
+                        firstName,
+                        lastName,
+                    }),
+                },
+            },
+        }],
+    });
+    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
 /**
@@ -436,6 +470,7 @@ export {
     getMaxCharacterError,
     extractFirstAndLastNameFromAvailableDetails,
     updateProfile,
+    updateDisplayName,
     clearAvatarErrors,
     buildNewPersonalDetails,
 };

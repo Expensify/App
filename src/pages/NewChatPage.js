@@ -8,7 +8,6 @@ import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import * as Report from '../libs/actions/Report';
-import * as ReportUtils from '../libs/ReportUtils';
 import CONST from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -21,6 +20,7 @@ import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 import ROUTES from '../ROUTES';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
+import * as ReportUtils from '../libs/ReportUtils';
 
 const propTypes = {
     /** Whether screen is used to create group chat */
@@ -203,6 +203,7 @@ class NewChatPage extends Component {
      */
     createChat(option) {
         this.getOrCreateChatReport([option]);
+        Report.navigateToAndOpenReport([option.login]);
     }
 
     /**
@@ -214,6 +215,11 @@ class NewChatPage extends Component {
             return;
         }
         this.getOrCreateChatReport(this.state.selectedOptions);
+        const userLogins = _.pluck(this.state.selectedOptions, 'login');
+        if (userLogins.length < 1) {
+            return;
+        }
+        Report.navigateToAndOpenReport(userLogins);
     }
 
     render() {

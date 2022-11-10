@@ -195,7 +195,14 @@ function replaceEmojis(text) {
     for (let i = 0; i < emojiData.length; i++) {
         const checkEmoji = emojisTrie.search(emojiData[i].slice(1, -1));
         if (checkEmoji && checkEmoji.metaData.code) {
-            newText = newText.replace(emojiData[i], checkEmoji.metaData.code);
+            let emojiReplacement = checkEmoji.metaData.code;
+
+            // If this is the last emoji in the message and it's the end of the message so far,
+            // add a space after it so the user can keep typing easily.
+            if (i === emojiData.length - 1 && text.endsWith(emojiData[i])) {
+                emojiReplacement += ' ';
+            }
+            newText = newText.replace(emojiData[i], emojiReplacement);
         }
     }
     return newText;

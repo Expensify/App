@@ -156,9 +156,7 @@ export default function getTooltipStyles(
             color: themeColors.textReversed,
             fontFamily: fontFamily.GTA,
             fontSize: tooltipFontSize,
-            overflowWrap: 'normal',
             overflow: 'hidden',
-            whiteSpace: 'nowrap',
         },
         pointerWrapperStyle: {
             position: 'fixed',
