@@ -319,16 +319,22 @@ function getWidthAndHeightStyle(width, height) {
  * @returns {Object}
  */
 function getModalPaddingStyles({
+    shouldAddBottomSafeAreaMargin,
+    shouldAddTopSafeAreaMargin,
     shouldAddBottomSafeAreaPadding,
     shouldAddTopSafeAreaPadding,
     safeAreaPaddingTop,
     safeAreaPaddingBottom,
     safeAreaPaddingLeft,
     safeAreaPaddingRight,
+    modalContainerStyleMarginTop,
+    modalContainerStyleMarginBottom,
     modalContainerStylePaddingTop,
     modalContainerStylePaddingBottom,
 }) {
     return {
+        marginTop: (modalContainerStyleMarginTop || 0) + (shouldAddTopSafeAreaMargin ? safeAreaPaddingTop : 0),
+        marginBottom: (modalContainerStyleMarginBottom || 0) + (shouldAddBottomSafeAreaMargin ? safeAreaPaddingBottom : 0),
         paddingTop: shouldAddTopSafeAreaPadding
             ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
             : modalContainerStylePaddingTop || 0,
