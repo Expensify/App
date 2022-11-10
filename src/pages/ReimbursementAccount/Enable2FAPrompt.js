@@ -20,7 +20,9 @@ const Enable2FAPrompt = props => (
         menuItems={[
             {
                 title: props.translate('validationStep.secureYourAccount'),
-                onPress: () => Link.openOldDotLink(`settings?param={"section":"account","action":"enableTwoFactorAuth","exitTo":"${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}"}`),
+                onPress: () => {
+                    Link.openOldDotLink(`settings?param={"section":"account","action":"enableTwoFactorAuth","exitTo":"${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}"}`);
+                },
                 icon: Expensicons.Shield,
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
