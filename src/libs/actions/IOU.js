@@ -729,27 +729,42 @@ function sendMoneyWithWallet(params) {
             params,
         },
         {
-            optimisticData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.chatReportID}`,
-                value: {
-                    isLoading: true,
+            optimisticData: [
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.chatReportID}`,
+                    value: {
+                        [params.reportActionID]: {
+                            // …<iouReportAction>,
+                            // Set pendingAction state for pattern B
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        },
+                    },
                 },
-            }],
-            successData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-                value: {
-                    isLoading: false,
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${params.chatReportID}`,
+                    value: <optimisticChatReport>,
                 },
-            }],
+                {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${params.iouReportID}`,
+                    value: <optimisticIOUReport>,
+                },
+
+            ],
             failureData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-                value: {
-                    isLoading: false,
-                },
-            }],
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.chatReportID}`,
+                    value: {
+                    [params.reportActionID]: {
+                    …<iouReportAction>,
+                    pendingAction: null,
+                    error : {
+                    [DateUtils.getMicroseconds()]: Localize.translateLocal(iou.error.genericCreateFailureMessage'),
+                }
+                    }
+                    }],
         });
 }
 
