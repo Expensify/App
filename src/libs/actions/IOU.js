@@ -735,17 +735,6 @@ function sendMoneyWithWallet(params) {
         '',
         params.iouReport.reportID,
     );
-    const optimisticChatReport = ReportUtils.buildOptimisticIOUReportAction(
-        newSequenceNumber,
-        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-        amount,
-        currency,
-        comment,
-        [participant],
-        '',
-        '',
-        params.iouReport.reportID,
-    );
     const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(
         recipientEmail,
         debtorEmail,
@@ -754,6 +743,7 @@ function sendMoneyWithWallet(params) {
         currency,
         preferredLocale
     );
+    const optimisticChatReport = ReportUtils.buildOptimisticChatReport([email]);
 
     API.write('SendMoneyWithWallet',
         {
@@ -775,27 +765,29 @@ function sendMoneyWithWallet(params) {
                 {
                     onyxMethod: CONST.ONYX.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${params.chatReportID}`,
-                    value: <optimisticChatReport>,
+                    value: optimisticChatReport,
                 },
                 {
                     onyxMethod: CONST.ONYX.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${params.iouReportID}`,
-                    value: <optimisticIOUReport>,
+                    value: optimisticIOUReport,
                 },
-
             ],
-            failureData: [{
+            failureData: [
+                {
                     onyxMethod: CONST.ONYX.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.chatReportID}`,
                     value: {
-                    [params.reportActionID]: {
-                    optimisticIouReportAction,
-                    pendingAction: null,
-                    error : {
-                    [DateUtils.getMicroseconds()]: Localize.translateLocal(iou.error.genericCreateFailureMessage'),
-                }
-                    }
-                    }],
+                        [params.reportActionID]: {
+                            optimisticIouReportAction,
+                            pendingAction: null,
+                            error : {
+                                [DateUtils.getMicroseconds()]: Localize.translateLocal(iou.error.genericCreateFailureMessage'),
+                            }
+                        }
+                    },
+                },
+            ],
         });
 }
 
