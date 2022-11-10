@@ -98,7 +98,7 @@ class InitialSettingsPage extends React.Component {
         this.getWalletBalance = this.getWalletBalance.bind(this);
         this.getDefaultMenuItems = this.getDefaultMenuItems.bind(this);
         this.getMenuItem = this.getMenuItem.bind(this);
-        this.signout = this.signout.bind(this);
+        this.signout = this.signOut.bind(this);
 
         this.state = {
             shouldShowSignoutConfirmModal: false,
@@ -183,7 +183,7 @@ class InitialSettingsPage extends React.Component {
         ]);
     }
 
-    signout(shouldForceSignout = false) {
+    signOut(shouldForceSignout = false) {
         if (!this.props.network.isOffline || shouldForceSignout) {
             Session.signOutAndRedirectToSignIn();
             return;
@@ -276,10 +276,9 @@ class InitialSettingsPage extends React.Component {
                             confirmText={this.props.translate('initialSettingsPage.signOut')}
                             cancelText={this.props.translate('common.cancel')}
                             isVisible={this.state.shouldShowSignoutConfirmModal}
-                            onConfirm={this.signout}
+                            onConfirm={() => this.signOut(true)}
                             onCancel={() => this.toggleSignoutConfirmModal(false)}
                         />
-
                     </View>
                 </ScrollView>
             </ScreenWrapper>
