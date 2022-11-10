@@ -306,7 +306,7 @@ export default {
     },
     pronounsPage: {
         pronouns: 'Pronombres',
-        isShownOnProfile: 'Tu pronombres son muestra en tu perfil.',
+        isShownOnProfile: 'Tus pronombres se muestran en tu perfil.',
     },
     pronouns: {
         heHimHis: 'Él',
