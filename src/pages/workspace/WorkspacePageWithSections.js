@@ -22,6 +22,8 @@ import networkPropTypes from '../../components/networkPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
+    shouldSkipVBBACall: PropTypes.bool,
+
     /** Information about the network from Onyx */
     network: networkPropTypes.isRequired,
 
@@ -71,6 +73,7 @@ const defaultProps = {
     footer: null,
     guidesCallTaskID: '',
     shouldUseScrollView: false,
+    shouldSkipVBBACall: false,
 };
 
 class WorkspacePageWithSections extends React.Component {
@@ -87,8 +90,10 @@ class WorkspacePageWithSections extends React.Component {
     }
 
     fetchData() {
-        const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
-        BankAccounts.fetchFreePlanVerifiedBankAccount('', achState);
+        if (this.props.shouldSkipVBBACall) {
+            const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
+            BankAccounts.openWorkspaceView();
+        }
     }
 
     render() {
