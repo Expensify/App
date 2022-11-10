@@ -90,10 +90,11 @@ class WorkspacePageWithSections extends React.Component {
     }
 
     fetchData() {
-        if (!this.props.shouldSkipVBBACall) {
-            const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
-            BankAccounts.openWorkspaceView();
+        if (this.props.shouldSkipVBBACall) {
+            return;
         }
+
+        BankAccounts.openWorkspaceView();
     }
 
     render() {

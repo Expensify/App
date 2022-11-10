@@ -19,7 +19,6 @@ import * as Policy from '../../../libs/actions/Policy';
 import CONST from '../../../CONST';
 import Button from '../../../components/Button';
 import ONYXKEYS from '../../../ONYXKEYS';
-import * as BankAccounts from '../../../libs/actions/BankAccounts';
 import BankAccount from '../../../libs/models/BankAccount';
 import reimbursementAccountPropTypes from '../../ReimbursementAccount/reimbursementAccountPropTypes';
 import getPermittedDecimalSeparator from '../../../libs/getPermittedDecimalSeparator';

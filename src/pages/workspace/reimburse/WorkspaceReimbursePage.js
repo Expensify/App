@@ -27,7 +27,7 @@ const WorkspaceReimbursePage = props => (
         headerText={props.translate('workspace.common.reimburse')}
         route={props.route}
         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
-        shouldSkipVBBACall={true}
+        shouldSkipVBBACall
     >
         {() => (
             <WorkspaceReimburseView policy={props.policy} />
