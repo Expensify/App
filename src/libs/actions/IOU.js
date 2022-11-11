@@ -728,11 +728,16 @@ function payIOUReport({
  * @param {Number} params.amount
  * @param {String} params.currency
  * @param {String} params.comment
+ * @param {String} params.requesterEmail
+ * @param {String} params.debtorEmail
  * @param {Array} params.participants
  */
 function sendMoneyWithWallet(params) {
+    const optimisticChatReport = ReportUtils.buildOptimisticChatReport([email]);
+    const groupChatReportMaxSequenceNumber = lodashGet(optimisticChatReport, 'maxSequenceNumber', 0);
+
     const optimisticIouReportAction = ReportUtils.buildOptimisticIOUReportAction(
-        newSequenceNumber,
+        groupChatReportMaxSequenceNumber + 1,
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         params.amount,
         params.currency,
@@ -741,14 +746,13 @@ function sendMoneyWithWallet(params) {
         params.iouReportID,
     );
     const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(
-        recipientEmail,
-        debtorEmail,
+        params.requesterEmail,
+        params.debtorEmail,
         params.amount,
         params.chatReportID,
         params.currency,
         preferredLocale
     );
-    const optimisticChatReport = ReportUtils.buildOptimisticChatReport([email]);
 
     API.write('SendMoneyWithWallet',
         {
