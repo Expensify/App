@@ -1,9 +1,9 @@
 import styles from '../../../../styles/styles';
 
-const pickerStyles = (disabled, error, focused) => ({
-    ...styles.picker(disabled, error, focused),
+const pickerStyles = disabled => ({
+    ...styles.picker(disabled),
     inputAndroid: {
-        ...styles.picker(disabled, error, focused).inputNative,
+        ...styles.picker(disabled).inputNative,
         paddingLeft: 12,
     },
 });
