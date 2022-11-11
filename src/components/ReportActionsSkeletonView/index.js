@@ -2,18 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import SkeletonViewLines from './SkeletonViewLines';
 import CONST from '../../CONST';
-import ReportFooter from '../../pages/home/report/ReportFooter';
 
 const propTypes = {
     /** Height of the container component */
     containerHeight: PropTypes.number.isRequired,
-
-    /** Should we show composer at the bottom */
-    shouldShowComposer: PropTypes.bool,
-};
-
-const defaultProps = {
-    shouldShowComposer: false,
 };
 
 const ReportActionsSkeletonView = (props) => {
@@ -36,21 +28,11 @@ const ReportActionsSkeletonView = (props) => {
     return (
         <>
             {skeletonViewLines}
-            {props.shouldShowComposer && skeletonViewLines.length > 0 && (
-                <ReportFooter
-                    isComposerFullSize={false}
-                    isOffline={false}
-                    onSubmitComment={() => {}}
-                    report={{reportID: '0'}}
-                    reportActions={{}}
-                />
-            )}
         </>
     );
 };
 
 ReportActionsSkeletonView.displayName = 'ReportActionsSkeletonView';
 ReportActionsSkeletonView.propTypes = propTypes;
-ReportActionsSkeletonView.defaultProps = defaultProps;
 
 export default ReportActionsSkeletonView;
