@@ -722,6 +722,9 @@ function payIOUReport({
 
 /**
  * @param {Array} params
+ * @param {String} params.chatReportID
+ * @param {String} params.iouReportID
+ * @param {String} params.reportActionID
  */
 function sendMoneyWithWallet(params) {
     const optimisticIouReportAction = ReportUtils.buildOptimisticIOUReportAction(
@@ -782,7 +785,7 @@ function sendMoneyWithWallet(params) {
                             optimisticIouReportAction,
                             pendingAction: null,
                             error : {
-                                [DateUtils.getMicroseconds()]: Localize.translateLocal(iou.error.genericCreateFailureMessage'),
+                                [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
                             }
                         }
                     },
