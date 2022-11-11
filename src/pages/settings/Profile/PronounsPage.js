@@ -15,6 +15,7 @@ import compose from '../../../libs/compose';
 import OptionsList from '../../../components/OptionsList';
 import themeColors from '../../../styles/themes/default';
 import * as Expensicons from '../../../components/Icon/Expensicons';
+import CONST from '../../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -27,17 +28,20 @@ const defaultProps = {
 
 const PronounsPage = (props) => {
     const currentPronouns = lodashGet(props.currentUserPersonalDetails, 'pronouns', '');
-    const pronounsList = _.map(props.translate('pronouns'), (value, key) => ({
-        text: value,
-        value: key,
-        keyForList: key,
+    const pronounsList = _.map(props.translate('pronouns'), (value, key) => {
+        const fullPronounKey = `${CONST.PRONOUNS.PREFIX}${key}`;
+        return {
+            text: value,
+            value: fullPronounKey,
+            keyForList: key,
 
-        // Add green checkmark icon & bold the timezone text
-        customIcon: key === currentPronouns
-            ? {src: Expensicons.Checkmark, color: themeColors.textSuccess}
-            : null,
-        isUnread: key === currentPronouns,
-    }));
+            // Add green checkmark icon & bold the timezone text
+            customIcon: fullPronounKey === currentPronouns
+                ? {src: Expensicons.Checkmark, color: themeColors.textSuccess}
+                : null,
+            isUnread: fullPronounKey === currentPronouns,
+        };
+    });
 
     /**
      * @param {String} selectedPronouns
