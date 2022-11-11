@@ -51,13 +51,8 @@ class BaseScreenWrapper extends React.Component {
      * @returns {boolean}
      */
     shouldComponentUpdate(nextProps, nextState) {
-        return this.state !== nextState
-            || this.props.children !== nextProps.children
-            || this.props.network.isOffline !== nextProps.network.isOffline
-            || this.props.includePaddingBottom !== nextProps.includePaddingBottom
-            || this.props.includePaddingTop !== nextProps.includePaddingTop
-            || this.props.isSmallScreenWidth !== nextProps.isSmallScreenWidth
-            || this.props.keyboardAvoidingViewBehavior !== nextProps.keyboardAvoidingViewBehavior;
+        return !_.isEqual(this.state, nextState)
+            || !_.isEqual(_.omit(this.props, 'modal'), _.omit(nextProps, 'modal'))
     }
 
     componentWillUnmount() {
