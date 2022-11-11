@@ -177,7 +177,6 @@ export default {
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
         PROFILE_SETTINGS_FORM: 'profileSettingsForm',
-        PRONOUNS_FORM: 'pronounsForm',
         DISPLAY_NAME_FORM: 'displayNameForm',
     },
 

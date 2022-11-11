@@ -312,7 +312,6 @@ export default {
         sheHerHers: 'She/her',
         theyThemTheirs: 'They/them',
         zeHirHirs: 'Ze/hir',
-        selfSelect: 'Self-select',
         callMeByMyName: 'Call me by my name',
     },
     displayNamePage: {

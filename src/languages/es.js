@@ -313,7 +313,6 @@ export default {
         sheHerHers: 'Ella',
         theyThemTheirs: 'Ellos',
         zeHirHirs: 'Ze/hir',
-        selfSelect: 'Personalízalo',
         callMeByMyName: 'Llámame por mi nombre',
     },
     displayNamePage: {
