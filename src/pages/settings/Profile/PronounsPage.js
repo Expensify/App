@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
@@ -24,13 +25,13 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const PronounsPage = props => {
+const PronounsPage = (props) => {
     const currentPronouns = lodashGet(props.currentUserPersonalDetails, 'pronouns', '');
     const pronounsList = _.map(props.translate('pronouns'), (value, key) => ({
         text: value,
         value: key,
         keyForList: key,
-    
+
         // Add green checkmark icon & bold the timezone text
         customIcon: key === currentPronouns
             ? {src: Expensicons.Checkmark, color: themeColors.textSuccess}
@@ -41,7 +42,7 @@ const PronounsPage = props => {
     /**
      * @param {String} selectedPronouns
      */
-    const updatePronouns = selectedPronouns => {
+    const updatePronouns = (selectedPronouns) => {
         PersonalDetails.updatePronouns(selectedPronouns);
     };
 
@@ -71,6 +72,7 @@ const PronounsPage = props => {
 
 PronounsPage.propTypes = propTypes;
 PronounsPage.defaultProps = defaultProps;
+PronounsPage.displayName = 'PronounsPage';
 
 export default compose(
     withLocalize,
