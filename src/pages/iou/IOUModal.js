@@ -287,6 +287,13 @@ class IOUModal extends Component {
         const currency = this.props.iou.selectedCurrencyCode;
         const comment = this.state.comment;
 
+        // If it's paying with the wallet lets call the correct service for this
+        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+            IOU.sendMoneyWithWallet();
+            return;
+        }
+
+        // This should be default call while we are doing the refactor
         const newIOUReportDetails = JSON.stringify({
             amount,
             currency,

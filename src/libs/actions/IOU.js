@@ -807,4 +807,5 @@ export {
     requestMoney,
     payIOUReport,
     setIOUSelectedCurrency,
+    sendMoneyWithWallet,
 };
