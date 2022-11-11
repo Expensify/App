@@ -751,7 +751,12 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '') 
         {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
-            value: announceChatData,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                ...announceChatData,
+            },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.SET,
@@ -761,7 +766,12 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '') 
         {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
-            value: adminsChatData,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                ...adminsChatData,
+            },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.SET,
@@ -771,7 +781,12 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '') 
         {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
-            value: expenseChatData,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                ...expenseChatData,
+            },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.SET,
