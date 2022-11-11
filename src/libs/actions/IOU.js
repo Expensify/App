@@ -725,25 +725,27 @@ function payIOUReport({
  * @param {String} params.chatReportID
  * @param {String} params.iouReportID
  * @param {String} params.reportActionID
+ * @param {Number} params.amount
+ * @param {String} params.currency
+ * @param {String} params.comment
+ * @param {Array} params.participants
  */
 function sendMoneyWithWallet(params) {
     const optimisticIouReportAction = ReportUtils.buildOptimisticIOUReportAction(
         newSequenceNumber,
-        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-        amount,
-        currency,
-        comment,
-        [participant],
-        '',
-        '',
-        params.iouReport.reportID,
+        CONST.IOU.REPORT_ACTION_TYPE.PAY,
+        params.amount,
+        params.currency,
+        params.comment,
+        params.participants,
+        params.iouReportID,
     );
     const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(
         recipientEmail,
         debtorEmail,
-        amount,
-        chatReport.reportID,
-        currency,
+        params.amount,
+        params.chatReportID,
+        params.currency,
         preferredLocale
     );
     const optimisticChatReport = ReportUtils.buildOptimisticChatReport([email]);
