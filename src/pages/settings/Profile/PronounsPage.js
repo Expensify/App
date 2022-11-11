@@ -61,8 +61,6 @@ const PronounsPage = props => {
                     sections={[{data: pronounsList}]}
                     onSelectRow={option => updatePronouns(option.value)}
                     hideSectionHeaders
-                    disableFocusOptions
-                    optionMode="default"
                     optionHoveredStyle={styles.hoveredComponentBG}
                     shouldHaveOptionSeparator
                 />
