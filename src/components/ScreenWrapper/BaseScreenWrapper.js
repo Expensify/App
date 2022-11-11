@@ -52,7 +52,7 @@ class BaseScreenWrapper extends React.Component {
      */
     shouldComponentUpdate(nextProps, nextState) {
         return !_.isEqual(this.state, nextState)
-            || !_.isEqual(_.omit(this.props, 'modal'), _.omit(nextProps, 'modal'))
+            || !_.isEqual(_.omit(this.props, 'modal'), _.omit(nextProps, 'modal'));
     }
 
     componentWillUnmount() {
