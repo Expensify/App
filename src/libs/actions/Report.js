@@ -534,9 +534,6 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
         onyxData.optimisticData[0].value = {
             ...onyxData.optimisticData[0].value,
             ...newReportObject,
-            pendingFields: {
-                createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
             isOptimisticReport: true,
         };
 
@@ -1079,9 +1076,6 @@ function addPolicyReport(policy, reportName, visibility) {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${policyReport.reportID}`,
             value: {
-                pendingFields: {
-                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
                 ...policyReport,
             },
         },

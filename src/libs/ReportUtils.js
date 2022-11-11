@@ -847,6 +847,9 @@ function buildOptimisticChatReport(
         stateNum: 0,
         statusNum: 0,
         visibility,
+        pendingFields: {
+            createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        },
     };
 }
 
