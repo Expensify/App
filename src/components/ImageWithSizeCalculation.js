@@ -73,7 +73,7 @@ class ImageWithSizeCalculation extends PureComponent {
     }
 
     imageLoadedSuccessfuly(event) {
-        if (!event?.nativeEvent?.width || !event?.nativeEvent?.height) {
+        if (!lodashGet(event, 'nativeEvent.width', false) || !lodashGet(event, 'nativeEvent.height', false)) {
             // Image didn't load properly
             return;
         }
