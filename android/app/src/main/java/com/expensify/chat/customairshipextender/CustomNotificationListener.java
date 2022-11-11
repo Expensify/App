@@ -1,4 +1,4 @@
-package com.expensify.chat;
+package com.expensify.chat.customairshipextender;
 
 import androidx.annotation.NonNull;
 import com.urbanairship.push.NotificationActionButtonInfo;

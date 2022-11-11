@@ -1,4 +1,4 @@
-package com.expensify.chat;
+package com.expensify.chat.customairshipextender;
 
 import android.content.Context;
 import android.graphics.Bitmap;
