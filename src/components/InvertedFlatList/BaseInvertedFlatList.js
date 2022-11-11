@@ -145,7 +145,6 @@ class BaseInvertedFlatList extends Component {
                 // We keep this property very low so that chat switching remains fast
                 maxToRenderPerBatch={1}
                 windowSize={15}
-                removeClippedSubviews={false}
                 maintainVisibleContentPosition={{minIndexForVisible: 0, autoscrollToTopThreshold: 0}}
             />
         );
