@@ -61,7 +61,6 @@ const CommunicationsLink = props => (
                 successIcon={Expensicons.Checkmark}
                 successText={props.translate('reportActionContextMenu.copied')}
                 isMini
-                autoReset
                 onPress={() => Clipboard.setString(props.value)}
             />
         </View>
