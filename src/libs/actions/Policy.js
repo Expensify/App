@@ -696,10 +696,11 @@ function generatePolicyID() {
  *
  * @param {String} [ownerEmail] Optional, the email of the account to make the owner of the policy
  * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
+ * @param {String} [policyName] Optional, custom policy name we will use for created workspace
  */
-function createWorkspace(ownerEmail = '', makeMeAdmin = false) {
+function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '') {
     const policyID = generatePolicyID();
-    const workspaceName = generateDefaultWorkspaceName(ownerEmail);
+    const workspaceName = policyName || generateDefaultWorkspaceName(ownerEmail);
 
     const {
         announceChatReportID,
