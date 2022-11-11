@@ -138,7 +138,7 @@ class FABActionsPopover extends React.Component {
                                 onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
                             },
                         ] : []),
-                        ...(!Policy.isAdminOfFreePolicy(this.props.allPolicies) ? [
+                        ...(!Policy.hasActiveFreePolicy(this.props.allPolicies) ? [
                             {
                                 icon: Expensicons.NewWorkspace,
                                 iconWidth: 46,
