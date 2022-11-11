@@ -110,10 +110,7 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
         aClass
             .getMethod("initializeFlipper", Context.class, ReactInstanceManager.class)
             .invoke(null, context, reactInstanceManager);
-      } catch (ClassNotFoundException
-              | NoSuchMethodException
-              | IllegalAccessException
-              | InvocationTargetException e) {
+      } catch (Exception e) {
         e.printStackTrace();
       }
     }
