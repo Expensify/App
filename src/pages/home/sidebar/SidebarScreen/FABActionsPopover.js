@@ -2,6 +2,7 @@ import React from 'react';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import styles from '../../../../styles/styles';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import Navigation from '../../../../libs/Navigation/Navigation';
@@ -15,6 +16,8 @@ import compose from '../../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import withWindowDimensions from '../../../../components/withWindowDimensions';
 import ONYXKEYS from '../../../../ONYXKEYS';
+import withNavigation from '../../../../components/withNavigation';
+import * as Welcome from '../../../../libs/actions/Welcome';
 
 const propTypes = {
     /* Callback function when the menu is shown */
@@ -55,6 +58,11 @@ class FABActionsPopover extends React.Component {
         this.state = {
             isCreateMenuActive: false,
         };
+    }
+
+    componentDidMount() {
+        const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
+        Welcome.show({routes, showCreateMenu: this.showCreateMenu});
     }
 
     /**
@@ -158,6 +166,7 @@ FABActionsPopover.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNavigation,
     withWindowDimensions,
     withOnyx({
         allPolicies: {

@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import styles from '../../../../styles/styles';
@@ -9,7 +8,6 @@ import ROUTES from '../../../../ROUTES';
 import Timing from '../../../../libs/actions/Timing';
 import CONST from '../../../../CONST';
 import Performance from '../../../../libs/Performance';
-import * as Welcome from '../../../../libs/actions/Welcome';
 import withDrawerState from '../../../../components/withDrawerState';
 import KeyboardShortcutsModal from '../../../../components/KeyboardShortcutsModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
@@ -32,9 +30,6 @@ class BaseSidebarScreen extends Component {
     componentDidMount() {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
-
-        const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
-        Welcome.show({routes, showCreateMenu: this.showCreateMenu});
     }
 
     /**
