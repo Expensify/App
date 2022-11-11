@@ -38,8 +38,8 @@ const propTypes = {
         action: PropTypes.shape(reportActionPropTypes),
     })).isRequired,
 
-    /** The sequence number of the most recent IOU report connected with the shown report */
-    mostRecentIOUReportSequenceNumber: PropTypes.number,
+    /** The ID of the most recent IOU report action connected with the shown report */
+    mostRecentIOUReportActionID: PropTypes.string,
 
     /** Are we loading more report actions? */
     isLoadingMoreReportActions: PropTypes.bool,
@@ -59,7 +59,7 @@ const propTypes = {
 
 const defaultProps = {
     personalDetails: {},
-    mostRecentIOUReportSequenceNumber: undefined,
+    mostRecentIOUReportActionID: '',
     isLoadingMoreReportActions: false,
 };
 
@@ -109,7 +109,7 @@ class ReportActionsList extends React.Component {
      * @return {String}
      */
     keyExtractor(item) {
-        return `${item.action.clientID}${item.action.reportActionID}${item.action.sequenceNumber}`;
+        return `${item.action.clientID}${item.action.reportActionID}`;
     }
 
     /**
@@ -139,7 +139,7 @@ class ReportActionsList extends React.Component {
                 action={item.action}
                 displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.props.sortedReportActions, index)}
                 shouldDisplayNewIndicator={shouldDisplayNewIndicator}
-                isMostRecentIOUReportAction={item.action.sequenceNumber === this.props.mostRecentIOUReportSequenceNumber}
+                isMostRecentIOUReportAction={item.action.reportActionID === this.props.mostRecentIOUReportActionID}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
             />
@@ -151,15 +151,22 @@ class ReportActionsList extends React.Component {
      * higher z-index than the one below it. This prevents issues where the ReportActionContextMenu overlapping between
      * rows is hidden beneath other rows.
      *
-     * @param {Object} index - The ReportAction item in the FlatList.
-     * @param {Object|Array} style – The default styles of the CellRendererComponent provided by the CellRenderer.
+     * @param {Object} cellData
+     * @param {Object} cellData.item - The ReportAction item in the FlatList.
+     * @param {Number} cellData.index – The index of the item in the FlatList
+     * @param {Object|Array} cellData.style – The default styles of the CellRendererComponent provided by the CellRenderer.
      * @param {Object} props – All the other Props provided to the CellRendererComponent by default.
-     * @returns {React.Component}
+     * @returns {JSX.Element}
      */
-    renderCell({item, style, ...props}) {
+    renderCell({
+        item,
+        index,
+        style,
+        ...props
+    }) {
         const cellStyle = [
             style,
-            {zIndex: item.action.sequenceNumber},
+            {zIndex: index},
         ];
         // eslint-disable-next-line react/jsx-props-no-spreading
         return <View style={cellStyle} {...props} />;
