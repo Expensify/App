@@ -11,7 +11,6 @@ import display from './utilities/display';
 import overflow from './utilities/overflow';
 import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
-import textInputAlignSelf from './utilities/textInputAlignSelf';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
@@ -1404,8 +1403,9 @@ const styles = {
         // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
         paddingHorizontal: 8,
-        paddingVertical: 0,
-        ...textInputAlignSelf.center,
+        paddingTop: 0,
+        paddingBottom: 0,
+        alignSelf: 'center',
         textAlignVertical: 'center',
     }, 0),
 
@@ -1421,7 +1421,7 @@ const styles = {
     },
 
     textInputComposeSpacing: {
-        paddingVertical: 6,
+        paddingVertical: 5,
         ...flex.flexRow,
         flex: 1,
     },
