@@ -150,7 +150,7 @@ class SearchPage extends Component {
                 Navigation.navigate(ROUTES.getReportRoute(option.reportID));
             });
         } else {
-            Report.navigateToAndOpenReport(option.login);
+            Report.navigateToAndOpenReport([option.login]);
         }
     }
 
