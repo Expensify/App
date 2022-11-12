@@ -439,7 +439,7 @@ const styles = {
     },
 
     buttonDisable: {
-        backgroundColor: themeColors.buttonDisabledBG,
+        backgroundColor: themeColors.buttonDefaultBG,
         borderWidth: 0,
     },
 

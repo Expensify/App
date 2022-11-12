@@ -5,7 +5,7 @@ export default {
     appBG: colors.greenAppBackground,
     highlightBG: colors.greenHighlightBackground,
     border: colors.greenBorders,
-    borderFocus: colors.blue,
+    borderFocus: colors.green,
     icon: colors.greenIcons,
     iconHovered: colors.white,
     iconSuccessFill: colors.green,
