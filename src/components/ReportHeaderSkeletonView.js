@@ -9,7 +9,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 import variables from '../styles/variables';
 import themeColors from '../styles/themes/default';
 
-
 const propTypes = {
     ...windowDimensionsPropTypes,
 };
