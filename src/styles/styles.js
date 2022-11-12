@@ -2163,9 +2163,7 @@ const styles = {
     }, 0),
 
     iouPreviewBox: {
-        backgroundColor: themeColors.componentBG,
-        borderColor: themeColors.border,
-        borderWidth: 1,
+        backgroundColor: themeColors.gray1,
         borderRadius: variables.componentBorderRadiusCard,
         padding: 20,
         marginTop: 16,

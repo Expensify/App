@@ -42,7 +42,6 @@ const IOUAction = (props) => {
         <>
             <IOUQuote
                 action={props.action}
-                shouldShowViewDetailsLink={Boolean(props.action.originalMessage.IOUReportID)}
                 onViewDetailsPressed={launchDetailsModal}
             />
             {((props.isMostRecentIOUReportAction && Boolean(props.action.originalMessage.IOUReportID))

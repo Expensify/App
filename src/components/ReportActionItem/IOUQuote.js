@@ -4,16 +4,16 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import Text from '../Text';
+import Icon from '../Icon';
+import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
     /** All the data of the action */
     action: PropTypes.shape(reportActionPropTypes).isRequired,
-
-    /** Should the View Details link be displayed? */
-    shouldShowViewDetailsLink: PropTypes.bool,
 
     /** Callback invoked when View Details is pressed */
     onViewDetailsPressed: PropTypes.func,
@@ -22,25 +22,25 @@ const propTypes = {
 };
 
 const defaultProps = {
-    shouldShowViewDetailsLink: false,
     onViewDetailsPressed: () => {},
 };
 
 const IOUQuote = props => (
-    <View style={[styles.chatItemMessage]}>
+    <View style={[styles.chatItemMessage, {background: 'green'}]}>
         {_.map(props.action.message, (fragment, index) => (
-            <View key={`iouQuote-${props.action.sequenceNumber}-${index}`} style={[styles.alignItemsStart, styles.blockquote]}>
-                <Text style={[styles.chatItemMessage]}>
-                    {Str.htmlDecode(fragment.text)}
-                </Text>
-                {props.shouldShowViewDetailsLink && (
+            <View key={`iouQuote-${props.action.sequenceNumber}-${index}`} style={[styles.textInputAndIconContainer, styles.alignItemsStart, {justifyContent: 'space-between'}]}>
+                <Text>
                     <Text
-                        style={[styles.chatItemMessageLink, styles.alignSelfStart]}
+                        style={[styles.chatItemMessageLink, {background: 'pink'}]}
                         onPress={props.onViewDetailsPressed}
                     >
-                        {props.translate('iou.viewDetails')}
+                        {Str.htmlDecode(fragment.text.split(' ')[0])}
                     </Text>
-                )}
+                    <Text style={[styles.chatItemMessage]}>
+                        {Str.htmlDecode(fragment.text.substring(fragment.text.indexOf(' ')))}
+                    </Text>
+                </Text>
+                <Icon src={Expensicons.ArrowRight} fill={themeColors.gray3} />
             </View>
         ))}
     </View>
