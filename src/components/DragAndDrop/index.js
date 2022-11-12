@@ -63,16 +63,6 @@ export default class DragAndDrop extends React.Component {
         document.addEventListener('dragend', this.dragNDropListener);
         document.addEventListener('drop', this.dragNDropListener);
         window.addEventListener('resize', this.dragNDropWindowResizeListener);
-
-        // Make sure we are in dragleave state when mouse enters the drop zone without active drag.
-        // This is important workaround for Webkit and Gecko to cancel drag if drag finished on the file manager that sits on top of the browser window
-        this.dropZone.addEventListener('mouseenter', (event) => {
-            if (!this.dropZoneDragState === 'dragenter') {
-                return;
-            }
-            this.dropZoneDragState = 'dragleave';
-            this.props.onDragLeave(event);
-        });
     }
 
     componentWillUnmount() {
@@ -82,7 +72,6 @@ export default class DragAndDrop extends React.Component {
         document.removeEventListener('dragend', this.dragNDropListener);
         document.removeEventListener('drop', this.dragNDropListener);
         window.removeEventListener('resize', this.dragNDropWindowResizeListener);
-        this.dropZone.removeEventListener('mouseenter');
     }
 
     dragNDropWindowResizeListener() {
@@ -134,7 +123,7 @@ export default class DragAndDrop extends React.Component {
                                 || event.clientX >= this.dropZoneRect.right
 
                                 // Cancel drag when file manager is on top of the drop zone area - works only on chromium
-                                || (!!window.chrome && event.target.getAttribute('id') === this.props.activeDropZoneId && !event.relatedTarget)
+                                || (event.target.getAttribute('id') === this.props.activeDropZoneId && !event.relatedTarget)
                     ) {
                         this.dropZoneDragState = 'dragleave';
                         this.props.onDragLeave(event);

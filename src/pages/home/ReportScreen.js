@@ -313,7 +313,7 @@ class ReportScreen extends React.Component {
                                     onSubmitComment={this.onSubmitComment}
                                 />
                             )}
-                            <PortalHost name="DropZone" />
+                            <PortalHost name="ReportDropZone" />
                         </View>
                     </FullPageNotFoundView>
                 </ScreenWrapper>
