@@ -1,12 +1,14 @@
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import {Linking} from 'react-native';
+import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import CONST from '../../CONST';
-import * as DeprecatedAPI from '../deprecatedAPI';
 import CONFIG from '../../CONFIG';
 import asyncOpenURL from '../asyncOpenURL';
+import * as API from '../API';
 
 let isNetworkOffline = false;
 Onyx.connect({
@@ -34,26 +36,49 @@ function showGrowlIfOffline() {
  * @param {String} url
  */
 function openOldDotLink(url) {
-    if (showGrowlIfOffline()) {
+    /**
+     * @param {String} [shortLivedAuthToken]
+     * @returns {String}
+     */
+    function buildOldDotURL(shortLivedAuthToken) {
+        const hasHashParams = url.indexOf('#') !== -1;
+        const hasURLParams = url.indexOf('?') !== -1;
+
+        const authTokenParam = shortLivedAuthToken ? `authToken=${shortLivedAuthToken}` : '';
+        const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
+
+        const params = _.compact([authTokenParam, emailParam]).join('&');
+
+        // If the URL contains # or ?, we can assume they don't need to have the `?` token to start listing url parameters.
+        return `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${url}${hasHashParams || hasURLParams ? '&' : '?'}${params}`;
+    }
+
+    if (isNetworkOffline) {
+        Linking.openURL(buildOldDotURL());
         return;
     }
 
-    function buildOldDotURL({shortLivedAuthToken}) {
-        return `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${shortLivedAuthToken}&email=${encodeURIComponent(currentUserEmail)}`;
-    }
-
-    asyncOpenURL(DeprecatedAPI.GetShortLivedAuthToken(), buildOldDotURL);
+    // If shortLivedAuthToken is not accessible, fallback to opening the link without the token.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(
+        'OpenOldDotLink', {}, {},
+    ).then((response) => {
+        Linking.openURL(buildOldDotURL(response.shortLivedAuthToken));
+    }).catch(() => {
+        Linking.openURL(buildOldDotURL());
+    });
 }
 
 /**
  * @param {String} url
+ * @param {Boolean} shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
  */
-function openExternalLink(url) {
+function openExternalLink(url, shouldSkipCustomSafariLogic = false) {
     if (showGrowlIfOffline()) {
         return;
     }
 
-    asyncOpenURL(Promise.resolve(), url);
+    asyncOpenURL(Promise.resolve(), url, shouldSkipCustomSafariLogic);
 }
 
 export {

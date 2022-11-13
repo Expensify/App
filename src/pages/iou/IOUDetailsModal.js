@@ -49,7 +49,7 @@ const propTypes = {
     /** IOU Report data object */
     iouReport: PropTypes.shape({
         /** ID for the chatReport that this IOU is linked to */
-        chatReportID: PropTypes.number,
+        chatReportID: PropTypes.string,
 
         /** Manager is the person who currently owes money */
         managerEmail: PropTypes.string,
@@ -91,15 +91,8 @@ class IOUDetailsModal extends Component {
         this.fetchData();
     }
 
-    /**
-     * @returns {String}
-     */
-    getSubmitterPhoneNumber() {
-        return _.first(lodashGet(this.props, 'iouReport.submitterPhoneNumbers', [])) || '';
-    }
-
     fetchData() {
-        Report.fetchIOUReportByID(this.props.route.params.iouReportID, this.props.route.params.chatReportID, true);
+        Report.openPaymentDetailsPage(this.props.route.params.chatReportID, this.props.route.params.iouReportID);
     }
 
     /**
@@ -113,7 +106,6 @@ class IOUDetailsModal extends Component {
             amount: this.props.iouReport.total,
             currency: this.props.iouReport.currency,
             requestorPayPalMeAddress: this.props.iouReport.submitterPayPalMeAddress,
-            requestorPhoneNumber: this.getSubmitterPhoneNumber(),
         });
     }
 
@@ -131,13 +123,13 @@ class IOUDetailsModal extends Component {
                         <ScrollView contentContainerStyle={styles.iouDetailsContainer}>
                             <IOUPreview
                                 iou={this.props.iouReport}
-                                chatReportID={Number(this.props.route.params.chatReportID)}
-                                iouReportID={Number(this.props.route.params.iouReportID)}
+                                chatReportID={this.props.route.params.chatReportID}
+                                iouReportID={this.props.route.params.iouReportID}
                                 shouldHidePayButton
                             />
                             <IOUTransactions
-                                chatReportID={Number(this.props.route.params.chatReportID)}
-                                iouReportID={Number(this.props.route.params.iouReportID)}
+                                chatReportID={this.props.route.params.chatReportID}
+                                iouReportID={this.props.route.params.iouReportID}
                                 isIOUSettled={this.props.iouReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED}
                                 userEmail={sessionEmail}
                             />
@@ -148,12 +140,12 @@ class IOUDetailsModal extends Component {
                                 <SettlementButton
                                     isLoading={this.props.iou.loading}
                                     onPress={paymentMethodType => this.performIOUPayment(paymentMethodType)}
-                                    recipientPhoneNumber={this.getSubmitterPhoneNumber()}
                                     shouldShowPaypal={Boolean(lodashGet(this.props, 'iouReport.submitterPayPalMeAddress'))}
                                     currency={lodashGet(this.props, 'iouReport.currency')}
                                     enablePaymentsRoute={ROUTES.IOU_DETAILS_ENABLE_PAYMENTS}
                                     addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
                                     addDebitCardRoute={ROUTES.IOU_DETAILS_ADD_DEBIT_CARD}
+                                    chatReportID={Number(this.props.route.params.chatReportID)}
                                 />
                             </FixedFooter>
                         ))}

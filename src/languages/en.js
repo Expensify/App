@@ -19,6 +19,7 @@ export default {
         save: 'Save',
         saveChanges: 'Save changes',
         password: 'Password',
+        workspaces: 'Workspaces',
         profile: 'Profile',
         payments: 'Payments',
         preferences: 'Preferences',
@@ -81,7 +82,7 @@ export default {
         error: {
             invalidAmount: 'Invalid amount',
             acceptedTerms: 'You must accept the Terms of Service to continue',
-            phoneNumber: 'Please enter a valid phone number, with the country code (e.g. +1234567890)',
+            phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
         please: 'Please',
         contactUs: 'contact us',
@@ -118,7 +119,15 @@ export default {
         chooseFromGallery: 'Choose from gallery',
         chooseDocument: 'Choose document',
         attachmentTooLarge: 'Attachment too large',
-        sizeExceeded: 'Attachment size is larger than 50 MB limit.',
+        sizeExceeded: 'Attachment size is larger than 24 MB limit.',
+        attachmentTooSmall: 'Attachment too small',
+        sizeNotMet: 'Attachment size must be greater than 240 bytes',
+        wrongFileType: 'Attachment is the wrong type',
+        notAllowedExtension: 'Attachments must be one of the following types: ',
+    },
+    avatarCropModal: {
+        title: 'Edit photo',
+        description: 'Drag, zoom, and rotate your image to your preferred specifications',
     },
     composer: {
         noExtentionFoundForMimeType: 'No extension found for mime type',
@@ -159,6 +168,16 @@ export default {
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
         sayHello: 'Say hello!',
+        conciergePlaceholderOptions: [
+            'Ask for help!',
+            'Ask me anything!',
+            'Ask me to book travel!',
+            'Ask me what I can do!',
+            'Ask me how to pay people!',
+            'Ask me how to send an invoice!',
+            'Ask me how to scan a receipt!',
+            'Ask me how to get a free corporate card!',
+        ],
         blockedFromConcierge: 'Communication is barred',
         fileUploadFailed: 'Upload failed. File is not supported.',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
@@ -193,8 +212,9 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartOne: 'Collaboration between ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
+        chatWithAccountManager: 'Chat with your account manager here',
     },
-    newMessageCount: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
+    newMessages: 'New messages',
     reportTypingIndicator: {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
@@ -216,11 +236,12 @@ export default {
         buttonSearch: 'Search',
         buttonMySettings: 'My settings',
         fabNewChat: 'New chat(Floating Action)',
+        chatPinned: 'Chat pinned',
+        draftedMessage: 'Drafted message',
     },
     iou: {
         amount: 'Amount',
         participants: 'Participants',
-        confirm: 'Confirm',
         splitBill: 'Split bill',
         requestMoney: 'Request money',
         sendMoney: 'Send money',
@@ -229,7 +250,6 @@ export default {
         settleExpensify: 'Pay with Expensify',
         settleElsewhere: 'I\'ll settle up elsewhere',
         settlePaypalMe: 'Pay with PayPal.me',
-        settleVenmo: 'Pay with Venmo',
         request: ({amount}) => `Request ${amount}`,
         youowe: ({owner}) => `You owe ${owner}`,
         youpaid: ({owner}) => `You paid ${owner}`,
@@ -241,6 +261,8 @@ export default {
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
+            genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
+            genericCancelFailureMessage: ({type}) => `Unexpected error ${type === 'decline' ? 'declining' : 'cancelling'} the money request, please try again later`,
         },
     },
     notificationPreferences: {
@@ -250,9 +272,7 @@ export default {
         mute: 'Mute',
     },
     loginField: {
-        addYourPhoneToSettleViaVenmo: 'Add your phone number to settle up via Venmo.',
         numberHasNotBeenValidated: 'The number has not yet been validated. Click the button to resend the validation link via text.',
-        useYourPhoneToSettleViaVenmo: 'Use your phone number to settle up via Venmo.',
         emailHasNotBeenValidated: 'The email has not yet been validated. Click the button to resend the validation link via text.',
     },
     avatarWithImagePicker: {
@@ -260,7 +280,10 @@ export default {
         removePhoto: 'Remove photo',
         editImage: 'Edit photo',
         imageUploadFailed: 'Image upload failed',
+        deleteWorkspaceError: 'Sorry, there was an unexpected problem deleting your workspace avatar.',
         sizeExceeded: ({maxUploadSizeInMB}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
+        tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels`,
+        notAllowedExtension: ({allowedExtensions}) => `Profile picture must be one of the following types: ${allowedExtensions.join(', ')}.`,
     },
     profilePage: {
         profile: 'Profile',
@@ -279,6 +302,12 @@ export default {
         online: 'Online',
         offline: 'Offline',
         syncing: 'Syncing',
+    },
+    displayNamePage: {
+        headerTitle: 'Display name',
+        isShownOnProfile: 'Your display name is shown on your profile.',
+        john: 'John',
+        doe: 'Doe',
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add phone number',
@@ -324,7 +353,6 @@ export default {
         enterMessageHere: 'Enter message here',
         closeAccountWarning: 'Closing your account cannot be undone.',
         closeAccountPermanentlyDeleteData: 'This will permanently delete all of your unsubmitted expense data. Type your phone number or email address to confirm.',
-        closeAccountSuccess: 'Account closed successfully',
         closeAccountActionRequired: 'Looks like you need to complete some actions before closing your account. Check out the guide',
         closeAccountTryAgainAfter: 'and try again after.',
         enterDefaultContact: 'Enter your default contact method',
@@ -354,7 +382,6 @@ export default {
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Your PayPal username',
         addPayPalAccount: 'Add PayPal account',
-        editPayPalAccount: 'Update PayPal account',
         growlMessageOnSave: 'Your PayPal username was successfully added',
         formatError: 'Invalid PayPal.me username',
     },
@@ -388,18 +415,14 @@ export default {
         setDefaultSuccess: 'Default payment method set!',
         deleteAccount: 'Delete Account',
         deleteConfirmation: 'Are you sure that you want to delete this account?',
-        deleteBankAccountSuccess: 'Bank account successfully deleted',
-        deleteDebitCardSuccess: 'Debit Card successfully deleted',
         deletePayPalSuccess: 'PayPal.me successfully deleted',
-        allSet: 'All Set!',
-        transferConfirmText: ({amount}) => `${amount} will hit your account shortly!`,
-        gotIt: 'Got it, Thanks!',
         error: {
             notOwnerOfBankAccount: 'There was an error setting this bank account as your default payment method.',
             invalidBankAccount: 'This bank account is temporarily suspended.',
             notOwnerOfFund: 'There was an error setting this card as your default payment method.',
             setDefaultFailure: 'Something went wrong. Please chat with Concierge for further assistance.',
         },
+        addBankAccountFailure: 'An unexpected error occurred while trying to add your bank account. Please try again.',
     },
     transferAmountPage: {
         transfer: ({amount}) => `Transfer${amount ? ` ${amount}` : ''}`,
@@ -409,6 +432,9 @@ export default {
         achSummary: 'No fee',
         whichAccount: 'Which Account?',
         fee: 'Fee',
+        transferSuccess: 'Transfer successful!',
+        transferDetailBankAccount: 'Your money should arrive in the next 1-3 business days.',
+        transferDetailDebitCard: 'Your money should arrive immediately.',
         failedTransfer: 'Your balance isn’t fully settled. Please transfer to a bank account.',
     },
     chooseTransferAccountPage: {
@@ -482,6 +508,7 @@ export default {
         error: {
             invalidFormatEmailLogin: 'The email entered is invalid. Please fix the format and try again.',
         },
+        cannotGetAccountDetails: 'Couldn\'t retrieve account details, please try to sign in again.',
     },
     personalDetails: {
         error: {
@@ -492,11 +519,9 @@ export default {
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link has been re-sent',
-        weSentYouMagicSignInLink: ({login}) => `We've sent a magic sign in link to ${login}. Check your Inbox and your Spam folder and wait 5-10 minutes before trying again.`,
+        weSentYouMagicSignInLink: ({login, loginType}) => `I've sent a magic sign-in link to ${login}. Please check your ${loginType} to sign in.`,
         resendLink: 'Resend link',
         validationCodeFailedMessage: 'It looks like there was an error with your validation link or it has expired.',
-        unvalidatedAccount: 'This account exists but isn\'t validated, please check your inbox for your magic link.',
-        newAccount: ({login, loginType}) => `Welcome ${login}, it's always great to see a new face around here! Please check your ${loginType} for a magic link to validate your account.`,
     },
     detailsPage: {
         localTime: 'Local time',
@@ -508,6 +533,9 @@ export default {
         chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',
         getMeOutOfHere: 'Get me out of here',
         iouReportNotFound: 'The payment details you are looking for cannot be found.',
+        notHere: "Hmm... it's not here",
+        pageNotFound: 'That page is nowhere to be found.',
+        noAccess: 'You don\'t have access to this chat',
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',
@@ -516,7 +544,7 @@ export default {
         passwordFormTitle: 'Welcome back to the New Expensify! Please set your password.',
         passwordNotSet: 'We were unable to set your new password. We have sent you a new password link to try again.',
         setPasswordLinkInvalid: 'This set password link is invalid or has expired. A new one is waiting for you in your email inbox!',
-        verifyingAccount: 'Verifying account',
+        validateAccount: 'Verify account',
     },
     stepCounter: ({step, total}) => `Step ${step} of ${total}`,
     bankAccount: {
@@ -547,7 +575,6 @@ export default {
             addressStreet: 'Please enter a valid street address that is not a PO Box',
             addressState: 'Please select a valid state',
             incorporationDate: 'Please enter a valid date',
-            incorporationDateFuture: 'Incorporation date cannot be in the future',
             incorporationState: 'Please enter a valid state',
             industryCode: 'Please enter a valid industry classification code. Must be 6 digits.',
             restrictedBusiness: 'Please confirm company is not on the list of restricted businesses',
@@ -569,9 +596,21 @@ export default {
         enterPassword: 'Enter Expensify password',
         alreadyAdded: 'This account has already been added.',
         chooseAccountLabel: 'Account',
+        successTitle: 'Personal bank account added!',
+        successMessage: 'Congrats, your bank account is set up and ready to receive reimbursements.',
     },
     attachmentView: {
         unknownFilename: 'Unknown filename',
+        passwordRequired: 'Please enter a password',
+        passwordIncorrect: 'Incorrect password. Please try again.',
+        pdfPasswordForm: {
+            title: 'Password protected PDF',
+            infoText: 'This PDF is password protected.',
+            beforeLinkText: 'Please',
+            linkText: 'enter the password',
+            afterLinkText: 'to view it.',
+            formLabel: 'View PDF',
+        },
     },
     pronouns: {
         heHimHis: 'He/him',
@@ -582,7 +621,7 @@ export default {
         callMeByMyName: 'Call me by my name',
     },
     messages: {
-        errorMessageInvalidPhone: 'Please enter a valid phone number without brackets or dashes. If you\'re outside the US please include your country code, eg. +447782339811',
+        errorMessageInvalidPhone: `Please enter a valid phone number without brackets or dashes. If you're outside the US please include your country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
     },
     onfidoStep: {
         acceptTerms: 'By continuing with the request to activate your Expensify wallet, you confirm that you have read, understand and accept ',
@@ -608,6 +647,7 @@ export default {
         legalMiddleNameLabel: 'Legal middle name',
         legalLastNameLabel: 'Legal last name',
         selectAnswer: 'You need to select a response to proceed.',
+        ssnFull9Error: 'Please enter a valid 9 digit SSN',
         needSSNFull9: 'We\'re having trouble verifying your SSN. Please enter the full 9 digits of your SSN.',
         weCouldNotVerify: 'We could not verify',
         pleaseFixIt: 'Please fix this information before continuing.',
@@ -686,8 +726,12 @@ export default {
     },
     activateStep: {
         headerTitle: 'Enable payments',
-        activated: 'Your Expensify Wallet is ready to use.',
-        checkBackLater: 'We\'re still reviewing your information. Please check back later.',
+        activatedTitle: 'Wallet activated!',
+        activatedMessage: 'Congrats, your wallet is set up and ready to make payments.',
+        checkBackLaterTitle: 'Just a minute...',
+        checkBackLaterMessage: 'We\'re still reviewing your information. Please check back later.',
+        continueToPayment: 'Continue to payment',
+        continueToTransfer: 'Continue to transfer',
     },
     companyStep: {
         headerTitle: 'Company information',
@@ -754,7 +798,6 @@ export default {
     },
     session: {
         offlineMessageRetry: 'Looks like you\'re offline. Please check your connection and try again.',
-        offlineMessage: 'Looks like you\'re offline.',
     },
     workspace: {
         common: {
@@ -773,17 +816,18 @@ export default {
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
             settlementFrequency: 'Settlement frequency',
-            growlMessageOnCreate: 'Workspace created',
-            growlMessageOnSave: 'Your workspace settings were successfully saved!',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             growlMessageOnDelete: 'Workspace deleted',
             growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
             unavailable: 'Unavailable workspace',
         },
+        emptyWorkspace: {
+            title: 'Create a new workspace',
+            subtitle: 'Workspaces are where you\'ll chat with your team, reimburse expenses, issue cards, send invoices, pay bills, and more — all in one place.',
+        },
         new: {
             newWorkspace: 'New workspace',
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
-            genericFailureMessage: 'An error occurred creating the workspace, please try again.',
         },
         people: {
             genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
@@ -791,7 +835,9 @@ export default {
             removeMembersTitle: 'Remove members',
             selectAll: 'Select all',
             error: {
+                genericAdd: 'There was a problem adding this workspace member.',
                 cannotRemove: 'You cannot remove yourself or the workspace owner.',
+                genericRemove: 'There was a problem removing that workspace member.',
             },
         },
         card: {
@@ -823,6 +869,7 @@ export default {
             captureNoVBACopyAfterEmail: ' and download the Expensify App to track cash expenses on the go.',
             unlockNoVBACopy: 'Connect a bank account to reimburse your workspace members online.',
             fastReimbursementsVBACopy: 'You\'re all set to reimburse receipts from your bank account!',
+            updateCustomUnitError: "Your changes couldn't be saved. The workspace was modified while you were offline, please try again.",
         },
         bills: {
             manageYourBills: 'Manage your bills',
@@ -855,10 +902,9 @@ export default {
         invite: {
             invitePeople: 'Invite new members',
             personalMessagePrompt: 'Add a personal message (optional)',
-            pleaseSelectUser: 'Please select a user from contacts.',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             welcomeNote: ({workspaceName}) => `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
-            pleaseEnterValidLogin: 'Please ensure the email or phone number is valid (e.g. +15005550006).',
+            pleaseEnterValidLogin: `Please ensure the email or phone number is valid (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         },
         editor: {
             nameInputLabel: 'Name',
@@ -902,12 +948,11 @@ export default {
     },
     requestCallPage: {
         title: 'Request a call',
-        subtitle: 'Have questions, or need help?',
-        description: 'Our team of guides are on hand to help you each step of the way. Type in your name and phone number, and we’ll give you a call back.',
-        extension: 'Extension (Optional)',
+        subtitle: 'Need help?',
+        description: 'Our team is ready to help each step of the way. Enter your name and phone number, and we\'ll give you a call back asap.',
+        phoneNumberExtension: 'Extension (Optional)',
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
-        growlMessageEmptyName: 'Please provide both a first and last name so our guides know how to address you!',
         callButton: 'Call',
         callButtonTooltip: 'Get live help from our team',
         blockedFromConcierge: 'Due to previous interactions with our staff, a call cannot be scheduled at this time.',
@@ -920,16 +965,26 @@ export default {
             guides: 'Please note that our Guides are typically available from Sunday at 5pm CT to Friday at 5pm CT.',
         },
         error: {
-            phoneExtension: 'Please enter a valid phone extension number',
+            phoneNumberExtension: 'Please enter a valid phone extension number',
+            firstName: 'Please provide your first name',
+            lastName: 'Please provide your last name',
+            firstNameLength: 'First name shouldn\'t be longer than 50 characters',
+            lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
         },
+    },
+    requestCallConfirmationScreen: {
+        callRequested: 'Call successfully requested!',
+        allSet: 'You’re all set. You will be receiving a call from us soon.',
+        gotIt: 'Got it',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
         headers: {
             frequentlyUsed: 'Frequently Used',
-            smileysAndPeople: 'Smileys & People',
+            smileysAndEmotion: 'Smileys & Emotion',
+            peopleAndBody: 'People & Body',
             animalsAndNature: 'Animals & Nature',
-            foodAndDrinks: 'Food & Drinks',
+            foodAndDrink: 'Food & Drinks',
             travelAndPlaces: 'Travel & Places',
             activities: 'Activities',
             objects: 'Objects',
@@ -944,7 +999,6 @@ export default {
         restrictedDescription: 'People in your workspace can find this room',
         privateDescription: 'People invited to this room can find it',
         createRoom: 'Create Room',
-        policyRoomRenamed: 'Policy room renamed!',
         roomAlreadyExistsError: 'A room with this name already exists',
         roomNameReservedError: 'A room on this workspace already uses this name',
         pleaseEnterRoomName: 'Please enter a room name',
@@ -952,7 +1006,6 @@ export default {
         renamedRoomAction: ({oldName, newName}) => ` renamed this room from ${oldName} to ${newName}`,
         social: 'social',
         selectAWorkspace: 'Select a workspace',
-        growlMessageOnError: 'Unable to create policy room, please check your connection and try again.',
         growlMessageOnRenameError: 'Unable to rename policy room, please check your connection and try again.',
         visibilityOptions: {
             restricted: 'Restricted',

@@ -1,6 +1,7 @@
 import React from 'react';
 import inlineCodeBlockPropTypes from './inlineCodeBlockPropTypes';
 import WrappedText from './WrappedText';
+import WrappedTextOld from './WrappedTextOld';
 
 const InlineCodeBlock = (props) => {
   const TDefaultRenderer = props.TDefaultRenderer;
@@ -13,6 +14,11 @@ const InlineCodeBlock = (props) => {
         wordStyles={[props.boxModelStyle]}>
         {props.defaultRendererProps.tnode.data}
       </WrappedText>
+      {/* <WrappedTextOld
+        textStyles={props.textStyle}
+        wordStyles={[props.boxModelStyle]}>
+        {props.defaultRendererProps.tnode.data}
+      </WrappedTextOld> */}
     </TDefaultRenderer>
   );
 };

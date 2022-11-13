@@ -1,0 +1,145 @@
+name: Update Protected Branch
+description: Create, approve, and merge a pull request against a protected branch
+
+inputs:
+  TARGET_BRANCH:
+    description: The target branch to update. This becomes the base branch of the pull request.
+    required: true
+  SOURCE_BRANCH:
+    description: If updating main, you must also provide a head branch to update main with.
+    required: false
+    default: ''
+  OS_BOTIFY_TOKEN:
+    description: GitHub token for OSBotify
+    required: true
+  GPG_PASSPHRASE:
+    description: Passphrase used to decrypt GPG key for OSBotify
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Validate target branch
+      if: ${{ !contains(fromJSON('["main", "staging", "production"]'), inputs.TARGET_BRANCH) }}
+      shell: bash
+      run: |
+        echo "Target branch must be one of ['main', 'staging', 'production]"
+        exit 1
+
+    # If updating main, SOURCE_BRANCH must not be empty
+    - name: Validate source branch
+      if: inputs.TARGET_BRANCH == 'main' && inputs.SOURCE_BRANCH == ''
+      shell: bash
+      run: |
+        echo "Cannot update main branch without specifying a source branch"
+        exit 1
+
+    # If updating staging, the source branch will always be main
+    # If updating production, the source branch will always be staging
+    - name: Set source branch
+      shell: bash
+      run: |
+        if [[ ${{ inputs.TARGET_BRANCH }} == 'staging' ]]; then
+          echo "SOURCE_BRANCH=main" >> "$GITHUB_ENV"
+        elif [[ ${{ inputs.TARGET_BRANCH }} == 'production' ]]; then
+          echo "SOURCE_BRANCH=staging" >> "$GITHUB_ENV"
+        else
+          echo "SOURCE_BRANCH=${{ inputs.SOURCE_BRANCH }}" >> "$GITHUB_ENV"
+        fi
+
+    # Version: 3.0.2
+    - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      with:
+        ref: ${{ env.SOURCE_BRANCH }}
+        fetch-depth: 0
+
+    - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+      with:
+        GPG_PASSPHRASE: ${{ inputs.GPG_PASSPHRASE }}
+
+    - name: Update target and source branches
+      shell: bash
+      run: |
+        git checkout ${{ inputs.TARGET_BRANCH }}
+        git merge origin/${{ inputs.TARGET_BRANCH }}
+        git checkout ${{ env.SOURCE_BRANCH }}
+        git merge origin/${{ env.SOURCE_BRANCH }}
+
+    - name: Set New Version
+      shell: bash
+      run: echo "NEW_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
+
+    - name: Create temporary branch to resolve conflicts
+      if: ${{ contains(fromJSON('["staging", "production"]'), inputs.TARGET_BRANCH) }}
+      shell: bash
+      run: |
+        git checkout ${{ inputs.TARGET_BRANCH }}
+        BRANCH_NAME=update-${{ inputs.TARGET_BRANCH }}-from-${{ env.SOURCE_BRANCH }}
+        git checkout -b "$BRANCH_NAME"
+        git merge -Xtheirs ${{ env.SOURCE_BRANCH }} || {
+          git diff --name-only --diff-filter=U | xargs git rm;
+          git -c core.editor=true merge --continue;
+        }
+        git push --set-upstream origin "$BRANCH_NAME"
+
+    - name: Create Pull Request
+      id: createPullRequest
+      shell: bash
+      run: |
+        gh pr create \
+          --title "Update version to ${{ env.NEW_VERSION }} on ${{ inputs.TARGET_BRANCH }}" \
+          --body "Update version to ${{ env.NEW_VERSION }}" \
+          --label "automerge" \
+          --base ${{ inputs.TARGET_BRANCH }}
+        sleep 5
+        echo "PR_NUMBER=$(gh pr view --json 'number' --jq '.number')" >> "$GITHUB_OUTPUT"
+      env:
+        GITHUB_TOKEN: ${{ inputs.OS_BOTIFY_TOKEN }}
+
+    - name: Check changed files
+      if: ${{ inputs.TARGET_BRANCH == 'main' }}
+      id: changedFiles
+      # TODO: Remove and switch back to upstream when https://github.com/umani/changed-files/pull/27 is merged
+      uses: roryabraham/changed-files@c14fad74000cf77ff62b7f78cfd34c2124665c35
+      with:
+        repo-token: ${{ github.token }}
+        pr-number: ${{ steps.createPullRequest.outputs.PR_NUMBER }}
+
+    - name: Validate changed files
+      if: ${{ inputs.TARGET_BRANCH == 'main' && (steps.changedFiles.outputs.files_updated != 'android/app/build.gradle ios/NewExpensify/Info.plist ios/NewExpensifyTests/Info.plist package-lock.json package.json' || steps.changedFiles.outputs.files_created != '' || steps.changedFiles.outputs.files_deleted != '') }}
+      shell: bash
+      run: exit 1
+
+    - name: Auto-approve the PR
+      shell: bash
+      run: gh pr review --approve
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+
+    - name: Check if pull request is mergeable
+      id: isPullRequestMergeable
+      uses: Expensify/App/.github/actions/javascript/isPullRequestMergeable@main
+      with:
+        GITHUB_TOKEN: ${{ github.token }}
+        PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.PR_NUMBER }}
+
+    - name: Leave comment if PR is not mergeable
+      if: ${{ !fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) }}
+      shell: bash
+      run: |
+        gh pr comment --body \
+        ":bell: @Expensify/mobile-deployers :bell: - The Update Protected Branch workflow has failed because this PR was not mergable.
+          If you are the deployer this week, please resolve the error and merge this PR to continue the deploy process."
+      env:
+        GITHUB_TOKEN: ${{ inputs.OS_BOTIFY_TOKEN }}
+
+    - name: Fail workflow if PR is not mergeable
+      if: ${{ steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
+      shell: bash
+      run: exit 1
+
+    - name: Auto-merge the PR
+      shell: bash
+      run: gh pr merge ${{ steps.createPullRequest.outputs.PR_NUMBER }} --merge --delete-branch
+      env:
+        GITHUB_TOKEN: ${{ inputs.OS_BOTIFY_TOKEN }}

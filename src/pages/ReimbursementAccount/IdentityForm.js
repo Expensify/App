@@ -1,9 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
 import DatePicker from '../../components/DatePicker';
 import AddressForm from './AddressForm';
@@ -13,7 +13,7 @@ const propTypes = {
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     /** Callback fired when a field changes. Passes args as {[fieldName]: val} */
-    onFieldChange: PropTypes.func.isRequired,
+    onFieldChange: PropTypes.func,
 
     /** Form values */
     values: PropTypes.shape({
@@ -45,12 +45,39 @@ const propTypes = {
     /** Any errors that can arise from form validation */
     errors: PropTypes.objectOf(PropTypes.bool),
 
-    ...withLocalizePropTypes,
+    /** The map for inputID of the inputs */
+    inputKeys: PropTypes.shape({
+        firstName: PropTypes.string,
+        lastName: PropTypes.string,
+        dob: PropTypes.string,
+        ssnLast4: PropTypes.string,
+        street: PropTypes.string,
+        city: PropTypes.string,
+        state: PropTypes.string,
+        zipCode: PropTypes.string,
+    }),
+
+    /** Saves a draft of the input value when used in a form */
+    shouldSaveDraft: PropTypes.bool,
+
+    /** Returns translated string for given locale and phrase */
+    translate: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
     style: {},
     values: {
+        firstName: undefined,
+        lastName: undefined,
+        street: undefined,
+        city: undefined,
+        state: undefined,
+        zipCode: undefined,
+        dob: undefined,
+        ssnLast4: undefined,
+    },
+    errors: {},
+    inputKeys: {
         firstName: '',
         lastName: '',
         street: '',
@@ -60,7 +87,8 @@ const defaultProps = {
         dob: '',
         ssnLast4: '',
     },
-    errors: {},
+    shouldSaveDraft: false,
+    onFieldChange: () => {},
 };
 
 const IdentityForm = (props) => {
@@ -73,6 +101,8 @@ const IdentityForm = (props) => {
             <View style={[styles.flexRow]}>
                 <View style={[styles.flex2, styles.mr2]}>
                     <TextInput
+                        inputID={props.inputKeys.firstName}
+                        shouldSaveDraft={props.shouldSaveDraft}
                         label={`${props.translate('common.firstName')}`}
                         value={props.values.firstName}
                         onChangeText={value => props.onFieldChange({firstName: value})}
@@ -81,6 +111,8 @@ const IdentityForm = (props) => {
                 </View>
                 <View style={[styles.flex2]}>
                     <TextInput
+                        inputID={props.inputKeys.lastName}
+                        shouldSaveDraft={props.shouldSaveDraft}
                         label={`${props.translate('common.lastName')}`}
                         value={props.values.lastName}
                         onChangeText={value => props.onFieldChange({lastName: value})}
@@ -89,6 +121,8 @@ const IdentityForm = (props) => {
                 </View>
             </View>
             <DatePicker
+                inputID={props.inputKeys.dob}
+                shouldSaveDraft={props.shouldSaveDraft}
                 label={`${props.translate('common.dob')}`}
                 containerStyles={[styles.mt4]}
                 placeholder={props.translate('common.dateFormat')}
@@ -98,6 +132,8 @@ const IdentityForm = (props) => {
                 maximumDate={new Date()}
             />
             <TextInput
+                inputID={props.inputKeys.ssnLast4}
+                shouldSaveDraft={props.shouldSaveDraft}
                 label={`${props.translate('common.ssnLast4')}`}
                 containerStyles={[styles.mt4]}
                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
@@ -107,6 +143,9 @@ const IdentityForm = (props) => {
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
             />
             <AddressForm
+                inputKeys={_.omit(props.inputKeys, ['firstName', 'lastName', 'dob', 'ssnLast4'])}
+                shouldSaveDraft={props.shouldSaveDraft}
+                translate={props.translate}
                 streetTranslationKey="common.personalAddress"
                 values={props.values}
                 errors={props.errors}
@@ -119,4 +158,4 @@ const IdentityForm = (props) => {
 IdentityForm.propTypes = propTypes;
 IdentityForm.defaultProps = defaultProps;
 IdentityForm.displayName = 'IdentityForm';
-export default withLocalize(IdentityForm);
+export default IdentityForm;

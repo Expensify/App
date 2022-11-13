@@ -17,14 +17,22 @@ const propTypes = {
     /** Listen for window resize event on web and desktop */
     shouldListenForResize: PropTypes.bool,
 
-    ...userWalletPropTypes,
+    /** Wrapped components should be disabled, and not in spinner/loading state */
+    isDisabled: PropTypes.bool,
+
+    /** The user's wallet */
+    userWallet: userWalletPropTypes,
+
+    /** When the button is opened via an IOU, ID for the chatReport that the IOU is linked to */
+    chatReportID: PropTypes.string,
 };
 
 const defaultProps = {
-    // eslint-disable-next-line react/default-props-match-prop-types
     userWallet: {},
     popoverPlacement: 'top',
     shouldListenForResize: false,
+    isDisabled: false,
+    chatReportID: '',
 };
 
 export {propTypes, defaultProps};

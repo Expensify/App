@@ -1,21 +1,29 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import {Keyboard} from 'react-native';
 import {DrawerActions, getPathFromState, StackActions} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import Log from '../Log';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
-import CustomActions from './CustomActions';
+import DeprecatedCustomActions from './DeprecatedCustomActions';
 import ONYXKEYS from '../../ONYXKEYS';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
 
 let resolveNavigationIsReadyPromise;
-let navigationIsReadyPromise = new Promise((resolve) => {
+const navigationIsReadyPromise = new Promise((resolve) => {
     resolveNavigationIsReadyPromise = resolve;
 });
 
+let resolveDrawerIsReadyPromise;
+const drawerIsReadyPromise = new Promise((resolve) => {
+    resolveDrawerIsReadyPromise = resolve;
+});
+
 let isLoggedIn = false;
+let pendingRoute = null;
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: val => isLoggedIn = Boolean(val && val.authToken),
@@ -124,23 +132,28 @@ function isDrawerRoute(route) {
  */
 function navigate(route = ROUTES.HOME) {
     if (!canNavigate('navigate', {route})) {
+        // Store intended route if the navigator is not yet available,
+        // we will try again after the NavigationContainer is ready
+        Log.hmmm(`[Navigation] Container not yet ready, storing route as pending: ${route}`);
+        pendingRoute = route;
         return;
     }
 
     if (route === ROUTES.HOME) {
-        if (isLoggedIn) {
+        if (isLoggedIn && pendingRoute === null) {
             openDrawer();
             return;
         }
 
         // If we're navigating to the signIn page while logged out, pop whatever screen is on top
         // since it's guaranteed that the sign in page will be underneath (since it's the initial route).
+        // Also, if we're coming from a link to validate login (pendingRoute is not null), we want to pop the loading screen.
         navigationRef.current.dispatch(StackActions.pop());
         return;
     }
 
     if (isDrawerRoute(route)) {
-        navigationRef.current.dispatch(CustomActions.pushDrawerRoute(route));
+        navigationRef.current.dispatch(DeprecatedCustomActions.pushDrawerRoute(route));
         return;
     }
 
@@ -161,7 +174,7 @@ function dismissModal(shouldOpenDrawer = false) {
         ? shouldOpenDrawer
         : false;
 
-    CustomActions.navigateBackToRootDrawer();
+    DeprecatedCustomActions.navigateBackToRootDrawer();
     if (normalizedShouldOpenDrawer) {
         openDrawer();
     }
@@ -175,6 +188,19 @@ function getActiveRoute() {
     return navigationRef.current && navigationRef.current.getCurrentRoute().name
         ? getPathFromState(navigationRef.current.getState(), linkingConfig.config)
         : '';
+}
+
+/**
+ * @returns {String}
+ */
+function getReportIDFromRoute() {
+    if (!navigationRef.current) {
+        return '';
+    }
+
+    const drawerState = lodashGet(navigationRef.current.getState(), ['routes', 0, 'state']);
+    const reportRoute = lodashGet(drawerState, ['routes', 0]);
+    return lodashGet(reportRoute, ['params', 'reportID'], '');
 }
 
 /**
@@ -192,6 +218,19 @@ function isActiveRoute(routePath) {
 }
 
 /**
+ * Navigate to the route that we originally intended to go to
+ * but the NavigationContainer was not ready when navigate() was called
+ */
+function goToPendingRoute() {
+    if (pendingRoute === null) {
+        return;
+    }
+    Log.hmmm(`[Navigation] Container now ready, going to pending route: ${pendingRoute}`);
+    navigate(pendingRoute);
+    pendingRoute = null;
+}
+
+/**
  * @returns {Promise}
  */
 function isNavigationReady() {
@@ -199,13 +238,19 @@ function isNavigationReady() {
 }
 
 function setIsNavigationReady() {
+    goToPendingRoute();
     resolveNavigationIsReadyPromise();
 }
 
-function resetIsNavigationReady() {
-    navigationIsReadyPromise = new Promise((resolve) => {
-        resolveNavigationIsReadyPromise = resolve;
-    });
+/**
+ * @returns {Promise}
+ */
+function isDrawerReady() {
+    return drawerIsReadyPromise;
+}
+
+function setIsDrawerReady() {
+    resolveDrawerIsReadyPromise();
 }
 
 export default {
@@ -220,7 +265,10 @@ export default {
     setDidTapNotification,
     isNavigationReady,
     setIsNavigationReady,
-    resetIsNavigationReady,
+    getReportIDFromRoute,
+    isDrawerReady,
+    setIsDrawerReady,
+    isDrawerRoute,
 };
 
 export {

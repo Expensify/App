@@ -3,7 +3,7 @@
 /* eslint-disable rulesdir/no-api-in-views */
 import Logger from 'expensify-common/lib/Logger';
 import getPlatform from './getPlatform';
-import {version} from '../../package.json';
+import pkg from '../../package.json';
 import requireParameters from './requireParameters';
 import * as Network from './Network';
 
@@ -38,7 +38,7 @@ function serverLoggingCallback(logger, params) {
     const requestParams = params;
     requestParams.shouldProcessImmediately = false;
     requestParams.shouldRetry = false;
-    requestParams.expensifyCashAppVersion = `expensifyCash[${getPlatform()}]${version}`;
+    requestParams.expensifyCashAppVersion = `expensifyCash[${getPlatform()}]${pkg.version}`;
     if (requestParams.parameters) {
         requestParams.parameters = JSON.stringify(params.parameters);
     }

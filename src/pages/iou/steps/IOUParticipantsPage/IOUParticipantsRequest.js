@@ -9,6 +9,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import compose from '../../../../libs/compose';
 import CONST from '../../../../CONST';
 import personalDetailsPropType from '../../../personalDetailsPropType';
+import reportPropTypes from '../../../reportPropTypes';
 
 const propTypes = {
     /** Beta features list */
@@ -24,10 +25,7 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
 
     /** All reports shared with the user */
-    reports: PropTypes.shape({
-        reportID: PropTypes.number,
-        reportName: PropTypes.string,
-    }).isRequired,
+    reports: PropTypes.objectOf(reportPropTypes).isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -71,14 +69,14 @@ class IOUParticipantsRequest extends Component {
             title: this.props.translate('common.recents'),
             data: this.state.recentReports,
             shouldShow: !_.isEmpty(this.state.recentReports),
-            indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
+            indexOffset: 0,
         });
 
         sections.push({
             title: this.props.translate('common.contacts'),
             data: this.state.personalDetails,
             shouldShow: !_.isEmpty(this.state.personalDetails),
-            indexOffset: 0,
+            indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
         });
 
         if (this.state.userToInvite && !OptionsListUtils.isCurrentUser(this.state.userToInvite)) {
@@ -86,7 +84,7 @@ class IOUParticipantsRequest extends Component {
                 undefined,
                 data: [this.state.userToInvite],
                 shouldShow: true,
-                indexOffset: 0,
+                indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
             });
         }
 
@@ -136,10 +134,8 @@ class IOUParticipantsRequest extends Component {
                     });
                 }}
                 headerMessage={headerMessage}
-                disableArrowKeysActions
                 hideAdditionalOptionStates
                 forceTextUnreadStyle
-                shouldDelayFocus
             />
         );
     }

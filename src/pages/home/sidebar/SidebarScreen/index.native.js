@@ -1,5 +1,4 @@
 import React from 'react';
-import {withNavigation} from '@react-navigation/compat';
 import {withOnyx} from 'react-native-onyx';
 import compose from '../../../../libs/compose';
 import withWindowDimensions from '../../../../components/withWindowDimensions';
@@ -16,7 +15,6 @@ SidebarScreen.defaultProps = sidebarDefaultProps;
 SidebarScreen.displayName = 'SidebarScreen';
 
 export default compose(
-    withNavigation,
     withLocalize,
     withWindowDimensions,
     withOnyx({
@@ -25,9 +23,6 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        isCreatingWorkspace: {
-            key: ONYXKEYS.IS_CREATING_WORKSPACE,
         },
     }),
 )(SidebarScreen);

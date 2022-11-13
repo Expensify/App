@@ -77,11 +77,10 @@ describe('updateAndroidVersion', () => {
         }
     }
 `],
-    ])('updateAndroidVersion("%s", "%s")', (versionName, versionCode, expected) => (
-        updateAndroidVersion(versionName, versionCode)
-            .then(() => {
-                const result = fs.readFileSync(BUILD_GRADLE_PATH, {encoding: 'utf8'}).toString();
-                expect(result).toBe(expected);
-            })
-    ));
+    ])('updateAndroidVersion("%s", "%s")', (versionName, versionCode, expected) => {
+        updateAndroidVersion(versionName, versionCode).then(() => {
+            const result = fs.readFileSync(BUILD_GRADLE_PATH, {encoding: 'utf8'}).toString();
+            expect(result).toBe(expected);
+        });
+    });
 });

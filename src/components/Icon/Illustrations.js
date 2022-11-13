@@ -11,9 +11,11 @@ import JewelBoxPink from '../../../assets/images/product-illustrations/jewel-box
 import JewelBoxYellow from '../../../assets/images/product-illustrations/jewel-box--yellow.svg';
 import MoneyEnvelopeBlue from '../../../assets/images/product-illustrations/money-envelope--blue.svg';
 import MoneyMousePink from '../../../assets/images/product-illustrations/money-mouse--pink.svg';
+import ReceiptsSearchYellow from '../../../assets/images/product-illustrations/receipts-search--yellow.svg';
 import ReceiptYellow from '../../../assets/images/product-illustrations/receipt--yellow.svg';
 import RocketOrange from '../../../assets/images/product-illustrations/rocket--orange.svg';
 import TadaYellow from '../../../assets/images/product-illustrations/tada--yellow.svg';
+import TadaBlue from '../../../assets/images/product-illustrations/tada--blue.svg';
 import GpsTrackOrange from '../../../assets/images/product-illustrations/gps-track--orange.svg';
 
 export {
@@ -30,8 +32,10 @@ export {
     JewelBoxYellow,
     MoneyEnvelopeBlue,
     MoneyMousePink,
+    ReceiptsSearchYellow,
     ReceiptYellow,
     RocketOrange,
     TadaYellow,
+    TadaBlue,
     GpsTrackOrange,
 };

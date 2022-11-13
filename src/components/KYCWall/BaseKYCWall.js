@@ -1,16 +1,16 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {ActivityIndicator, Dimensions} from 'react-native';
-import themeColors from '../../styles/themes/default';
+import {Dimensions} from 'react-native';
 import CONST from '../../CONST';
 import Navigation from '../../libs/Navigation/Navigation';
 import AddPaymentMethodMenu from '../AddPaymentMethodMenu';
-import getClickedElementLocation from '../../libs/getClickedElementLocation';
+import getClickedTargetLocation from '../../libs/getClickedTargetLocation';
 import * as PaymentUtils from '../../libs/PaymentUtils';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import ONYXKEYS from '../../ONYXKEYS';
 import Log from '../../libs/Log';
 import {propTypes, defaultProps} from './kycWallPropTypes';
+import * as Wallet from '../../libs/actions/Wallet';
 
 // This component allows us to block various actions by forcing the user to first add a default payment method and successfully make it through our Know Your Customer flow
 // before continuing to take whatever action they originally intended to take. It requires a button as a child and a native event so we can get the coordinates and use it
@@ -31,11 +31,11 @@ class KYCWall extends React.Component {
     }
 
     componentDidMount() {
-        PaymentMethods.getPaymentMethods();
         PaymentMethods.kycWallRef.current = this;
         if (this.props.shouldListenForResize) {
             this.dimensionsSubscription = Dimensions.addEventListener('change', this.setMenuPosition);
         }
+        Wallet.setKYCWallSourceChatReportID(this.props.chatReportID);
     }
 
     componentWillUnmount() {
@@ -49,7 +49,7 @@ class KYCWall extends React.Component {
         if (!this.state.transferBalanceButton) {
             return;
         }
-        const buttonPosition = getClickedElementLocation(this.state.transferBalanceButton);
+        const buttonPosition = getClickedTargetLocation(this.state.transferBalanceButton);
         const position = this.getAnchorPosition(buttonPosition);
         this.setPositionAddPaymentMenu(position);
     }
@@ -93,13 +93,13 @@ class KYCWall extends React.Component {
      */
     continue(event) {
         this.setState({
-            transferBalanceButton: event.nativeEvent,
+            transferBalanceButton: event.nativeEvent.target,
         });
 
         // Check to see if user has a valid payment method on file and display the add payment popover if they don't
         if (!PaymentUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList)) {
             Log.info('[KYC Wallet] User does not have valid payment method');
-            const clickedElementLocation = getClickedElementLocation(event.nativeEvent);
+            const clickedElementLocation = getClickedTargetLocation(event.nativeEvent.target);
             const position = this.getAnchorPosition(clickedElementLocation);
             this.setPositionAddPaymentMenu(position);
             this.setState({
@@ -140,9 +140,7 @@ class KYCWall extends React.Component {
                         }
                     }}
                 />
-                {this.props.isLoadingPaymentMethods
-                    ? (<ActivityIndicator color={themeColors.spinner} size="large" />)
-                    : this.props.children(this.continue)}
+                {this.props.children(this.continue)}
             </>
         );
     }

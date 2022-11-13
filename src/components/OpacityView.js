@@ -10,6 +10,7 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 
     // Array of style objects
+    // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.arrayOf(PropTypes.object),
 };
 
@@ -21,6 +22,7 @@ class OpacityView extends React.Component {
     constructor(props) {
         super(props);
         this.opacity = new Animated.Value(1);
+        this.undim = this.undim.bind(this);
     }
 
     componentDidUpdate(prevProps) {
@@ -33,12 +35,24 @@ class OpacityView extends React.Component {
         }
 
         if (prevProps.shouldDim && !this.props.shouldDim) {
-            Animated.timing(this.opacity, {
-                toValue: 1,
-                duration: 50,
-                useNativeDriver: true,
-            }).start();
+            this.undim();
         }
+    }
+
+    undim() {
+        Animated.timing(this.opacity, {
+            toValue: 1,
+            duration: 50,
+            useNativeDriver: true,
+        }).start(({finished}) => {
+            // If animation doesn't finish because Animation.stop was called
+            // (e.g. because it was interrupted by a gesture or another animation),
+            // restart animation so we always make sure the component gets completely shown.
+            if (finished) {
+                return;
+            }
+            this.undim();
+        });
     }
 
     render() {

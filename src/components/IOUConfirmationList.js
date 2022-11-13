@@ -1,35 +1,30 @@
 import React, {Component} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../styles/styles';
-import Text from './Text';
-import themeColors from '../styles/themes/default';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
-import OptionsList from './OptionsList';
+import OptionsSelector from './OptionsSelector';
 import ONYXKEYS from '../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
-import FixedFooter from './FixedFooter';
-import TextInput from './TextInput';
 import CONST from '../CONST';
 import ButtonWithMenu from './ButtonWithMenu';
 import Log from '../libs/Log';
 import SettlementButton from './SettlementButton';
 import ROUTES from '../ROUTES';
-import networkPropTypes from './networkPropTypes';
-import {withNetwork} from './OnyxProvider';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from './withCurrentUserPersonalDetails';
+import * as IOUUtils from '../libs/IOUUtils';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func.isRequired,
 
-    /** Callback to to parent modal to send money */
+    /** Callback to parent modal to send money */
     onSendMoney: PropTypes.func.isRequired,
 
-    // Callback to update comment from IOUModal
+    /** Callback to update comment from IOUModal */
     onUpdateComment: PropTypes.func,
 
     /** Comment value from IOUModal */
@@ -44,7 +39,7 @@ const propTypes = {
     /** IOU type */
     iouType: PropTypes.string,
 
-    // Selected participants from IOUModal with login
+    /** Selected participants from IOUModal with login */
     participants: PropTypes.arrayOf(PropTypes.shape({
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
@@ -55,7 +50,8 @@ const propTypes = {
         keyForList: PropTypes.string,
         isPinned: PropTypes.bool,
         isUnread: PropTypes.bool,
-        reportID: PropTypes.number,
+        reportID: PropTypes.string,
+        // eslint-disable-next-line react/forbid-prop-types
         participantsList: PropTypes.arrayOf(PropTypes.object),
         payPalMeAddress: PropTypes.string,
         phoneNumber: PropTypes.string,
@@ -68,20 +64,9 @@ const propTypes = {
 
     ...withLocalizePropTypes,
 
+    ...withCurrentUserPersonalDetailsPropTypes,
+
     /* Onyx Props */
-
-    /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape({
-
-        /** Display name of the current user from their personal details */
-        displayName: PropTypes.string,
-
-        /** Avatar URL of the current user from their personal details */
-        avatar: PropTypes.string,
-
-        /** Primary login of the user */
-        login: PropTypes.string,
-    }),
 
     /** Holds data related to IOU view state, rather than the underlying IOU data. */
     iou: PropTypes.shape({
@@ -92,9 +77,6 @@ const propTypes = {
         // Selected Currency Code of the current IOU
         selectedCurrencyCode: PropTypes.string,
     }),
-
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
 
     /** Current user session */
     session: PropTypes.shape({
@@ -108,8 +90,8 @@ const defaultProps = {
     },
     onUpdateComment: null,
     comment: '',
-    myPersonalDetails: {},
     iouType: CONST.IOU.IOU_TYPE.REQUEST,
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 class IOUConfirmationList extends Component {
@@ -135,26 +117,7 @@ class IOUConfirmationList extends Component {
         };
 
         this.toggleOption = this.toggleOption.bind(this);
-        this.onPress = this.onPress.bind(this);
-    }
-
-    componentDidMount() {
-        // We need to wait for the transition animation to end before focusing the TextInput,
-        // otherwise the TextInput isn't animated correctly
-        setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
-    }
-
-    /**
-     * @param {String} value
-     */
-    onPress(value) {
-        if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
-            Log.info(`[IOU] Sending money via: ${value}`);
-            this.props.onSendMoney(value);
-        } else {
-            Log.info(`[IOU] Requesting money via: ${value}`);
-            this.props.onConfirm(this.getSplits());
-        }
+        this.confirm = this.confirm.bind(this);
     }
 
     /**
@@ -181,7 +144,7 @@ class IOUConfirmationList extends Component {
     getParticipantsWithAmount(participants) {
         return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
             participants,
-            this.props.numberFormat(this.calculateAmount(participants) / 100, {
+            this.props.numberFormat(IOUUtils.calculateAmount(participants, this.props.iouAmount) / 100, {
                 style: 'currency',
                 currency: this.props.iou.selectedCurrencyCode,
             }),
@@ -190,6 +153,7 @@ class IOUConfirmationList extends Component {
 
     /**
      * Returns the participants without amount
+     *
      * @param {Array} participants
      * @returns {Array}
      */
@@ -199,7 +163,7 @@ class IOUConfirmationList extends Component {
 
     /**
      * Returns the sections needed for the OptionsSelector
-     * @param {Boolean} maxParticipantsReached
+     *
      * @returns {Array}
      */
     getSections() {
@@ -210,10 +174,11 @@ class IOUConfirmationList extends Component {
 
             const formattedSelectedParticipants = this.getParticipantsWithAmount(selectedParticipants);
             const formattedUnselectedParticipants = this.getParticipantsWithoutAmount(unselectedParticipants);
+            const formattedParticipants = _.union(formattedSelectedParticipants, formattedUnselectedParticipants);
 
             const formattedMyPersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(
-                this.props.myPersonalDetails,
-                this.props.numberFormat(this.calculateAmount(selectedParticipants, true) / 100, {
+                this.props.currentUserPersonalDetails,
+                this.props.numberFormat(IOUUtils.calculateAmount(selectedParticipants, this.props.iouAmount, true) / 100, {
                     style: 'currency',
                     currency: this.props.iou.selectedCurrencyCode,
                 }),
@@ -227,14 +192,9 @@ class IOUConfirmationList extends Component {
                 isDisabled: true,
             }, {
                 title: this.props.translate('iOUConfirmationList.whoWasThere'),
-                data: formattedSelectedParticipants,
+                data: formattedParticipants,
                 shouldShow: true,
-                indexOffset: 0,
-            }, {
-                title: undefined,
-                data: formattedUnselectedParticipants,
-                shouldShow: !_.isEmpty(formattedUnselectedParticipants),
-                indexOffset: 0,
+                indexOffset: 1,
             });
         } else {
             const formattedParticipants = OptionsListUtils.getIOUConfirmationOptionsFromParticipants(this.props.participants,
@@ -254,35 +214,6 @@ class IOUConfirmationList extends Component {
     }
 
     /**
-     * Gets splits for the transaction
-     * @returns {Array|null}
-     */
-    getSplits() {
-        // There can only be splits when there are multiple participants, so return early when there are not
-        // multiple participants
-        if (!this.props.hasMultipleParticipants) {
-            return null;
-        }
-        const selectedParticipants = this.getSelectedParticipants();
-        const splits = _.map(selectedParticipants, participant => ({
-            email: OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login),
-
-            // We should send in cents to API
-            // Cents is temporary and there must be support for other currencies in the future
-            amount: this.calculateAmount(selectedParticipants),
-        }));
-
-        splits.push({
-            email: OptionsListUtils.addSMSDomainIfPhoneNumber(this.props.myPersonalDetails.login),
-
-            // The user is default and we should send in cents to API
-            // USD is temporary and there must be support for other currencies in the future
-            amount: this.calculateAmount(selectedParticipants, true),
-        });
-        return splits;
-    }
-
-    /**
      * Returns selected options -- there is checkmark for every row in List for split flow
      * @returns {Array}
      */
@@ -293,32 +224,8 @@ class IOUConfirmationList extends Component {
         const selectedParticipants = this.getSelectedParticipants();
         return [
             ...selectedParticipants,
-            OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(this.props.myPersonalDetails),
+            OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(this.props.currentUserPersonalDetails),
         ];
-    }
-
-    /**
-     * Calculates the amount per user given a list of participants
-     * @param {Array} participants
-     * @param {Boolean} isDefaultUser
-     * @returns {Number}
-     */
-    calculateAmount(participants, isDefaultUser = false) {
-        // Convert to cents before working with iouAmount to avoid
-        // javascript subtraction with decimal problem -- when dealing with decimals,
-        // because they are encoded as IEEE 754 floating point numbers, some of the decimal
-        // numbers cannot be represented with perfect accuracy.
-        // Cents is temporary and there must be support for other currencies in the future
-        const iouAmount = Math.round(parseFloat(this.props.iouAmount * 100));
-        const totalParticipants = participants.length + 1;
-        const amountPerPerson = Math.round(iouAmount / totalParticipants);
-
-        if (!isDefaultUser) { return amountPerPerson; }
-
-        const sumAmount = amountPerPerson * totalParticipants;
-        const difference = iouAmount - sumAmount;
-
-        return iouAmount !== sumAmount ? (amountPerPerson + difference) : amountPerPerson;
     }
 
     /**
@@ -342,54 +249,59 @@ class IOUConfirmationList extends Component {
         });
     }
 
+    /**
+     * @param {String} paymentMethod
+     */
+    confirm(paymentMethod) {
+        const selectedParticipants = this.getSelectedParticipants();
+        if (_.isEmpty(selectedParticipants)) {
+            return;
+        }
+
+        if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
+            if (!paymentMethod) {
+                return;
+            }
+
+            Log.info(`[IOU] Sending money via: ${paymentMethod}`);
+            this.props.onSendMoney(paymentMethod);
+        } else {
+            this.props.onConfirm(selectedParticipants);
+        }
+    }
+
     render() {
-        const hoverStyle = this.props.hasMultipleParticipants ? styles.hoveredComponentBG : {};
-        const toggleOption = this.props.hasMultipleParticipants ? this.toggleOption : undefined;
         const selectedParticipants = this.getSelectedParticipants();
         const shouldShowSettlementButton = this.props.iouType === CONST.IOU.IOU_TYPE.SEND;
-        const shouldDisableButton = selectedParticipants.length === 0 || this.props.network.isOffline;
-        const isLoading = this.props.iou.loading && !this.props.network.isOffline;
+        const shouldDisableButton = selectedParticipants.length === 0;
         const recipient = this.state.participants[0];
-        const canModifyParticipants = this.props.isIOUAttachedToExistingChatReport && this.props.hasMultipleParticipants;
+        const canModifyParticipants = !this.props.isIOUAttachedToExistingChatReport && this.props.hasMultipleParticipants;
+
         return (
-            <>
-                <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>
-                    <OptionsList
-                        sections={this.getSections()}
-                        disableArrowKeysActions
-                        disableFocusOptions
-                        hideAdditionalOptionStates
-                        forceTextUnreadStyle
-                        canSelectMultipleOptions={this.props.hasMultipleParticipants}
-                        selectedOptions={this.getSelectedOptions()}
-                        onSelectRow={toggleOption}
-                        isDisabled={!canModifyParticipants}
-                        optionHoveredStyle={hoverStyle}
-                    />
-                </View>
-                <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0, styles.iouConfirmComment]}>
-                    <TextInput
-                        ref={el => this.textInput = el}
-                        label={this.props.translate('iOUConfirmationList.whatsItFor')}
-                        value={this.props.comment}
-                        onChangeText={this.props.onUpdateComment}
-                        placeholder={this.props.translate('common.optional')}
-                        placeholderTextColor={themeColors.placeholderText}
-                    />
-                </View>
-                <FixedFooter>
-                    {this.props.network.isOffline && (
-                        <Text style={[styles.formError, styles.pb2]}>
-                            {this.props.translate('session.offlineMessage')}
-                        </Text>
-                    )}
-                    {shouldShowSettlementButton ? (
+            <OptionsSelector
+                sections={this.getSections()}
+                value={this.props.comment}
+                onSelectRow={canModifyParticipants ? this.toggleOption : undefined}
+                onConfirmSelection={this.confirm}
+                onChangeText={this.props.onUpdateComment}
+                textInputLabel={this.props.translate('iOUConfirmationList.whatsItFor')}
+                placeholderText={this.props.translate('common.optional')}
+                selectedOptions={this.getSelectedOptions()}
+                canSelectMultipleOptions={canModifyParticipants}
+                disableArrowKeysActions={!canModifyParticipants}
+                isDisabled={!canModifyParticipants}
+                hideAdditionalOptionStates
+                forceTextUnreadStyle
+                autoFocus
+                shouldDelayFocus
+                shouldTextInputAppearBelowOptions
+                optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
+                footerContent={shouldShowSettlementButton
+                    ? (
                         <SettlementButton
                             isDisabled={shouldDisableButton}
-                            isLoading={this.props.iou.loading && !this.props.network.isOffline}
-                            onPress={this.onPress}
+                            onPress={this.confirm}
                             shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
-                            recipientPhoneNumber={recipient.phoneNumber}
                             enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                             addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
                             addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
@@ -398,13 +310,11 @@ class IOUConfirmationList extends Component {
                     ) : (
                         <ButtonWithMenu
                             isDisabled={shouldDisableButton}
-                            isLoading={isLoading}
-                            onPress={(_event, value) => this.onPress(value)}
+                            onPress={(_event, value) => this.confirm(value)}
                             options={this.splitOrRequestOptions}
                         />
                     )}
-                </FixedFooter>
-            </>
+            />
         );
     }
 }
@@ -415,12 +325,9 @@ IOUConfirmationList.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
-    withNetwork(),
+    withCurrentUserPersonalDetails,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
-        },
         session: {
             key: ONYXKEYS.SESSION,
         },

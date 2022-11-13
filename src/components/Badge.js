@@ -19,6 +19,7 @@ const propTypes = {
     text: PropTypes.string.isRequired,
 
     /** Styles for Badge */
+    // eslint-disable-next-line react/forbid-prop-types
     badgeStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Callback to be called on onPress */

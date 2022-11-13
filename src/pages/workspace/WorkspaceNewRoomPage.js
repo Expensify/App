@@ -3,7 +3,6 @@ import {ScrollView, View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from './withFullPolicy';
 import * as Report from '../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
@@ -20,7 +19,6 @@ import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import Permissions from '../../libs/Permissions';
 import Log from '../../libs/Log';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 
 const propTypes = {
@@ -36,17 +34,13 @@ const propTypes = {
         policyID: PropTypes.string,
     }).isRequired,
 
-    /** Are we loading the createPolicyRoom command */
-    isLoadingCreatePolicyRoom: PropTypes.bool,
-
-    ...fullPolicyPropTypes,
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     ...withLocalizePropTypes,
 };
 const defaultProps = {
     betas: [],
-    isLoadingCreatePolicyRoom: false,
-    ...fullPolicyDefaultProps,
 };
 
 class WorkspaceNewRoomPage extends React.Component {
@@ -61,7 +55,8 @@ class WorkspaceNewRoomPage extends React.Component {
             workspaceOptions: [],
         };
 
-        this.validateAndCreatePolicyRoom = this.validateAndCreatePolicyRoom.bind(this);
+        this.validateAndAddPolicyReport = this.validateAndAddPolicyReport.bind(this);
+        this.focusRoomNameInput = this.focusRoomNameInput.bind(this);
     }
 
     componentDidMount() {
@@ -82,15 +77,12 @@ class WorkspaceNewRoomPage extends React.Component {
         this.setState({workspaceOptions: _.map(workspaces, policy => ({label: policy.name, key: policy.id, value: policy.id}))});
     }
 
-    validateAndCreatePolicyRoom() {
+    validateAndAddPolicyReport() {
         if (!this.validate()) {
             return;
         }
-        Report.createPolicyRoom(
-            this.state.policyID,
-            this.state.roomName,
-            this.state.visibility,
-        );
+        const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.state.policyID}`];
+        Report.addPolicyReport(policy, this.state.roomName, this.state.visibility);
     }
 
     /**
@@ -136,6 +128,14 @@ class WorkspaceNewRoomPage extends React.Component {
         }));
     }
 
+    focusRoomNameInput() {
+        if (!this.roomNameInputRef) {
+            return;
+        }
+
+        this.roomNameInputRef.focus();
+    }
+
     render() {
         if (!Permissions.canUsePolicyRooms(this.props.betas)) {
             Log.info('Not showing create Policy Room page since user is not on policy rooms beta');
@@ -150,53 +150,52 @@ class WorkspaceNewRoomPage extends React.Component {
         }));
 
         return (
-            <ScreenWrapper>
-                <KeyboardAvoidingView>
-                    <HeaderWithCloseButton
-                        title={this.props.translate('newRoomPage.newRoom')}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
-                    />
-                    <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                        <View style={styles.mb5}>
-                            <RoomNameInput
-                                policyID={this.state.policyID}
-                                errorText={this.state.errors.roomName}
-                                onChangeText={roomName => this.clearErrorAndSetValue('roomName', roomName)}
-                            />
-                        </View>
-                        <View style={styles.mb5}>
-                            <Picker
-                                value={this.state.policyID}
-                                label={this.props.translate('workspace.common.workspace')}
-                                placeholder={{value: '', label: this.props.translate('newRoomPage.selectAWorkspace')}}
-                                items={this.state.workspaceOptions}
-                                errorText={this.state.errors.policyID}
-                                onInputChange={policyID => this.clearErrorAndSetValue('policyID', policyID)}
-                            />
-                        </View>
-                        <View style={styles.mb2}>
-                            <Picker
-                                value={this.state.visibility}
-                                label={this.props.translate('newRoomPage.visibility')}
-                                items={visibilityOptions}
-                                onInputChange={visibility => this.setState({visibility})}
-                            />
-                        </View>
-                        <Text style={[styles.textLabel, styles.colorMuted]}>
-                            {_.find(visibilityOptions, option => option.value === this.state.visibility).description}
-                        </Text>
-                    </ScrollView>
-                    <FixedFooter>
-                        <Button
-                            isLoading={this.props.isLoadingCreatePolicyRoom}
-                            success
-                            pressOnEnter
-                            onPress={this.validateAndCreatePolicyRoom}
-                            style={[styles.w100]}
-                            text={this.props.translate('newRoomPage.createRoom')}
+            <ScreenWrapper onTransitionEnd={this.focusRoomNameInput}>
+                <HeaderWithCloseButton
+                    title={this.props.translate('newRoomPage.newRoom')}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
+                />
+                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
+                    <View style={styles.mb5}>
+                        <RoomNameInput
+                            ref={el => this.roomNameInputRef = el}
+                            policyID={this.state.policyID}
+                            errorText={this.state.errors.roomName}
+                            onChangeText={roomName => this.clearErrorAndSetValue('roomName', roomName)}
+                            value={this.state.roomName}
                         />
-                    </FixedFooter>
-                </KeyboardAvoidingView>
+                    </View>
+                    <View style={styles.mb5}>
+                        <Picker
+                            value={this.state.policyID}
+                            label={this.props.translate('workspace.common.workspace')}
+                            placeholder={{value: '', label: this.props.translate('newRoomPage.selectAWorkspace')}}
+                            items={this.state.workspaceOptions}
+                            errorText={this.state.errors.policyID}
+                            onInputChange={policyID => this.clearErrorAndSetValue('policyID', policyID)}
+                        />
+                    </View>
+                    <View style={styles.mb2}>
+                        <Picker
+                            value={this.state.visibility}
+                            label={this.props.translate('newRoomPage.visibility')}
+                            items={visibilityOptions}
+                            onInputChange={visibility => this.setState({visibility})}
+                        />
+                    </View>
+                    <Text style={[styles.textLabel, styles.colorMuted]}>
+                        {_.find(visibilityOptions, option => option.value === this.state.visibility).description}
+                    </Text>
+                </ScrollView>
+                <FixedFooter>
+                    <Button
+                        success
+                        pressOnEnter
+                        onPress={this.validateAndAddPolicyReport}
+                        style={[styles.w100]}
+                        text={this.props.translate('newRoomPage.createRoom')}
+                    />
+                </FixedFooter>
             </ScreenWrapper>
         );
     }
@@ -206,7 +205,6 @@ WorkspaceNewRoomPage.propTypes = propTypes;
 WorkspaceNewRoomPage.defaultProps = defaultProps;
 
 export default compose(
-    withFullPolicy,
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
@@ -216,9 +214,6 @@ export default compose(
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        isLoadingCreatePolicyRoom: {
-            key: ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM,
         },
     }),
     withLocalize,

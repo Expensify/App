@@ -37,6 +37,7 @@ const propTypes = {
     shouldShowCancelButton: PropTypes.bool,
 
     /** Styles for view */
+    // eslint-disable-next-line react/forbid-prop-types
     contentStyles: PropTypes.arrayOf(PropTypes.object),
 
     ...withLocalizePropTypes,

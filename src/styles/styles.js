@@ -15,8 +15,10 @@ import textInputAlignSelf from './utilities/textInputAlignSelf';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
+import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
+import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
 
 const picker = {
@@ -28,10 +30,8 @@ const picker = {
     paddingHorizontal: 11,
     paddingBottom: 8,
     paddingTop: 23,
-    height: 52,
-    borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: themeColors.border,
+    height: 50,
+    borderWidth: 0,
     borderRadius: variables.componentBorderRadiusNormal,
     textAlign: 'left',
 };
@@ -75,12 +75,10 @@ const webViewStyles = {
 
         ul: {
             maxWidth: '100%',
-            flex: 1,
         },
 
         ol: {
             maxWidth: '100%',
-            flex: 1,
         },
 
         li: {
@@ -128,6 +126,10 @@ const webViewStyles = {
             marginTop: 0,
             marginBottom: 0,
         },
+        h1: {
+            fontSize: variables.fontSizeLarge,
+            marginBottom: 8,
+        },
     },
 
     baseFontStyle: {
@@ -135,7 +137,6 @@ const webViewStyles = {
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
         flex: 1,
-        whiteSpace: 'pre',
     },
 };
 
@@ -149,6 +150,7 @@ const styles = {
     ...positioning,
     ...wordBreak,
     ...whiteSpace,
+    ...writingDirection,
 
     rateCol: {
         margin: 0,
@@ -320,6 +322,10 @@ const styles = {
         backgroundColor: 'transparent',
     },
 
+    bgDark: {
+        backgroundColor: colors.dark,
+    },
+
     opacity0: {
         opacity: 0,
     },
@@ -380,19 +386,9 @@ const styles = {
         borderRadius: variables.componentBorderRadius,
         height: variables.componentSizeLarge,
         paddingTop: 8,
-        paddingRight: 12,
+        paddingRight: 14,
         paddingBottom: 8,
-        paddingLeft: 12,
-        backgroundColor: themeColors.buttonDefaultBG,
-    },
-
-    buttonExtraLarge: {
-        borderRadius: variables.componentBorderRadius,
-        height: variables.componentSizeExtraLarge,
-        paddingTop: 12,
-        paddingRight: 18,
-        paddingBottom: 12,
-        paddingLeft: 18,
+        paddingLeft: 14,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
@@ -412,13 +408,6 @@ const styles = {
 
     buttonLargeText: {
         fontSize: variables.fontSizeNormal,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
-        textAlign: 'center',
-    },
-
-    buttonExtraLargeText: {
-        fontSize: variables.fontSizeMedium,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
@@ -472,6 +461,15 @@ const styles = {
         borderBottomLeftRadius: 0,
     },
 
+    buttonCTA: {
+        paddingVertical: 6,
+        ...spacing.mh4,
+    },
+
+    buttonCTAIcon: {
+        marginRight: 22,
+    },
+
     buttonConfirm: {
         margin: 20,
     },
@@ -495,6 +493,10 @@ const styles = {
 
     activeComponentBG: {
         backgroundColor: themeColors.activeComponentBG,
+    },
+
+    fontWeightBold: {
+        fontWeight: fontWeightBold,
     },
 
     touchableButtonImage: {
@@ -530,11 +532,9 @@ const styles = {
             paddingTop: 6,
             paddingBottom: 6,
             borderRadius: variables.componentBorderRadius,
-            borderWidth: 1,
-            borderColor: themeColors.border,
-            borderStyle: 'solid',
+            borderWidth: 0,
             color: themeColors.text,
-            height: variables.componentSizeSmall,
+            height: 26,
             opacity: 1,
             backgroundColor: 'transparent',
         },
@@ -545,13 +545,11 @@ const styles = {
             paddingRight: 25,
             paddingTop: 6,
             paddingBottom: 6,
-            borderWidth: 1,
-            borderColor: themeColors.border,
-            borderStyle: 'solid',
+            borderWidth: 0,
             borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
             appearance: 'none',
-            height: variables.componentSizeSmall,
+            height: 26,
             opacity: 1,
             cursor: 'pointer',
             backgroundColor: 'transparent',
@@ -563,17 +561,15 @@ const styles = {
             paddingRight: 25,
             paddingTop: 6,
             paddingBottom: 6,
-            borderWidth: 1,
-            borderColor: themeColors.border,
-            borderStyle: 'solid',
+            borderWidth: 0,
             borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
-            height: variables.componentSizeSmall,
+            height: 26,
             opacity: 1,
         },
         iconContainer: {
-            top: 8,
-            right: 9,
+            top: 7,
+            right: 8,
             ...pointerEventsNone,
         },
         icon: {
@@ -664,6 +660,19 @@ const styles = {
         marginLeft: 48,
     },
 
+    offlineIndicator: {
+        marginLeft: 48,
+    },
+
+    offlineIndicatorMobile: {
+        paddingLeft: 20,
+        paddingBottom: 9,
+    },
+
+    offlineIndicatorRow: {
+        height: 25,
+    },
+
     // Actions
     actionAvatar: {
         borderRadius: 20,
@@ -727,7 +736,6 @@ const styles = {
         paddingBottom: 8,
         paddingHorizontal: 11,
         borderWidth: 0,
-        borderRadius: variables.componentBorderRadiusNormal,
     },
 
     textInputMultiline: {
@@ -787,33 +795,31 @@ const styles = {
     },
 
     pickerContainer: {
-        borderWidth: 0,
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderColor: themeColors.border,
         borderRadius: variables.componentBorderRadiusNormal,
         justifyContent: 'center',
         backgroundColor: themeColors.componentBG,
     },
     pickerLabel: {
         position: 'absolute',
-        left: 12,
-        top: 7,
+        left: 11,
+        top: 6,
     },
-    picker: (disabled = false, error = false, focused = false) => ({
+    picker: (disabled = false) => ({
         iconContainer: {
-            top: 16,
-            right: 11,
+            top: 15,
+            right: 10,
             zIndex: -1,
         },
         inputWeb: {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
             ...picker,
-            ...(focused && {borderColor: themeColors.borderFocus}),
-            ...(error && {borderColor: themeColors.badgeDangerBG}),
         },
         inputNative: {
             ...picker,
-            ...(focused && {borderColor: themeColors.borderFocus}),
-            ...(error && {borderColor: themeColors.badgeDangerBG}),
         },
     }),
 
@@ -973,6 +979,7 @@ const styles = {
 
     statusIndicator: {
         borderColor: themeColors.sidebar,
+        backgroundColor: themeColors.buttonDangerBG,
         borderRadius: 6,
         borderWidth: 2,
         position: 'absolute',
@@ -985,6 +992,7 @@ const styles = {
 
     statusIndicatorLarge: {
         borderColor: themeColors.componentBG,
+        backgroundColor: themeColors.buttonDangerBG,
         borderRadius: 8,
         borderWidth: 2,
         position: 'absolute',
@@ -999,8 +1007,18 @@ const styles = {
         backgroundColor: themeColors.online,
     },
 
-    statusIndicatorOffline: {
-        backgroundColor: themeColors.offline,
+    avatarWithIndicator: {
+        errorDot: {
+            borderColor: themeColors.sidebar,
+            borderRadius: 6,
+            borderWidth: 2,
+            position: 'absolute',
+            right: -1,
+            bottom: -1,
+            height: 12,
+            width: 12,
+            zIndex: 10,
+        },
     },
 
     floatingActionButton: {
@@ -1101,9 +1119,7 @@ const styles = {
     },
 
     popoverMenuText: {
-        fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
-        fontWeight: fontWeightBold,
         color: themeColors.heading,
         maxWidth: 240,
     },
@@ -1127,18 +1143,6 @@ const styles = {
         flexDirection: 'row',
         paddingLeft: 20,
         paddingRight: 20,
-    },
-
-    sidebarInnerRow: {
-        height: 64,
-        paddingTop: 12,
-        paddingBottom: 12,
-    },
-
-    sidebarInnerRowSmall: {
-        height: 52,
-        paddingTop: 12,
-        paddingBottom: 12,
     },
 
     sidebarLinkText: {
@@ -1205,6 +1209,22 @@ const styles = {
         flexGrow: 1,
         flexBasis: 'auto',
         ...optionAlternateTextPlatformStyles,
+    },
+
+    optionRow: {
+        height: variables.optionRowHeight,
+        paddingTop: 12,
+        paddingBottom: 12,
+    },
+
+    optionRowCompact: {
+        height: variables.optionRowHeightCompact,
+        paddingTop: 12,
+        paddingBottom: 12,
+    },
+
+    optionsListSectionHeader: {
+        height: variables.optionsListSectionHeaderHeight,
     },
 
     appContent: {
@@ -1313,10 +1333,6 @@ const styles = {
         ...wordBreak.breakWord,
     },
 
-    chatItemUnsentMessage: {
-        opacity: 0.6,
-    },
-
     chatItemMessageLink: {
         color: colors.blue,
         fontSize: variables.fontSizeNormal,
@@ -1354,8 +1370,6 @@ const styles = {
     },
 
     chatFooter: {
-        minHeight: 65,
-        marginBottom: 5,
         paddingLeft: 20,
         paddingRight: 20,
         display: 'flex',
@@ -1372,7 +1386,7 @@ const styles = {
         backgroundColor: themeColors.componentBG,
         borderColor: themeColors.border,
         color: themeColors.text,
-        fontFamily: fontFamily.GTA,
+        fontFamily: fontFamily.EMOJI_TEXT_FONT,
         fontSize: variables.fontSizeNormal,
         borderWidth: 0,
         borderRadius: 0,
@@ -1390,9 +1404,14 @@ const styles = {
     }, 0),
 
     textInputFullCompose: {
-        alignSelf: 'flex-end',
+        alignSelf: 'stretch',
         flex: 1,
         maxHeight: '100%',
+        textAlignVertical: 'top',
+    },
+
+    editInputComposeSpacing: {
+        marginVertical: 6,
     },
 
     textInputComposeSpacing: {
@@ -1445,7 +1464,7 @@ const styles = {
 
     // Emoji Picker Styles
     emojiText: {
-        fontFamily: fontFamily.GTA_BOLD,
+        fontFamily: fontFamily.EMOJI_TEXT_FONT,
         textAlign: 'center',
         fontSize: variables.emojiSize,
         ...spacing.pv0,
@@ -1548,6 +1567,14 @@ const styles = {
         width: 24,
         backgroundColor: themeColors.icon,
         borderRadius: 24,
+    },
+
+    horizontalStackedAvatar: {
+        height: 28,
+        width: 28,
+        backgroundColor: colors.white,
+        borderRadius: 33,
+        paddingTop: 2,
     },
 
     singleSubscript: {
@@ -1680,6 +1707,43 @@ const styles = {
         width: variables.avatarSizeSmall,
     },
 
+    horizontalStackedAvatar1: {
+        left: -19,
+        top: -79,
+        zIndex: 2,
+    },
+
+    horizontalStackedAvatar2: {
+        left: 1,
+        top: -51,
+        zIndex: 3,
+    },
+
+    horizontalStackedAvatar3: {
+        left: 21,
+        top: -23,
+        zIndex: 4,
+    },
+
+    horizontalStackedAvatar4: {
+        top: 5,
+        left: 41,
+        zIndex: 5,
+    },
+
+    horizontalStackedAvatar4Overlay: {
+        top: -107,
+        left: 41,
+        height: 28,
+        width: 28,
+        borderWidth: 2,
+        borderStyle: 'solid',
+        borderColor: colors.white,
+        backgroundColor: themeColors.opaqueAvatar,
+        borderRadius: 24,
+        zIndex: 6,
+    },
+
     modalViewContainer: {
         alignItems: 'center',
         flex: 1,
@@ -1725,6 +1789,8 @@ const styles = {
 
     pointerEventsNone,
 
+    pointerEventsAuto,
+
     headerBar: {
         overflow: 'hidden',
         justifyContent: 'center',
@@ -1745,6 +1811,7 @@ const styles = {
         flex: 1,
         backgroundColor: themeColors.modalBackground,
     },
+
     PDFView: {
         // `display: grid` is not supported in native platforms!
         // It's being used on Web/Desktop only to vertically center short PDFs,
@@ -1757,6 +1824,12 @@ const styles = {
         overflow: 'hidden',
         overflowY: 'auto',
         alignItems: 'center',
+    },
+
+    pdfPasswordForm: {
+        wideScreenWidth: {
+            width: 350,
+        },
     },
 
     modalCenterContentContainer: {
@@ -1827,6 +1900,10 @@ const styles = {
         fontSize: 15,
     },
 
+    blockingViewContainer: {
+        paddingBottom: variables.contentHeaderHeight,
+    },
+
     defaultModalContainer: {
         backgroundColor: themeColors.componentBG,
         borderColor: colors.transparent,
@@ -1837,6 +1914,10 @@ const styles = {
         ...spacing.mv1,
         ...spacing.mh1,
         ...{borderRadius: variables.componentBorderRadiusSmall},
+    },
+
+    reportActionSystemMessageContainer: {
+        marginLeft: 42,
     },
 
     reportDetailsTitleContainer: {
@@ -1950,6 +2031,7 @@ const styles = {
         flexDirection: 'row',
         alignItems: 'center',
         zIndex: 1,
+        cursor: 'default',
     },
 
     unreadIndicatorLine: {
@@ -2086,7 +2168,10 @@ const styles = {
     },
 
     iouPreviewBoxLoading: {
-        minHeight: 47,
+        // When a new IOU request arrives it is very briefly in a loading state, so set the minimum height of the container to 94 to match the rendered height after loading.
+        // Otherwise, the IOU request pay button will not be fully visible and the user will have to scroll up to reveal the entire IOU request container.
+        // See https://github.com/Expensify/App/issues/10283.
+        minHeight: 94,
         width: '100%',
     },
 
@@ -2104,10 +2189,6 @@ const styles = {
         flexGrow: 1,
         paddingStart: 20,
         paddingEnd: 20,
-    },
-
-    iouConfirmComment: {
-        flexBasis: 92,
     },
 
     noScrollbars: {
@@ -2195,6 +2276,15 @@ const styles = {
 
     growlNotificationTranslateY: y => ({
         transform: [{translateY: y}],
+    }),
+
+    makeSlideInTranslation: (translationType, fromValue) => ({
+        from: {
+            [translationType]: fromValue,
+        },
+        to: {
+            [translationType]: 0,
+        },
     }),
 
     growlNotificationBox: {
@@ -2331,9 +2421,13 @@ const styles = {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        borderBottomWidth: 1,
+        ...spacing.pt2,
+    },
+
+    peopleRowBorderBottom: {
         borderColor: themeColors.border,
-        ...spacing.pv2,
+        borderBottomWidth: 1,
+        ...spacing.pb2,
     },
 
     peopleRowCell: {
@@ -2350,6 +2444,46 @@ const styles = {
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         ...whiteSpace.noWrap,
+    },
+
+    offlineFeedback: {
+        deleted: {
+            textDecorationLine: 'line-through',
+            textDecorationStyle: 'solid',
+        },
+        pending: {
+            opacity: 0.5,
+        },
+        error: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        container: {
+            ...spacing.pv2,
+        },
+        textContainer: {
+            flexDirection: 'column',
+            flex: 1,
+        },
+        text: {
+            color: themeColors.textSupporting,
+            textAlignVertical: 'center',
+            fontSize: variables.fontSizeLabel,
+        },
+        errorDot: {
+            marginRight: 12,
+        },
+        menuItemErrorPadding: {
+            paddingLeft: 44,
+            paddingRight: 20,
+        },
+    },
+
+    dotIndicatorMessage: {
+        display: 'flex',
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
     },
 
     sidebarPopover: {
@@ -2486,7 +2620,6 @@ const styles = {
     },
 
     keyboardShortcutModalContainer: {
-        maxWidth: 600,
         maxHeight: '100%',
         flex: '0 0 auto',
     },
@@ -2552,8 +2685,44 @@ const styles = {
         height: 153,
     },
 
+    imageCropContainer: {
+        borderRadius: variables.componentBorderRadiusCard,
+        overflow: 'hidden',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: themeColors.shadow,
+        cursor: 'move',
+    },
+
+    sliderKnob: {
+        backgroundColor: themeColors.badgeSuccessBG,
+        position: 'absolute',
+        height: variables.sliderKnobSize,
+        width: variables.sliderKnobSize,
+        borderRadius: variables.sliderKnobSize / 2,
+        top: -variables.sliderBarHeight,
+        left: -(variables.sliderKnobSize / 2),
+        cursor: 'pointer',
+    },
+
+    sliderBar: {
+        backgroundColor: themeColors.border,
+        height: variables.sliderBarHeight,
+        borderRadius: variables.sliderBarHeight / 2,
+        alignSelf: 'stretch',
+    },
+
+    imageCropRotateButton: {
+        height: variables.iconSizeExtraLarge,
+    },
+
     userSelectText: {
         userSelect: 'text',
+    },
+
+    userSelectNone: {
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
     },
 
     screenCenteredContainer: {
@@ -2567,7 +2736,24 @@ const styles = {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeLabel,
         fontFamily: fontFamily.GTA,
-        marginLeft: 4,
+        marginLeft: 6,
+    },
+
+    addWorkspaceRoomErrorRow: {
+        paddingHorizontal: 20,
+        maxWidth: 450,
+        alignSelf: 'center',
+    },
+
+    textPill: {
+        ellipsizeMode: 'end',
+        backgroundColor: colors.gray2,
+        borderRadius: 10,
+        overflow: 'hidden',
+        paddingVertical: 2,
+        flexShrink: 1,
+        fontSize: variables.fontSizeSmall,
+        ...spacing.ph2,
     },
 };
 

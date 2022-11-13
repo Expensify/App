@@ -7,7 +7,6 @@ import * as StyleUtils from '../../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
 import compose from '../../compose';
-import * as Report from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
@@ -21,33 +20,37 @@ import KeyboardShortcut from '../../KeyboardShortcut';
 import Navigation from '../Navigation';
 import * as User from '../../actions/User';
 import * as Modal from '../../actions/Modal';
-import * as Policy from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
-
-// Main drawer navigator
-import MainDrawerNavigator from './MainDrawerNavigator';
 
 // Modal Stack Navigators
 import * as ModalStackNavigators from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
-import Timers from '../../Timers';
-import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
 import * as Session from '../../actions/Session';
-import LogOutPreviousUserPage from '../../../pages/LogOutPreviousUserPage';
-import networkPropTypes from '../../../components/networkPropTypes';
-import {withNetwork} from '../../../components/OnyxProvider';
+
+let currentUserEmail;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        // When signed out, val is undefined
+        if (!val) {
+            return;
+        }
+
+        currentUserEmail = val.email;
+    },
+});
 
 Onyx.connect({
-    key: ONYXKEYS.MY_PERSONAL_DETAILS,
+    key: ONYXKEYS.PERSONAL_DETAILS,
     callback: (val) => {
         if (!val) {
             return;
         }
 
-        const timezone = lodashGet(val, 'timezone', {});
+        const timezone = lodashGet(val, [currentUserEmail, 'timezone'], {});
         const currentTimezone = moment.tz.guess(true);
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
@@ -75,9 +78,6 @@ const modalScreenListeners = {
 };
 
 const propTypes = {
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
     ...windowDimensionsPropTypes,
 };
 
@@ -86,41 +86,24 @@ class AuthScreens extends React.Component {
         super(props);
 
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
-        Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
     }
 
     componentDidMount() {
         NetworkConnection.listenForReconnect();
+        NetworkConnection.onReconnect(() => App.reconnectApp());
         PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
             cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
+            authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=AuthenticatePusher`,
         }).then(() => {
-            Report.subscribeToUserEvents();
             User.subscribeToUserEvents();
-            Policy.subscribeToPolicyEvents();
         });
 
         // Listen for report changes and fetch some data we need on initialization
         UnreadIndicatorUpdater.listenForReportChanges();
-        App.getAppData(false);
-
-        App.fixAccountAndReloadData();
+        App.openApp();
         App.setUpPoliciesAndNavigate(this.props.session);
-
-        // Refresh the personal details, timezone and betas every 30 minutes
-        // There is no pusher event that sends updated personal details data yet
-        // See https://github.com/Expensify/ReactNativeChat/issues/468
-        this.interval = Timers.register(setInterval(() => {
-            if (this.props.network.isOffline) {
-                return;
-            }
-            PersonalDetails.fetchPersonalDetails();
-            User.getUserDetails();
-            User.getBetas();
-        }, 1000 * 60 * 30));
-
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
@@ -197,7 +180,10 @@ class AuthScreens extends React.Component {
                             height: '100%',
                         },
                     }}
-                    component={MainDrawerNavigator}
+                    getComponent={() => {
+                        const MainDrawerNavigator = require('./MainDrawerNavigator').default;
+                        return MainDrawerNavigator;
+                    }}
                 />
                 <RootStack.Screen
                     name="ValidateLogin"
@@ -205,12 +191,26 @@ class AuthScreens extends React.Component {
                         headerShown: false,
                         title: 'New Expensify',
                     }}
-                    component={ValidateLoginPage}
+                    getComponent={() => {
+                        const ValidateLoginPage = require('../../../pages/ValidateLoginPage').default;
+                        return ValidateLoginPage;
+                    }}
                 />
                 <RootStack.Screen
                     name={SCREENS.TRANSITION_FROM_OLD_DOT}
                     options={defaultScreenOptions}
-                    component={LogOutPreviousUserPage}
+                    getComponent={() => {
+                        const LogOutPreviousUserPage = require('../../../pages/LogOutPreviousUserPage').default;
+                        return LogOutPreviousUserPage;
+                    }}
+                />
+                <RootStack.Screen
+                    name="Concierge"
+                    options={defaultScreenOptions}
+                    getComponent={() => {
+                        const ConciergePage = require('../../../pages/ConciergePage').default;
+                        return ConciergePage;
+                    }}
                 />
 
                 {/* These are the various modal routes */}
@@ -264,6 +264,7 @@ class AuthScreens extends React.Component {
                     name="Participants"
                     options={modalScreenOptions}
                     component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
+                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="IOU_Request"
@@ -287,6 +288,7 @@ class AuthScreens extends React.Component {
                     name="IOU_Details"
                     options={modalScreenOptions}
                     component={ModalStackNavigators.IOUDetailsModalStackNavigator}
+                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="AddPersonalBankAccount"
@@ -320,7 +322,6 @@ class AuthScreens extends React.Component {
 AuthScreens.propTypes = propTypes;
 export default compose(
     withWindowDimensions,
-    withNetwork(),
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,

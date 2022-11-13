@@ -4,11 +4,11 @@ import lodashGet from 'lodash/get';
 import Navigation from '../Navigation/Navigation';
 import * as ReportUtils from '../ReportUtils';
 import ROUTES from '../../ROUTES';
+import * as Policy from './Policy';
 import ONYXKEYS from '../../ONYXKEYS';
 import NameValuePair from './NameValuePair';
 import CONST from '../../CONST';
 import SCREENS from '../../SCREENS';
-import * as PolicyUtils from '../PolicyUtils';
 
 let resolveIsReadyPromise;
 let isReadyPromise = new Promise((resolve) => {
@@ -17,7 +17,6 @@ let isReadyPromise = new Promise((resolve) => {
 
 let isFirstTimeNewExpensifyUser;
 let isLoadingReportData = true;
-let isLoadingPolicyData = true;
 let email = '';
 
 /**
@@ -28,7 +27,7 @@ let email = '';
  * - Whether we have loaded all reports the server knows about
  */
 function checkOnReady() {
-    if (!_.isBoolean(isFirstTimeNewExpensifyUser) || isLoadingPolicyData || isLoadingReportData) {
+    if (!_.isBoolean(isFirstTimeNewExpensifyUser) || isLoadingReportData) {
         return;
     }
 
@@ -53,15 +52,6 @@ Onyx.connect({
     },
 });
 
-Onyx.connect({
-    key: ONYXKEYS.IS_LOADING_POLICY_DATA,
-    initWithStoredValues: false,
-    callback: (val) => {
-        isLoadingPolicyData = val;
-        checkOnReady();
-    },
-});
-
 const allReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -77,7 +67,7 @@ Onyx.connect({
 
 const allPolicies = {};
 Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
+    key: ONYXKEYS.COLLECTION.POLICY,
     callback: (val, key) => {
         if (!val || !key) {
             return;
@@ -130,7 +120,7 @@ function show({routes, showCreateMenu}) {
 
         // If user is not already an admin of a free policy and we are not navigating them to their workspace or creating a new workspace via workspace/new then
         // we will show the create menu.
-        if (!PolicyUtils.isAdminOfFreePolicy(allPolicies) && !isDisplayingWorkspaceRoute) {
+        if (!Policy.isAdminOfFreePolicy(allPolicies) && !isDisplayingWorkspaceRoute) {
             showCreateMenu();
         }
     });

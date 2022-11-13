@@ -23,11 +23,12 @@ import AnimatedStep from '../../components/AnimatedStep';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Tooltip from '../../components/Tooltip';
 import CONST from '../../CONST';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
+import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
 import ROUTES from '../../ROUTES';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
+import reportPropTypes from '../reportPropTypes';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -40,17 +41,8 @@ const propTypes = {
     iouType: PropTypes.string,
 
     /** The report passed via the route */
-    report: PropTypes.shape({
-        /** Participants associated with current report */
-        participants: PropTypes.arrayOf(PropTypes.string),
-    }),
-
-    // The personal details of the person who is logged in
-    myPersonalDetails: PropTypes.shape({
-
-        // Local Currency Code of the current user
-        localCurrencyCode: PropTypes.string,
-    }),
+    // eslint-disable-next-line react/no-unused-prop-types
+    report: reportPropTypes,
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
@@ -82,6 +74,12 @@ const propTypes = {
         avatar: PropTypes.string,
     }).isRequired,
 
+    /** Personal details of the current user */
+    currentUserPersonalDetails: PropTypes.shape({
+        // Local Currency Code of the current user
+        localCurrencyCode: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -90,10 +88,10 @@ const defaultProps = {
     report: {
         participants: [],
     },
-    myPersonalDetails: {
+    iouType: CONST.IOU.IOU_TYPE.REQUEST,
+    currentUserPersonalDetails: {
         localCurrencyCode: CONST.CURRENCY.USD,
     },
-    iouType: CONST.IOU.IOU_TYPE.REQUEST,
 };
 
 // Determines type of step to display within Modal, value provides the title for that page.
@@ -112,10 +110,13 @@ class IOUModal extends Component {
         this.createTransaction = this.createTransaction.bind(this);
         this.updateComment = this.updateComment.bind(this);
         this.sendMoney = this.sendMoney.bind(this);
+
         const participants = lodashGet(props, 'report.participants', []);
         const participantsWithDetails = _.map(OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails), personalDetails => ({
             login: personalDetails.login,
             text: personalDetails.displayName,
+            firstName: lodashGet(personalDetails, 'firstName', ''),
+            lastName: lodashGet(personalDetails, 'lastName', ''),
             alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
             icons: [personalDetails.avatar],
             keyForList: personalDetails.login,
@@ -143,29 +144,32 @@ class IOUModal extends Component {
     }
 
     componentDidMount() {
-        this.fetchData();
-        IOU.setIOUSelectedCurrency(this.props.myPersonalDetails.localCurrencyCode);
+        PersonalDetails.openIOUModalPage();
+        IOU.setIOUSelectedCurrency(this.props.currentUserPersonalDetails.localCurrencyCode);
     }
 
     componentDidUpdate(prevProps) {
+        const wasCreatingIOUTransaction = lodashGet(prevProps, 'iou.creatingIOUTransaction');
+        const iouError = lodashGet(this.props, 'iou.error');
         if (prevProps.network.isOffline && !this.props.network.isOffline) {
-            this.fetchData();
+            PersonalDetails.openIOUModalPage();
         }
 
         // Successfully close the modal if transaction creation has ended and there is no error
-        if (prevProps.iou.creatingIOUTransaction && !this.props.iou.creatingIOUTransaction && !this.props.iou.error) {
+        if (wasCreatingIOUTransaction && !lodashGet(this.props, 'iou.creatingIOUTransaction') && !iouError) {
             Navigation.dismissModal();
         }
 
         // If transaction fails, handling it here
-        if (prevProps.iou.creatingIOUTransaction && this.props.iou.error === true) {
+        if (wasCreatingIOUTransaction && iouError === true) {
             // Navigating to Enter Amount Page
             // eslint-disable-next-line react/no-did-update-set-state
             this.setState({currentStepIndex: 0});
         }
 
-        if (prevProps.iou.selectedCurrencyCode !== this.props.iou.selectedCurrencyCode) {
-            IOU.setIOUSelectedCurrency(this.props.iou.selectedCurrencyCode);
+        const currentSelectedCurrencyCode = lodashGet(this.props, 'iou.selectedCurrencyCode');
+        if (lodashGet(prevProps, 'iou.selectedCurrencyCode') !== currentSelectedCurrencyCode) {
+            IOU.setIOUSelectedCurrency(currentSelectedCurrencyCode);
         }
     }
 
@@ -222,10 +226,6 @@ class IOUModal extends Component {
         }
 
         return this.props.translate(this.steps[currentStepIndex]) || '';
-    }
-
-    fetchData() {
-        PersonalDetails.fetchLocalCurrency();
     }
 
     /**
@@ -297,12 +297,11 @@ class IOUModal extends Component {
 
         IOU.payIOUReport({
             chatReportID: lodashGet(this.props, 'route.params.reportID', ''),
-            reportID: 0,
+            reportID: '0',
             paymentMethodType,
             amount,
             currency,
             requestorPayPalMeAddress: this.state.participants[0].payPalMeAddress,
-            requestorPhoneNumber: this.state.participants[0].phoneNumber,
             comment,
             newIOUReportDetails,
         })
@@ -312,48 +311,43 @@ class IOUModal extends Component {
     }
 
     /**
-     * Create the IOU transaction
-     *
-     * @param {Array} [splits]
+     * @param {Array} selectedParticipants
      */
-    createTransaction(splits) {
+    createTransaction(selectedParticipants) {
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
 
-        // Only splits from a group DM has a reportID
-        // Check if reportID is a number
-        if (splits && CONST.REGEX.NUMBER.test(reportID)) {
-            IOU.createIOUSplitGroup({
-                comment: this.state.comment,
-
-                // should send in cents to API
-                amount: Math.round(this.state.amount * 100),
-                currency: this.props.iou.selectedCurrencyCode,
-                splits,
-                reportID,
-            });
+        // IOUs created from a group report will have a reportID param in the route.
+        // Since the user is already viewing the report, we don't need to navigate them to the report
+        if (this.props.hasMultipleParticipants && CONST.REGEX.NUMBER.test(reportID)) {
+            IOU.splitBill(
+                selectedParticipants,
+                this.props.currentUserPersonalDetails.login,
+                this.state.amount,
+                this.state.comment,
+                this.props.iou.selectedCurrencyCode,
+                this.props.preferredLocale,
+            );
             return;
         }
 
-        if (splits) {
-            IOU.createIOUSplit({
-                comment: this.state.comment,
-
-                // Send in cents to API.
-                amount: Math.round(this.state.amount * 100),
-                currency: this.props.iou.selectedCurrencyCode,
-                splits,
-            });
+        // If the IOU is created from the global create menu, we also navigate the user to the group report
+        if (this.props.hasMultipleParticipants) {
+            IOU.splitBillAndOpenReport(
+                selectedParticipants,
+                this.props.currentUserPersonalDetails.login,
+                this.state.amount,
+                this.state.comment,
+                this.props.iou.selectedCurrencyCode,
+                this.props.preferredLocale,
+            );
             return;
         }
-
-        IOU.createIOUTransaction({
-            comment: this.state.comment,
-
-            // Send in cents to API.
-            amount: Math.round(this.state.amount * 100),
-            currency: this.props.iou.selectedCurrencyCode,
-            debtorEmail: OptionsListUtils.addSMSDomainIfPhoneNumber(this.state.participants[0].login),
-        });
+        IOU.requestMoney(this.props.report,
+            Math.round(this.state.amount * 100),
+            this.props.iou.selectedCurrencyCode,
+            this.props.currentUserPersonalDetails.login,
+            selectedParticipants[0],
+            this.state.comment);
     }
 
     render() {
@@ -362,7 +356,7 @@ class IOUModal extends Component {
         return (
             <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
-                    <KeyboardAvoidingView>
+                    <>
                         <View style={[styles.headerBar]}>
                             <View style={[
                                 styles.dFlex,
@@ -443,7 +437,7 @@ class IOUModal extends Component {
                                                 onConfirm={this.createTransaction}
                                                 onSendMoney={this.sendMoney}
                                                 hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                                participants={_.filter(this.state.participants, email => this.props.myPersonalDetails.login !== email.login)}
+                                                participants={_.filter(this.state.participants, email => this.props.currentUserPersonalDetails.login !== email.login)}
                                                 iouAmount={this.state.amount}
                                                 comment={this.state.comment}
                                                 onUpdateComment={this.updateComment}
@@ -455,7 +449,7 @@ class IOUModal extends Component {
                                 </>
                             )}
                         </View>
-                    </KeyboardAvoidingView>
+                    </>
                 )}
             </ScreenWrapper>
         );
@@ -468,6 +462,7 @@ IOUModal.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withNetwork(),
+    withCurrentUserPersonalDetails,
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
@@ -477,9 +472,6 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
     }),
 )(IOUModal);

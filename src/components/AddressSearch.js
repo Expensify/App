@@ -45,6 +45,7 @@ const propTypes = {
     onInputChange: PropTypes.func.isRequired,
 
     /** Customize the TextInput container */
+    // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** A map of inputID key names */
@@ -236,6 +237,7 @@ const AddressSearch = (props) => {
 
 AddressSearch.propTypes = propTypes;
 AddressSearch.defaultProps = defaultProps;
+AddressSearch.displayName = 'AddressSearch';
 
 export default withLocalize(React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading

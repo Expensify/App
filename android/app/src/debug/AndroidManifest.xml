@@ -9,5 +9,6 @@
             android:name="firebase_performance_logcat_enabled"
             android:value="true"
         />
+        <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" android:exported="false" />
     </application>
 </manifest>

@@ -19,6 +19,7 @@ function getAvatarSize(size) {
         [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.avatarSizeSmallSubscript,
         [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.avatarSizeSubscript,
         [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
+        [CONST.AVATAR_SIZE.SMALLER]: variables.avatarSizeSmaller,
         [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
     };
     return AVATAR_SIZES[size];
@@ -213,6 +214,26 @@ function getBackgroundColorStyle(backgroundColor) {
 }
 
 /**
+ * Returns a background color with opacity style
+ *
+ * @param {String} backgroundColor
+ * @param {number} opacity
+ * @returns {Object}
+ */
+function getBackgroundColorWithOpacityStyle(backgroundColor, opacity) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(backgroundColor);
+    if (result !== null) {
+        const r = parseInt(result[1], 16);
+        const g = parseInt(result[2], 16);
+        const b = parseInt(result[3], 16);
+        return {
+            backgroundColor: `rgba(${r}, ${g}, ${b}, ${opacity})`,
+        };
+    }
+    return {};
+}
+
+/**
  * Generate a style for the background color of the Badge
  *
  * @param {Boolean} success
@@ -298,16 +319,22 @@ function getWidthAndHeightStyle(width, height) {
  * @returns {Object}
  */
 function getModalPaddingStyles({
+    shouldAddBottomSafeAreaMargin,
+    shouldAddTopSafeAreaMargin,
     shouldAddBottomSafeAreaPadding,
     shouldAddTopSafeAreaPadding,
     safeAreaPaddingTop,
     safeAreaPaddingBottom,
     safeAreaPaddingLeft,
     safeAreaPaddingRight,
+    modalContainerStyleMarginTop,
+    modalContainerStyleMarginBottom,
     modalContainerStylePaddingTop,
     modalContainerStylePaddingBottom,
 }) {
     return {
+        marginTop: (modalContainerStyleMarginTop || 0) + (shouldAddTopSafeAreaMargin ? safeAreaPaddingTop : 0),
+        marginBottom: (modalContainerStyleMarginBottom || 0) + (shouldAddBottomSafeAreaMargin ? safeAreaPaddingBottom : 0),
         paddingTop: shouldAddTopSafeAreaPadding
             ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
             : modalContainerStylePaddingTop || 0,
@@ -387,10 +414,10 @@ function getLoginPagePromoStyle() {
  * Generate the styles for the ReportActionItem wrapper view.
  *
  * @param {Boolean} [isHovered]
- * @param {Boolean} [isPending]
+ * @param {Boolean} [isLoading]
  * @returns {Object}
  */
-function getReportActionItemStyle(isHovered = false, isPending = false) {
+function getReportActionItemStyle(isHovered = false, isLoading = false) {
     return {
         display: 'flex',
         justifyContent: 'space-between',
@@ -399,7 +426,7 @@ function getReportActionItemStyle(isHovered = false, isPending = false) {
 
             // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
             : colors.transparent,
-        opacity: isPending ? 0.5 : 1,
+        opacity: isLoading ? 0.5 : 1,
         cursor: 'default',
     };
 }
@@ -438,6 +465,19 @@ function parseStyleAsArray(styleParam) {
 }
 
 /**
+ * Receives any number of object or array style objects and returns them all as an array
+ * @param {Object|Object[]} allStyles
+ * @return {Object[]}
+ */
+function combineStyles(...allStyles) {
+    let finalStyles = [];
+    _.each(allStyles, (style) => {
+        finalStyles = finalStyles.concat(parseStyleAsArray(style));
+    });
+    return finalStyles;
+}
+
+/**
  * Get variable padding-left as style
  * @param {Number} paddingLeft
  * @returns {Object}
@@ -446,6 +486,64 @@ function getPaddingLeft(paddingLeft) {
     return {
         paddingLeft,
     };
+}
+
+/**
+ * Android only - convert RTL text to a LTR text using Unicode controls.
+ * https://www.w3.org/International/questions/qa-bidi-unicode-controls
+ * @param {String} text
+ * @returns {String}
+ */
+function convertToLTR(text) {
+    return `\u2066${text}`;
+}
+
+/**
+ * Checks to see if the iOS device has safe areas or not
+ *
+ * @param {Number} windowWidth
+ * @param {Number} windowHeight
+ * @returns {Boolean}
+ */
+function hasSafeAreas(windowWidth, windowHeight) {
+    const heightsIphonesWithNotches = [812, 896, 844, 926];
+    return _.contains(heightsIphonesWithNotches, windowHeight) || _.contains(heightsIphonesWithNotches, windowWidth);
+}
+
+/**
+ * Get variable keyboard height as style
+ * @param {Number} keyboardHeight
+ * @returns {Object}
+ */
+function getHeight(keyboardHeight) {
+    return {
+        height: keyboardHeight,
+    };
+}
+
+/**
+ * Return style for opacity animation.
+ *
+ * @param {Animated.Value} fadeAnimation
+ * @returns {Object}
+ */
+function fade(fadeAnimation) {
+    return {
+        opacity: fadeAnimation,
+    };
+}
+
+/**
+ * Return width for keyboard shortcuts modal.
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {Object}
+ */
+function getKeyboardShortcutsModalWidth(isSmallScreenWidth) {
+    if (isSmallScreenWidth) {
+        return {maxWidth: '100%'};
+    }
+    return {maxWidth: 600};
 }
 
 export {
@@ -461,6 +559,7 @@ export {
     getAutoGrowTextInputStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
+    getBackgroundColorWithOpacityStyle,
     getBadgeColorStyle,
     getButtonBackgroundColorStyle,
     getIconFillColor,
@@ -472,7 +571,13 @@ export {
     getLoginPagePromoStyle,
     getReportActionItemStyle,
     getMiniReportActionContextMenuWrapperStyle,
+    getKeyboardShortcutsModalWidth,
     getPaymentMethodMenuWidth,
     parseStyleAsArray,
+    combineStyles,
     getPaddingLeft,
+    convertToLTR,
+    hasSafeAreas,
+    getHeight,
+    fade,
 };

@@ -9,14 +9,26 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
-import * as PersonalDetails from './actions/PersonalDetails';
 import * as CurrentDate from './actions/CurrentDate';
+
+let currentUserEmail;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        // When signed out, val is undefined
+        if (!val) {
+            return;
+        }
+
+        currentUserEmail = val.email;
+    },
+});
 
 let timezone = CONST.DEFAULT_TIME_ZONE;
 Onyx.connect({
-    key: ONYXKEYS.MY_PERSONAL_DETAILS,
+    key: ONYXKEYS.PERSONAL_DETAILS,
     callback: (val) => {
-        timezone = lodashGet(val, 'timezone', CONST.DEFAULT_TIME_ZONE);
+        timezone = lodashGet(val, [currentUserEmail, 'timezone'], CONST.DEFAULT_TIME_ZONE);
     },
 });
 
@@ -115,21 +127,39 @@ function startCurrentDateUpdater() {
     });
 }
 
-/*
- * Updates user's timezone, if their timezone is set to automatic and
- * is different from current timezone
+/**
+ * @returns {Object}
  */
-function updateTimezone() {
+function getCurrentTimezone() {
     const currentTimezone = moment.tz.guess(true);
     if (timezone.automatic && timezone.selected !== currentTimezone) {
-        PersonalDetails.setPersonalDetails({timezone: {...timezone, selected: currentTimezone}});
+        return {...timezone, selected: currentTimezone};
     }
+    return timezone;
 }
 
-/*
- * Returns a version of updateTimezone function throttled by 5 minutes
+// Used to throttle updates to the timezone when necessary
+let lastUpdatedTimezoneTime = moment();
+
+/**
+ * @returns {Boolean}
  */
-const throttledUpdateTimezone = _.throttle(() => updateTimezone(), 1000 * 60 * 5);
+function canUpdateTimezone() {
+    return lastUpdatedTimezoneTime.isBefore(moment().subtract(5, 'minutes'));
+}
+
+function setTimezoneUpdated() {
+    lastUpdatedTimezoneTime = moment();
+}
+
+/**
+ * Get the UNIX timestamp in microseconds, with millisecond precision.
+ *
+ * @returns {Number}
+ */
+function getMicroseconds() {
+    return Date.now() * CONST.MICROSECONDS_PER_MS;
+}
 
 /**
  * @namespace DateUtils
@@ -138,9 +168,11 @@ const DateUtils = {
     timestampToRelative,
     timestampToDateTime,
     startCurrentDateUpdater,
-    updateTimezone,
-    throttledUpdateTimezone,
     getLocalMomentFromTimestamp,
+    getCurrentTimezone,
+    canUpdateTimezone,
+    setTimezoneUpdated,
+    getMicroseconds,
 };
 
 export default DateUtils;

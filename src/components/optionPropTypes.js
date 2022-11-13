@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import CONST from '../CONST';
 import participantPropTypes from './participantPropTypes';
 
 export default PropTypes.shape({
@@ -15,7 +16,7 @@ export default PropTypes.shape({
     login: PropTypes.string,
 
     // reportID (only present when there is a matching report)
-    reportID: PropTypes.number,
+    reportID: PropTypes.string,
 
     // Whether the report has read or not
     isUnread: PropTypes.bool,
@@ -49,4 +50,7 @@ export default PropTypes.shape({
 
     // Text to show for tooltip
     tooltipText: PropTypes.string,
+
+    /** If we need to show a brick road indicator or not */
+    brickRoadIndicator: PropTypes.oneOf([CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, '']),
 });

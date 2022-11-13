@@ -3,6 +3,10 @@ import walletTransferPropTypes from '../walletTransferPropTypes';
 import {withLocalizePropTypes} from '../../../../components/withLocalize';
 import {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import networkPropTypes from '../../../../components/networkPropTypes';
+import bankAccountPropTypes from '../../../../components/bankAccountPropTypes';
+import cardPropTypes from '../../../../components/cardPropTypes';
+import userWalletPropTypes from '../../../EnablePayments/userWalletPropTypes';
+import walletTermsPropTypes from '../../../EnablePayments/walletTermsPropTypes';
 
 const propTypes = {
     /** Wallet balance transfer props */
@@ -18,13 +22,19 @@ const propTypes = {
     shouldListenForResize: PropTypes.bool,
 
     /** The user's wallet account */
-    userWallet: PropTypes.shape({
-        /** The user's current wallet balance */
-        currentBalance: PropTypes.number,
-    }),
+    userWallet: userWalletPropTypes,
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
+
+    /** List of bank accounts */
+    bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
+
+    /** List of cards */
+    cardList: PropTypes.objectOf(cardPropTypes),
+
+    /** Information about the user accepting the terms for payments */
+    walletTerms: walletTermsPropTypes,
 
     ...withLocalizePropTypes,
 
@@ -33,12 +43,15 @@ const propTypes = {
 
 const defaultProps = {
     walletTransfer: {
-        shouldShowConfirmModal: false,
+        shouldShowSuccess: false,
     },
     betas: [],
     isLoadingPaymentMethods: true,
     shouldListenForResize: false,
     userWallet: {},
+    bankAccountList: {},
+    cardList: {},
+    walletTerms: {},
 };
 
 export {propTypes, defaultProps};

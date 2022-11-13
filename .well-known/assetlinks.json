@@ -1,0 +1,8 @@
+[{
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.expensify.chat",
+      "sha256_cert_fingerprints": ["2E:65:6F:1C:34:F5:7E:BF:FC:C0:2D:A3:14:0E:83:FE:61:51:F2:9B:5D:59:58:61:C4:4D:A9:99:0C:CA:F4:8E"]
+    }
+}]

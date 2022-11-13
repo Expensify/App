@@ -1,25 +1,33 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
+import DateUtils from '../../DateUtils';
 
 /**
- * Show error modal and optionally a specific error message
- *
- * @param {String} errorModalMessage The error message to be displayed in the modal's body.
- * @param {Boolean} isErrorModalMessageHtml if @errorModalMessage is in html format or not
+ * Set the current fields with errors.
+ * @param {Object} errorFields
  */
-function showBankAccountErrorModal(errorModalMessage = null, isErrorModalMessageHtml = false) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errorModalMessage, isErrorModalMessageHtml});
+function setPersonalBankAccountFormValidationErrorFields(errorFields) {
+    // We set 'errorFields' to null first because we don't have a way yet to replace a specific property without merging it
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errorFields: null});
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errorFields});
 }
 
 /**
  * Set the current fields with errors.
  *
- * @param {String} errors
+ * @param {Object} errorFields
  */
-function setBankAccountFormValidationErrors(errors) {
-    // We set 'errors' to null first because we don't have a way yet to replace a specific property like 'errors' without merging it
+function setBankAccountFormValidationErrors(errorFields) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errorFields: null});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errorFields});
+}
+
+/**
+ * Clear validation messages from reimbursement account
+ */
+function resetReimbursementAccount() {
+    setBankAccountFormValidationErrors({});
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors: null});
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors});
 }
 
 /**
@@ -28,11 +36,17 @@ function setBankAccountFormValidationErrors(errors) {
  * @param {String} error
  */
 function showBankAccountFormValidationError(error) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+        // eslint-disable-next-line rulesdir/prefer-localization
+        errors: {
+            [DateUtils.getMicroseconds()]: error,
+        },
+    });
 }
 
 export {
-    showBankAccountErrorModal,
     setBankAccountFormValidationErrors,
+    setPersonalBankAccountFormValidationErrorFields,
     showBankAccountFormValidationError,
+    resetReimbursementAccount,
 };

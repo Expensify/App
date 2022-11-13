@@ -10,6 +10,7 @@ import * as FormActions from '../libs/actions/FormActions';
 import styles from '../styles/styles';
 import CheckboxWithLabel from '../components/CheckboxWithLabel';
 import Text from '../components/Text';
+import NetworkConnection from '../libs/NetworkConnection';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -31,8 +32,9 @@ const story = {
 
 const Template = (args) => {
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
-    FormActions.setIsSubmitting(args.formID, args.formState.isSubmitting);
-    FormActions.setServerErrorMessage(args.formID, args.formState.serverErrorMessage);
+    NetworkConnection.setOfflineStatus(false);
+    FormActions.setIsLoading(args.formID, args.formState.isLoading);
+    FormActions.setErrors(args.formID, args.formState.error);
     FormActions.setDraftValues(args.formID, args.draftValues);
 
     return (
@@ -111,7 +113,6 @@ const Template = (args) => {
             <CheckboxWithLabel
                 inputID="checkbox"
                 style={[styles.mb4, styles.mt5]}
-                shouldSaveDraft
                 LabelComponent={() => (
                     <Text>I accept the Expensify Terms of Service</Text>
                 )}
@@ -129,8 +130,9 @@ const WithNativeEventHandler = (args) => {
     const [log, setLog] = useState('');
 
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
-    FormActions.setIsSubmitting(args.formID, args.formState.isSubmitting);
-    FormActions.setServerErrorMessage(args.formID, args.formState.serverErrorMessage);
+    NetworkConnection.setOfflineStatus(false);
+    FormActions.setIsLoading(args.formID, args.formState.isLoading);
+    FormActions.setErrors(args.formID, args.formState.error);
     FormActions.setDraftValues(args.formID, args.draftValues);
 
     return (
@@ -190,12 +192,12 @@ const defaultArgs = {
     onSubmit: (values) => {
         setTimeout(() => {
             alert(`Form submitted!\n\nInput values: ${JSON.stringify(values, null, 4)}`);
-            FormActions.setIsSubmitting('TestForm', false);
+            FormActions.setIsLoading('TestForm', false);
         }, 1000);
     },
     formState: {
-        isSubmitting: false,
-        serverErrorMessage: '',
+        isLoading: false,
+        error: '',
     },
     draftValues: {
         routingNumber: '00001',
@@ -210,8 +212,8 @@ const defaultArgs = {
 };
 
 Default.args = defaultArgs;
-Loading.args = {...defaultArgs, formState: {isSubmitting: true}};
-ServerError.args = {...defaultArgs, formState: {isSubmitting: false, serverErrorMessage: 'There was an unexpected error. Please try again later.'}};
+Loading.args = {...defaultArgs, formState: {isLoading: true}};
+ServerError.args = {...defaultArgs, formState: {isLoading: false, error: 'There was an unexpected error. Please try again later.'}};
 InputError.args = {
     ...defaultArgs,
     draftValues: {

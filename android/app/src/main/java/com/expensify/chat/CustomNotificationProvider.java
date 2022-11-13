@@ -70,7 +70,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
                 // Apply message style only for report comments
                 if (REPORT_COMMENT_TYPE.equals(payload.get(TYPE_KEY).getString())) {
-                        applyMessageStyle(builder, payload, arguments.getNotificationId());
+                        applyMessageStyle(context, builder, payload, arguments.getNotificationId());
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Failed to parse conversation. SendID=" + message.getSendId(), e);
@@ -114,7 +114,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
      * @param payload Notification payload, which contains all the data we need to build the notifications.
      * @param notificationID Current notification ID
      */
-    private void applyMessageStyle(NotificationCompat.Builder builder, JsonMap payload, int notificationID) {
+    private void applyMessageStyle(@NonNull Context context, NotificationCompat.Builder builder, JsonMap payload, int notificationID) {
         int reportID = payload.get("reportID").getInt(-1);
         if (reportID == -1) {
             return;
@@ -136,7 +136,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         // Retrieve or create the Person object who sent the latest report comment
         Person person = notificationCache.people.get(accountID);
         if (person == null) {
-            IconCompat iconCompat = fetchIcon(avatar);
+            IconCompat iconCompat = fetchIcon(context, avatar);
             person = new Person.Builder()
                 .setIcon(iconCompat)
                 .setKey(accountID)
@@ -216,7 +216,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         }
     }
 
-    private IconCompat fetchIcon(String urlString) {
+    private IconCompat fetchIcon(@NonNull Context context, String urlString) {
         URL parsedUrl = null;
         try {
             parsedUrl = urlString == null ? null : new URL(urlString);

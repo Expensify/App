@@ -12,10 +12,14 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import ContextMenuActions, {CONTEXT_MENU_TYPES} from './ContextMenuActions';
 import compose from '../../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
+import {withBetas} from '../../../../components/OnyxProvider';
 
 const propTypes = {
     /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
     type: PropTypes.string,
+
+    /** Target node which is the target of ContentMenu */
+    anchor: PropTypes.node,
     ...genericReportActionContextMenuPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
@@ -23,6 +27,7 @@ const propTypes = {
 
 const defaultProps = {
     type: CONTEXT_MENU_TYPES.REPORT_ACTION,
+    anchor: null,
     ...GenericReportActionContextMenuDefaultProps,
 };
 class BaseReportActionContextMenu extends React.Component {
@@ -32,7 +37,7 @@ class BaseReportActionContextMenu extends React.Component {
     }
 
     render() {
-        const shouldShowFilter = contextAction => contextAction.shouldShow(this.props.type, this.props.reportAction);
+        const shouldShowFilter = contextAction => contextAction.shouldShow(this.props.type, this.props.reportAction, this.props.isArchivedRoom, this.props.betas, this.props.anchor);
 
         return this.props.isVisible && (
             <View style={this.wrapperStyle}>
@@ -53,6 +58,7 @@ class BaseReportActionContextMenu extends React.Component {
                             selection: this.props.selection,
                         })}
                         description={contextAction.getDescription(this.props.selection, this.props.isSmallScreenWidth)}
+                        autoReset={contextAction.autoReset}
                     />
                 ))}
             </View>
@@ -65,5 +71,6 @@ BaseReportActionContextMenu.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withBetas(),
     withWindowDimensions,
 )(BaseReportActionContextMenu);

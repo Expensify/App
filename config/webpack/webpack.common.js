@@ -1,5 +1,7 @@
 const path = require('path');
-const {IgnorePlugin, DefinePlugin} = require('webpack');
+const {
+    IgnorePlugin, DefinePlugin, ProvidePlugin, EnvironmentPlugin,
+} = require('webpack');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
@@ -11,13 +13,14 @@ const includeModules = [
     'react-native-animatable',
     'react-native-reanimated',
     'react-native-picker-select',
-    'react-native-web',
+    '@expensify/react-native-web',
     'react-native-webview',
     '@react-native-picker',
     'react-native-modal',
     'react-native-gesture-handler',
     'react-native-flipper',
     'react-native-google-places-autocomplete',
+    '@react-navigation/drawer',
 ].join('|');
 
 /**
@@ -30,13 +33,23 @@ const includeModules = [
 const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
     mode: 'production',
     devtool: 'source-map',
-    entry: {
-        app: './index.js',
-    },
+    entry: [
+        'babel-polyfill',
+        './index.js',
+    ],
     output: {
-        filename: '[name]-[hash].bundle.js',
+        filename: '[name]-[contenthash].bundle.js',
         path: path.resolve(__dirname, '../../dist'),
         publicPath: '/',
+    },
+    stats: {
+        warningsFilter: [
+            // @react-navigation for web uses the legacy modules (related to react-native-reanimated)
+            // This results in 33 warnings with stack traces that appear during build and each time we make a change
+            // We can't do anything about the warnings, and they only get in the way, so we suppress them
+            './node_modules/@react-navigation/drawer/lib/module/views/legacy/Drawer.js',
+            './node_modules/@react-navigation/drawer/lib/module/views/legacy/Overlay.js',
+        ],
     },
     plugins: [
         new CleanWebpackPlugin(),
@@ -44,6 +57,9 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             template: 'web/index.html',
             filename: 'index.html',
             usePolyfillIO: platform === 'web',
+        }),
+        new ProvidePlugin({
+            process: 'process/browser',
         }),
 
         // Copies favicons into the dist/ folder to use for unread status
@@ -56,15 +72,21 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
                 {from: 'assets/images/shadow.png', to: 'images/shadow.png'},
                 {from: '.well-known/apple-app-site-association', to: '.well-known/apple-app-site-association', toType: 'file'},
+                {from: '.well-known/assetlinks.json', to: '.well-known/assetlinks.json'},
 
                 // These files are copied over as per instructions here
                 // https://github.com/wojtekmaj/react-pdf#copying-cmaps
                 {from: 'node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
             ],
         }),
-        new IgnorePlugin(/^\.\/locale$/, /moment$/),
+        new EnvironmentPlugin({JEST_WORKER_ID: null}),
+        new IgnorePlugin({
+            resourceRegExp: /^\.\/locale$/,
+            contextRegExp: /moment$/,
+        }),
         ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
         new DefinePlugin({
+            ...(platform === 'desktop' ? {} : {process: {env: {}}}),
             __REACT_WEB_CONFIG__: JSON.stringify(
                 dotenv.config({path: envFile}).parsed,
             ),
@@ -96,18 +118,6 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 exclude: [
                     new RegExp(`node_modules/(?!(${includeModules})/).*|.native.js$`),
                 ],
-            },
-            {
-                test: /\.js$/,
-                loader: 'eslint-loader',
-                exclude: [
-                    /node_modules|\.native\.js$/,
-                ],
-                options: {
-                    cache: false,
-                    emitWarning: true,
-                    configFile: path.resolve(__dirname, '../../.eslintrc.js'),
-                },
             },
 
             // Rule for react-native-web-webview
@@ -150,7 +160,9 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
     resolve: {
         alias: {
             'react-native-config': 'react-web-config',
-            'react-native$': 'react-native-web',
+            'react-native$': '@expensify/react-native-web',
+            'react-native-web': '@expensify/react-native-web',
+            'react-content-loader/native': 'react-content-loader',
         },
 
         // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
@@ -159,6 +171,9 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         // Because desktop also relies on "web-specific" module implementations
         // This also skips packing web only dependencies to desktop and vice versa
         extensions: ['.web.js', (platform === 'web') ? '.website.js' : '.desktop.js', '.js', '.jsx'],
+        fallback: {
+            'process/browser': require.resolve('process/browser'),
+        },
     },
 });
 

@@ -4,9 +4,6 @@ import {Text, useWindowDimensions, View} from 'react-native';
 
 const WrappedText = ({children, textStyles, wordStyles}) => {
   const [lines, setLines] = useState([]);
-  console.log('NewWrappedText', textStyles, wordStyles);
-  const {width} = useWindowDimensions();
-
   return (
     <View style={{}}>
       {lines.map((line, idx) => {

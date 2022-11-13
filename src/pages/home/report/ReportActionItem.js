@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import CONST from '../../../CONST';
@@ -24,12 +23,20 @@ import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
-import {withReportActionsDrafts} from '../../../components/OnyxProvider';
+import {withBlockedFromConcierge, withNetwork, withReportActionsDrafts} from '../../../components/OnyxProvider';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
+import InlineSystemMessage from '../../../components/InlineSystemMessage';
+import styles from '../../../styles/styles';
+import SelectionScraper from '../../../libs/SelectionScraper';
+import * as User from '../../../libs/actions/User';
+import * as ReportUtils from '../../../libs/ReportUtils';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import * as ReportActions from '../../../libs/actions/ReportActions';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
-    /** The ID of the report this action is on. */
-    reportID: PropTypes.number.isRequired,
+    /** Report for this action */
+    report: reportPropTypes.isRequired,
 
     /** All the data of the action item */
     action: PropTypes.shape(reportActionPropTypes).isRequired,
@@ -94,19 +101,19 @@ class ReportActionItem extends Component {
      * Show the ReportActionContextMenu modal popover.
      *
      * @param {Object} [event] - A press event.
-     * @param {string} [selection] - A copy text.
      */
-    showPopover(event, selection) {
+    showPopover(event) {
         // Block menu on the message being Edited
         if (this.props.draftMessage) {
             return;
         }
+        const selection = SelectionScraper.getCurrentSelection();
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
             selection,
             this.popoverAnchor,
-            this.props.reportID,
+            this.props.report.reportID,
             this.props.action,
             this.props.draftMessage,
             this.checkIfContextMenuActive,
@@ -120,7 +127,7 @@ class ReportActionItem extends Component {
 
     render() {
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-            return <ReportActionItemCreated reportID={this.props.reportID} />;
+            return <ReportActionItemCreated reportID={this.props.report.reportID} />;
         }
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             return <RenameAction action={this.props.action} />;
@@ -130,23 +137,27 @@ class ReportActionItem extends Component {
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
             children = (
                 <IOUAction
-                    chatReportID={this.props.reportID}
+                    chatReportID={this.props.report.reportID}
                     action={this.props.action}
                     isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
                 />
             );
         } else {
             children = !this.props.draftMessage
-                ? <ReportActionItemMessage action={this.props.action} />
-                : (
+                ? (
+                    <ReportActionItemMessage action={this.props.action} />
+                ) : (
                     <ReportActionItemMessageEdit
-                            action={this.props.action}
-                            draftMessage={this.props.draftMessage}
-                            reportID={this.props.reportID}
-                            index={this.props.index}
-                            ref={el => this.textInput = el}
-                            report={this.props.report}
-                            blockedFromConcierge={this.props.blockedFromConcierge}
+                        action={this.props.action}
+                        draftMessage={this.props.draftMessage}
+                        reportID={this.props.report.reportID}
+                        index={this.props.index}
+                        ref={el => this.textInput = el}
+                        report={this.props.report}
+                        shouldDisableEmojiPicker={
+                            (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge))
+                            || ReportUtils.isArchivedRoom(this.props.report)
+                        }
                     />
                 );
         }
@@ -162,35 +173,49 @@ class ReportActionItem extends Component {
                     event.target.blur();
                 }}
             >
-                <Hoverable resetsOnClickOutside>
+                <Hoverable>
                     {hovered => (
-                        <View>
+                        <View accessibilityLabel="Chat message">
                             {this.props.shouldDisplayNewIndicator && (
-                                <UnreadActionIndicator />
+                                <UnreadActionIndicator sequenceNumber={this.props.action.sequenceNumber} />
                             )}
                             <View
                                 style={StyleUtils.getReportActionItemStyle(
                                     hovered
                                     || this.state.isContextMenuActive
                                     || this.props.draftMessage,
-                                    this.props.action.isPending || this.props.action.error,
+                                    (this.props.network.isOffline && this.props.action.isLoading) || this.props.action.error,
                                 )}
                             >
-                                {!this.props.displayAsGroup
-                                    ? (
-                                        <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>
-                                            {children}
-                                        </ReportActionItemSingle>
-                                    )
-                                    : (
-                                        <ReportActionItemGrouped>
-                                            {children}
-                                        </ReportActionItemGrouped>
-                                    )}
+                                <OfflineWithFeedback
+                                    onClose={() => {
+                                        if (this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+                                            ReportActions.deleteOptimisticReportAction(this.props.report.reportID, this.props.action.clientID);
+                                        } else {
+                                            ReportActions.clearReportActionErrors(this.props.report.reportID, this.props.action.sequenceNumber);
+                                        }
+                                    }}
+                                    pendingAction={this.props.draftMessage ? null : this.props.action.pendingAction}
+                                    errors={this.props.action.errors}
+                                    errorRowStyles={[styles.ml10, styles.mr2]}
+                                >
+                                    {!this.props.displayAsGroup
+                                        ? (
+                                            <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>
+                                                {children}
+                                            </ReportActionItemSingle>
+                                        )
+                                        : (
+                                            <ReportActionItemGrouped>
+                                                {children}
+                                            </ReportActionItemGrouped>
+                                        )}
+                                </OfflineWithFeedback>
                             </View>
                             <MiniReportActionContextMenu
-                                reportID={this.props.reportID}
+                                reportID={this.props.report.reportID}
                                 reportAction={this.props.action}
+                                isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
                                 displayAsGroup={this.props.displayAsGroup}
                                 isVisible={
                                     hovered
@@ -202,6 +227,9 @@ class ReportActionItem extends Component {
                         </View>
                     )}
                 </Hoverable>
+                <View style={styles.reportActionSystemMessageContainer}>
+                    <InlineSystemMessage message={this.props.action.error} />
+                </View>
             </PressableWithSecondaryInteraction>
         );
     }
@@ -211,19 +239,13 @@ ReportActionItem.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
+    withNetwork(),
+    withBlockedFromConcierge({propName: 'blockedFromConcierge'}),
     withReportActionsDrafts({
         propName: 'draftMessage',
         transformValue: (drafts, props) => {
-            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.reportID}_${props.action.reportActionID}`;
+            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.report.reportID}_${props.action.reportActionID}`;
             return lodashGet(drafts, draftKey, '');
-        },
-    }),
-    withOnyx({
-        blockedFromConcierge: {
-            key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
-        },
-        report: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
     }),
 )(ReportActionItem);

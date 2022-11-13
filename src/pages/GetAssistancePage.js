@@ -1,9 +1,8 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Section from '../components/Section';
 import Navigation from '../libs/Navigation/Navigation';
@@ -28,13 +27,13 @@ const propTypes = {
 
 const GetAssistancePage = props => (
     <ScreenWrapper>
-        <KeyboardAvoidingView>
-            <HeaderWithCloseButton
-                title={props.translate('getAssistancePage.title')}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+        <HeaderWithCloseButton
+            title={props.translate('getAssistancePage.title')}
+            onCloseButtonPress={() => Navigation.dismissModal(true)}
+            shouldShowBackButton
+            onBackButtonPress={() => Navigation.goBack()}
+        />
+        <ScrollView>
             <Section
                 title={props.translate('getAssistancePage.subtitle')}
                 icon={Illustrations.ConciergeExclamation}
@@ -57,7 +56,7 @@ const GetAssistancePage = props => (
                     <Text>{props.translate('getAssistancePage.description')}</Text>
                 </View>
             </Section>
-        </KeyboardAvoidingView>
+        </ScrollView>
     </ScreenWrapper>
 );
 
