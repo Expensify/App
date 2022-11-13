@@ -1,15 +1,14 @@
 import * as React from 'react';
 import {useState} from 'react';
-
 import {Text, useWindowDimensions, View} from 'react-native';
 
 const WrappedText = ({children, textStyles, wordStyles}) => {
   const [lines, setLines] = useState([]);
   console.log('NewWrappedText', textStyles, wordStyles);
   const {width} = useWindowDimensions();
-  // The width * 0.8 follows the width defined in src/components/RenderHTML.js this is hardcoded there thus has to be hardcoded here as well.
+
   return (
-    <View style={{width: width * 0.8}}>
+    <View style={{}}>
       {lines.map((line, idx) => {
         const {x, y, height, width} = line;
 
@@ -50,18 +49,28 @@ const WrappedText = ({children, textStyles, wordStyles}) => {
           };
         }
 
+        if (lines.length === 1) {
+          leftBorderRadius = {
+            borderBottomRightRadius: 15,
+            borderTopRightRadius: 15,
+          };
+          rightBorderRadius = {
+            borderBottomRightRadius: 15,
+            borderTopRightRadius: 15,
+          };
+        }
+
         return (
           <View
             key={`lineOrder_${idx}`}
             style={[
               ...wordStyles,
               {
-                top: y,
+                top: y - 2,
                 position: 'absolute',
                 height: height - 5,
                 width: width + 10,
-                marginTop: 2.5,
-                marginLeft: -5,
+                marginTop: 14,
                 borderWidth: 1,
                 ...leftBorderRadius,
                 ...rightBorderRadius,
@@ -74,8 +83,20 @@ const WrappedText = ({children, textStyles, wordStyles}) => {
       })}
 
       <Text
-        style={[textStyles, {lineHeight: textStyles.lineHeight + 5}]}
-        onTextLayout={(e) => setLines(e.nativeEvent.lines)}>
+        style={[
+          textStyles,
+          {
+            paddingLeft: 5,
+            paddingRight: 5,
+            lineHeight: textStyles.lineHeight + 5,
+            marginTop: 5,
+            top: 4,
+          },
+        ]}
+        onTextLayout={(e) => {
+          console.log('onTextLayout', e.nativeEvent);
+          setLines(e.nativeEvent.lines);
+        }}>
         {children}
       </Text>
     </View>
