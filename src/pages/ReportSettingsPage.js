@@ -107,6 +107,11 @@ class ReportSettingsPage extends Component {
             errors.newRoomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
         }
 
+        // We error if the room name doesn't conform to acceptable conventions
+        if (!ValidationUtils.isAcceptableRoomName(this.state.newRoomName)) {
+            errors.newRoomName = 'unacceptable name';
+        }
+
         // Certain names are reserved for default rooms and should not be used for policy rooms.
         if (ValidationUtils.isReservedRoomName(this.state.newRoomName)) {
             errors.newRoomName = this.props.translate('newRoomPage.roomNameReservedError');

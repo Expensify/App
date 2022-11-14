@@ -348,6 +348,19 @@ function isReservedRoomName(roomName) {
 }
 
 /**
+ * Checks if the room name matches the following conventions:
+ * - Max length 80 characters
+ * - Starts with a #
+ * - Contains only lowercase letters, numbers, and underscores
+ *
+ * @param {String} roomName
+ * @returns {Boolean}
+ */
+function isAcceptableRoomName(roomName) {
+    return roomName.length <= CONST.REPORT.MAX_ROOM_NAME_LENGTH && /^[#][a-z0-9_]*$/.test(roomName);
+}
+
+/**
  * Checks if the room name already exists.
  *
  * @param {String} roomName
@@ -398,6 +411,7 @@ export {
     doesFailCharacterLimit,
     doesFailCharacterLimitAfterTrim,
     isReservedRoomName,
+    isAcceptableRoomName,
     isExistingRoomName,
     isValidTaxID,
 };

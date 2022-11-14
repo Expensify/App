@@ -101,6 +101,11 @@ class WorkspaceNewRoomPage extends React.Component {
             errors.roomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
         }
 
+        // We error if the room name doesn't conform to acceptable conventions
+        if (!ValidationUtils.isAcceptableRoomName(this.state.roomName)) {
+            errors.roomName = 'unacceptable name';
+        }
+
         // Certain names are reserved for default rooms and should not be used for policy rooms.
         if (ValidationUtils.isReservedRoomName(this.state.roomName)) {
             errors.roomName = this.props.translate('newRoomPage.roomNameReservedError');
