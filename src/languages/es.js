@@ -192,7 +192,7 @@ export default {
         copyURLToClipboard: 'Copiar URL al portapapeles',
         copyEmailToClipboard: 'Copiar email al portapapeles',
         markAsUnread: 'Marcar como no leído',
-        editComment: 'Editar commentario',
+        editComment: 'Editar comentario',
         deleteComment: 'Eliminar comentario',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
     },
