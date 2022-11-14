@@ -23,7 +23,7 @@ jobs:
         run: npm run android-build-e2e
 
       - name: Copy "Compare" APK
-        run: cp android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk app-e2eRelease-compare.apk
+        run: cp android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk zip/app-e2eRelease-compare.apk
 
 # TODO: Uncomment before merge
 #      - name: Checkout "Baseline"
@@ -37,13 +37,27 @@ jobs:
         run: npm run android-build-e2e
 
       - name: Copy "Baseline" APK
-        run: cp android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk app-e2eRelease-baseline.apk
+        run: cp android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk zip/app-e2eRelease-baseline.apk
 
       - name: Checkout previous branch for source code to run on AWS Device farm
         run: git checkout -
 
-      - name: Zip everything up
-        run: zip -qr App.zip .
+      - name: debug
+        run: ls -lah
+
+      - name: Copy e2e code into zip folder
+        run: cp e2e zip
+
+      - name: Install underscore in zip folder
+        run: |
+          cd zip
+          npm install underscore
+
+      - name: debug
+        run: ls -lah
+
+      - name: Zip everything in the zip directory up
+        run: zip -qr App.zip ./zip
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
