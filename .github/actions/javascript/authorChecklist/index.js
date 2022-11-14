@@ -5,100 +5,76 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 598:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ 5998:
+/***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const _ = __nccwpck_require__(3571);
 const core = __nccwpck_require__(2186);
-const GithubUtils = __nccwpck_require__(7999);
-const {promiseWhile} = __nccwpck_require__(4502);
+const github = __nccwpck_require__(5438);
+const https = __nccwpck_require__(7211);
+const GitHubUtils = __nccwpck_require__(7999);
 
-const MAX_RETRIES = 30;
-const THROTTLE_DURATION = process.env.NODE_ENV === 'test' ? 5 : 5000;
+const pathToAuthorChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/.github/PULL_REQUEST_TEMPLATE.md';
+const authorChecklistStartsWith = '### PR Author Checklist';
+const reviewerChecklistStartsWith = '<summary><h4>PR Reviewer Checklist</h4>';
+const issue = github.context.payload.issue ? github.context.payload.issue.number : github.context.payload.pull_request.number;
 
-const run = function () {
-    const pullRequestNumber = Number(core.getInput('PULL_REQUEST_NUMBER', {required: true}));
+/**
+ * @returns {Promise}
+ */
+function getNumberOfItemsFromAuthorChecklist() {
+    return new Promise((resolve, reject) => {
+        https.get(pathToAuthorChecklist, (res) => {
+            let fileContents = '';
+            res.on('data', (chunk) => {
+                fileContents += chunk;
+            });
+            res.on('end', () => {
+                // Currently, both the author and reviewer checklists are in the PR template file, so we need to do a little bit of parsing the PR description to get just the author
+                // checklist.
+                const contentAfterStartOfAuthorChecklist = fileContents.split(authorChecklistStartsWith).pop();
+                const contentBeforeStartOfReviewerChecklist = contentAfterStartOfAuthorChecklist.split(reviewerChecklistStartsWith).shift();
 
-    let retryCount = 0;
-    let isMergeable = false;
-    let mergeabilityResolved = false;
-    console.log(`Checking the mergeability of PR #${pullRequestNumber}`);
-    return GithubUtils.octokit.pulls.get({
-        owner: GithubUtils.GITHUB_OWNER,
-        repo: GithubUtils.APP_REPO,
-        pull_number: pullRequestNumber,
-    })
-        .then(({data}) => data.head.sha)
-        .then(headRef => promiseWhile(
-            () => !mergeabilityResolved && retryCount < MAX_RETRIES,
-            _.throttle(
-                () => Promise.all([
-                    GithubUtils.octokit.pulls.get({
-                        owner: GithubUtils.GITHUB_OWNER,
-                        repo: GithubUtils.APP_REPO,
-                        pull_number: pullRequestNumber,
-                    }),
-                    GithubUtils.octokit.checks.listForRef({
-                        owner: GithubUtils.GITHUB_OWNER,
-                        repo: GithubUtils.APP_REPO,
-                        ref: headRef,
-                    }),
-                ])
-                    .then(([prResponse, checksResponse]) => {
-                        const mergeable = prResponse.data.mergeable;
-                        const mergeableState = prResponse.data.mergeable_state;
-                        const areChecksComplete = _.every(checksResponse.data.check_runs, check => check.status === 'completed');
-
-                        if (_.isNull(mergeable)) {
-                            console.log('Pull request mergeability is not yet resolved...');
-                            retryCount++;
-                            return;
-                        }
-
-                        if (_.isEmpty(mergeableState)) {
-                            console.log('Pull request mergeable_state is not yet resolved...');
-                            retryCount++;
-                            return;
-                        }
-
-                        if (!areChecksComplete) {
-                            console.log('Pull request checks are not yet complete...');
-                            retryCount++;
-                            return;
-                        }
-
-                        mergeabilityResolved = true;
-                        console.log(`Merge information for #${pullRequestNumber} - mergeable: ${mergeable}, mergeable_state: ${mergeableState}`);
-                        isMergeable = mergeable && mergeableState !== 'blocked';
-                    })
-                    .catch((githubError) => {
-                        mergeabilityResolved = true;
-                        console.error(`An error occurred fetching the PR from Github: ${JSON.stringify(githubError)}`);
-                        core.setFailed(githubError);
-                    }),
-                THROTTLE_DURATION,
-            ),
-        ))
-        .then(() => {
-            if (retryCount >= MAX_RETRIES) {
-                console.error('Maximum retries reached, mergeability is undetermined, defaulting to false');
-            } else {
-                console.log(`Pull request #${pullRequestNumber} is ${isMergeable ? '' : 'not '}mergeable`);
-            }
-            core.setOutput('IS_MERGEABLE', isMergeable);
+                const numberOfChecklistItems = (contentBeforeStartOfReviewerChecklist.match(/\[ \]/g) || []).length;
+                resolve(numberOfChecklistItems);
+            });
         })
-        .catch((githubError) => {
-            mergeabilityResolved = true;
-            console.error(`An error occurred fetching the PR from Github: ${JSON.stringify(githubError)}`);
-            core.setFailed(githubError);
-        });
-};
-
-if (require.main === require.cache[eval('__filename')]) {
-    run();
+            .on('error', reject);
+    });
 }
 
-module.exports = run;
+/**
+ * @param {Number} numberOfChecklistItems
+ */
+function checkIssueForCompletedChecklist(numberOfChecklistItems) {
+    GitHubUtils.getPullRequestBody(issue)
+        .then((pullRequestBody) => {
+            const contentAfterStartOfAuthorChecklist = pullRequestBody.split(authorChecklistStartsWith).pop();
+            const contentOfAuthorChecklist = contentAfterStartOfAuthorChecklist.split(reviewerChecklistStartsWith).shift();
+
+            const numberOfFinishedChecklistItems = (contentOfAuthorChecklist.match(/- \[x\]/gi) || []).length;
+            const numberOfUnfinishedChecklistItems = (contentOfAuthorChecklist.match(/- \[ \]/g) || []).length;
+
+            const maxCompletedItems = numberOfChecklistItems + 2;
+            const minCompletedItems = numberOfChecklistItems - 2;
+
+            console.log(`You completed ${numberOfFinishedChecklistItems} out of ${numberOfChecklistItems} checklist items with ${numberOfUnfinishedChecklistItems} unfinished items`);
+
+            if (numberOfFinishedChecklistItems >= minCompletedItems
+                && numberOfFinishedChecklistItems <= maxCompletedItems
+                && numberOfUnfinishedChecklistItems === 0) {
+                console.log('PR Author checklist is complete 🎉');
+                return;
+            }
+
+            console.log(`Make sure you are using the most up to date checklist found here: ${pathToAuthorChecklist}`);
+            core.setFailed('PR Author Checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+        });
+}
+
+getNumberOfItemsFromAuthorChecklist()
+    .then(checkIssueForCompletedChecklist, (err) => {
+        console.error(err);
+    });
 
 
 /***/ }),
@@ -652,55 +628,6 @@ module.exports.DEPLOY_BLOCKER_CASH_LABEL = DEPLOY_BLOCKER_CASH_LABEL;
 module.exports.APPLAUSE_BOT = APPLAUSE_BOT;
 module.exports.ISSUE_OR_PULL_REQUEST_REGEX = ISSUE_OR_PULL_REQUEST_REGEX;
 module.exports.POLL_RATE = POLL_RATE;
-
-
-/***/ }),
-
-/***/ 4502:
-/***/ ((module) => {
-
-/**
- * Simulates a while loop where the condition is determined by the result of a Promise.
- *
- * @param {Function} condition
- * @param {Function} action
- * @returns {Promise}
- */
-function promiseWhile(condition, action) {
-    return new Promise((resolve, reject) => {
-        const loop = function () {
-            if (!condition()) {
-                resolve();
-            } else {
-                Promise.resolve(action())
-                    .then(loop)
-                    .catch(reject);
-            }
-        };
-        loop();
-    });
-}
-
-/**
- * Simulates a do-while loop where the condition is determined by the result of a Promise.
- *
- * @param {Function} condition
- * @param {Function} action
- * @returns {Promise}
- */
-function promiseDoWhile(condition, action) {
-    return new Promise((resolve, reject) => {
-        action()
-            .then(() => promiseWhile(condition, action))
-            .then(() => resolve())
-            .catch(reject);
-    });
-}
-
-module.exports = {
-    promiseWhile,
-    promiseDoWhile,
-};
 
 
 /***/ }),
@@ -1756,6 +1683,50 @@ class Context {
 }
 exports.Context = Context;
 //# sourceMappingURL=context.js.map
+
+/***/ }),
+
+/***/ 5438:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getOctokit = exports.context = void 0;
+const Context = __importStar(__nccwpck_require__(4087));
+const utils_1 = __nccwpck_require__(3030);
+exports.context = new Context.Context();
+/**
+ * Returns a hydrated octokit ready to use for GitHub Actions
+ *
+ * @param     token    the repo PAT or GITHUB_TOKEN
+ * @param     options  other options to set
+ */
+function getOctokit(token, options, ...additionalPlugins) {
+    const GitHubWithPlugins = utils_1.GitHub.plugin(...additionalPlugins);
+    return new GitHubWithPlugins(utils_1.getOctokitOptions(token, options));
+}
+exports.getOctokit = getOctokit;
+//# sourceMappingURL=github.js.map
 
 /***/ }),
 
@@ -15839,6 +15810,6 @@ module.exports = require("zlib");;
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(598);
+/******/ 	return __nccwpck_require__(5998);
 /******/ })()
 ;
