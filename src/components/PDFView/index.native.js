@@ -143,7 +143,7 @@ class PDFView extends Component {
                     </TouchableWithoutFeedback>
                 )}
                 {this.state.shouldRequestPassword && (
-                    <KeyboardAvoidingView>
+                    <KeyboardAvoidingView style={styles.flex1}>
                         <PDFPasswordForm
                             onSubmit={this.attemptPdfLoadWithPassword}
                             onPasswordUpdated={() => this.setState({isPasswordInvalid: false})}

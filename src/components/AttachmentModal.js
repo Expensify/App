@@ -245,15 +245,6 @@ class AttachmentModal extends PureComponent {
     }
 
     render() {
-        // When the confirm button is visible we don't need bottom padding on the attachment view.
-        const attachmentViewPaddingStyles = this.props.onConfirm
-            ? [styles.pl5, styles.pr5, styles.pt5]
-            : styles.p5;
-
-        const attachmentViewStyles = this.props.isSmallScreenWidth || this.props.isMediumScreenWidth
-            ? [styles.imageModalImageCenterContainer]
-            : [styles.imageModalImageCenterContainer, attachmentViewPaddingStyles];
-
         const originalFileName = lodashGet(this.state, 'file.name') || this.props.originalFileName;
         const {fileName, fileExtension} = FileUtils.splitExtensionFromFileName(originalFileName);
 
@@ -285,7 +276,7 @@ class AttachmentModal extends PureComponent {
                             />
                         ) : ''}
                     />
-                    <View style={attachmentViewStyles}>
+                    <View style={styles.imageModalImageCenterContainer}>
                         {this.state.reportId ? (
                             <AttachmentCarousel
                                 showArrows={this.state.showArrows}
