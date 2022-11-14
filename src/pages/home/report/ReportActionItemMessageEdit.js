@@ -102,19 +102,16 @@ class ReportActionItemMessageEdit extends React.Component {
      */
     updateDraft(draft) {
         const newDraft = EmojiUtils.replaceEmojis(draft);
-        
         this.setState((prevState) => {
-            let newState = {draft: newDraft}
-
-            if(draft !== newDraft) {
-                const remainder = prevState.draft.slice(prevState.selection.end).length
-                newState.selection =  {
+            const newState = {draft: newDraft};
+            if (draft !== newDraft) {
+                const remainder = prevState.draft.slice(prevState.selection.end).length;
+                newState.selection = {
                     start: newDraft.length - remainder,
-                    end: newDraft.length - remainder
-                }
+                    end: newDraft.length - remainder,
+                };
             }
-            
-            return newState
+            return newState;
         });
 
         // This component is rendered only when draft is set to a non-empty string. In order to prevent component
