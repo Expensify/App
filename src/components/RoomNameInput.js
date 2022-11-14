@@ -49,18 +49,15 @@ class RoomNameInput extends Component {
     }
 
     /**
-     * Modifies the room name to follow our conventions:
-     * - Max length 80 characters
-     * - Cannot not include space or special characters, and we automatically apply an underscore for spaces
-     * - Must be lowercase
+     * Modifies the room name in the following ways:
+     * - Automatically replaces spaces with underscore
+     * - Automatically replaces uppercase letters with lowercase
      * @param {String} roomName
      * @returns {String}
      */
     modifyRoomName(roomName) {
         const modifiedRoomNameWithoutHash = roomName
             .replace(/ /g, '_')
-            .replace(/[^a-zA-Z\d_]/g, '')
-            .substr(0, CONST.REPORT.MAX_ROOM_NAME_LENGTH)
             .toLowerCase();
 
         return `${CONST.POLICY.ROOM_PREFIX}${modifiedRoomNameWithoutHash}`;
@@ -78,6 +75,7 @@ class RoomNameInput extends Component {
                 value={this.props.value.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.
                 errorText={this.props.errorText}
                 autoCapitalize="none"
+                maxLength={80}
             />
         );
     }
