@@ -116,7 +116,7 @@ class ReportActionsList extends React.Component {
      * @return {String}
      */
     keyExtractor(item) {
-        return `${item.action.clientID}${item.action.reportActionID}`;
+        return item.action.reportActionID;
     }
 
     /**
