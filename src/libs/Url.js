@@ -16,12 +16,12 @@ function addTrailingForwardSlash(url) {
  * @returns {Object}
  */
 function getURLObject(href) {
-    const reURLInformation = new RegExp([
+    const urlRegex = new RegExp([
         '^(https?:)//', // protocol
         '(([^:/?#]*)(?::([0-9]+))?)', // host (hostname and port)
         '([^]*)', // pathname
     ].join(''));
-    const match = href.match(reURLInformation) || [];
+    const match = href.match(urlRegex) || [];
     return {
         href: match[0],
         protocol: match[1],
@@ -41,7 +41,9 @@ function getURLObject(href) {
 function hasSameOrigin(url1, url2) {
     const host1 = getURLObject(url1).hostname;
     const host2 = getURLObject(url2).hostname;
-    if (!host1 || !host2) { return false; }
+    if (!host1 || !host2) {
+        return false;
+    }
     const host1WithoutW3 = host1.startsWith('www.') ? host1.replace('www.', '') : host1;
     const host2WithoutW3 = host2.startsWith('www.') ? host2.replace('www.', '') : host2;
     return host1WithoutW3 === host2WithoutW3;
