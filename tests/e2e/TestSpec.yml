@@ -18,7 +18,7 @@ phases:
 
   test:
     commands:
-      - npm run test:e2e -- --skipInstallDeps --skipBuild
+      - node testRunner.js -- --skipInstallDeps --skipBuild
 
 artifacts:
 - $WORKING_DIRECTORY
