@@ -102,13 +102,14 @@ class IOUDetailsModal extends Component {
         // If it's paying with the wallet lets call the correct service for this
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
             IOU.sendMoneyWithWallet(
-                lodashGet(this.props, 'route.params.reportID', ''),
+                this.props.route.params.chatReportID,
+                this.props.route.params.iouReportID,
                 '',
+                this.props.iouReport.total,
+                this.props.iouReport.currency,
                 '',
-                amount,
-                currency,
-                comment,
-                this.state.participants,
+                this.props.iouReport.ownerEmail,
+                this.props.iouReport.managerEmail,
             );
             return;
         }
