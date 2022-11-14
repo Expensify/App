@@ -8,7 +8,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import FormHelpMessage from '../FormHelpMessage';
 import Text from '../Text';
 import styles from '../../styles/styles';
-import basePickerStyles from './BasePicker/basePickerStyles/index';
+import pickerStyles from './pickerStyles';
 
 const propTypes = {
     /** Picker label */
@@ -157,7 +157,7 @@ class Picker extends PureComponent {
                     <RNPickerSelect
                         onValueChange={this.onInputChange}
                         items={this.props.items}
-                        style={this.props.size === 'normal' ? basePickerStyles(this.props.isDisabled) : styles.pickerSmall}
+                        style={this.props.size === 'normal' ? pickerStyles(this.props.isDisabled) : styles.pickerSmall}
                         useNativeAndroidPickerStyle={false}
                         placeholder={this.props.placeholder}
                         value={this.props.value}
