@@ -2773,6 +2773,14 @@ const styles = {
         fontSize: variables.fontSizeSmall,
         ...spacing.ph2,
     },
+
+    dropZoneTopInvisibleOverlay: {
+        ...StyleSheet.absoluteFill,
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(255,255,255,0)',
+        zIndex: 1000,
+    },
 };
 
 export default styles;

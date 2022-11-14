@@ -9,7 +9,7 @@ const NONE_DROP_EFFECT = 'none';
 
 const DragAndDropPropTypes = {
     /** Callback to fire when a file has being dragged over the text input & report body */
-    onDragOver: PropTypes.func.isRequired,
+    onDragOver: PropTypes.func,
 
     /** Callback to fire when a file has been dragged into the text input & report body */
     onDragEnter: PropTypes.func.isRequired,
@@ -43,8 +43,8 @@ export default class DragAndDrop extends React.Component {
 
         this.dropZone = document.getElementById(props.dropZoneId);
         this.dropZoneRect = this.calculateDropZoneClientReact();
-        this.dragNDropListener = this.dragNDropListener.bind(this);
 
+        this.dragOverHandler = _.throttle(this.dragOverHandler.bind(this), 100);
         this.dragNDropWindowResizeListener = _.throttle(this.dragNDropWindowResizeListener.bind(this), 100);
         this.dropZoneDragHandler = this.dropZoneDragHandler.bind(this);
         this.dropZoneDragListener = this.dropZoneDragListener.bind(this);
@@ -57,21 +57,29 @@ export default class DragAndDrop extends React.Component {
     }
 
     componentDidMount() {
-        document.addEventListener('dragover', this.dragNDropListener);
-        document.addEventListener('dragenter', this.dragNDropListener);
-        document.addEventListener('dragleave', this.dragNDropListener);
-        document.addEventListener('dragend', this.dragNDropListener);
-        document.addEventListener('drop', this.dragNDropListener);
+        document.addEventListener('dragover', this.dropZoneDragListener);
+        document.addEventListener('dragenter', this.dropZoneDragListener);
+        document.addEventListener('dragleave', this.dropZoneDragListener);
+        document.addEventListener('drop', this.dropZoneDragListener);
         window.addEventListener('resize', this.dragNDropWindowResizeListener);
     }
 
     componentWillUnmount() {
-        document.removeEventListener('dragover', this.dragNDropListener);
-        document.removeEventListener('dragenter', this.dragNDropListener);
-        document.removeEventListener('dragleave', this.dragNDropListener);
-        document.removeEventListener('dragend', this.dragNDropListener);
-        document.removeEventListener('drop', this.dragNDropListener);
+        document.removeEventListener('dragover', this.dropZoneDragListener);
+        document.removeEventListener('dragenter', this.dropZoneDragListener);
+        document.removeEventListener('dragleave', this.dropZoneDragListener);
+        document.removeEventListener('drop', this.dropZoneDragListener);
         window.removeEventListener('resize', this.dragNDropWindowResizeListener);
+    }
+
+    /**
+     * @param {Object} event native Event
+     */
+    dragOverHandler(event) {
+        if (!this.props.onDragOver) {
+            return;
+        }
+        this.props.onDragOver(event);
     }
 
     dragNDropWindowResizeListener() {
@@ -103,7 +111,7 @@ export default class DragAndDrop extends React.Component {
                 // Continuous event -> can hurt performance, be careful when subscribing
                 // eslint-disable-next-line no-param-reassign
                 event.dataTransfer.dropEffect = COPY_DROP_EFFECT;
-                this.props.onDragOver(event);
+                this.dragOverHandler(event);
                 break;
             case 'dragenter':
                 // Avoid reporting onDragEnter for children views -> not performant
@@ -151,15 +159,6 @@ export default class DragAndDrop extends React.Component {
             // eslint-disable-next-line no-param-reassign
             event.dataTransfer.dropEffect = NONE_DROP_EFFECT;
         }
-    }
-
-    /**
-     * Handles all types of drag-N-drop events on the composer and associated drop zone if it exists
-     *
-     * @param {Object} event native Event
-     */
-    dragNDropListener(event) {
-        this.dropZoneDragListener(event);
     }
 
     render() {

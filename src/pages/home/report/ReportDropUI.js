@@ -12,7 +12,7 @@ const propTypes = {
 };
 
 const ReportDropUI = props => (
-    <DropZone hostName="ReportDropZone" dropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID}>
+    <DropZone dropZoneViewHolderName={CONST.REPORT.DROP_HOST_NAME} dropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID}>
         <View style={styles.mb3}>
             <DragAndDropIcon width={100} height={100} />
         </View>

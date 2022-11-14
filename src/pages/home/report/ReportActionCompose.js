@@ -630,7 +630,6 @@ class ReportActionCompose extends React.Component {
                                         onDragLeave={() => {
                                             this.setState({isDraggingOver: false});
                                         }}
-                                        onDragOver={() => {}}
                                         onDrop={(e) => {
                                             e.preventDefault();
 
