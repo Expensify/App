@@ -727,9 +727,14 @@ function payIOUReport({
  * @param {Number} amount
  * @param {String} currency
  * @param {String} comment
- * @param {Array} participants
+ * @param {String} ownerEmail - Email of the person generating the IOU.
+ * @param {String} userEmail - Email of the other person participating in the IOU.
  */
-function sendMoneyWithWallet(chatReportID, iouReportID, reportActionID, amount, currency, comment, participants) {
+function sendMoneyWithWallet(chatReportID, iouReportID, reportActionID, amount, currency, comment, ownerEmail, userEmail) {
+    const participants = [
+        {login: ownerEmail},
+        {login: userEmail},
+    ];
     const optimisticChatReport = ReportUtils.buildOptimisticChatReport(participants);
     const optimisticIouReportAction = ReportUtils.buildOptimisticIOUReportAction(
         1,
@@ -741,8 +746,8 @@ function sendMoneyWithWallet(chatReportID, iouReportID, reportActionID, amount, 
         iouReportID,
     );
     const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(
-        participants[0].login,
-        participants[1].login,
+        ownerEmail,
+        userEmail,
         amount,
         chatReportID,
         currency,
