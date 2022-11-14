@@ -729,7 +729,7 @@ function payIOUReport({
  * @param {String} comment
  * @param {Array} participants
  */
-function sendMoneyWithWallet(params) {
+function sendMoneyWithWallet(chatReportID, iouReportID, reportActionID, amount, currency, comment, participants) {
     const optimisticChatReport = ReportUtils.buildOptimisticChatReport([email]);
     const groupChatReportMaxSequenceNumber = lodashGet(optimisticChatReport, 'maxSequenceNumber', 0);
 
