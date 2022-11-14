@@ -11,7 +11,6 @@ import display from './utilities/display';
 import overflow from './utilities/overflow';
 import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
-import textInputAlignSelf from './utilities/textInputAlignSelf';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
@@ -1382,6 +1381,8 @@ const styles = {
         flexBasis: '100%',
     },
 
+    // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
+    // Make sure you run the following tests against any changes: #12669
     textInputCompose: addOutlineWidth({
         backgroundColor: themeColors.componentBG,
         borderColor: themeColors.border,
@@ -1398,8 +1399,9 @@ const styles = {
         // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
         paddingHorizontal: 8,
-        paddingVertical: 0,
-        ...textInputAlignSelf.center,
+        paddingTop: 0,
+        paddingBottom: 0,
+        alignSelf: 'center',
         textAlignVertical: 'center',
     }, 0),
 
@@ -1414,8 +1416,9 @@ const styles = {
         marginVertical: 6,
     },
 
+    // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
     textInputComposeSpacing: {
-        paddingVertical: 6,
+        paddingVertical: 5,
         ...flex.flexRow,
         flex: 1,
     },
