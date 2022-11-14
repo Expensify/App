@@ -18,6 +18,9 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import * as CloseAccount from '../../../libs/actions/CloseAccount';
 import ONYXKEYS from '../../../ONYXKEYS';
+import OfflineIndicator from '../../../components/OfflineIndicator';
+import {withNetwork} from '../../../components/OnyxProvider';
+import networkPropTypes from '../../../components/networkPropTypes';
 
 const propTypes = {
     /** Onyx Props */
@@ -36,6 +39,9 @@ const propTypes = {
         /** Email address */
         email: PropTypes.string.isRequired,
     }).isRequired,
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
@@ -110,9 +116,11 @@ class CloseAccountPage extends Component {
                         text={this.props.translate('closeAccountPage.closeAccount')}
                         isLoading={this.props.closeAccount.isLoading}
                         onPress={() => User.closeAccount(this.state.reasonForLeaving)}
-                        isDisabled={Str.removeSMSDomain(userEmailOrPhone).toLowerCase() !== this.state.phoneOrEmail.toLowerCase()}
+                        isDisabled={Str.removeSMSDomain(userEmailOrPhone).toLowerCase() !== this.state.phoneOrEmail.toLowerCase() || this.props.network.isOffline}
                         style={[styles.mt5]}
                     />
+                    {!this.props.isSmallScreenWidth
+                        && <OfflineIndicator containerStyles={[styles.mt2]} />}
                 </ScrollView>
                 <ConfirmModal
                     title={this.props.translate('closeAccountPage.closeAccountError')}
@@ -147,6 +155,7 @@ CloseAccountPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
+    withNetwork(),
     withOnyx({
         closeAccount: {
             key: ONYXKEYS.CLOSE_ACCOUNT,

@@ -28,28 +28,36 @@ import * as ValidationUtils from '../../../libs/ValidationUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import Form from '../../../components/Form';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import * as LoginUtils from '../../../libs/LoginUtils';
+
+const loginPropTypes = PropTypes.shape({
+    /** Value of partner name */
+    partnerName: PropTypes.string,
+
+    /** Phone/Email associated with user */
+    partnerUserID: PropTypes.string,
+
+    /** Date of when login was validated */
+    validatedDate: PropTypes.string,
+});
 
 const propTypes = {
     /* Onyx Props */
 
     /** Login list for the user that is signed in */
-    loginList: PropTypes.arrayOf(PropTypes.shape({
+    loginList: PropTypes.oneOfType([
+        PropTypes.objectOf(loginPropTypes),
 
-        /** Value of partner name */
-        partnerName: PropTypes.string,
-
-        /** Phone/Email associated with user */
-        partnerUserID: PropTypes.string,
-
-        /** Date of when login was validated */
-        validatedDate: PropTypes.string,
-    })),
+        // TODO: remove this once this closes:
+        // https://github.com/Expensify/App/issues/10960
+        PropTypes.arrayOf(loginPropTypes),
+    ]),
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
-    loginList: [],
+    loginList: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -69,7 +77,7 @@ class ProfilePage extends Component {
         this.avatar = {uri: lodashGet(this.props.currentUserPersonalDetails, 'avatar') || this.defaultAvatar};
         this.pronouns = props.currentUserPersonalDetails.pronouns;
         this.state = {
-            logins: this.getLogins(props.loginList),
+            logins: this.getLogins(LoginUtils.convertLoginListToObject(props.loginList)),
             selectedTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
             isAutomaticTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
             hasSelfSelectedPronouns: !_.isEmpty(props.currentUserPersonalDetails.pronouns) && !props.currentUserPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
@@ -86,8 +94,10 @@ class ProfilePage extends Component {
         let stateToUpdate = {};
 
         // Recalculate logins if loginList has changed
-        if (this.props.loginList !== prevProps.loginList) {
-            stateToUpdate = {...stateToUpdate, logins: this.getLogins(this.props.loginList)};
+        const currentLoginList = LoginUtils.convertLoginListToObject(this.props.loginList);
+        const prevLoginList = LoginUtils.convertLoginListToObject(prevProps.loginList);
+        if (_.keys(currentLoginList).length !== _.keys(prevLoginList).length) {
+            stateToUpdate = {...stateToUpdate, logins: this.getLogins(currentLoginList)};
         }
 
         if (_.isEmpty(stateToUpdate)) {
@@ -131,11 +141,11 @@ class ProfilePage extends Component {
     /**
      * Get the most validated login of each type
      *
-     * @param {Array} loginList
+     * @param {Object} loginList
      * @returns {Object}
      */
     getLogins(loginList) {
-        return _.reduce(loginList, (logins, currentLogin) => {
+        return _.reduce(_.values(loginList), (logins, currentLogin) => {
             const type = Str.isSMSLogin(currentLogin.partnerUserID) ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL;
             const login = Str.removeSMSDomain(currentLogin.partnerUserID);
 
@@ -231,7 +241,7 @@ class ProfilePage extends Component {
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
-                    formID={CONST.PROFILE_SETTINGS_FORM}
+                    formID={ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM}
                     validate={this.validate}
                     onSubmit={this.updatePersonalDetails}
                     submitButtonText={this.props.translate('common.save')}

@@ -86,7 +86,6 @@ class AuthScreens extends React.Component {
         super(props);
 
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
-        Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
     }
 
     componentDidMount() {

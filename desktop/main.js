@@ -265,7 +265,14 @@ const mainWindow = (() => {
                 }
 
                 evt.preventDefault();
-                browserWindow.hide();
+
+                // Check if window is fullscreen and exit fullscreen before hiding
+                if (browserWindow.isFullScreen()) {
+                    browserWindow.once('leave-full-screen', () => browserWindow.hide());
+                    browserWindow.setFullScreen(false);
+                } else {
+                    browserWindow.hide();
+                }
             });
 
             // Initiating a browser-back or browser-forward with mouse buttons should navigate history.
@@ -276,6 +283,13 @@ const mainWindow = (() => {
                 if (cmd === 'browser-forward') {
                     browserWindow.webContents.goForward();
                 }
+            });
+
+            browserWindow.on(ELECTRON_EVENTS.FOCUS, () => {
+                browserWindow.webContents.send(ELECTRON_EVENTS.FOCUS);
+            });
+            browserWindow.on(ELECTRON_EVENTS.BLUR, () => {
+                browserWindow.webContents.send(ELECTRON_EVENTS.BLUR);
             });
 
             app.on('before-quit', () => quitting = true);

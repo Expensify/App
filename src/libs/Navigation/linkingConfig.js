@@ -36,6 +36,10 @@ export default {
                     Settings_Root: {
                         path: ROUTES.SETTINGS,
                     },
+                    Settings_Workspaces: {
+                        path: ROUTES.SETTINGS_WORKSPACES,
+                        exact: true,
+                    },
                     Settings_Preferences: {
                         path: ROUTES.SETTINGS_PREFERENCES,
                         exact: true,
@@ -84,6 +88,10 @@ export default {
                         path: ROUTES.SETTINGS_PROFILE,
                         exact: true,
                     },
+                    Settings_Display_Name: {
+                        path: ROUTES.SETTINGS_DISPLAY_NAME,
+                        exact: true,
+                    },
                     Settings_About: {
                         path: ROUTES.SETTINGS_ABOUT,
                         exact: true,
@@ -118,10 +126,6 @@ export default {
                     },
                     Workspace_Members: {
                         path: ROUTES.WORKSPACE_MEMBERS,
-                    },
-                    Workspace_BankAccount: {
-                        path: ROUTES.WORKSPACE_BANK_ACCOUNT,
-                        exact: true,
                     },
                     Workspace_Invite: {
                         path: ROUTES.WORKSPACE_INVITE,
