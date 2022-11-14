@@ -727,8 +727,6 @@ function payIOUReport({
  * @param {Number} amount
  * @param {String} currency
  * @param {String} comment
- * @param {String} requesterEmail
- * @param {String} debtorEmail
  * @param {Array} participants
  */
 function sendMoneyWithWallet(params) {
@@ -745,8 +743,8 @@ function sendMoneyWithWallet(params) {
         iouReportID,
     );
     const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(
-        requesterEmail,
-        debtorEmail,
+        participants[0].login,
+        participants[1].login,
         amount,
         chatReportID,
         currency,
