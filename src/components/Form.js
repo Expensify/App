@@ -59,7 +59,6 @@ const defaultProps = {
     formState: {
         isLoading: false,
         errors: null,
-        errorFields: null,
     },
     draftValues: {},
     enabledWhenOffline: false,
@@ -92,6 +91,17 @@ class Form extends React.Component {
     getErrorMessage() {
         const latestErrorMessage = ErrorUtils.getLatestErrorMessage(this.props.formState);
         return this.props.formState.error || (typeof latestErrorMessage === 'string' ? latestErrorMessage : '');
+    }
+
+    getFirstErroredInput() {
+        const hasStateErrors = !_.isEmpty(this.state.errors);
+        const hasErrorFields = !_.isEmpty(this.props.formState.errorFields);
+
+        if (!hasStateErrors && !hasErrorFields) {
+            return;
+        }
+
+        return _.first(_.keys(hasStateErrors ? this.state.erorrs : this.props.formState.errorFields));
     }
 
     submit() {
@@ -193,12 +203,12 @@ class Form extends React.Component {
                 .reverse()
                 .map(key => errorFields[inputID][key])
                 .first()
-                .value();
+                .value() || '';
 
             return React.cloneElement(child, {
                 ref: node => this.inputRefs[inputID] = node,
                 value: this.state.inputValues[inputID],
-                errorText: (this.state.errors[inputID] || fieldErrorMessage) || '',
+                errorText: this.state.errors[inputID] || fieldErrorMessage,
                 onBlur: () => {
                     this.setTouchedInput(inputID);
                     this.validate(this.state.inputValues);
@@ -237,12 +247,12 @@ class Form extends React.Component {
                         {this.props.isSubmitButtonVisible && (
                         <FormAlertWithSubmitButton
                             buttonText={this.props.submitButtonText}
-                            isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.getErrorMessage())}
+                            isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.getErrorMessage()) || !_.isEmpty(this.props.formState.errorFields)}
                             isLoading={this.props.formState.isLoading}
                             message={_.isEmpty(this.props.formState.errorFields) ? this.getErrorMessage() : null}
                             onSubmit={this.submit}
                             onFixTheErrorsLinkPressed={() => {
-                                this.inputRefs[_.first(_.keys(this.state.errors))].focus();
+                                this.inputRefs[this.getFirstErroredInput()].focus();
                             }}
                             containerStyles={[styles.mh0, styles.mt5]}
                             enabledWhenOffline={this.props.enabledWhenOffline}
