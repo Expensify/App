@@ -1387,6 +1387,8 @@ const styles = {
         flexBasis: '100%',
     },
 
+    // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
+    // Make sure you run the following tests against any changes: #12669
     textInputCompose: addOutlineWidth({
         backgroundColor: themeColors.componentBG,
         borderColor: themeColors.border,
@@ -1420,6 +1422,7 @@ const styles = {
         marginVertical: 6,
     },
 
+    // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
     textInputComposeSpacing: {
         paddingVertical: 5,
         ...flex.flexRow,
