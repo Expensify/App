@@ -31,10 +31,11 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
+import * as Expensicons from '../../components/Icon/Expensicons';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
-    personalDetails: personalDetailsPropType.isRequired,
+    personalDetails: personalDetailsPropType,
 
     /** URL Route params */
     route: PropTypes.shape({
@@ -48,7 +49,7 @@ const propTypes = {
     ...policyPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
-    ...networkPropTypes,
+    network: networkPropTypes.isRequired,
 };
 
 const defaultProps = policyDefaultProps;
@@ -125,7 +126,8 @@ class WorkspaceMembersPage extends React.Component {
      */
     toggleAllUsers() {
         this.setState({showTooltipForLogin: ''});
-        const policyMemberList = _.keys(lodashGet(this.props, 'policyMemberList', {}));
+        let policyMemberList = lodashGet(this.props, 'policyMemberList', {});
+        policyMemberList = _.filter(_.keys(policyMemberList), policyMember => policyMemberList[policyMember].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const removableMembers = _.without(policyMemberList, this.props.session.email, this.props.policy.owner);
         this.setState(prevState => ({
             selectedEmployees: removableMembers.length !== prevState.selectedEmployees.length
@@ -267,7 +269,7 @@ class WorkspaceMembersPage extends React.Component {
                                 }}
                             />
                         </View>
-                        {this.props.session.email === item.login && (
+                        {(this.props.session.email === item.login || item.role === 'admin') && (
                             <View style={styles.peopleRowCell}>
                                 <View style={[styles.badge, styles.peopleBadge]}>
                                     <Text style={[styles.peopleBadgeText]}>
@@ -283,14 +285,21 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     render() {
-        const policyMemberList = _.keys(lodashGet(this.props, 'policyMemberList', {}));
-        const removableMembers = _.without(policyMemberList, this.props.session.email, this.props.policy.owner);
-        const data = _.chain(policyMemberList)
-            .map(email => this.props.personalDetails[email])
-            .filter()
-            .sortBy(person => person.displayName.toLowerCase())
-            .map(person => ({...person})) // TODO: here we will add the pendingAction and errors prop
-            .value();
+        const policyMemberList = lodashGet(this.props, 'policyMemberList', {});
+        const removableMembers = [];
+        let data = [];
+        _.each(policyMemberList, (policyMember, email) => {
+            if (policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) { return; }
+            if (email !== this.props.session.email && email !== this.props.policy.owner) {
+                removableMembers.push(email);
+            }
+            const details = lodashGet(this.props.personalDetails, email, {displayName: email, login: email, avatar: Expensicons.FallbackAvatar});
+            data.push({
+                ...policyMember,
+                ...details,
+            });
+        });
+        data = _.sortBy(data, value => value.displayName.toLowerCase());
         const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyName = lodashGet(this.props.policy, 'name');
 
@@ -316,8 +325,8 @@ class WorkspaceMembersPage extends React.Component {
                         confirmText={this.props.translate('common.remove')}
                         cancelText={this.props.translate('common.cancel')}
                     />
-                    <View style={[styles.pageWrapper, styles.flex1]}>
-                        <View style={[styles.w100, styles.flexRow]}>
+                    <View style={[styles.w100, styles.alignItemsCenter, styles.flex1]}>
+                        <View style={[styles.w100, styles.flexRow, styles.pt5, styles.ph5]}>
                             <Button
                                 medium
                                 success
@@ -334,7 +343,7 @@ class WorkspaceMembersPage extends React.Component {
                             />
                         </View>
                         <View style={[styles.w100, styles.mt4, styles.flex1]}>
-                            <View style={[styles.peopleRow]}>
+                            <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
                                 <View style={[styles.peopleRowCell]}>
                                     <Checkbox
                                         isChecked={this.state.selectedEmployees.length === removableMembers.length && removableMembers.length !== 0}
@@ -351,7 +360,8 @@ class WorkspaceMembersPage extends React.Component {
                                 renderItem={this.renderItem}
                                 data={data}
                                 keyExtractor={item => item.login}
-                                showsVerticalScrollIndicator={false}
+                                showsVerticalScrollIndicator
+                                style={[styles.ph5, styles.pb5]}
                             />
                         </View>
                     </View>

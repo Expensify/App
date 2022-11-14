@@ -13,6 +13,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import Tooltip from './Tooltip';
+import reportPropTypes from '../pages/reportPropTypes';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -28,13 +29,7 @@ const personalDetailsPropTypes = PropTypes.shape({
 
 const propTypes = {
     /** The report currently being looked at */
-    report: PropTypes.shape({
-        /** The id of the report */
-        reportID: PropTypes.number,
-
-        /** The report owner's email */
-        ownerEmail: PropTypes.string,
-    }).isRequired,
+    report: reportPropTypes,
 
     /* Onyx Props */
 
@@ -51,6 +46,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    report: {},
     policies: {},
 };
 
@@ -95,7 +91,7 @@ const ReportWelcomeText = (props) => {
                         {roomWelcomeMessage.phrase1}
                     </Text>
                     <Text style={[styles.textStrong]} onPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID))}>
-                        {ReportUtils.getReportName(props.report, props.personalDetails, props.policies)}
+                        {ReportUtils.getReportName(props.report, props.policies)}
                     </Text>
                     <Text>
                         {roomWelcomeMessage.phrase2}
@@ -111,8 +107,8 @@ const ReportWelcomeText = (props) => {
                     {_.map(displayNamesWithTooltips, ({
                         displayName, pronouns, tooltip,
                     }, index) => (
-                        <Text key={displayName}>
-                            <Tooltip text={tooltip}>
+                        <Text key={`${displayName}${pronouns}${index}`}>
+                            <Tooltip text={tooltip} containerStyles={[styles.dInline]}>
                                 <Text style={[styles.textStrong]} onPress={() => Navigation.navigate(ROUTES.getDetailsRoute(participants[index]))}>
                                     {displayName}
                                 </Text>

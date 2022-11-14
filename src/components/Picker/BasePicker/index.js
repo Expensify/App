@@ -10,26 +10,27 @@ class BasePicker extends React.Component {
     constructor(props) {
         super(props);
 
-        this.pickerValue = this.props.defaultValue;
-
-        this.updateSelectedValueAndExecuteOnChange = this.updateSelectedValueAndExecuteOnChange.bind(this);
         this.executeOnCloseAndOnBlur = this.executeOnCloseAndOnBlur.bind(this);
-        this.setNativeProps = this.setNativeProps.bind(this);
     }
 
-    /**
-     * This method mimicks RN's setNativeProps method. It's exposed to Picker's ref and can be used by other components
-     * to directly manipulate Picker's value when Picker is used as an uncontrolled input.
-     *
-     * @param {*} value
-     */
-    setNativeProps({value}) {
-        this.pickerValue = value;
+    componentDidMount() {
+        this.setDefaultValue();
     }
 
-    updateSelectedValueAndExecuteOnChange(value) {
-        this.props.onInputChange(value);
-        this.pickerValue = value;
+    componentDidUpdate(prevProps) {
+        if (prevProps.items === this.props.items) {
+            return;
+        }
+        this.setDefaultValue();
+    }
+
+    setDefaultValue() {
+        // When there is only 1 element in the selector, we do the user a favor and automatically select it for them
+        // so they don't have to spend extra time selecting the only possible value.
+        if (this.props.value || !this.props.items || this.props.items.length !== 1 || !this.props.onInputChange) {
+            return;
+        }
+        this.props.onInputChange(this.props.items[0].key);
     }
 
     executeOnCloseAndOnBlur() {
@@ -39,15 +40,14 @@ class BasePicker extends React.Component {
     }
 
     render() {
-        const hasError = !_.isEmpty(this.props.errorText);
         return (
             <RNPickerSelect
-                onValueChange={this.updateSelectedValueAndExecuteOnChange}
+                onValueChange={this.props.onInputChange}
                 items={this.props.items}
-                style={this.props.size === 'normal' ? basePickerStyles(this.props.disabled, hasError, this.props.focused) : styles.pickerSmall}
+                style={this.props.size === 'normal' ? basePickerStyles(this.props.disabled) : styles.pickerSmall}
                 useNativeAndroidPickerStyle={false}
                 placeholder={this.props.placeholder}
-                value={this.props.value || this.pickerValue}
+                value={this.props.value}
                 Icon={() => this.props.icon(this.props.size)}
                 disabled={this.props.disabled}
                 fixAndroidTouchableBug
@@ -57,15 +57,11 @@ class BasePicker extends React.Component {
                     onFocus: this.props.onOpen,
                     onBlur: this.executeOnCloseAndOnBlur,
                 }}
-                ref={(node) => {
-                    if (!node || !_.isFunction(this.props.innerRef)) {
+                ref={(el) => {
+                    if (!_.isFunction(this.props.innerRef)) {
                         return;
                     }
-
-                    this.props.innerRef(node);
-
-                    // eslint-disable-next-line no-param-reassign
-                    node.setNativeProps = this.setNativeProps;
+                    this.props.innerRef(el);
                 }}
             />
         );

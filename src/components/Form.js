@@ -1,7 +1,7 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import compose from '../libs/compose';
@@ -33,6 +33,7 @@ const propTypes = {
 
     /** Contains the form state that must be accessed outside of the component */
     formState: PropTypes.shape({
+
         /** Controls the loading state of the form */
         isLoading: PropTypes.bool,
 
@@ -47,6 +48,9 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     draftValues: PropTypes.object,
 
+    /** Should the button be enabled when offline */
+    enabledWhenOffline: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -58,6 +62,7 @@ const defaultProps = {
         errorFields: null,
     },
     draftValues: {},
+    enabledWhenOffline: false,
 };
 
 class Form extends React.Component {
@@ -66,10 +71,10 @@ class Form extends React.Component {
 
         this.state = {
             errors: {},
+            inputValues: {},
         };
 
         this.inputRefs = {};
-        this.inputValues = {};
         this.touchedInputs = {};
 
         this.setTouchedInput = this.setTouchedInput.bind(this);
@@ -101,12 +106,12 @@ class Form extends React.Component {
         ));
 
         // Validate form and return early if any errors are found
-        if (!_.isEmpty(this.validate(this.inputValues))) {
+        if (!_.isEmpty(this.validate(this.state.inputValues))) {
             return;
         }
 
         // Call submit handler
-        this.props.onSubmit(this.inputValues);
+        this.props.onSubmit(this.state.inputValues);
     }
 
     /**
@@ -149,6 +154,19 @@ class Form extends React.Component {
                 });
             }
 
+            // Look for any inputs nested in a custom component, e.g AddressForm or IdentityForm
+            if (_.isFunction(child.type)) {
+                const nestedChildren = new child.type(child.props);
+
+                if (!React.isValidElement(nestedChildren) || !lodashGet(nestedChildren, 'props.children')) {
+                    return child;
+                }
+
+                return React.cloneElement(nestedChildren, {
+                    children: this.childrenWrapperWithProps(lodashGet(nestedChildren, 'props.children')),
+                });
+            }
+
             // We check if the child has the inputID prop.
             // We don't want to pass form props to non form components, e.g. View, Text, etc
             if (!child.props.inputID) {
@@ -160,8 +178,12 @@ class Form extends React.Component {
             const defaultValue = this.props.draftValues[inputID] || child.props.defaultValue;
 
             // We want to initialize the input value if it's undefined
-            if (_.isUndefined(this.inputValues[inputID])) {
-                this.inputValues[inputID] = defaultValue;
+            if (_.isUndefined(this.state.inputValues[inputID])) {
+                this.state.inputValues[inputID] = defaultValue;
+            }
+
+            if (!_.isUndefined(child.props.value)) {
+                this.state.inputValues[inputID] = child.props.value;
             }
 
             const errorFields = lodashGet(this.props.formState, 'errorFields', {});
@@ -175,24 +197,28 @@ class Form extends React.Component {
 
             return React.cloneElement(child, {
                 ref: node => this.inputRefs[inputID] = node,
-                defaultValue,
-                errorText: this.state.errors[inputID] || fieldErrorMessage,
+                value: this.state.inputValues[inputID],
+                errorText: (this.state.errors[inputID] || fieldErrorMessage) || '',
                 onBlur: () => {
                     this.setTouchedInput(inputID);
-                    this.validate(this.inputValues);
+                    this.validate(this.state.inputValues);
                 },
                 onInputChange: (value, key) => {
                     const inputKey = key || inputID;
-                    this.inputValues[inputKey] = value;
-                    const inputRef = this.inputRefs[inputKey];
+                    this.setState(prevState => ({
+                        inputValues: {
+                            ...prevState.inputValues,
+                            [inputKey]: value,
+                        },
+                    }), () => this.validate(this.state.inputValues));
 
-                    if (key && inputRef && _.isFunction(inputRef.setNativeProps)) {
-                        inputRef.setNativeProps({value});
-                    }
                     if (child.props.shouldSaveDraft) {
                         FormActions.setDraftValues(this.props.formID, {[inputKey]: value});
                     }
-                    this.validate(this.inputValues);
+
+                    if (child.props.onValueChange) {
+                        child.props.onValueChange(value);
+                    }
                 },
             });
         });
@@ -211,7 +237,7 @@ class Form extends React.Component {
                         {this.props.isSubmitButtonVisible && (
                         <FormAlertWithSubmitButton
                             buttonText={this.props.submitButtonText}
-                            isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.props.formState.error)}
+                            isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.getErrorMessage())}
                             isLoading={this.props.formState.isLoading}
                             message={_.isEmpty(this.props.formState.errorFields) ? this.getErrorMessage() : null}
                             onSubmit={this.submit}
@@ -219,6 +245,7 @@ class Form extends React.Component {
                                 this.inputRefs[_.first(_.keys(this.state.errors))].focus();
                             }}
                             containerStyles={[styles.mh0, styles.mt5]}
+                            enabledWhenOffline={this.props.enabledWhenOffline}
                         />
                         )}
                     </View>
@@ -238,7 +265,7 @@ export default compose(
             key: props => props.formID,
         },
         draftValues: {
-            key: props => `${props.formID}DraftValues`,
+            key: props => `${props.formID}Draft`,
         },
     }),
 )(Form);

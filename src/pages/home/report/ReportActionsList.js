@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import {View, Animated} from 'react-native';
+import {Animated} from 'react-native';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 import compose from '../../../libs/compose';
@@ -17,6 +17,7 @@ import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportActionPropTypes from './reportActionPropTypes';
 import CONST from '../../../CONST';
 import * as StyleUtils from '../../../styles/StyleUtils';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -26,13 +27,7 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The report currently being looked at */
-    report: PropTypes.shape({
-        /** The largest sequenceNumber on this report */
-        maxSequenceNumber: PropTypes.number,
-
-        /** Whether there is an outstanding amount in IOU */
-        hasOutstandingIOU: PropTypes.bool,
-    }).isRequired,
+    report: reportPropTypes.isRequired,
 
     /** Sorted actions prepared for display */
     sortedReportActions: PropTypes.arrayOf(PropTypes.shape({
@@ -43,8 +38,8 @@ const propTypes = {
         action: PropTypes.shape(reportActionPropTypes),
     })).isRequired,
 
-    /** The sequence number of the most recent IOU report connected with the shown report */
-    mostRecentIOUReportSequenceNumber: PropTypes.number,
+    /** The ID of the most recent IOU report action connected with the shown report */
+    mostRecentIOUReportActionID: PropTypes.string,
 
     /** Are we loading more report actions? */
     isLoadingMoreReportActions: PropTypes.bool,
@@ -64,7 +59,7 @@ const propTypes = {
 
 const defaultProps = {
     personalDetails: {},
-    mostRecentIOUReportSequenceNumber: undefined,
+    mostRecentIOUReportActionID: '',
     isLoadingMoreReportActions: false,
 };
 
@@ -72,7 +67,6 @@ class ReportActionsList extends React.Component {
     constructor(props) {
         super(props);
         this.renderItem = this.renderItem.bind(this);
-        this.renderCell = this.renderCell.bind(this);
         this.keyExtractor = this.keyExtractor.bind(this);
 
         this.state = {
@@ -114,7 +108,7 @@ class ReportActionsList extends React.Component {
      * @return {String}
      */
     keyExtractor(item) {
-        return `${item.action.clientID}${item.action.reportActionID}${item.action.sequenceNumber}`;
+        return `${item.action.clientID}${item.action.reportActionID}`;
     }
 
     /**
@@ -144,30 +138,11 @@ class ReportActionsList extends React.Component {
                 action={item.action}
                 displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.props.sortedReportActions, index)}
                 shouldDisplayNewIndicator={shouldDisplayNewIndicator}
-                isMostRecentIOUReportAction={item.action.sequenceNumber === this.props.mostRecentIOUReportSequenceNumber}
+                isMostRecentIOUReportAction={item.action.reportActionID === this.props.mostRecentIOUReportActionID}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
             />
         );
-    }
-
-    /**
-     * This function overrides the CellRendererComponent (defaults to a plain View), giving each ReportActionItem a
-     * higher z-index than the one below it. This prevents issues where the ReportActionContextMenu overlapping between
-     * rows is hidden beneath other rows.
-     *
-     * @param {Object} index - The ReportAction item in the FlatList.
-     * @param {Object|Array} style – The default styles of the CellRendererComponent provided by the CellRenderer.
-     * @param {Object} props – All the other Props provided to the CellRendererComponent by default.
-     * @returns {React.Component}
-     */
-    renderCell({item, style, ...props}) {
-        const cellStyle = [
-            style,
-            {zIndex: item.action.sequenceNumber},
-        ];
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        return <View style={cellStyle} {...props} />;
     }
 
     render() {

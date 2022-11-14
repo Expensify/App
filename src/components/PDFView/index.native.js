@@ -1,10 +1,9 @@
 import React, {Component} from 'react';
-import {TouchableWithoutFeedback, View} from 'react-native';
+import {TouchableWithoutFeedback, View, KeyboardAvoidingView} from 'react-native';
 import PDF from 'react-native-pdf';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import KeyboardAvoidingView from '../KeyboardAvoidingView';
 import PDFPasswordForm from './PDFPasswordForm';
 import * as pdfViewPropTypes from './pdfViewPropTypes';
 import compose from '../../libs/compose';
@@ -133,7 +132,7 @@ class PDFView extends Component {
                     <TouchableWithoutFeedback style={touchableStyles}>
                         <PDF
                             trustAllCerts={false}
-                            activityIndicator={<FullScreenLoadingIndicator />}
+                            renderActivityIndicator={() => <FullScreenLoadingIndicator />}
                             source={{uri: this.props.sourceURL}}
                             style={pdfStyles}
                             onError={this.initiatePasswordChallenge}
@@ -143,7 +142,7 @@ class PDFView extends Component {
                     </TouchableWithoutFeedback>
                 )}
                 {this.state.shouldRequestPassword && (
-                    <KeyboardAvoidingView>
+                    <KeyboardAvoidingView style={styles.flex1}>
                         <PDFPasswordForm
                             onSubmit={this.attemptPdfLoadWithPassword}
                             onPasswordUpdated={() => this.setState({isPasswordInvalid: false})}

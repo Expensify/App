@@ -55,14 +55,13 @@ function getSortedReportActions(reportActions) {
  * Finds most recent IOU report action number.
  *
  * @param {Array} reportActions
- * @returns {Number}
+ * @returns {String}
  */
-function getMostRecentIOUReportSequenceNumber(reportActions) {
+function getMostRecentIOUReportActionID(reportActions) {
     return _.chain(reportActions)
-        .sortBy('sequenceNumber')
-        .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU)
+        .where({actionName: CONST.REPORT.ACTIONS.TYPE.IOU})
         .max(action => action.sequenceNumber)
-        .value().sequenceNumber;
+        .value().reportActionID;
 }
 
 /**
@@ -99,7 +98,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
 
 /**
  * Get the message text for the last action that was not deleted
- * @param {Number} reportID
+ * @param {String} reportID
  * @param {Object} [actionsToMerge]
  * @return {String}
  */
@@ -120,7 +119,7 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
 }
 
 /**
- * @param {Number} reportID
+ * @param {String} reportID
  * @param {Object} [actionsToMerge]
  * @param {Number} deletedSequenceNumber
  * @param {Number} lastReadSequenceNumber
@@ -151,7 +150,7 @@ export {
     getOptimisticLastReadSequenceNumberForDeletedAction,
     getLastVisibleMessageText,
     getSortedReportActions,
-    getMostRecentIOUReportSequenceNumber,
+    getMostRecentIOUReportActionID,
     isDeletedAction,
     isConsecutiveActionMadeByPreviousActor,
 };

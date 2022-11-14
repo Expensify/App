@@ -19,6 +19,7 @@ export default {
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
         password: 'Contraseña',
+        workspaces: 'Espacios de trabajo',
         profile: 'Perfil',
         payments: 'Pagos',
         preferences: 'Preferencias',
@@ -81,7 +82,7 @@ export default {
         error: {
             invalidAmount: 'Monto no válido',
             acceptedTerms: 'Debes aceptar los Términos de servicio para continuar',
-            phoneNumber: `Ingresa un teléfono válido, incluyendo el código de país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+            phoneNumber: `Ingresa un teléfono válido, incluyendo el código de país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
         please: 'Por favor',
         contactUs: 'contáctenos',
@@ -118,7 +119,7 @@ export default {
         chooseFromGallery: 'Elegir de la galería',
         chooseDocument: 'Elegir documento',
         attachmentTooLarge: 'Archivo adjunto demasiado grande',
-        sizeExceeded: 'El archivo adjunto supera el límite de 50 MB.',
+        sizeExceeded: 'El archivo adjunto supera el límite de 24 MB.',
         attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
         sizeNotMet: 'El archivo adjunto debe ser mas grande que 240 bytes',
         wrongFileType: 'El tipo del archivo adjunto es incorrecto',
@@ -210,7 +211,8 @@ export default {
         beginningOfChatHistory: 'Aquí comienza tu historial de conversaciones con ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: '¡La colaboración entre ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
-        beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! :tada: Este es el lugar donde chatear, pedir dinero y pagar.',
+        beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! 🎉 Este es el lugar donde chatear, pedir dinero y pagar.',
+        chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
     },
     newMessages: 'Mensajes nuevos',
     reportTypingIndicator: {
@@ -234,6 +236,8 @@ export default {
         buttonSearch: 'Buscar',
         buttonMySettings: 'Mi configuración',
         fabNewChat: 'Nuevo chat',
+        chatPinned: 'Chat fijado',
+        draftedMessage: 'Mensaje borrador',
     },
     iou: {
         amount: 'Importe',
@@ -257,6 +261,9 @@ export default {
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
+            genericCreateFailureMessage: 'Error inesperado solicitando dinero, por favor inténtalo más tarde',
+            genericCancelFailureMessage: ({type}) => `Error inesperado al ${type === 'decline' ? 'rechazar' : 'cancelar'} la solicitud de dinero, por favor inténtalo más tarde`,
+
         },
     },
     notificationPreferences: {
@@ -296,6 +303,12 @@ export default {
         online: 'En línea',
         offline: 'Desconectado',
         syncing: 'Sincronizando',
+    },
+    displayNamePage: {
+        headerTitle: 'Nombre',
+        isShownOnProfile: 'Este nombre es visible en su perfil.',
+        john: 'Juan',
+        doe: 'Nadie',
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Agregar número de teléfono',
@@ -371,7 +384,6 @@ export default {
         yourPayPalUsername: 'Tu usuario de PayPal',
         addPayPalAccount: 'Agregar cuenta de PayPal',
         growlMessageOnSave: 'Su nombre de usuario de PayPal se agregó correctamente',
-        editPayPalAccount: 'Actualizar cuenta de PayPal',
         formatError: 'Usuario PayPal.me no válido',
     },
     addDebitCardPage: {
@@ -411,7 +423,7 @@ export default {
             notOwnerOfFund: 'Ha ocurrido un error al establecer esta tarjeta de crédito como tu método de pago predeterminado.',
             setDefaultFailure: 'No se pudo configurar el método de pago.',
         },
-        addBankAccountFailure: 'Y ocurrió un error inesperado al intentar agregar su cuenta bancaria. Inténtalo de nuevo.',
+        addBankAccountFailure: 'Ocurrió un error inesperado al intentar agregar su cuenta bancaria. Inténtalo de nuevo.',
     },
     transferAmountPage: {
         transfer: ({amount}) => `Transferir${amount ? ` ${amount}` : ''}`,
@@ -524,6 +536,7 @@ export default {
         iouReportNotFound: 'Los detalles del pago que estás buscando no se pudieron encontrar.',
         notHere: 'Hmm… no está aquí',
         pageNotFound: 'La página que buscas no existe.',
+        noAccess: 'No tienes acceso a este chat',
     },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
@@ -563,7 +576,6 @@ export default {
             addressStreet: 'Ingresa una calle de dirección válida que no sea un apartado postal',
             addressState: 'Por favor, selecciona un estado',
             incorporationDate: 'Ingresa una fecha válida',
-            incorporationDateFuture: 'La fecha de incorporación no puede ser futura',
             incorporationState: 'Ingresa un estado válido',
             industryCode: 'Ingresa un código de clasificación de industria válido',
             restrictedBusiness: 'Confirma que la empresa no está en la lista de negocios restringidos',
@@ -719,7 +731,8 @@ export default {
         headerTitle: 'Habilitar pagos',
         activatedTitle: '¡Billetera  activada!',
         activatedMessage: 'Felicidades, tu Billetera está configurada y lista para hacer pagos.',
-        checkBackLater: 'Todavía estamos revisando tu información. Por favor, vuelva más tarde.',
+        checkBackLaterTitle: 'Un momento...',
+        checkBackLaterMessage: 'Todavía estamos revisando tu información. Por favor, vuelva más tarde.',
         continueToPayment: 'Continuar al pago',
         continueToTransfer: 'Continuar a la transferencia',
     },
@@ -811,6 +824,10 @@ export default {
             growlMessageOnDeleteError: 'No se puede eliminar el espacio de trabajo porque tiene informes que están siendo procesados',
             unavailable: 'Espacio de trabajo no disponible',
         },
+        emptyWorkspace: {
+            title: 'Crear un nuevo espacio de trabajo',
+            subtitle: 'En los espacios de trabajo es donde puedes chatear con tu equipo, reembolsar gastos, emitir tarjetas, enviar y pagar facturas y mas — todo en un mismo lugar',
+        },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
             getTheExpensifyCardAndMore: 'Consigue la Tarjeta Expensify y más',
@@ -823,6 +840,7 @@ export default {
             error: {
                 genericAdd: 'Ha ocurrido un problema al agregar el miembro al espacio de trabajo',
                 cannotRemove: 'No puedes eliminarte ni a ti mismo ni al dueño del espacio de trabajo.',
+                genericRemove: 'Ha ocurrido un problema al eliminar al miembro del espacio de trabajo.',
             },
         },
         card: {
@@ -951,8 +969,8 @@ export default {
         },
         error: {
             phoneNumberExtension: 'Por favor, introduzca una extensión telefónica válida',
-            firstName: 'Por favor ingresa tu nombre!',
-            lastName: 'Por favor ingresa tu apellido!',
+            firstName: 'Por favor ingresa tu nombre',
+            lastName: 'Por favor ingresa tu apellido',
             firstNameLength: 'El nombre no debe tener más de 50 caracteres',
             lastNameLength: 'El apellido no debe tener más de 50 caracteres',
         },
@@ -966,9 +984,10 @@ export default {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
         headers: {
             frequentlyUsed: 'Usado frecuentemente',
-            smileysAndPeople: 'Emoticonos y personas',
+            smileysAndEmotion: 'Emoticonos y emociones',
+            peopleAndBody: 'Personas y Cuerpo',
             animalsAndNature: 'Animales y naturaleza',
-            foodAndDrinks: 'Alimentos y bebidas',
+            foodAndDrink: 'Alimentos y bebidas',
             travelAndPlaces: 'Viajes y lugares',
             activities: 'Actividades',
             objects: 'Objetos',
@@ -990,7 +1009,6 @@ export default {
         renamedRoomAction: ({oldName, newName}) => ` cambió el nombre de la sala de ${oldName} a ${newName}`,
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
-        growlMessageOnError: 'No se pudo crear el espacio de trabajo, por favor comprueba tu conexión e inténtalo de nuevo.',
         growlMessageOnRenameError: 'No se pudo cambiar el nomdre del espacio de trabajo, por favor comprueba tu conexión e inténtalo de nuevo.',
         visibilityOptions: {
             restricted: 'Restringida',

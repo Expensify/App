@@ -3,6 +3,7 @@ import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {Freeze} from 'react-freeze';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -25,6 +26,7 @@ import withWindowDimensions from '../../../components/withWindowDimensions';
 import reportActionPropTypes from '../report/reportActionPropTypes';
 import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -39,16 +41,7 @@ const propTypes = {
     /* Onyx Props */
     /** List of reports */
     // eslint-disable-next-line react/no-unused-prop-types
-    reports: PropTypes.objectOf(PropTypes.shape({
-        /** ID of the report */
-        reportID: PropTypes.number,
-
-        /** Name of the report */
-        reportName: PropTypes.string,
-
-        /** Whether the report has a draft comment */
-        hasDraft: PropTypes.bool,
-    })),
+    reports: PropTypes.objectOf(reportPropTypes),
 
     /** All report actions for all reports */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -66,8 +59,8 @@ const propTypes = {
         avatar: PropTypes.string,
     }),
 
-    /** Currently viewed reportID */
-    currentlyViewedReportID: PropTypes.string,
+    /** Current reportID from the route in react navigation state object */
+    reportIDFromRoute: PropTypes.string,
 
     /** Whether we are viewing below the responsive breakpoint */
     isSmallScreenWidth: PropTypes.bool.isRequired,
@@ -85,7 +78,7 @@ const defaultProps = {
     currentUserPersonalDetails: {
         avatar: ReportUtils.getDefaultAvatar(),
     },
-    currentlyViewedReportID: '',
+    reportIDFromRoute: '',
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
 
@@ -99,7 +92,7 @@ class SidebarLinks extends React.Component {
         if (_.isEmpty(this.props.personalDetails)) {
             return null;
         }
-        const optionListItems = SidebarUtils.getOrderedReportIDs();
+        const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
         return (
             <View
                 accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
@@ -144,23 +137,28 @@ class SidebarLinks extends React.Component {
                         />
                     </TouchableOpacity>
                 </View>
-                <LHNOptionsList
-                    contentContainerStyles={[
-                        styles.sidebarListContainer,
-                        {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
-                    ]}
-                    data={optionListItems}
-                    focusedIndex={_.findIndex(optionListItems, (
-                        option => option.toString() === this.props.currentlyViewedReportID
-                    ))}
-                    onSelectRow={(option) => {
-                        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
-                        this.props.onLinkClick();
-                    }}
-                    shouldDisableFocusOptions={this.props.isSmallScreenWidth}
-                    optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
-                    onLayout={App.setSidebarLoaded}
-                />
+                <Freeze freeze={this.props.isSmallScreenWidth && !this.props.isDrawerOpen && this.isSidebarLoaded}>
+                    <LHNOptionsList
+                        contentContainerStyles={[
+                            styles.sidebarListContainer,
+                            {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
+                        ]}
+                        data={optionListItems}
+                        focusedIndex={_.findIndex(optionListItems, (
+                            option => option.toString() === this.props.reportIDFromRoute
+                        ))}
+                        onSelectRow={(option) => {
+                            Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+                            this.props.onLinkClick();
+                        }}
+                        shouldDisableFocusOptions={this.props.isSmallScreenWidth}
+                        optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
+                        onLayout={() => {
+                            App.setSidebarLoaded();
+                            this.isSidebarLoaded = true;
+                        }}
+                    />
+                </Freeze>
             </View>
         );
     }
@@ -168,6 +166,65 @@ class SidebarLinks extends React.Component {
 
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
+
+/**
+ * This function (and the few below it), narrow down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
+ * and makes the entire component more performant because it's not re-rendering when a bunch of properties change which aren't ever used in the UI.
+ * @param {Object} [report]
+ * @returns {Object|undefined}
+ */
+const reportSelector = report => report && ({
+    reportID: report.reportID,
+    participants: report.participants,
+    hasDraft: report.hasDraft,
+    isPinned: report.isPinned,
+    errorFields: {
+        addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
+    },
+    maxSequenceNumber: report.maxSequenceNumber,
+    lastReadSequenceNumber: report.lastReadSequenceNumber,
+    lastMessageText: report.lastMessageText,
+    lastMessageTimestamp: report.lastMessageTimestamp,
+    iouReportID: report.iouReportID,
+    hasOutstandingIOU: report.hasOutstandingIOU,
+    statusNum: report.statusNum,
+    stateNum: report.stateNum,
+    chatType: report.chatType,
+    policyID: report.policyID,
+});
+
+/**
+ * @param {Object} [personalDetails]
+ * @returns {Object|undefined}
+ */
+const personalDetailsSelector = personalDetails => _.reduce(personalDetails, (finalPersonalDetails, personalData, login) => {
+    // It's OK to do param-reassignment in _.reduce() because we absolutely know the starting state of finalPersonalDetails
+    // eslint-disable-next-line no-param-reassign
+    finalPersonalDetails[login] = {
+        login: personalData.login,
+        displayName: personalData.displayName,
+        firstName: personalData.firstName,
+        avatar: personalData.avatar,
+    };
+    return finalPersonalDetails;
+}, {});
+
+/**
+ * @param {Object} [reportActions]
+ * @returns {Object|undefined}
+ */
+const reportActionsSelector = reportActions => reportActions && _.map(reportActions, reportAction => ({
+    errors: reportAction.errors,
+}));
+
+/**
+ * @param {Object} [policy]
+ * @returns {Object|undefined}
+ */
+const policySelector = policy => policy && ({
+    type: policy.type,
+    name: policy.name,
+});
 
 export default compose(
     withLocalize,
@@ -181,12 +238,11 @@ export default compose(
         // with 10,000 withOnyx() connections, it would have unknown performance implications.
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
+            selector: reportSelector,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        currentlyViewedReportID: {
-            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+            selector: personalDetailsSelector,
         },
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
@@ -196,9 +252,11 @@ export default compose(
         },
         reportActions: {
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+            selector: reportActionsSelector,
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+            selector: policySelector,
         },
         preferredLocale: {
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,

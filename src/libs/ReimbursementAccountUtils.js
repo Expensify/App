@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import * as BankAccounts from './actions/BankAccounts';
 import FormHelper from './FormHelper';
@@ -27,6 +28,19 @@ function getDefaultStateForField(props, fieldName, defaultValue = '') {
 
 /**
  * @param {Object} props
+ * @param {Array} fieldNames
+ *
+ * @returns {*}
+ */
+function getBankAccountFields(props, fieldNames) {
+    return {
+        ..._.pick(lodashGet(props, 'reimbursementAccount.achData'), ...fieldNames),
+        ..._.pick(props.reimbursementAccountDraft, ...fieldNames),
+    };
+}
+
+/**
+ * @param {Object} props
  * @param {Object} errorTranslationKeys
  * @param {String} inputKey
  * @returns {String}
@@ -42,4 +56,5 @@ export {
     clearError,
     clearErrors,
     getErrorText,
+    getBankAccountFields,
 };

@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import BasePicker from './BasePicker';
 import Text from '../Text';
 import styles from '../../styles/styles';
-import InlineErrorText from '../InlineErrorText';
+import FormHelpMessage from '../FormHelpMessage';
 
 const propTypes = {
     /** Picker label */
@@ -29,6 +29,9 @@ const propTypes = {
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft: PropTypes.bool,
+
+    /** A callback method that is called when the value changes and it receives the selected value as an argument */
+    onInputChange: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -47,10 +50,29 @@ class Picker extends PureComponent {
         this.state = {
             isOpen: false,
         };
+
+        this.onInputChange = this.onInputChange.bind(this);
+    }
+
+    /**
+     * Forms use inputID to set values. But Picker passes an index as the second parameter to onInputChange
+     * We are overriding this behavior to make Picker work with Form
+     * @param {String} value
+     * @param {Number} index
+     */
+    onInputChange(value, index) {
+        if (this.props.inputID) {
+            this.props.onInputChange(value);
+            return;
+        }
+
+        this.props.onInputChange(value, index);
     }
 
     render() {
         const pickerProps = _.omit(this.props, _.keys(propTypes));
+        const hasError = !_.isEmpty(this.props.errorText);
+
         return (
             <>
                 <View
@@ -58,6 +80,8 @@ class Picker extends PureComponent {
                         styles.pickerContainer,
                         this.props.isDisabled && styles.inputDisabled,
                         ...this.props.containerStyles,
+                        this.state.isOpen && styles.borderColorFocus,
+                        hasError && styles.borderColorDanger,
                     ]}
                 >
                     {this.props.label && (
@@ -67,16 +91,13 @@ class Picker extends PureComponent {
                         onOpen={() => this.setState({isOpen: true})}
                         onClose={() => this.setState({isOpen: false})}
                         disabled={this.props.isDisabled}
-                        focused={this.state.isOpen}
-                        errorText={this.props.errorText}
                         value={this.props.value}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...pickerProps}
+                        onInputChange={this.onInputChange}
                     />
                 </View>
-                <InlineErrorText styles={[styles.mh3]}>
-                    {this.props.errorText}
-                </InlineErrorText>
+                <FormHelpMessage message={this.props.errorText} />
             </>
         );
     }

@@ -18,22 +18,14 @@ import * as Link from './Link';
 import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
 import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
-import DateUtils from '../DateUtils';
+import * as LoginUtils from '../LoginUtils';
 
-let sessionAuthToken = '';
 let currentUserAccountID = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        sessionAuthToken = lodashGet(val, 'authToken', '');
         currentUserAccountID = lodashGet(val, 'accountID', '');
     },
-});
-
-let currentlyViewedReportID = '';
-Onyx.connect({
-    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-    callback: val => currentlyViewedReportID = val || '',
 });
 
 /**
@@ -112,10 +104,12 @@ function getUserDetails() {
     })
         .then((response) => {
             // Update the User onyx key
-            const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             const isSubscribedToNewsletter = lodashGet(response, 'account.subscribed', true);
             const validatedStatus = lodashGet(response, 'account.validated', false);
             Onyx.merge(ONYXKEYS.USER, {isSubscribedToNewsletter: !!isSubscribedToNewsletter, validated: !!validatedStatus});
+
+            // Update login list
+            const loginList = LoginUtils.cleanLoginListServerResponse(response.loginList);
             Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
 
             // Update the nvp_payPalMeAddress NVP
@@ -185,7 +179,7 @@ function setSecondaryLoginAndNavigate(login, password) {
         password,
     }).then((response) => {
         if (response.jsonCode === 200) {
-            const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
+            const loginList = LoginUtils.cleanLoginListServerResponse(response.loginList);
             Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
             Navigation.navigate(ROUTES.SETTINGS_PROFILE);
             return;
@@ -214,31 +208,22 @@ function setSecondaryLoginAndNavigate(login, password) {
  * @param {String} validateCode
  */
 function validateLogin(accountID, validateCode) {
-    const isLoggedIn = !_.isEmpty(sessionAuthToken);
-    const redirectRoute = isLoggedIn ? ROUTES.getReportRoute(currentlyViewedReportID) : ROUTES.HOME;
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
 
-    DeprecatedAPI.ValidateEmail({
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+    API.write('ValidateLogin', {
         accountID,
         validateCode,
-    }).then((response) => {
-        if (response.jsonCode === 200) {
-            const {email} = response;
-
-            if (isLoggedIn) {
-                getUserDetails();
-            } else {
-                // Let the user know we've successfully validated their login
-                const success = lodashGet(response, 'message', `Your secondary login ${email} has been validated.`);
-                Onyx.merge(ONYXKEYS.ACCOUNT, {success});
-            }
-        } else {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('resendValidationForm.validationCodeFailedMessage')}});
-        }
-    }).finally(() => {
-        Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
-        Navigation.navigate(redirectRoute);
-    });
+    }, {optimisticData});
+    Navigation.navigate(ROUTES.HOME);
 }
 
 /**

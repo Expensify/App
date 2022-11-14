@@ -63,6 +63,9 @@ const propTypes = {
     /** A function that is called when the button is released */
     onPressOut: PropTypes.func,
 
+    /** Callback that is called when mousedown is triggered. */
+    onMouseDown: PropTypes.func,
+
     /** Call the onPress function when Enter key is pressed */
     pressOnEnter: PropTypes.bool,
 
@@ -106,9 +109,6 @@ const propTypes = {
 
     /** Id to use for this button */
     nativeID: PropTypes.string,
-
-    /** Whether text in Button should selectable */
-    textSelectable: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -127,6 +127,7 @@ const defaultProps = {
     onLongPress: () => {},
     onPressIn: () => {},
     onPressOut: () => {},
+    onMouseDown: undefined,
     pressOnEnter: false,
     enterKeyEventListenerPriority: 0,
     style: [],
@@ -139,7 +140,6 @@ const defaultProps = {
     shouldRemoveLeftBorderRadius: false,
     shouldEnableHapticFeedback: false,
     nativeID: '',
-    textSelectable: true,
 };
 
 class Button extends Component {
@@ -183,7 +183,7 @@ class Button extends Component {
 
         const textComponent = (
             <Text
-                selectable={this.props.textSelectable}
+                selectable={false}
                 style={[
                     this.props.isLoading && styles.opacity0,
                     styles.pointerEventsNone,
@@ -253,6 +253,7 @@ class Button extends Component {
                 }}
                 onPressIn={this.props.onPressIn}
                 onPressOut={this.props.onPressOut}
+                onMouseDown={this.props.onMouseDown}
                 disabled={this.props.isLoading || this.props.isDisabled}
                 style={[
                     this.props.isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},

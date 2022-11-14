@@ -78,7 +78,7 @@ class BigNumberPad extends React.Component {
                                         ControlSelection.unblock();
                                         this.props.longPressHandlerStateChanged(false);
                                     }}
-                                    textSelectable={false}
+                                    onMouseDown={e => e.preventDefault()}
                                 />
                             );
                         })}

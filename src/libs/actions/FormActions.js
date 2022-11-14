@@ -29,7 +29,7 @@ function setErrorFields(formID, errorFields) {
  * @param {Object} draftValues
  */
 function setDraftValues(formID, draftValues) {
-    Onyx.merge(`${formID}DraftValues`, draftValues);
+    Onyx.merge(`${formID}Draft`, draftValues);
 }
 
 export {

@@ -20,7 +20,6 @@ import KeyboardShortcut from '../../KeyboardShortcut';
 import Navigation from '../Navigation';
 import * as User from '../../actions/User';
 import * as Modal from '../../actions/Modal';
-import * as Policy from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 
@@ -87,7 +86,6 @@ class AuthScreens extends React.Component {
         super(props);
 
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
-        Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
     }
 
     componentDidMount() {
@@ -100,7 +98,6 @@ class AuthScreens extends React.Component {
             authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=AuthenticatePusher`,
         }).then(() => {
             User.subscribeToUserEvents();
-            Policy.subscribeToPolicyEvents();
         });
 
         // Listen for report changes and fetch some data we need on initialization

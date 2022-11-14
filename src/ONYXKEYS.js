@@ -5,6 +5,9 @@ export default {
     // Holds information about the users account that is logging in
     ACCOUNT: 'account',
 
+    // Holds the reportID for the report between the user and their account manager
+    ACCOUNT_MANAGER_REPORT_ID: 'accountManagerReportID',
+
     // Boolean flag only true when first set
     NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
 
@@ -20,9 +23,6 @@ export default {
 
     // Stores current date
     CURRENT_DATE: 'currentDate',
-
-    // Currently viewed reportID
-    CURRENTLY_VIEWED_REPORTID: 'currentlyViewedReportID',
 
     // Credentials to authenticate the user
     CREDENTIALS: 'credentials',
@@ -155,11 +155,8 @@ export default {
     // Is report data loading?
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
 
-    // Is policy data loading?
-    IS_LOADING_POLICY_DATA: 'isLoadingPolicyData',
-
-    // Are we loading the create policy room command
-    IS_LOADING_CREATE_POLICY_ROOM: 'isLoadingCratePolicyRoom',
+    // Are we loading the initial app data?
+    IS_LOADING_INITIAL_APP_DATA: 'isLoadingInitialAppData',
 
     // Is Keyboard shortcuts modal open?
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
@@ -177,5 +174,12 @@ export default {
     FORMS: {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
         REQUEST_CALL_FORM: 'requestCallForm',
+        REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
+        WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
+        PROFILE_SETTINGS_FORM: 'profileSettingsForm',
+        DISPLAY_NAME_FORM: 'displayNameForm',
     },
+
+    // Whether we should show the compose input or not
+    SHOULD_SHOW_COMPOSE_INPUT: 'shouldShowComposeInput',
 };
