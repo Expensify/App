@@ -263,7 +263,6 @@ export default {
             other: 'Error inesperado, por favor inténtalo más tarde',
             genericCreateFailureMessage: 'Error inesperado solicitando dinero, por favor inténtalo más tarde',
             genericCancelFailureMessage: ({type}) => `Error inesperado al ${type === 'decline' ? 'rechazar' : 'cancelar'} la solicitud de dinero, por favor inténtalo más tarde`,
-
         },
     },
     notificationPreferences: {
@@ -309,10 +308,21 @@ export default {
         isShownOnProfile: 'Tus pronombres se muestran en tu perfil.',
     },
     pronouns: {
+        coCos: 'Co / Cos',
+        eEyEmEir: 'E / Ey / Em / Eir',
+        faeFaer: 'Fae / Faer',
         heHimHis: 'Él',
         sheHerHers: 'Ella',
+        merMers: 'Mer / Mers',
+        neNirNirs: 'Ne / Nir / Nirs',
+        neeNerNers: 'Nee / Ner / Ners',
+        perPers: 'Per / Pers',
         theyThemTheirs: 'Ellos',
-        zeHirHirs: 'Ze/hir',
+        thonThons: 'Thon / Thons',
+        veVerVis: 'Ve / Ver / Vis',
+        viVir: 'Vi / Vir',
+        xeXemXyr: 'Xe / Xem / Xyr',
+        zeHirHirs: 'Ze / Hir',
         callMeByMyName: 'Llámame por mi nombre',
     },
     displayNamePage: {
