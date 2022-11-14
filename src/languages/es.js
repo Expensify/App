@@ -322,7 +322,7 @@ export default {
         veVerVis: 'Ve / Ver / Vis',
         viVir: 'Vi / Vir',
         xeXemXyr: 'Xe / Xem / Xyr',
-        zeHirHirs: 'Ze / Hir',
+        zeZieZirHir: 'Ze / Zie / Zir / Hir',
         callMeByMyName: 'Llámame por mi nombre',
     },
     displayNamePage: {
