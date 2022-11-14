@@ -49,6 +49,7 @@ const propTypes = {
     inputID: PropTypes.string,
 
     /** Saves a draft of the input value when used in a form */
+    // eslint-disable-next-line react/no-unused-prop-types
     shouldSaveDraft: PropTypes.bool,
 
     /** A callback method that is called when the value changes and it receives the selected value as an argument */
