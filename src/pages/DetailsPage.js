@@ -155,10 +155,7 @@ class DetailsPage extends React.PureComponent {
                                                 ? 'common.phoneNumber'
                                                 : 'common.email')}
                                         </Text>
-                                        <CommunicationsLink
-                                            type={isSMSLogin ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL}
-                                            value={isSMSLogin ? getPhoneNumber(details) : details.login}
-                                        >
+                                        <CommunicationsLink value={isSMSLogin ? getPhoneNumber(details) : details.login}>
                                             <Tooltip text={isSMSLogin ? getPhoneNumber(details) : details.login}>
                                                 <Text numberOfLines={1}>
                                                     {isSMSLogin
