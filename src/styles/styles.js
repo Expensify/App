@@ -1230,6 +1230,8 @@ const styles = {
     appContent: {
         backgroundColor: themeColors.appBG,
         overflow: 'hidden',
+        userSelect: 'auto',
+        WebkitUserSelect: 'auto',
     },
 
     appContentHeader: {
