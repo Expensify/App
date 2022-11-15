@@ -291,8 +291,6 @@ class IOUModal extends Component {
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
             IOU.sendMoneyWithWallet(
                 lodashGet(this.props, 'route.params.reportID', ''),
-                '',
-                '',
                 amount,
                 currency,
                 comment,
