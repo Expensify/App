@@ -1,8 +1,9 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Base application theme. -->
+    <!-- App Theme for Android versions 7.1 and below -->
     <style name="AppTheme" parent="BaseAppTheme"/>
 
+    <!-- Base application theme. Applied to all Android versions -->
     <style name="BaseAppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:textColor">@color/dark</item>
         <item name="android:colorEdgeEffect">@color/gray4</item>
@@ -12,8 +13,9 @@
         <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
     </style>
 
+    <!-- Themes unique to the boot splash page -->
     <style name="BootTheme" parent="AppTheme">
-        <!-- set the generated bootsplash.xml drawable as activity background -->
         <item name="android:background">@drawable/bootsplash</item>
     </style>
+
 </resources>
