@@ -1,6 +1,18 @@
 const Url = require('../../src/libs/Url');
 
 describe('Url', () => {
+    describe('getURLObject()', () => {
+        it('It should work correctly', () => {
+            expect(Url.getURLObject('https://new.expensify.com/inbox/124')).toEqual({
+                href: 'https://new.expensify.com/inbox/124',
+                host: 'new.expensify.com',
+                hostname: 'new.expensify.com',
+                path: '/inbox/124',
+                port: undefined,
+                protocol: 'https:',
+            });
+        });
+    });
     describe('hasSameOrigin()', () => {
         describe('happy path', () => {
             it('It should work correctly', () => {
