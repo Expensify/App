@@ -56,6 +56,11 @@ class EmojiPicker extends React.Component {
      * @param {String} emoji
      */
     selectEmoji(emoji) {
+        // Prevent fast click / multiple emoji selection
+        if (!this.emojiPopoverAnchor) {
+            return;
+        }
+
         this.hideEmojiPicker();
         if (_.isFunction(this.onEmojiSelected)) {
             this.onEmojiSelected(emoji);
