@@ -173,7 +173,7 @@ class ReportActionItem extends Component {
                     event.target.blur();
                 }}
             >
-                <Hoverable resetsOnClickOutside>
+                <Hoverable>
                     {hovered => (
                         <View accessibilityLabel="Chat message">
                             {this.props.shouldDisplayNewIndicator && (

@@ -153,13 +153,9 @@ class ReportScreen extends React.Component {
     isReportReadyForDisplay() {
         const reportIDFromPath = getReportID(this.props.route);
 
-        // We need to wait for the initial app data to load as it tells us which reports are unread. Waiting will allow the new marker to be set
-        // correctly when the report mounts. If we don't do this, the report may initialize in the "read" state and the marker won't be set at all.
-        const isLoadingInitialAppData = this.props.isLoadingInitialAppData;
-
         // This is necessary so that when we are retrieving the next report data from Onyx the ReportActionsView will remount completely
         const isTransitioning = this.props.report && this.props.report.reportID !== reportIDFromPath;
-        return reportIDFromPath && this.props.report.reportID && !isTransitioning && !isLoadingInitialAppData;
+        return reportIDFromPath && this.props.report.reportID && !isTransitioning;
     }
 
     fetchReportIfNeeded() {
@@ -172,7 +168,7 @@ class ReportScreen extends React.Component {
             return;
         }
 
-        Report.fetchChatReportsByIDs([reportIDFromPath], true);
+        Report.openReport(reportIDFromPath);
     }
 
     /**
@@ -292,7 +288,7 @@ class ReportScreen extends React.Component {
                                 this.setState({skeletonViewContainerHeight});
                             }}
                         >
-                            {this.isReportReadyForDisplay() && (
+                            {(this.isReportReadyForDisplay() && !isLoadingInitialReportActions) && (
                                 <ReportActionsView
                                     reportActions={this.props.reportActions}
                                     report={this.props.report}
@@ -310,6 +306,7 @@ class ReportScreen extends React.Component {
                                     containerHeight={this.state.skeletonViewContainerHeight}
                                 />
                             )}
+
                             <ReportFooter
                                 errors={addWorkspaceRoomOrChatErrors}
                                 pendingAction={addWorkspaceRoomOrChatPendingAction}
@@ -363,9 +360,6 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        isLoadingInitialAppData: {
-            key: ONYXKEYS.IS_LOADING_INITIAL_APP_DATA,
         },
     }),
 )(ReportScreen);
