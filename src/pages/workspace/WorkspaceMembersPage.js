@@ -73,7 +73,14 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     componentDidMount() {
-        const clientMemberEmails = _.keys(this.props.policyMemberList);
+        /**
+         * clientMemberEmails should be filtered to only pass valid members, failure to do so
+         * will remove all non-exisiting members that should be displayed (e.g. non-exisiting members that should report an error)
+         * this is due to the merge from Onyx.
+         * Every valid member has the "role" property, thus the filter is based on that property.
+         * Ref #12265
+         */
+        const clientMemberEmails = _.keys(_.pick(this.props.policyMemberList, m => m.role));
         Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
     }
 
@@ -83,7 +90,14 @@ class WorkspaceMembersPage extends React.Component {
             return;
         }
 
-        const clientMemberEmails = _.keys(this.props.policyMemberList);
+        /**
+         * clientMemberEmails should be filtered to only pass valid members, failure to do so
+         * will remove all non-exisiting members that should be displayed (e.g. non-exisiting members that should report an error)
+         * this is due to the merge from Onyx.
+         * Every valid member has the "role" property, thus the filter is based on that property.
+         * Ref #12265
+         */
+        const clientMemberEmails = _.keys(_.pick(this.props.policyMemberList, m => m.role));
         Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
     }
 
