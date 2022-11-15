@@ -1230,6 +1230,11 @@ const styles = {
     appContent: {
         backgroundColor: themeColors.appBG,
         overflow: 'hidden',
+
+        // it's needed to prevent incorrect triple click text selection in chromium and webkit based browsers
+        // see https://github.com/Expensify/App/issues/12028
+        userSelect: 'auto',
+        WebkitUserSelect: 'auto',
     },
 
     appContentHeader: {
