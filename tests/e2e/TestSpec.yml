@@ -6,8 +6,8 @@ phases:
       # Install correct version of node
       - export NVM_DIR=$HOME/.nvm
       - . $NVM_DIR/nvm.sh
-      - nvm install "$(<.nvmrc)"
-      - nvm use "$(<.nvmrc)"
+      - nvm install 16.15.1
+      - nvm use 16.15.1
 
       # Reverse ports using AWS magic
       - PORT=4723
@@ -18,7 +18,8 @@ phases:
 
   test:
     commands:
-      - node testRunner.js -- --skipInstallDeps --skipBuild
+      - ls -lha
+      - node e2e/testRunner.js -- --skipInstallDeps --skipBuild
 
 artifacts:
 - $WORKING_DIRECTORY
