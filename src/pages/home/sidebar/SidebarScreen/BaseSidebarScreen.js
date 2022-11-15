@@ -73,10 +73,10 @@ class BaseSidebarScreen extends Component {
     }
 
     /**
-     * Check if LHN became inactive from active status
+     * Check if LHN status changed from active to inactive
      *
      * @param {Object} prevProps
-     * @return {boolean}
+     * @return {Boolean}
      */
     didScreenBecomeInactive(prevProps) {
         // When the Drawer gets closed and ReportScreen is shown
@@ -95,7 +95,7 @@ class BaseSidebarScreen extends Component {
     /**
      * Check if LHN is inactive
      *
-     * @return {boolean}
+     * @return {Boolean}
      */
     isScreenInactive() {
         // When drawer is closed and Report page is open
