@@ -35,6 +35,11 @@ class CloseAccountPage extends Component {
         super(props);
 
         this.onSubmit = this.onSubmit.bind(this);
+        CloseAccount.clearError();
+    }
+
+    componentWillUnmount() {
+        CloseAccount.clearError();
     }
 
     onSubmit(values) {
