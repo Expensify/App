@@ -37,7 +37,14 @@ class BaseReportActionContextMenu extends React.Component {
     }
 
     render() {
-        const shouldShowFilter = contextAction => contextAction.shouldShow(this.props.type, this.props.reportAction, this.props.isArchivedRoom, this.props.betas, this.props.anchor);
+        const shouldShowFilter = contextAction => contextAction.shouldShow(
+            this.props.type,
+            this.props.reportAction,
+            this.props.isArchivedRoom,
+            this.props.betas,
+            this.props.anchor,
+            this.props.isChronosReport,
+        );
 
         return this.props.isVisible && (
             <View style={this.wrapperStyle}>
