@@ -80,12 +80,14 @@ class ReportActionsView extends React.Component {
         this.currentScrollOffset = 0;
         this.sortedReportActions = ReportActionsUtils.getSortedReportActions(props.reportActions);
         this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(props.reportActions);
+        this.latestVisibleReportActionIndex = 0;
         this.trackScroll = this.trackScroll.bind(this);
         this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
         this.scrollToUnreadMsgAndMarkReportAsRead = this.scrollToUnreadMsgAndMarkReportAsRead.bind(this);
         this.openReportIfNecessary = this.openReportIfNecessary.bind(this);
+        this.onViewableItemsChanged = this.onViewableItemsChanged.bind(this);
     }
 
     componentDidMount() {
@@ -104,7 +106,7 @@ class ReportActionsView extends React.Component {
             if (!ReportActionComposeFocusManager.isFocused()) {
                 return;
             }
-            ReportScrollManager.scrollToBottom();
+            ReportScrollManager.scrollToIndex(this.latestVisibleReportActionIndex);
         });
 
         if (this.getIsReportFullyVisible()) {
@@ -266,6 +268,15 @@ class ReportActionsView extends React.Component {
         return Visibility.isVisible() && !isSidebarCoveringReportView;
     }
 
+    onViewableItemsChanged({viewableItems, changed}) {
+        if (!viewableItems.length || !changed.length) {
+            return;
+        }
+        console.log(">>>> viewableItems", viewableItems);
+        console.log(">>>>", viewableItems[0].item.action.message[0].text);
+        this.latestVisibleReportActionIndex = viewableItems[0].index;
+    }
+
     // If the report is optimistic (AKA not yet created) we don't need to call openReport again
     openReportIfNecessary() {
         if (this.props.report.isOptimisticReport) {
@@ -354,6 +365,8 @@ class ReportActionsView extends React.Component {
             return null;
         }
 
+        console.log(">>>>", this.props.reportActions);
+
         return (
             <>
                 {!this.props.isComposerFullSize && (
@@ -363,6 +376,10 @@ class ReportActionsView extends React.Component {
                             onClick={this.scrollToUnreadMsgAndMarkReportAsRead}
                         />
                         <ReportActionsList
+                            onViewableItemsChanged={this.onViewableItemsChanged}
+                            viewabilityConfig={{
+                                itemVisiblePercentThreshold: 50,
+                            }}
                             report={this.props.report}
                             onScroll={this.trackScroll}
                             onLayout={this.recordTimeToMeasureItemLayout}

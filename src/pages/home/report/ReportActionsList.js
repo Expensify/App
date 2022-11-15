@@ -177,7 +177,9 @@ class ReportActionsList extends React.Component {
                     keyboardShouldPersistTaps="handled"
                     onLayout={this.props.onLayout}
                     onScroll={this.props.onScroll}
+                    onViewableItemsChanged={this.props.onViewableItemsChanged}
                     extraData={extraData}
+                    viewabilityConfig={this.props.viewabilityConfig}
                 />
             </Animated.View>
         );
