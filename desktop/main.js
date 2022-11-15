@@ -101,21 +101,22 @@ const manuallyCheckForUpdates = (menuItem, browserWindow) => {
                 dialog.showMessageBox(browserWindow, {
                     type: 'info',
                     message: 'Update Available',
-                    detail: 'The new version will be available shortly. We’ll notify you when we’re ready to apply the update',
-                    buttons: ['Can’t wait to update'],
+                    detail: 'The new version will be available shortly. We’ll notify you when we’re ready to update.',
+                    buttons: ['Sounds good'],
                 });
             } else if (result && result.error) {
                 dialog.showMessageBox(browserWindow, {
                     type: 'error',
-                    message: 'Update check failed',
-                    detail: 'We were unable to check for updates at this time',
+                    message: 'Update Check Failed',
+                    detail: 'We couldn’t look for an update. Please check again in a bit!',
+                    buttons: ['Okay'],
                 });
             } else {
                 dialog.showMessageBox(browserWindow, {
                     type: 'info',
                     message: 'Update Not Available',
-                    detail: 'We don’t have an update right now, but you get a star 🌟 for trying',
-                    buttons: ['Funny', 'Not Funny', 'Close'],
+                    detail: 'There is no update available as of now! Check again at a later time.',
+                    buttons: ['Okay'],
                     cancelId: 2,
                 });
             }
