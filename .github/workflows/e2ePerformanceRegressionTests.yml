@@ -49,12 +49,13 @@ jobs:
         run: ls -lah
 
       - name: Copy e2e code into zip folder
-        run: cp tests/e2e zip
+        run: cp -r tests/e2e zip
 
       - name: Install underscore in zip folder
         run: |
           cd zip
           npm install underscore
+          cd ..
 
       - name: debug
         run: ls -lah
