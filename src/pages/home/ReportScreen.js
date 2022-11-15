@@ -153,13 +153,9 @@ class ReportScreen extends React.Component {
     isReportReadyForDisplay() {
         const reportIDFromPath = getReportID(this.props.route);
 
-        // We need to wait for the initial app data to load as it tells us which reports are unread. Waiting will allow the new marker to be set
-        // correctly when the report mounts. If we don't do this, the report may initialize in the "read" state and the marker won't be set at all.
-        const isLoadingInitialAppData = this.props.isLoadingInitialAppData;
-
         // This is necessary so that when we are retrieving the next report data from Onyx the ReportActionsView will remount completely
         const isTransitioning = this.props.report && this.props.report.reportID !== reportIDFromPath;
-        return reportIDFromPath && this.props.report.reportID && !isTransitioning && !isLoadingInitialAppData;
+        return reportIDFromPath && this.props.report.reportID && !isTransitioning;
     }
 
     fetchReportIfNeeded() {
@@ -172,7 +168,7 @@ class ReportScreen extends React.Component {
             return;
         }
 
-        Report.fetchChatReportsByIDs([reportIDFromPath], true);
+        Report.openReport(reportIDFromPath);
     }
 
     /**
@@ -283,15 +279,26 @@ class ReportScreen extends React.Component {
                                 this.setState({skeletonViewContainerHeight});
                             }}
                         >
-                            {this.isReportReadyForDisplay() && (
-                                <ReportActionsView
-                                    reportActions={this.props.reportActions}
-                                    report={this.props.report}
-                                    session={this.props.session}
-                                    isComposerFullSize={this.props.isComposerFullSize}
-                                    isDrawerOpen={this.props.isDrawerOpen}
-                                    parentViewHeight={this.state.skeletonViewContainerHeight}
-                                />
+                            {(this.isReportReadyForDisplay() && !isLoadingInitialReportActions) && (
+                                <>
+                                    <ReportActionsView
+                                        reportActions={this.props.reportActions}
+                                        report={this.props.report}
+                                        session={this.props.session}
+                                        isComposerFullSize={this.props.isComposerFullSize}
+                                        isDrawerOpen={this.props.isDrawerOpen}
+                                        parentViewHeight={this.state.skeletonViewContainerHeight}
+                                    />
+                                    <ReportFooter
+                                        errors={addWorkspaceRoomOrChatErrors}
+                                        pendingAction={addWorkspaceRoomOrChatPendingAction}
+                                        isOffline={this.props.network.isOffline}
+                                        reportActions={this.props.reportActions}
+                                        report={this.props.report}
+                                        isComposerFullSize={this.props.isComposerFullSize}
+                                        onSubmitComment={this.onSubmitComment}
+                                    />
+                                </>
                             )}
 
                             {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
@@ -299,17 +306,6 @@ class ReportScreen extends React.Component {
                             {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions) && (
                                 <ReportActionsSkeletonView
                                     containerHeight={this.state.skeletonViewContainerHeight}
-                                />
-                            )}
-                            {this.isReportReadyForDisplay() && !isLoadingInitialReportActions && (
-                                <ReportFooter
-                                    errors={addWorkspaceRoomOrChatErrors}
-                                    pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                    isOffline={this.props.network.isOffline}
-                                    reportActions={this.props.reportActions}
-                                    report={this.props.report}
-                                    isComposerFullSize={this.props.isComposerFullSize}
-                                    onSubmitComment={this.onSubmitComment}
                                 />
                             )}
                         </View>
@@ -356,9 +352,6 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        isLoadingInitialAppData: {
-            key: ONYXKEYS.IS_LOADING_INITIAL_APP_DATA,
         },
     }),
 )(ReportScreen);
