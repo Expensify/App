@@ -735,7 +735,7 @@ function sendMoneyWithWallet(chatReportID, iouReportID, reportActionID, amount, 
         {login: ownerEmail},
         {login: userEmail},
     ];
-    const optimisticChatReport = ReportUtils.buildOptimisticChatReport(participants);
+    const chatReport = _.empty(chatReportID) ? chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : ReportUtils.buildOptimisticChatReport(participants);
     const optimisticIouReportAction = ReportUtils.buildOptimisticIOUReportAction(
         1,
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
@@ -749,7 +749,7 @@ function sendMoneyWithWallet(chatReportID, iouReportID, reportActionID, amount, 
         ownerEmail,
         userEmail,
         amount,
-        chatReportID,
+        chatReport.chatReportID,
         currency,
         preferredLocale
     );
@@ -765,7 +765,7 @@ function sendMoneyWithWallet(chatReportID, iouReportID, reportActionID, amount, 
             optimisticData: [
                 {
                     onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.chatReportID}`,
                     value: {
                         [reportActionID]: {
                             optimisticIouReportAction,
@@ -776,8 +776,8 @@ function sendMoneyWithWallet(chatReportID, iouReportID, reportActionID, amount, 
                 },
                 {
                     onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
-                    value: optimisticChatReport,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.chatReportID}`,
+                    value: chatReport.chatReportID,
                 },
                 {
                     onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -788,7 +788,7 @@ function sendMoneyWithWallet(chatReportID, iouReportID, reportActionID, amount, 
             failureData: [
                 {
                     onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.chatReportID}`,
                     value: {
                         [params.reportActionID]: {
                             optimisticIouReportAction,
@@ -803,12 +803,11 @@ function sendMoneyWithWallet(chatReportID, iouReportID, reportActionID, amount, 
         });
 }
 
-
 /**
- * @param {String} chatReportID
- * @param {String} iouReportID
- * @param {Number} amount
- * @param {String} currency
+ * @param {String} chatReportID - Report ID of the chat where the IOU is.
+ * @param {String} iouReportID - Report ID of the IOU.
+ * @param {Number} amount - IOU amount in cents.
+ * @param {String} currency - IOU currency.
  * @param {String} ownerEmail - Email of the person generating the IOU.
  * @param {String} userEmail - Email of the other person participating in the IOU.
  */
