@@ -58,18 +58,17 @@ const PronounsPage = (props) => {
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <View style={[styles.ph5]}>
-                <Text style={[styles.mb6]}>
-                    {props.translate('pronounsPage.isShownOnProfile')}
-                </Text>
-                <OptionsList
-                    sections={[{data: pronounsList}]}
-                    onSelectRow={option => updatePronouns(option.value)}
-                    hideSectionHeaders
-                    optionHoveredStyle={styles.hoveredComponentBG}
-                    shouldHaveOptionSeparator
-                />
-            </View>
+            <Text style={[styles.ph5, styles.mb6]}>
+                {props.translate('pronounsPage.isShownOnProfile')}
+            </Text>
+            <OptionsList
+                sections={[{data: pronounsList}]}
+                onSelectRow={option => updatePronouns(option.value)}
+                hideSectionHeaders
+                optionHoveredStyle={styles.hoveredComponentBG}
+                shouldHaveOptionSeparator
+                contentContainerStyles={[styles.ph5]}
+            />
         </ScreenWrapper>
     );
 };
