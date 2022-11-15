@@ -720,6 +720,93 @@ function payIOUReport({
     return promiseWithHandlers;
 }
 
+/**
+ * @param {Object} report
+ * @param {Number} amount
+ * @param {String} currency
+ * @param {String} comment
+ * @param {String} ownerEmail - Email of the person generating the IOU.
+ * @param {String} userEmail - Email of the other person participating in the IOU.
+ */
+function sendMoneyElsewhere(report, amount, currency, comment, ownerEmail, userEmail) {
+    const participants = [
+        {login: ownerEmail},
+        {login: userEmail},
+    ];
+    const chatReport = lodashGet(report, 'reportID', null)
+        ? report
+        : ReportUtils.buildOptimisticChatReport(participants);
+
+    const chatReportID = chatReport.reportID;
+    const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(ownerEmail, userEmail);
+
+    const optimisticAddReportIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
+        Report.getMaxSequenceNumber(chatReport.reportID) + 1,
+        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+        amount,
+        currency,
+        comment,
+        participants,
+        optimisticIOUReport.reportID,
+    );
+
+    const optimisticReimbursedReportAction = ReportUtils.buildOptimisticIOUReportAction(
+        Report.getMaxSequenceNumber(chatReport.reportID) + 2,
+        CONST.IOU.REPORT_ACTION_TYPE.PAY,
+        amount,
+        currency,
+        comment,
+        participants,
+        optimisticIOUReport.reportID,
+    );
+
+    const newIOUReportDetails = {
+        requestorEmail: ownerEmail,
+        amount,
+        currency,
+        comment,
+    };
+    const paymentMethodType = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
+
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IOU,
+            value: {
+                errors: {},
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            value: {
+                [optimisticReimbursedReportAction.reportID]: optimisticReimbursedReportAction,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+            value: chatReport,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${optimisticIOUReport.reportID}`,
+            value: optimisticIOUReport,
+        },
+    ];
+
+    API.write('SendMoney', {
+        iouReportID: optimisticIOUReport.reportID,
+        chatReportID,
+        optimisticReimbursedReportAction,
+        optimisticAddReportIOUReportAction,
+        paymentMethodType,
+        transactionID: optimisticReimbursedReportAction.originalMessage.IOUTransactionID,
+        clientID: optimisticReimbursedReportAction.sequenceNumber,
+        newIOUReportDetails,
+    }, {optimisticData});
+}
+
 export {
     cancelMoneyRequest,
     splitBill,
