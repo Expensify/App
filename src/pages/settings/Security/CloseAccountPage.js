@@ -111,9 +111,6 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withOnyx({
-        closeAccount: {
-            key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM,
-        },
         session: {
             key: ONYXKEYS.SESSION,
         },
