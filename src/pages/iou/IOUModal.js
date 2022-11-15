@@ -296,7 +296,7 @@ class IOUModal extends Component {
                 amount,
                 currency,
                 comment,
-                this.state.participants,
+                this.state.participants[0].login,
                 );
             return;
         }
