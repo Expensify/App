@@ -11,7 +11,7 @@ function addTrailingForwardSlash(url) {
 }
 
 /**
- * parse href to object
+ * Parse href to URL object
  * @param {String} href
  * @returns {Object}
  */

@@ -4,7 +4,6 @@ import {
     TNodeChildrenRenderer,
 } from 'react-native-render-html';
 import lodashGet from 'lodash/get';
-import lodashReplace from 'lodash/replace';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import * as HTMLEngineUtils from '../htmlEngineUtils';
 import * as Link from '../../../libs/actions/Link';
@@ -26,10 +25,10 @@ const AnchorRenderer = (props) => {
     const displayName = lodashGet(props.tnode, 'domNode.children[0].data', '');
     const parentStyle = lodashGet(props.tnode, 'parent.styles.nativeTextRet', {});
     const attrHref = htmlAttribs.href || '';
-    const attrPath = lodashReplace(Url.getURLObject(attrHref).path, '/', '');
+    const attrPath = lodashGet(Url.getURLObject(attrHref), 'path', '').replace('/', '');
     const internalNewExpensifyPath = (Url.hasSameOrigin(attrHref, CONST.NEW_EXPENSIFY_URL) || Url.hasSameOrigin(attrHref, CONST.STAGING_NEW_EXPENSIFY_URL)) && attrPath;
     const internalExpensifyPath = Url.hasSameOrigin(attrHref, CONFIG.EXPENSIFY.EXPENSIFY_URL)
-                                    && !attrPath.startsWith(CONFIG.EXPENSIFY.CONCIERGE_PATHNAME)
+                                    && !attrPath.startsWith(CONFIG.EXPENSIFY.CONCIERGE_URL_PATHNAME)
                                     && attrPath;
     const navigateToLink = () => {
         // There can be messages from Concierge with links to specific NewDot reports. Those URLs look like this:
