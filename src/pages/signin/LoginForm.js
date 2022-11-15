@@ -24,6 +24,7 @@ import networkPropTypes from '../../components/networkPropTypes';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import * as CloseAccount from '../../libs/actions/CloseAccount';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -177,7 +178,7 @@ class LoginForm extends React.Component {
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
                         autoCorrect={false}
-                        keyboardType={getEmailKeyboardType()}
+                        keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
                     />
                 </View>
                 {!_.isEmpty(this.props.account.success) && (
