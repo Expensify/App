@@ -144,6 +144,8 @@ class ReportActionCompose extends React.PureComponent {
             isCommentEmpty: props.comment.length === 0,
             isMenuVisible: false,
             maxLines: props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES,
+
+            // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
             conciergePlaceholderRandomIndex: _.random(this.props.translate('reportActionCompose.conciergePlaceholderOptions').length - 1),
 
             // If this is undefined it means we haven't exceeded the max comment length.
