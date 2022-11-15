@@ -720,12 +720,12 @@ function payIOUReport({
     return promiseWithHandlers;
 }
 
+
 /**
- * @param {String} chatReportID
- * @param {String} iouReportID
- * @param {String} reportActionID
- * @param {Number} amount
- * @param {String} currency
+ * @param {String} chatReportID - Report ID of the chat where the IOU is.
+ * @param {String} iouReportID - Report ID of the IOU.
+ * @param {Number} amount - IOU amount in cents.
+ * @param {String} currency - IOU currency.
  * @param {String} comment
  * @param {String} ownerEmail - Email of the person generating the IOU.
  * @param {String} userEmail - Email of the other person participating in the IOU.
