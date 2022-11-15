@@ -72,6 +72,35 @@ class WorkspaceMembersPage extends React.Component {
         this.hideConfirmModal = this.hideConfirmModal.bind(this);
     }
 
+    componentDidMount() {
+        /**
+         * clientMemberEmails should be filtered to only pass valid members, failure to do so
+         * will remove all non-exisiting members that should be displayed (e.g. non-exisiting members that should report an error)
+         * this is due to the merge from Onyx.
+         * Every valid member has the "role" property, thus the filter is based on that property.
+         * Ref #12265
+         */
+        const clientMemberEmails = _.keys(_.pick(this.props.policyMemberList, m => m.role));
+        Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
+    }
+
+    componentDidUpdate(prevProps) {
+        const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
+        if (!isReconnecting) {
+            return;
+        }
+
+        /**
+         * clientMemberEmails should be filtered to only pass valid members, failure to do so
+         * will remove all non-exisiting members that should be displayed (e.g. non-exisiting members that should report an error)
+         * this is due to the merge from Onyx.
+         * Every valid member has the "role" property, thus the filter is based on that property.
+         * Ref #12265
+         */
+        const clientMemberEmails = _.keys(_.pick(this.props.policyMemberList, m => m.role));
+        Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
+    }
+
     /**
      * Open the modal to invite a user
      */
