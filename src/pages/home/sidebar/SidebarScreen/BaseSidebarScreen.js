@@ -8,6 +8,7 @@ import SidebarLinks from '../SidebarLinks';
 import PopoverMenu from '../../../../components/PopoverMenu';
 import FloatingActionButton from '../../../../components/FloatingActionButton';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
+import compose from '../../../../libs/compose';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import Timing from '../../../../libs/actions/Timing';
@@ -47,7 +48,6 @@ class BaseSidebarScreen extends Component {
 
         this.hideCreateMenu = this.hideCreateMenu.bind(this);
         this.startTimer = this.startTimer.bind(this);
-        this.navigateToSettings = this.navigateToSettings.bind(this);
         this.showCreateMenu = this.showCreateMenu.bind(this);
 
         this.state = {
@@ -64,7 +64,7 @@ class BaseSidebarScreen extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (!this.didBecomeInactive(prevProps)) {
+        if (!this.didScreenBecomeInactive(prevProps)) {
             return;
         }
 
@@ -72,13 +72,19 @@ class BaseSidebarScreen extends Component {
         this.hideCreateMenu();
     }
 
-    didBecomeInactive(prevProps) {
-        // When Report page is just opened
+    /**
+     * Check if LHN became inactive from active status
+     *
+     * @param {Object} prevProps
+     * @return {boolean}
+     */
+    didScreenBecomeInactive(prevProps) {
+        // When the Drawer gets closed and ReportScreen is shown
         if (!this.props.isDrawerOpen && prevProps.isDrawerOpen) {
             return true;
         }
 
-        // When other page is just opened
+        // When other page is opened over LHN
         if (!this.props.isFocused && prevProps.isFocused) {
             return true;
         }
@@ -86,7 +92,12 @@ class BaseSidebarScreen extends Component {
         return false;
     }
 
-    isInactive() {
+    /**
+     * Check if LHN is inactive
+     *
+     * @return {boolean}
+     */
+    isScreenInactive() {
         // When drawer is closed and Report page is open
         if (this.props.isSmallScreenWidth && !this.props.isDrawerOpen) {
             return true;
@@ -104,7 +115,7 @@ class BaseSidebarScreen extends Component {
      * Method called when we click the floating action button
      */
     showCreateMenu() {
-        if (this.isInactive()) {
+        if (this.isScreenInactive()) {
             // Prevent showing menu when click FAB icon quickly after opening other pages
             return;
         }
@@ -112,17 +123,6 @@ class BaseSidebarScreen extends Component {
             isCreateMenuActive: true,
         });
         this.props.onShowCreateMenu();
-    }
-
-    /**
-     * Method called when avatar is clicked
-     */
-    navigateToSettings() {
-        if (this.state.isCreateMenuActive) {
-            // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
-            return;
-        }
-        Navigation.navigate(ROUTES.SETTINGS);
     }
 
     /**
@@ -162,10 +162,9 @@ class BaseSidebarScreen extends Component {
                             <SidebarLinks
                                 onLinkClick={this.startTimer}
                                 insets={insets}
-                                onAvatarClick={this.navigateToSettings}
                                 isSmallScreenWidth={this.props.isSmallScreenWidth}
                                 isDrawerOpen={this.props.isDrawerOpen}
-                                isMenuOpen={this.state.isCreateMenuActive}
+                                isCreateMenuOpen={this.state.isCreateMenuActive}
                                 reportIDFromRoute={this.props.reportIDFromRoute}
                             />
                             <FloatingActionButton
@@ -243,4 +242,7 @@ class BaseSidebarScreen extends Component {
 BaseSidebarScreen.propTypes = propTypes;
 BaseSidebarScreen.defaultProps = defaultProps;
 
-export default withDrawerState(withNavigationFocus(BaseSidebarScreen));
+export default compose(
+    withDrawerState,
+    withNavigationFocus,
+)(BaseSidebarScreen);

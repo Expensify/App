@@ -31,9 +31,6 @@ const propTypes = {
     /** Toggles the navigation menu open and closed */
     onLinkClick: PropTypes.func.isRequired,
 
-    /** Navigates to settings and hides sidebar */
-    onAvatarClick: PropTypes.func.isRequired,
-
     /** Safe area insets required for mobile devices margins */
     insets: safeAreaInsetPropTypes.isRequired,
 
@@ -121,143 +118,42 @@ function getUnreadReports(reportsObject) {
 const memoizeGetUnreadReports = memoizeOne(getUnreadReports);
 
 class SidebarLinks extends React.Component {
-    static getRecentReports(props) {
-        const activeReportID = parseInt(props.currentlyViewedReportID, 10);
-        const sidebarOptions = OptionsListUtils.getSidebarOptions(
-            props.reports,
-            props.personalDetails,
-            activeReportID,
-            props.priorityMode,
-            props.betas,
-            props.reportActions,
-        );
-        return sidebarOptions.recentReports;
-    }
-
-    /**
-     * Returns true if the sidebar list should be re-ordered
-     *
-     * @param {Object} nextProps
-     * @param {Boolean} hasActiveDraftHistory
-     * @param {Array} orderedReports
-     * @param {String} currentlyViewedReportID
-     * @param {Array} unreadReports
-     * @returns {Boolean}
-     */
-    static shouldReorder(nextProps, hasActiveDraftHistory, orderedReports, currentlyViewedReportID, unreadReports) {
-        // We do not want to re-order reports in the LHN if the only change is the draft comment in the
-        // current report.
-
-        // We don't need to limit draft comment flashing for small screen widths as LHN is not visible.
-        if (nextProps.isSmallScreenWidth) {
-            return true;
-        }
-
-        // Always update if LHN is empty.
-        if (orderedReports.length === 0) {
-            return true;
-        }
-
-        const didActiveReportChange = currentlyViewedReportID !== nextProps.currentlyViewedReportID;
-
-        // Always re-order the list whenever the active report is changed
-        if (didActiveReportChange) {
-            return true;
-        }
-
-        // If any reports have new unread messages, re-order the list
-        const nextUnreadReports = memoizeGetUnreadReports(nextProps.reports || {});
-        if (memoizeCheckForNewUnreadReports(nextUnreadReports, unreadReports)) {
-            return true;
-        }
-
-        // If there is an active report that either had or has a draft, we do not want to re-order the list
-        if (nextProps.currentlyViewedReportID && hasActiveDraftHistory) {
-            return false;
-        }
-
-        return true;
-    }
-
     constructor(props) {
         super(props);
 
-        this.state = {
-            activeReport: {
-                reportID: props.currentlyViewedReportID,
-                hasDraftHistory: lodashGet(props.reports, `${ONYXKEYS.COLLECTION.REPORT}${props.currentlyViewedReportID}.hasDraft`, false),
-                lastMessageTimestamp: lodashGet(props.reports, `${ONYXKEYS.COLLECTION.REPORT}${props.currentlyViewedReportID}.lastMessageTimestamp`, 0),
-            },
-            orderedReports: [],
-            priorityMode: props.priorityMode,
-            unreadReports: memoizeGetUnreadReports(props.reports || {}),
-        };
-    }
-
-    static getDerivedStateFromProps(nextProps, prevState) {
-        const isActiveReportSame = prevState.activeReport.reportID === nextProps.currentlyViewedReportID;
-        const lastMessageTimestamp = lodashGet(nextProps.reports, `${ONYXKEYS.COLLECTION.REPORT}${nextProps.currentlyViewedReportID}.lastMessageTimestamp`, 0);
-
-        // Determines if the active report has a history of draft comments while active.
-        let hasDraftHistory;
-
-        // If the active report has not changed and the message has been sent, set the draft history flag to false so LHN can reorder.
-        // Otherwise, if the active report has not changed and the flag was previously true, preserve the state so LHN cannot reorder.
-        // Otherwise, update the flag from the prop value.
-        if (isActiveReportSame && prevState.activeReport.lastMessageTimestamp !== lastMessageTimestamp) {
-            hasDraftHistory = false;
-        } else if (isActiveReportSame && prevState.activeReport.hasDraftHistory) {
-            hasDraftHistory = true;
-        } else {
-            hasDraftHistory = lodashGet(nextProps.reports, `${ONYXKEYS.COLLECTION.REPORT}${nextProps.currentlyViewedReportID}.hasDraft`, false);
-        }
-
-        const shouldReorder = SidebarLinks.shouldReorder(nextProps, hasDraftHistory, prevState.orderedReports, prevState.activeReport.reportID, prevState.unreadReports);
-        const switchingPriorityModes = nextProps.priorityMode !== prevState.priorityMode;
-
-        // Build the report options we want to show
-        const recentReports = SidebarLinks.getRecentReports(nextProps);
-
-        // Determine whether we need to keep the previous LHN order
-        const orderedReports = shouldReorder || switchingPriorityModes
-            ? recentReports
-            : _.chain(prevState.orderedReports)
-
-            // To preserve the order of the conversations, we map over the previous state's order of reports.
-            // Then match and replace older reports with the newer report conversations from recentReports
-                .map(orderedReport => _.find(recentReports, recentReport => orderedReport.reportID === recentReport.reportID))
-
-            // Because we are using map, we have to filter out any undefined reports. This happens if recentReports
-            // does not have all the conversations in prevState.orderedReports
-                .compact()
-                .value();
-
-        return {
-            orderedReports,
-            priorityMode: nextProps.priorityMode,
-            activeReport: {
-                reportID: nextProps.currentlyViewedReportID,
-                hasDraftHistory,
-                lastMessageTimestamp,
-            },
-            unreadReports: memoizeGetUnreadReports(nextProps.reports || {}),
-        };
+        this.showSearchPage = this.showSearchPage.bind(this);
+        this.showSettingsPage = this.showSettingsPage.bind(this);
+        this.showReportPage = this.showReportPage.bind(this);
     }
 
     showSearchPage() {
-        if (this.props.isMenuOpen) {
+        if (this.props.isCreateMenuOpen) {
             // Prevent opening Search page when click Search icon quickly after clicking FAB icon
             return;
         }
         Navigation.navigate(ROUTES.SEARCH);
     }
 
-    showReportPage(reportID) {
-        if (this.props.isMenuOpen) {
+    showSettingsPage() {
+        if (this.state.isCreateMenuActive) {
+            // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS);
+    }
+
+    /**
+     * Show Report page with selected report id
+     *
+     * @param {Object} option
+     * @param {String} option.reportID
+     */
+    showReportPage(option) {
+        if (this.props.isCreateMenuOpen) {
             // Prevent opening Report page when click LHN row quickly after clicking FAB icon
             return;
         }
-        Navigation.navigate(ROUTES.getReportRoute(reportID));
+        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
         this.props.onLinkClick();
     }
 
@@ -291,7 +187,7 @@ class SidebarLinks extends React.Component {
                             accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
                             accessibilityRole="button"
                             style={[styles.flexRow, styles.ph5]}
-                            onPress={() => this.showSearchPage()}
+                            onPress={this.showSearchPage}
                         >
                             <Icon src={Expensicons.MagnifyingGlass} />
                         </TouchableOpacity>
@@ -299,7 +195,7 @@ class SidebarLinks extends React.Component {
                     <TouchableOpacity
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
                         accessibilityRole="button"
-                        onPress={this.props.onAvatarClick}
+                        onPress={this.showSettingsPage}
                     >
                         <AvatarWithIndicator
                             source={this.props.currentUserPersonalDetails.avatar}
@@ -317,7 +213,7 @@ class SidebarLinks extends React.Component {
                         focusedIndex={_.findIndex(optionListItems, (
                             option => option.toString() === this.props.reportIDFromRoute
                         ))}
-                        onSelectRow={option => this.showReportPage(option.reportID)}
+                        onSelectRow={this.showReportPage}
                         shouldDisableFocusOptions={this.props.isSmallScreenWidth}
                         optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
                         onLayout={() => {
