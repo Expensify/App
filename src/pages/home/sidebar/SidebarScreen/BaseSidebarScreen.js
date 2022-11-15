@@ -84,7 +84,7 @@ class BaseSidebarScreen extends Component {
             return true;
         }
 
-        // When other page is opened over LHN
+        // When any other page is opened over LHN
         if (!this.props.isFocused && prevProps.isFocused) {
             return true;
         }
@@ -103,7 +103,7 @@ class BaseSidebarScreen extends Component {
             return true;
         }
 
-        // When other page is open
+        // When any other page is open
         if (!this.props.isFocused) {
             return true;
         }
