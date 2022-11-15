@@ -683,6 +683,44 @@ class GithubUtils {
     }
 
     /**
+     * @param {Number} pullRequestNumber
+     * @returns {Promise}
+     */
+    static getPullRequestBody(pullRequestNumber) {
+        return this.octokit.pulls.get({
+            owner: GITHUB_OWNER,
+            repo: APP_REPO,
+            pull_number: pullRequestNumber,
+        }).then(({data: pullRequestComment}) => pullRequestComment.body);
+    }
+
+    /**
+     * @param {Number} pullRequestNumber
+     * @returns {Promise}
+     */
+    static getAllReviewComments(pullRequestNumber) {
+        return this.paginate(this.octokit.pulls.listReviews, {
+            owner: GITHUB_OWNER,
+            repo: APP_REPO,
+            pull_number: pullRequestNumber,
+            per_page: 100,
+        }, response => _.map(response.data, review => review.body));
+    }
+
+    /**
+     * @param {Number} issueNumber
+     * @returns {Promise}
+     */
+    static getAllComments(issueNumber) {
+        return this.paginate(this.octokit.issues.listComments, {
+            owner: GITHUB_OWNER,
+            repo: APP_REPO,
+            issue_number: issueNumber,
+            per_page: 100,
+        }, response => _.map(response.data, comment => comment.body));
+    }
+
+    /**
      * Create comment on pull request
      *
      * @param {String} repo - The repo to search for a matching pull request or issue number

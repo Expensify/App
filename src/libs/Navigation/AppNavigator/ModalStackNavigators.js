@@ -219,6 +219,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsDisplayNamePage = require('../../../pages/settings/Profile/DisplayNamePage').default;
+            return SettingsDisplayNamePage;
+        },
+        name: 'Settings_Display_Name',
+    },
+    {
+        getComponent: () => {
             const SettingsTimezoneInitialPage = require('../../../pages/settings/Profile/TimezoneInitialPage').default;
             return SettingsTimezoneInitialPage;
         },
@@ -384,13 +391,6 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             return WorkspaceMembersPage;
         },
         name: 'Workspace_Members',
-    },
-    {
-        getComponent: () => {
-            const WorkspaceBankAccountPage = require('../../../pages/workspace/WorkspaceBankAccountPage').default;
-            return WorkspaceBankAccountPage;
-        },
-        name: 'Workspace_BankAccount',
     },
     {
         getComponent: () => {

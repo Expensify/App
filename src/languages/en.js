@@ -303,6 +303,12 @@ export default {
         offline: 'Offline',
         syncing: 'Syncing',
     },
+    displayNamePage: {
+        headerTitle: 'Display name',
+        isShownOnProfile: 'Your display name is shown on your profile.',
+        john: 'John',
+        doe: 'Doe',
+    },
     timezonePage: {
         timezone: 'Timezone',
         isShownOnProfile: 'Your timezone is shown on your profile.',
@@ -381,7 +387,6 @@ export default {
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Your PayPal username',
         addPayPalAccount: 'Add PayPal account',
-        editPayPalAccount: 'Update PayPal account',
         growlMessageOnSave: 'Your PayPal username was successfully added',
         formatError: 'Invalid PayPal.me username',
     },
