@@ -51,6 +51,7 @@ jobs:
       - name: Copy e2e code into zip folder
         run: cp -r tests/e2e zip
 
+      #TODO: This doesn't seem to work, have to install underscore on AWS side as well
       - name: Install underscore in zip folder
         run: |
           cd zip
