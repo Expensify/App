@@ -1231,8 +1231,9 @@ const styles = {
         backgroundColor: themeColors.appBG,
         overflow: 'hidden',
 
-        // it's needed to prevent incorrect triple click text selection in chromium and webkit based browsers
-        // see https://github.com/Expensify/App/issues/12028
+        // Starting version 6.3.2 @react-navigation/drawer adds "user-select: none;" to its container.
+        // We add user-select-auto to the inner component to prevent incorrect triple-click text selection.
+        // For further explanation see - https://github.com/Expensify/App/pull/12730/files#r1022883823
         userSelect: 'auto',
         WebkitUserSelect: 'auto',
     },
