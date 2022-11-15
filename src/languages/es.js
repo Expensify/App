@@ -946,7 +946,7 @@ export default {
     requestCallPage: {
         title: 'Llámame por teléfono',
         subtitle: '¿Necesitas ayuda o una demostración?',
-        description: 'Nuestro equipo está listo para ayudarte en cada paso. Ingresa tu nombre y número de teléfono y te llamaremos lo antes posible.',
+        description: 'Nuestro equipo está listo para ayudarte en cada paso. Ingresa tu nombre y número de teléfono y te llamaremos lo antes posible.*',
         phoneNumberExtension: 'Extensión (Opcional)',
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
