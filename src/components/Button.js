@@ -63,6 +63,9 @@ const propTypes = {
     /** A function that is called when the button is released */
     onPressOut: PropTypes.func,
 
+    /** Callback that is called when mousedown is triggered. */
+    onMouseDown: PropTypes.func,
+
     /** Call the onPress function when Enter key is pressed */
     pressOnEnter: PropTypes.bool,
 
@@ -124,6 +127,7 @@ const defaultProps = {
     onLongPress: () => {},
     onPressIn: () => {},
     onPressOut: () => {},
+    onMouseDown: undefined,
     pressOnEnter: false,
     enterKeyEventListenerPriority: 0,
     style: [],
@@ -249,6 +253,7 @@ class Button extends Component {
                 }}
                 onPressIn={this.props.onPressIn}
                 onPressOut={this.props.onPressOut}
+                onMouseDown={this.props.onMouseDown}
                 disabled={this.props.isLoading || this.props.isDisabled}
                 style={[
                     this.props.isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
