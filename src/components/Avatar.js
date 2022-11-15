@@ -1,7 +1,8 @@
-import React, {PureComponent} from 'react';
+import React, {Component, PureComponent} from 'react';
 import {Image, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import stylePropTypes from '../styles/stylePropTypes';
 import Icon from './Icon';
 import themeColors from '../styles/themes/default';
@@ -9,6 +10,8 @@ import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as Expensicons from './Icon/Expensicons';
 import getAvatarDefaultSource from '../libs/getAvatarDefaultSource';
+import {withNetwork} from './OnyxProvider';
+import networkPropTypes from './networkPropTypes';
 
 const propTypes = {
     /** Source for the avatar. Can be a URL or an icon. */
@@ -29,6 +32,9 @@ const propTypes = {
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: PropTypes.func,
+
+    /** Props to detect online status */
+    network: networkPropTypes.isRequired,
 };
 
 const defaultProps = {
@@ -40,12 +46,48 @@ const defaultProps = {
     fallbackIcon: Expensicons.FallbackAvatar,
 };
 
-class Avatar extends PureComponent {
+class Avatar extends Component {
     constructor(props) {
         super(props);
         this.state = {
             imageError: false,
         };
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        if (
+            lodashGet(this.props.network, 'isOffline')
+                  && !lodashGet(nextProps.network, 'isOffline')
+        ) {
+            return true;
+        }
+        if (this.props.source !== nextProps.source) {
+            return true;
+        }
+        if (this.state.imageError !== nextState.imageError) {
+            return true;
+        }
+
+        if (this.props.fill !== nextProps.fill) {
+            return true;
+        }
+        if (this.props.size !== nextProps.size) {
+            return true;
+        }
+
+        return false;
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!this.state.imageError) {
+            return;
+        }
+        if (
+            lodashGet(prevProps.network, 'isOffline')
+            && !lodashGet(this.props.network, 'isOffline')
+        ) {
+            this.setState({imageError: false});
+        }
     }
 
     render() {
@@ -86,4 +128,4 @@ class Avatar extends PureComponent {
 
 Avatar.defaultProps = defaultProps;
 Avatar.propTypes = propTypes;
-export default Avatar;
+export default withNetwork()(Avatar);
