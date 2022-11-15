@@ -720,7 +720,6 @@ function payIOUReport({
     return promiseWithHandlers;
 }
 
-
 /**
  * @param {String} chatReportID - Report ID of the chat where the IOU is.
  * @param {Number} amount - IOU amount in cents.
@@ -742,8 +741,9 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
         preferredLocale
     );
 
+    const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
     const optimisticIouReportAction = ReportUtils.buildOptimisticIOUReportAction(
-        1,
+        newSequenceNumber,
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         amount,
         currency,
@@ -806,7 +806,7 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
  * @param {String} ownerEmail - Email of the person generating the IOU.
  * @param {String} userEmail - Email of the other person participating in the IOU.
  */
-function payMoneyRequestWithWallet(chatReportID, iouReportID, amount, currency, comment, ownerEmail, userEmail) {
+function payMoneyRequestWithWallet(chatReportID, iouReportID, amount, currency, ownerEmail, userEmail) {
     const chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
     const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
     const participants = [
@@ -818,7 +818,7 @@ function payMoneyRequestWithWallet(chatReportID, iouReportID, amount, currency, 
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         amount,
         currency,
-        comment,
+        '',
         participants,
         iouReportID,
     );
