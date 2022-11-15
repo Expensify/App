@@ -379,11 +379,13 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
     const hasMultipleParticipants = participantsWithoutExpensifyEmails.length > 1;
     const reportRecipient = personalDetails[participantsWithoutExpensifyEmails[0]];
     const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
+    const isReportParticipantValidated = lodashGet(reportRecipient, 'validated', false);
     return !hasMultipleParticipants
         && !isChatRoom(report)
         && reportRecipient
         && reportRecipientTimezone
-        && reportRecipientTimezone.selected;
+        && reportRecipientTimezone.selected
+        && isReportParticipantValidated;
 }
 
 /**
@@ -464,26 +466,41 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
 }
 
 /**
+ * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
+ * then a default object is constructed.
+ * @param {String} login
+ * @returns {Object}
+ */
+function getPersonalDetailsForLogin(login) {
+    if (!login) {
+        return {};
+    }
+    return (allPersonalDetails && allPersonalDetails[login]) || {
+        login,
+        displayName: Str.removeSMSDomain(login),
+        avatar: getDefaultAvatar(login),
+    };
+}
+
+/**
  * Get the displayName for a single report participant.
  *
- * @param {Object} participant
- * @param {String} participant.displayName
- * @param {String} participant.firstName
- * @param {String} participant.login
+ * @param {String} login
  * @param {Boolean} [shouldUseShortForm]
  * @returns {String}
  */
-function getDisplayNameForParticipant(participant, shouldUseShortForm = false) {
-    if (!participant) {
+function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
+    if (!login) {
         return '';
     }
+    const personalDetails = getPersonalDetailsForLogin(login);
 
-    const loginWithoutSMSDomain = Str.removeSMSDomain(participant.login);
-    let longName = participant.displayName || loginWithoutSMSDomain;
-    if (Str.isSMSLogin(longName)) {
+    const loginWithoutSMSDomain = Str.removeSMSDomain(personalDetails.login);
+    let longName = personalDetails.displayName || loginWithoutSMSDomain;
+    if (longName === loginWithoutSMSDomain && Str.isSMSLogin(longName)) {
         longName = LocalePhoneNumber.toLocalPhone(preferredLocale, longName);
     }
-    const shortName = participant.firstName || longName;
+    const shortName = personalDetails.firstName || longName;
 
     return shouldUseShortForm ? shortName : longName;
 }
@@ -495,7 +512,7 @@ function getDisplayNameForParticipant(participant, shouldUseShortForm = false) {
  */
 function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) {
     return _.map(participants, (participant) => {
-        const displayName = getDisplayNameForParticipant(participant, isMultipleParticipantReport);
+        const displayName = getDisplayNameForParticipant(participant.login, isMultipleParticipantReport);
         const tooltip = Str.removeSMSDomain(participant.login);
 
         let pronouns = participant.pronouns;
@@ -516,19 +533,17 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
  * Get the title for a report.
  *
  * @param {Object} report
- * @param {Object} [personalDetailsForParticipants]
  * @param {Object} [policies]
  * @returns {String}
  */
-function getReportName(report, personalDetailsForParticipants = {}, policies = {}) {
+function getReportName(report, policies = {}) {
     let formattedName;
     if (isChatRoom(report)) {
         formattedName = report.reportName;
     }
 
     if (isPolicyExpenseChat(report)) {
-        const reportOwnerPersonalDetails = personalDetailsForParticipants[report.ownerEmail];
-        const reportOwnerDisplayName = getDisplayNameForParticipant(reportOwnerPersonalDetails) || report.ownerEmail || report.reportName;
+        const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerEmail) || report.ownerEmail || report.reportName;
         formattedName = report.isOwnPolicyExpenseChat ? getPolicyName(report, policies) : reportOwnerDisplayName;
     }
 
@@ -541,10 +556,10 @@ function getReportName(report, personalDetailsForParticipants = {}, policies = {
     }
 
     // Not a room or PolicyExpenseChat, generate title from participants
-    const participants = _.without(lodashGet(report, 'participants', []), sessionEmail);
-    const isMultipleParticipantReport = participants.length > 1;
-    const participantsToGetTheNamesOf = _.isEmpty(personalDetailsForParticipants) ? participants : personalDetailsForParticipants;
-    return _.map(participantsToGetTheNamesOf, participant => getDisplayNameForParticipant(participant, isMultipleParticipantReport)).join(', ');
+    const participants = (report && report.participants) || [];
+    const participantsWithoutCurrentUser = _.without(participants, sessionEmail);
+    const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
+    return _.map(participantsWithoutCurrentUser, login => getDisplayNameForParticipant(login, isMultipleParticipantReport)).join(', ');
 }
 
 /**
@@ -678,22 +693,65 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
 }
 
 /**
+ * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
+ * @param {Number} total - IOU total in cents
+ * @param {Array} participants - List of logins for the IOU participants, excluding the current user login
+ * @param {String} comment - IOU comment
+ * @param {String} currency - IOU currency
+ * @returns {Array}
+ */
+function getIOUReportActionMessage(type, total, participants, comment, currency) {
+    const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
+    const displayNames = _.map(participants, participant => getDisplayNameForParticipant(participant.login, true));
+    const who = displayNames.length < 3
+        ? displayNames.join(' and ')
+        : `${displayNames.slice(0, -1).join(', ')}, and ${_.last(displayNames)}`;
+
+    let iouMessage;
+    switch (type) {
+        case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
+            iouMessage = `Requested ${amount} from ${who}${comment && ` for ${comment}`}`;
+            break;
+        case CONST.IOU.REPORT_ACTION_TYPE.SPLIT:
+            iouMessage = `Split ${amount} with ${who}${comment && ` for ${comment}`}`;
+            break;
+        case CONST.IOU.REPORT_ACTION_TYPE.CANCEL:
+            iouMessage = `Cancelled the ${amount} request${comment && ` for ${comment}`}`;
+            break;
+        case CONST.IOU.REPORT_ACTION_TYPE.DECLINE:
+            iouMessage = `Declined the ${amount} request${comment && ` for ${comment}`}`;
+            break;
+        case CONST.IOU.REPORT_ACTION_TYPE.PAY:
+            iouMessage = `Paid ${amount} to ${who}${comment && ` for ${comment}`}`;
+            break;
+        default:
+            break;
+    }
+
+    return [{
+        html: iouMessage,
+        text: iouMessage,
+        isEdited: false,
+        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+    }];
+}
+
+/**
  * Builds an optimistic IOU reportAction object
  *
  * @param {Number} sequenceNumber - Caller is responsible for providing a best guess at what the next sequenceNumber will be.
- * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay).
+ * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split).
  * @param {Number} amount - IOU amount in cents.
- * @param {String} currency - IOU currency.
+ * @param {String} currency
  * @param {String} comment - User comment for the IOU.
+ * @param {Array}  participants - An array with participants details.
  * @param {String} paymentType - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
  * @param {String} iouTransactionID - Only required if the IOUReportAction type is oneOf(cancel, decline). Generates a randomID as default.
  * @param {String} iouReportID - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
- * @param {String} debtorEmail - Email of the user that has to pay
- * @param {String} locale - Locale of the user
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, comment, paymentType = '', iouTransactionID = '', iouReportID = '', debtorEmail = '', locale = 'en') {
+function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, comment, participants, paymentType = '', iouTransactionID = '', iouReportID = '') {
     const IOUTransactionID = iouTransactionID || NumberUtils.rand64();
     const IOUReportID = iouReportID || generateReportID();
     const originalMessage = {
@@ -704,17 +762,6 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, 
         IOUReportID,
         type,
     };
-    const formattedTotal = NumberFormatUtils.format(locale,
-        amount / 100, {
-            style: 'currency',
-            currency,
-        });
-    const message = [{
-        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-        isEdited: false,
-        html: comment ? `Requested ${formattedTotal} from ${debtorEmail} for ${comment}` : `Requested ${formattedTotal} from ${debtorEmail}`,
-        text: comment ? `Requested ${formattedTotal} from ${debtorEmail} for ${comment}` : `Requested ${formattedTotal} from ${debtorEmail}`,
-    }];
 
     // We store amount, comment, currency in IOUDetails when type = pay
     if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
@@ -725,6 +772,11 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, 
         originalMessage.paymentType = paymentType;
     }
 
+    // IOUs of type split only exist in group DMs and those don't have an iouReport so we need to delete the IOUReportID key
+    if (type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
+        delete originalMessage.IOUReportID;
+    }
+
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: currentUserAccountID,
@@ -733,8 +785,8 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, 
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
         clientID: NumberUtils.generateReportActionClientID(),
         isAttachment: false,
-        message,
         originalMessage,
+        message: getIOUReportActionMessage(type, amount, participants, comment, currency),
         person: [{
             style: 'strong',
             text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
@@ -764,7 +816,7 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, 
  */
 function buildOptimisticChatReport(
     participantList,
-    reportName = 'Chat Report',
+    reportName = CONST.REPORT.DEFAULT_REPORT_NAME,
     chatType = '',
     policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
     ownerEmail = CONST.REPORT.OWNER_EMAIL_FAKE,
@@ -1067,4 +1119,6 @@ export {
     buildOptimisticReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
+    getIOUReportActionMessage,
+    getDisplayNameForParticipant,
 };

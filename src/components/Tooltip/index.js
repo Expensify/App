@@ -189,6 +189,7 @@ class Tooltip extends PureComponent {
                     containerStyles={this.props.containerStyles}
                     onHoverIn={this.showTooltip}
                     onHoverOut={this.hideTooltip}
+                    resetsOnClickOutside
                 >
                     {child}
                 </Hoverable>
