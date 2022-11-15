@@ -97,7 +97,7 @@ class SidebarLinks extends React.Component {
     }
 
     showSettingsPage() {
-        if (this.state.isCreateMenuActive) {
+        if (this.props.isCreateMenuOpen) {
             // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
             return;
         }
