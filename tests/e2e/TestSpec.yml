@@ -20,7 +20,6 @@ phases:
     commands:
       - cd zip
       - npm install underscore
-      - find .
       - node e2e/testRunner.js -- --skipInstallDeps --skipBuild
 
 artifacts:

@@ -45,21 +45,8 @@ jobs:
       - name: Checkout previous branch for source code to run on AWS Device farm
         run: git checkout -
 
-      - name: debug
-        run: ls -lah
-
       - name: Copy e2e code into zip folder
         run: cp -r tests/e2e zip
-
-      #TODO: This doesn't seem to work, have to install underscore on AWS side as well
-      - name: Install underscore in zip folder
-        run: |
-          cd zip
-          npm install underscore
-          cd ..
-
-      - name: debug
-        run: ls -lah
 
       - name: Zip everything in the zip directory up
         run: zip -qr App.zip ./zip
