@@ -19,7 +19,8 @@ phases:
   test:
     commands:
       - ls -lha
-      - node e2e/testRunner.js -- --skipInstallDeps --skipBuild
+      - find .
+      - node zip/e2e/testRunner.js -- --skipInstallDeps --skipBuild
 
 artifacts:
 - $WORKING_DIRECTORY
