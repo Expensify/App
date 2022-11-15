@@ -49,7 +49,7 @@ jobs:
         run: ls -lah
 
       - name: Copy e2e code into zip folder
-        run: cp e2e zip
+        run: cp tests/e2e zip
 
       - name: Install underscore in zip folder
         run: |
