@@ -73,7 +73,8 @@ class BaseSidebarScreen extends Component {
     }
 
     /**
-     * Check if LHN status changed from active to inactive
+     * Check if LHN status changed from active to inactive.
+     * Used to close already opened FAB menu when open any other pages (i.e. Press Command + K on web).
      *
      * @param {Object} prevProps
      * @return {Boolean}
@@ -93,7 +94,8 @@ class BaseSidebarScreen extends Component {
     }
 
     /**
-     * Check if LHN is inactive
+     * Check if LHN is inactive.
+     * Used to prevent FAB menu showing after opening any other pages.
      *
      * @return {Boolean}
      */
