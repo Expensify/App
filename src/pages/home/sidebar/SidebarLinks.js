@@ -32,9 +32,6 @@ const propTypes = {
     /** Toggles the navigation menu open and closed */
     onLinkClick: PropTypes.func.isRequired,
 
-    /** Navigates to settings and hides sidebar */
-    onAvatarClick: PropTypes.func.isRequired,
-
     /** Safe area insets required for mobile devices margins */
     insets: safeAreaInsetPropTypes.isRequired,
 
@@ -83,20 +80,42 @@ const defaultProps = {
 };
 
 class SidebarLinks extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.showSearchPage = this.showSearchPage.bind(this);
+        this.showSettingsPage = this.showSettingsPage.bind(this);
+        this.showReportPage = this.showReportPage.bind(this);
+    }
+
     showSearchPage() {
-        if (this.props.isMenuOpen) {
+        if (this.props.isCreateMenuOpen) {
             // Prevent opening Search page when click Search icon quickly after clicking FAB icon
             return;
         }
         Navigation.navigate(ROUTES.SEARCH);
     }
 
-    showReportPage(reportID) {
-        if (this.props.isMenuOpen) {
+    showSettingsPage() {
+        if (this.state.isCreateMenuActive) {
+            // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS);
+    }
+
+    /**
+     * Show Report page with selected report id
+     *
+     * @param {Object} option
+     * @param {String} option.reportID
+     */
+    showReportPage(option) {
+        if (this.props.isCreateMenuOpen) {
             // Prevent opening Report page when click LHN row quickly after clicking FAB icon
             return;
         }
-        Navigation.navigate(ROUTES.getReportRoute(reportID));
+        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
         this.props.onLinkClick();
     }
 
@@ -134,7 +153,7 @@ class SidebarLinks extends React.Component {
                             accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
                             accessibilityRole="button"
                             style={[styles.flexRow, styles.ph5]}
-                            onPress={() => this.showSearchPage()}
+                            onPress={this.showSearchPage}
                         >
                             <Icon src={Expensicons.MagnifyingGlass} />
                         </TouchableOpacity>
@@ -142,7 +161,7 @@ class SidebarLinks extends React.Component {
                     <TouchableOpacity
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
                         accessibilityRole="button"
-                        onPress={this.props.onAvatarClick}
+                        onPress={this.showSettingsPage}
                     >
                         <AvatarWithIndicator
                             source={this.props.currentUserPersonalDetails.avatar}
@@ -160,7 +179,7 @@ class SidebarLinks extends React.Component {
                         focusedIndex={_.findIndex(optionListItems, (
                             option => option.toString() === this.props.reportIDFromRoute
                         ))}
-                        onSelectRow={option => this.showReportPage(option.reportID)}
+                        onSelectRow={this.showReportPage}
                         shouldDisableFocusOptions={this.props.isSmallScreenWidth}
                         optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
                         onLayout={App.setSidebarLoaded}
