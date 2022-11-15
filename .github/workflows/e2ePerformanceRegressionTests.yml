@@ -71,7 +71,7 @@ jobs:
           aws-region: us-west-2
 
       - name: Schedule AWS Device Farm test run
-        uses: AndrewGable/aws-devicefarm/test-application@andrew-upload
+        uses: realm/aws-devicefarm/test-application@master
         with:
           name: App E2E Performance Regression Tests
           project_arn: ${{ secrets.AWS_PROJECT_ARN }}
