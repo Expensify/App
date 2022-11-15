@@ -140,7 +140,10 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                     },
                 ],
             },
-
+            { 
+                test: /\.(woff|woff2|eot|ttf|otf)$/i, 
+                type: 'asset', 
+            },
             // Load svg images
             {
                 test: /\.svg$/,
