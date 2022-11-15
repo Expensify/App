@@ -3,6 +3,7 @@ import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import {View} from 'react-native';
 import styles from '../../../../styles/styles';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import Navigation from '../../../../libs/Navigation/Navigation';
@@ -92,7 +93,7 @@ class FABActionsPopover extends React.Component {
         const workspaces = _.filter(this.props.allPolicies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE);
 
         return (
-            <>
+            <View>
                 <PopoverMenu
                     onClose={this.hideCreateMenu}
                     isVisible={this.state.isCreateMenuActive}
@@ -156,7 +157,7 @@ class FABActionsPopover extends React.Component {
                     isActive={this.state.isCreateMenuActive}
                     onPress={this.showCreateMenu}
                 />
-            </>
+            </View>
         );
     }
 }
