@@ -6,7 +6,6 @@ import * as Localize from '../Localize';
 
 export {
     setupWithdrawalAccount,
-    fetchFreePlanVerifiedBankAccount,
     goToWithdrawalAccountSetupStep,
     setBankAccountFormValidationErrors,
     resetReimbursementAccount,
