@@ -63,7 +63,7 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
 - [ ] I linked the correct issue in the `### Fixed Issues` section above
 - [ ] I wrote clear testing steps that cover the changes made in this PR
     - [ ] I added steps for local testing in the `Tests` section
-    - [ ] I added steps for the expected Offline behavior in the `Offline steps` section
+    - [ ] I added steps for the expected offline behavior in the `Offline steps` section
     - [ ] I added steps for Staging and/or Production testing in the `QA steps` section
     - [ ] I added steps to cover failure scenarios (i.e. verify an input displays the correct error message if the entered data is not correct)
     - [ ] I turned off my network connection and tested it while offline to ensure it matches the expected behavior (i.e. verify the default avatar icon is displayed if app is offline)
