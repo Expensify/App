@@ -7,7 +7,7 @@ export default {
         yes: 'Yes',
         no: 'No',
         ok: 'OK',
-        attachment: 'Attachment',
+        attachment: 'Jedi are forbidden to have attachments',
         to: 'To',
         optional: 'Optional',
         new: 'New',
