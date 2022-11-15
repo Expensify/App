@@ -354,12 +354,8 @@ export default {
         enterMessageHere: 'Ingresa el mensaje aquí',
         closeAccountWarning: 'Una vez cerrada tu cuenta no se puede revertir.',
         closeAccountPermanentlyDeleteData: 'Esta acción eliminará permanentemente toda la información de tus gastos no enviados. Escribe tu número de teléfono o correo electrónico para confirmar',
-        closeAccountActionRequired: 'Parece que necesitas completar algunas acciones antes de cerrar tu cuenta. Mira la guía',
-        closeAccountTryAgainAfter: 'e intenta nuevamente',
         enterDefaultContact: 'Tu método de contacto predeterminado',
         defaultContact: 'Método de contacto predeterminado:',
-        okayGotIt: 'Ok, entendido',
-        closeAccountError: 'No se pudo cerrar tu cuenta',
         enterYourDefaultContactMethod: 'Por favor ingresa tu método de contacto predeterminado para cerrar tu cuenta.',
     },
     passwordPage: {

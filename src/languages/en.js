@@ -353,12 +353,8 @@ export default {
         enterMessageHere: 'Enter message here',
         closeAccountWarning: 'Closing your account cannot be undone.',
         closeAccountPermanentlyDeleteData: 'This will permanently delete all of your unsubmitted expense data. Type your phone number or email address to confirm.',
-        closeAccountActionRequired: 'Looks like you need to complete some actions before closing your account. Check out the guide',
-        closeAccountTryAgainAfter: 'and try again after.',
         enterDefaultContact: 'Enter your default contact method',
         defaultContact: 'Default contact method:',
-        okayGotIt: 'Okay, Got it',
-        closeAccountError: 'Unable to close account',
         enterYourDefaultContactMethod: 'Please enter your default contact method to close your account.',
     },
     passwordPage: {

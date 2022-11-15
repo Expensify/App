@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Linking, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -13,7 +13,6 @@ import styles from '../../../styles/styles';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import TextInput from '../../../components/TextInput';
 import Text from '../../../components/Text';
-import ConfirmModal from '../../../components/ConfirmModal';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import * as CloseAccount from '../../../libs/actions/CloseAccount';
@@ -21,13 +20,6 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import Form from '../../../components/Form';
 
 const propTypes = {
-    /** Onyx Props */
-
-    /** Data from when user attempts to close their account */
-    closeAccount: PropTypes.shape({
-        /** Error message if previous attempt to close account was unsuccessful */
-        error: PropTypes.string,
-    }),
 
     /** Session of currently logged in user */
     session: PropTypes.shape({
@@ -38,11 +30,6 @@ const propTypes = {
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
-
-const defaultProps = {
-    closeAccount: {error: ''},
-};
-
 class CloseAccountPage extends Component {
     constructor(props) {
         super(props);
@@ -113,35 +100,12 @@ class CloseAccountPage extends Component {
                         />
                     </View>
                 </Form>
-                <ConfirmModal
-                    title={this.props.translate('closeAccountPage.closeAccountError')}
-                    success
-                    confirmText={this.props.translate('closeAccountPage.okayGotIt')}
-                    prompt={(
-                        <Text>
-                            {this.props.translate('closeAccountPage.closeAccountActionRequired')}
-                            {' '}
-                            <Text
-                                style={styles.link}
-                                onPress={() => { Linking.openURL('https://community.expensify.com/discussion/4724/faq-why-cant-i-close-my-account'); }}
-                            >
-                                {this.props.translate('common.here')}
-                            </Text>
-                            {' '}
-                            {this.props.translate('closeAccountPage.closeAccountTryAgainAfter')}
-                        </Text>
-                    )}
-                    onConfirm={CloseAccount.clearError}
-                    isVisible={Boolean(this.props.closeAccount.error)}
-                    shouldShowCancelButton={false}
-                />
             </ScreenWrapper>
         );
     }
 }
 
 CloseAccountPage.propTypes = propTypes;
-CloseAccountPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
