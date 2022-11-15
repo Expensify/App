@@ -18,7 +18,7 @@ $ https://github.com/Expensify/App/issues/<number-of-the-issue(comment)>
 
 Do NOT only link the issue number like this: $ #<number-of-the-issue>
 --->
-$ GH_LINK
+$ GH_LINK   
 PROPOSAL: GH_LINK_ISSUE(COMMENT)
 
 
