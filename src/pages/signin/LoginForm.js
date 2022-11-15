@@ -12,7 +12,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import compose from '../../libs/compose';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 import TextInput from '../../components/TextInput';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as LoginUtils from '../../libs/LoginUtils';
