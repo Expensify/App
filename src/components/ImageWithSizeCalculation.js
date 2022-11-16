@@ -8,6 +8,7 @@ import Log from '../libs/Log';
 import styles from '../styles/styles';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
 import ONYXKEYS from '../ONYXKEYS';
+import chatAttachmentTokenHeaders from '../libs/chatAttachmentTokenHeaders';
 
 const propTypes = {
     /** Url for image to display */
@@ -82,11 +83,7 @@ class ImageWithSizeCalculation extends PureComponent {
     }
 
     render() {
-        const headers = this.props.isAuthTokenRequired ? ({
-            headers: {
-                'X-Chat-Attachment-Token': lodashGet(this.props.session, 'encryptedAuthToken', ''),
-            },
-        }) : {};
+        const headers = this.props.isAuthTokenRequired ? chatAttachmentTokenHeaders() : undefined;
         return (
             <View
                 style={[
@@ -102,7 +99,7 @@ class ImageWithSizeCalculation extends PureComponent {
                     ]}
                     source={{
                         uri: this.props.url,
-                        ...headers,
+                        headers,
                     }}
                     resizeMode={FastImage.resizeMode.contain}
                     onLoadStart={this.imageLoadingStart}

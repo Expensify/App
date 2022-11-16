@@ -5,7 +5,6 @@ import {
 } from 'react-native';
 import FastImage from '@pieter-pot/react-native-fast-image';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
@@ -13,6 +12,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDime
 import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
+import chatAttachmentTokenHeaders from '../../libs/chatAttachmentTokenHeaders';
 
 const propTypes = {
     /** URL to full-sized image */
@@ -213,9 +213,7 @@ class ImageView extends PureComponent {
                     <FastImage
                         source={{
                             uri: this.props.url,
-                            headers: {
-                                'X-Chat-Attachment-Token': lodashGet(this.props.session, 'encryptedAuthToken', ''),
-                            },
+                            headers: chatAttachmentTokenHeaders(),
                         }}
                         style={this.state.zoomScale === 0 ? undefined : [
                             styles.w100,
