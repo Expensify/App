@@ -22,6 +22,7 @@ const combinedComments = [];
  * @returns {Promise}
  */
 function getNumberOfItemsFromReviewerChecklist() {
+    console.log('Getting the number of items in the reviewer checklist...');
     return new Promise((resolve, reject) => {
         https.get(pathToReviewerChecklist, (res) => {
             let fileContents = '';
@@ -30,6 +31,7 @@ function getNumberOfItemsFromReviewerChecklist() {
             });
             res.on('end', () => {
                 const numberOfChecklistItems = (fileContents.match(/- \[ \]/g) || []).length;
+                console.log(`There are ${numberOfChecklistItems} items in the reviewer checklist.`);
                 resolve(numberOfChecklistItems);
             });
         })
@@ -42,10 +44,17 @@ function getNumberOfItemsFromReviewerChecklist() {
  */
 function checkIssueForCompletedChecklist(numberOfChecklistItems) {
     GitHubUtils.getAllReviewComments(issue)
-        .then(reviewComments => combinedComments.push(...reviewComments))
+        .then((reviewComments) => {
+            console.log('Pulled all review comments, now adding them to the list...');
+            combinedComments.push(...reviewComments);
+        })
         .then(() => GitHubUtils.getAllComments(issue))
-        .then(comments => combinedComments.push(...comments))
+        .then((comments) => {
+            console.log('Pulled all comments, now adding them to the list...');
+            combinedComments.push(...comments);
+        })
         .then(() => {
+            console.log('Looking through all comments for the reviewer checklist...');
             let foundReviewerChecklist = false;
             let numberOfFinishedChecklistItems = 0;
             let numberOfUnfinishedChecklistItems = 0;
@@ -62,6 +71,7 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
 
                 // Found the reviewer checklist, so count how many completed checklist items there are
                 if (comment.startsWith(reviewerChecklistStartsWith)) {
+                    console.log('Found the reviewer checklist!');
                     foundReviewerChecklist = true;
                     numberOfFinishedChecklistItems = (comment.match(/- \[x\]/gi) || []).length;
                     numberOfUnfinishedChecklistItems = (comment.match(/- \[ \]/g) || []).length;
@@ -86,8 +96,10 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
 }
 
 getNumberOfItemsFromReviewerChecklist()
-    .then(checkIssueForCompletedChecklist, (err) => {
+    .then(checkIssueForCompletedChecklist)
+    .catch((err) => {
         console.error(err);
+        core.setFailed(err);
     });
 
 
