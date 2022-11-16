@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 26.2.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!-- Generator: Adobe Illustrator 26.5.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="0 0 20 20" style="enable-background:new 0 0 20 20;" xml:space="preserve">
-<style type="text/css">
-	.st0{fill-rule:evenodd;clip-rule:evenodd;}
-</style>
-<path class="st0" d="M15.8,5.7l-4.1,4.1c-0.2,0.2-0.5,0.2-0.7,0L10.1,9c-0.2-0.2-0.2-0.5,0-0.7l4.1-4.1h-3.4c-0.3,0-0.5-0.2-0.5-0.5
-	V2.5c0-0.3,0.2-0.5,0.5-0.5h6.6C17.8,2,18,2.2,18,2.5v6.6c0,0.3-0.2,0.5-0.5,0.5h-1.2c-0.3,0-0.5-0.2-0.5-0.5V5.7z"/>
-<path class="st0" d="M4.2,14.3l4.1-4.1C8.5,10,8.8,10,9,10.1L9.9,11c0.2,0.2,0.2,0.5,0,0.7l-4.1,4.1h3.4c0.3,0,0.5,0.2,0.5,0.5v1.2
-	c0,0.3-0.2,0.5-0.5,0.5H2.5C2.2,18,2,17.8,2,17.5v-6.6c0-0.3,0.2-0.5,0.5-0.5h1.2c0.3,0,0.5,0.2,0.5,0.5V14.3z"/>
+<path d="M10.5,2C9.7,2,9,2.7,9,3.5S9.7,5,10.5,5h2.4L9.9,7.9c-0.6,0.6-0.6,1.5,0,2.1c0.6,0.6,1.5,0.6,2.1,0L15,7.1v2.4
+	c0,0.8,0.7,1.5,1.5,1.5S18,10.3,18,9.5V2H10.5z"/>
+<path d="M8.5,19c0.8,0,1.5-0.7,1.5-1.5S9.3,16,8.5,16H6.1l2.9-2.9c0.6-0.6,0.6-1.5,0-2.1c-0.6-0.6-1.5-0.6-2.1,0L4,13.9v-2.4
+	C4,10.7,3.3,10,2.5,10S1,10.7,1,11.5V19H8.5z"/>
 </svg>
