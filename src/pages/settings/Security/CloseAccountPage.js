@@ -35,6 +35,7 @@ class CloseAccountPage extends Component {
         super(props);
 
         this.onSubmit = this.onSubmit.bind(this);
+        this.validate = this.validate.bind(this);
         CloseAccount.clearError();
     }
 
@@ -46,7 +47,8 @@ class CloseAccountPage extends Component {
         User.closeAccount(values.reasonForLeaving);
     }
 
-    validate(values, userEmailOrPhone) {
+    validate(values) {
+        const userEmailOrPhone = Str.removeSMSDomain(this.props.session.email);
         const errors = {};
 
         if (_.isEmpty(values.phoneOrEmail) || userEmailOrPhone.toLowerCase() !== values.phoneOrEmail.toLowerCase()) {
@@ -67,7 +69,7 @@ class CloseAccountPage extends Component {
                 />
                 <Form
                     formID={ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM}
-                    validate={values => this.validate(values, userEmailOrPhone)}
+                    validate={this.validate}
                     onSubmit={this.onSubmit}
                     submitButtonText={this.props.translate('closeAccountPage.closeAccount')}
                     style={[styles.flexGrow1, styles.mh5]}
