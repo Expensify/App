@@ -143,7 +143,7 @@ class EnableStep extends React.Component {
                         </View>
                     </Section>
                     {this.props.user.isCheckingDomain && (
-                        <Text style={[styles.formError, styles.m5]}>
+                        <Text style={[styles.formError, styles.mh5]}>
                             {this.props.translate('workspace.card.checkingDomain')}
                         </Text>
                     )}
