@@ -2,7 +2,6 @@ import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import FastImage from '@pieter-pot/react-native-fast-image';
 import stylePropTypes from '../styles/stylePropTypes';
 import Icon from './Icon';
 import themeColors from '../styles/themes/default';
@@ -10,6 +9,7 @@ import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as Expensicons from './Icon/Expensicons';
 import getAvatarDefaultSource from '../libs/getAvatarDefaultSource';
+import FastImage from './FastImage';
 
 const propTypes = {
     /** Source for the avatar. Can be a URL or an icon. */

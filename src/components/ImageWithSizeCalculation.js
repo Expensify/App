@@ -3,12 +3,12 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import FastImage from '@pieter-pot/react-native-fast-image';
 import Log from '../libs/Log';
 import styles from '../styles/styles';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
 import ONYXKEYS from '../ONYXKEYS';
 import chatAttachmentTokenHeaders from '../libs/chatAttachmentTokenHeaders';
+import FastImage from './FastImage';
 
 const propTypes = {
     /** Url for image to display */
@@ -97,6 +97,7 @@ class ImageWithSizeCalculation extends PureComponent {
                         styles.w100,
                         styles.h100,
                     ]}
+                    fallback
                     source={{
                         uri: this.props.url,
                         headers,

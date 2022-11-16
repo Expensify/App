@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import {
     View, Image, Pressable,
 } from 'react-native';
-import FastImage from '@pieter-pot/react-native-fast-image';
 import {withOnyx} from 'react-native-onyx';
+import FastImage from '../FastImage';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
