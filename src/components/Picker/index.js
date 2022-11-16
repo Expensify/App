@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import BasePicker from './BasePicker';
 import Text from '../Text';
 import styles from '../../styles/styles';
-import InlineErrorText from '../InlineErrorText';
+import FormHelpMessage from '../FormHelpMessage';
 
 const propTypes = {
     /** Picker label */
@@ -71,6 +71,8 @@ class Picker extends PureComponent {
 
     render() {
         const pickerProps = _.omit(this.props, _.keys(propTypes));
+        const hasError = !_.isEmpty(this.props.errorText);
+
         return (
             <>
                 <View
@@ -78,6 +80,8 @@ class Picker extends PureComponent {
                         styles.pickerContainer,
                         this.props.isDisabled && styles.inputDisabled,
                         ...this.props.containerStyles,
+                        this.state.isOpen && styles.borderColorFocus,
+                        hasError && styles.borderColorDanger,
                     ]}
                 >
                     {this.props.label && (
@@ -87,17 +91,13 @@ class Picker extends PureComponent {
                         onOpen={() => this.setState({isOpen: true})}
                         onClose={() => this.setState({isOpen: false})}
                         disabled={this.props.isDisabled}
-                        focused={this.state.isOpen}
-                        errorText={this.props.errorText}
                         value={this.props.value}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...pickerProps}
                         onInputChange={this.onInputChange}
                     />
                 </View>
-                <InlineErrorText styles={[styles.mh3]}>
-                    {this.props.errorText}
-                </InlineErrorText>
+                <FormHelpMessage message={this.props.errorText} />
             </>
         );
     }

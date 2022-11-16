@@ -10,7 +10,6 @@ import display from './utilities/display';
 import overflow from './utilities/overflow';
 import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
-import textInputAlignSelf from './utilities/textInputAlignSelf';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
@@ -19,6 +18,7 @@ import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyl
 import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
+import CONST from '../CONST';
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -29,10 +29,8 @@ const picker = {
     paddingHorizontal: 11,
     paddingBottom: 8,
     paddingTop: 23,
-    height: 52,
-    borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: themeColors.border,
+    height: 50,
+    borderWidth: 0,
     borderRadius: variables.componentBorderRadiusNormal,
     textAlign: 'left',
 };
@@ -126,6 +124,10 @@ const webViewStyles = {
         p: {
             marginTop: 0,
             marginBottom: 0,
+        },
+        h1: {
+            fontSize: variables.fontSizeLarge,
+            marginBottom: 8,
         },
     },
 
@@ -529,11 +531,9 @@ const styles = {
             paddingTop: 6,
             paddingBottom: 6,
             borderRadius: variables.componentBorderRadius,
-            borderWidth: 1,
-            borderColor: themeColors.border,
-            borderStyle: 'solid',
+            borderWidth: 0,
             color: themeColors.text,
-            height: variables.componentSizeSmall,
+            height: 26,
             opacity: 1,
             backgroundColor: 'transparent',
         },
@@ -544,13 +544,11 @@ const styles = {
             paddingRight: 25,
             paddingTop: 6,
             paddingBottom: 6,
-            borderWidth: 1,
-            borderColor: themeColors.border,
-            borderStyle: 'solid',
+            borderWidth: 0,
             borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
             appearance: 'none',
-            height: variables.componentSizeSmall,
+            height: 26,
             opacity: 1,
             cursor: 'pointer',
             backgroundColor: 'transparent',
@@ -562,17 +560,15 @@ const styles = {
             paddingRight: 25,
             paddingTop: 6,
             paddingBottom: 6,
-            borderWidth: 1,
-            borderColor: themeColors.border,
-            borderStyle: 'solid',
+            borderWidth: 0,
             borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
-            height: variables.componentSizeSmall,
+            height: 26,
             opacity: 1,
         },
         iconContainer: {
-            top: 8,
-            right: 9,
+            top: 7,
+            right: 8,
             ...pointerEventsNone,
         },
         icon: {
@@ -798,33 +794,31 @@ const styles = {
     },
 
     pickerContainer: {
-        borderWidth: 0,
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderColor: themeColors.border,
         borderRadius: variables.componentBorderRadiusNormal,
         justifyContent: 'center',
         backgroundColor: themeColors.componentBG,
     },
     pickerLabel: {
         position: 'absolute',
-        left: 12,
-        top: 7,
+        left: 11,
+        top: 6,
     },
-    picker: (disabled = false, error = false, focused = false) => ({
+    picker: (disabled = false) => ({
         iconContainer: {
-            top: 16,
-            right: 11,
+            top: 15,
+            right: 10,
             zIndex: -1,
         },
         inputWeb: {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
             ...picker,
-            ...(focused && {borderColor: themeColors.borderFocus}),
-            ...(error && {borderColor: themeColors.danger}),
         },
         inputNative: {
             ...picker,
-            ...(focused && {borderColor: themeColors.borderFocus}),
-            ...(error && {borderColor: themeColors.danger}),
         },
     }),
 
@@ -1235,6 +1229,12 @@ const styles = {
     appContent: {
         backgroundColor: themeColors.appBG,
         overflow: 'hidden',
+
+        // Starting version 6.3.2 @react-navigation/drawer adds "user-select: none;" to its container.
+        // We add user-select-auto to the inner component to prevent incorrect triple-click text selection.
+        // For further explanation see - https://github.com/Expensify/App/pull/12730/files#r1022883823
+        userSelect: 'auto',
+        WebkitUserSelect: 'auto',
     },
 
     appContentHeader: {
@@ -1387,6 +1387,8 @@ const styles = {
         flexBasis: '100%',
     },
 
+    // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
+    // Make sure you run the following tests against any changes: #12669
     textInputCompose: addOutlineWidth({
         backgroundColor: themeColors.componentBG,
         borderColor: themeColors.border,
@@ -1403,8 +1405,9 @@ const styles = {
         // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
         paddingHorizontal: 8,
-        paddingVertical: 0,
-        ...textInputAlignSelf.center,
+        paddingTop: 0,
+        paddingBottom: 0,
+        alignSelf: 'center',
         textAlignVertical: 'center',
     }, 0),
 
@@ -1419,8 +1422,9 @@ const styles = {
         marginVertical: 6,
     },
 
+    // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
     textInputComposeSpacing: {
-        paddingVertical: 6,
+        paddingVertical: 5,
         ...flex.flexRow,
         flex: 1,
     },
@@ -1474,12 +1478,16 @@ const styles = {
         fontSize: variables.emojiSize,
         ...spacing.pv0,
         ...spacing.ph0,
+        lineHeight: variables.emojiLineHeight,
     },
 
     emojiItem: {
         width: '12.5%',
         textAlign: 'center',
         borderRadius: 8,
+        paddingTop: 2,
+        paddingBottom: 2,
+        height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
     },
 
     emojiItemHighlighted: {

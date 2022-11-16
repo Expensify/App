@@ -12,6 +12,8 @@ import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../ReportUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -261,6 +263,12 @@ function setPersonalDetails(details, shouldGrowl) {
         });
 }
 
+/**
+ * @param {String} firstName
+ * @param {String} lastName
+ * @param {String} pronouns
+ * @param {Object} timezone
+ */
 function updateProfile(firstName, lastName, pronouns, timezone) {
     API.write('UpdateProfile', {
         firstName,
@@ -285,6 +293,48 @@ function updateProfile(firstName, lastName, pronouns, timezone) {
             },
         }],
     });
+}
+
+/**
+ * @param {String} pronouns
+ */
+function updatePronouns(pronouns) {
+    API.write('UpdatePronouns', {pronouns}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    pronouns,
+                },
+            },
+        }],
+    });
+    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+}
+
+/**
+ * @param {String} firstName
+ * @param {String} lastName
+ */
+function updateDisplayName(firstName, lastName) {
+    API.write('UpdateDisplayName', {firstName, lastName}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    firstName,
+                    lastName,
+                    displayName: getDisplayName(currentUserEmail, {
+                        firstName,
+                        lastName,
+                    }),
+                },
+            },
+        }],
+    });
+    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
 /**
@@ -399,5 +449,7 @@ export {
     getMaxCharacterError,
     extractFirstAndLastNameFromAvailableDetails,
     updateProfile,
+    updateDisplayName,
+    updatePronouns,
     clearAvatarErrors,
 };

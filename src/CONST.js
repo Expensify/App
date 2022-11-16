@@ -15,8 +15,11 @@ const CONST = {
     ANIMATION_IN_TIMING: 100,
 
     API_ATTACHMENT_VALIDATIONS: {
-        // 50 megabytes in bytes
-        MAX_SIZE: 52428800,
+        // Same as the PHP layer allows
+        ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml', 'mp3', 'mp4', 'mov'],
+
+        // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
+        MAX_SIZE: 25165824,
 
         // An arbitrary size, but the same minimum as in the PHP layer
         MIN_SIZE: 240,
@@ -262,9 +265,6 @@ const CONST = {
             REMOVED_FROM_POLICY: 'removedFromPolicy',
             POLICY_DELETED: 'policyDeleted',
         },
-        ERROR: {
-            INACCESSIBLE_REPORT: 'Report not found',
-        },
         MESSAGE: {
             TYPE: {
                 COMMENT: 'COMMENT',
@@ -315,6 +315,7 @@ const CONST = {
         MAX_ROOM_NAME_LENGTH: 80,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
         OWNER_EMAIL_FAKE: '__FAKE__',
+        DEFAULT_REPORT_NAME: 'Chat Report',
     },
     COMPOSER: {
         MAX_LINES: 16,
@@ -348,7 +349,6 @@ const CONST = {
         SEARCH_RENDER: 'search_render',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',
-        HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
         SWITCH_REPORT: 'switch_report',
         SIDEBAR_LOADED: 'sidebar_loaded',
         COLD: 'cold',
@@ -489,8 +489,8 @@ const CONST = {
         WIDTH: 320,
         HEIGHT: 400,
     },
-    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
-    EMOJI_PICKER_ITEM_HEIGHT: 40,
+    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 298,
+    EMOJI_PICKER_ITEM_HEIGHT: 32,
     EMOJI_PICKER_HEADER_HEIGHT: 38,
     COMPOSER_MAX_HEIGHT: 125,
     CHAT_FOOTER_MIN_HEIGHT: 65,
@@ -573,6 +573,7 @@ const CONST = {
         STEP: {
             // In the order they appear in the Wallet flow
             ADDITIONAL_DETAILS: 'AdditionalDetailsStep',
+            ADDITIONAL_DETAILS_KBA: 'AdditionalDetailsKBAStep',
             ONFIDO: 'OnfidoStep',
             TERMS: 'TermsStep',
             ACTIVATE: 'ActivateStep',
@@ -658,6 +659,8 @@ const CONST = {
             PAY: 'pay',
             CREATE: 'create',
             SPLIT: 'split',
+            DECLINE: 'decline',
+            CANCEL: 'cancel',
         },
         AMOUNT_MAX_LENGTH: 10,
     },
@@ -821,7 +824,6 @@ const CONST = {
         INVITE: 'invite',
         LEAVE_ROOM: 'leaveRoom',
     },
-    PROFILE_SETTINGS_FORM: 'profileSettingsForm',
 
     // These split the maximum decimal value of a signed 64-bit number (9,223,372,036,854,775,807) into parts where none of them are too big to fit into a 32-bit number, so that we can
     // generate them each with a random number generator with only 32-bits of precision.

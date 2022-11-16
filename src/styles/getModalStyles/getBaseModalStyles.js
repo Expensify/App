@@ -14,6 +14,8 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
     let animationIn;
     let animationOut;
     let hideBackdrop = false;
+    let shouldAddBottomSafeAreaMargin = false;
+    let shouldAddTopSafeAreaMargin = false;
     let shouldAddBottomSafeAreaPadding = false;
     let shouldAddTopSafeAreaPadding = false;
 
@@ -82,8 +84,10 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             swipeDirection = ['down', 'right'];
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
             animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
-            shouldAddTopSafeAreaPadding = true;
-            shouldAddBottomSafeAreaPadding = true;
+            shouldAddTopSafeAreaMargin = !isSmallScreenWidth;
+            shouldAddBottomSafeAreaMargin = !isSmallScreenWidth;
+            shouldAddTopSafeAreaPadding = isSmallScreenWidth;
+            shouldAddBottomSafeAreaPadding = false;
             break;
         case CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE:
             // A centered modal that cannot be dismissed with a swipe.
@@ -114,8 +118,10 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             swipeDirection = undefined;
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
             animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
-            shouldAddTopSafeAreaPadding = true;
-            shouldAddBottomSafeAreaPadding = true;
+            shouldAddTopSafeAreaMargin = !isSmallScreenWidth;
+            shouldAddBottomSafeAreaMargin = !isSmallScreenWidth;
+            shouldAddTopSafeAreaPadding = isSmallScreenWidth;
+            shouldAddBottomSafeAreaPadding = false;
             break;
         case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
             modalStyle = {
@@ -216,6 +222,8 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
         animationIn,
         animationOut,
         hideBackdrop,
+        shouldAddTopSafeAreaMargin,
+        shouldAddBottomSafeAreaMargin,
         shouldAddBottomSafeAreaPadding,
         shouldAddTopSafeAreaPadding,
     };
