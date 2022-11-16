@@ -273,7 +273,7 @@ class WorkspaceReimburseView extends React.Component {
                 {this.props.hasVBA ? (
                     <Section
                         title={this.props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
-                        icon={Illustrations.BankUserGreen}
+                        icon={Illustrations.TreasureChest}
                         menuItems={[
                             {
                                 title: this.props.translate('workspace.reimburse.reimburseReceipts'),
@@ -281,6 +281,8 @@ class WorkspaceReimburseView extends React.Component {
                                 icon: Expensicons.Bank,
                                 shouldShowRightIcon: true,
                                 iconRight: Expensicons.NewWindow,
+                                iconFill: themeColors.buttonSuccessBG,
+                                wrapperStyle: [styles.cardMenuItem],
                             },
                         ]}
                     >

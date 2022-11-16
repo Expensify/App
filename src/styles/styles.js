@@ -2777,6 +2777,7 @@ const styles = {
         borderRadius: variables.componentBorderRadiusNormal,
         paddingVertical: 6,
     },
+
     callRequestSection: {
         backgroundColor: themeColors.appBG,
         paddingHorizontal: 0,

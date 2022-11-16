@@ -101,13 +101,12 @@ const BankAccountStep = (props) => {
                 <Section
                     icon={Illustrations.MoneyWings}
                     title={props.translate('workspace.bankAccount.streamlinePayments')}
-                    containerStyles={[styles.cardSection]}
                 >
                     <View style={[styles.mv3]}>
                         <Text>{props.translate('bankAccount.toGetStarted')}</Text>
                     </View>
                     {plaidDesktopMessage && (
-                        <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
+                        <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>
                             <TextLink href={bankAccountRoute}>
                                 {props.translate(plaidDesktopMessage)}
                             </TextLink>
@@ -152,7 +151,7 @@ const BankAccountStep = (props) => {
                         </Text>
                     </View>
                 )}
-                <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
+                <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
                     <TextLink href="https://use.expensify.com/privacy">
                         {props.translate('common.privacy')}
                     </TextLink>
