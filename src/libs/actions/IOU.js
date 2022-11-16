@@ -752,6 +752,47 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
         optimisticIOUReport.reportID,
     );
 
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.chatReportID}`,
+            value: {
+                [optimisticIouReportAction.reportActionID]: {
+                    optimisticIouReportAction,
+
+                    // Set pendingAction state for pattern B
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.chatReportID}`,
+            value: chatReport.chatReportID,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${optimisticIOUReport.reportID}`,
+            value: optimisticIOUReport,
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.chatReportID}`,
+            value: {
+                [optimisticIouReportAction.reportActionID]: {
+                    optimisticIouReportAction,
+                    pendingAction: null,
+                    error: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                    },
+                },
+            },
+        },
+    ];
+
     const params = {};
 
     API.write('SendMoneyWithWallet',
@@ -759,45 +800,8 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
             params,
         },
         {
-            optimisticData: [
-                {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.chatReportID}`,
-                    value: {
-                        [optimisticIouReportAction.reportActionID]: {
-                            optimisticIouReportAction,
-
-                            // Set pendingAction state for pattern B
-                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                        },
-                    },
-                },
-                {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.chatReportID}`,
-                    value: chatReport.chatReportID,
-                },
-                {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${optimisticIOUReport.reportID}`,
-                    value: optimisticIOUReport,
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.chatReportID}`,
-                    value: {
-                        [optimisticIouReportAction.reportActionID]: {
-                            optimisticIouReportAction,
-                            pendingAction: null,
-                            error: {
-                                [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
-                            },
-                        },
-                    },
-                },
-            ],
+            optimisticData,
+            failureData,
         });
 }
 
@@ -826,6 +830,37 @@ function payMoneyRequestWithWallet(chatReportID, iouReportID, amount, currency, 
         iouReportID,
     );
 
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            value: {
+                [optimisticIouReportAction.reportActionID]: {
+                    optimisticIouReportAction,
+
+                    // Set pendingAction state for pattern B
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            value: {
+                [optimisticIouReportAction.reportActionID]: {
+                    optimisticIouReportAction,
+                    pendingAction: null,
+                    error: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                    },
+                },
+            },
+        },
+    ];
+
     const params = {};
 
     API.write('PayMoneyRequestWithWallet',
@@ -833,35 +868,8 @@ function payMoneyRequestWithWallet(chatReportID, iouReportID, amount, currency, 
             params,
         },
         {
-            optimisticData: [
-                {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
-                    value: {
-                        [optimisticIouReportAction.reportActionID]: {
-                            optimisticIouReportAction,
-
-                            // Set pendingAction state for pattern B
-                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                        },
-                    },
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
-                    value: {
-                        [optimisticIouReportAction.reportActionID]: {
-                            optimisticIouReportAction,
-                            pendingAction: null,
-                            error: {
-                                [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
-                            },
-                        },
-                    },
-                },
-            ],
+            optimisticData,
+            failureData,
         });
 }
 
