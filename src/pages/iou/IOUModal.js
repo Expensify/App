@@ -295,13 +295,12 @@ class IOUModal extends Component {
             idempotencyKey: Str.guid(),
         });
 
-        IOU.payIOUReport({
+        IOU.sendMoneyElsewhere({
             chatReportID: lodashGet(this.props, 'route.params.reportID', ''),
             reportID: '0',
             paymentMethodType,
             amount,
             currency,
-            requestorPayPalMeAddress: this.state.participants[0].payPalMeAddress,
             comment,
             newIOUReportDetails,
         })

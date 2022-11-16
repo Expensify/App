@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
@@ -725,68 +726,65 @@ function payIOUReport({
  * @param {Number} amount
  * @param {String} currency
  * @param {String} comment
- * @param {String} ownerEmail - Email of the person generating the IOU.
- * @param {String} userEmail - Email of the other person participating in the IOU.
+ * @param {String} managerEmail - Email of the person sending the money
+ * @param {String} recipient - The user receiving the money
  */
-function sendMoneyElsewhere(report, amount, currency, comment, ownerEmail, userEmail) {
-    const participants = [
-        {login: ownerEmail},
-        {login: userEmail},
-    ];
-    const chatReport = lodashGet(report, 'reportID', null)
-        ? report
-        : ReportUtils.buildOptimisticChatReport(participants);
-
-    const chatReportID = chatReport.reportID;
-    const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(ownerEmail, userEmail);
-
-    const optimisticAddReportIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
-        Report.getMaxSequenceNumber(chatReport.reportID) + 1,
-        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+function sendMoneyElsewhere(report, amount, currency, comment, managerEmail, recipient) {
+    const newIOUReportDetails = JSON.stringify({
         amount,
         currency,
+        requestorEmail: recipient.login,
         comment,
-        participants,
-        optimisticIOUReport.reportID,
-    );
+        idempotencyKey: Str.guid(),
+    });
 
-    const optimisticReimbursedReportAction = ReportUtils.buildOptimisticIOUReportAction(
-        Report.getMaxSequenceNumber(chatReport.reportID) + 2,
+    const recipientEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(recipient.login);
+    let chatReport = lodashGet(report, 'reportID', null) ? report : null;
+    let isNewChat = false;
+    if (!chatReport) {
+        chatReport = ReportUtils.getChatByParticipants([recipientEmail]);
+    }
+    if (!chatReport) {
+        chatReport = ReportUtils.buildOptimisticChatReport([recipientEmail]);
+        isNewChat = true;
+    }
+    const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, managerEmail, amount, chatReport.reportID, currency, preferredLocale);
+    const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
+
+    const optimisticPaidReportAction = ReportUtils.buildOptimisticIOUReportAction(
+        newSequenceNumber,
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         amount,
         currency,
         comment,
-        participants,
+        [recipient],
+        CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+        '',
         optimisticIOUReport.reportID,
     );
 
-    const newIOUReportDetails = {
-        requestorEmail: ownerEmail,
-        amount,
-        currency,
-        comment,
-    };
-    const paymentMethodType = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
-
+    // First, add data that will be used in all cases
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.IOU,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
-                errors: {},
+                ...chatReport,
+                lastVisitedTimestamp: Date.now(),
+                lastReadSequenceNumber: newSequenceNumber,
+                maxSequenceNumber: newSequenceNumber,
+                lastMessageText: optimisticPaidReportAction.message[0].text,
+                lastMessageHtml: optimisticPaidReportAction.message[0].html,
+                hasOutstandingIOU: optimisticIOUReport.total !== 0,
+                iouReportID: optimisticIOUReport.reportID,
             },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimisticReimbursedReportAction.reportID]: optimisticReimbursedReportAction,
+                [optimisticPaidReportAction.sequenceNumber]: optimisticPaidReportAction,
             },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
-            value: chatReport,
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -795,16 +793,36 @@ function sendMoneyElsewhere(report, amount, currency, comment, ownerEmail, userE
         },
     ];
 
+    // Now, let's add the data we need just when we are creating a new chat report
+    if (isNewChat) {
+        const optimisticCreateAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
+
+        // Change the method to set for new reports because it doesn't exist yet, is faster,
+        // and we need the data to be available when we navigate to the chat page
+        optimisticData[0].onyxMethod = CONST.ONYX.METHOD.SET;
+        optimisticData[0].value = {
+            ...optimisticData[0].value,
+            pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+        };
+        optimisticData[1].onyxMethod = CONST.ONYX.METHOD.SET;
+        optimisticData[1].value = {
+            ...optimisticCreateAction,
+            ...optimisticData[1].value,
+        };
+        optimisticData[2].onyxMethod = CONST.ONYX.METHOD.SET;
+    }
+
     API.write('SendMoney', {
         iouReportID: optimisticIOUReport.reportID,
-        chatReportID,
-        optimisticReimbursedReportAction,
-        optimisticAddReportIOUReportAction,
-        paymentMethodType,
-        transactionID: optimisticReimbursedReportAction.originalMessage.IOUTransactionID,
-        clientID: optimisticReimbursedReportAction.sequenceNumber,
+        chatReportID: chatReport.reportID,
+        paidReportActionID: optimisticPaidReportAction.reportActionID,
+        paymentMethodType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+        transactionID: Report.openPaymentDetailsPage.originalMessage.IOUTransactionID,
+        clientID: optimisticPaidReportAction.sequenceNumber,
         newIOUReportDetails,
     }, {optimisticData});
+
+    Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
 }
 
 export {
@@ -814,4 +832,5 @@ export {
     requestMoney,
     payIOUReport,
     setIOUSelectedCurrency,
+    sendMoneyElsewhere,
 };
