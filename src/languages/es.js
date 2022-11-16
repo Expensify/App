@@ -264,7 +264,6 @@ export default {
             other: 'Error inesperado, por favor inténtalo más tarde',
             genericCreateFailureMessage: 'Error inesperado solicitando dinero, por favor inténtalo más tarde',
             genericCancelFailureMessage: ({type}) => `Error inesperado al ${type === 'decline' ? 'rechazar' : 'cancelar'} la solicitud de dinero, por favor inténtalo más tarde`,
-
         },
     },
     notificationPreferences: {
@@ -304,6 +303,28 @@ export default {
         online: 'En línea',
         offline: 'Desconectado',
         syncing: 'Sincronizando',
+    },
+    pronounsPage: {
+        pronouns: 'Pronombres',
+        isShownOnProfile: 'Tus pronombres se muestran en tu perfil.',
+    },
+    pronouns: {
+        coCos: 'Co / Cos',
+        eEyEmEir: 'E / Ey / Em / Eir',
+        faeFaer: 'Fae / Faer',
+        heHimHis: 'Él',
+        sheHerHers: 'Ella',
+        merMers: 'Mer / Mers',
+        neNirNirs: 'Ne / Nir / Nirs',
+        neeNerNers: 'Nee / Ner / Ners',
+        perPers: 'Per / Pers',
+        theyThemTheirs: 'Ellos',
+        thonThons: 'Thon / Thons',
+        veVerVis: 'Ve / Ver / Vis',
+        viVir: 'Vi / Vir',
+        xeXemXyr: 'Xe / Xem / Xyr',
+        zeZieZirHir: 'Ze / Zie / Zir / Hir',
+        callMeByMyName: 'Llámame por mi nombre',
     },
     displayNamePage: {
         headerTitle: 'Nombre',
@@ -613,14 +634,6 @@ export default {
             afterLinkText: 'para verlo.',
             formLabel: 'Ver PDF',
         },
-    },
-    pronouns: {
-        heHimHis: 'Él',
-        sheHerHers: 'Ella',
-        theyThemTheirs: 'Ellos',
-        zeHirHirs: 'Ze/hir',
-        selfSelect: 'Personalízalo',
-        callMeByMyName: 'Llámame por mi nombre',
     },
     messages: {
         errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
