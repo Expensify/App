@@ -727,7 +727,7 @@ function payIOUReport({
  * @param {String} currency
  * @param {String} comment
  * @param {String} managerEmail - Email of the person sending the money
- * @param {String} recipient - The user receiving the money
+ * @param {Object} recipient - The user receiving the money
  */
 function sendMoneyElsewhere(report, amount, currency, comment, managerEmail, recipient) {
     const newIOUReportDetails = JSON.stringify({
