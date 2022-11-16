@@ -388,11 +388,6 @@ class ReportActionCompose extends React.PureComponent {
         const emojiReplaceResults = EmojiUtils.replaceEmojis(comment);
         const newComment = emojiReplaceResults.newText;
 
-        const isCommentEmpty = Boolean(newComment.match(CONST.REGEX.IS_COMMENT_EMPTY));
-        if (this.state.isCommentEmpty !== isCommentEmpty) {
-            this.setState({isCommentEmpty});
-        }
-
         // When the comment has changed after replacing emojis we need to update the text in the input
         if (newComment !== comment) {
             const cursorPosition = emojiReplaceResults.lastReplacedSelection.newSelectionEnd;
@@ -419,11 +414,10 @@ class ReportActionCompose extends React.PureComponent {
             this.debouncedBroadcastUserIsTyping();
         }
 
+        const isCommentEmpty = Boolean(newComment.match(CONST.REGEX.IS_COMMENT_EMPTY));
         const hasExceededMaxCommentLength = this.comment.length > CONST.MAX_COMMENT_LENGTH;
         const exceededCommentLength = hasExceededMaxCommentLength ? this.comment.length : undefined;
-        if (this.state.exceededCommentLength !== exceededCommentLength) {
-            this.setState({exceededCommentLength});
-        }
+        this.setState({exceededCommentLength, isCommentEmpty});
     }
 
     /**
