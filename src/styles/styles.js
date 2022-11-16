@@ -2724,6 +2724,7 @@ const styles = {
 
     userSelectText: {
         userSelect: 'text',
+        WebkitUserSelect: 'text',
     },
 
     userSelectNone: {
