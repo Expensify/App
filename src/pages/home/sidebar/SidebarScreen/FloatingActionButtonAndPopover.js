@@ -19,6 +19,8 @@ import withWindowDimensions from '../../../../components/withWindowDimensions';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import withNavigation from '../../../../components/withNavigation';
 import * as Welcome from '../../../../libs/actions/Welcome';
+import withNavigationFocus from '../../../../components/withNavigationFocus';
+import withDrawerState from '../../../../components/withDrawerState';
 
 const propTypes = {
     /* Callback function when the menu is shown */
@@ -66,10 +68,64 @@ class FloatingActionButtonAndPopover extends React.Component {
         Welcome.show({routes, showCreateMenu: this.showCreateMenu});
     }
 
+    componentDidUpdate(prevProps) {
+        if (!this.didScreenBecomeInactive(prevProps)) {
+            return;
+        }
+
+        // Hide menu manually when other pages are opened using shortcut key
+        this.hideCreateMenu();
+    }
+
+    /**
+     * Check if LHN status changed from active to inactive.
+     * Used to close already opened FAB menu when open any other pages (i.e. Press Command + K on web).
+     *
+     * @param {Object} prevProps
+     * @return {Boolean}
+     */
+    didScreenBecomeInactive(prevProps) {
+        // When the Drawer gets closed and ReportScreen is shown
+        if (!this.props.isDrawerOpen && prevProps.isDrawerOpen) {
+            return true;
+        }
+
+        // When any other page is opened over LHN
+        if (!this.props.isFocused && prevProps.isFocused) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if LHN is inactive.
+     * Used to prevent FAB menu showing after opening any other pages.
+     *
+     * @return {Boolean}
+     */
+    isScreenInactive() {
+        // When drawer is closed and Report page is open
+        if (this.props.isSmallScreenWidth && !this.props.isDrawerOpen) {
+            return true;
+        }
+
+        // When any other page is open
+        if (!this.props.isFocused) {
+            return true;
+        }
+
+        return false;
+    }
+
     /**
      * Method called when we click the floating action button
      */
     showCreateMenu() {
+        if (this.isScreenInactive()) {
+            // Prevent showing menu when click FAB icon quickly after opening other pages
+            return;
+        }
         this.setState({
             isCreateMenuActive: true,
         });
@@ -82,6 +138,10 @@ class FloatingActionButtonAndPopover extends React.Component {
      * - Selecting an item on CreateMenu or closing it by clicking outside of the modal component
      */
     hideCreateMenu() {
+        if (this.isScreenInactive()) {
+            // Prevent showing menu when click FAB icon quickly after opening other pages
+            return;
+        }
         this.props.onHideCreateMenu();
         this.setState({
             isCreateMenuActive: false,
@@ -168,6 +228,8 @@ FloatingActionButtonAndPopover.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withNavigation,
+    withNavigationFocus,
+    withDrawerState,
     withWindowDimensions,
     withOnyx({
         allPolicies: {
