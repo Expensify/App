@@ -11,14 +11,9 @@ self.addEventListener('fetch', (event) => {
     console.log('[Service Worker] Intercepting page navigation...');
 
     event.respondWith(
-        // Try the page navigation
-        fetch(event.request)
-            .catch(() => {
-                // Page navigation failed, probably because we're ofline
-                // Return our offline page
-                new Response('Hello, Offline Fallback Page!')
-            }),
+        fetch(event.request) // Try the page navigation
+            .catch(() => new Response('Hello, Offline Fallback Page!')), // Page navigation failed so return our offline page
     );
 });
 
-self.addEventListener('push', (event) => console.log('Push received!', event));
+self.addEventListener('push', event => console.log('Push received!', event));
