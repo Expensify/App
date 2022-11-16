@@ -120,7 +120,7 @@ const AddressForm = props => (
                     inputID={props.inputKeys.state}
                     shouldSaveDraft={props.shouldSaveDraft}
                     value={props.values.state}
-                    defaultValue={props.defaultValues.street}
+                    defaultValue={props.defaultValues.state}
                     onInputChange={value => props.onFieldChange({state: value})}
                     errorText={props.errors.state ? props.translate('bankAccount.error.addressState') : ''}
                 />
