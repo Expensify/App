@@ -295,9 +295,9 @@ class IOUModal extends Component {
                 currency,
                 comment,
                 this.state.participants[0].login,
-                );
+            );
 
-            //Exit to the report as the API pusher response will be handled elsewhere
+            // Exit to the report as the API pusher response will be handled elsewhere
             Navigation.navigate(ROUTES.REPORT);
             return;
         }

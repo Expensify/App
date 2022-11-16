@@ -738,7 +738,7 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
         amount,
         chatReport.chatReportID,
         currency,
-        preferredLocale
+        preferredLocale,
     );
 
     const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
@@ -752,6 +752,8 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
         optimisticIOUReport.reportID,
     );
 
+    const params = {};
+
     API.write('SendMoneyWithWallet',
         {
             params,
@@ -764,6 +766,7 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
                     value: {
                         [optimisticIouReportAction.reportActionID]: {
                             optimisticIouReportAction,
+
                             // Set pendingAction state for pattern B
                             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                         },
@@ -788,10 +791,10 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
                         [optimisticIouReportAction.reportActionID]: {
                             optimisticIouReportAction,
                             pendingAction: null,
-                            error : {
+                            error: {
                                 [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
-                            }
-                        }
+                            },
+                        },
                     },
                 },
             ],
@@ -823,6 +826,8 @@ function payMoneyRequestWithWallet(chatReportID, iouReportID, amount, currency, 
         iouReportID,
     );
 
+    const params = {};
+
     API.write('PayMoneyRequestWithWallet',
         {
             params,
@@ -835,6 +840,7 @@ function payMoneyRequestWithWallet(chatReportID, iouReportID, amount, currency, 
                     value: {
                         [optimisticIouReportAction.reportActionID]: {
                             optimisticIouReportAction,
+
                             // Set pendingAction state for pattern B
                             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                         },
@@ -849,10 +855,10 @@ function payMoneyRequestWithWallet(chatReportID, iouReportID, amount, currency, 
                         [optimisticIouReportAction.reportActionID]: {
                             optimisticIouReportAction,
                             pendingAction: null,
-                            error : {
+                            error: {
                                 [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
-                            }
-                        }
+                            },
+                        },
                     },
                 },
             ],
