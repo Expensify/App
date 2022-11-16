@@ -163,7 +163,6 @@ class ReportActionsList extends React.Component {
                     ref={ReportScrollManager.flatListRef}
                     data={this.props.sortedReportActions}
                     renderItem={this.renderItem}
-                    CellRendererComponent={this.renderCell}
                     contentContainerStyle={[
                         styles.chatContentScrollView,
                         shouldShowReportRecipientLocalTime && styles.pt0,
