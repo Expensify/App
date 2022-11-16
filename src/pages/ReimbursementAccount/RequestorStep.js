@@ -73,6 +73,18 @@ class RequestorStep extends React.Component {
             errors.lastName = this.props.translate('bankAccount.error.lastName');
         }
 
+        if (!values.dob || !ValidationUtils.isValidDate(values.dob)) {
+            errors.dob = this.props.translate('bankAccount.error.dob');
+        }
+
+        if (values.dob && !ValidationUtils.meetsAgeRequirements(values.dob)) {
+            errors.dob = this.props.translate('bankAccount.error.age');
+        }
+
+        if (!values.ssnLast4 || !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {
+            errors.ssnLast4 = this.props.translate('bankAccount.error.ssnLast4');
+        }
+
         if (!values.requestorAddressStreet) {
             errors.requestorAddressStreet = this.props.translate('bankAccount.error.address');
         }
@@ -91,18 +103,6 @@ class RequestorStep extends React.Component {
 
         if (!values.requestorAddressZipCode || !ValidationUtils.isValidZipCode(values.requestorAddressZipCode)) {
             errors.requestorAddressZipCode = this.props.translate('bankAccount.error.zipCode');
-        }
-
-        if (!values.dob || !ValidationUtils.isValidDate(values.dob)) {
-            errors.dob = this.props.translate('bankAccount.error.dob');
-        }
-
-        if (values.dob && !ValidationUtils.meetsAgeRequirements(values.dob)) {
-            errors.dob = this.props.translate('bankAccount.error.age');
-        }
-
-        if (!values.ssnLast4 || !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {
-            errors.ssnLast4 = this.props.translate('bankAccount.error.ssnLast4');
         }
 
         if (!values.isControllingOfficer) {
