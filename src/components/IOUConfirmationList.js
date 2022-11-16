@@ -301,7 +301,7 @@ class IOUConfirmationList extends Component {
                         <SettlementButton
                             isDisabled={shouldDisableButton}
                             onPress={this.confirm}
-                            shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
+                            shouldShowPaypal={Boolean(this.props.payPalMeAddress)}
                             enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                             addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
                             addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
@@ -333,6 +333,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        payPalMeAddress: {
+            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
         },
     }),
 )(IOUConfirmationList);
