@@ -27,6 +27,11 @@ import MoneyIntoWallet from '../../../assets/images/simple-illustrations/simple-
 import MoneyWings from '../../../assets/images/simple-illustrations/simple-illustration__moneywings.svg';
 import OpenSafe from '../../../assets/images/simple-illustrations/simple-illustration__opensafe.svg';
 import TrackShoe from '../../../assets/images/simple-illustrations/simple-illustration__track-shoe.svg';
+import BankArrow from '../../../assets/images/simple-illustrations/simple-illustration__bank-arrow.svg';
+import ConciergeBubble from '../../../assets/images/simple-illustrations/simple-illustration__concierge-bubble.svg';
+import ConciergeNew from '../../../assets/images/simple-illustrations/simple-illustration__concierge.svg';
+import MoneyBadge from '../../../assets/images/simple-illustrations/simple-illustration__moneybadge.svg';
+import TreasureChest from '../../../assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
 
 export {
     BankArrowPink,
@@ -58,4 +63,9 @@ export {
     MoneyWings,
     OpenSafe,
     TrackShoe,
+    BankArrow,
+    ConciergeBubble,
+    ConciergeNew,
+    MoneyBadge,
+    TreasureChest,
 };

@@ -40,7 +40,7 @@ const Section = (props) => {
     const IconComponent = props.IconComponent;
     return (
         <>
-            <View style={[styles.pageWrapper, ...props.containerStyles]}>
+            <View style={[styles.pageWrapper, styles.cardSection, ...props.containerStyles]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
                     <View style={[styles.flexShrink1]}>
                         <Text style={[styles.h1]}>{props.title}</Text>

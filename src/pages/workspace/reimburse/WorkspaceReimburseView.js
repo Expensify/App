@@ -216,7 +216,6 @@ class WorkspaceReimburseView extends React.Component {
                             wrapperStyle: [styles.cardMenuItem],
                         },
                     ]}
-                    containerStyles={[styles.cardSection]}
                 >
                     <View style={[styles.mv3, styles.flexRow, styles.flexWrap]}>
                         <Text>
@@ -233,7 +232,6 @@ class WorkspaceReimburseView extends React.Component {
                 <Section
                     title={this.props.translate('workspace.reimburse.trackDistance')}
                     icon={Illustrations.TrackShoe}
-                    containerStyles={[styles.cardSection]}
                 >
                     <View style={[styles.mv3]}>
                         <Text>{this.props.translate('workspace.reimburse.trackDistanceCopy')}</Text>
@@ -285,7 +283,6 @@ class WorkspaceReimburseView extends React.Component {
                                 iconRight: Expensicons.NewWindow,
                             },
                         ]}
-                        containerStyles={[styles.cardSection]}
                     >
                         <View style={[styles.mv3]}>
                             <Text>{this.props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
@@ -295,7 +292,6 @@ class WorkspaceReimburseView extends React.Component {
                     <Section
                         title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
                         icon={Illustrations.OpenSafe}
-                        containerStyles={[styles.cardSection]}
                     >
                         <View style={[styles.mv3]}>
                             <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>

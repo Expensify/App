@@ -2777,6 +2777,13 @@ const styles = {
         borderRadius: variables.componentBorderRadiusNormal,
         paddingVertical: 6,
     },
+    callRequestSection: {
+        backgroundColor: themeColors.appBG,
+        paddingHorizontal: 0,
+        paddingBottom: 0,
+        marginHorizontal: 0,
+        marginBottom: 0,
+    },
 };
 
 export default styles;
