@@ -16,7 +16,6 @@ const ONYXKEYS = {
     COLLECTION: {
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
-        REPORT_IOUS: 'reportIOUs_',
         POLICY: 'policy_',
     },
     NETWORK: 'network',

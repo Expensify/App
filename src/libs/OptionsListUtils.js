@@ -58,12 +58,11 @@ Onyx.connect({
 
 const iouReports = {};
 Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_IOUS,
+    key: ONYXKEYS.COLLECTION.REPORT,
     callback: (iouReport, key) => {
-        if (!iouReport || !key || !iouReport.ownerEmail) {
+        if (!iouReport || !key || !iouReport.ownerEmail || !ReportUtils.isIOUReport(iouReport)) {
             return;
         }
-
         iouReports[key] = iouReport;
     },
 });
@@ -358,7 +357,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
     }
 
     if (result.hasOutstandingIOU) {
-        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`] || null;
+        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`] || null;
         if (iouReport) {
             result.isIOUReportOwner = iouReport.ownerEmail === currentUserLogin;
             result.iouReportAmount = iouReport.total;

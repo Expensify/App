@@ -973,7 +973,7 @@ function hasOutstandingIOU(report, currentUserLogin, iouReports) {
         return false;
     }
 
-    const iouReport = iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
+    const iouReport = iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
     if (!iouReport || !iouReport.ownerEmail) {
         return false;
     }

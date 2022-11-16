@@ -281,7 +281,7 @@ function getOptionData(reportID) {
     }
 
     if (result.hasOutstandingIOU) {
-        const iouReport = (iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`]) || null;
+        const iouReport = (iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`]) || null;
         if (iouReport) {
             result.isIOUReportOwner = iouReport.ownerEmail === currentUserLogin;
             result.iouReportAmount = iouReport.total;

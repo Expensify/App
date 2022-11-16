@@ -167,7 +167,7 @@ export default compose(
             key: ONYXKEYS.IOU,
         },
         iouReport: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${route.params.iouReportID}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.iouReportID}`,
         },
         session: {
             key: ONYXKEYS.SESSION,
