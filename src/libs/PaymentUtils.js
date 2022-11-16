@@ -28,10 +28,10 @@ function hasExpensifyPaymentMethod(cardList = [], bankAccountList = []) {
  * Get the PaymentMethods list
  * @param {Array} bankAccountList
  * @param {Array} cardList
- * @param {Object} [payPalMeData = null]
+ * @param {String} [payPalMeAddress='']
  * @returns {Array<PaymentMethod>}
  */
-function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null) {
+function formatPaymentMethods(bankAccountList, cardList, payPalMeAddress = '') {
     const combinedPaymentMethods = [];
 
     _.each(bankAccountList, (bankAccount) => {
@@ -61,10 +61,17 @@ function formatPaymentMethods(bankAccountList, cardList, payPalMeData = null) {
         });
     });
 
-    if (!_.isEmpty(payPalMeData)) {
+    if (payPalMeAddress) {
         combinedPaymentMethods.push({
-            ...payPalMeData,
+            title: 'PayPal.me',
+            methodID: CONST.PAYMENT_METHODS.PAYPAL,
+            description: payPalMeAddress,
             icon: Expensicons.PayPal,
+            key: 'payPalMePaymentMethod',
+            accountType: CONST.PAYMENT_METHODS.PAYPAL,
+            accountData: {
+                username: payPalMeAddress,
+            },
         });
     }
 
