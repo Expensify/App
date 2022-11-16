@@ -49,24 +49,19 @@ let allPolicies = [];
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
-    callback: (policies) => {
-        allPolicies = policies;
-    },
+    callback: policies => allPolicies = policies,
 });
 
 /**
- * When we reconnect the app, we don't want to fetch workspaces created optimistically while offline since they don't exist yet in the back-end.
- * If we fetched them then they'd return as empty objects which would clear out the optimistic policy values initially created locally.
- * Once the re-queued call to CreateWorkspace returns, the full contents of the workspace excluded here should be correctly saved into Onyx.
- *
  * @param {Array} policies
  * @return {Array<String>} array of policy ids
 */
-function getPolicyIDListExcludingWorkspacesCreatedOffline(policies) {
-    const policiesExcludingWorkspacesCreatedOffline = _.reject(policies,
-        policy => lodashGet(policy, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
-        && lodashGet(policy, 'type', null) === CONST.POLICY.TYPE.FREE);
-    return _.compact(_.pluck(policiesExcludingWorkspacesCreatedOffline, 'id'));
+function getNonOptimisticPolicyIDs(policies) {
+    return _.chain(policies)
+        .reject(policy => lodashGet(policy, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
+        .pluck('id')
+        .compact()
+        .value();
 }
 
 /**
@@ -122,7 +117,7 @@ function openApp() {
         waitForCollectionCallback: true,
         callback: (policies) => {
             Onyx.disconnect(connectionID);
-            API.read('OpenApp', {policyIDList: getPolicyIDListExcludingWorkspacesCreatedOffline(policies)}, {
+            API.read('OpenApp', {policyIDList: getNonOptimisticPolicyIDs(policies)}, {
                 optimisticData: [
                     {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -153,7 +148,7 @@ function openApp() {
  * Refreshes data when the app reconnects
  */
 function reconnectApp() {
-    API.write('ReconnectApp', {policyIDList: getPolicyIDListExcludingWorkspacesCreatedOffline(allPolicies)}, {
+    API.write('ReconnectApp', {policyIDList: getNonOptimisticPolicyIDs(allPolicies)}, {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
