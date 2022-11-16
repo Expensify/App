@@ -1,7 +1,7 @@
 import React from 'react';
 import sidebarPropTypes from './sidebarPropTypes';
 import BaseSidebarScreen from './BaseSidebarScreen';
-import FABActionsPopover from './FABActionsPopover';
+import FloatingActionButtonAndPopover from './FloatingActionButtonAndPopover';
 
 const SidebarScreen = (props) => {
     let popoverModal = null;
@@ -25,7 +25,7 @@ const SidebarScreen = (props) => {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
-            <FABActionsPopover
+            <FloatingActionButtonAndPopover
                 ref={el => popoverModal = el}
                 onShowCreateMenu={createDragoverListener}
                 onHideCreateMenu={removeDragoverListener}

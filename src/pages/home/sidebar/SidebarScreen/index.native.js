@@ -1,14 +1,14 @@
 import React from 'react';
 import sidebarPropTypes from './sidebarPropTypes';
 import BaseSidebarScreen from './BaseSidebarScreen';
-import FABActionsPopover from './FABActionsPopover';
+import FloatingActionButtonAndPopover from './FloatingActionButtonAndPopover';
 
 const SidebarScreen = props => (
     <BaseSidebarScreen
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
     >
-        <FABActionsPopover />
+        <FloatingActionButtonAndPopover />
     </BaseSidebarScreen>
 );
 
