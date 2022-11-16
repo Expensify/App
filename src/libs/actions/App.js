@@ -123,11 +123,6 @@ function openApp() {
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                 value: true,
             },
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_INITIAL_APP_DATA,
-                value: true,
-            },
         ],
         successData: [
             {
@@ -135,21 +130,11 @@ function openApp() {
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                 value: false,
             },
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_INITIAL_APP_DATA,
-                value: false,
-            },
         ],
         failureData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                value: false,
-            },
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_INITIAL_APP_DATA,
                 value: false,
             },
         ],
