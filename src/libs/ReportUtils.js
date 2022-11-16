@@ -1078,6 +1078,15 @@ function getChatByParticipants(newParticipantList) {
     });
 }
 
+/**
+ * Attempts to find a report in onyx with the provided list of participants
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isIOUReport(report) {
+    return !!lodashGet(report, 'total');
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1121,4 +1130,5 @@ export {
     getChatByParticipants,
     getIOUReportActionMessage,
     getDisplayNameForParticipant,
+    isIOUReport,
 };
