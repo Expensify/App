@@ -749,6 +749,8 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
         currency,
         comment,
         participants,
+        CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+        '',
         optimisticIOUReport.reportID,
     );
 
@@ -840,6 +842,8 @@ function payMoneyRequestWithWallet(chatReportID, iouReportID, amount, currency, 
         currency,
         '',
         participants,
+        CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+        '',
         iouReportID,
     );
 
