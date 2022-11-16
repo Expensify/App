@@ -742,7 +742,7 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
     );
 
     const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
-    const optimisticIouReportAction = ReportUtils.buildOptimisticIOUReportAction(
+    const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         newSequenceNumber,
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         amount,
@@ -757,8 +757,8 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.chatReportID}`,
             value: {
-                [optimisticIouReportAction.reportActionID]: {
-                    optimisticIouReportAction,
+                [optimisticIOUReportAction.reportActionID]: {
+                    optimisticIOUReportAction,
 
                     // Set pendingAction state for pattern B
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -782,8 +782,8 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.chatReportID}`,
             value: {
-                [optimisticIouReportAction.reportActionID]: {
-                    optimisticIouReportAction,
+                [optimisticIOUReportAction.reportActionID]: {
+                    optimisticIOUReportAction,
                     pendingAction: null,
                     error: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
@@ -820,7 +820,7 @@ function payMoneyRequestWithWallet(chatReportID, iouReportID, amount, currency, 
         {login: ownerEmail},
         {login: userEmail},
     ];
-    const optimisticIouReportAction = ReportUtils.buildOptimisticIOUReportAction(
+    const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         newSequenceNumber,
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         amount,
@@ -835,8 +835,8 @@ function payMoneyRequestWithWallet(chatReportID, iouReportID, amount, currency, 
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
             value: {
-                [optimisticIouReportAction.reportActionID]: {
-                    optimisticIouReportAction,
+                [optimisticIOUReportAction.reportActionID]: {
+                    optimisticIOUReportAction,
 
                     // Set pendingAction state for pattern B
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -850,8 +850,8 @@ function payMoneyRequestWithWallet(chatReportID, iouReportID, amount, currency, 
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
             value: {
-                [optimisticIouReportAction.reportActionID]: {
-                    optimisticIouReportAction,
+                [optimisticIOUReportAction.reportActionID]: {
+                    optimisticIOUReportAction,
                     pendingAction: null,
                     error: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
