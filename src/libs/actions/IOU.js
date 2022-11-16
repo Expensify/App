@@ -817,7 +817,7 @@ function sendMoneyElsewhere(report, amount, currency, comment, managerEmail, rec
         chatReportID: chatReport.reportID,
         paidReportActionID: optimisticPaidReportAction.reportActionID,
         paymentMethodType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-        transactionID: Report.openPaymentDetailsPage.originalMessage.IOUTransactionID,
+        transactionID: optimisticPaidReportAction.originalMessage.IOUTransactionID,
         clientID: optimisticPaidReportAction.sequenceNumber,
         newIOUReportDetails,
     }, {optimisticData});

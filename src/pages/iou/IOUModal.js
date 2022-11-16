@@ -286,28 +286,18 @@ class IOUModal extends Component {
         const amount = Math.round(this.state.amount * 100);
         const currency = this.props.iou.selectedCurrencyCode;
         const comment = this.state.comment;
+        const participant = this.state.participants[0];
 
-        const newIOUReportDetails = JSON.stringify({
-            amount,
-            currency,
-            requestorEmail: this.state.participants[0].login,
-            comment,
-            idempotencyKey: Str.guid(),
-        });
-
-        IOU.payIOUReport({
-            chatReportID: lodashGet(this.props, 'route.params.reportID', ''),
-            reportID: '0',
-            paymentMethodType,
-            amount,
-            currency,
-            requestorPayPalMeAddress: this.state.participants[0].payPalMeAddress,
-            comment,
-            newIOUReportDetails,
-        })
-            .finally(() => {
-                Navigation.navigate(ROUTES.REPORT);
-            });
+        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            IOU.sendMoneyElsewhere(
+                this.props.report,
+                amount,
+                currency,
+                comment,
+                this.props.currentUserPersonalDetails.login,
+                participant,
+            );
+        }
     }
 
     /**
