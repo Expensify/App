@@ -22,6 +22,15 @@ import * as Welcome from '../../../../libs/actions/Welcome';
 import withNavigationFocus from '../../../../components/withNavigationFocus';
 import withDrawerState from '../../../../components/withDrawerState';
 
+/**
+ * @param {Object} [policy]
+ * @returns {Object|undefined}
+ */
+const policySelector = policy => policy && ({
+    type: policy.type,
+    role: policy.role,
+});
+
 const propTypes = {
     /* Callback function when the menu is shown */
     onShowCreateMenu: PropTypes.func,
@@ -234,6 +243,7 @@ export default compose(
     withOnyx({
         allPolicies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+            selector: policySelector,
         },
         betas: {
             key: ONYXKEYS.BETAS,
