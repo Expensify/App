@@ -48,6 +48,7 @@ const darkTheme = {
     opaqueAvatar: 'rgba(198, 201, 202, 0.64)',
     modalBackdrop: colors.greenIcons,
     modalBackground: colors.greenBorders,
+    cardBG: colors.greenHighlightBackground,
     spinner: colors.greenSupportingText,
     unreadIndicator: colors.green,
     placeholderText: colors.greenIcons,
@@ -92,6 +93,7 @@ const oldTheme = {
     placeholderText: colors.gray3,
     heroCard: colors.blue,
     uploadPreviewActivityIndicator: colors.gray1,
+    cardBG: colors.gray1,
 
     // Merging new Keys for Dark Mode merge. Delete after new branding is implemented.
     highlightBG: colors.gray1,
