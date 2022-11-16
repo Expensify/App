@@ -17,7 +17,6 @@ import IdentityForm from './IdentityForm';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import * as Link from '../../libs/actions/Link';
 import RequestorOnfidoStep from './RequestorOnfidoStep';
@@ -125,7 +124,7 @@ class RequestorStep extends React.Component {
 
     submit(values) {
         const payload = {
-            bankAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
+            bankAccountID: this.getDefaultStateForField(this.props, 'bankAccountID', 0),
             ...values,
             dob: moment(values.dob).format(CONST.DATE.MOMENT_FORMAT_STRING),
         };
