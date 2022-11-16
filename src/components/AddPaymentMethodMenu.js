@@ -9,7 +9,6 @@ import CONST from '../CONST';
 import withWindowDimensions from './withWindowDimensions';
 import Permissions from '../libs/Permissions';
 import PopoverMenu from './PopoverMenu';
-import paypalMeDataPropTypes from './paypalMeDataPropTypes';
 import * as BankAccounts from '../libs/actions/BankAccounts';
 
 const propTypes = {
@@ -20,8 +19,8 @@ const propTypes = {
         left: PropTypes.number,
     }),
 
-    /** Account details for PayPal.Me */
-    payPalMeData: paypalMeDataPropTypes,
+    /** User's address for PayPal.Me */
+    payPalMeAddress: PropTypes.string,
 
     /** Should we show the Paypal option */
     shouldShowPaypal: PropTypes.bool,
@@ -34,7 +33,7 @@ const propTypes = {
 
 const defaultProps = {
     anchorPosition: {},
-    payPalMeData: {},
+    payPalMeAddress: '',
     shouldShowPaypal: true,
     betas: [],
 };
@@ -60,7 +59,7 @@ const AddPaymentMethodMenu = props => (
                 onSelected: () => props.onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD),
             },
             ] : []),
-            ...(props.shouldShowPaypal && !props.payPalMeData.description ? [{
+            ...(props.shouldShowPaypal && !props.payPalMeAddress ? [{
                 text: props.translate('common.payPalMe'),
                 icon: Expensicons.PayPal,
                 onSelected: () => props.onItemSelected(CONST.PAYMENT_METHODS.PAYPAL),
@@ -78,8 +77,8 @@ export default compose(
     withWindowDimensions,
     withLocalize,
     withOnyx({
-        payPalMeData: {
-            key: ONYXKEYS.PAYPAL,
+        payPalMeAddress: {
+            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
         },
         betas: {
             key: ONYXKEYS.BETAS,
