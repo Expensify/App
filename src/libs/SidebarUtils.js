@@ -16,11 +16,18 @@ import * as CollectionUtils from './CollectionUtils';
 // Session also can remain stale because the only way for the current user to change is to sign out and sign in, which would clear out all the Onyx
 // data anyway and cause SidebarLinks to rerender.
 
-let reports;
+const chatReports = {};
+const iouReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
-    callback: val => reports = val,
+    callback: (report, key) => {
+        if (ReportUtils.isIOUReport(report)) {
+            iouReports[key] = report;
+        } else {
+            chatReports[key] = report;
+        }
+    },
 });
 
 let personalDetails;
@@ -62,13 +69,6 @@ Onyx.connect({
     callback: val => policies = val,
 });
 
-let iouReports;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_IOUS,
-    waitForCollectionCallback: true,
-    callback: val => iouReports = val,
-});
-
 let currentUserLogin;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -95,7 +95,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
     const isInDefaultMode = !isInGSDMode;
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies));
+    const filteredReports = _.filter(chatReports, report => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies));
 
     // Get all the display names for our reports in an easy to access property so we don't have to keep
     // re-running the logic
@@ -174,7 +174,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
  * @returns {Object}
  */
 function getOptionData(reportID) {
-    const report = reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const report = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
