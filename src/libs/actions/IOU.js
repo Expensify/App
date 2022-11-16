@@ -16,18 +16,18 @@ import * as IOUUtils from '../IOUUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
 
-let chatReports;
+const chatReports = {};
+const iouReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
-    callback: val => chatReports = val,
-});
-
-let iouReports;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_IOUS,
-    waitForCollectionCallback: true,
-    callback: val => iouReports = val,
+    callback: (report, key) => {
+        if (ReportUtils.isIOUReport(report)) {
+            iouReports[key] = report;
+        } else {
+            chatReports[key] = report;
+        }
+    },
 });
 
 let preferredLocale = CONST.DEFAULT_LOCALE;
