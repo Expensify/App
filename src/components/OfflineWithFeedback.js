@@ -80,14 +80,6 @@ function applyStrikeThrough(children) {
     });
 }
 
-/**
- * This method clears the errors for a specific chat
- * @param {String} chatReportID
- */
-function clearChatErrors(chatReportID) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {errors: null});
-}
-
 const OfflineWithFeedback = (props) => {
     const hasErrors = !_.isEmpty(props.errors);
     const isOfflinePendingAction = props.network.isOffline && props.pendingAction;
