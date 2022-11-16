@@ -129,11 +129,6 @@ function openApp() {
                         key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                         value: true,
                     },
-                    {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
-                        key: ONYXKEYS.IS_LOADING_INITIAL_APP_DATA,
-                        value: true,
-                    },
                 ],
                 successData: [
                     {
@@ -141,21 +136,11 @@ function openApp() {
                         key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                         value: false,
                     },
-                    {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
-                        key: ONYXKEYS.IS_LOADING_INITIAL_APP_DATA,
-                        value: false,
-                    },
                 ],
                 failureData: [
                     {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
                         key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                        value: false,
-                    },
-                    {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
-                        key: ONYXKEYS.IS_LOADING_INITIAL_APP_DATA,
                         value: false,
                     },
                 ],
@@ -221,12 +206,13 @@ function setUpPoliciesAndNavigate(session) {
     // and those are passed as a search parameter when using transition links
     const ownerEmail = url.searchParams.get('ownerEmail');
     const makeMeAdmin = url.searchParams.get('makeMeAdmin');
+    const policyName = url.searchParams.get('policyName');
 
     const shouldCreateFreePolicy = !isLoggingInAsNewUser
                         && Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
                         && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        Policy.createWorkspace(ownerEmail, makeMeAdmin);
+        Policy.createWorkspace(ownerEmail, makeMeAdmin, policyName);
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
