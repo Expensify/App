@@ -49,5 +49,5 @@ export default {
     placeholderText: colors.gray3,
     heroCard: colors.blue,
     uploadPreviewActivityIndicator: colors.gray1,
-    transparentAppBackground: 'rgba(255, 255, 255, 0.96)',
+    dropUIBG: 'rgba(255, 255, 255, 0.96)',
 };

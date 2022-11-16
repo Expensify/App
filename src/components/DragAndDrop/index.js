@@ -150,6 +150,3 @@ export default class DragAndDrop extends React.Component {
 DragAndDrop.propTypes = propTypes;
 DragAndDrop.defaultProps = defaultProps;
 
-export {
-    DragAndDropPropTypes,
-};

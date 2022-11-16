@@ -2761,7 +2761,7 @@ const styles = {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: themeColors.transparentAppBackground,
+        backgroundColor: themeColors.dropUIBG,
         zIndex: 2,
     },
 
