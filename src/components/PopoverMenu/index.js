@@ -25,11 +25,10 @@ class PopoverMenu extends PureComponent {
         this.state = {
             focusedIndex: -1,
         };
-        this.updateFocusedIndex = this.updateFocusedIndex.bind(this);
         this.resetFocusAndHideModal = this.resetFocusAndHideModal.bind(this);
         this.removeKeyboardListener = this.removeKeyboardListener.bind(this);
         this.attachKeyboardListener = this.attachKeyboardListener.bind(this);
-        this.onMenuHide = () => {};
+        this.selectedItem = null;
     }
 
     componentDidUpdate(prevProps) {
@@ -49,17 +48,11 @@ class PopoverMenu extends PureComponent {
     }
 
     /**
-     * Set the item's `onSelected` action to fire after the menu popup closes
-     * @param {{onSelected: function}} item
+     * Set item to local variable to fire `onSelected` action after the menu popup closes
+     * @param {Object} item
      */
     selectItem(item) {
-        this.onMenuHide = () => {
-            item.onSelected();
-
-            // Clean up: open and immediately cancel should not re-trigger the last action
-            this.onMenuHide = () => {};
-        };
-
+        this.selectedItem = item;
         this.props.onItemSelected(item);
     }
 
@@ -70,7 +63,7 @@ class PopoverMenu extends PureComponent {
                 return;
             }
             this.selectItem(this.props.menuItems[this.state.focusedIndex]);
-            this.updateFocusedIndex(-1); // Reset the focusedIndex on selecting any menu
+            this.setState({focusedIndex: -1}); // Reset the focusedIndex on selecting any menu
         }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
     }
 
@@ -81,17 +74,13 @@ class PopoverMenu extends PureComponent {
         this.unsubscribeEnterKey();
     }
 
-    /**
-     * @param {Number} index
-     */
-    updateFocusedIndex(index) {
-        this.setState({focusedIndex: index});
-    }
-
     resetFocusAndHideModal() {
-        this.updateFocusedIndex(-1); // Reset the focusedIndex on modal hide
+        this.setState({focusedIndex: -1}); // Reset the focusedIndex on modal hide
         this.removeKeyboardListener();
-        this.onMenuHide();
+        if (this.selectedItem) {
+            this.selectedItem.onSelected();
+            this.selectedItem = null;
+        }
     }
 
     render() {
@@ -120,7 +109,7 @@ class PopoverMenu extends PureComponent {
                     <ArrowKeyFocusManager
                         focusedIndex={this.state.focusedIndex}
                         maxIndex={this.props.menuItems.length - 1}
-                        onFocusedIndexChanged={this.updateFocusedIndex}
+                        onFocusedIndexChanged={index => this.setState({focusedIndex: index})}
                     >
                         {_.map(this.props.menuItems, (item, menuIndex) => (
                             <MenuItem
