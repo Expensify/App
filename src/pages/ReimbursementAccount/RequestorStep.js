@@ -124,7 +124,7 @@ class RequestorStep extends React.Component {
 
     submit(values) {
         const payload = {
-            bankAccountID: this.getDefaultStateForField(this.props, 'bankAccountID', 0),
+            bankAccountID: this.getDefaultStateForField('bankAccountID', 0),
             ...values,
             dob: moment(values.dob).format(CONST.DATE.MOMENT_FORMAT_STRING),
         };
