@@ -30,8 +30,14 @@ const DragAndDropPropTypes = {
 const propTypes = {
     ...DragAndDropPropTypes,
 
+    onDragOver: DragAndDropPropTypes.onDragOver,
+
     /** Rendered child component */
     children: PropTypes.node.isRequired,
+};
+
+const defaultProps = {
+    onDragOver: () => {},
 };
 
 export default class DragAndDrop extends React.Component {
@@ -73,9 +79,6 @@ export default class DragAndDrop extends React.Component {
      * @param {Object} event native Event
      */
     dragOverHandler(event) {
-        if (!this.props.onDragOver) {
-            return;
-        }
         this.props.onDragOver(event);
     }
 
@@ -164,6 +167,7 @@ export default class DragAndDrop extends React.Component {
 }
 
 DragAndDrop.propTypes = propTypes;
+DragAndDrop.defaultProps = defaultProps;
 
 export {
     DragAndDropPropTypes,
