@@ -40,12 +40,11 @@ class BasePicker extends React.Component {
     }
 
     render() {
-        const hasError = !_.isEmpty(this.props.errorText);
         return (
             <RNPickerSelect
                 onValueChange={this.props.onInputChange}
                 items={this.props.items}
-                style={this.props.size === 'normal' ? basePickerStyles(this.props.disabled, hasError, this.props.focused) : styles.pickerSmall}
+                style={this.props.size === 'normal' ? basePickerStyles(this.props.disabled) : styles.pickerSmall}
                 useNativeAndroidPickerStyle={false}
                 placeholder={this.props.placeholder}
                 value={this.props.value}

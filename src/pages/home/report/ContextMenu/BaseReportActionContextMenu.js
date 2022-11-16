@@ -58,6 +58,7 @@ class BaseReportActionContextMenu extends React.Component {
                             selection: this.props.selection,
                         })}
                         description={contextAction.getDescription(this.props.selection, this.props.isSmallScreenWidth)}
+                        autoReset={contextAction.autoReset}
                     />
                 ))}
             </View>
