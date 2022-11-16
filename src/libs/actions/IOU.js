@@ -777,6 +777,18 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
         },
     ];
 
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            value: {
+                [optimisticIOUReportAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
     const failureData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -801,6 +813,7 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
         },
         {
             optimisticData,
+            successData,
             failureData,
         });
 }
@@ -845,6 +858,18 @@ function payMoneyRequestWithWallet(chatReportID, iouReportID, amount, currency, 
         },
     ];
 
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            value: {
+                [optimisticIOUReportAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
     const failureData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -869,6 +894,7 @@ function payMoneyRequestWithWallet(chatReportID, iouReportID, amount, currency, 
         },
         {
             optimisticData,
+            successData,
             failureData,
         });
 }
