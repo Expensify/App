@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import colors from '../colors';
 
 const darkTheme = {
