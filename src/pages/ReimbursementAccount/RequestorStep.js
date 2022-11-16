@@ -42,6 +42,7 @@ class RequestorStep extends React.Component {
     constructor(props) {
         super(props);
 
+        this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
         this.validate = this.validate.bind(this);
         this.submit = this.submit.bind(this);
         this.setOnfidoAsComplete = this.setOnfidoAsComplete.bind(this);
@@ -56,6 +57,16 @@ class RequestorStep extends React.Component {
      */
     setOnfidoAsComplete() {
         this.setState({isOnfidoSetupComplete: true});
+    }
+
+    /**
+     * Get default value from reimbursementAccount or achData
+     * @param {String} fieldName
+     * @param {*} defaultValue
+     * @returns {String}
+     */
+    getDefaultStateForField(fieldName, defaultValue) {
+        return lodashGet(this.props, ['reimbursementAccount', 'achData', fieldName], defaultValue);
     }
 
     /**
@@ -174,14 +185,14 @@ class RequestorStep extends React.Component {
                         <IdentityForm
                             translate={this.props.translate}
                             defaultValues={{
-                                firstName: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'firstName'),
-                                lastName: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'lastName'),
-                                street: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'requestorAddressStreet'),
-                                city: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'requestorAddressCity'),
-                                state: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'requestorAddressState'),
-                                zipCode: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'requestorAddressZipCode'),
-                                dob: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'dob'),
-                                ssnLast4: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'ssnLast4'),
+                                firstName: this.getDefaultStateForField('firstName'),
+                                lastName: this.getDefaultStateForField('lastName'),
+                                street: this.getDefaultStateForField('requestorAddressStreet'),
+                                city: this.getDefaultStateForField('requestorAddressCity'),
+                                state: this.getDefaultStateForField('requestorAddressState'),
+                                zipCode: this.getDefaultStateForField('requestorAddressZipCode'),
+                                dob: this.getDefaultStateForField('dob'),
+                                ssnLast4: this.getDefaultStateForField('ssnLast4'),
                             }}
                             inputKeys={{
                                 firstName: 'firstName',
@@ -197,7 +208,7 @@ class RequestorStep extends React.Component {
                         />
                         <CheckboxWithLabel
                             inputID="isControllingOfficer"
-                            defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'isControllingOfficer', false)}
+                            defaultValue={this.getDefaultStateForField('isControllingOfficer', false)}
                             LabelComponent={() => (
                                 <View style={[styles.flex1, styles.pr1]}>
                                     <Text>{this.props.translate('requestorStep.isControllingOfficer')}</Text>
