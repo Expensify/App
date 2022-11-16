@@ -632,6 +632,7 @@ class ReportActionCompose extends React.Component {
 
                                             const file = lodashGet(e, ['dataTransfer', 'files', 0]);
                                             if (!file) {
+                                                this.setState({isDraggingOver: false});
                                                 return;
                                             }
 

@@ -28,8 +28,8 @@ export default class DragAndDrop extends React.Component {
         this.dropZone = document.getElementById(props.dropZoneId);
         this.dropZoneRect = this.calculateDropZoneClientReact();
 
-        this.dragOverHandler = _.throttle(this.dragOverHandler.bind(this), 100);
-        this.dragNDropWindowResizeListener = _.throttle(this.dragNDropWindowResizeListener.bind(this), 100);
+        this.throttledDragOverHandler = _.throttle(this.dragOverHandler.bind(this), 100);
+        this.throttledDragNDropWindowResizeListener = _.throttle(this.dragNDropWindowResizeListener.bind(this), 100);
         this.dropZoneDragHandler = this.dropZoneDragHandler.bind(this);
         this.dropZoneDragListener = this.dropZoneDragListener.bind(this);
 
@@ -45,7 +45,7 @@ export default class DragAndDrop extends React.Component {
         document.addEventListener('dragenter', this.dropZoneDragListener);
         document.addEventListener('dragleave', this.dropZoneDragListener);
         document.addEventListener('drop', this.dropZoneDragListener);
-        window.addEventListener('resize', this.dragNDropWindowResizeListener);
+        window.addEventListener('resize', this.throttledDragNDropWindowResizeListener);
     }
 
     componentWillUnmount() {
@@ -53,7 +53,7 @@ export default class DragAndDrop extends React.Component {
         document.removeEventListener('dragenter', this.dropZoneDragListener);
         document.removeEventListener('dragleave', this.dropZoneDragListener);
         document.removeEventListener('drop', this.dropZoneDragListener);
-        window.removeEventListener('resize', this.dragNDropWindowResizeListener);
+        window.removeEventListener('resize', this.throttledDragNDropWindowResizeListener);
     }
 
     /**
@@ -92,7 +92,7 @@ export default class DragAndDrop extends React.Component {
                 // Continuous event -> can hurt performance, be careful when subscribing
                 // eslint-disable-next-line no-param-reassign
                 event.dataTransfer.dropEffect = COPY_DROP_EFFECT;
-                this.dragOverHandler(event);
+                this.throttledDragOverHandler(event);
                 break;
             case 'dragenter':
                 // Avoid reporting onDragEnter for children views -> not performant
