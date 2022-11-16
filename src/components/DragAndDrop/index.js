@@ -3,29 +3,10 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 
 import variables from '../../styles/variables';
+import DragAndDropPropTypes from './dragAndDropPropTypes';
 
 const COPY_DROP_EFFECT = 'copy';
 const NONE_DROP_EFFECT = 'none';
-
-const DragAndDropPropTypes = {
-    /** Callback to fire when a file has being dragged over the text input & report body */
-    onDragOver: PropTypes.func,
-
-    /** Callback to fire when a file has been dragged into the text input & report body */
-    onDragEnter: PropTypes.func.isRequired,
-
-    /** Callback to fire when the user is no longer dragging over the text input & report body */
-    onDragLeave: PropTypes.func.isRequired,
-
-    /** Callback to fire when a file is dropped on the text input & report body */
-    onDrop: PropTypes.func.isRequired,
-
-    /** Id of the element on which we want to detect drag */
-    dropZoneId: PropTypes.string.isRequired,
-
-    /** Id of the element which is shown while drag is active */
-    activeDropZoneId: PropTypes.string.isRequired,
-};
 
 const propTypes = {
     ...DragAndDropPropTypes,
