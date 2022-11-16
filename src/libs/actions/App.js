@@ -108,24 +108,36 @@ AppState.addEventListener('change', (nextAppState) => {
  * Fetches data needed for app initialization
  */
 function openApp() {
-    policyIDListExcludingWorkspacesCreatedOfflineLoaded.then(() => {
-        API.read('OpenApp', {policyIDList: policyIDListExcludingWorkspacesCreatedOffline}, {
-            optimisticData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                value: true,
-            }],
-            successData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                value: false,
-            }],
-            failureData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                value: false,
-            }],
-        });
+    // We need a fresh connection/callback here to make sure that the list of policyIDs that is sent to OpenApp is the most updated list from Onyx
+    const connectionID = Onyx.connect({
+        key: ONYXKEYS.COLLECTION.POLICY,
+        waitForCollectionCallback: true,
+        callback: (policies) => {
+            Onyx.disconnect(connectionID);
+            API.read('OpenApp', {policyIDList: getPolicyIDListExcludingWorkspacesCreatedOffline(policies)}, {
+                optimisticData: [
+                    {
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                        value: true,
+                    },
+                ],
+                successData: [
+                    {
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                        value: false,
+                    },
+                ],
+                failureData: [
+                    {
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                        value: false,
+                    },
+                ],
+            });
+        },
     });
 }
 
