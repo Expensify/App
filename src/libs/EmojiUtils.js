@@ -106,7 +106,9 @@ function getDynamicHeaderIndices(emojis) {
 function getDynamicSpacing(emojiCount, suffix) {
     const spacerEmojis = [];
     let modLength = CONST.EMOJI_NUM_PER_ROW - (emojiCount % CONST.EMOJI_NUM_PER_ROW);
-    while (modLength > 0) {
+
+    // Empty spaces is pushed if the given row has less than eight emojis
+    while (modLength > 0 && modLength < CONST.EMOJI_NUM_PER_ROW) {
         spacerEmojis.push({
             code: `${CONST.EMOJI_SPACER}_${suffix}_${modLength}`,
             spacer: true,
@@ -195,7 +197,14 @@ function replaceEmojis(text) {
     for (let i = 0; i < emojiData.length; i++) {
         const checkEmoji = emojisTrie.search(emojiData[i].slice(1, -1));
         if (checkEmoji && checkEmoji.metaData.code) {
-            newText = newText.replace(emojiData[i], checkEmoji.metaData.code);
+            let emojiReplacement = checkEmoji.metaData.code;
+
+            // If this is the last emoji in the message and it's the end of the message so far,
+            // add a space after it so the user can keep typing easily.
+            if (i === emojiData.length - 1 && text.endsWith(emojiData[i])) {
+                emojiReplacement += ' ';
+            }
+            newText = newText.replace(emojiData[i], emojiReplacement);
         }
     }
     return newText;

@@ -11,10 +11,10 @@ const pickerStylesWeb = () => {
     return {};
 };
 
-const pickerStyles = (disabled, error, focused) => ({
-    ...styles.picker(disabled, error, focused),
+const pickerStyles = disabled => ({
+    ...styles.picker(disabled),
     inputWeb: {
-        ...styles.picker(disabled, error, focused).inputWeb,
+        ...styles.picker(disabled).inputWeb,
         ...pickerStylesWeb(),
     },
 });
