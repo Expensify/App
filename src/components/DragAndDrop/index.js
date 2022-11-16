@@ -34,9 +34,6 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-/*
-* When using this compo
-*/
 export default class DragAndDrop extends React.Component {
     constructor(props) {
         super(props);

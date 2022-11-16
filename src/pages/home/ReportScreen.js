@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {Freeze} from 'react-freeze';
+import {PortalHost} from '@gorhom/portal';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
@@ -32,7 +33,6 @@ import withLocalize from '../../components/withLocalize';
 import reportPropTypes from '../reportPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
-import DropZoneViewHolder from '../../components/DragAndDrop/DropZoneViewHolder';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -313,7 +313,7 @@ class ReportScreen extends React.Component {
                                     onSubmitComment={this.onSubmitComment}
                                 />
                             )}
-                            <DropZoneViewHolder name={CONST.REPORT.DROP_HOST_NAME} />
+                            <PortalHost name={CONST.REPORT.DROP_HOST_NAME} />
                         </View>
                     </FullPageNotFoundView>
                 </ScreenWrapper>
