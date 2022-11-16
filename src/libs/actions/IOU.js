@@ -20,7 +20,6 @@ const chatReports = {};
 const iouReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (report, key) => {
         if (ReportUtils.isIOUReport(report)) {
             iouReports[key] = report;
