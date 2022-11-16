@@ -729,7 +729,6 @@ function payIOUReport({
  */
 function sendMoneyWithWallet(chatReportID, amount, currency, comment, participants) {
     const chatReport = _.empty(chatReportID) ? chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : ReportUtils.buildOptimisticChatReport(participants);
-
     const ownerEmail = participants[0].login;
     const userEmail = participants[1].login;
     const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(
@@ -740,7 +739,6 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
         currency,
         preferredLocale,
     );
-
     const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         newSequenceNumber,
@@ -753,7 +751,6 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
         '',
         optimisticIOUReport.reportID,
     );
-
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -778,7 +775,6 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
             value: optimisticIOUReport,
         },
     ];
-
     const successData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -790,7 +786,6 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
             },
         },
     ];
-
     const failureData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -807,6 +802,7 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
         },
     ];
 
+    // I'm still not 100% sure what goes in here, once the Web PR is done I'll fill this one up
     const params = {};
 
     API.write('SendMoneyWithWallet',
@@ -846,7 +842,6 @@ function payMoneyRequestWithWallet(chatReportID, iouReportID, amount, currency, 
         '',
         iouReportID,
     );
-
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -861,7 +856,6 @@ function payMoneyRequestWithWallet(chatReportID, iouReportID, amount, currency, 
             },
         },
     ];
-
     const successData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -873,7 +867,6 @@ function payMoneyRequestWithWallet(chatReportID, iouReportID, amount, currency, 
             },
         },
     ];
-
     const failureData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -890,6 +883,7 @@ function payMoneyRequestWithWallet(chatReportID, iouReportID, amount, currency, 
         },
     ];
 
+    // I'm still not 100% sure what goes in here, once the Web PR is done I'll fill this one up
     const params = {};
 
     API.write('PayMoneyRequestWithWallet',
