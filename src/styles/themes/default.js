@@ -1,6 +1,6 @@
 import colors from '../colors';
 
-export default {
+const darkTheme = {
     // Figma keys
     appBG: colors.greenAppBackground,
     highlightBG: colors.greenHighlightBackground,
@@ -53,3 +53,59 @@ export default {
     heroCard: colors.blue,
     uploadPreviewActivityIndicator: colors.greenHighlightBackground,
 };
+
+const oldTheme = {
+    shadow: colors.black,
+    link: colors.blue,
+    linkHover: colors.blueHover,
+    componentBG: colors.white,
+    hoverComponentBG: colors.gray1,
+    activeComponentBG: colors.gray2,
+    appBG: colors.white,
+    heading: colors.dark,
+    sidebar: colors.gray1,
+    sidebarHover: colors.white,
+    border: colors.gray2,
+    borderFocus: colors.blue,
+    icon: colors.gray3,
+    iconHovered: colors.dark,
+    iconSuccessFill: colors.green,
+    iconReversed: colors.white,
+    textSupporting: colors.gray4,
+    text: colors.dark,
+    textError: colors.red,
+    textBackground: colors.gray1,
+    textReversed: colors.white,
+    textMutedReversed: colors.gray3,
+    buttonDefaultBG: colors.gray2,
+    offline: colors.gray3,
+    sidebarButtonBG: 'rgba(198, 201, 202, 0.25)',
+    opaqueAvatar: 'rgba(011, 027, 052, 0.64)',
+    modalBackdrop: colors.gray3,
+    modalBackground: colors.gray2,
+    buttonDisabledBG: colors.gray2,
+    buttonHoveredBG: colors.gray1,
+    buttonPressedBG: colors.gray2,
+    spinner: colors.gray4,
+    unreadIndicator: colors.green,
+    placeholderText: colors.gray3,
+    heroCard: colors.blue,
+    uploadPreviewActivityIndicator: colors.gray1,
+
+    // Merging new Keys for Dark Mode merge. Delete after new branding is implemented.
+    highlightBG: colors.gray1,
+    danger: colors.red,
+    dangerHover: colors.redHover,
+    dangerPressed: colors.redHover,
+    dangerDisabled: colors.redDisabled,
+    warning: colors.yellow,
+    success: colors.green,
+    successHover: colors.greenHover,
+    successPressed: colors.greenPressed,
+    transparent: colors.transparent,
+    inverse: colors.white,
+    textLight: colors.white,
+    textDark: colors.dark,
+};
+
+export default oldTheme;

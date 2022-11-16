@@ -1,3 +1,6 @@
+/**
+ * DO NOT import colors.js into files.
+ */
 export default {
     dark: '#0b1b34',
     black: '#000000',
@@ -30,4 +33,10 @@ export default {
     greenDefaultButtonHover: '#2C6755',
     greenDefaultButtonPressed: '#467164',
     greenDefaultButtonDisabled: '#8BA69E',
+
+    // DEPRECATED COLORS. Do not reference these colors. Will be deleted in color switch PR.
+    gray1: '#FAFAFA',
+    gray2: '#ECECEC',
+    gray3: '#C6C9CA',
+    gray4: '#7D8B8F',
 };

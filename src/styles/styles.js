@@ -150,6 +150,7 @@ const styles = {
     ...wordBreak,
     ...whiteSpace,
     ...writingDirection,
+    ...themeColors,
 
     rateCol: {
         margin: 0,
