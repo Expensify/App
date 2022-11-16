@@ -15,6 +15,9 @@ You can create as many accounts as needed in order to test your changes directly
 ##### Generating Multiple Test Accounts
 You can generate multiple test accounts by using a `+` postfix, for example if your email is test@test.com, you can create multiple New Expensify accounts connected to the same email address by using test+123@test.com, test+456@test.com, etc.
 
+##### High Traffic Accounts
+All internal engineers, contributors, and C+ members are **required** to test with a "high traffic" account against the staging or production web servers. Ask in [#expensify-open-source](https://expensify.slack.com/archives/C01GTK53T8Q) if someone can turn your account into a High Traffic account. These accounts more closely mirror the accounts used in production by real people. Internal team members can follow [this Stack Overflow](https://stackoverflow.com/c/expensify/questions/14504) to upgrade an account.
+
 #### Working on beta features
 Some features are locked behind beta flags while development is ongoing. As a contributor you can work on these beta features locally by overriding the [`Permissions.canUseAllBetas` function](https://github.com/Expensify/App/blob/5e268df7f2989ed04bc64c0c86ed77faf134554d/src/libs/Permissions.js#L10-L12) to return `true`.
 

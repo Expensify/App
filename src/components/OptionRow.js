@@ -70,6 +70,9 @@ const propTypes = {
     /** Whether this option should be disabled */
     isDisabled: PropTypes.bool,
 
+    /** Whether to show a line separating options in list */
+    shouldHaveOptionSeparator: PropTypes.bool,
+
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     ...withLocalizePropTypes,
@@ -90,6 +93,7 @@ const defaultProps = {
     isDisabled: false,
     optionIsFocused: false,
     style: null,
+    shouldHaveOptionSeparator: false,
 };
 
 const OptionRow = (props) => {
@@ -164,6 +168,7 @@ const OptionRow = (props) => {
                             props.optionIsFocused ? styles.sidebarLinkActive : null,
                             hovered && !props.optionIsFocused ? props.hoverStyle : null,
                             props.isDisabled && styles.cursorDisabled,
+                            props.shouldHaveOptionSeparator && styles.borderTop,
                         ]}
                     >
                         <View accessibilityHint={props.accessibilityHint} style={sidebarInnerRowStyle}>
@@ -264,6 +269,16 @@ const OptionRow = (props) => {
                                         accessibilityLabel={props.translate('sidebarScreen.chatPinned')}
                                     >
                                         <Icon src={Expensicons.Pin} height={16} width={16} />
+                                    </View>
+                                )}
+                                {Boolean(props.option.customIcon) && (
+                                    <View>
+                                        <Icon
+                                            src={lodashGet(props.option, 'customIcon.src', '')}
+                                            height={16}
+                                            width={16}
+                                            fill={lodashGet(props.option, 'customIcon.color')}
+                                        />
                                     </View>
                                 )}
                             </View>
