@@ -22,6 +22,8 @@ import OfflineIndicator from '../../components/OfflineIndicator';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import * as ErrorUtils from '../../libs/ErrorUtils';
+import DotIndicatorMessage from '../../components/DotIndicatorMessage';
+import * as CloseAccount from '../../libs/actions/CloseAccount';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -41,6 +43,11 @@ const propTypes = {
         isLoading: PropTypes.bool,
     }),
 
+    closeAccount: PropTypes.shape({
+        /** Message to display when user successfully closed their account */
+        success: PropTypes.string,
+    }),
+
     /** Props to detect online status */
     network: networkPropTypes.isRequired,
 
@@ -53,6 +60,7 @@ const propTypes = {
 
 const defaultProps = {
     account: {},
+    closeAccount: {},
     blurOnSubmit: false,
 };
 
@@ -87,10 +95,6 @@ class LoginForm extends React.Component {
             return;
         }
         this.input.focus();
-
-        if (this.state.login) {
-            this.clearLogin();
-        }
     }
 
     /**
@@ -122,6 +126,11 @@ class LoginForm extends React.Component {
     validateAndSubmitForm() {
         if (this.props.network.isOffline) {
             return;
+        }
+
+        // If account was closed and have success message in Onyx, we clear it here
+        if (!_.isEmpty(this.props.closeAccount.success)) {
+            CloseAccount.setDefaultData();
         }
 
         const login = this.state.login.trim();
@@ -176,6 +185,11 @@ class LoginForm extends React.Component {
                         {this.props.account.success}
                     </Text>
                 )}
+                {!_.isEmpty(this.props.closeAccount.success) && (
+
+                    // DotIndicatorMessage mostly expects onyxData errors, so we need to mock an object so that the messages looks similar to prop.account.errors
+                    <DotIndicatorMessage style={[styles.mv2]} type="success" messages={{0: this.props.closeAccount.success}} />
+                )}
                 { // We need to unmount the submit button when the component is not visible so that the Enter button
                   // key handler gets unsubscribed and does not conflict with the Password Form
                     this.props.isVisible && (
@@ -203,6 +217,7 @@ LoginForm.defaultProps = defaultProps;
 export default compose(
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
+        closeAccount: {key: ONYXKEYS.CLOSE_ACCOUNT},
     }),
     withWindowDimensions,
     withLocalize,

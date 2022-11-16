@@ -1,0 +1,13 @@
+{% assign hub = site.data.routes.hubs | where: "href", include.href | first %}
+
+<a class="card" href="/hubs/{{ hub.href }}">
+    <div class="row">
+        <div class="left-icon">
+            <img class="icon" src="{{ hub.icon }}" alt="{{ hub.href }}"/>
+        </div>
+        <div class="body">
+            <h3 class="title with-margin">{{ hub.title }}</h3>
+            <p class="description with-min-height">{{ hub.description }}</p>
+        </div>
+    </div>
+</a>

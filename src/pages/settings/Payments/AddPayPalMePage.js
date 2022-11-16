@@ -1,8 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import CONST from '../../../CONST';
-import ONYXKEYS from '../../../ONYXKEYS';
 import ROUTES from '../../../ROUTES';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Text from '../../../components/Text';
@@ -10,32 +9,19 @@ import ScreenWrapper from '../../../components/ScreenWrapper';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
 import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
 import TextInput from '../../../components/TextInput';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import * as User from '../../../libs/actions/User';
-import paypalMeDataPropTypes from '../../../components/paypalMeDataPropTypes';
-
-const propTypes = {
-    /** Account details for PayPal.Me */
-    payPalMeData: paypalMeDataPropTypes,
-
-    ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    payPalMeData: {},
-};
 
 class AddPayPalMePage extends React.Component {
     constructor(props) {
         super(props);
 
         this.state = {
-            payPalMeUsername: props.payPalMeData.description,
+            payPalMeUsername: '',
             payPalMeUsernameError: false,
         };
         this.setPayPalMeUsername = this.setPayPalMeUsername.bind(this);
@@ -100,10 +86,8 @@ class AddPayPalMePage extends React.Component {
                         onPress={this.setPayPalMeUsername}
                         pressOnEnter
                         style={[styles.mt3]}
-                        isDisabled={this.state.payPalMeUsername === this.props.payPalMeData.description}
-                        text={this.props.payPalMeData.description
-                            ? this.props.translate('addPayPalMePage.editPayPalAccount')
-                            : this.props.translate('addPayPalMePage.addPayPalAccount')}
+                        isDisabled={_.isEmpty(this.state.payPalMeUsername.trim())}
+                        text={this.props.translate('addPayPalMePage.addPayPalAccount')}
                     />
                 </FixedFooter>
             </ScreenWrapper>
@@ -111,14 +95,6 @@ class AddPayPalMePage extends React.Component {
     }
 }
 
-AddPayPalMePage.propTypes = propTypes;
-AddPayPalMePage.defaultProps = defaultProps;
+AddPayPalMePage.propTypes = {...withLocalizePropTypes};
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        payPalMeData: {
-            key: ONYXKEYS.PAYPAL,
-        },
-    }),
-)(AddPayPalMePage);
+export default withLocalize(AddPayPalMePage);

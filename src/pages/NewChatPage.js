@@ -179,10 +179,7 @@ class NewChatPage extends Component {
      * @param {Object} option
      */
     createChat(option) {
-        Report.fetchOrCreateChatReport([
-            this.props.session.email,
-            option.login,
-        ]);
+        Report.navigateToAndOpenReport([option.login]);
     }
 
     /**
@@ -194,8 +191,7 @@ class NewChatPage extends Component {
         if (userLogins.length < 1) {
             return;
         }
-
-        Report.fetchOrCreateChatReport([this.props.session.email, ...userLogins]);
+        Report.navigateToAndOpenReport(userLogins);
     }
 
     render() {

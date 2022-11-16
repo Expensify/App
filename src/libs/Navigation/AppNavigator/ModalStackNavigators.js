@@ -205,10 +205,31 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsWorkspacesPage = require('../../../pages/workspace/WorkspacesListPage').default;
+            return SettingsWorkspacesPage;
+        },
+        name: 'Settings_Workspaces',
+    },
+    {
+        getComponent: () => {
             const SettingsProfilePage = require('../../../pages/settings/Profile/ProfilePage').default;
             return SettingsProfilePage;
         },
         name: 'Settings_Profile',
+    },
+    {
+        getComponent: () => {
+            const SettingsPronounsPage = require('../../../pages/settings/Profile/PronounsPage').default;
+            return SettingsPronounsPage;
+        },
+        name: 'Settings_Pronouns',
+    },
+    {
+        getComponent: () => {
+            const SettingsDisplayNamePage = require('../../../pages/settings/Profile/DisplayNamePage').default;
+            return SettingsDisplayNamePage;
+        },
+        name: 'Settings_Display_Name',
     },
     {
         getComponent: () => {
@@ -363,13 +384,6 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             return WorkspaceMembersPage;
         },
         name: 'Workspace_Members',
-    },
-    {
-        getComponent: () => {
-            const WorkspaceBankAccountPage = require('../../../pages/workspace/WorkspaceBankAccountPage').default;
-            return WorkspaceBankAccountPage;
-        },
-        name: 'Workspace_BankAccount',
     },
     {
         getComponent: () => {

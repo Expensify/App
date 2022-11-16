@@ -12,13 +12,14 @@ const CONST = {
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
+    ANIMATION_IN_TIMING: 100,
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
         ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml', 'mp3', 'mp4', 'mov'],
 
-        // 50 megabytes in bytes
-        MAX_SIZE: 52428800,
+        // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
+        MAX_SIZE: 25165824,
 
         // An arbitrary size, but the same minimum as in the PHP layer
         MIN_SIZE: 240,
@@ -264,9 +265,6 @@ const CONST = {
             REMOVED_FROM_POLICY: 'removedFromPolicy',
             POLICY_DELETED: 'policyDeleted',
         },
-        ERROR: {
-            INACCESSIBLE_REPORT: 'Report not found',
-        },
         MESSAGE: {
             TYPE: {
                 COMMENT: 'COMMENT',
@@ -317,6 +315,7 @@ const CONST = {
         MAX_ROOM_NAME_LENGTH: 80,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
         OWNER_EMAIL_FAKE: '__FAKE__',
+        DEFAULT_REPORT_NAME: 'Chat Report',
     },
     COMPOSER: {
         MAX_LINES: 16,
@@ -350,13 +349,13 @@ const CONST = {
         SEARCH_RENDER: 'search_render',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',
-        HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
         SWITCH_REPORT: 'switch_report',
         SIDEBAR_LOADED: 'sidebar_loaded',
         COLD: 'cold',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         TOOLTIP_SENSE: 1000,
         SPINNER_TIMEOUT: 15 * 1000,
+        TRIE_INITIALIZATION: 'trie_initialization',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -419,6 +418,7 @@ const CONST = {
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
+    DEFAULT_CLOSE_ACCOUNT_DATA: {error: '', success: '', isLoading: false},
     APP_STATE: {
         ACTIVE: 'active',
         BACKGROUND: 'background',
@@ -446,7 +446,7 @@ const CONST = {
 
     EMOJI_FREQUENT_ROW_COUNT: 3,
 
-    EMOJI_INVISIBLE_CODEPOINT: 'fe0f',
+    EMOJI_INVISIBLE_CODEPOINTS: ['fe0f', '200d'],
 
     TOOLTIP_MAX_LINES: 3,
 
@@ -489,8 +489,8 @@ const CONST = {
         WIDTH: 320,
         HEIGHT: 400,
     },
-    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
-    EMOJI_PICKER_ITEM_HEIGHT: 40,
+    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 298,
+    EMOJI_PICKER_ITEM_HEIGHT: 32,
     EMOJI_PICKER_HEADER_HEIGHT: 38,
     COMPOSER_MAX_HEIGHT: 125,
     CHAT_FOOTER_MIN_HEIGHT: 65,
@@ -502,6 +502,7 @@ const CONST = {
             3: 100,
         },
     },
+    EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EMAIL: {
         CONCIERGE: 'concierge@expensify.com',
         HELP: 'help@expensify.com',
@@ -572,6 +573,7 @@ const CONST = {
         STEP: {
             // In the order they appear in the Wallet flow
             ADDITIONAL_DETAILS: 'AdditionalDetailsStep',
+            ADDITIONAL_DETAILS_KBA: 'AdditionalDetailsKBAStep',
             ONFIDO: 'OnfidoStep',
             TERMS: 'TermsStep',
             ACTIVATE: 'ActivateStep',
@@ -600,8 +602,9 @@ const CONST = {
         },
         SMS_NUMBER_COUNTRY_CODE: 'US',
         ERROR: {
-            USER_CANCELLED: 'User canceled flow',
+            USER_CANCELLED: 'User canceled flow.',
             USER_TAPPED_BACK: 'User exited by clicking the back button.',
+            USER_EXITED: 'User exited by manual action.',
             USER_CAMERA_DENINED: 'Onfido.OnfidoFlowError',
             USER_CAMERA_PERMISSION: 'Encountered an error: cameraPermission',
             // eslint-disable-next-line max-len
@@ -654,6 +657,10 @@ const CONST = {
         },
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
+            CREATE: 'create',
+            SPLIT: 'split',
+            DECLINE: 'decline',
+            CANCEL: 'cancel',
         },
         AMOUNT_MAX_LENGTH: 10,
     },
@@ -701,6 +708,7 @@ const CONST = {
         LARGE: 'large',
         DEFAULT: 'default',
         SMALL: 'small',
+        SMALLER: 'smaller',
         SUBSCRIPT: 'subscript',
         SMALL_SUBSCRIPT: 'small-subscript',
     },
@@ -738,6 +746,8 @@ const CONST = {
         EMOJIS: /(?:\uD83D(?:\uDC41\u200D\uD83D\uDDE8|\uDC68\u200D\uD83D[\uDC68\uDC69]\u200D\uD83D(?:\uDC66(?:\u200D\uD83D\uDC66)?|\uDC67(?:\u200D\uD83D[\uDC66\uDC67])?)|\uDC69\u200D\uD83D\uDC69\u200D\uD83D(?:\uDC66(?:\u200D\uD83D\uDC66)?|\uDC67(?:\u200D\uD83D[\uDC66\uDC67])?))|[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|[\ud83c\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|[\ud83c\ude32-\ude3a]|[\ud83c\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26FF]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])/g,
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
+        EMOJI_NAME: /:[\w+-]+:/g,
+        EMOJI_SUGGESTIONS: /:[a-zA-Z]{1,20}(\s[a-zA-Z]{0,20})?$/,
     },
 
     PRONOUNS: {
@@ -776,8 +786,8 @@ const CONST = {
         ];
     },
 
-    // There's a limit of 60k characters in Auth - https://github.com/Expensify/Auth/blob/198d59547f71fdee8121325e8bc9241fc9c3236a/auth/lib/Request.h#L28
-    MAX_COMMENT_LENGTH: 60000,
+    // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
+    MAX_COMMENT_LENGTH: 15000,
 
     FORM_CHARACTER_LIMIT: 50,
     AVATAR_CROP_MODAL: {
@@ -814,7 +824,6 @@ const CONST = {
         INVITE: 'invite',
         LEAVE_ROOM: 'leaveRoom',
     },
-    PROFILE_SETTINGS_FORM: 'profileSettingsForm',
 
     // These split the maximum decimal value of a signed 64-bit number (9,223,372,036,854,775,807) into parts where none of them are too big to fit into a 32-bit number, so that we can
     // generate them each with a random number generator with only 32-bits of precision.

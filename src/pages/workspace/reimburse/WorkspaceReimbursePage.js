@@ -23,12 +23,14 @@ const propTypes = {
 
 const WorkspaceReimbursePage = props => (
     <WorkspacePageWithSections
+        shouldUseScrollView
         headerText={props.translate('workspace.common.reimburse')}
         route={props.route}
         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
+        shouldSkipVBBACall
     >
-        {hasVBA => (
-            <WorkspaceReimburseView policy={props.policy} hasVBA={hasVBA} />
+        {() => (
+            <WorkspaceReimburseView policy={props.policy} />
         )}
     </WorkspacePageWithSections>
 );

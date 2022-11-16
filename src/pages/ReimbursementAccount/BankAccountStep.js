@@ -26,6 +26,7 @@ import CONFIG from '../../CONFIG';
 import ROUTES from '../../ROUTES';
 import Button from '../../components/Button';
 import plaidDataPropTypes from './plaidDataPropTypes';
+import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 
 const propTypes = {
     /** Contains plaid data */
@@ -36,6 +37,10 @@ const propTypes = {
 
     /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
     plaidLinkOAuthToken: PropTypes.string,
+
+    /** The bank account currently in setup */
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    reimbursementAccount: reimbursementAccountPropTypes,
 
     /** Object with various information about the user */
     user: PropTypes.shape({
@@ -52,6 +57,7 @@ const defaultProps = {
     plaidData: {
         isPlaidDisabled: false,
     },
+    reimbursementAccount: {},
     user: {},
 };
 
@@ -133,10 +139,8 @@ const BankAccountStep = (props) => {
                 />
                 {!props.user.validated && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
-                        <Text style={[styles.mutedTextLabel, styles.mr4]}>
-                            <Icon src={Expensicons.Exclamation} fill={colors.red} />
-                        </Text>
-                        <Text style={styles.mutedTextLabel}>
+                        <Icon src={Expensicons.Exclamation} fill={colors.red} />
+                        <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>
                             {props.translate('bankAccount.validateAccountError')}
                         </Text>
                     </View>

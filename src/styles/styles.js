@@ -11,14 +11,15 @@ import display from './utilities/display';
 import overflow from './utilities/overflow';
 import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
-import textInputAlignSelf from './utilities/textInputAlignSelf';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
 import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
+import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
+import CONST from '../CONST';
 
 const picker = {
     backgroundColor: 'transparent',
@@ -29,10 +30,8 @@ const picker = {
     paddingHorizontal: 11,
     paddingBottom: 8,
     paddingTop: 23,
-    height: 52,
-    borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: themeColors.border,
+    height: 50,
+    borderWidth: 0,
     borderRadius: variables.componentBorderRadiusNormal,
     textAlign: 'left',
 };
@@ -76,12 +75,10 @@ const webViewStyles = {
 
         ul: {
             maxWidth: '100%',
-            flex: 1,
         },
 
         ol: {
             maxWidth: '100%',
-            flex: 1,
         },
 
         li: {
@@ -128,6 +125,10 @@ const webViewStyles = {
         p: {
             marginTop: 0,
             marginBottom: 0,
+        },
+        h1: {
+            fontSize: variables.fontSizeLarge,
+            marginBottom: 8,
         },
     },
 
@@ -494,6 +495,10 @@ const styles = {
         backgroundColor: themeColors.activeComponentBG,
     },
 
+    fontWeightBold: {
+        fontWeight: fontWeightBold,
+    },
+
     touchableButtonImage: {
         alignItems: 'center',
         height: variables.componentSizeNormal,
@@ -527,11 +532,9 @@ const styles = {
             paddingTop: 6,
             paddingBottom: 6,
             borderRadius: variables.componentBorderRadius,
-            borderWidth: 1,
-            borderColor: themeColors.border,
-            borderStyle: 'solid',
+            borderWidth: 0,
             color: themeColors.text,
-            height: variables.componentSizeSmall,
+            height: 26,
             opacity: 1,
             backgroundColor: 'transparent',
         },
@@ -542,13 +545,11 @@ const styles = {
             paddingRight: 25,
             paddingTop: 6,
             paddingBottom: 6,
-            borderWidth: 1,
-            borderColor: themeColors.border,
-            borderStyle: 'solid',
+            borderWidth: 0,
             borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
             appearance: 'none',
-            height: variables.componentSizeSmall,
+            height: 26,
             opacity: 1,
             cursor: 'pointer',
             backgroundColor: 'transparent',
@@ -560,17 +561,15 @@ const styles = {
             paddingRight: 25,
             paddingTop: 6,
             paddingBottom: 6,
-            borderWidth: 1,
-            borderColor: themeColors.border,
-            borderStyle: 'solid',
+            borderWidth: 0,
             borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
-            height: variables.componentSizeSmall,
+            height: 26,
             opacity: 1,
         },
         iconContainer: {
-            top: 8,
-            right: 9,
+            top: 7,
+            right: 8,
             ...pointerEventsNone,
         },
         icon: {
@@ -796,33 +795,31 @@ const styles = {
     },
 
     pickerContainer: {
-        borderWidth: 0,
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderColor: themeColors.border,
         borderRadius: variables.componentBorderRadiusNormal,
         justifyContent: 'center',
         backgroundColor: themeColors.componentBG,
     },
     pickerLabel: {
         position: 'absolute',
-        left: 12,
-        top: 7,
+        left: 11,
+        top: 6,
     },
-    picker: (disabled = false, error = false, focused = false) => ({
+    picker: (disabled = false) => ({
         iconContainer: {
-            top: 16,
-            right: 11,
+            top: 15,
+            right: 10,
             zIndex: -1,
         },
         inputWeb: {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
             ...picker,
-            ...(focused && {borderColor: themeColors.borderFocus}),
-            ...(error && {borderColor: themeColors.badgeDangerBG}),
         },
         inputNative: {
             ...picker,
-            ...(focused && {borderColor: themeColors.borderFocus}),
-            ...(error && {borderColor: themeColors.badgeDangerBG}),
         },
     }),
 
@@ -1233,6 +1230,12 @@ const styles = {
     appContent: {
         backgroundColor: themeColors.appBG,
         overflow: 'hidden',
+
+        // Starting version 6.3.2 @react-navigation/drawer adds "user-select: none;" to its container.
+        // We add user-select-auto to the inner component to prevent incorrect triple-click text selection.
+        // For further explanation see - https://github.com/Expensify/App/pull/12730/files#r1022883823
+        userSelect: 'auto',
+        WebkitUserSelect: 'auto',
     },
 
     appContentHeader: {
@@ -1373,7 +1376,6 @@ const styles = {
     },
 
     chatFooter: {
-        marginBottom: 5,
         paddingLeft: 20,
         paddingRight: 20,
         display: 'flex',
@@ -1386,6 +1388,8 @@ const styles = {
         flexBasis: '100%',
     },
 
+    // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
+    // Make sure you run the following tests against any changes: #12669
     textInputCompose: addOutlineWidth({
         backgroundColor: themeColors.componentBG,
         borderColor: themeColors.border,
@@ -1402,23 +1406,26 @@ const styles = {
         // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
         paddingHorizontal: 8,
-        paddingVertical: 0,
-        ...textInputAlignSelf.center,
+        paddingTop: 0,
+        paddingBottom: 0,
+        alignSelf: 'center',
         textAlignVertical: 'center',
     }, 0),
 
     textInputFullCompose: {
-        alignSelf: 'flex-end',
+        alignSelf: 'stretch',
         flex: 1,
         maxHeight: '100%',
+        textAlignVertical: 'top',
     },
 
     editInputComposeSpacing: {
         marginVertical: 6,
     },
 
+    // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
     textInputComposeSpacing: {
-        paddingVertical: 6,
+        paddingVertical: 5,
         ...flex.flexRow,
         flex: 1,
     },
@@ -1472,12 +1479,16 @@ const styles = {
         fontSize: variables.emojiSize,
         ...spacing.pv0,
         ...spacing.ph0,
+        lineHeight: variables.emojiLineHeight,
     },
 
     emojiItem: {
         width: '12.5%',
         textAlign: 'center',
         borderRadius: 8,
+        paddingTop: 2,
+        paddingBottom: 2,
+        height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
     },
 
     emojiItemHighlighted: {
@@ -1570,6 +1581,14 @@ const styles = {
         width: 24,
         backgroundColor: themeColors.icon,
         borderRadius: 24,
+    },
+
+    horizontalStackedAvatar: {
+        height: 28,
+        width: 28,
+        backgroundColor: colors.white,
+        borderRadius: 33,
+        paddingTop: 2,
     },
 
     singleSubscript: {
@@ -1702,6 +1721,43 @@ const styles = {
         width: variables.avatarSizeSmall,
     },
 
+    horizontalStackedAvatar1: {
+        left: -19,
+        top: -79,
+        zIndex: 2,
+    },
+
+    horizontalStackedAvatar2: {
+        left: 1,
+        top: -51,
+        zIndex: 3,
+    },
+
+    horizontalStackedAvatar3: {
+        left: 21,
+        top: -23,
+        zIndex: 4,
+    },
+
+    horizontalStackedAvatar4: {
+        top: 5,
+        left: 41,
+        zIndex: 5,
+    },
+
+    horizontalStackedAvatar4Overlay: {
+        top: -107,
+        left: 41,
+        height: 28,
+        width: 28,
+        borderWidth: 2,
+        borderStyle: 'solid',
+        borderColor: colors.white,
+        backgroundColor: themeColors.opaqueAvatar,
+        borderRadius: 24,
+        zIndex: 6,
+    },
+
     modalViewContainer: {
         alignItems: 'center',
         flex: 1,
@@ -1746,6 +1802,8 @@ const styles = {
     },
 
     pointerEventsNone,
+
+    pointerEventsAuto,
 
     headerBar: {
         overflow: 'hidden',
@@ -2124,7 +2182,10 @@ const styles = {
     },
 
     iouPreviewBoxLoading: {
-        minHeight: 47,
+        // When a new IOU request arrives it is very briefly in a loading state, so set the minimum height of the container to 94 to match the rendered height after loading.
+        // Otherwise, the IOU request pay button will not be fully visible and the user will have to scroll up to reveal the entire IOU request container.
+        // See https://github.com/Expensify/App/issues/10283.
+        minHeight: 94,
         width: '100%',
     },
 
@@ -2573,7 +2634,6 @@ const styles = {
     },
 
     keyboardShortcutModalContainer: {
-        maxWidth: 600,
         maxHeight: '100%',
         flex: '0 0 auto',
     },
@@ -2674,6 +2734,11 @@ const styles = {
         userSelect: 'text',
     },
 
+    userSelectNone: {
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+    },
+
     screenCenteredContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -2692,6 +2757,17 @@ const styles = {
         paddingHorizontal: 20,
         maxWidth: 450,
         alignSelf: 'center',
+    },
+
+    textPill: {
+        ellipsizeMode: 'end',
+        backgroundColor: colors.gray2,
+        borderRadius: 10,
+        overflow: 'hidden',
+        paddingVertical: 2,
+        flexShrink: 1,
+        fontSize: variables.fontSizeSmall,
+        ...spacing.ph2,
     },
 };
 

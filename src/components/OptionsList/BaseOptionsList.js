@@ -17,12 +17,16 @@ const propTypes = {
     /** Called when the user begins to drag the scroll view */
     onScrollBeginDrag: PropTypes.func,
 
+    /** Callback executed on scroll */
+    onScroll: PropTypes.func,
+
     ...optionsListPropTypes,
 };
 
 const defaultProps = {
     keyboardDismissMode: 'none',
     onScrollBeginDrag: () => {},
+    onScroll: () => {},
     ...optionsListDefaultProps,
 };
 
@@ -181,6 +185,7 @@ class BaseOptionsList extends Component {
                 hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
                 forceTextUnreadStyle={this.props.forceTextUnreadStyle}
                 isDisabled={this.props.isDisabled || section.isDisabled}
+                shouldHaveOptionSeparator={index > 0 && this.props.shouldHaveOptionSeparator}
             />
         );
     }
@@ -230,6 +235,7 @@ class BaseOptionsList extends Component {
                     keyboardShouldPersistTaps="always"
                     keyboardDismissMode={this.props.keyboardDismissMode}
                     onScrollBeginDrag={this.props.onScrollBeginDrag}
+                    onScroll={this.props.onScroll}
                     contentContainerStyle={this.props.contentContainerStyles}
                     showsVerticalScrollIndicator={false}
                     sections={this.props.sections}

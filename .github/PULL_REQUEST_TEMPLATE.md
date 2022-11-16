@@ -36,17 +36,39 @@ For example:
 
 - [ ] Verify that no errors appear in the JS console
 
-### PR Review Checklist
+### Offline tests
+<!---
+Add any relevant steps that validate your changes work as expected in a variety of network states e.g. "offline", "spotty connection", "slow internet", etc. Manual test steps should be written so that your reviewer and QA testers can repeat and verify one or more expected outcomes. If you are unsure how the behavior should work ask for advice in the `#expensify-open-source` Slack channel.
+--->
+
+### QA Steps
+<!---
+Add a numbered list of manual tests that can be performed by our QA engineers on the staging environment to validate that your changes work on all platforms, and that there are no regressions present.
+Add any additional QA steps if test steps are unique to a particular platform.
+Manual test steps should be written so that the QA engineer can repeat and verify one or more expected outcomes in the staging environment.
+
+For example:
+1. Click on the text input to bring it into focus
+2. Upload an image via copy paste
+3. Verify a modal appears displaying a preview of that image
+--->
+
+- [ ] Verify that no errors appear in the JS console
+
+### PR Author Checklist
 <!--
-This is a checklist for PR authors & reviewers. Please make sure to complete all tasks and check them off once you do, or else Expensify has the right not to merge your PR!
+This is a checklist for PR authors. Please make sure to complete all tasks and check them off once you do, or else your PR will not be merged!
 -->
-#### PR Author Checklist
+
 - [ ] I linked the correct issue in the `### Fixed Issues` section above
 - [ ] I wrote clear testing steps that cover the changes made in this PR
     - [ ] I added steps for local testing in the `Tests` section
+    - [ ] I added steps for the expected offline behavior in the `Offline steps` section
     - [ ] I added steps for Staging and/or Production testing in the `QA steps` section
     - [ ] I added steps to cover failure scenarios (i.e. verify an input displays the correct error message if the entered data is not correct)
     - [ ] I turned off my network connection and tested it while offline to ensure it matches the expected behavior (i.e. verify the default avatar icon is displayed if app is offline)
+    - [ ] I tested this PR with a [High Traffic account](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#high-traffic-accounts) against the staging or production API to ensure there are no regressions (e.g. long loading states that impact usability).
+
 - [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I ran the tests on **all platforms** & verified they passed on:
     - [ ] iOS / native
@@ -61,7 +83,7 @@ This is a checklist for PR authors & reviewers. Please make sure to complete all
     - [ ] I verified that comments were added to code that is not self explanatory
     - [ ] I verified that any new or modified comments were clear, correct English, and explained "why" the code was doing something instead of only explaining "what" the code was doing.
     - [ ] I verified any copy / text shown in the product was added in all `src/languages/*` files
-    - [ ] I verified any copy / text that was added to the app is correct English and approved by marketing by tagging the marketing team on the original GH to get the correct copy.
+    - [ ] I verified any copy / text that was added to the app is correct English and approved by marketing by adding the `Waiting for Copy` label for a copy review on the original GH to get the correct copy.
     - [ ] I verified proper file naming conventions were followed for any new files or renamed files. All non-platform specific files are named after what they export and are not named "index.js". All platform-specific files are named for the platform the code supports as outlined in the README.
     - [ ] I verified the JSDocs style guidelines (in [`STYLE.md`](https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md#jsdocs)) were followed
 - [ ] If a new code pattern is added I verified it was agreed to be used by multiple Expensify engineers
@@ -96,9 +118,11 @@ The reviewer will copy/paste it into a new comment and complete it after the aut
 - [ ] I verified the correct issue is linked in the `### Fixed Issues` section above
 - [ ] I verified testing steps are clear and they cover the changes made in this PR
     - [ ] I verified the steps for local testing are in the `Tests` section
+    - [ ] I verified the steps for expected offline behavior are in the `Offline steps` section
     - [ ] I verified the steps for Staging and/or Production testing are in the `QA steps` section
     - [ ] I verified the steps cover any possible failure scenarios (i.e. verify an input displays the correct error message if the entered data is not correct)
     - [ ] I turned off my network connection and tested it while offline to ensure it matches the expected behavior (i.e. verify the default avatar icon is displayed if app is offline)
+    - [ ] I tested this PR with a [High Traffic account](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#high-traffic-accounts) against the staging or production API to ensure there are no regressions (e.g. long loading states that impact usability).
 - [ ] I checked that screenshots or videos are included for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I verified tests pass on **all platforms** & I tested again on:
@@ -114,7 +138,7 @@ The reviewer will copy/paste it into a new comment and complete it after the aut
     - [ ] I verified that comments were added to code that is not self explanatory
     - [ ] I verified that any new or modified comments were clear, correct English, and explained "why" the code was doing something instead of only explaining "what" the code was doing.
     - [ ] I verified any copy / text shown in the product was added in all `src/languages/*` files
-    - [ ] I verified any copy / text that was added to the app is correct English and approved by marketing by tagging the marketing team on the original GH to get the correct copy.
+    - [ ] I verified any copy / text that was added to the app is correct English and approved by marketing by adding the `Waiting for Copy` label for a copy review on the original GH to get the correct copy.
     - [ ] I verified proper file naming conventions were followed for any new files or renamed files. All non-platform specific files are named after what they export and are not named "index.js". All platform-specific files are named for the platform the code supports as outlined in the README.
     - [ ] I verified the JSDocs style guidelines (in [`STYLE.md`](https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md#jsdocs)) were followed
 - [ ] If a new code pattern is added I verified it was agreed to be used by multiple Expensify engineers
@@ -140,20 +164,6 @@ The reviewer will copy/paste it into a new comment and complete it after the aut
 - [ ] I have checked off every checkbox in the PR reviewer checklist, including those that don't apply to this PR.
 
 </details>
-
-### QA Steps
-<!---
-Add a numbered list of manual tests that can be performed by our QA engineers on the staging environment to validate that your changes work on all platforms, and that there are no regressions present.
-Add any additional QA steps if test steps are unique to a particular platform.
-Manual test steps should be written so that the QA engineer can repeat and verify one or more expected outcomes in the staging environment.
-
-For example:
-1. Click on the text input to bring it into focus
-2. Upload an image via copy paste
-3. Verify a modal appears displaying a preview of that image
---->
-
-- [ ] Verify that no errors appear in the JS console
 
 ### Screenshots
 <!-- Add screenshots for all platforms tested. Pull requests won't be merged unless the screenshots show the app was tested on all platforms.-->

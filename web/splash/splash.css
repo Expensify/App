@@ -1,0 +1,23 @@
+@media screen and (min-width: 480px) { 
+    .splash-logo > svg { 
+        width: 104px; 
+        height: 104px; 
+    }
+}
+@media screen and (max-width: 479px) { 
+    .splash-logo > svg { 
+        width: 52px; 
+        height: 52px; 
+    }
+}
+
+#splash {
+    position: absolute; 
+    top: 0; left: 0; 
+    right: 0; background-color: white; 
+    width: 100%; 
+    height: 100%; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+}
