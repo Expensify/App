@@ -6,7 +6,7 @@ on:
 jobs:
   e2e-tests:
     name: "Run e2e performance regression tests"
-    runs-on: [self-hosted, ubuntu-20.04-64core]
+    runs-on: ubuntu-20.04-64core
     steps:
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
