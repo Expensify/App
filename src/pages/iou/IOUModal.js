@@ -296,6 +296,9 @@ class IOUModal extends Component {
                 comment,
                 this.state.participants[0].login,
                 );
+
+            //Exit to the report as the API pusher response will be handled elsewhere
+            Navigation.navigate(ROUTES.REPORT);
             return;
         }
 
