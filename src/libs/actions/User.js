@@ -257,21 +257,6 @@ function addPaypalMeAddress(address) {
             key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
             value: address,
         },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.PAYPAL,
-            value: {
-                title: 'PayPal.me',
-                description: address,
-                methodID: CONST.PAYMENT_METHODS.PAYPAL,
-                key: 'payPalMePaymentMethod',
-                accountType: CONST.PAYMENT_METHODS.PAYPAL,
-                accountData: {
-                    username: address,
-                },
-                isDefault: false,
-            },
-        },
     ];
     API.write('AddPaypalMeAddress', {
         value: address,
@@ -288,11 +273,6 @@ function deletePaypalMeAddress() {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
             value: '',
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: ONYXKEYS.PAYPAL,
-            value: {},
         },
     ];
     API.write('DeletePaypalMeAddress', {}, {optimisticData});
