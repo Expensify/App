@@ -11,7 +11,6 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import Text from './Text';
 import Button from './Button';
-import {clearSendMoneyErrors} from "../libs/actions/ReportActions";
 
 const propTypes = {
     /** The chatReport which the transaction is associated with */
