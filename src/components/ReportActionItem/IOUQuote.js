@@ -6,7 +6,6 @@ import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import Text from '../Text';
 import Icon from '../Icon';
-import Tooltip from '../Tooltip';
 import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
@@ -24,7 +23,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    shouldShowViewDetailsLink: false,
     onViewDetailsPressed: () => {},
 };
 
