@@ -95,7 +95,7 @@ function isReportMessageAttachment({text, html}) {
 function sortReportsByLastVisited(reports) {
     return _.chain(reports)
         .toArray()
-        .filter(report => report && report.reportID)
+        .filter(report => report && report.reportID && !isIOUReport(report))
         .sortBy('lastVisitedTimestamp')
         .value();
 }
@@ -152,6 +152,15 @@ function isAdminRoom(report) {
  */
 function isAnnounceRoom(report) {
     return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE;
+}
+
+/**
+ * Attempts to find a report in onyx with the provided list of participants
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isIOUReport(report) {
+    return !!lodashGet(report, 'total');
 }
 
 /**
@@ -1006,7 +1015,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
-    if (!report || !report.reportID || !report.participants || _.isEmpty(report.participants)) {
+    if (!report || !report.reportID || !report.participants || _.isEmpty(report.participants) || isIOUReport(report)) {
         return false;
     }
 
@@ -1076,15 +1085,6 @@ function getChatByParticipants(newParticipantList) {
         }
         return _.isEqual(newParticipantList, report.participants.sort());
     });
-}
-
-/**
- * Attempts to find a report in onyx with the provided list of participants
- * @param {Object} report
- * @returns {Boolean}
- */
-function isIOUReport(report) {
-    return !!lodashGet(report, 'total');
 }
 
 export {

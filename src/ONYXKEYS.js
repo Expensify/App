@@ -92,7 +92,6 @@ export default {
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
-        REPORT_IOUS: 'reportIOUs_',
         POLICY: 'policy_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         POLICY_MEMBER_LIST: 'policyMemberList_',
