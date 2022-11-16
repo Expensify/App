@@ -1,6 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
-import {Pressable} from 'react-native';
+import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
@@ -29,7 +28,7 @@ const defaultProps = {
 const IOUQuote = props => (
     <View style={[styles.chatItemMessage]}>
         {_.map(props.action.message, (fragment, index) => (
-            <View key={`iouQuote-${props.action.reportActionID}-${index}`} style={[styles.textInputAndIconContainer, styles.alignItemsCenter, styles.justifyContentBetween]}>
+            <View key={`iouQuote-${props.action.reportActionID}-${index}`} style={[styles.textInputAndIconContainer, styles.alignItemsStart, styles.justifyContentBetween]}>
                 <Text>
                     <Text
                         style={[styles.chatItemMessageLink]}
