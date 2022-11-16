@@ -98,6 +98,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 // These files are copied over as per instructions here
                 // https://github.com/wojtekmaj/react-pdf#copying-cmaps
                 {from: 'node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
+                {from: 'web/service-worker.js'},
             ],
         }),
         new EnvironmentPlugin({JEST_WORKER_ID: null}),

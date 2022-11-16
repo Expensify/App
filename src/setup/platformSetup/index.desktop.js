@@ -4,6 +4,7 @@ import LocalNotification from '../../libs/Notification/LocalNotification';
 import * as KeyboardShortcuts from '../../libs/actions/KeyboardShortcuts';
 import DateUtils from '../../libs/DateUtils';
 import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
+import registerServiceWorker from './register-service-worker';
 
 export default function () {
     AppRegistry.runApplication(Config.APP_NAME, {
@@ -20,4 +21,6 @@ export default function () {
 
     // Start current date updater
     DateUtils.startCurrentDateUpdater();
+
+    registerServiceWorker();
 }

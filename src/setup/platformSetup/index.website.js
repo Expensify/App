@@ -8,6 +8,7 @@ import Config from '../../CONFIG';
 import DateUtils from '../../libs/DateUtils';
 import pkg from '../../../package.json';
 import Visibility from '../../libs/Visibility';
+import registerServiceWorker from './register-service-worker';
 
 /**
  * Download the latest app version from the server, and if it is different than the current one,
@@ -67,4 +68,6 @@ export default function () {
 
     // Start current date updater
     DateUtils.startCurrentDateUpdater();
+
+    registerServiceWorker();
 }
