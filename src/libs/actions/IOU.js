@@ -64,7 +64,6 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         isNewChat = true;
     }
     let iouReport;
-    const originalIOUStatus = chatReport.hasOutstandingIOU;
     if (chatReport.iouReportID) {
         iouReport = IOUUtils.updateIOUOwnerAndTotal(
             iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`],
@@ -135,7 +134,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
-                hasOutstandingIOU: originalIOUStatus,
+                hasOutstandingIOU: chatReport.hasOutstandingIOU,
             },
         },
         {
