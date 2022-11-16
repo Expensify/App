@@ -80,9 +80,7 @@ jobs:
 
       - name: Set output of AWS Device Farm into GitHub ENV
         run: |
-          echo 'OUTPUT<<EOF' >> "$GITHUB_ENV"
-          cat ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md >> "$GITHUB_ENV"
-          echo 'EOF' >> "$GITHUB_ENV"
+          { echo 'OUTPUT<<EOF'; cat ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md; echo 'EOF'; } >> "$GITHUB_ENV"
 
       - name: Leave output of AWS Device Farm as a PR comment
         uses: mshick/add-pr-comment@v1
