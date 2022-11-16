@@ -95,7 +95,7 @@ class WorkspaceMembersPage extends React.Component {
          * This is due to how calling `Onyx::merge` on array fields overwrites the array.
          * see https://github.com/Expensify/App/issues/12265#issuecomment-1307889721 for more context
          */
-        const clientMemberEmails = _.keys(_.pick(this.props.policyMemberList, m => m.role));
+        const clientMemberEmails = _.keys(_.pick(this.props.policyMemberList, member => member.role));
         Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
     }
 
