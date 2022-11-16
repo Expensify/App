@@ -43,23 +43,24 @@ Onyx.connect({
     },
 });
 
-// When we reconnect the app, we don't want to fetch workspaces created optimistically while offline since they don't exist yet in the back-end.
-// If we fetched them then they'd return as empty objects which would clear out the optimistic policy values initially created locally.
-// Once the re-queued call to CreateWorkspace returns, the full contents of the workspace excluded here should be correctly saved into Onyx.
-let policyIDListExcludingWorkspacesCreatedOffline = [];
-const policyIDListExcludingWorkspacesCreatedOfflineLoaded = new Promise((resolve) => {
-    Onyx.connect({
-        key: ONYXKEYS.COLLECTION.POLICY,
-        waitForCollectionCallback: true,
-        callback: (policies) => {
-            const policiesExcludingWorkspacesCreatedOffline = _.reject(policies,
-                policy => lodashGet(policy, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
-                && lodashGet(policy, 'type', null) === CONST.POLICY.TYPE.FREE);
-            policyIDListExcludingWorkspacesCreatedOffline = _.compact(_.pluck(policiesExcludingWorkspacesCreatedOffline, 'id'));
-            resolve();
-        },
-    });
+let allPolicies = [];
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: policies => allPolicies = policies,
 });
+
+/**
+ * @param {Array} policies
+ * @return {Array<String>} array of policy ids
+*/
+function getNonOptimisticPolicyIDs(policies) {
+    return _.chain(policies)
+        .reject(policy => lodashGet(policy, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
+        .pluck('id')
+        .compact()
+        .value();
+}
 
 /**
 * @param {String} locale
@@ -114,7 +115,7 @@ function openApp() {
         waitForCollectionCallback: true,
         callback: (policies) => {
             Onyx.disconnect(connectionID);
-            API.read('OpenApp', {policyIDList: getPolicyIDListExcludingWorkspacesCreatedOffline(policies)}, {
+            API.read('OpenApp', {policyIDList: getNonOptimisticPolicyIDs(policies)}, {
                 optimisticData: [
                     {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -145,24 +146,22 @@ function openApp() {
  * Refreshes data when the app reconnects
  */
 function reconnectApp() {
-    policyIDListExcludingWorkspacesCreatedOfflineLoaded.then(() => {
-        API.read('ReconnectApp', {policyIDList: policyIDListExcludingWorkspacesCreatedOffline}, {
-            optimisticData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                value: true,
-            }],
-            successData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                value: false,
-            }],
-            failureData: [{
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                value: false,
-            }],
-        });
+    API.write('ReconnectApp', {policyIDList: getNonOptimisticPolicyIDs(allPolicies)}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: true,
+        }],
+        successData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: false,
+        }],
+        failureData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            value: false,
+        }],
     });
 }
 
