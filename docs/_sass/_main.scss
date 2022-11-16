@@ -14,6 +14,10 @@
 
 html {
     line-height: 1;
+
+    @include maxBreakpoint($breakpoint-tablet) {
+        scroll-padding-top: 80px;        
+    }
 }
 
 table {
@@ -390,12 +394,12 @@ button {
 .cards-group {
     display: grid;
     grid-template-columns: auto;
-    row-gap: 12px;
-    column-gap: 4%;
+    row-gap: 20px;
+    column-gap: 20px;
     padding-bottom: 20px;
 
     @include breakpoint($breakpoint-desktop) {
-        grid-template-columns: 48% 48%;
+        grid-template-columns: auto auto;
     }
 }
 
@@ -456,12 +460,26 @@ button {
     h3.title {
         padding: 0;
         margin: 0;
+
+        &.with-margin {
+            margin: 0 0 4px 0;
+        }
     }
+
+
 
     p.description {
         padding: 0;
-        margin: 16px 0 0 0;
+        margin: 0;
         font-weight: normal;
+
+        &.with-min-height {
+            min-height: 68px;
+
+            @include breakpoint($breakpoint-tablet) {
+                min-height: 48px;
+            }
+        }
     }
 }
 
