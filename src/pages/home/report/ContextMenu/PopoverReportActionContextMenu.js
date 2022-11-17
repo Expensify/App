@@ -202,8 +202,6 @@ class PopoverReportActionContextMenu extends React.Component {
             this.onPopoverHideActionCallback = onHideActionCallback;
         }
         this.setState({
-            reportID: '0',
-            reportAction: {},
             selection: '',
             reportActionDraftMessage: '',
             isPopoverVisible: false,
