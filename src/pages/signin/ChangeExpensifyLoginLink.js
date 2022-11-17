@@ -46,7 +46,7 @@ const ChangeExpensifyLoginLink = props => (
         >
             <Text style={[styles.link]}>
                 {props.translate('common.goBack')}
-                {'.'}
+                .
             </Text>
         </TouchableOpacity>
     </View>
