@@ -720,11 +720,7 @@ const styles = {
     },
 
     textInputLabelTransformation: (translateY, translateX, scale) => ({
-        transform: [
-            {translateY},
-            {translateX},
-            {scale},
-        ],
+        transform: [{translateY}, {translateX}, {scale}],
     }),
 
     baseTextInput: {
@@ -832,11 +828,14 @@ const styles = {
         color: themeColors.icon,
     },
 
-    textInputReversed: addOutlineWidth({
-        backgroundColor: themeColors.heading,
-        borderColor: themeColors.text,
-        color: themeColors.textReversed,
-    }, 0),
+    textInputReversed: addOutlineWidth(
+        {
+            backgroundColor: themeColors.heading,
+            borderColor: themeColors.text,
+            color: themeColors.textReversed,
+        },
+        0,
+    ),
 
     textInputReversedFocus: {
         borderColor: themeColors.icon,
@@ -1390,27 +1389,30 @@ const styles = {
 
     // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
     // Make sure you run the following tests against any changes: #12669
-    textInputCompose: addOutlineWidth({
-        backgroundColor: themeColors.componentBG,
-        borderColor: themeColors.border,
-        color: themeColors.text,
-        fontFamily: fontFamily.EMOJI_TEXT_FONT,
-        fontSize: variables.fontSizeNormal,
-        borderWidth: 0,
-        borderRadius: 0,
-        height: 'auto',
-        lineHeight: 20,
-        ...overflowXHidden,
+    textInputCompose: addOutlineWidth(
+        {
+            backgroundColor: themeColors.componentBG,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            fontFamily: fontFamily.EMOJI_TEXT_FONT,
+            fontSize: variables.fontSizeNormal,
+            borderWidth: 0,
+            borderRadius: 0,
+            height: 'auto',
+            lineHeight: 20,
+            ...overflowXHidden,
 
-        // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
-        // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
+            // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
+            // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
-        paddingHorizontal: 8,
-        paddingTop: 0,
-        paddingBottom: 0,
-        alignSelf: 'center',
-        textAlignVertical: 'center',
-    }, 0),
+            paddingHorizontal: 8,
+            paddingTop: 0,
+            paddingBottom: 0,
+            alignSelf: 'center',
+            textAlignVertical: 'center',
+        },
+        0,
+    ),
 
     textInputFullCompose: {
         alignSelf: 'stretch',
@@ -1554,9 +1556,11 @@ const styles = {
         position: 'absolute',
         width: '100%',
         height: '100%',
-        transform: [{
-            translateX: -variables.sideBarWidth,
-        }],
+        transform: [
+            {
+                translateX: -variables.sideBarWidth,
+            },
+        ],
     },
 
     sidebarVisible: {
@@ -1827,9 +1831,9 @@ const styles = {
     },
 
     PDFView: {
-        // `display: grid` is not supported in native platforms!
-        // It's being used on Web/Desktop only to vertically center short PDFs,
-        // while preventing the overflow of the top of long PDF files.
+    // `display: grid` is not supported in native platforms!
+    // It's being used on Web/Desktop only to vertically center short PDFs,
+    // while preventing the overflow of the top of long PDF files.
         display: 'grid',
         backgroundColor: themeColors.modalBackground,
         width: '100%',
@@ -2161,14 +2165,17 @@ const styles = {
         color: themeColors.heading,
     },
 
-    iouAmountTextInput: addOutlineWidth({
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
-        fontSize: variables.iouAmountTextSize,
-        color: themeColors.heading,
-        padding: 0,
-        lineHeight: undefined,
-    }, 0),
+    iouAmountTextInput: addOutlineWidth(
+        {
+            fontFamily: fontFamily.GTA_BOLD,
+            fontWeight: fontWeightBold,
+            fontSize: variables.iouAmountTextSize,
+            color: themeColors.heading,
+            padding: 0,
+            lineHeight: undefined,
+        },
+        0,
+    ),
 
     iouPreviewBox: {
         backgroundColor: themeColors.componentBG,
@@ -2182,9 +2189,9 @@ const styles = {
     },
 
     iouPreviewBoxLoading: {
-        // When a new IOU request arrives it is very briefly in a loading state, so set the minimum height of the container to 94 to match the rendered height after loading.
-        // Otherwise, the IOU request pay button will not be fully visible and the user will have to scroll up to reveal the entire IOU request container.
-        // See https://github.com/Expensify/App/issues/10283.
+    // When a new IOU request arrives it is very briefly in a loading state, so set the minimum height of the container to 94 to match the rendered height after loading.
+    // Otherwise, the IOU request pay button will not be fully visible and the user will have to scroll up to reveal the entire IOU request container.
+    // See https://github.com/Expensify/App/issues/10283.
         minHeight: 94,
         width: '100%',
     },
@@ -2596,9 +2603,7 @@ const styles = {
     },
 
     floatingMessageCounterTransformation: translateY => ({
-        transform: [
-            {translateY},
-        ],
+        transform: [{translateY}],
     }),
 
     confettiIcon: {
@@ -2631,6 +2636,10 @@ const styles = {
 
     googleListView: {
         transform: [{scale: 0}],
+    },
+
+    invert: {
+        transform: [{scaleX: -1}, {scaleY: -1}],
     },
 
     keyboardShortcutModalContainer: {

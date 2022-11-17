@@ -134,7 +134,6 @@ class BaseInvertedFlatList extends Component {
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
                 ref={this.props.innerRef}
-                inverted
                 renderItem={this.renderItem}
                 sizeMap={this.sizeMap}
 
