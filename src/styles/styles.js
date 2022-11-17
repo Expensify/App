@@ -930,7 +930,7 @@ const styles = {
     },
 
     signInPageNarrowContentContainer: {
-        maxWidth: 335,
+        maxWidth: 395,
     },
 
     signInPageNarrowContentMargin: {
@@ -943,7 +943,7 @@ const styles = {
     },
 
     signInPageWideLeftContentMargin: {
-        marginTop: '44.5%',
+        marginTop: '44.5%', // 173px
     },
 
     signInPageWideHeroContent: {
