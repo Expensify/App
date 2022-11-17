@@ -21,9 +21,12 @@ const iouReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (report, key) => {
-        if (ReportUtils.isIOUReport(report)) {
+        if (!report) {
+            delete iouReports[key];
+            delete chatReports[key];
+        } else if (ReportUtils.isIOUReport(report)) {
             iouReports[key] = report;
-        } else if (report) {
+        } else {
             chatReports[key] = report;
         }
     },
