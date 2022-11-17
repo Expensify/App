@@ -150,10 +150,7 @@ class SearchPage extends Component {
                 Navigation.navigate(ROUTES.getReportRoute(option.reportID));
             });
         } else {
-            Report.fetchOrCreateChatReport([
-                this.props.session.email,
-                option.login,
-            ]);
+            Report.navigateToAndOpenReport([option.login]);
         }
     }
 

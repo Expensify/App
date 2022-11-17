@@ -41,7 +41,7 @@ const defaultProps = {
     isMini: false,
     successIcon: null,
     successText: '',
-    autoReset: false,
+    autoReset: true,
     description: '',
 };
 
