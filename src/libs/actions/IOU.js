@@ -802,8 +802,15 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
         },
     ];
 
-    // I'm still not 100% sure what goes in here, once the Web PR is done I'll fill this one up
-    const params = {};
+    const params = {
+        iouReportID: optimisticIOUReport.reportID,
+        chatReport: chatReport.reportID,
+        paidReportActionID: optimisticIOUReportAction.reportActionID,
+        paymentMethodType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+        transactionID: ,
+        clientID: newSequenceNumber,
+        newIOUReportDetails: ,
+    };
 
     API.write('SendMoneyWithWallet',
         {
