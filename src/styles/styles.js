@@ -448,7 +448,7 @@ const styles = {
 
     buttonDropdown: {
         borderLeftWidth: 1,
-        borderColor: themeColors.text,
+        borderColor: themeColors.textLight,
     },
 
     noRightBorderRadius: {
@@ -480,11 +480,11 @@ const styles = {
     },
 
     buttonSuccessText: {
-        color: themeColors.text,
+        color: themeColors.textLight,
     },
 
     buttonDangerText: {
-        color: themeColors.text,
+        color: themeColors.textLight,
     },
 
     hoveredComponentBG: {
