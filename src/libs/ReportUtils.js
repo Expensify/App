@@ -669,10 +669,11 @@ function buildOptimisticReportAction(sequenceNumber, text, file) {
  * @param {String} chatReportID - Report ID of the chat where the IOU is.
  * @param {String} currency - IOU currency.
  * @param {String} locale - Locale where the IOU is created
+ * @param {Boolean} isSendingMoney - Whether we're requesting or sending money
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, currency, locale) {
+function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, currency, locale, isSendingMoney = false) {
     const formattedTotal = NumberFormatUtils.format(locale,
         total, {
             style: 'currency',
@@ -682,12 +683,12 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
         cachedTotal: formattedTotal,
         chatReportID,
         currency,
-        hasOutstandingIOU: true,
+        hasOutstandingIOU: !isSendingMoney,
         managerEmail: userEmail,
         ownerEmail,
         reportID: generateReportID(),
         state: CONST.REPORT.STATE.SUBMITTED,
-        stateNum: 1,
+        stateNum: isSendingMoney ? 2 : 1,
         total,
     };
 }

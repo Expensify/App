@@ -25,7 +25,6 @@ import Tooltip from '../../components/Tooltip';
 import CONST from '../../CONST';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
-import ROUTES from '../../ROUTES';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import reportPropTypes from '../reportPropTypes';

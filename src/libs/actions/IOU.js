@@ -748,7 +748,7 @@ function sendMoneyElsewhere(report, amount, currency, comment, managerEmail, rec
         chatReport = ReportUtils.buildOptimisticChatReport([recipientEmail]);
         isNewChat = true;
     }
-    const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, managerEmail, amount, chatReport.reportID, currency, preferredLocale);
+    const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, managerEmail, amount, chatReport.reportID, currency, preferredLocale, true);
     const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
 
     const optimisticPaidReportAction = ReportUtils.buildOptimisticIOUReportAction(
@@ -775,7 +775,7 @@ function sendMoneyElsewhere(report, amount, currency, comment, managerEmail, rec
                 maxSequenceNumber: newSequenceNumber,
                 lastMessageText: optimisticPaidReportAction.message[0].text,
                 lastMessageHtml: optimisticPaidReportAction.message[0].html,
-                hasOutstandingIOU: optimisticIOUReport.total !== 0,
+                hasOutstandingIOU: false,
                 iouReportID: optimisticIOUReport.reportID,
             },
         },
@@ -783,13 +783,41 @@ function sendMoneyElsewhere(report, amount, currency, comment, managerEmail, rec
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimisticPaidReportAction.sequenceNumber]: optimisticPaidReportAction,
+                [optimisticPaidReportAction.sequenceNumber]: {
+                    ...optimisticPaidReportAction,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
             },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${optimisticIOUReport.reportID}`,
             value: optimisticIOUReport,
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticPaidReportAction.sequenceNumber]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticPaidReportAction.sequenceNumber]: {
+                    ...optimisticPaidReportAction,
+                    pendingAction: null,
+                },
+            },
         },
     ];
 
@@ -820,7 +848,7 @@ function sendMoneyElsewhere(report, amount, currency, comment, managerEmail, rec
         transactionID: optimisticPaidReportAction.originalMessage.IOUTransactionID,
         clientID: optimisticPaidReportAction.sequenceNumber,
         newIOUReportDetails,
-    }, {optimisticData});
+    }, {optimisticData, successData, failureData});
 
     Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
 }
