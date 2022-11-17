@@ -75,6 +75,7 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 1. `APPLE_CONTACT_PHONE` - Phone number used for contact between Expensify and Apple for https://appstoreconnect.apple.com/
 1. `APPLE_DEMO_EMAIL` - Demo account email used for https://appstoreconnect.apple.com/
 1. `APPLE_DEMO_PASSWORD` - Demo account password used for https://appstoreconnect.apple.com/
+1. `BROWSERSTACK` - Used to access Browserstack's API
 
 ## Actions
 
