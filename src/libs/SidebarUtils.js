@@ -62,11 +62,16 @@ Onyx.connect({
     callback: val => policies = val,
 });
 
-let iouReports;
+let iouReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_IOUS,
     waitForCollectionCallback: true,
-    callback: val => iouReports = val,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+        iouReports = val;
+    },
 });
 
 let currentUserLogin;
