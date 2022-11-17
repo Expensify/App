@@ -156,8 +156,8 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 test: /\.css$/i,
                 use: ['style-loader', 'file-loader', 'css-loader'],
             },
-            { 
-                test: /\.(woff|woff2|eot|ttf|otf)$/i, 
+            {
+                test: /\.(woff|woff2|eot|ttf|otf)$/i,
                 type: 'asset/resource',
             },
         ],
