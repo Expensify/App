@@ -32,12 +32,12 @@ const webpack = {
 const metro = {
     presets: [
         require('metro-react-native-babel-preset'),
-        ['@babel/preset-env', {
-            include: ['proposal-private-methods'],
-        }],
     ],
     plugins: [
         'react-native-reanimated/plugin',
+        ['@babel/plugin-proposal-class-properties', {loose: true}],
+        ['@babel/plugin-proposal-private-methods', {loose: true}],
+        ['@babel/plugin-proposal-private-property-in-object', {loose: true}],
     ],
 };
 
