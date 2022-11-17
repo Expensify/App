@@ -323,6 +323,7 @@ export default {
         viVir: 'Vi / Vir',
         xeXemXyr: 'Xe / Xem / Xyr',
         zeZieZirHir: 'Ze / Zie / Zir / Hir',
+        zeHirHirs: 'Ze / Hir',
         callMeByMyName: 'Llámame por mi nombre',
     },
     displayNamePage: {
@@ -956,16 +957,16 @@ export default {
     },
     getAssistancePage: {
         title: 'Obtener ayuda',
-        subtitle: '¿Tienes preguntas o necesitas ayuda?',
-        description: '¡Tenemos las respuestas! Elige una de las siguientes opciones:',
+        subtitle: '¡Estamos aquí para ayudarte!',
+        description: 'Elige una de las siguientes opciones:',
         chatWithConcierge: 'Chatear con Concierge',
         requestSetupCall: 'Llámame por teléfono',
         questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
     },
     requestCallPage: {
         title: 'Llámame por teléfono',
-        subtitle: '¿Necesitas ayuda?',
-        description: 'Nuestro equipo está listo para ayudarte en cada paso. Ingresa tu nombre y número de teléfono y te llamaremos lo antes posible.',
+        subtitle: '¿Necesitas ayuda o una demostración?',
+        description: 'Nuestro equipo está listo para ayudarte en cada paso. Ingresa tu nombre y número de teléfono y te llamaremos lo antes posible.*',
         phoneNumberExtension: 'Extensión (Opcional)',
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
