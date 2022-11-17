@@ -35,7 +35,10 @@ function getNumberOfItemsFromReviewerChecklist() {
                 resolve(numberOfChecklistItems);
             });
         })
-            .on('error', reject);
+            .on('error', (err) => {
+                console.error(err);
+                reject();
+            });
     });
 }
 
@@ -45,16 +48,16 @@ function getNumberOfItemsFromReviewerChecklist() {
 function checkIssueForCompletedChecklist(numberOfChecklistItems) {
     GitHubUtils.getAllReviewComments(issue)
         .then((reviewComments) => {
-            console.log('Pulled all review comments, now adding them to the list...');
+            console.log(`Pulled ${reviewComments.length} review comments, now adding them to the list...`);
             combinedComments.push(...reviewComments);
         })
         .then(() => GitHubUtils.getAllComments(issue))
         .then((comments) => {
-            console.log('Pulled all comments, now adding them to the list...');
+            console.log(`Pulled ${comments.length} comments, now adding them to the list...`);
             combinedComments.push(...comments);
         })
         .then(() => {
-            console.log('Looking through all comments for the reviewer checklist...');
+            console.log(`Looking through all ${combinedComments.length} comments for the reviewer checklist...`);
             let foundReviewerChecklist = false;
             let numberOfFinishedChecklistItems = 0;
             let numberOfUnfinishedChecklistItems = 0;
@@ -69,6 +72,8 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
                 const whitespace = /([\n\r])/gm;
                 const comment = combinedComments[i].replace(whitespace, '');
 
+                console.log(`Comment ${i} starts with: ${comment.slice(0, 20)}...`);
+
                 // Found the reviewer checklist, so count how many completed checklist items there are
                 if (comment.startsWith(reviewerChecklistStartsWith)) {
                     console.log('Found the reviewer checklist!');
@@ -76,6 +81,11 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
                     numberOfFinishedChecklistItems = (comment.match(/- \[x\]/gi) || []).length;
                     numberOfUnfinishedChecklistItems = (comment.match(/- \[ \]/g) || []).length;
                 }
+            }
+
+            if (!foundReviewerChecklist) {
+                core.setFailed('No PR Reviewer Checklist was found');
+                return;
             }
 
             const maxCompletedItems = numberOfChecklistItems + 2;
