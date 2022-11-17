@@ -106,7 +106,7 @@ const oldTheme = {
     successHover: colors.greenHover,
     successPressed: colors.greenPressed,
     transparent: colors.transparent,
-    inverse: colors.white,
+    inverse: colors.dark,
     textLight: colors.white,
     textDark: colors.dark,
 };
