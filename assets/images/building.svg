@@ -1,1 +1,12 @@
-<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><title>building</title><path d="M12.5,1h-9a.5.5,0,0,0-.5.5v14a.5.5,0,0,0,.5.5H6.67V12.5a.5.5,0,0,1,.5-.5H8.83a.5.5,0,0,1,.5.5V16H12.5a.5.5,0,0,0,.5-.5V1.5A.5.5,0,0,0,12.5,1Zm-2,9h-5A.5.5,0,0,1,5,9.5.5.5,0,0,1,5.5,9h5a.5.5,0,0,1,.5.5A.5.5,0,0,1,10.5,10Zm0-3h-5A.5.5,0,0,1,5,6.5.5.5,0,0,1,5.5,6h5a.5.5,0,0,1,.5.5A.5.5,0,0,1,10.5,7Zm0-3h-5A.5.5,0,0,1,5,3.5.5.5,0,0,1,5.5,3h5a.5.5,0,0,1,.5.5A.5.5,0,0,1,10.5,4Z"/></svg>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 26.5.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 20 20" style="enable-background:new 0 0 20 20;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill-rule:evenodd;clip-rule:evenodd;}
+</style>
+<path class="st0" d="M15.2,1H4.8C3.8,1,3,1.8,3,2.8v14.5c0,1,0.8,1.8,1.8,1.8H8v-3.2C8,15.4,8.4,15,8.8,15h2.4
+	c0.4,0,0.8,0.4,0.8,0.8V19h3.2c1,0,1.8-0.8,1.8-1.8V2.8C17,1.8,16.2,1,15.2,1z M13.1,13H6.9c-0.6,0-1-0.4-1-1s0.4-1,1-1h6.2
+	c0.6,0,1,0.4,1,1S13.7,13,13.1,13z M13.1,9H6.9c-0.6,0-1-0.4-1-1s0.4-1,1-1h6.2c0.6,0,1,0.4,1,1S13.7,9,13.1,9z M13.1,5H6.9
+	c-0.6,0-1-0.4-1-1s0.4-1,1-1h6.2c0.6,0,1,0.4,1,1S13.7,5,13.1,5z"/>
+</svg>
