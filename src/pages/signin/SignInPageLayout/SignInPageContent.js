@@ -10,7 +10,6 @@ import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import SignInPageForm from '../../../components/SignInPageForm';
 import compose from '../../../libs/compose';
-import withKeyboardState from '../../../components/withKeyboardState';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const propTypes = {
@@ -32,26 +31,29 @@ const SignInPageContent = props => (
     <View
         style={[
             styles.flex1,
-            styles.ph6,
-            !props.isSmallScreenWidth && styles.signInPageWideLeftContainer,
+            {paddingLeft: 52, paddingRight: 52},
+
+            // Restrict the width if the left container only for large screens. For smaller screens, the width needs to be fluid to span the entire width of the page.
+            !props.isMediumScreenWidth && !props.isSmallScreenWidth && styles.signInPageWideLeftContainer,
         ]}
     >
-        <View style={[styles.flexGrow1, {maxHeight: 132}]} />
+        {/* This empty view creates margin on the top of the sign in form which will shrink and grow depending on if the keyboard is open or not */}
+        <View style={[styles.flexGrow1, styles.signInPageContentTopSpacer]} />
+
         <View
             style={[
                 styles.flexGrow2,
-                !props.isSmallScreenWidth && styles.alignSelfCenter,
-                {maxWidth: 375},
+                styles.alignSelfCenter,
+                styles.signInPageWideLeftContainer,
             ]}
         >
             <SignInPageForm style={[
                 styles.alignSelfStretch,
-                props.isSmallScreenWidth ? styles.ph5 : styles.ph4,
             ]}
             >
                 <View style={[
                     styles.componentHeightLarge,
-                    ...(props.isSmallScreenWidth ? [styles.mb2] : [styles.mt6, styles.mb5]),
+                    ...(props.isSmallScreenWidth ? styles.mb2 : [styles.mt6, styles.mb5]),
                 ]}
                 >
                     <ExpensifyCashLogo
@@ -67,7 +69,7 @@ const SignInPageContent = props => (
                 {props.children}
             </SignInPageForm>
         </View>
-        <View style={[styles.mb3, styles.alignSelfCenter, styles.ph5]}>
+        <View style={[styles.mb5, styles.alignSelfCenter, styles.ph5]}>
             <TermsAndLicenses />
         </View>
     </View>
