@@ -170,8 +170,9 @@
     "jest-circus": "^29.3.1",
     "jest-cli": "^29.3.1",
     "jest-environment-jsdom": "^29.3.1",
+    "jest-environment-node": "^29.3.1",
     "metro-react-native-babel-preset": "^0.73.3",
-    "mock-fs": "^4.13.0",
+    "mock-fs": "^5.2.0",
     "portfinder": "^1.0.28",
     "pusher-js-mock": "^0.3.3",
     "react-native-clean-project": "^4.0.0-alpha4.0",
@@ -218,7 +219,8 @@
       "WebSocket": {}
     },
     "fakeTimers": {
-      "enableGlobally": true
+      "enableGlobally": true,
+      "doNotFake": ["nextTick" ,"setImmediate"]
     },
     "testEnvironment": "jsdom",
     "setupFiles": [
