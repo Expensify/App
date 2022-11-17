@@ -14,7 +14,7 @@ export default forwardRef((props, ref) => (
         {...props}
         ref={ref}
 
-            // we manually invert the FlatList to circumvent a react-native bug that causes ANR on android 13
+        // we manually invert the FlatList to circumvent a react-native bug that causes ANR on android 13
         inverted={false}
         style={styles.invert}
         verticalScrollbarPosition="left" // we are mirroring the X and Y axis, so we need to swap the scrollbar position
