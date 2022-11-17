@@ -137,7 +137,7 @@ class SidebarLinks extends React.Component {
                         />
                     </TouchableOpacity>
                 </View>
-                <Freeze freeze={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}>
+                <Freeze freeze={this.props.isSmallScreenWidth && !this.props.isDrawerOpen && this.isSidebarLoaded}>
                     <LHNOptionsList
                         contentContainerStyles={[
                             styles.sidebarListContainer,
@@ -153,7 +153,10 @@ class SidebarLinks extends React.Component {
                         }}
                         shouldDisableFocusOptions={this.props.isSmallScreenWidth}
                         optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
-                        onLayout={App.setSidebarLoaded}
+                        onLayout={() => {
+                            App.setSidebarLoaded();
+                            this.isSidebarLoaded = true;
+                        }}
                     />
                 </Freeze>
             </View>

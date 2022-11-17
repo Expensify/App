@@ -5,32 +5,90 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 8441:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ 2030:
+/***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const _ = __nccwpck_require__(3571);
 const core = __nccwpck_require__(2186);
-const GithubUtils = __nccwpck_require__(7999);
+const github = __nccwpck_require__(5438);
+const https = __nccwpck_require__(7211);
+const GitHubUtils = __nccwpck_require__(7999);
 
-const run = function () {
-    return GithubUtils.getStagingDeployCash()
-        .then(({labels, number}) => {
-            console.log(`Found StagingDeployCash with labels: ${_.pluck(labels, 'name')}`);
-            core.setOutput('IS_LOCKED', _.contains(_.pluck(labels, 'name'), '🔐 LockCashDeploys 🔐'));
-            core.setOutput('NUMBER', number);
+const pathToReviewerChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/contributingGuides/REVIEWER_CHECKLIST.md';
+const reviewerChecklistStartsWith = '## Reviewer Checklist';
+const issue = github.context.payload.issue ? github.context.payload.issue.number : github.context.payload.pull_request.number;
+const combinedComments = [];
+
+/**
+ * @returns {Promise}
+ */
+function getNumberOfItemsFromReviewerChecklist() {
+    return new Promise((resolve, reject) => {
+        https.get(pathToReviewerChecklist, (res) => {
+            let fileContents = '';
+            res.on('data', (chunk) => {
+                fileContents += chunk;
+            });
+            res.on('end', () => {
+                const numberOfChecklistItems = (fileContents.match(/- \[ \]/g) || []).length;
+                resolve(numberOfChecklistItems);
+            });
         })
-        .catch((err) => {
-            console.warn('No open StagingDeployCash found, continuing...', err);
-            core.setOutput('IS_LOCKED', false);
-            core.setOutput('NUMBER', 0);
-        });
-};
-
-if (require.main === require.cache[eval('__filename')]) {
-    run();
+            .on('error', reject);
+    });
 }
 
-module.exports = run;
+/**
+ * @param {Number} numberOfChecklistItems
+ */
+function checkIssueForCompletedChecklist(numberOfChecklistItems) {
+    GitHubUtils.getAllReviewComments(issue)
+        .then(reviewComments => combinedComments.push(...reviewComments))
+        .then(() => GitHubUtils.getAllComments(issue))
+        .then(comments => combinedComments.push(...comments))
+        .then(() => {
+            let foundReviewerChecklist = false;
+            let numberOfFinishedChecklistItems = 0;
+            let numberOfUnfinishedChecklistItems = 0;
+
+            // Once we've gathered all the data, loop through each comment and look to see if it contains the reviewer checklist
+            for (let i = 0; i < combinedComments.length; i++) {
+                // Skip all other comments if we already found the reviewer checklist
+                if (foundReviewerChecklist) {
+                    return;
+                }
+
+                const whitespace = /([\n\r])/gm;
+                const comment = combinedComments[i].replace(whitespace, '');
+
+                // Found the reviewer checklist, so count how many completed checklist items there are
+                if (comment.startsWith(reviewerChecklistStartsWith)) {
+                    foundReviewerChecklist = true;
+                    numberOfFinishedChecklistItems = (comment.match(/- \[x\]/gi) || []).length;
+                    numberOfUnfinishedChecklistItems = (comment.match(/- \[ \]/g) || []).length;
+                }
+            }
+
+            const maxCompletedItems = numberOfChecklistItems + 2;
+            const minCompletedItems = numberOfChecklistItems - 2;
+
+            console.log(`You completed ${numberOfFinishedChecklistItems} out of ${numberOfChecklistItems} checklist items with ${numberOfUnfinishedChecklistItems} unfinished items`);
+
+            if (numberOfFinishedChecklistItems >= minCompletedItems
+                && numberOfFinishedChecklistItems <= maxCompletedItems
+                && numberOfUnfinishedChecklistItems === 0) {
+                console.log('PR Reviewer checklist is complete 🎉');
+                return;
+            }
+
+            console.log(`Make sure you are using the most up to date checklist found here: ${pathToReviewerChecklist}`);
+            core.setFailed('PR Reviewer Checklist is not completely filled out. Please check every box to verify you\'ve thought about the item.');
+        });
+}
+
+getNumberOfItemsFromReviewerChecklist()
+    .then(checkIssueForCompletedChecklist, (err) => {
+        console.error(err);
+    });
 
 
 /***/ }),
@@ -1639,6 +1697,50 @@ class Context {
 }
 exports.Context = Context;
 //# sourceMappingURL=context.js.map
+
+/***/ }),
+
+/***/ 5438:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getOctokit = exports.context = void 0;
+const Context = __importStar(__nccwpck_require__(4087));
+const utils_1 = __nccwpck_require__(3030);
+exports.context = new Context.Context();
+/**
+ * Returns a hydrated octokit ready to use for GitHub Actions
+ *
+ * @param     token    the repo PAT or GITHUB_TOKEN
+ * @param     options  other options to set
+ */
+function getOctokit(token, options, ...additionalPlugins) {
+    const GitHubWithPlugins = utils_1.GitHub.plugin(...additionalPlugins);
+    return new GitHubWithPlugins(utils_1.getOctokitOptions(token, options));
+}
+exports.getOctokit = getOctokit;
+//# sourceMappingURL=github.js.map
 
 /***/ }),
 
@@ -15722,6 +15824,6 @@ module.exports = require("zlib");;
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(8441);
+/******/ 	return __nccwpck_require__(2030);
 /******/ })()
 ;
