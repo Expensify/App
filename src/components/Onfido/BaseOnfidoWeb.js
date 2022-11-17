@@ -23,9 +23,9 @@ class Onfido extends React.Component {
             token: this.props.sdkToken,
             containerId: CONST.ONFIDO.CONTAINER_ID,
             customUI: {
-                fontFamilyTitle: `${fontFamily.GTA}, -apple-system, serif`,
-                fontFamilySubtitle: `${fontFamily.GTA}, -apple-system, serif`,
-                fontFamilyBody: `${fontFamily.GTA}, -apple-system, serif`,
+                fontFamilyTitle: `${fontFamily.EXP_NEUE}, -apple-system, serif`,
+                fontFamilySubtitle: `${fontFamily.EXP_NEUE}, -apple-system, serif`,
+                fontFamilyBody: `${fontFamily.EXP_NEUE}, -apple-system, serif`,
                 fontSizeTitle: `${variables.fontSizeLarge}px`,
                 fontWeightTitle: fontWeightBold,
                 fontWeightSubtitle: 400,

@@ -30,7 +30,7 @@ const propTypes = {
 const defaultProps = {
     color: themeColors.text,
     fontSize: variables.fontSizeNormal,
-    family: 'GTA',
+    family: 'EXP_NEUE',
     textAlign: 'left',
     children: null,
     style: {},
