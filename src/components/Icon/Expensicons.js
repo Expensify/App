@@ -4,6 +4,8 @@ import Android from '../../../assets/images/android.svg';
 import AnnounceRoomAvatar from '../../../assets/images/avatars/announce-room.svg';
 import Apple from '../../../assets/images/apple.svg';
 import ArrowRight from '../../../assets/images/arrow-right.svg';
+import ArrowRightLong from '../../../assets/images/arrow-right-long.svg';
+import ArrowUpDown from '../../../assets/images/arrow-updown.svg';
 import BackArrow from '../../../assets/images/back-left.svg';
 import Bank from '../../../assets/images/bank.svg';
 import Bill from '../../../assets/images/bill.svg';
@@ -15,7 +17,7 @@ import Camera from '../../../assets/images/camera.svg';
 import Cash from '../../../assets/images/cash.svg';
 import ChatBubble from '../../../assets/images/chatbubble.svg';
 import Checkmark from '../../../assets/images/checkmark.svg';
-import CircleHourglass from '../../../assets/images/circle-hourglass.svg';
+import Chair from '../../../assets/images/chair.svg';
 import Clipboard from '../../../assets/images/clipboard.svg';
 import Close from '../../../assets/images/close.svg';
 import ClosedSign from '../../../assets/images/closed-sign.svg';
@@ -23,6 +25,7 @@ import Collapse from '../../../assets/images/collapse.svg';
 import Concierge from '../../../assets/images/concierge.svg';
 import Connect from '../../../assets/images/connect.svg';
 import CreditCard from '../../../assets/images/creditcard.svg';
+import Document from '../../../assets/images/document.svg';
 import DeletedRoomAvatar from '../../../assets/images/avatars/deleted-room.svg';
 import DomainRoomAvatar from '../../../assets/images/avatars/domain-room.svg';
 import DotIndicator from '../../../assets/images/dot-indicator.svg';
@@ -38,6 +41,8 @@ import EyeDisabled from '../../../assets/images/eye-disabled.svg';
 import Gallery from '../../../assets/images/gallery.svg';
 import Gear from '../../../assets/images/gear.svg';
 import Hashtag from '../../../assets/images/hashtag.svg';
+import History from '../../../assets/images/history.svg';
+import Hourglass from '../../../assets/images/hourglass.svg';
 import ImageCropMask from '../../../assets/images/image-crop-mask.svg';
 import Info from '../../../assets/images/info.svg';
 import Invoice from '../../../assets/images/invoice.svg';
@@ -47,8 +52,9 @@ import Link from '../../../assets/images/link.svg';
 import LinkCopy from '../../../assets/images/link-copy.svg';
 import Lock from '../../../assets/images/lock.svg';
 import Luggage from '../../../assets/images/luggage.svg';
-import MagnifyingGlass from '../../../assets/images/magnifyingglass.svg';
+import MagnifyingGlass from '../../../assets/images/magnifying-glass.svg';
 import Mail from '../../../assets/images/mail.svg';
+import Menu from '../../../assets/images/menu.svg';
 import MoneyBag from '../../../assets/images/money-bag.svg';
 import MoneyCircle from '../../../assets/images/money-circle.svg';
 import Monitor from '../../../assets/images/monitor.svg';
@@ -62,7 +68,6 @@ import Paycheck from '../../../assets/images/paycheck.svg';
 import Pencil from '../../../assets/images/pencil.svg';
 import Phone from '../../../assets/images/phone.svg';
 import Pin from '../../../assets/images/pin.svg';
-import PinCircle from '../../../assets/images/pin-circle.svg';
 import Plus from '../../../assets/images/plus.svg';
 import Printer from '../../../assets/images/printer.svg';
 import Profile from '../../../assets/images/profile.svg';
@@ -72,12 +77,16 @@ import ReceiptSearch from '../../../assets/images/receipt-search.svg';
 import Rotate from '../../../assets/images/rotate-image.svg';
 import RotateLeft from '../../../assets/images/rotate-left.svg';
 import Send from '../../../assets/images/send.svg';
+import Shield from '../../../assets/images/shield.svg';
 import Sync from '../../../assets/images/sync.svg';
 import ThreeDots from '../../../assets/images/three-dots.svg';
 import Transfer from '../../../assets/images/transfer.svg';
 import Trashcan from '../../../assets/images/trashcan.svg';
+import Unlock from '../../../assets/images/unlock.svg';
 import UpArrow from '../../../assets/images/arrow-up.svg';
 import Upload from '../../../assets/images/upload.svg';
+import UploadAlt from '../../../assets/images/upload-alt.svg';
+import User from '../../../assets/images/user.svg';
 import Users from '../../../assets/images/users.svg';
 import Wallet from '../../../assets/images/wallet.svg';
 import Workspace from '../../../assets/images/workspace-default-avatar.svg';
@@ -92,6 +101,8 @@ export {
     AnnounceRoomAvatar,
     Apple,
     ArrowRight,
+    ArrowRightLong,
+    ArrowUpDown,
     BackArrow,
     Bank,
     Bill,
@@ -103,7 +114,7 @@ export {
     Cash,
     ChatBubble,
     Checkmark,
-    CircleHourglass,
+    Chair,
     Clipboard,
     Close,
     ClosedSign,
@@ -112,6 +123,7 @@ export {
     Connect,
     CreditCard,
     DeletedRoomAvatar,
+    Document,
     DomainRoomAvatar,
     DotIndicator,
     DownArrow,
@@ -128,6 +140,8 @@ export {
     Gallery,
     Gear,
     Hashtag,
+    History,
+    Hourglass,
     ImageCropMask,
     Info,
     Invoice,
@@ -139,6 +153,7 @@ export {
     Luggage,
     MagnifyingGlass,
     Mail,
+    Menu,
     MoneyBag,
     MoneyCircle,
     Monitor,
@@ -152,7 +167,6 @@ export {
     Pencil,
     Phone,
     Pin,
-    PinCircle,
     Plus,
     Printer,
     Profile,
@@ -162,12 +176,16 @@ export {
     Rotate,
     RotateLeft,
     Send,
+    Shield,
     Sync,
     ThreeDots,
     Transfer,
     Trashcan,
+    Unlock,
     UpArrow,
     Upload,
+    UploadAlt,
+    User,
     Users,
     Wallet,
     Workspace,
