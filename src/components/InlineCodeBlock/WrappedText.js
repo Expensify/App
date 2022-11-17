@@ -1,11 +1,17 @@
 import * as React from 'react';
 import {useState} from 'react';
 import {Text, useWindowDimensions, View} from 'react-native';
+import {
+  useComputeMaxWidthForTag,
+  useContentWidth,
+} from 'react-native-render-html';
 
 const WrappedText = ({children, textStyles, wordStyles}) => {
   const [lines, setLines] = useState([]);
+  const maxWidth = useContentWidth();
+  console.log('rchildren', children);
   return (
-    <View style={{}}>
+    <View style={{maxWidth: maxWidth - 20}}>
       {lines.map((line, idx) => {
         const {x, y, height, width} = line;
 
