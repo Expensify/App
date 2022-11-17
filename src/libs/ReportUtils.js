@@ -988,7 +988,7 @@ function hasOutstandingIOU(report, currentUserLogin, iouReports) {
  * @param {Object} report
  * @param {String} report.iouReportID
  * @param {Object} iouReports
- * @returns {null|Number}
+ * @returns {Number}
  */
 function getIOUTotal(report, iouReports) {
     if (report.hasOutstandingIOU) {
@@ -997,7 +997,7 @@ function getIOUTotal(report, iouReports) {
             return iouReport.total;
         }
     }
-    return null;
+    return 0;
 }
 
 /**
@@ -1005,7 +1005,7 @@ function getIOUTotal(report, iouReports) {
  * @param {String} report.iouReportID
  * @param {String} currentUserLogin
  * @param {Object} iouReports
- * @returns {null|Boolean}
+ * @returns {Boolean}
  */
 function isIOUOwnedByCurrentUser(report, currentUserLogin, iouReports) {
     if (report.hasOutstandingIOU) {
@@ -1014,7 +1014,7 @@ function isIOUOwnedByCurrentUser(report, currentUserLogin, iouReports) {
             return iouReport.ownerEmail === currentUserLogin;
         }
     }
-    return null;
+    return false;
 }
 
 /**
