@@ -141,6 +141,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                     },
                 ],
             },
+
             // Load svg images
             {
                 test: /\.svg$/,
