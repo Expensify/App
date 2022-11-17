@@ -37,7 +37,7 @@ function getNumberOfItemsFromReviewerChecklist() {
         })
             .on('error', (err) => {
                 console.error(err);
-                reject();
+                reject(err);
             });
     });
 }
