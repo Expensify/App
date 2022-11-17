@@ -75,7 +75,6 @@ function getReportParticipantsTitle(logins) {
     return _.map(logins, login => Str.removeSMSDomain(login)).join(', ');
 }
 
-
 /**
  * Attempts to find a report in onyx with the provided list of participants
  * @param {Object} report
