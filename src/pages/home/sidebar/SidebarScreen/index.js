@@ -1,23 +1,23 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import sidebarPropTypes from './sidebarPropTypes';
 import BaseSidebarScreen from './BaseSidebarScreen';
 import FloatingActionButtonAndPopover from './FloatingActionButtonAndPopover';
 
 const SidebarScreen = (props) => {
-    let popoverModal = null;
+    const popoverModal = useRef(null);
 
     /**
      * Method create event listener
      */
     const createDragoverListener = () => {
-        document.addEventListener('dragover', popoverModal.hideCreateMenu);
+        document.addEventListener('dragover', popoverModal.current.hideCreateMenu);
     };
 
     /**
      * Method remove event listener.
      */
     const removeDragoverListener = () => {
-        document.removeEventListener('dragover', popoverModal.hideCreateMenu);
+        document.removeEventListener('dragover', popoverModal.current.hideCreateMenu);
     };
 
     return (
@@ -26,7 +26,7 @@ const SidebarScreen = (props) => {
             {...props}
         >
             <FloatingActionButtonAndPopover
-                ref={el => popoverModal = el}
+                ref={popoverModal}
                 onShowCreateMenu={createDragoverListener}
                 onHideCreateMenu={removeDragoverListener}
             />
