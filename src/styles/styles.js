@@ -3,7 +3,6 @@ import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
 import fontWeightBold from './fontWeight/bold';
 import variables from './variables';
-import colors from './colors';
 import spacing from './utilities/spacing';
 import sizing from './utilities/sizing';
 import flex from './utilities/flex';
@@ -22,7 +21,7 @@ import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
 
 const picker = {
-    backgroundColor: 'transparent',
+    backgroundColor: themeColors.transparent,
     color: themeColors.text,
     fontFamily: fontFamily.GTA,
     fontSize: variables.fontSizeNormal,
@@ -151,6 +150,7 @@ const styles = {
     ...wordBreak,
     ...whiteSpace,
     ...writingDirection,
+    ...themeColors,
 
     rateCol: {
         margin: 0,
@@ -287,11 +287,11 @@ const styles = {
     },
 
     textWhite: {
-        color: colors.white,
+        color: themeColors.textLight,
     },
 
     textBlue: {
-        color: colors.blue,
+        color: themeColors.link,
     },
 
     textUppercase: {
@@ -323,7 +323,7 @@ const styles = {
     },
 
     bgDark: {
-        backgroundColor: colors.dark,
+        backgroundColor: themeColors.inverse,
     },
 
     opacity0: {
@@ -335,7 +335,7 @@ const styles = {
     },
 
     textDanger: {
-        color: colors.red,
+        color: themeColors.danger,
     },
 
     borderRadiusNormal: {
@@ -351,7 +351,7 @@ const styles = {
     },
 
     buttonText: {
-        color: themeColors.heading,
+        color: themeColors.text,
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
@@ -414,7 +414,7 @@ const styles = {
     },
 
     buttonSuccess: {
-        backgroundColor: themeColors.buttonSuccessBG,
+        backgroundColor: themeColors.success,
         borderWidth: 0,
     },
 
@@ -423,32 +423,32 @@ const styles = {
     },
 
     buttonSuccessHovered: {
-        backgroundColor: themeColors.buttonSuccessHoveredBG,
+        backgroundColor: themeColors.successHover,
         borderWidth: 0,
     },
 
     buttonDanger: {
-        backgroundColor: themeColors.buttonDangerBG,
+        backgroundColor: themeColors.danger,
         borderWidth: 0,
     },
 
     buttonDangerDisabled: {
-        backgroundColor: themeColors.buttonDangerDisabledBG,
+        backgroundColor: themeColors.dangerDisabled,
     },
 
     buttonDangerHovered: {
-        backgroundColor: themeColors.buttonDangerPressedBG,
+        backgroundColor: themeColors.dangerHover,
         borderWidth: 0,
     },
 
     buttonDisable: {
-        backgroundColor: themeColors.buttonDisabledBG,
+        backgroundColor: themeColors.buttonDefaultBG,
         borderWidth: 0,
     },
 
     buttonDropdown: {
         borderLeftWidth: 1,
-        borderColor: themeColors.textReversed,
+        borderColor: themeColors.text,
     },
 
     noRightBorderRadius: {
@@ -480,11 +480,11 @@ const styles = {
     },
 
     buttonSuccessText: {
-        color: themeColors.textReversed,
+        color: themeColors.text,
     },
 
     buttonDangerText: {
-        color: themeColors.textReversed,
+        color: themeColors.text,
     },
 
     hoveredComponentBG: {
@@ -579,7 +579,7 @@ const styles = {
     },
 
     badge: {
-        backgroundColor: themeColors.badgeDefaultBG,
+        backgroundColor: themeColors.border,
         borderRadius: 14,
         height: variables.iconSizeNormal,
         flexDirection: 'row',
@@ -588,19 +588,19 @@ const styles = {
     },
 
     badgeSuccess: {
-        backgroundColor: themeColors.badgeSuccessBG,
+        backgroundColor: themeColors.success,
     },
 
     badgeSuccessPressed: {
-        backgroundColor: themeColors.badgeSuccessPressedBG,
+        backgroundColor: themeColors.successHover,
     },
 
     badgeDanger: {
-        backgroundColor: themeColors.badgeDangerBG,
+        backgroundColor: themeColors.danger,
     },
 
     badgeDangerPressed: {
-        backgroundColor: themeColors.badgeDangerPressedBG,
+        backgroundColor: themeColors.dangerPressed,
     },
 
     badgeText: {
@@ -621,7 +621,7 @@ const styles = {
     },
 
     borderColorDanger: {
-        borderColor: themeColors.badgeDangerBG,
+        borderColor: themeColors.danger,
     },
 
     headerText: {
@@ -824,12 +824,12 @@ const styles = {
     }),
 
     disabledText: {
-        color: colors.gray3,
+        color: themeColors.icon,
     },
 
     inputDisabled: {
-        backgroundColor: colors.gray1,
-        color: colors.gray3,
+        backgroundColor: themeColors.highlightBG,
+        color: themeColors.icon,
     },
 
     textInputReversed: addOutlineWidth({
@@ -845,7 +845,7 @@ const styles = {
     noOutline: addOutlineWidth({}, 0),
 
     errorOutline: {
-        borderColor: colors.red,
+        borderColor: themeColors.danger,
     },
 
     textLabelSupporting: {
@@ -882,7 +882,7 @@ const styles = {
     },
 
     formSuccess: {
-        color: themeColors.textSuccess,
+        color: themeColors.success,
         fontSize: variables.fontSizeLabel,
         lineHeight: 18,
         marginBottom: 4,
@@ -914,14 +914,14 @@ const styles = {
         fontFamily: fontFamily.GTA,
         fontWeight: fontWeightBold,
         fontSize: variables.fontSizeHero,
-        color: colors.white,
+        color: themeColors.appBG,
         lineHeight: variables.lineHeightHero,
     },
 
     signInPageHeroDescription: {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
-        color: colors.white,
+        color: themeColors.appBG,
     },
 
     signInPageFormContainer: {
@@ -979,7 +979,7 @@ const styles = {
 
     statusIndicator: {
         borderColor: themeColors.sidebar,
-        backgroundColor: themeColors.buttonDangerBG,
+        backgroundColor: themeColors.danger,
         borderRadius: 6,
         borderWidth: 2,
         position: 'absolute',
@@ -992,7 +992,7 @@ const styles = {
 
     statusIndicatorLarge: {
         borderColor: themeColors.componentBG,
-        backgroundColor: themeColors.buttonDangerBG,
+        backgroundColor: themeColors.danger,
         borderRadius: 8,
         borderWidth: 2,
         position: 'absolute',
@@ -1004,7 +1004,7 @@ const styles = {
     },
 
     statusIndicatorOnline: {
-        backgroundColor: themeColors.online,
+        backgroundColor: themeColors.success,
     },
 
     avatarWithIndicator: {
@@ -1022,7 +1022,7 @@ const styles = {
     },
 
     floatingActionButton: {
-        backgroundColor: themeColors.buttonSuccessBG,
+        backgroundColor: themeColors.success,
         position: 'absolute',
         height: variables.componentSizeLarge,
         width: variables.componentSizeLarge,
@@ -1340,7 +1340,7 @@ const styles = {
     },
 
     chatItemMessageLink: {
-        color: colors.blue,
+        color: themeColors.link,
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
         lineHeight: 20,
@@ -1586,7 +1586,7 @@ const styles = {
     horizontalStackedAvatar: {
         height: 28,
         width: 28,
-        backgroundColor: colors.white,
+        backgroundColor: themeColors.appBG,
         borderRadius: 33,
         paddingTop: 2,
     },
@@ -1679,7 +1679,7 @@ const styles = {
     },
 
     avatarInnerText: {
-        color: themeColors.textReversed,
+        color: themeColors.textLight,
         fontSize: variables.fontSizeSmall,
         lineHeight: undefined,
         marginLeft: -3,
@@ -1687,7 +1687,7 @@ const styles = {
     },
 
     avatarInnerTextSmall: {
-        color: themeColors.textReversed,
+        color: themeColors.textLight,
         fontSize: variables.fontSizeExtraSmall,
         lineHeight: undefined,
         marginLeft: -2,
@@ -1752,7 +1752,7 @@ const styles = {
         width: 28,
         borderWidth: 2,
         borderStyle: 'solid',
-        borderColor: colors.white,
+        borderColor: themeColors.appBG,
         backgroundColor: themeColors.opaqueAvatar,
         borderRadius: 24,
         zIndex: 6,
@@ -1894,7 +1894,7 @@ const styles = {
     },
 
     notFoundTextHeader: {
-        color: colors.blue,
+        color: themeColors.link,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: 150,
@@ -1908,7 +1908,7 @@ const styles = {
     },
 
     notFoundButtonText: {
-        color: colors.blue,
+        color: themeColors.link,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: 15,
@@ -1920,7 +1920,7 @@ const styles = {
 
     defaultModalContainer: {
         backgroundColor: themeColors.componentBG,
-        borderColor: colors.transparent,
+        borderColor: themeColors.transparent,
     },
 
     reportActionContextMenuMiniButton: {
@@ -1997,12 +1997,12 @@ const styles = {
         right: 0,
         bottom: 0,
         left: 0,
-        backgroundColor: colors.dark,
+        backgroundColor: themeColors.inverse,
         opacity: 0.5,
     },
 
     avatarInnerTextChat: {
-        color: themeColors.textReversed,
+        color: themeColors.textLight,
         fontSize: variables.fontSizeNormal,
         left: 1,
         textAlign: 'center',
@@ -2112,11 +2112,11 @@ const styles = {
         justifyContent: 'center',
         borderRadius: 20,
         padding: 15,
-        backgroundColor: colors.green,
+        backgroundColor: themeColors.success,
     },
 
     switchInactive: {
-        backgroundColor: colors.gray2,
+        backgroundColor: themeColors.border,
     },
 
     switchThumb: {
@@ -2125,7 +2125,7 @@ const styles = {
         borderRadius: 11,
         position: 'absolute',
         left: 4,
-        backgroundColor: colors.white,
+        backgroundColor: themeColors.appBG,
     },
 
     radioButtonContainer: {
@@ -2151,7 +2151,7 @@ const styles = {
     },
 
     checkedContainer: {
-        backgroundColor: colors.blue,
+        backgroundColor: themeColors.link,
     },
 
     iouAmountText: {
@@ -2249,7 +2249,7 @@ const styles = {
     },
 
     navigatorFullScreenLoading: {
-        backgroundColor: colors.gray1,
+        backgroundColor: themeColors.highlightBG,
         opacity: 1,
     },
 
@@ -2302,12 +2302,12 @@ const styles = {
     }),
 
     growlNotificationBox: {
-        backgroundColor: colors.dark,
+        backgroundColor: themeColors.inverse,
         borderRadius: variables.componentBorderRadiusNormal,
         alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        shadowColor: '#000',
+        shadowColor: themeColors.shadow,
         ...spacing.p5,
     },
 
@@ -2674,7 +2674,7 @@ const styles = {
     },
 
     iPhoneXSafeArea: {
-        backgroundColor: colors.black,
+        backgroundColor: themeColors.inverse,
         flex: 1,
     },
 
@@ -2709,7 +2709,7 @@ const styles = {
     },
 
     sliderKnob: {
-        backgroundColor: themeColors.badgeSuccessBG,
+        backgroundColor: themeColors.success,
         position: 'absolute',
         height: variables.sliderKnobSize,
         width: variables.sliderKnobSize,
@@ -2761,7 +2761,7 @@ const styles = {
 
     textPill: {
         ellipsizeMode: 'end',
-        backgroundColor: colors.gray2,
+        backgroundColor: themeColors.border,
         borderRadius: 10,
         overflow: 'hidden',
         paddingVertical: 2,
