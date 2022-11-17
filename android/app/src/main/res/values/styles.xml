@@ -1,7 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- App Theme for Android versions 7.1 and below -->
-    <style name="AppTheme" parent="BaseAppTheme"/>
+    <style name="AppTheme" parent="BaseAppTheme" />
 
     <!-- Base application theme. Applied to all Android versions -->
     <style name="BaseAppTheme" parent="Theme.AppCompat.Light.NoActionBar">
@@ -12,10 +12,4 @@
         <item name="android:windowLightStatusBar" tools:ignore="NewApi">true</item>
         <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
     </style>
-
-    <!-- Themes unique to the boot splash page -->
-    <style name="BootTheme" parent="AppTheme">
-        <item name="android:background">@drawable/bootsplash</item>
-    </style>
-
 </resources>
