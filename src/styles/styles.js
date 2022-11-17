@@ -480,11 +480,11 @@ const styles = {
     },
 
     buttonSuccessText: {
-        color: themeColors.text,
+        color: themeColors.textLight,
     },
 
     buttonDangerText: {
-        color: themeColors.text,
+        color: themeColors.textLight,
     },
 
     hoveredComponentBG: {
