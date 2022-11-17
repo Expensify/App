@@ -448,7 +448,7 @@ const styles = {
 
     buttonDropdown: {
         borderLeftWidth: 1,
-        borderColor: themeColors.text,
+        borderColor: themeColors.textLight,
     },
 
     noRightBorderRadius: {
