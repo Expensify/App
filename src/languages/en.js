@@ -323,6 +323,7 @@ export default {
         viVir: 'Vi / Vir',
         xeXemXyr: 'Xe / Xem / Xyr',
         zeZieZirHir: 'Ze / Zie / Zir / Hir',
+        zeHirHirs: 'Ze / Hir',
         callMeByMyName: 'Call me by my name',
     },
     displayNamePage: {
@@ -954,16 +955,16 @@ export default {
     },
     getAssistancePage: {
         title: 'Get assistance',
-        subtitle: 'Have questions, or need help?',
-        description: 'We have answers! Choose from the support options below:',
+        subtitle: 'We\'re here to clear your path to greatness!',
+        description: 'Choose from the support options below:',
         chatWithConcierge: 'Chat with Concierge',
         requestSetupCall: 'Request a setup call',
         questionMarkButtonTooltip: 'Get assistance from our team',
     },
     requestCallPage: {
         title: 'Request a call',
-        subtitle: 'Need help?',
-        description: 'Our team is ready to help each step of the way. Enter your name and phone number, and we\'ll give you a call back asap.',
+        subtitle: 'Need help, or a demo?',
+        description: 'Our team is ready to help each step of the way. Enter your name and phone number, and we\'ll give you a call back ASAP.*',
         phoneNumberExtension: 'Extension (Optional)',
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
