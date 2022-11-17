@@ -62,12 +62,12 @@ class FloatingActionButton extends PureComponent {
 
         const backgroundColor = this.animatedValue.interpolate({
             inputRange: [0, 1],
-            outputRange: [themeColors.buttonSuccessBG, themeColors.buttonDefaultBG],
+            outputRange: [themeColors.success, themeColors.buttonDefaultBG],
         });
 
         const fill = this.animatedValue.interpolate({
             inputRange: [0, 1],
-            outputRange: [themeColors.componentBG, themeColors.heading],
+            outputRange: [themeColors.textLight, themeColors.textDark],
         });
 
         return (
