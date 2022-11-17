@@ -1,5 +1,5 @@
 /**
- * DO NOT import colors.js into files.
+ * DO NOT import colors.js into files. Use ../themes/default.js instead.
  */
 export default {
     dark: '#0b1b34',
