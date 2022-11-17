@@ -53,7 +53,7 @@ const SignInPageContent = props => (
             >
                 <View style={[
                     styles.componentHeightLarge,
-                    ...(props.isSmallScreenWidth ? styles.mb2 : [styles.mt6, styles.mb5]),
+                    ...(props.isSmallScreenWidth ? [styles.mb2] : [styles.mt6, styles.mb5]),
                 ]}
                 >
                     <ExpensifyCashLogo
