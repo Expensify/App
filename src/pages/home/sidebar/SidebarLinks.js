@@ -203,7 +203,7 @@ SidebarLinks.defaultProps = defaultProps;
  * @returns {Object|undefined}
  */
 const reportSelector = (report) => {
-    if (!ReportUtils.isIOUReport(report)) {
+    if (ReportUtils.isIOUReport(report)) {
         return null;
     }
     return report && ({
