@@ -17,6 +17,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import exampleCheckImage from './exampleCheckImage';
 import Form from '../../components/Form';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
+import shouldDelayFocus from '../../libs/shouldDelayFocus';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -37,7 +38,10 @@ class BankAccountManualStep extends React.Component {
         const errorFields = {};
         const routingNumber = values.routingNumber && values.routingNumber.trim();
 
-        if (!values.accountNumber || !CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim())) {
+        if (
+            !values.accountNumber
+            || (!CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim()) && !CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER.test(values.accountNumber.trim()))
+        ) {
             errorFields.accountNumber = this.props.translate('bankAccount.error.accountNumber');
         }
         if (!routingNumber || !CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !ValidationUtils.isValidRoutingNumber(routingNumber)) {
@@ -89,8 +93,11 @@ class BankAccountManualStep extends React.Component {
                         source={exampleCheckImage(this.props.preferredLocale)}
                     />
                     <TextInput
+                        autoFocus
+                        shouldDelayFocus={shouldDelayFocus}
                         inputID="routingNumber"
                         label={this.props.translate('bankAccount.routingNumber')}
+                        defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'routingNumber', '')}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableInputs}
                         shouldSaveDraft
@@ -99,6 +106,7 @@ class BankAccountManualStep extends React.Component {
                         inputID="accountNumber"
                         containerStyles={[styles.mt4]}
                         label={this.props.translate('bankAccount.accountNumber')}
+                        defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'accountNumber', '')}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableInputs}
                         shouldSaveDraft
@@ -116,7 +124,7 @@ class BankAccountManualStep extends React.Component {
                                 </TextLink>
                             </View>
                         )}
-                        shouldSaveDraft
+                        defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'acceptTerms', false)}
                     />
                 </Form>
             </>

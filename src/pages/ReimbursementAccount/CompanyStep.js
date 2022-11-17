@@ -26,8 +26,18 @@ import AddressForm from './AddressForm';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
+import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 
 const propTypes = {
+    /** The bank account currently in setup */
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+
+    /** The draft values of the bank account being setup */
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -38,6 +48,7 @@ class CompanyStep extends React.Component {
         this.submit = this.submit.bind(this);
         this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
+        this.clearErrors = inputKeys => ReimbursementAccountUtils.clearErrors(this.props, inputKeys);
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
 
@@ -83,7 +94,6 @@ class CompanyStep extends React.Component {
             website: 'bankAccount.error.website',
             companyTaxID: 'bankAccount.error.taxID',
             incorporationDate: 'bankAccount.error.incorporationDate',
-            incorporationDateFuture: 'bankAccount.error.incorporationDateFuture',
             incorporationType: 'bankAccount.error.companyType',
             hasNoConnectionToCannabis: 'bankAccount.error.restrictedBusiness',
             incorporationState: 'bankAccount.error.incorporationState',
@@ -99,9 +109,6 @@ class CompanyStep extends React.Component {
         this.setState(newState);
         ReimbursementAccount.updateReimbursementAccountDraft(newState);
         this.clearError(inputKey);
-        if (inputKey === 'incorporationDate') {
-            this.clearError('incorporationDateFuture');
-        }
     }
 
     /**
@@ -134,12 +141,8 @@ class CompanyStep extends React.Component {
             errors.companyTaxID = true;
         }
 
-        if (!ValidationUtils.isValidDate(this.state.incorporationDate)) {
-            errors.incorporationDate = true;
-        }
-
         if (!ValidationUtils.isValidPastDate(this.state.incorporationDate)) {
-            errors.incorporationDateFuture = true;
+            errors.incorporationDate = true;
         }
 
         if (!ValidationUtils.isValidUSPhone(this.state.companyPhone, true)) {
@@ -198,6 +201,7 @@ class CompanyStep extends React.Component {
                         errorText={this.getErrorText('companyName')}
                     />
                     <AddressForm
+                        translate={this.props.translate}
                         streetTranslationKey="common.companyAddress"
                         values={{
                             street: this.state.addressStreet,
@@ -218,10 +222,14 @@ class CompanyStep extends React.Component {
                                 city: 'addressCity',
                                 zipCode: 'addressZipCode',
                             };
+                            const renamedValues = {};
                             _.each(values, (value, inputKey) => {
                                 const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
-                                this.clearErrorAndSetValue(renamedInputKey, value);
+                                renamedValues[renamedInputKey] = value;
                             });
+                            this.setState(renamedValues);
+                            this.clearErrors(_.keys(renamedValues));
+                            ReimbursementAccount.updateReimbursementAccountDraft(renamedValues);
                         }}
                     />
                     <TextInput
@@ -255,7 +263,7 @@ class CompanyStep extends React.Component {
                             label={this.props.translate('companyStep.companyType')}
                             items={_.map(this.props.translate('companyStep.incorporationTypes'), (label, value) => ({value, label}))}
                             onInputChange={value => this.clearErrorAndSetValue('incorporationType', value)}
-                            defaultValue={this.state.incorporationType}
+                            value={this.state.incorporationType}
                             placeholder={{value: '', label: '-'}}
                             errorText={this.getErrorText('incorporationType')}
                         />
@@ -266,7 +274,7 @@ class CompanyStep extends React.Component {
                             onInputChange={value => this.clearErrorAndSetValue('incorporationDate', value)}
                             defaultValue={this.state.incorporationDate}
                             placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
-                            errorText={this.getErrorText('incorporationDate') || this.getErrorText('incorporationDateFuture')}
+                            errorText={this.getErrorText('incorporationDate')}
                             maximumDate={new Date()}
                         />
                     </View>
@@ -274,7 +282,7 @@ class CompanyStep extends React.Component {
                         <StatePicker
                             label={this.props.translate('companyStep.incorporationState')}
                             onInputChange={value => this.clearErrorAndSetValue('incorporationState', value)}
-                            defaultValue={this.state.incorporationState}
+                            value={this.state.incorporationState}
                             errorText={this.getErrorText('incorporationState')}
                         />
                     </View>

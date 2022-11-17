@@ -6,8 +6,9 @@ import PropTypes from 'prop-types';
 import styles from '../../../../styles/styles';
 import SidebarLinks from '../SidebarLinks';
 import PopoverMenu from '../../../../components/PopoverMenu';
-import FAB from '../../../../components/FAB';
+import FloatingActionButton from '../../../../components/FloatingActionButton';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
+import compose from '../../../../libs/compose';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import Timing from '../../../../libs/actions/Timing';
@@ -19,14 +20,19 @@ import Performance from '../../../../libs/Performance';
 import * as Welcome from '../../../../libs/actions/Welcome';
 import {sidebarPropTypes, sidebarDefaultProps} from './sidebarPropTypes';
 import withDrawerState from '../../../../components/withDrawerState';
+import withNavigationFocus from '../../../../components/withNavigationFocus';
+import KeyboardShortcutsModal from '../../../../components/KeyboardShortcutsModal';
 
 const propTypes = {
 
-    /* Callback function when the menu is shown */
+    /** Callback function when the menu is shown */
     onShowCreateMenu: PropTypes.func,
 
-    /* Callback function before the menu is hidden */
+    /** Callback function before the menu is hidden */
     onHideCreateMenu: PropTypes.func,
+
+    /** reportID in the current navigation state */
+    reportIDFromRoute: PropTypes.string,
 
     ...sidebarPropTypes,
 };
@@ -42,7 +48,6 @@ class BaseSidebarScreen extends Component {
 
         this.hideCreateMenu = this.hideCreateMenu.bind(this);
         this.startTimer = this.startTimer.bind(this);
-        this.navigateToSettings = this.navigateToSettings.bind(this);
         this.showCreateMenu = this.showCreateMenu.bind(this);
 
         this.state = {
@@ -58,21 +63,68 @@ class BaseSidebarScreen extends Component {
         Welcome.show({routes, showCreateMenu: this.showCreateMenu});
     }
 
+    componentDidUpdate(prevProps) {
+        if (!this.didScreenBecomeInactive(prevProps)) {
+            return;
+        }
+
+        // Hide menu manually when other pages are opened using shortcut key
+        this.hideCreateMenu();
+    }
+
+    /**
+     * Check if LHN status changed from active to inactive.
+     * Used to close already opened FAB menu when open any other pages (i.e. Press Command + K on web).
+     *
+     * @param {Object} prevProps
+     * @return {Boolean}
+     */
+    didScreenBecomeInactive(prevProps) {
+        // When the Drawer gets closed and ReportScreen is shown
+        if (!this.props.isDrawerOpen && prevProps.isDrawerOpen) {
+            return true;
+        }
+
+        // When any other page is opened over LHN
+        if (!this.props.isFocused && prevProps.isFocused) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if LHN is inactive.
+     * Used to prevent FAB menu showing after opening any other pages.
+     *
+     * @return {Boolean}
+     */
+    isScreenInactive() {
+        // When drawer is closed and Report page is open
+        if (this.props.isSmallScreenWidth && !this.props.isDrawerOpen) {
+            return true;
+        }
+
+        // When any other page is open
+        if (!this.props.isFocused) {
+            return true;
+        }
+
+        return false;
+    }
+
     /**
      * Method called when we click the floating action button
      */
     showCreateMenu() {
+        if (this.isScreenInactive()) {
+            // Prevent showing menu when click FAB icon quickly after opening other pages
+            return;
+        }
         this.setState({
             isCreateMenuActive: true,
         });
         this.props.onShowCreateMenu();
-    }
-
-    /**
-     * Method called when avatar is clicked
-     */
-    navigateToSettings() {
-        Navigation.navigate(ROUTES.SETTINGS);
     }
 
     /**
@@ -81,6 +133,9 @@ class BaseSidebarScreen extends Component {
      * Selecting an item on CreateMenu or closing it by clicking outside of the modal component
      */
     hideCreateMenu() {
+        if (!this.state.isCreateMenuActive) {
+            return;
+        }
         this.props.onHideCreateMenu();
         this.setState({
             isCreateMenuActive: false,
@@ -109,17 +164,19 @@ class BaseSidebarScreen extends Component {
                             <SidebarLinks
                                 onLinkClick={this.startTimer}
                                 insets={insets}
-                                onAvatarClick={this.navigateToSettings}
                                 isSmallScreenWidth={this.props.isSmallScreenWidth}
                                 isDrawerOpen={this.props.isDrawerOpen}
+                                isCreateMenuOpen={this.state.isCreateMenuActive}
+                                reportIDFromRoute={this.props.reportIDFromRoute}
                             />
-                            <FAB
+                            <FloatingActionButton
                                 accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
                                 accessibilityRole="button"
                                 isActive={this.state.isCreateMenuActive}
                                 onPress={this.showCreateMenu}
                             />
                         </View>
+                        <KeyboardShortcutsModal />
                         <PopoverMenu
                             onClose={this.hideCreateMenu}
                             isVisible={this.state.isCreateMenuActive}
@@ -165,7 +222,7 @@ class BaseSidebarScreen extends Component {
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
                                     },
                                 ] : []),
-                                ...(!Policy.isAdminOfFreePolicy(this.props.allPolicies) ? [
+                                ...(!Policy.hasActiveFreePolicy(this.props.allPolicies) ? [
                                     {
                                         icon: Expensicons.NewWorkspace,
                                         iconWidth: 46,
@@ -187,4 +244,7 @@ class BaseSidebarScreen extends Component {
 BaseSidebarScreen.propTypes = propTypes;
 BaseSidebarScreen.defaultProps = defaultProps;
 
-export default withDrawerState(BaseSidebarScreen);
+export default compose(
+    withDrawerState,
+    withNavigationFocus,
+)(BaseSidebarScreen);

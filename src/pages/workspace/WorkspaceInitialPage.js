@@ -21,25 +21,25 @@ import compose from '../../libs/compose';
 import Avatar from '../../components/Avatar';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
+import reportPropTypes from '../reportPropTypes';
 import * as Policy from '../../libs/actions/Policy';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import CONST from '../../CONST';
 import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import ONYXKEYS from '../../ONYXKEYS';
-import policyMemberPropType from '../policyMemberPropType';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
 const propTypes = {
     ...policyPropTypes,
     ...withLocalizePropTypes,
 
-    /** The employee list of this policy (coming from Onyx) */
-    policyMemberList: PropTypes.objectOf(policyMemberPropType),
+    /** All reports shared with the user (coming from Onyx) */
+    reports: PropTypes.objectOf(reportPropTypes),
+
 };
 
 const defaultProps = {
     ...policyDefaultProps,
-    policyMemberList: {},
 };
 
 class WorkspaceInitialPage extends React.Component {
@@ -49,6 +49,8 @@ class WorkspaceInitialPage extends React.Component {
         this.openEditor = this.openEditor.bind(this);
         this.toggleDeleteModal = this.toggleDeleteModal.bind(this);
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
+        this.hasPolicyCreationError = this.hasPolicyCreationError.bind(this);
+        this.dismissError = this.dismissError.bind(this);
 
         this.state = {
             isDeleteModalOpen: false,
@@ -74,9 +76,22 @@ class WorkspaceInitialPage extends React.Component {
      * Call the delete policy and hide the modal
      */
     confirmDeleteAndHideModal() {
-        Policy.deleteWorkspace(this.props.policy.id);
+        const policyReports = _.filter(this.props.reports, report => report && report.policyID === this.props.policy.id);
+        Policy.deleteWorkspace(this.props.policy.id, policyReports);
         this.toggleDeleteModal(false);
         Navigation.navigate(ROUTES.SETTINGS);
+    }
+
+    /**
+     * @returns {Boolean}
+     */
+    hasPolicyCreationError() {
+        return Boolean(this.props.policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && this.props.policy.errors);
+    }
+
+    dismissError() {
+        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+        Policy.removeWorkspace(this.props.policy.id);
     }
 
     render() {
@@ -137,17 +152,13 @@ class WorkspaceInitialPage extends React.Component {
                     <HeaderWithCloseButton
                         title={this.props.translate('workspace.common.workspace')}
                         shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                         onCloseButtonPress={() => Navigation.dismissModal()}
                         shouldShowThreeDotsButton
                         shouldShowGetAssistanceButton
                         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INITIAL}
                         threeDotsMenuItems={[
                             {
-                                icon: Expensicons.Plus,
-                                text: this.props.translate('workspace.new.newWorkspace'),
-                                onSelected: () => Policy.createWorkspace(),
-                            }, {
                                 icon: Expensicons.Trashcan,
                                 text: this.props.translate('workspace.common.delete'),
                                 onSelected: () => this.setState({isDeleteModalOpen: true}),
@@ -162,11 +173,17 @@ class WorkspaceInitialPage extends React.Component {
                             styles.justifyContentBetween,
                         ]}
                     >
-                        <OfflineWithFeedback pendingAction={this.props.policy.pendingAction}>
+                        <OfflineWithFeedback
+                            pendingAction={this.props.policy.pendingAction}
+                            onClose={this.dismissError}
+                            errors={this.props.policy.errors}
+                            errorRowStyles={[styles.ph6, styles.pv2]}
+                        >
                             <View style={[styles.flex1]}>
                                 <View style={styles.pageWrapper}>
                                     <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
                                         <Pressable
+                                            disabled={this.hasPolicyCreationError()}
                                             style={[styles.pRelative, styles.avatarLarge]}
                                             onPress={this.openEditor}
                                         >
@@ -191,6 +208,7 @@ class WorkspaceInitialPage extends React.Component {
                                         </Pressable>
                                         {!_.isEmpty(this.props.policy.name) && (
                                             <Pressable
+                                                disabled={this.hasPolicyCreationError()}
                                                 style={[
                                                     styles.alignSelfCenter,
                                                     styles.mt4,
@@ -217,6 +235,8 @@ class WorkspaceInitialPage extends React.Component {
                                 {_.map(menuItems, item => (
                                     <MenuItem
                                         key={item.translationKey}
+                                        disabled={this.hasPolicyCreationError()}
+                                        interactive={!this.hasPolicyCreationError()}
                                         title={this.props.translate(item.translationKey)}
                                         icon={item.icon}
                                         iconRight={item.iconRight}
@@ -251,8 +271,8 @@ export default compose(
     withLocalize,
     withPolicy,
     withOnyx({
-        policyMemberList: {
-            key: ({policy}) => `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`,
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
         },
     }),
 )(WorkspaceInitialPage);

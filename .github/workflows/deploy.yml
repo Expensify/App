@@ -20,7 +20,7 @@ jobs:
 
       - name: Check if merged pull request was an automatic version bump PR
         id: isAutomatedPullRequest
-        run: echo "::set-output name=IS_AUTOMERGE_PR::${{ steps.getMergedPullRequest.outputs.author == 'OSBotify' }}"
+        run: echo "IS_AUTOMERGE_PR=${{ steps.getMergedPullRequest.outputs.author == 'OSBotify' }}" >> "$GITHUB_OUTPUT"
 
   deployStaging:
     runs-on: ubuntu-latest
@@ -29,7 +29,7 @@ jobs:
 
     steps:
       - name: Checkout staging branch
-        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           ref: staging
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -50,7 +50,7 @@ jobs:
     if: ${{ fromJSON(needs.validate.outputs.isAutomatedPullRequest) && github.ref == 'refs/heads/production' }}
 
     steps:
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           fetch-depth: 0
           token: ${{ secrets.OS_BOTIFY_TOKEN }}

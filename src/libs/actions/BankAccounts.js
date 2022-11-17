@@ -7,7 +7,6 @@ import DateUtils from '../DateUtils';
 
 export {
     setupWithdrawalAccount,
-    fetchFreePlanVerifiedBankAccount,
     goToWithdrawalAccountSetupStep,
     setBankAccountFormValidationErrors,
     resetReimbursementAccount,
@@ -115,10 +114,9 @@ function connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount) {
  * Adds a bank account via Plaid
  *
  * @param {Object} account
- * @param {String} password
  * @TODO offline pattern for this command will have to be added later once the pattern B design doc is complete
  */
-function addPersonalBankAccount(account, password) {
+function addPersonalBankAccount(account) {
     const commandName = 'AddPersonalBankAccount';
 
     const parameters = {
@@ -130,7 +128,6 @@ function addPersonalBankAccount(account, password) {
         bank: account.bankName,
         plaidAccountID: account.plaidAccountID,
         plaidAccessToken: account.plaidAccessToken,
-        password,
     };
 
     const onyxData = {
@@ -140,7 +137,8 @@ function addPersonalBankAccount(account, password) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: true,
-                    error: '',
+                    errors: null,
+                    plaidAccountID: account.plaidAccountID,
                 },
             },
         ],
@@ -150,7 +148,7 @@ function addPersonalBankAccount(account, password) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
-                    error: '',
+                    errors: null,
                     shouldShowSuccess: true,
                 },
             },
@@ -161,7 +159,9 @@ function addPersonalBankAccount(account, password) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
-                    error: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                    errors: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                    },
                 },
             },
         ],
@@ -241,6 +241,47 @@ function validateBankAccount(bankAccountID, validateCode) {
     });
 }
 
+function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
+    const onyxData = {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    errors: null,
+                    isLoading: true,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+    };
+
+    const param = {
+        stepToOpen,
+        subStep,
+        localCurrentStep,
+    };
+
+    return API.read('OpenReimbursementAccountPage', param, onyxData);
+}
+
 /**
  * Updates the bank account in the database with the company step data
  *
@@ -274,6 +315,22 @@ function updateCompanyInformationForBankAccount(bankAccount) {
 }
 
 /**
+ * Add beneficial owners for the bank account, accept the ACH terms and conditions and verify the accuracy of the information provided
+ *
+ * @param {Object} params
+ *
+ * // ACH Contract Step
+ * @param {Boolean} [params.ownsMoreThan25Percent]
+ * @param {Boolean} [params.hasOtherBeneficialOwners]
+ * @param {Boolean} [params.acceptTermsAndConditions]
+ * @param {Boolean} [params.certifyTrueInformation]
+ * @param {String}  [params.beneficialOwners]
+ */
+function updateBeneficialOwnersForBankAccount(params) {
+    API.write('UpdateBeneficialOwnersForBankAccount', {...params}, getVBBADataForOnyx());
+}
+
+/**
  * Create the bank account with manually entered data.
  *
  * @param {String} [bankAccountID]
@@ -291,16 +348,37 @@ function connectBankAccountManually(bankAccountID, accountNumber, routingNumber,
     }, getVBBADataForOnyx());
 }
 
+/**
+ * Verify the user's identity via Onfido
+ *
+ * @param {Number} bankAccountID
+ * @param {Object} onfidoData
+ */
+function verifyIdentityForBankAccount(bankAccountID, onfidoData) {
+    API.write('VerifyIdentityForBankAccount', {
+        bankAccountID,
+        onfidoData: JSON.stringify(onfidoData),
+    }, getVBBADataForOnyx());
+}
+
+function openWorkspaceView() {
+    API.read('OpenWorkspaceView');
+}
+
 export {
     addPersonalBankAccount,
-    connectBankAccountManually,
-    deletePaymentBankAccount,
+    clearOnfidoToken,
     clearPersonalBankAccount,
     clearPlaid,
-    clearOnfidoToken,
-    updatePersonalInformationForBankAccount,
-    validateBankAccount,
-    updateCompanyInformationForBankAccount,
+    connectBankAccountManually,
     connectBankAccountWithPlaid,
+    deletePaymentBankAccount,
+    openReimbursementAccountPage,
+    updateBeneficialOwnersForBankAccount,
+    updateCompanyInformationForBankAccount,
+    updatePersonalInformationForBankAccount,
     updatePlaidData,
+    openWorkspaceView,
+    validateBankAccount,
+    verifyIdentityForBankAccount,
 };

@@ -1,20 +1,18 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportUtils from './ReportUtils';
 import * as Localize from './Localize';
 import CONST from '../CONST';
 import * as OptionsListUtils from './OptionsListUtils';
 import * as CollectionUtils from './CollectionUtils';
-import Permissions from './Permissions';
 
 // Note: It is very important that the keys subscribed to here are the same
 // keys that are connected to SidebarLinks withOnyx(). If there was a key missing from SidebarLinks and it's data was updated
 // for that key, then there would be no re-render and the options wouldn't reflect the new data because SidebarUtils.getOrderedReportIDs() wouldn't be triggered.
 // There are a couple of keys here which are OK to have stale data. iouReports for example, doesn't need to exist in withOnyx() because
-// when IOUs change, it also triggers a change on the reports collection. Having redudant subscriptions causes more re-renders which should be avoided.
+// when IOUs change, it also triggers a change on the reports collection. Having redundant subscriptions causes more re-renders which should be avoided.
 // Session also can remain stale because the only way for the current user to change is to sign out and sign in, which would clear out all the Onyx
 // data anyway and cause SidebarLinks to rerender.
 
@@ -29,12 +27,6 @@ let personalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
     callback: val => personalDetails = val,
-});
-
-let currentlyViewedReportID;
-Onyx.connect({
-    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-    callback: val => currentlyViewedReportID = val,
 });
 
 let priorityMode;
@@ -90,88 +82,56 @@ Onyx.connect({
 });
 
 /**
+ * @param {String} reportIDFromRoute
  * @returns {String[]} An array of reportIDs sorted in the proper order
  */
-function getOrderedReportIDs() {
-    const hideReadReports = priorityMode === CONST.PRIORITY_MODE.GSD;
-    const sortByTimestampDescending = priorityMode !== CONST.PRIORITY_MODE.GSD;
-
+function getOrderedReportIDs(reportIDFromRoute) {
     let recentReportOptions = [];
     const pinnedReportOptions = [];
     const iouDebtReportOptions = [];
     const draftReportOptions = [];
 
-    const filteredReports = _.filter(reports, (report) => {
-        if (!report || !report.reportID) {
-            return false;
-        }
+    const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
+    const isInDefaultMode = !isInGSDMode;
 
-        const isChatRoom = ReportUtils.isChatRoom(report);
-        const isDefaultRoom = ReportUtils.isDefaultRoom(report);
-        const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
-        const participants = report.participants || [];
+    // Filter out all the reports that shouldn't be displayed
+    const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies));
 
-        // Skip this report if it has no participants and if it's not a type of report supported in the LHN
-        if (_.isEmpty(participants) && !isChatRoom && !isDefaultRoom && !isPolicyExpenseChat) {
-            return false;
-        }
-
-        const hasDraftComment = report.hasDraft || false;
-        const iouReport = report.iouReportID && iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
-        const iouReportOwner = report.hasOutstandingIOU && iouReport
-            ? iouReport.ownerEmail
-            : '';
-
-        const reportContainsIOUDebt = iouReportOwner && iouReportOwner !== currentUserLogin;
-        const hasAddWorkspaceRoomError = report.errorFields && !_.isEmpty(report.errorFields.addWorkspaceRoom);
-        const shouldFilterReportIfEmpty = report.lastMessageTimestamp === 0
-
-            // We make exceptions for defaultRooms and policyExpenseChats so we can immediately
-            // highlight them in the LHN when they are created and have no messsages yet. We do
-            // not give archived rooms this exception since they do not need to be higlihted.
-            && !(!ReportUtils.isArchivedRoom(report) && (isDefaultRoom || isPolicyExpenseChat))
-
-            // Also make an exception for workspace rooms that failed to be added
-            && !hasAddWorkspaceRoomError;
-
-        const shouldFilterReportIfRead = hideReadReports && !ReportUtils.isUnread(report);
-        const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
-        if (report.reportID !== currentlyViewedReportID
-            && !report.isPinned
-            && !hasDraftComment
-            && shouldFilterReport
-            && !reportContainsIOUDebt) {
-            return false;
-        }
-
-        // We let Free Plan default rooms to be shown in the App, or rooms that also have a Guide in them.
-        // It's the two exceptions to the beta, otherwise do not show policy rooms in product
-        if (ReportUtils.isDefaultRoom(report)
-            && !Permissions.canUseDefaultRooms(betas)
-            && ReportUtils.getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE
-            && !ReportUtils.hasExpensifyGuidesEmails(lodashGet(report, ['participants'], []))) {
-            return false;
-        }
-
-        if (ReportUtils.isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
-            return false;
-        }
-
-        if (isPolicyExpenseChat && !Permissions.canUsePolicyExpenseChat(betas)) {
-            return false;
-        }
-
-        return true;
+    // Get all the display names for our reports in an easy to access property so we don't have to keep
+    // re-running the logic
+    const filteredReportsWithReportName = _.map(filteredReports, (report) => {
+        // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
+        // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
+        // the reportDisplayName property to the report object directly.
+        // eslint-disable-next-line no-param-reassign
+        report.reportDisplayName = ReportUtils.getReportName(report, policies);
+        return report;
     });
 
-    let orderedReports = _.sortBy(filteredReports, sortByTimestampDescending ? 'lastMessageTimestamp' : 'reportName');
+    // Sorting the reports works like this:
+    // - When in default mode, reports will be ordered by most recently updated (in descending order) so that the most recently updated are at the top
+    // - When in GSD mode, reports are ordered by their display name so they are alphabetical (in ascending order)
+    // - Regardless of mode, all archived reports should remain at the bottom
+    const orderedReports = _.sortBy(filteredReportsWithReportName, (report) => {
+        if (ReportUtils.isArchivedRoom(report)) {
+            return isInDefaultMode
 
-    if (sortByTimestampDescending) {
+                // -Infinity is used here because there is no chance that a report will ever have an older timestamp than -Infinity and it ensures that archived reports
+                // will always be listed last
+                ? -Infinity
+
+                // Similar logic is used for 'ZZZZZZZZZZZZZ' to reasonably assume that no report will ever have a report name that will be listed alphabetically after this, ensuring that
+                // archived reports will be listed last
+                : 'ZZZZZZZZZZZZZ';
+        }
+
+        return isInDefaultMode ? report.lastMessageTimestamp : report.reportDisplayName;
+    });
+
+    // Apply the decsending order to reports when in default mode
+    if (isInDefaultMode) {
         orderedReports.reverse();
     }
-
-    // Move the archived Rooms to the last
-    orderedReports = _.sortBy(orderedReports, report => ReportUtils.isArchivedRoom(report));
 
     // Put all the reports into the different buckets
     for (let i = 0; i < orderedReports.length; i++) {
@@ -183,10 +143,7 @@ function getOrderedReportIDs() {
             pinnedReportOptions.push(report);
         } else if (report.hasOutstandingIOU && !report.isIOUReportOwner) {
             iouDebtReportOptions.push(report);
-
-        // If the active report has a draft, we do not put it in the group of draft reports because we want it to maintain it's current position. Otherwise the report's position
-        // jumps around in the LHN and it's kind of confusing to the user to see the LHN reorder when they start typing a comment on a report.
-        } else if (report.hasDraft && report.reportID !== currentlyViewedReportID) {
+        } else if (report.hasDraft) {
             draftReportOptions.push(report);
         } else {
             recentReportOptions.push(report);
@@ -195,10 +152,7 @@ function getOrderedReportIDs() {
 
     // Prioritizing reports with draft comments, add them before the normal recent report options
     // and sort them by report name.
-    const sortedDraftReports = _.sortBy(draftReportOptions, (report) => {
-        const personalDetailMap = OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails);
-        return ReportUtils.getReportName(report, personalDetailMap, policies);
-    });
+    const sortedDraftReports = _.sortBy(draftReportOptions, 'reportDisplayName');
     recentReportOptions = sortedDraftReports.concat(recentReportOptions);
 
     // Prioritizing IOUs the user owes, add them before the normal recent report options and reports
@@ -207,10 +161,7 @@ function getOrderedReportIDs() {
     recentReportOptions = sortedIOUReports.concat(recentReportOptions);
 
     // If we are prioritizing our pinned reports then shift them to the front and sort them by report name
-    const sortedPinnedReports = _.sortBy(pinnedReportOptions, (report) => {
-        const personalDetailMap = OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails);
-        return ReportUtils.getReportName(report, personalDetailMap, policies);
-    });
+    const sortedPinnedReports = _.sortBy(pinnedReportOptions, 'reportDisplayName');
     recentReportOptions = sortedPinnedReports.concat(recentReportOptions);
 
     return _.pluck(recentReportOptions, 'reportID');
@@ -234,6 +185,8 @@ function getOptionData(reportID) {
     const result = {
         text: null,
         alternateText: null,
+        pendingAction: null,
+        allReportErrors: null,
         brickRoadIndicator: null,
         icons: null,
         tooltipText: null,
@@ -267,7 +220,9 @@ function getOptionData(reportID) {
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
-    result.brickRoadIndicator = OptionsListUtils.getBrickRoadIndicatorStatusForReport(report, reportActions);
+    result.pendingAction = report.pendingFields ? (report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat) : null;
+    result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
+    result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerEmail = report.ownerEmail;
     result.reportID = report.reportID;
     result.isUnread = ReportUtils.isUnread(report);
@@ -280,6 +235,9 @@ function getOptionData(reportID) {
 
     const hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report, policies);
+
+    // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((personalDetailList || []).slice(0, 10), hasMultipleParticipants);
 
     let lastMessageTextFromReport = '';
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
@@ -306,6 +264,19 @@ function getOptionData(reportID) {
     if (result.isChatRoom || result.isPolicyExpenseChat) {
         result.alternateText = lastMessageText || subtitle;
     } else {
+        if (hasMultipleParticipants && !lastMessageText) {
+            // Here we get the beginning of chat history message and append the display name for each user, adding pronouns if there are any.
+            // We also add a fullstop after the final name, the word "and" before the final name and commas between all previous names.
+            lastMessageText = Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistory')
+                + _.map(displayNamesWithTooltips, ({displayName, pronouns}, index) => {
+                    const formattedText = _.isEmpty(pronouns) ? displayName : `${displayName} (${pronouns})`;
+
+                    if (index === displayNamesWithTooltips.length - 1) { return `${formattedText}.`; }
+                    if (index === displayNamesWithTooltips.length - 2) { return `${formattedText} ${Localize.translate(preferredLocale, 'common.and')}`; }
+                    if (index < displayNamesWithTooltips.length - 2) { return `${formattedText},`; }
+                }).join(' ');
+        }
+
         result.alternateText = lastMessageText || Str.removeSMSDomain(personalDetail.login);
     }
 
@@ -323,12 +294,13 @@ function getOptionData(reportID) {
         result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
 
-    const reportName = ReportUtils.getReportName(report, personalDetailMap, policies);
+    const reportName = ReportUtils.getReportName(report, policies);
     result.text = reportName;
     result.subtitle = subtitle;
     result.participantsList = personalDetailList;
     result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
     result.searchText = OptionsListUtils.getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
+    result.displayNamesWithTooltips = displayNamesWithTooltips;
 
     return result;
 }

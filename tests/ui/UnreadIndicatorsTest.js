@@ -18,6 +18,8 @@ import LocalNotification from '../../src/libs/Notification/LocalNotification';
 import * as Report from '../../src/libs/actions/Report';
 import * as CollectionUtils from '../../src/libs/CollectionUtils';
 
+jest.mock('../../src/libs/Notification/LocalNotification');
+
 beforeAll(() => {
     // In this test, we are generically mocking the responses of all API requests by mocking fetch() and having it
     // return 200. In other tests, we might mock HttpUtils.xhr() with a more specific mock data response (which means
@@ -26,7 +28,8 @@ beforeAll(() => {
     // simulate data arriving we will just set it into Onyx directly with Onyx.merge() or Onyx.set() etc.
     global.fetch = TestHelper.getGlobalFetchMock();
 
-    jest.setTimeout(15000);
+    // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
+    jest.setTimeout(30000);
     Linking.setInitialURL('https://new.expensify.com/r/1');
     appSetup();
 });
@@ -97,7 +100,7 @@ function isDrawerOpen(renderedApp) {
     return !lodashGet(sidebarLinks, [0, 'props', 'accessibilityElementsHidden']);
 }
 
-const REPORT_ID = 1;
+const REPORT_ID = '1';
 const USER_A_ACCOUNT_ID = 1;
 const USER_A_EMAIL = 'user_a@test.com';
 const USER_B_ACCOUNT_ID = 2;
@@ -126,10 +129,10 @@ function signInAndGetAppWithUnreadChat() {
             // Simulate setting an unread report and personal details
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                 reportID: REPORT_ID,
-                reportName: 'Chat Report',
+                reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                 maxSequenceNumber: 9,
                 lastReadSequenceNumber: 1,
-                lastMessageTimestamp: MOMENT_TEN_MINUTES_AGO.utc(),
+                lastMessageTimestamp: MOMENT_TEN_MINUTES_AGO.utc().valueOf(),
                 lastMessageText: 'Test',
                 participants: [USER_B_EMAIL],
             });
@@ -141,15 +144,15 @@ function signInAndGetAppWithUnreadChat() {
                     timestamp: MOMENT_TEN_MINUTES_AGO.unix(),
                     reportActionID: NumberUtils.rand64(),
                 },
-                1: TestHelper.buildTestReportComment(USER_B_EMAIL, 1, MOMENT_TEN_MINUTES_AGO.add(10, 'seconds').unix()),
-                2: TestHelper.buildTestReportComment(USER_B_EMAIL, 2, MOMENT_TEN_MINUTES_AGO.add(20, 'seconds').unix()),
-                3: TestHelper.buildTestReportComment(USER_B_EMAIL, 3, MOMENT_TEN_MINUTES_AGO.add(30, 'seconds').unix()),
-                4: TestHelper.buildTestReportComment(USER_B_EMAIL, 4, MOMENT_TEN_MINUTES_AGO.add(40, 'seconds').unix()),
-                5: TestHelper.buildTestReportComment(USER_B_EMAIL, 5, MOMENT_TEN_MINUTES_AGO.add(50, 'seconds').unix()),
-                6: TestHelper.buildTestReportComment(USER_B_EMAIL, 6, MOMENT_TEN_MINUTES_AGO.add(60, 'seconds').unix()),
-                7: TestHelper.buildTestReportComment(USER_B_EMAIL, 7, MOMENT_TEN_MINUTES_AGO.add(70, 'seconds').unix()),
-                8: TestHelper.buildTestReportComment(USER_B_EMAIL, 8, MOMENT_TEN_MINUTES_AGO.add(80, 'seconds').unix()),
-                9: TestHelper.buildTestReportComment(USER_B_EMAIL, 9, MOMENT_TEN_MINUTES_AGO.add(90, 'seconds').unix()),
+                1: TestHelper.buildTestReportComment(USER_B_EMAIL, 1, MOMENT_TEN_MINUTES_AGO.add(10, 'seconds').unix(), USER_B_ACCOUNT_ID),
+                2: TestHelper.buildTestReportComment(USER_B_EMAIL, 2, MOMENT_TEN_MINUTES_AGO.add(20, 'seconds').unix(), USER_B_ACCOUNT_ID),
+                3: TestHelper.buildTestReportComment(USER_B_EMAIL, 3, MOMENT_TEN_MINUTES_AGO.add(30, 'seconds').unix(), USER_B_ACCOUNT_ID),
+                4: TestHelper.buildTestReportComment(USER_B_EMAIL, 4, MOMENT_TEN_MINUTES_AGO.add(40, 'seconds').unix(), USER_B_ACCOUNT_ID),
+                5: TestHelper.buildTestReportComment(USER_B_EMAIL, 5, MOMENT_TEN_MINUTES_AGO.add(50, 'seconds').unix(), USER_B_ACCOUNT_ID),
+                6: TestHelper.buildTestReportComment(USER_B_EMAIL, 6, MOMENT_TEN_MINUTES_AGO.add(60, 'seconds').unix(), USER_B_ACCOUNT_ID),
+                7: TestHelper.buildTestReportComment(USER_B_EMAIL, 7, MOMENT_TEN_MINUTES_AGO.add(70, 'seconds').unix(), USER_B_ACCOUNT_ID),
+                8: TestHelper.buildTestReportComment(USER_B_EMAIL, 8, MOMENT_TEN_MINUTES_AGO.add(80, 'seconds').unix(), USER_B_ACCOUNT_ID),
+                9: TestHelper.buildTestReportComment(USER_B_EMAIL, 9, MOMENT_TEN_MINUTES_AGO.add(90, 'seconds').unix(), USER_B_ACCOUNT_ID),
             });
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
                 [USER_B_EMAIL]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
@@ -257,14 +260,14 @@ describe('Unread Indicators', () => {
                 renderedApp = testInstance;
 
                 // Simulate a new report arriving via Pusher along with reportActions and personalDetails for the other participant
-                const NEW_REPORT_ID = 2;
+                const NEW_REPORT_ID = '2';
                 const NEW_REPORT_CREATED_MOMENT = moment();
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${NEW_REPORT_ID}`, {
                     reportID: NEW_REPORT_ID,
-                    reportName: 'Chat Report',
+                    reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                     maxSequenceNumber: 1,
                     lastReadSequenceNumber: 0,
-                    lastMessageTimestamp: NEW_REPORT_CREATED_MOMENT.utc(),
+                    lastMessageTimestamp: NEW_REPORT_CREATED_MOMENT.utc().valueOf(),
                     lastMessageText: 'Comment 1',
                     participants: [USER_C_EMAIL],
                 });
@@ -279,6 +282,7 @@ describe('Unread Indicators', () => {
                     1: {
                         actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
                         actorEmail: USER_C_EMAIL,
+                        actorAccountID: USER_C_ACCOUNT_ID,
                         person: [{type: 'TEXT', style: 'strong', text: 'User C'}],
                         sequenceNumber: 1,
                         timestamp: NEW_REPORT_CREATED_MOMENT.add(5, 'seconds').unix(),

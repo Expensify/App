@@ -106,7 +106,11 @@ class BaseVideoChatButtonAndMenu extends Component {
                 >
                     <Tooltip text={this.props.translate('videoChatButtonAndMenu.tooltip')}>
                         <Pressable
+                            ref={el => this.videoChatButton = el}
                             onPress={() => {
+                                // Drop focus to avoid blue focus ring.
+                                this.videoChatButton.blur();
+
                                 // If this is the Concierge chat, we'll open the modal for requesting a setup call instead
                                 if (this.props.isConcierge) {
                                     Navigation.navigate(ROUTES.getRequestCallRoute(CONST.GUIDES_CALL_TASK_IDS.CONCIERGE_DM));
