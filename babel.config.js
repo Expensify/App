@@ -30,7 +30,12 @@ const webpack = {
 };
 
 const metro = {
-    presets: [require('metro-react-native-babel-preset')],
+    presets: [
+        require('metro-react-native-babel-preset'),
+        ['@babel/preset-env', {
+            include: ['proposal-private-methods'],
+        }],
+    ],
     plugins: [
         'react-native-reanimated/plugin',
     ],
@@ -60,6 +65,7 @@ if (process.env.CAPTURE_METRICS === 'true') {
 module.exports = ({caller}) => {
     // For `react-native` (iOS/Android) caller will be "metro"
     // For `webpack` (Web) caller will be "@babel-loader"
+    // For jest, it will be babel-jest
     // For `storybook` there won't be any config at all so we must give default argument of an empty object
     const runningIn = caller((args = {}) => args.name);
     return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
