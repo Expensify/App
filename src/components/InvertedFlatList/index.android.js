@@ -5,7 +5,7 @@ import styles from '../../styles/styles';
 
 const InvertedCell = props => (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <View style={styles.invert} {...props} />
+    <View {...props} style={styles.invert} />
 );
 
 export default forwardRef((props, ref) => (
