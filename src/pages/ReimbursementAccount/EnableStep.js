@@ -99,7 +99,7 @@ class EnableStep extends React.Component {
                 <View style={[styles.flex1]}>
                     <Section
                         title={!isUsingExpensifyCard ? this.props.translate('workspace.bankAccount.oneMoreThing') : this.props.translate('workspace.bankAccount.allSet')}
-                        icon={!isUsingExpensifyCard ? Illustrations.ConciergeNew : confettiPop}
+                        icon={!isUsingExpensifyCard ? Illustrations.ConciergeNew : Illustrations.ThumbsUpStars}
                     >
                         <MenuItem
                             title={bankName}
