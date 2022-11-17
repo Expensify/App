@@ -73,9 +73,14 @@ class FloatingActionButton extends PureComponent {
         return (
             <Tooltip absolute text={this.props.translate('common.new')}>
                 <AnimatedPressable
+                    ref={el => this.fabPressable = el}
                     accessibilityLabel={this.props.accessibilityLabel}
                     accessibilityRole={this.props.accessibilityRole}
-                    onPress={this.props.onPress}
+                    onPress={(e) => {
+                        // Drop focus to avoid blue focus ring.
+                        this.fabPressable.blur();
+                        this.props.onPress(e);
+                    }}
                     style={[
                         styles.floatingActionButton,
                         StyleUtils.getAnimatedFABStyle(rotate, backgroundColor),
