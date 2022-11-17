@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
@@ -15,7 +16,6 @@ import * as ReportUtils from '../ReportUtils';
 import * as IOUUtils from '../IOUUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
-import Str from "expensify-common/lib/str";
 
 let chatReports;
 Onyx.connect({
@@ -818,7 +818,7 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
         paymentMethodType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
         transactionID: optimisticIOUReportAction.originalMessage.IOUTransactionID,
         clientID: newSequenceNumber,
-        newIOUReportDetails: newIOUReportDetails,
+        newIOUReportDetails,
     };
 
     API.write('SendMoneyWithWallet',
@@ -914,7 +914,7 @@ function payMoneyRequestWithWallet(chatReportID, iouReportID, amount, currency, 
         paymentMethodType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
         transactionID: optimisticIOUReportAction.originalMessage.IOUTransactionID,
         clientID: newSequenceNumber,
-        newIOUReportDetails: newIOUReportDetails,
+        newIOUReportDetails,
     };
 
     API.write('PayMoneyRequestWithWallet',

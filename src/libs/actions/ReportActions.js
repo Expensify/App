@@ -23,7 +23,6 @@ function clearReportActionErrors(reportID, sequenceNumber) {
     });
 }
 
-
 /**
  * This method clears the errors for a chat where send money action was done
  * @param {String} chatReportID
