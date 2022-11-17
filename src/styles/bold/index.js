@@ -1,3 +1,3 @@
-const bold = 'ExpensifyNeue-Rg';
+const bold = 'ExpensifyNeue-Regular';
 
 export default bold;

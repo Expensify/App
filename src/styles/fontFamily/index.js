@@ -2,14 +2,14 @@ import bold from '../bold';
 import emojiFont from './emoji';
 
 const fontFamily = {
-    GTA_ITALIC: 'ExpensifyNeue-It',
+    GTA_ITALIC: 'ExpensifyNeue-Italic',
     GTA_BOLD: bold,
-    GTA: 'ExpensifyNeue-Rg',
+    GTA: 'ExpensifyNeue-Regular',
     SYSTEM: 'System',
-    MONOSPACE: 'ExpensifyNeue-Rg',
-    MONOSPACE_ITALIC: 'ExpensifyNeue-It',
-    MONOSPACE_BOLD: 'ExpensifyNeue-Bd',
-    MONOSPACE_BOLD_ITALIC: 'ExpensifyNeue-BdIt',
+    MONOSPACE: 'ExpensifyNeue-Regular',
+    MONOSPACE_ITALIC: 'ExpensifyNeue-Italic',
+    MONOSPACE_BOLD: 'ExpensifyNeue-Bold',
+    MONOSPACE_BOLD_ITALIC: 'ExpensifyNeue-BoldItalic',
     EMOJI_TEXT_FONT: emojiFont,
 };
 
