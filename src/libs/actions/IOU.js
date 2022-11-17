@@ -15,6 +15,7 @@ import * as ReportUtils from '../ReportUtils';
 import * as IOUUtils from '../IOUUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
+import Str from "expensify-common/lib/str";
 
 let chatReports;
 Onyx.connect({
@@ -802,14 +803,22 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
         },
     ];
 
+    const newIOUReportDetails = JSON.stringify({
+        amount,
+        currency,
+        requestorEmail: ownerEmail,
+        comment,
+        idempotencyKey: Str.guid(),
+    });
+
     const params = {
         iouReportID: optimisticIOUReport.reportID,
-        chatReport: chatReport.reportID,
+        chatReportID: chatReport.reportID,
         paidReportActionID: optimisticIOUReportAction.reportActionID,
         paymentMethodType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-        transactionID: ,
+        transactionID: optimisticIOUReportAction.originalMessage.IOUTransactionID,
         clientID: newSequenceNumber,
-        newIOUReportDetails: ,
+        newIOUReportDetails: newIOUReportDetails,
     };
 
     API.write('SendMoneyWithWallet',
@@ -890,8 +899,23 @@ function payMoneyRequestWithWallet(chatReportID, iouReportID, amount, currency, 
         },
     ];
 
-    // I'm still not 100% sure what goes in here, once the Web PR is done I'll fill this one up
-    const params = {};
+    const newIOUReportDetails = JSON.stringify({
+        amount,
+        currency,
+        requestorEmail: ownerEmail,
+        comment: '',
+        idempotencyKey: Str.guid(),
+    });
+
+    const params = {
+        iouReportID,
+        chatReportID,
+        paidReportActionID: optimisticIOUReportAction.reportActionID,
+        paymentMethodType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+        transactionID: optimisticIOUReportAction.originalMessage.IOUTransactionID,
+        clientID: newSequenceNumber,
+        newIOUReportDetails: newIOUReportDetails,
+    };
 
     API.write('PayMoneyRequestWithWallet',
         {
