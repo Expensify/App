@@ -120,7 +120,8 @@
   "devDependencies": {
     "@actions/core": "1.10.0",
     "@actions/github": "5.1.1",
-    "@babel/core": "^7.11.1",
+    "@babel/core": "^7.20.2",
+    "@babel/eslint-parser": "^7.19.1",
     "@babel/plugin-proposal-class-properties": "^7.12.1",
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
     "@babel/preset-env": "^7.11.0",
@@ -147,7 +148,6 @@
     "@vercel/ncc": "^0.27.0",
     "@welldone-software/why-did-you-render": "7.0.1",
     "ajv-cli": "^5.0.0",
-    "babel-eslint": "^10.1.0",
     "babel-jest": "^29.2.2",
     "babel-loader": "^8.1.0",
     "babel-plugin-module-resolver": "^4.0.0",
