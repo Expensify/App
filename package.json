@@ -127,6 +127,7 @@
     "@babel/preset-flow": "^7.12.13",
     "@babel/preset-react": "^7.10.4",
     "@babel/runtime": "^7.11.2",
+    "@lwc/eslint-plugin-lwc": "^1.5.0",
     "@octokit/core": "4.0.4",
     "@octokit/plugin-paginate-rest": "3.1.0",
     "@octokit/plugin-throttling": "4.1.0",
