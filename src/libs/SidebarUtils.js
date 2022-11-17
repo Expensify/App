@@ -23,7 +23,7 @@ Onyx.connect({
     callback: (report, key) => {
         if (ReportUtils.isIOUReport(report)) {
             iouReports[key] = report;
-        } else {
+        } else if (report) {
             chatReports[key] = report;
         }
     },

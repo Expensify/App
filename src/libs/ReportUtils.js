@@ -75,6 +75,16 @@ function getReportParticipantsTitle(logins) {
     return _.map(logins, login => Str.removeSMSDomain(login)).join(', ');
 }
 
+
+/**
+ * Attempts to find a report in onyx with the provided list of participants
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isIOUReport(report) {
+    return !!lodashGet(report, 'total');
+}
+
 /**
  * Check whether a report action is Attachment or not.
  * Ignore messages containing [Attachment] as the main content. Attachments are actions with only text as [Attachment].
@@ -152,15 +162,6 @@ function isAdminRoom(report) {
  */
 function isAnnounceRoom(report) {
     return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE;
-}
-
-/**
- * Attempts to find a report in onyx with the provided list of participants
- * @param {Object} report
- * @returns {Boolean}
- */
-function isIOUReport(report) {
-    return !!lodashGet(report, 'total');
 }
 
 /**
