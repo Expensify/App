@@ -154,7 +154,9 @@ class RequestorStep extends React.Component {
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 {shouldShowOnfido ? (
-                    <RequestorOnfidoStep onComplete={this.setOnfidoAsComplete} />
+                    <RequestorOnfidoStep
+                        onComplete={this.setOnfidoAsComplete}
+                    />
                 ) : (
                     <Form
                         formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
@@ -210,7 +212,9 @@ class RequestorStep extends React.Component {
                             defaultValue={this.getDefaultStateForField('isControllingOfficer', false)}
                             LabelComponent={() => (
                                 <View style={[styles.flex1, styles.pr1]}>
-                                    <Text>{this.props.translate('requestorStep.isControllingOfficer')}</Text>
+                                    <Text>
+                                        {this.props.translate('requestorStep.isControllingOfficer')}
+                                    </Text>
                                 </View>
                             )}
                             style={[styles.mt4]}
@@ -226,11 +230,19 @@ class RequestorStep extends React.Component {
                                 {`${this.props.translate('onfidoStep.facialScan')}`}
                             </Text>
                             {', '}
-                            <Text onPress={() => Link.openExternalLink('https://onfido.com/privacy/')} style={[styles.textMicro, styles.link]} accessibilityRole="link">
+                            <Text
+                                onPress={() => Link.openExternalLink('https://onfido.com/privacy/')}
+                                style={[styles.textMicro, styles.link]}
+                                accessibilityRole="link"
+                            >
                                 {`${this.props.translate('common.privacyPolicy')}`}
                             </Text>
                             {` ${this.props.translate('common.and')} `}
-                            <Text onPress={() => Link.openExternalLink('https://onfido.com/terms-of-service/')} style={[styles.textMicro, styles.link]} accessibilityRole="link">
+                            <Text
+                                onPress={() => Link.openExternalLink('https://onfido.com/terms-of-service/')}
+                                style={[styles.textMicro, styles.link]}
+                                accessibilityRole="link"
+                            >
                                 {`${this.props.translate('common.termsOfService')}`}
                             </Text>
                         </Text>
