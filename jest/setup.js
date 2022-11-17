@@ -19,3 +19,7 @@ jest.spyOn(console, 'debug').mockImplementation((...params) => {
     // eslint-disable-next-line no-console
     console.log('DEBUG', ...params);
 });
+
+jest.mock('@react-native-firebase/crashlytics', () => () => ({
+    setCrashlyticsCollectionEnabled: jest.fn(),
+}));
