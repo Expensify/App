@@ -930,7 +930,7 @@ const styles = {
     },
 
     signInPageNarrowContentContainer: {
-        maxWidth: 395,
+        maxWidth: 375,
     },
 
     signInPageNarrowContentMargin: {

@@ -34,11 +34,18 @@ const SignInPageContent = props => (
     <View
         style={[
             styles.flex1,
-            styles.signInPageNarrowContentContainer,
+            styles.ph6,
+            !props.isSmallScreenWidth && styles.signInPageWideLeftContainer,
         ]}
     >
-        <View style={[styles.flexGrow1]} />
-        <View style={[styles.flexGrow2]}>
+        <View style={[styles.flexGrow1, {maxHeight: 132}]} />
+        <View
+            style={[
+                styles.flexGrow2,
+                !props.isSmallScreenWidth && styles.alignSelfCenter,
+                {maxWidth: 375},
+            ]}
+        >
             <SignInPageForm style={[
                 props.isSmallScreenWidth ? styles.ph5 : styles.ph4,
             ]}
