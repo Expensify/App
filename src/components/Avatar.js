@@ -1,4 +1,4 @@
-import React, {Component, PureComponent} from 'react';
+import React, {Component} from 'react';
 import {Image, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
