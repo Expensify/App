@@ -202,25 +202,30 @@ SidebarLinks.defaultProps = defaultProps;
  * @param {Object} [report]
  * @returns {Object|undefined}
  */
-const reportSelector = report => report && !ReportUtils.isIOUReport(report) && ({
-    reportID: report.reportID,
-    participants: report.participants,
-    hasDraft: report.hasDraft,
-    isPinned: report.isPinned,
-    errorFields: {
-        addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
-    },
-    maxSequenceNumber: report.maxSequenceNumber,
-    lastReadSequenceNumber: report.lastReadSequenceNumber,
-    lastMessageText: report.lastMessageText,
-    lastMessageTimestamp: report.lastMessageTimestamp,
-    iouReportID: report.iouReportID,
-    hasOutstandingIOU: report.hasOutstandingIOU,
-    statusNum: report.statusNum,
-    stateNum: report.stateNum,
-    chatType: report.chatType,
-    policyID: report.policyID,
-});
+const reportSelector = (report) => {
+    if (!ReportUtils.isIOUReport(report)) {
+        return null;
+    }
+    return report && ({
+        reportID: report.reportID,
+        participants: report.participants,
+        hasDraft: report.hasDraft,
+        isPinned: report.isPinned,
+        errorFields: {
+            addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
+        },
+        maxSequenceNumber: report.maxSequenceNumber,
+        lastReadSequenceNumber: report.lastReadSequenceNumber,
+        lastMessageText: report.lastMessageText,
+        lastMessageTimestamp: report.lastMessageTimestamp,
+        iouReportID: report.iouReportID,
+        hasOutstandingIOU: report.hasOutstandingIOU,
+        statusNum: report.statusNum,
+        stateNum: report.stateNum,
+        chatType: report.chatType,
+        policyID: report.policyID,
+    });
+};
 
 /**
  * @param {Object} [personalDetails]
