@@ -975,9 +975,9 @@ function hasOutstandingIOU(report, currentUserLogin, iouReports) {
  * @param {Object} iouReports
  * @returns {Number}
  */
-function getIOUTotal(report, iouReports) {
+function getIOUTotal(report, iouReports = {}) {
     if (report.hasOutstandingIOU) {
-        const iouReport = (iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`]) || null;
+        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
         if (iouReport) {
             return iouReport.total;
         }
@@ -992,9 +992,9 @@ function getIOUTotal(report, iouReports) {
  * @param {Object} iouReports
  * @returns {Boolean}
  */
-function isIOUOwnedByCurrentUser(report, currentUserLogin, iouReports) {
+function isIOUOwnedByCurrentUser(report, currentUserLogin, iouReports = {}) {
     if (report.hasOutstandingIOU) {
-        const iouReport = (iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`]) || null;
+        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
         if (iouReport) {
             return iouReport.ownerEmail === currentUserLogin;
         }
