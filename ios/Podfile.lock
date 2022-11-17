@@ -472,7 +472,7 @@ PODS:
     - React-Core
   - react-native-image-manipulator (1.0.5):
     - React
-  - react-native-image-picker (4.8.5):
+  - react-native-image-picker (4.10.1):
     - React-Core
   - react-native-netinfo (8.3.1):
     - React-Core
@@ -594,7 +594,7 @@ PODS:
     - React-Core
   - RNReactNativeHapticFeedback (1.14.0):
     - React-Core
-  - RNReanimated (3.0.0-rc.3):
+  - RNReanimated (3.0.0-rc.6):
     - DoubleConversion
     - FBLazyVector
     - FBReactNativeSpec
@@ -980,7 +980,7 @@ SPEC CHECKSUMS:
   react-native-document-picker: f68191637788994baed5f57d12994aa32cf8bf88
   react-native-flipper: dc5290261fbeeb2faec1bdc57ae6dd8d562e1de4
   react-native-image-manipulator: c48f64221cfcd46e9eec53619c4c0374f3328a56
-  react-native-image-picker: cd420f97f6ed6ff74fc4686d27dbcfdbd051db91
+  react-native-image-picker: f2ab1215d17bcfe27b0eb6417cc236fd1f4775e7
   react-native-netinfo: 1a6035d3b9780221d407c277ebfb5722ace00658
   react-native-pdf: 33c622cbdf776a649929e8b9d1ce2d313347c4fa
   react-native-plaid-link-sdk: 77052f329310ff5a36ddda276793f40d27c02bc4
@@ -1013,7 +1013,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: 920eb17f5b1e15dae6e5ed1904045f8f90e0b11e
   RNPermissions: dcdb7b99796bbeda6975a6e79ad519c41b251b1c
   RNReactNativeHapticFeedback: 1e3efeca9628ff9876ee7cdd9edec1b336913f8c
-  RNReanimated: 6c980139eb3b043569a08b8cb3d92cdf46bd54fa
+  RNReanimated: 069f3aff5df4cbefaf81589c0622370073a89f1d
   RNScreens: 0df01424e9e0ed7827200d6ed1087ddd06c493f9
   RNSVG: 38ca962c970dbce1ca38991a5aebf26d163f9efb
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
