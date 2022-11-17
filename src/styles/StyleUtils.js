@@ -19,6 +19,7 @@ function getAvatarSize(size) {
         [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.avatarSizeSmallSubscript,
         [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.avatarSizeSubscript,
         [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
+        [CONST.AVATAR_SIZE.SMALLER]: variables.avatarSizeSmaller,
         [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
     };
     return AVATAR_SIZES[size];
@@ -87,17 +88,6 @@ function getNavigationDrawerStyle(isSmallScreenWidth) {
 
 function getNavigationDrawerType(isSmallScreenWidth) {
     return isSmallScreenWidth ? 'slide' : 'permanent';
-}
-
-function getNavigationModalCardStyle(isSmallScreenWidth) {
-    return {
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-        backgroundColor: 'transparent',
-        height: '100%',
-    };
 }
 
 /**
@@ -318,16 +308,22 @@ function getWidthAndHeightStyle(width, height) {
  * @returns {Object}
  */
 function getModalPaddingStyles({
+    shouldAddBottomSafeAreaMargin,
+    shouldAddTopSafeAreaMargin,
     shouldAddBottomSafeAreaPadding,
     shouldAddTopSafeAreaPadding,
     safeAreaPaddingTop,
     safeAreaPaddingBottom,
     safeAreaPaddingLeft,
     safeAreaPaddingRight,
+    modalContainerStyleMarginTop,
+    modalContainerStyleMarginBottom,
     modalContainerStylePaddingTop,
     modalContainerStylePaddingBottom,
 }) {
     return {
+        marginTop: (modalContainerStyleMarginTop || 0) + (shouldAddTopSafeAreaMargin ? safeAreaPaddingTop : 0),
+        marginBottom: (modalContainerStyleMarginBottom || 0) + (shouldAddBottomSafeAreaMargin ? safeAreaPaddingBottom : 0),
         paddingTop: shouldAddTopSafeAreaPadding
             ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
             : modalContainerStylePaddingTop || 0,
@@ -546,7 +542,6 @@ export {
     getSafeAreaMargins,
     getNavigationDrawerStyle,
     getNavigationDrawerType,
-    getNavigationModalCardStyle,
     getZoomCursorStyle,
     getZoomSizingStyle,
     getAutoGrowTextInputStyle,

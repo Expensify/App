@@ -1,6 +1,5 @@
 <!doctype html>
 <html>
-
 <head>
     <meta charset="utf-8">
     <title>Expensify Help</title>
@@ -16,13 +15,7 @@
     <!-- SEO tags -->
     {% seo %}
 </head>
-
 <body>
-
-    <!-- Show temporarily the "Coming Soon" page until the Expensify Help site is ready -->
-    {% if page.lhn_content == 'coming_soon' %}
-        {{ content }}
-    {% else %}
 
     <div id="lhn">
 
@@ -31,30 +24,23 @@
                 <i id="angle-up-icon" class="fa-solid fa-angle-up icon hide"></i>
                 <i id="bars-icon" class="fa-solid fa-bars icon"></i>
             </div>
-            <img src="/assets/images/expensify-help.svg" class="logo" />
+            <a href="/">
+                <img src="/assets/images/expensify-help.svg" class="logo" />
+            </a>
         </div>
 
         <!-- LHN content (Main navigation tree or Article TOC) -->
         <div id="lhn-content">
-            {% case page.lhn_content %}
-            {% when "homepage" %}
-                {% include home-lhn.html %}
-            {% when "request-money" %}
-                {% include request-money-lhn.html %}
-            {% when "send-money" %}
-                {% include send-money-lhn.html %}
+            {% if page.url == "/" or page.url contains "/hubs/" %}
+                {% include lhn-template.html %}
             {% else %}
                 <div id="back-button" class="icon-with-link">
                     <i class="fa-solid fa-angle-left icon"></i>
                     <div class="link">Back</div>
                 </div>
-                {% if page.lhn_content == nil %}
-                    <span class="in-this-article">In this article</span>
-                    <div class="article-toc"></div>
-                {% endif %}
-            {% endcase %}
+                <div class="article-toc"></div>
+            {% endif %}
         </div>
-
 
         <!-- Concierge button anchored at the bottom of the LHN (rendered on wider screens) -->
         {% include floating-concierge-button.html id="floating-concierge-button-lhn" %}
@@ -63,20 +49,24 @@
     <div id="content-area">
 
         <!-- Article title (only shown in article pages) -->
-        {% if page.lhn_content == nil %}
+        {% if page.url contains "/articles/" %}
             <h1 class="title">
                 {{ page.name | remove: '.md' | split: "-" |  join: " " }}
             </h1>
-        {% endif %}
 
-        <div class="article-toc-content">
-            {{ content }}
-        </div>
+            <div class="article-toc-content article">
+                {{ content }}
+            </div>
+        {% else %}
+            <div class="article-toc-content lhn">
+                {{ content }}
+            </div>
+        {% endif %}
 
         <!-- Concierge button at the bottom of the page -->
         <a class="card get-help" href="{{ CONCIERGE_CHAT_URL }}" target="_blank">
             <div class="body">
-                <h3 class="title">Didn't find what you were looking for?</h3>
+                <h3 class="title with-margin">Didn't find what you were looking for?</h3>
                 <p class="description">Concierge is here to answer all your questions.</p>
             </div>
             <div class="submit-button">
@@ -84,8 +74,5 @@
             </div>
         </a>
     </div>
-    {% endif %}
-
 </body>
-
 </html>

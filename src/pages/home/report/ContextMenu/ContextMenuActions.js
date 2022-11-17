@@ -157,6 +157,7 @@ export default [
             }
         },
         getDescription: () => {},
+        autoReset: false,
     },
 
     {

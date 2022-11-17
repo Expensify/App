@@ -43,7 +43,7 @@ class DatePicker extends React.Component {
      */
     setDate(text) {
         if (!text) {
-            this.props.onInputChange(null);
+            this.props.onInputChange('');
             return;
         }
 
@@ -80,6 +80,7 @@ class DatePicker extends React.Component {
                 onFocus={this.showDatepicker}
                 label={this.props.label}
                 onInputChange={this.setDate}
+                value={this.props.value}
                 defaultValue={this.defaultValue}
                 placeholder={this.props.placeholder}
                 errorText={this.props.errorText}

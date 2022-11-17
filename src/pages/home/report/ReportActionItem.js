@@ -168,12 +168,8 @@ class ReportActionItem extends Component {
                 onPressOut={() => ControlSelection.unblock()}
                 onSecondaryInteraction={this.showPopover}
                 preventDefaultContentMenu={!this.props.draftMessage}
-                onKeyDown={(event) => {
-                    // Blur the input after a key is pressed to keep the blue focus border from appearing
-                    event.target.blur();
-                }}
             >
-                <Hoverable resetsOnClickOutside>
+                <Hoverable>
                     {hovered => (
                         <View accessibilityLabel="Chat message">
                             {this.props.shouldDisplayNewIndicator && (
@@ -195,7 +191,7 @@ class ReportActionItem extends Component {
                                             ReportActions.clearReportActionErrors(this.props.report.reportID, this.props.action.sequenceNumber);
                                         }
                                     }}
-                                    pendingAction={this.props.action.pendingAction}
+                                    pendingAction={this.props.draftMessage ? null : this.props.action.pendingAction}
                                     errors={this.props.action.errors}
                                     errorRowStyles={[styles.ml10, styles.mr2]}
                                 >
