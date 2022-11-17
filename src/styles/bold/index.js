@@ -1,3 +1,3 @@
-const bold = 'GTAmericaExp-Regular';
+const bold = 'ExpensifyNeue-Rg';
 
 export default bold;
