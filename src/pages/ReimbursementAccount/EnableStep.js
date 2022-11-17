@@ -19,7 +19,6 @@ import getBankIcon from '../../components/Icon/BankIcons';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
-import confettiPop from '../../../assets/images/confetti-pop.gif';
 import Section from '../../components/Section';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
