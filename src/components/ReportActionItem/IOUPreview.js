@@ -159,7 +159,7 @@ const IOUPreview = (props) => {
                                     <View style={styles.iouPreviewBoxAvatar}>
                                         <MultipleAvatars
                                             icons={[managerAvatar, ownerAvatar]}
-                                            secondAvatarStyle={[styles.secondAvatarInline]}
+                                            secondAvatarStyle={[styles.secondAvatarInline, {borderColor: themeColors.cardBG}]}
                                             avatarTooltips={avatarTooltip}
                                         />
                                     </View>
