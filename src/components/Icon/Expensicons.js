@@ -5,7 +5,7 @@ import AnnounceRoomAvatar from '../../../assets/images/avatars/announce-room.svg
 import Apple from '../../../assets/images/apple.svg';
 import ArrowRight from '../../../assets/images/arrow-right.svg';
 import ArrowRightLong from '../../../assets/images/arrow-right-long.svg';
-import ArrowUpDown from '../../../assets/images/arrow-updown.svg';
+import ArrowsUpDown from '../../../assets/images/arrows-updown.svg';
 import BackArrow from '../../../assets/images/back-left.svg';
 import Bank from '../../../assets/images/bank.svg';
 import Bill from '../../../assets/images/bill.svg';
@@ -102,7 +102,7 @@ export {
     Apple,
     ArrowRight,
     ArrowRightLong,
-    ArrowUpDown,
+    ArrowsUpDown,
     BackArrow,
     Bank,
     Bill,
