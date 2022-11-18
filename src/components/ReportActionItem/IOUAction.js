@@ -7,6 +7,8 @@ import IOUQuote from './IOUQuote';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import IOUPreview from './IOUPreview';
 import Navigation from '../../libs/Navigation/Navigation';
+import OfflineWithFeedback from '../OfflineWithFeedback';
+import * as ReportActions from '../../libs/actions/ReportActions';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
 
@@ -39,7 +41,14 @@ const IOUAction = (props) => {
         Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
     };
     return (
-        <>
+        <OfflineWithFeedback
+            pendingAction={props.action.pendingAction}
+            errors={props.action.errors}
+            onClose={() => {
+                ReportActions.clearSendMoneyErrors();
+            }}
+            errorRowStyles={[styles.mbn1]}
+        >
             <IOUQuote
                 action={props.action}
                 shouldShowViewDetailsLink={Boolean(props.action.originalMessage.IOUReportID)}
@@ -56,7 +65,7 @@ const IOUAction = (props) => {
                         containerStyles={[styles.cursorPointer]}
                     />
             )}
-        </>
+        </OfflineWithFeedback>
     );
 };
 
