@@ -81,7 +81,7 @@ function getReportParticipantsTitle(logins) {
  * @returns {Boolean}
  */
 function isIOUReport(report) {
-    return !!lodashGet(report, 'total');
+    return report && _.has(report, 'total');
 }
 
 /**
