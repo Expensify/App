@@ -36,6 +36,29 @@ platform :android do
     )
   end
 
+  desc "Build app for testing"
+  lane :build_test do
+    ENV["ENVFILE"]="e2e/.env.e2e"
+
+    gradle(
+        project_dir: './android',
+        task: 'bundle',
+        build_type: 'Release',
+    )
+
+    aws_s3(
+      access_key: ENV['S3_ACCESS_KEY'],
+      secret_access_key: ENV['S3_SECRET_ACCESS_KEY'],
+      bucket: ENV['S3_BUCKET'],
+      region: ENV['S3_REGION'],
+
+      apk: 'expensify_test.apk',                      
+      app_directory: 'android',                      
+    )
+
+    sh('echo "{\"apk_path\": \"${lane_context[SharedValues::S3_APK_OUTPUT_PATH]}\",\"html_path\": \"${lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}\"}" > ../paths.json')
+  end
+
   desc "Build and upload app to Google Play"
   lane :beta do
     ENV["ENVFILE"]=".env.production"
