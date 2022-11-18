@@ -56,7 +56,7 @@ jobs:
       
       - uses: actions/upload-artifact@v2
         with:
-          name: android_paths.json
+          name: android
           path: ./android_paths.json
 
   iOS:
@@ -96,6 +96,11 @@ jobs:
           S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           S3_BUCKET: ad-hoc-expensify-cash
           S3_REGION: us-east-1
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ios
+          path: ./ios_paths.json
       
 
   postGithubComment:
@@ -108,16 +113,22 @@ jobs:
 
       - uses: actions/download-artifact@v2
 
-      - id: set_var
+      - name: Read JSONs with paths
+        id: set_var
         run: |
-          content=`cat ./android_paths.json`
-          content="${content//'%'/'%25'}"
-          content="${content//$'\n'/'%0A'}"
-          content="${content//$'\r'/'%0D'}"
-          echo "::set-output name=android_paths::$content"
+          content_android=`cat ./android/android_paths.json`
+          content_android="${content_android//'%'/'%25'}"
+          content_android="${content_android//$'\n'/'%0A'}"
+          content_android="${content_android//$'\r'/'%0D'}"
+          echo "::set-output name=android_paths::$content_android"
+          content_ios=`cat ./ios/ios_paths.json`
+          content_ios="${content_ios//'%'/'%25'}"
+          content_ios="${content_ios//$'\n'/'%0A'}"
+          content_ios="${content_ios//$'\r'/'%0D'}"
+          echo "::set-output name=ios_paths::$content_ios"
 
       - name: Comment PR
         uses: thollander/actions-comment-pull-request@v1
         with:
           message: |
-            'Hello world ! ${{fromJson(steps.set_var.outputs.android_paths).html_path}}'
+            'Hello world ! ${{fromJson(steps.set_var.outputs.android_paths).html_path}} and ${{fromJson(steps.set_var.outputs.ios_paths).html_path}}''
