@@ -47,6 +47,7 @@ const defaultProps = {
  * @returns {Object}
  */
 const getInitialReportScreenParams = (reports, ignoreDefaultRooms, policies) => {
+    console.log('avialable reports', reports);
     const last = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies);
 
     // Fallback to empty if for some reason reportID cannot be derived - prevents the app from crashing

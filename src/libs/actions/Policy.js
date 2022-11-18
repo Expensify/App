@@ -885,6 +885,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false) {
 
     Navigation.isNavigationReady()
         .then(() => {
+            console.log('going to workspace');
             Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
             Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
         });
