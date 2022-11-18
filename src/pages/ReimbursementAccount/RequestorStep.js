@@ -24,7 +24,6 @@ import Form from '../../components/Form';
 
 const propTypes = {
     /** The bank account currently in setup */
-
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
 
     /** The token required to initialize the Onfido SDK */
@@ -75,15 +74,15 @@ class RequestorStep extends React.Component {
     validate(values) {
         const errors = {};
 
-        if (!values.firstName) {
+        if (!ValidationUtils.isRequiredFulfilled(values.firstName)) {
             errors.firstName = this.props.translate('bankAccount.error.firstName');
         }
 
-        if (!values.lastName) {
+        if (!ValidationUtils.isRequiredFulfilled(values.lastName)) {
             errors.lastName = this.props.translate('bankAccount.error.lastName');
         }
 
-        if (!values.dob || !ValidationUtils.isValidDate(values.dob)) {
+        if (!ValidationUtils.isRequiredFulfilled(values.dob)) {
             errors.dob = this.props.translate('bankAccount.error.dob');
         }
 
@@ -91,11 +90,11 @@ class RequestorStep extends React.Component {
             errors.dob = this.props.translate('bankAccount.error.age');
         }
 
-        if (!values.ssnLast4 || !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {
+        if (!ValidationUtils.isRequiredFulfilled(values.ssnLast4) || !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {
             errors.ssnLast4 = this.props.translate('bankAccount.error.ssnLast4');
         }
 
-        if (!values.requestorAddressStreet) {
+        if (!ValidationUtils.isRequiredFulfilled(values.requestorAddressStreet)) {
             errors.requestorAddressStreet = this.props.translate('bankAccount.error.address');
         }
 
@@ -103,19 +102,19 @@ class RequestorStep extends React.Component {
             errors.requestorAddressStreet = this.props.translate('bankAccount.error.addressStreet');
         }
 
-        if (!values.requestorAddressCity) {
+        if (!ValidationUtils.isRequiredFulfilled(values.requestorAddressCity)) {
             errors.requestorAddressCity = this.props.translate('bankAccount.error.addressCity');
         }
 
-        if (!values.requestorAddressState) {
+        if (!ValidationUtils.isRequiredFulfilled(values.requestorAddressState)) {
             errors.requestorAddressState = this.props.translate('bankAccount.error.addressState');
         }
 
-        if (!values.requestorAddressZipCode || !ValidationUtils.isValidZipCode(values.requestorAddressZipCode)) {
+        if (!ValidationUtils.isRequiredFulfilled(values.requestorAddressZipCode) || !ValidationUtils.isValidZipCode(values.requestorAddressZipCode)) {
             errors.requestorAddressZipCode = this.props.translate('bankAccount.error.zipCode');
         }
 
-        if (!values.isControllingOfficer) {
+        if (!ValidationUtils.isRequiredFulfilled(values.isControllingOfficer)) {
             errors.isControllingOfficer = this.props.translate('requestorStep.isControllingOfficerError');
         }
 
