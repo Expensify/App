@@ -217,7 +217,7 @@ LoginForm.defaultProps = defaultProps;
 export default compose(
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
-        closeAccount: {key: ONYXKEYS.CLOSE_ACCOUNT},
+        closeAccount: {key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM},
     }),
     withWindowDimensions,
     withLocalize,

@@ -347,7 +347,7 @@ class GithubUtils {
                 console.log('Found the following Internal QA PRs:', internalQAPRMap);
 
                 const noQAPRs = _.pluck(
-                    _.filter(data, PR => (PR.title || '').toUpperCase().startsWith('[NO QA]')),
+                    _.filter(data, PR => /\[No\s?QA]/i.test(PR.title)),
                     'html_url',
                 );
                 console.log('Found the following NO QA PRs:', noQAPRs);
