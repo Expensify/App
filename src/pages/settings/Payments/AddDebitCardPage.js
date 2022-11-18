@@ -25,7 +25,7 @@ import Form from '../../../components/Form';
 const propTypes = {
     /* Onyx Props */
     formData: PropTypes.shape({
-        setupComplete: PropTypes.boolean,
+        setupComplete: PropTypes.bool,
     }),
 
     ...withLocalizePropTypes,
