@@ -1,7 +1,4 @@
 import React from 'react';
-import {
-    Keyboard,
-} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -15,7 +12,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import {withDrawerPropTypes} from '../../../components/withDrawerState';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
 import Performance from '../../../libs/Performance';
