@@ -42,6 +42,7 @@ class DebitCardPage extends Component {
         super(props);
 
         this.validate = this.validate.bind(this);
+        PaymentMethods.clearDebitCardFormErrorAndSubmit();
     }
 
     componentDidUpdate(prevProps) {
