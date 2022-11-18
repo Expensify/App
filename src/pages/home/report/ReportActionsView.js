@@ -100,13 +100,6 @@ class ReportActionsView extends React.Component {
             this.setState({newMarkerSequenceNumber: 0});
         });
 
-        this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
-            if (!ReportActionComposeFocusManager.isFocused()) {
-                return;
-            }
-            ReportScrollManager.scrollToBottom();
-        });
-
         if (this.getIsReportFullyVisible()) {
             this.openReportIfNecessary();
         }
