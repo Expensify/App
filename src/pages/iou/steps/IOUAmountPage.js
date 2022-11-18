@@ -270,7 +270,7 @@ class IOUAmountPage extends React.Component {
                         }}
                     />
                 </View>
-                <View style={[styles.w100, styles.justifyContentEnd]}>
+                <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}>
                     {canUseTouchScreen()
                         ? (
                             <BigNumberPad
