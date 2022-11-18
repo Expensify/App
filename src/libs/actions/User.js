@@ -75,14 +75,14 @@ function closeAccount(message) {
         optimisticData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.CLOSE_ACCOUNT,
+                key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM,
                 value: {isLoading: true},
             },
         ],
         failureData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.CLOSE_ACCOUNT,
+                key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM,
                 value: {isLoading: false},
             },
         ],
