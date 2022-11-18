@@ -815,7 +815,6 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
         iouReportID: optimisticIOUReport.reportID,
         chatReportID: chatReport.reportID,
         paidReportActionID: optimisticIOUReportAction.reportActionID,
-        paymentMethodType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
         transactionID: optimisticIOUReportAction.originalMessage.IOUTransactionID,
         clientID: newSequenceNumber,
         newIOUReportDetails,
