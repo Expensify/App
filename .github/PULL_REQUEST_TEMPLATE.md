@@ -91,6 +91,7 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
 - [ ] I tested other components that can be impacted by my changes (i.e. if the PR modifies a shared library or component like `Avatar`, I verified the components using `Avatar` are working as expected)
 - [ ] I verified all code is DRY (the PR doesn't include any logic written more than once, with the exception of tests)
 - [ ] I verified any variables that can be defined as constants (ie. in CONST.js or at the top of the file that uses the constant) are defined as such
+- [ ] I verified that if a function's arguments changed that all usages have also been updated correctly
 - [ ] If a new component is created I verified that:
     - [ ] A similar component doesn't exist in the codebase
     - [ ] All props are defined accurately and each prop has a `/** comment above it */`
@@ -146,6 +147,7 @@ The reviewer will copy/paste it into a new comment and complete it after the aut
 - [ ] I verified other components that can be impacted by these changes have been tested, and I retested again (i.e. if the PR modifies a shared library or component like `Avatar`, I verified the components using `Avatar` have been tested & I retested again)
 - [ ] I verified all code is DRY (the PR doesn't include any logic written more than once, with the exception of tests)
 - [ ] I verified any variables that can be defined as constants (ie. in CONST.js or at the top of the file that uses the constant) are defined as such
+- [ ] I verified that if a function's arguments changed that all usages have also been updated correctly
 - [ ] If a new component is created I verified that:
     - [ ] A similar component doesn't exist in the codebase
     - [ ] All props are defined accurately and each prop has a `/** comment above it */`
