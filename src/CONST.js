@@ -106,6 +106,10 @@ const CONST = {
             SSN: 4,
             ZIP_CODE: 5,
         },
+        TYPE: {
+            BUSINESS: 'BUSINESS',
+            PERSONAL: 'PERSONAL',
+        }
     },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
