@@ -89,7 +89,7 @@ class EmojiSkinToneList extends Component {
                                         onHoverOut={() => this.setState({highlightedIndex: -1})}
                                         key={skinToneEmoji.code}
                                         emoji={skinToneEmoji.code}
-                                        isHighlighted={skinToneEmoji.skinTone === this.state.highlightedIndex}
+                                        isHighlighted={skinToneEmoji.skinTone === this.state.highlightedIndex || skinToneEmoji.skinTone === selectedEmoji.skinTone}
                                     />
                                 ))
                                 }
