@@ -181,7 +181,7 @@ jobs:
 
       - name: Upload iOS version to Browser Stack
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/Users/runner/work/App/App/New\ Expensify.ipa"
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/Users/runner/work/App/App/New Expensify.ipa"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
