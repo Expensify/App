@@ -301,7 +301,7 @@ class WorkspaceMembersPage extends React.Component {
         const removableMembers = [];
         let data = [];
         _.each(policyMemberList, (policyMember, email) => {
-            if (policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) { return; }
+            // if (policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) { return; }
             if (email !== this.props.session.email && email !== this.props.policy.owner) {
                 removableMembers.push(email);
             }
