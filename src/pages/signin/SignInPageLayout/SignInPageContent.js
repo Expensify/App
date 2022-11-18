@@ -31,9 +31,7 @@ const SignInPageContent = props => (
     <View
         style={[
             styles.flex1,
-
-            // @TODO: DON'T LET ME COMMIT THIS
-            {paddingLeft: 52, paddingRight: 52},
+            styles.signInPageLeftContainer,
 
             // Restrict the width if the left container only for large screens. For smaller screens, the width needs to be fluid to span the entire width of the page.
             !props.isMediumScreenWidth && !props.isSmallScreenWidth && styles.signInPageWideLeftContainer,

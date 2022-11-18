@@ -905,6 +905,11 @@ const styles = {
         maxHeight: 132,
     },
 
+    signInPageLeftContainer: {
+        paddingLeft: 52,
+        paddingRight: 52,
+    },
+
     signInPageWideLeftContainer: {
         maxWidth: 375,
     },
