@@ -68,7 +68,7 @@ const ContinueBankAccountSetup = props => (
                         icon={Expensicons.RotateLeft}
                         onPress={BankAccounts.requestResetFreePlanBankAccount}
                         shouldShowRightIcon
-                        iconFill={themeColors.buttonSuccessBG}
+                        iconFill={themeColors.success}
                         wrapperStyle={[styles.cardMenuItem]}
                     />
                 </Section>

@@ -138,7 +138,7 @@ const BankAccountStep = (props) => {
                             disabled={!props.user.validated}
                             onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
                             shouldShowRightIcon
-                            iconFill={themeColors.buttonSuccessBG}
+                            iconFill={themeColors.success}
                             wrapperStyle={[styles.cardMenuItem]}
                         />
                     </View>

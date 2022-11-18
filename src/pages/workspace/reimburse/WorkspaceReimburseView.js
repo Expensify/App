@@ -226,7 +226,7 @@ class WorkspaceReimburseView extends React.Component {
                             icon: Expensicons.Receipt,
                             shouldShowRightIcon: true,
                             iconRight: Expensicons.NewWindow,
-                            iconFill: themeColors.buttonSuccessBG,
+                            iconFill: themeColors.success,
                             wrapperStyle: [styles.cardMenuItem],
                         },
                     ]}
@@ -295,7 +295,7 @@ class WorkspaceReimburseView extends React.Component {
                                 icon: Expensicons.Bank,
                                 shouldShowRightIcon: true,
                                 iconRight: Expensicons.NewWindow,
-                                iconFill: themeColors.buttonSuccessBG,
+                                iconFill: themeColors.success,
                                 wrapperStyle: [styles.cardMenuItem],
                             },
                         ]}

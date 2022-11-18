@@ -25,7 +25,7 @@ const WorkspaceTravelVBAView = props => (
                 icon: Expensicons.ExpensifyCard,
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
-                iconFill: themeColors.buttonSuccessBG,
+                iconFill: themeColors.success,
                 wrapperStyle: [styles.cardMenuItem],
             },
             {
@@ -35,7 +35,7 @@ const WorkspaceTravelVBAView = props => (
                 },
                 icon: Expensicons.Concierge,
                 shouldShowRightIcon: true,
-                iconFill: themeColors.buttonSuccessBG,
+                iconFill: themeColors.success,
                 wrapperStyle: [styles.cardMenuItem],
             },
             {
@@ -44,7 +44,7 @@ const WorkspaceTravelVBAView = props => (
                 icon: Expensicons.Info,
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
-                iconFill: themeColors.buttonSuccessBG,
+                iconFill: themeColors.success,
                 wrapperStyle: [styles.cardMenuItem],
             },
         ]}

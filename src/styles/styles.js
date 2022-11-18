@@ -2783,7 +2783,7 @@ const styles = {
     cardMenuItem: {
         paddingHorizontal: 0,
         borderRadius: variables.componentBorderRadiusNormal,
-        paddingVertical: 6,
+        paddingVertical: 12,
     },
 
     callRequestSection: {

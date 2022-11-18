@@ -109,7 +109,7 @@ class EnableStep extends React.Component {
                             disabled
                             interactive={false}
                             wrapperStyle={[styles.cardMenuItem, styles.mv3]}
-                            iconFill={themeColors.buttonSuccessBG}
+                            iconFill={themeColors.success}
                         />
                         <Text style={[styles.mv3]}>
                             {!isUsingExpensifyCard
@@ -136,7 +136,7 @@ class EnableStep extends React.Component {
                                 title={this.props.translate('workspace.bankAccount.disconnectBankAccount')}
                                 icon={Expensicons.Close}
                                 onPress={BankAccounts.requestResetFreePlanBankAccount}
-                                iconFill={themeColors.buttonSuccessBG}
+                                iconFill={themeColors.success}
                                 wrapperStyle={[styles.cardMenuItem]}
                             />
                         </View>

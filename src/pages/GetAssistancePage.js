@@ -44,7 +44,7 @@ const GetAssistancePage = props => (
                         onPress: () => Report.navigateToConciergeChat(),
                         icon: Expensicons.ChatBubble,
                         shouldShowRightIcon: true,
-                        iconFill: themeColors.buttonSuccessBG,
+                        iconFill: themeColors.success,
                         wrapperStyle: [styles.cardMenuItem],
                     },
                     {
@@ -52,7 +52,7 @@ const GetAssistancePage = props => (
                         onPress: () => Navigation.navigate(ROUTES.getRequestCallRoute(props.route.params.taskID)),
                         icon: Expensicons.Phone,
                         shouldShowRightIcon: true,
-                        iconFill: themeColors.buttonSuccessBG,
+                        iconFill: themeColors.success,
                         wrapperStyle: [styles.cardMenuItem],
                     },
                 ]}

@@ -49,7 +49,7 @@ const WorkspaceBillsFirstSection = (props) => {
                     icon: Expensicons.Bill,
                     shouldShowRightIcon: true,
                     iconRight: Expensicons.NewWindow,
-                    iconFill: themeColors.buttonSuccessBG,
+                    iconFill: themeColors.success,
                     wrapperStyle: [styles.cardMenuItem],
                 },
             ]}

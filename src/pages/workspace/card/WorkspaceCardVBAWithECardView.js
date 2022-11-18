@@ -22,7 +22,7 @@ const WorkspaceCardVBAWithECardView = (props) => {
             icon: Expensicons.ExpensifyCard,
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
-            iconFill: themeColors.buttonSuccessBG,
+            iconFill: themeColors.success,
             wrapperStyle: [styles.cardMenuItem],
         },
         {
@@ -31,8 +31,8 @@ const WorkspaceCardVBAWithECardView = (props) => {
             icon: Expensicons.ReceiptSearch,
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
-            iconFill: themeColors.buttonSuccessBG,
-            wrapperStyle: [styles.cardMenuItem, styles.mt4],
+            iconFill: themeColors.success,
+            wrapperStyle: [styles.cardMenuItem],
         },
         {
             title: props.translate('workspace.common.settlementFrequency'),
@@ -40,8 +40,8 @@ const WorkspaceCardVBAWithECardView = (props) => {
             icon: Expensicons.Gear,
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
-            iconFill: themeColors.buttonSuccessBG,
-            wrapperStyle: [styles.cardMenuItem, styles.mt4],
+            iconFill: themeColors.success,
+            wrapperStyle: [styles.cardMenuItem],
         },
     ];
 

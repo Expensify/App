@@ -32,7 +32,7 @@ const WorkspaceInvoicesVBAView = props => (
                     icon: Expensicons.CircleHourglass,
                     shouldShowRightIcon: true,
                     iconRight: Expensicons.NewWindow,
-                    iconFill: themeColors.buttonSuccessBG,
+                    iconFill: themeColors.success,
                     wrapperStyle: [styles.cardMenuItem],
                 },
             ]}

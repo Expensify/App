@@ -29,7 +29,8 @@ const WorkspaceCardPage = props => (
     >
         {(hasVBA, policyID, isUsingECard) => (
             <>
-                {!hasVBA && (
+                <WorkspaceCardVBAWithECardView />
+                {/* {!hasVBA && (
                     <WorkspaceCardNoVBAView policyID={policyID} />
                 )}
 
@@ -39,7 +40,7 @@ const WorkspaceCardPage = props => (
 
                 {hasVBA && isUsingECard && (
                     <WorkspaceCardVBAWithECardView />
-                )}
+                )} */}
             </>
         )}
     </WorkspacePageWithSections>
