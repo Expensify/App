@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {Rect, Circle} from 'react-native-svg';
 import SkeletonViewContentLoader from 'react-content-loader/native';
 import CONST from '../../CONST';
+import themeColors from '../../styles/themes/default';
 
 const propTypes = {
     /** Number of rows to show in Skeleton UI block */
@@ -12,6 +13,8 @@ const propTypes = {
 const SkeletonViewLines = props => (
     <SkeletonViewContentLoader
         height={CONST.CHAT_SKELETON_VIEW.HEIGHT_FOR_ROW_COUNT[props.numberOfRows]}
+        backgroundColor={themeColors.highlightBG}
+        foregroundColor={themeColors.border}
     >
         <Circle cx="40" cy="26" r="20" />
         <Rect x="67" y="11" width="20%" height="8" />

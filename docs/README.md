@@ -22,6 +22,17 @@ cd docs
 bundle install
 ```
 
+- On newer versions of macOS/Xcode you may see a `bundle install` error similar to the following. You can workaround it by symlinking whichever version of `universal-darwin` you have. More info in [this SO](https://stackoverflow.com/a/65481787/18466468).
+
+```bash
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.0.sdk/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/include/ruby-2.6.0/universal-darwin21/ruby/config.h', needed by arena.o'
+```
+
+```bash
+cd /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.0.sdk/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/include/ruby-2.6.0/
+ln -sf universal-darwin22 universal-darwin21
+```
+
 ## Steps
 
 1. Open the Terminal command line in macOS.
