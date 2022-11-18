@@ -214,7 +214,12 @@ class BasePaymentsPage extends React.Component {
      * Hide the default / delete modal
      */
     hideDefaultDeleteMenu() {
-        this.setState({shouldShowDefaultDeleteMenu: false, showConfirmDeleteContent: false});
+        this.setState({shouldShowDefaultDeleteMenu: false});
+        InteractionManager.runAfterInteractions(() => {
+            this.setState({
+                showConfirmDeleteContent: false,
+            });
+        });
     }
 
     hidePasswordPrompt() {
@@ -410,15 +415,27 @@ class BasePaymentsPage extends React.Component {
                             onConfirm={() => {
                                 this.setState({
                                     shouldShowDefaultDeleteMenu: false,
-                                    showConfirmDeleteContent: false,
+                                });
+                                InteractionManager.runAfterInteractions(() => {
+                                    this.setState({
+                                        showConfirmDeleteContent: false,
+                                    });
                                 });
                                 this.deletePaymentMethod();
                             }}
                             onCancel={() => {
                                 this.setState({
                                     shouldShowDefaultDeleteMenu: false,
-                                    showConfirmDeleteContent: false,
                                 });
+                                InteractionManager.runAfterInteractions(
+                                    () => {
+                                        this.setState(
+                                            {
+                                                showConfirmDeleteContent: false,
+                                            },
+                                        );
+                                    },
+                                );
                             }}
                             contentStyles={!this.props.isSmallScreenWidth ? [styles.sidebarPopover] : undefined}
                             title={this.props.translate('paymentsPage.deleteAccount')}
