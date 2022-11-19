@@ -510,7 +510,6 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
                 isLoadingMoreReportActions: false,
                 lastVisitedTimestamp: Date.now(),
                 lastReadSequenceNumber: getMaxSequenceNumber(reportID),
-                reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
             },
         }],
         successData: [{
