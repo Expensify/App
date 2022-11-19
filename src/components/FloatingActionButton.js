@@ -62,20 +62,25 @@ class FloatingActionButton extends PureComponent {
 
         const backgroundColor = this.animatedValue.interpolate({
             inputRange: [0, 1],
-            outputRange: [themeColors.buttonSuccessBG, themeColors.buttonDefaultBG],
+            outputRange: [themeColors.success, themeColors.buttonDefaultBG],
         });
 
         const fill = this.animatedValue.interpolate({
             inputRange: [0, 1],
-            outputRange: [themeColors.componentBG, themeColors.heading],
+            outputRange: [themeColors.textLight, themeColors.textDark],
         });
 
         return (
             <Tooltip absolute text={this.props.translate('common.new')}>
                 <AnimatedPressable
+                    ref={el => this.fabPressable = el}
                     accessibilityLabel={this.props.accessibilityLabel}
                     accessibilityRole={this.props.accessibilityRole}
-                    onPress={this.props.onPress}
+                    onPress={(e) => {
+                        // Drop focus to avoid blue focus ring.
+                        this.fabPressable.blur();
+                        this.props.onPress(e);
+                    }}
                     style={[
                         styles.floatingActionButton,
                         StyleUtils.getAnimatedFABStyle(rotate, backgroundColor),

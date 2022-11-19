@@ -375,6 +375,7 @@ class ReportActionsView extends React.Component {
                         <PopoverReportActionContextMenu
                             ref={ReportActionContextMenu.contextMenuRef}
                             isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
+                            isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
                         />
                     </>
                 )}
