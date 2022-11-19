@@ -536,7 +536,6 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             pendingFields: {
                 createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
-            isOptimisticReport: true,
         };
 
         // Change the method to set for new reports because it doesn't exist yet, is faster,

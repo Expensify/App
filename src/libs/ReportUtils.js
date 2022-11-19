@@ -826,6 +826,7 @@ function buildOptimisticChatReport(
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
 ) {
     return {
+        isOptimisticReport: true,
         chatType,
         hasOutstandingIOU: false,
         isOwnPolicyExpenseChat,
