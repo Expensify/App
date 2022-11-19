@@ -155,10 +155,7 @@ class DetailsPage extends React.PureComponent {
                                                 ? 'common.phoneNumber'
                                                 : 'common.email')}
                                         </Text>
-                                        <CommunicationsLink
-                                            type={isSMSLogin ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL}
-                                            value={isSMSLogin ? getPhoneNumber(details) : details.login}
-                                        >
+                                        <CommunicationsLink value={isSMSLogin ? getPhoneNumber(details) : details.login}>
                                             <Tooltip text={isSMSLogin ? getPhoneNumber(details) : details.login}>
                                                 <Text numberOfLines={1}>
                                                     {isSMSLogin
@@ -196,7 +193,7 @@ class DetailsPage extends React.PureComponent {
                                 <MenuItem
                                     title={`${this.props.translate('common.message')}${details.displayName}`}
                                     icon={Expensicons.ChatBubble}
-                                    onPress={() => Report.fetchOrCreateChatReport([this.props.session.email, details.login])}
+                                    onPress={() => Report.navigateToAndOpenReport([details.login])}
                                     wrapperStyle={styles.breakAll}
                                     shouldShowRightIcon
                                 />

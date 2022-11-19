@@ -816,7 +816,7 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, 
  */
 function buildOptimisticChatReport(
     participantList,
-    reportName = 'Chat Report',
+    reportName = CONST.REPORT.DEFAULT_REPORT_NAME,
     chatType = '',
     policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
     ownerEmail = CONST.REPORT.OWNER_EMAIL_FAKE,
@@ -967,7 +967,6 @@ function isUnread(report) {
  * @param {Object} iouReports
  * @returns {boolean}
  */
-
 function hasOutstandingIOU(report, currentUserLogin, iouReports) {
     if (!report || !report.iouReportID || _.isUndefined(report.hasOutstandingIOU)) {
         return false;
@@ -983,6 +982,39 @@ function hasOutstandingIOU(report, currentUserLogin, iouReports) {
     }
 
     return report.hasOutstandingIOU;
+}
+
+/**
+ * @param {Object} report
+ * @param {String} report.iouReportID
+ * @param {Object} iouReports
+ * @returns {Number}
+ */
+function getIOUTotal(report, iouReports = {}) {
+    if (report.hasOutstandingIOU) {
+        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
+        if (iouReport) {
+            return iouReport.total;
+        }
+    }
+    return 0;
+}
+
+/**
+ * @param {Object} report
+ * @param {String} report.iouReportID
+ * @param {String} currentUserLogin
+ * @param {Object} iouReports
+ * @returns {Boolean}
+ */
+function isIOUOwnedByCurrentUser(report, currentUserLogin, iouReports = {}) {
+    if (report.hasOutstandingIOU) {
+        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
+        if (iouReport) {
+            return iouReport.ownerEmail === currentUserLogin;
+        }
+    }
+    return false;
 }
 
 /**
@@ -1078,6 +1110,16 @@ function getChatByParticipants(newParticipantList) {
     });
 }
 
+/**
+* Returns true if Chronos is one of the chat participants (1:1)
+* @param {Object} report
+* @returns {Boolean}
+*/
+function chatIncludesChronos(report) {
+    return report.participants
+                && _.contains(report.participants, CONST.EMAIL.CHRONOS);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1098,6 +1140,8 @@ export {
     hasExpensifyEmails,
     hasExpensifyGuidesEmails,
     hasOutstandingIOU,
+    isIOUOwnedByCurrentUser,
+    getIOUTotal,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
     chatIncludesConcierge,
@@ -1121,4 +1165,5 @@ export {
     getChatByParticipants,
     getIOUReportActionMessage,
     getDisplayNameForParticipant,
+    chatIncludesChronos,
 };
