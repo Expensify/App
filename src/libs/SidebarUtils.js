@@ -62,11 +62,16 @@ Onyx.connect({
     callback: val => policies = val,
 });
 
-let iouReports;
+let iouReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_IOUS,
     waitForCollectionCallback: true,
-    callback: val => iouReports = val,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+        iouReports = val;
+    },
 });
 
 let currentUserLogin;
@@ -86,85 +91,85 @@ Onyx.connect({
  * @returns {String[]} An array of reportIDs sorted in the proper order
  */
 function getOrderedReportIDs(reportIDFromRoute) {
-    let recentReportOptions = [];
-    const pinnedReportOptions = [];
-    const iouDebtReportOptions = [];
-    const draftReportOptions = [];
-
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInGSDMode;
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies));
+    const reportsToDisplay = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies));
 
-    // Get all the display names for our reports in an easy to access property so we don't have to keep
-    // re-running the logic
-    const filteredReportsWithReportName = _.map(filteredReports, (report) => {
+    // There are a few properties that need to be calculated for the report which are used when sorting reports.
+    _.each(reportsToDisplay, (report) => {
         // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
         // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
         // the reportDisplayName property to the report object directly.
         // eslint-disable-next-line no-param-reassign
-        report.reportDisplayName = ReportUtils.getReportName(report, policies);
-        return report;
+        report.displayName = ReportUtils.getReportName(report, policies);
+
+        // eslint-disable-next-line no-param-reassign
+        report.iouReportAmount = ReportUtils.getIOUTotal(report, iouReports);
     });
 
-    // Sorting the reports works like this:
-    // - When in default mode, reports will be ordered by most recently updated (in descending order) so that the most recently updated are at the top
-    // - When in GSD mode, reports are ordered by their display name so they are alphabetical (in ascending order)
-    // - Regardless of mode, all archived reports should remain at the bottom
-    const orderedReports = _.sortBy(filteredReportsWithReportName, (report) => {
-        if (ReportUtils.isArchivedRoom(report)) {
-            return isInDefaultMode
+    // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
+    // 1. Pinned - Always sorted by reportDisplayName
+    // 2. Outstanding IOUs - Always sorted by iouReportAmount with the largest amounts at the top of the group
+    // 3. Drafts - Always sorted by reportDisplayName
+    // 4. Non-archived reports
+    //      - Sorted by lastMessageTimestamp in default (most recent) view mode
+    //      - Sorted by reportDisplayName in GSD (focus) view mode
+    // 5. Archived reports
+    //      - Sorted by lastMessageTimestamp in default (most recent) view mode
+    //      - Sorted by reportDisplayName in GSD (focus) view mode
+    let pinnedReports = [];
+    let outstandingIOUReports = [];
+    let draftReports = [];
+    let nonArchivedReports = [];
+    let archivedReports = [];
 
-                // -Infinity is used here because there is no chance that a report will ever have an older timestamp than -Infinity and it ensures that archived reports
-                // will always be listed last
-                ? -Infinity
-
-                // Similar logic is used for 'ZZZZZZZZZZZZZ' to reasonably assume that no report will ever have a report name that will be listed alphabetically after this, ensuring that
-                // archived reports will be listed last
-                : 'ZZZZZZZZZZZZZ';
-        }
-
-        return isInDefaultMode ? report.lastMessageTimestamp : report.reportDisplayName;
-    });
-
-    // Apply the decsending order to reports when in default mode
-    if (isInDefaultMode) {
-        orderedReports.reverse();
-    }
-
-    // Put all the reports into the different buckets
-    for (let i = 0; i < orderedReports.length; i++) {
-        const report = orderedReports[i];
-
-        // If the report is pinned and we are using the option to display pinned reports on top then we need to
-        // collect the pinned reports so we can sort them alphabetically once they are collected
+    _.each(reportsToDisplay, (report) => {
         if (report.isPinned) {
-            pinnedReportOptions.push(report);
-        } else if (report.hasOutstandingIOU && !report.isIOUReportOwner) {
-            iouDebtReportOptions.push(report);
-        } else if (report.hasDraft) {
-            draftReportOptions.push(report);
-        } else {
-            recentReportOptions.push(report);
+            pinnedReports.push(report);
+            return;
         }
+
+        if (report.hasOutstandingIOU && !report.isIOUReportOwner) {
+            outstandingIOUReports.push(report);
+            return;
+        }
+
+        if (report.hasDraft) {
+            draftReports.push(report);
+            return;
+        }
+
+        if (ReportUtils.isArchivedRoom(report)) {
+            archivedReports.push(report);
+            return;
+        }
+
+        nonArchivedReports.push(report);
+    });
+
+    // Sort each group of reports accordingly
+    pinnedReports = _.sortBy(pinnedReports, report => report.displayName.toLowerCase());
+    outstandingIOUReports = _.sortBy(outstandingIOUReports, 'iouReportAmount').reverse();
+    draftReports = _.sortBy(draftReports, report => report.displayName.toLowerCase());
+    nonArchivedReports = _.sortBy(nonArchivedReports, report => (isInDefaultMode ? report.lastMessageTimestamp : report.displayName.toLowerCase()));
+    archivedReports = _.sortBy(archivedReports, report => (isInDefaultMode ? report.lastMessageTimestamp : report.displayName.toLowerCase()));
+
+    // For archived and non-archived reports, ensure that most recent reports are at the top by reversing the order of the arrays because underscore will only sort them in ascending order
+    if (isInDefaultMode) {
+        nonArchivedReports.reverse();
+        archivedReports.reverse();
     }
 
-    // Prioritizing reports with draft comments, add them before the normal recent report options
-    // and sort them by report name.
-    const sortedDraftReports = _.sortBy(draftReportOptions, 'reportDisplayName');
-    recentReportOptions = sortedDraftReports.concat(recentReportOptions);
-
-    // Prioritizing IOUs the user owes, add them before the normal recent report options and reports
-    // with draft comments.
-    const sortedIOUReports = _.sortBy(iouDebtReportOptions, 'iouReportAmount').reverse();
-    recentReportOptions = sortedIOUReports.concat(recentReportOptions);
-
-    // If we are prioritizing our pinned reports then shift them to the front and sort them by report name
-    const sortedPinnedReports = _.sortBy(pinnedReportOptions, 'reportDisplayName');
-    recentReportOptions = sortedPinnedReports.concat(recentReportOptions);
-
-    return _.pluck(recentReportOptions, 'reportID');
+    // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
+    // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
+    return _.pluck([]
+        .concat(pinnedReports)
+        .concat(outstandingIOUReports)
+        .concat(draftReports)
+        .concat(nonArchivedReports)
+        .concat(archivedReports), 'reportID');
 }
 
 /**
@@ -280,13 +285,8 @@ function getOptionData(reportID) {
         result.alternateText = lastMessageText || Str.removeSMSDomain(personalDetail.login);
     }
 
-    if (result.hasOutstandingIOU) {
-        const iouReport = (iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`]) || null;
-        if (iouReport) {
-            result.isIOUReportOwner = iouReport.ownerEmail === currentUserLogin;
-            result.iouReportAmount = iouReport.total;
-        }
-    }
+    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, currentUserLogin, iouReports);
+    result.iouReportAmount = ReportUtils.getIOUTotal(result, iouReports);
 
     if (!hasMultipleParticipants) {
         result.login = personalDetail.login;
