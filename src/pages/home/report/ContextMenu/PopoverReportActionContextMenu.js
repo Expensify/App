@@ -3,7 +3,10 @@ import {
     Dimensions,
 } from 'react-native';
 import _ from 'underscore';
-import PropTypes from 'prop-types';
+import {
+    propTypes as basePropTypes,
+    defaultProps as baseDefaultProps,
+} from './baseReportActionContextMenuPropTypes';
 import * as Report from '../../../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
@@ -11,18 +14,12 @@ import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 import ConfirmModal from '../../../../components/ConfirmModal';
 
 const propTypes = {
-    /** Flag to check if the chat participant is Chronos */
-    isChronosReport: PropTypes.bool,
-
-    /** Whether the provided report is an archived room */
-    isArchivedRoom: PropTypes.bool,
-
     ...withLocalizePropTypes,
+    ..._.omit(basePropTypes, ['isMini']),
 };
 
 const defaultProps = {
-    isChronosReport: false,
-    isArchivedRoom: false,
+    ..._.omit(baseDefaultProps, ['isMini']),
 };
 
 class PopoverReportActionContextMenu extends React.Component {

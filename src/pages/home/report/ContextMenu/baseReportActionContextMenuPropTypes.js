@@ -20,6 +20,12 @@ const propTypes = {
 
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
+
+    /** Flag to check if the chat participant is Chronos */
+    isChronosReport: PropTypes.bool,
+
+    /** Whether the provided report is an archived room */
+    isArchivedRoom: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -27,6 +33,8 @@ const defaultProps = {
     isVisible: false,
     selection: '',
     draftMessage: '',
+    isChronosReport: false,
+    isArchivedRoom: false,
 };
 
 export {propTypes, defaultProps};

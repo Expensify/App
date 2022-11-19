@@ -3,14 +3,14 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {
-    propTypes as genericReportActionContextMenuPropTypes,
-    defaultProps as GenericReportActionContextMenuDefaultProps,
-} from '../genericReportActionContextMenuPropTypes';
+    propTypes as basePropTypes,
+    defaultProps as baseDefaultProps,
+} from '../baseReportActionContextMenuPropTypes';
 import * as StyleUtils from '../../../../../styles/StyleUtils';
 import BaseReportActionContextMenu from '../BaseReportActionContextMenu';
 
 const propTypes = {
-    ..._.omit(genericReportActionContextMenuPropTypes, ['isMini']),
+    ..._.omit(basePropTypes, ['isMini']),
 
     /** Should the reportAction this menu is attached to have the appearance of being
      * grouped with the previous reportAction? */
@@ -18,7 +18,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    ..._.omit(GenericReportActionContextMenuDefaultProps, ['isMini']),
+    ..._.omit(baseDefaultProps, ['isMini']),
     displayAsGroup: false,
 };
 

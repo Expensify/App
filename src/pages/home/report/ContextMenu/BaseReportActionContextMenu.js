@@ -7,7 +7,7 @@ import ContextMenuItem from '../../../../components/ContextMenuItem';
 import {
     propTypes as genericReportActionContextMenuPropTypes,
     defaultProps as GenericReportActionContextMenuDefaultProps,
-} from './genericReportActionContextMenuPropTypes';
+} from './baseReportActionContextMenuPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import ContextMenuActions, {CONTEXT_MENU_TYPES} from './ContextMenuActions';
 import compose from '../../../../libs/compose';
