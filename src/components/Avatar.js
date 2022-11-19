@@ -79,15 +79,13 @@ class Avatar extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (!this.state.imageError) {
+        if (
+            !this.state.imageError || !lodashGet(prevProps.network, 'isOffline')
+            || lodashGet(this.props.network, 'isOffline')
+        ) {
             return;
         }
-        if (
-            lodashGet(prevProps.network, 'isOffline')
-            && !lodashGet(this.props.network, 'isOffline')
-        ) {
-            this.setState({imageError: false});
-        }
+        this.setState({imageError: false});
     }
 
     render() {
