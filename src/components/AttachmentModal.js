@@ -31,7 +31,7 @@ import HeaderGap from './HeaderGap';
  */
 
 const propTypes = {
-    /** Optional source URL for the image shown. If not passed in via props must be specified when modal is opened. */
+    /** Optional source URL for the image shown also initializes Carousel's data. If not passed in via props must be specified when modal is opened. */
     sourceURL: PropTypes.string,
 
     /** Optional callback to fire when we want to preview an image and approve it for use. */
@@ -78,7 +78,6 @@ class AttachmentModal extends PureComponent {
             isModalOpen: false,
             isConfirmModalOpen: false,
             reportId: null,
-            showArrows: false,
             file: {name: lodashGet(props, 'originalFileName', '')},
             isAttachmentInvalid: false,
             attachmentInvalidReasonTitle: null,
@@ -279,7 +278,6 @@ class AttachmentModal extends PureComponent {
                     <View style={styles.imageModalImageCenterContainer}>
                         {this.state.reportId ? (
                             <AttachmentCarousel
-                                showArrows={this.state.showArrows}
                                 reportId={this.state.reportId}
                                 onNavigate={this.onNavigate}
                                 sourceURL={this.props.sourceURL}

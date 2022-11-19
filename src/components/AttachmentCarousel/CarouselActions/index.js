@@ -3,26 +3,20 @@ import PropTypes from 'prop-types';
 import {Pressable} from 'react-native';
 
 const propTypes = {
-    /** handles onPress events with a callback  */
-    onPress: PropTypes.func,
+    /** Handles onPress events with a callback  */
+    onPress: PropTypes.func.isRequired,
 
-    /** can handle the cycling of attachments */
-    onCycleThroughAttachments: PropTypes.func,
+    /** Callback to cycle through attachments */
+    onCycleThroughAttachments: PropTypes.func.isRequired,
 
-    /** can be set to provide styles */
-    styles: PropTypes.arrayOf(PropTypes.shape({})),
+    /** Styles to be assigned to Carousel */
+    styles: PropTypes.arrayOf(PropTypes.object).isRequired,
 
     /** Children to render. */
     children: PropTypes.oneOfType([
         PropTypes.func,
         PropTypes.node,
     ]).isRequired,
-};
-
-const defaultProps = {
-    styles: [],
-    onPress: () => {},
-    onCycleThroughAttachments: () => {},
 };
 
 class Carousel extends React.Component {
@@ -64,6 +58,5 @@ class Carousel extends React.Component {
 }
 
 Carousel.propTypes = propTypes;
-Carousel.defaultProps = defaultProps;
 
 export default Carousel;

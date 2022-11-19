@@ -8,21 +8,14 @@ const propTypes = {
     children: PropTypes.element.isRequired,
 
     /** Callback to fire when swiping left or right */
-    onCycleThroughAttachments: PropTypes.func,
+    onCycleThroughAttachments: PropTypes.func.isRequired,
 
     /** Callback to handle a press event because PanResponder will intercept all gestures */
-    onPress: PropTypes.func,
+    onPress: PropTypes.func.isRequired,
 
     /** These help to prevent a swipe animation when at either end */
-    canSwipeLeft: PropTypes.bool,
-    canSwipeRight: PropTypes.bool,
-};
-
-const defaultProps = {
-    onCycleThroughAttachments: () => {},
-    onPress: () => {},
-    canSwipeLeft: false,
-    canSwipeRight: false,
+    canSwipeLeft: PropTypes.bool.isRequired,
+    canSwipeRight: PropTypes.bool.isRequired,
 };
 
 class Carousel extends Component {
@@ -80,6 +73,5 @@ class Carousel extends Component {
 }
 
 Carousel.propTypes = propTypes;
-Carousel.defaultProps = defaultProps;
 
 export default Carousel;
