@@ -4,7 +4,7 @@ import {Rect, Circle} from 'react-native-svg';
 import SkeletonViewContentLoader from 'react-content-loader/native';
 import CONST from '../../CONST';
 import themeColors from '../../styles/themes/default';
-import styles from '../../styles/styles'
+import styles from '../../styles/styles';
 
 const propTypes = {
     /** Number of rows to show in Skeleton UI block */
