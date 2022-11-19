@@ -65,6 +65,8 @@ const propTypes = {
         hasOutstandingIOU: PropTypes.bool,
     }),
 
+    isFocused: PropTypes.bool,
+
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(PropTypes.shape({
 
@@ -95,6 +97,7 @@ const defaultProps = {
     containerStyles: [],
     walletTerms: {},
     pendingAction: null,
+    isFocused: false,
 };
 
 const IOUPreview = (props) => {
@@ -159,7 +162,10 @@ const IOUPreview = (props) => {
                                     <View style={styles.iouPreviewBoxAvatar}>
                                         <MultipleAvatars
                                             icons={[managerAvatar, ownerAvatar]}
-                                            secondAvatarStyle={[styles.secondAvatarInline, {borderColor: themeColors.cardBG}]}
+                                            secondAvatarStyle={[styles.secondAvatarInline, {borderColor: themeColors.cardBG},
+                                                props.isFocused
+                                                    ? {borderColor: themeColors.border}
+                                                    : undefined]}
                                             avatarTooltips={avatarTooltip}
                                         />
                                     </View>

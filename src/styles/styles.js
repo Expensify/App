@@ -2179,6 +2179,10 @@ const styles = {
         width: '100%',
     },
 
+    iouPreviewBoxHover: {
+        backgroundColor: themeColors.border,
+    },
+
     iouPreviewBoxLoading: {
         // When a new IOU request arrives it is very briefly in a loading state, so set the minimum height of the container to 94 to match the rendered height after loading.
         // Otherwise, the IOU request pay button will not be fully visible and the user will have to scroll up to reveal the entire IOU request container.
@@ -2190,6 +2194,10 @@ const styles = {
     iouPreviewBoxAvatar: {
         marginRight: -10,
         marginBottom: -10,
+    },
+
+    iouPreviewBoxAvatarHover: {
+        borderColor: themeColors.border,
     },
 
     iouPreviewBoxCheckmark: {

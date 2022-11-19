@@ -26,12 +26,17 @@ const propTypes = {
         /** The participants of this report */
         participants: PropTypes.arrayOf(PropTypes.string),
     }),
+
+    /** Whether this option is currently in focus so we can modify its style */
+    isFocused: PropTypes.bool,
+
 };
 
 const defaultProps = {
     chatReport: {
         participants: [],
     },
+    isFocused: false,
 };
 
 const IOUAction = (props) => {
@@ -52,7 +57,11 @@ const IOUAction = (props) => {
                         chatReportID={props.chatReportID}
                         onPayButtonPressed={launchDetailsModal}
                         onPreviewPressed={launchDetailsModal}
-                        containerStyles={[styles.cursorPointer]}
+                        containerStyles={[styles.cursorPointer,
+                            props.isFocused
+                                ? styles.iouPreviewBoxHover
+                                : undefined]}
+                        isFocused={props.isFocused}
                     />
             )}
         </>

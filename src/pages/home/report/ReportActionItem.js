@@ -97,42 +97,7 @@ class ReportActionItem extends Component {
         this.textInput.focus();
     }
 
-    /**
-     * Show the ReportActionContextMenu modal popover.
-     *
-     * @param {Object} [event] - A press event.
-     */
-    showPopover(event) {
-        // Block menu on the message being Edited
-        if (this.props.draftMessage) {
-            return;
-        }
-        const selection = SelectionScraper.getCurrentSelection();
-        ReportActionContextMenu.showContextMenu(
-            ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
-            event,
-            selection,
-            this.popoverAnchor,
-            this.props.report.reportID,
-            this.props.action,
-            this.props.draftMessage,
-            this.checkIfContextMenuActive,
-            this.checkIfContextMenuActive,
-        );
-    }
-
-    checkIfContextMenuActive() {
-        this.setState({isContextMenuActive: ReportActionContextMenu.isActiveReportAction(this.props.action.reportActionID)});
-    }
-
-    render() {
-        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-            return <ReportActionItemCreated reportID={this.props.report.reportID} />;
-        }
-        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
-            return <RenameAction action={this.props.action} />;
-        }
-
+    getChildren(hovered = false) {
         let children;
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
             children = (
@@ -140,6 +105,7 @@ class ReportActionItem extends Component {
                     chatReportID={this.props.report.reportID}
                     action={this.props.action}
                     isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
+                    isFocused={hovered}
                 />
             );
         } else {
@@ -160,6 +126,44 @@ class ReportActionItem extends Component {
                         }
                     />
                 );
+        }
+        return children;
+    }
+
+    checkIfContextMenuActive() {
+        this.setState({isContextMenuActive: ReportActionContextMenu.isActiveReportAction(this.props.action.reportActionID)});
+    }
+
+    /**
+                 * Show the ReportActionContextMenu modal popover.
+                 *
+                 * @param {Object} [event] - A press event.
+                 */
+    showPopover(event) {
+        // Block menu on the message being Edited
+        if (this.props.draftMessage) {
+            return;
+        }
+        const selection = SelectionScraper.getCurrentSelection();
+        ReportActionContextMenu.showContextMenu(
+            ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
+            event,
+            selection,
+            this.popoverAnchor,
+            this.props.report.reportID,
+            this.props.action,
+            this.props.draftMessage,
+            this.checkIfContextMenuActive,
+            this.checkIfContextMenuActive,
+        );
+    }
+
+    render() {
+        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+            return <ReportActionItemCreated reportID={this.props.report.reportID} />;
+        }
+        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+            return <RenameAction action={this.props.action} />;
         }
         return (
             <PressableWithSecondaryInteraction
@@ -198,12 +202,12 @@ class ReportActionItem extends Component {
                                     {!this.props.displayAsGroup
                                         ? (
                                             <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>
-                                                {children}
+                                                {this.getChildren(hovered)}
                                             </ReportActionItemSingle>
                                         )
                                         : (
                                             <ReportActionItemGrouped>
-                                                {children}
+                                                {this.getChildren(hovered)}
                                             </ReportActionItemGrouped>
                                         )}
                                 </OfflineWithFeedback>
