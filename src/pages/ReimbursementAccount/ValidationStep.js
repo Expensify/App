@@ -204,16 +204,14 @@ class ValidationStep extends React.Component {
                                 large
                                 success
                             />
-                            <View style={[styles.mv3]}>
-                                <MenuItem
-                                    title={this.props.translate('workspace.bankAccount.noLetsStartOver')}
-                                    icon={Expensicons.RotateLeft}
-                                    onPress={BankAccounts.requestResetFreePlanBankAccount}
-                                    shouldShowRightIcon
-                                    iconFill={themeColors.success}
-                                    wrapperStyle={[styles.cardMenuItem]}
-                                />
-                            </View>
+                            <MenuItem
+                                title={this.props.translate('workspace.bankAccount.noLetsStartOver')}
+                                icon={Expensicons.RotateLeft}
+                                onPress={BankAccounts.requestResetFreePlanBankAccount}
+                                shouldShowRightIcon
+                                iconFill={themeColors.success}
+                                wrapperStyle={[styles.cardMenuItem, styles.mv3]}
+                            />
                         </Section>
                     </View>
                 )}

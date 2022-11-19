@@ -54,7 +54,6 @@ const WorkspaceCardVBANoECardView = props => (
                 {props.translate('workspace.card.checkingDomain')}
             </Text>
         )}
-
     </>
 );
 

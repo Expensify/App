@@ -131,15 +131,13 @@ class EnableStep extends React.Component {
                                 success
                             />
                         )}
-                        <View style={[styles.mv3]}>
-                            <MenuItem
-                                title={this.props.translate('workspace.bankAccount.disconnectBankAccount')}
-                                icon={Expensicons.Close}
-                                onPress={BankAccounts.requestResetFreePlanBankAccount}
-                                iconFill={themeColors.success}
-                                wrapperStyle={[styles.cardMenuItem]}
-                            />
-                        </View>
+                        <MenuItem
+                            title={this.props.translate('workspace.bankAccount.disconnectBankAccount')}
+                            icon={Expensicons.Close}
+                            onPress={BankAccounts.requestResetFreePlanBankAccount}
+                            iconFill={themeColors.success}
+                            wrapperStyle={[styles.cardMenuItem, styles.mv3]}
+                        />
                     </Section>
                     {this.props.user.isCheckingDomain && (
                         <Text style={[styles.formError, styles.mh5]}>
