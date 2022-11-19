@@ -38,7 +38,7 @@ const defaultProps = {
     sourceURL: '',
     report: {
         isLoadingMoreReportActions: false,
-        reportId: '',
+        reportID: '',
     },
     reportActions: {},
     onNavigate: () => {},
@@ -50,7 +50,6 @@ class AttachmentCarousel extends React.Component {
 
         this.canUseTouchScreen = canUseTouchScreen();
         this.makeStateWithReports = this.makeStateWithReports.bind(this);
-        this.loadMoreChats = this.loadMoreChats.bind(this);
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
         this.onShowArrow = this.onShowArrow.bind(this);
 
@@ -127,31 +126,6 @@ class AttachmentCarousel extends React.Component {
     }
 
     /**
-     * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
-     * displaying.
-     */
-    loadMoreChats() {
-        // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (this.props.report.isLoadingMoreReportActions) {
-            return;
-        }
-
-        const minSequenceNumber = _.chain(this.props.reportActions)
-            .pluck('sequenceNumber')
-            .min()
-            .value();
-
-        if (minSequenceNumber === 0) {
-            return;
-        }
-
-        // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
-        // case just get everything starting from 0.
-        const oldestActionSequenceNumber = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
-        Report.readOldestAction(this.props.report.reportID, oldestActionSequenceNumber);
-    }
-
-    /**
      * increments or decrements the index to get another selected item
      * @param {Number} deltaSlide
     */
@@ -163,7 +137,7 @@ class AttachmentCarousel extends React.Component {
         this.setState(({attachments, page}) => {
             const nextIndex = page + deltaSlide;
             if (nextIndex < 10) {
-                this.loadMoreChats();
+                Report.loadMoreActions(this.props.report.reportID, this.props.reportActions, this.props.report.isLoadingMoreReportActions);
             }
             const {sourceURL, file} = this.getAttachment(attachments[nextIndex]);
             this.props.onNavigate({sourceURL, file});
@@ -171,8 +145,8 @@ class AttachmentCarousel extends React.Component {
                 page: nextIndex,
                 sourceURL,
                 file,
-                isBackDisabled: nextIndex === 0,
-                isForwardDisabled: nextIndex === attachments.length - 1,
+                isBackDisabled: nextIndex === attachments.length - 1,
+                isForwardDisabled: nextIndex === 0,
             };
         });
     }

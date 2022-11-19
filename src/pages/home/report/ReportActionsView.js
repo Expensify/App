@@ -280,24 +280,7 @@ class ReportActionsView extends React.Component {
      * displaying.
      */
     loadMoreChats() {
-        // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (this.props.report.isLoadingMoreReportActions) {
-            return;
-        }
-
-        const minSequenceNumber = _.chain(this.props.reportActions)
-            .pluck('sequenceNumber')
-            .min()
-            .value();
-
-        if (minSequenceNumber === 0) {
-            return;
-        }
-
-        // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
-        // case just get everything starting from 0.
-        const oldestActionSequenceNumber = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
-        Report.readOldestAction(this.props.report.reportID, oldestActionSequenceNumber);
+        Report.loadMoreActions(this.props.report.reportID, this.props.reportActions, this.props.report.isLoadingMoreReportActions);
     }
 
     scrollToUnreadMsgAndMarkReportAsRead() {
