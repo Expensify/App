@@ -22,6 +22,8 @@ Onyx.connect({
 // We use the AbortController API to terminate pending request in `cancelPendingRequests`
 let cancellationController = new AbortController();
 
+const platform = getOperatingSystem();
+
 /**
  * Send an HTTP request, and attempt to resolve the json response.
  * If there is a network error, we'll set the application offline.
@@ -100,7 +102,6 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
     let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.URL_API_ROOT;
 
     // If we are in native mobile apps, we dont have access to up-to-date Config so we need to only rely on the toggle switch
-    const platform = getOperatingSystem();
     const nativeStagingSwitcher = (platform === CONST.OS.ANDROID || platform === CONST.OS.IOS) && shouldUseStagingServer;
     const webStagingSwitcher = CONFIG.IS_IN_STAGING && shouldUseStagingServer;
     if (nativeStagingSwitcher || webStagingSwitcher) {
