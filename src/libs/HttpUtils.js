@@ -100,7 +100,8 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
     let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.URL_API_ROOT;
 
     // If we are in native mobile apps, we dont have access to up-to-date Config so we need to only rely on the toggle switch
-    const nativeStagingSwitcher = (getOperatingSystem() === CONST.OS.ANDROID || getOperatingSystem() === CONST.OS.IOS) && shouldUseStagingServer;
+    const platform = getOperatingSystem();
+    const nativeStagingSwitcher = (platform === CONST.OS.ANDROID || platform === CONST.OS.IOS) && shouldUseStagingServer;
     const webStagingSwitcher = CONFIG.IS_IN_STAGING && shouldUseStagingServer;
     if (nativeStagingSwitcher || webStagingSwitcher) {
         apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.STAGING_SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.STAGING_EXPENSIFY_URL;
