@@ -97,7 +97,40 @@ class ReportActionItem extends Component {
         this.textInput.focus();
     }
 
-    getChildren(hovered = false) {
+    checkIfContextMenuActive() {
+        this.setState({isContextMenuActive: ReportActionContextMenu.isActiveReportAction(this.props.action.reportActionID)});
+    }
+
+    /**
+     * Show the ReportActionContextMenu modal popover.
+     *
+     * @param {Object} [event] - A press event.
+     */
+    showPopover(event) {
+        // Block menu on the message being Edited
+        if (this.props.draftMessage) {
+            return;
+        }
+        const selection = SelectionScraper.getCurrentSelection();
+        ReportActionContextMenu.showContextMenu(
+            ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
+            event,
+            selection,
+            this.popoverAnchor,
+            this.props.report.reportID,
+            this.props.action,
+            this.props.draftMessage,
+            this.checkIfContextMenuActive,
+            this.checkIfContextMenuActive,
+        );
+    }
+
+    /**
+     * Get the content of ReportActionItem
+     * @param {Bool} hovered whether the ReportActionItem is hovered
+     * @returns {Object} child component(s)
+     */
+    renderItemContent(hovered = false) {
         let children;
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
             children = (
@@ -128,34 +161,6 @@ class ReportActionItem extends Component {
                 );
         }
         return children;
-    }
-
-    checkIfContextMenuActive() {
-        this.setState({isContextMenuActive: ReportActionContextMenu.isActiveReportAction(this.props.action.reportActionID)});
-    }
-
-    /**
-                 * Show the ReportActionContextMenu modal popover.
-                 *
-                 * @param {Object} [event] - A press event.
-                 */
-    showPopover(event) {
-        // Block menu on the message being Edited
-        if (this.props.draftMessage) {
-            return;
-        }
-        const selection = SelectionScraper.getCurrentSelection();
-        ReportActionContextMenu.showContextMenu(
-            ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
-            event,
-            selection,
-            this.popoverAnchor,
-            this.props.report.reportID,
-            this.props.action,
-            this.props.draftMessage,
-            this.checkIfContextMenuActive,
-            this.checkIfContextMenuActive,
-        );
     }
 
     render() {
@@ -202,12 +207,12 @@ class ReportActionItem extends Component {
                                     {!this.props.displayAsGroup
                                         ? (
                                             <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>
-                                                {this.getChildren(hovered)}
+                                                {this.renderItemContent(hovered)}
                                             </ReportActionItemSingle>
                                         )
                                         : (
                                             <ReportActionItemGrouped>
-                                                {this.getChildren(hovered)}
+                                                {this.renderItemContent(hovered)}
                                             </ReportActionItemGrouped>
                                         )}
                                 </OfflineWithFeedback>

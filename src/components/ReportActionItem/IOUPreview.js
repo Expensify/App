@@ -65,6 +65,7 @@ const propTypes = {
         hasOutstandingIOU: PropTypes.bool,
     }),
 
+    /** True if the IOU Preview card is hovered */
     isFocused: PropTypes.bool,
 
     /** All of the personal details for everyone */
@@ -162,10 +163,8 @@ const IOUPreview = (props) => {
                                     <View style={styles.iouPreviewBoxAvatar}>
                                         <MultipleAvatars
                                             icons={[managerAvatar, ownerAvatar]}
-                                            secondAvatarStyle={[styles.secondAvatarInline, {borderColor: themeColors.cardBG},
-                                                props.isFocused
-                                                    ? {borderColor: themeColors.border}
-                                                    : undefined]}
+                                            secondAvatarStyle={[styles.secondAvatarInline,
+                                                props.isFocused && styles.iouPreviewBoxAvatarHover]}
                                             avatarTooltips={avatarTooltip}
                                         />
                                     </View>

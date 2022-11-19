@@ -1658,7 +1658,7 @@ const styles = {
         right: -25,
         borderWidth: 3,
         borderRadius: 18,
-        borderColor: themeColors.componentBG,
+        borderColor: themeColors.cardBG,
     },
 
     avatarLarge: {
@@ -2180,7 +2180,7 @@ const styles = {
     },
 
     iouPreviewBoxHover: {
-        backgroundColor: themeColors.border,
+        backgroundColor: themeColors.activeComponentBG,
     },
 
     iouPreviewBoxLoading: {
@@ -2197,7 +2197,7 @@ const styles = {
     },
 
     iouPreviewBoxAvatarHover: {
-        borderColor: themeColors.border,
+        borderColor: themeColors.activeComponentBG,
     },
 
     iouPreviewBoxCheckmark: {
