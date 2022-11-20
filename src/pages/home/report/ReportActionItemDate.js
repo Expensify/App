@@ -8,13 +8,13 @@ import {withCurrentDate} from '../../../components/OnyxProvider';
 
 const propTypes = {
     /** UTC timestamp for when the action was created */
-    timestamp: PropTypes.number.isRequired,
+    created: PropTypes.string.isRequired,
     ...withLocalizePropTypes,
 };
 
 const ReportActionItemDate = props => (
     <Text style={[styles.chatItemMessageHeaderTimestamp]}>
-        {props.timestampToDateTime(props.timestamp)}
+        {props.datetimeToCalendarTime(props.created)}
     </Text>
 );
 

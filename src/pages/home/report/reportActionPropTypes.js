@@ -12,8 +12,8 @@ export default {
     /** ID of the report action */
     sequenceNumber: PropTypes.number,
 
-    /** Unix timestamp */
-    timestamp: PropTypes.number,
+    /** ISO-formatted datetime */
+    created: PropTypes.string,
 
     /** report action message */
     message: PropTypes.arrayOf(reportActionFragmentPropTypes),
