@@ -1,7 +1,7 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {
-    View, Image, Pressable,
+    View, Pressable,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FastImage from '../FastImage';
@@ -15,9 +15,17 @@ import ONYXKEYS from '../../ONYXKEYS';
 import chatAttachmentTokenHeaders from '../../libs/chatAttachmentTokenHeaders';
 
 const propTypes = {
+
+    /** Do the urls require an authToken? */
+    isAuthTokenRequired: PropTypes.bool,
+
     /** URL to full-sized image */
     url: PropTypes.string.isRequired,
     ...windowDimensionsPropTypes,
+};
+
+const defaultProps = {
+    isAuthTokenRequired: false,
 };
 
 class ImageView extends PureComponent {
@@ -28,6 +36,7 @@ class ImageView extends PureComponent {
         this.onContainerLayoutChanged = this.onContainerLayoutChanged.bind(this);
         this.onContainerPressIn = this.onContainerPressIn.bind(this);
         this.onContainerPress = this.onContainerPress.bind(this);
+        this.imageLoad = this.imageLoad.bind(this);
         this.imageLoadingStart = this.imageLoadingStart.bind(this);
         this.imageLoadingEnd = this.imageLoadingEnd.bind(this);
         this.trackMovement = this.trackMovement.bind(this);
@@ -51,9 +60,6 @@ class ImageView extends PureComponent {
     }
 
     componentDidMount() {
-        Image.getSize(this.props.url, (width, height) => {
-            this.setImageRegion(width, height);
-        });
         if (this.canUseTouchScreen) {
             return;
         }
@@ -212,6 +218,10 @@ class ImageView extends PureComponent {
         this.setState(prevState => ({isDragging: prevState.isMouseDown}));
     }
 
+    imageLoad({nativeEvent}) {
+        this.setImageRegion(nativeEvent.width, nativeEvent.height);
+    }
+
     imageLoadingStart() {
         this.setState({isLoading: true});
     }
@@ -221,6 +231,7 @@ class ImageView extends PureComponent {
     }
 
     render() {
+        const headers = this.props.isAuthTokenRequired ? chatAttachmentTokenHeaders() : undefined;
         if (this.canUseTouchScreen) {
             return (
                 <View
@@ -230,7 +241,7 @@ class ImageView extends PureComponent {
                     <FastImage
                         source={{
                             uri: this.props.url,
-                            headers: chatAttachmentTokenHeaders(),
+                            headers,
                         }}
                         style={this.state.zoomScale === 0 ? undefined : [
                             styles.w100,
@@ -242,6 +253,7 @@ class ImageView extends PureComponent {
                         resizeMode={this.state.zoomScale > 1 ? FastImage.resizeMode.center : FastImage.resizeMode.contain}
                         onLoadStart={this.imageLoadingStart}
                         onLoadEnd={this.imageLoadingEnd}
+                        onLoad={this.imageLoad}
                     />
                     {this.state.isLoading && (
                         <FullscreenLoadingIndicator
@@ -274,7 +286,10 @@ class ImageView extends PureComponent {
                     onPress={this.onContainerPress}
                 >
                     <FastImage
-                        source={{uri: this.props.url}}
+                        source={{
+                            uri: this.props.url,
+                            headers,
+                        }}
                         style={this.state.zoomScale === 0 ? undefined : [
                             styles.h100,
                             styles.w100,
@@ -282,6 +297,7 @@ class ImageView extends PureComponent {
                         resizeMode={FastImage.resizeMode.contain}
                         onLoadStart={this.imageLoadingStart}
                         onLoadEnd={this.imageLoadingEnd}
+                        onLoad={this.imageLoad}
                     />
                 </Pressable>
 
@@ -296,6 +312,7 @@ class ImageView extends PureComponent {
 }
 
 ImageView.propTypes = propTypes;
+ImageView.defaultProps = defaultProps;
 export default compose(withWindowDimensions, withOnyx({
     session: {key: ONYXKEYS.SESSION},
 }))(ImageView);
