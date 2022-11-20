@@ -98,7 +98,7 @@ const ReportActionItemSingle = (props) => {
                                 />
                             ))}
                         </Pressable>
-                        <ReportActionItemDate timestamp={props.action.timestamp} />
+                        <ReportActionItemDate created={props.action.created} />
                     </View>
                 ) : null}
                 {props.children}
