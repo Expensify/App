@@ -115,7 +115,7 @@
     "save": "^2.4.0",
     "shim-keyboard-event-key": "^1.0.3",
     "underscore": "^1.13.1",
-    "urbanairship-react-native": "^14.4.1"
+    "urbanairship-react-native": "^14.5.0"
   },
   "devDependencies": {
     "@actions/core": "1.10.0",
