@@ -13,16 +13,12 @@ const sidebarPropTypes = {
     /* Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
-    /* Is workspace is being created by the user? */
-    isCreatingWorkspace: PropTypes.bool,
-
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
 };
 
 const sidebarDefaultProps = {
-    isCreatingWorkspace: false,
     allPolicies: {},
     betas: [],
 };

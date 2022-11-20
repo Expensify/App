@@ -5,6 +5,9 @@ export default {
     // Holds information about the users account that is logging in
     ACCOUNT: 'account',
 
+    // Holds the reportID for the report between the user and their account manager
+    ACCOUNT_MANAGER_REPORT_ID: 'accountManagerReportID',
+
     // Boolean flag only true when first set
     NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
 
@@ -12,23 +15,14 @@ export default {
     // which tab is the leader, and which ones are the followers
     ACTIVE_CLIENTS: 'activeClients',
 
-    // Boolean flag set whenever we are waiting for the reconnection callbacks to finish.
-    IS_LOADING_AFTER_RECONNECT: 'isLoadingAfterReconnect',
-
     // Boolean flag set whenever the sidebar has loaded
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
-
-    // Boolean flag set when workspace is being created
-    IS_CREATING_WORKSPACE: 'isCreatingWorkspace',
 
     // Note: These are Persisted Requests - not all requests in the main queue as the key name might lead one to believe
     PERSISTED_REQUESTS: 'networkRequestQueue',
 
     // Stores current date
     CURRENT_DATE: 'currentDate',
-
-    // Currently viewed reportID
-    CURRENTLY_VIEWED_REPORTID: 'currentlyViewedReportID',
 
     // Credentials to authenticate the user
     CREDENTIALS: 'credentials',
@@ -73,6 +67,9 @@ export default {
     // Contains the user's payPalMe address
     NVP_PAYPAL_ME_ADDRESS: 'nvp_paypalMeAddress',
 
+    // Contains the user's payPalMe data
+    PAYPAL: 'paypal',
+
     // Contains the user preference for the LHN priority mode
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
 
@@ -88,6 +85,9 @@ export default {
     // Token needed to initialize Plaid link
     PLAID_LINK_TOKEN: 'plaidLinkToken',
 
+    // Token needed to initialize Onfido
+    ONFIDO_TOKEN: 'onfidoToken',
+
     // Collection Keys
     COLLECTION: {
         REPORT: 'report_',
@@ -97,7 +97,6 @@ export default {
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         REPORT_IOUS: 'reportIOUs_',
         POLICY: 'policy_',
-        REPORTS_WITH_DRAFT: 'reportWithDraft_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         POLICY_MEMBER_LIST: 'policyMemberList_',
     },
@@ -159,17 +158,8 @@ export default {
     // Is report data loading?
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
 
-    // Is policy data loading?
-    IS_LOADING_POLICY_DATA: 'isLoadingPolicyData',
-
-    // Are we loading the create policy room command
-    IS_LOADING_CREATE_POLICY_ROOM: 'isLoadingCratePolicyRoom',
-
     // Is Keyboard shortcuts modal open?
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
-
-    // Data related to user closing their account (loading status and error message)
-    CLOSE_ACCOUNT: 'closeAccount',
 
     // Stores information about active wallet transfer amount, selectedAccountID, status, etc
     WALLET_TRANSFER: 'walletTransfer',
@@ -181,5 +171,13 @@ export default {
     FORMS: {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
         REQUEST_CALL_FORM: 'requestCallForm',
+        REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
+        WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
+        CLOSE_ACCOUNT_FORM: 'closeAccount',
+        PROFILE_SETTINGS_FORM: 'profileSettingsForm',
+        DISPLAY_NAME_FORM: 'displayNameForm',
     },
+
+    // Whether we should show the compose input or not
+    SHOULD_SHOW_COMPOSE_INPUT: 'shouldShowComposeInput',
 };

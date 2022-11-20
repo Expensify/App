@@ -13,7 +13,6 @@ import HapticFeedback from '../libs/HapticFeedback';
 import withNavigationFallback from './withNavigationFallback';
 import compose from '../libs/compose';
 import * as Expensicons from './Icon/Expensicons';
-import colors from '../styles/colors';
 import withNavigationFocus from './withNavigationFocus';
 
 const propTypes = {
@@ -45,9 +44,6 @@ const propTypes = {
     /** medium sized button */
     medium: PropTypes.bool,
 
-    /** Extra large sized button */
-    extraLarge: PropTypes.bool,
-
     /** Indicates whether the button should be disabled and in the loading state */
     isLoading: PropTypes.bool,
 
@@ -65,6 +61,9 @@ const propTypes = {
 
     /** A function that is called when the button is released */
     onPressOut: PropTypes.func,
+
+    /** Callback that is called when mousedown is triggered. */
+    onMouseDown: PropTypes.func,
 
     /** Call the onPress function when Enter key is pressed */
     pressOnEnter: PropTypes.bool,
@@ -116,18 +115,18 @@ const defaultProps = {
     shouldShowRightIcon: false,
     icon: null,
     iconRight: Expensicons.ArrowRight,
-    iconFill: colors.white,
+    iconFill: themeColors.textLight,
     iconStyles: [],
     isLoading: false,
     isDisabled: false,
     small: false,
     large: false,
     medium: false,
-    extraLarge: false,
     onPress: () => {},
     onLongPress: () => {},
     onPressIn: () => {},
     onPressOut: () => {},
+    onMouseDown: undefined,
     pressOnEnter: false,
     enterKeyEventListenerPriority: 0,
     style: [],
@@ -191,7 +190,6 @@ class Button extends Component {
                     this.props.small && styles.buttonSmallText,
                     this.props.medium && styles.buttonMediumText,
                     this.props.large && styles.buttonLargeText,
-                    this.props.extraLarge && styles.buttonExtraLargeText,
                     this.props.success && styles.buttonSuccessText,
                     this.props.danger && styles.buttonDangerText,
                     ...this.props.textStyles,
@@ -254,6 +252,7 @@ class Button extends Component {
                 }}
                 onPressIn={this.props.onPressIn}
                 onPressOut={this.props.onPressOut}
+                onMouseDown={this.props.onMouseDown}
                 disabled={this.props.isLoading || this.props.isDisabled}
                 style={[
                     this.props.isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
@@ -271,7 +270,6 @@ class Button extends Component {
                                 this.props.small ? styles.buttonSmall : undefined,
                                 this.props.medium ? styles.buttonMedium : undefined,
                                 this.props.large ? styles.buttonLarge : undefined,
-                                this.props.extraLarge ? styles.buttonExtraLarge : undefined,
                                 this.props.success ? styles.buttonSuccess : undefined,
                                 this.props.danger ? styles.buttonDanger : undefined,
                                 (this.props.isDisabled && this.props.success) ? styles.buttonSuccessDisabled : undefined,
@@ -287,7 +285,7 @@ class Button extends Component {
                             {this.renderContent()}
                             {this.props.isLoading && (
                                 <ActivityIndicator
-                                    color={(this.props.success || this.props.danger) ? themeColors.textReversed : themeColors.text}
+                                    color={(this.props.success || this.props.danger) ? themeColors.textLight : themeColors.text}
                                     style={[styles.pAbsolute, styles.l0, styles.r0]}
                                 />
                             )}

@@ -54,8 +54,6 @@ class AddSecondaryLoginPage extends Component {
         this.submitForm = this.submitForm.bind(this);
         this.onSecondaryLoginChange = this.onSecondaryLoginChange.bind(this);
         this.validateForm = this.validateForm.bind(this);
-
-        this.phoneNumberInputRef = null;
     }
 
     componentWillUnmount() {
@@ -92,13 +90,14 @@ class AddSecondaryLoginPage extends Component {
 
     render() {
         return (
-            <ScreenWrapper onTransitionEnd={() => {
-                if (!this.phoneNumberInputRef) {
-                    return;
-                }
+            <ScreenWrapper
+                onTransitionEnd={() => {
+                    if (!this.phoneNumberInputRef) {
+                        return;
+                    }
 
-                this.phoneNumberInputRef.focus();
-            }}
+                    this.phoneNumberInputRef.focus();
+                }}
             >
                 <HeaderWithCloseButton
                     title={this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
@@ -123,7 +122,7 @@ class AddSecondaryLoginPage extends Component {
                             value={this.state.login}
                             onChangeText={this.onSecondaryLoginChange}
                             keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE
-                                ? CONST.KEYBOARD_TYPE.PHONE_PAD : undefined}
+                                ? CONST.KEYBOARD_TYPE.PHONE_PAD : CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
                             returnKeyType="done"
                         />
                     </View>

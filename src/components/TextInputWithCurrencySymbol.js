@@ -28,12 +28,23 @@ const propTypes = {
 
     /** Currency code of user's selected currency */
     selectedCurrencyCode: PropTypes.string.isRequired,
+
+    /** Selection Object */
+    selection: PropTypes.shape({
+        start: PropTypes.number,
+        end: PropTypes.number,
+    }),
+
+    /** Function to call when selection in text input is changed */
+    onSelectionChange: PropTypes.func,
 };
 
 const defaultProps = {
     forwardedRef: undefined,
     onChangeAmount: () => {},
     onCurrencyButtonPress: () => {},
+    selection: undefined,
+    onSelectionChange: () => {},
 };
 
 function TextInputWithCurrencySymbol(props) {
@@ -53,6 +64,8 @@ function TextInputWithCurrencySymbol(props) {
             onChangeAmount={props.onChangeAmount}
             placeholder={props.placeholder}
             ref={props.forwardedRef}
+            selection={props.selection}
+            onSelectionChange={props.onSelectionChange}
         />
     );
 

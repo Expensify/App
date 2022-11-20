@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 
 export default PropTypes.shape({
-    /** Unique identifier returned from fetchOnfidoToken then re-sent to ActivateWallet with Onfido response data */
+    /** Unique identifier returned from openOnfidoFlow then re-sent to ActivateWallet with Onfido response data */
     applicantID: PropTypes.string,
 
     /** Token used to initialize the Onfido SDK token */

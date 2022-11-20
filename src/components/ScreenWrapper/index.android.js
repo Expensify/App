@@ -6,12 +6,15 @@ const ScreenWrapper = props => (
     <BaseScreenWrapper
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
-        keyboardAvoidingViewBehavior="height"
     >
         {props.children}
     </BaseScreenWrapper>
 );
+
+defaultProps.keyboardAvoidingViewBehavior = 'height';
+
 ScreenWrapper.propTypes = propTypes;
 ScreenWrapper.defaultProps = defaultProps;
+ScreenWrapper.displayName = 'ScreenWrapper';
 
 export default ScreenWrapper;

@@ -125,7 +125,9 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.copyLink',
         icon: Expensicons.LinkCopy,
-        shouldShow: (type, reportAction, betas, menuTarget) => {
+        successIcon: Expensicons.Checkmark,
+        successTextTranslateKey: 'reportActionContextMenu.copied',
+        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget) => {
             const isAttachment = ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}])));
 
             // Only hide the copylink menu item when context menu is opened over img element.
@@ -155,13 +157,14 @@ export default [
             }
         },
         getDescription: () => {},
+        autoReset: false,
     },
 
     {
         textTranslateKey: 'reportActionContextMenu.editComment',
         icon: Expensicons.Pencil,
-        shouldShow: (type, reportAction) => (
-            type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction)
+        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) => (
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && !isArchivedRoom && !isChronosReport
         ),
         onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
             const editAction = () => Report.saveReportActionDraft(
@@ -184,8 +187,8 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.deleteComment',
         icon: Expensicons.Trashcan,
-        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION
-            && ReportUtils.canDeleteReportAction(reportAction),
+        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) => type === CONTEXT_MENU_TYPES.REPORT_ACTION
+            && ReportUtils.canDeleteReportAction(reportAction) && !isArchivedRoom && !isChronosReport,
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal

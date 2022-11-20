@@ -1,4 +1,5 @@
 import bold from '../bold';
+import emojiFont from './emoji';
 
 const fontFamily = {
     GTA_ITALIC: 'GTAmericaExp-RgIt',
@@ -9,6 +10,7 @@ const fontFamily = {
     MONOSPACE_ITALIC: 'GTAmericaExpMono-RgIt',
     MONOSPACE_BOLD: 'GTAmericaExpMono-Bd',
     MONOSPACE_BOLD_ITALIC: 'GTAmericaExpMono-BdIt',
+    EMOJI_TEXT_FONT: emojiFont,
 };
 
 export default fontFamily;

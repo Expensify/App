@@ -1,22 +1,9 @@
 import React, {PureComponent} from 'react';
 import {
-    Dimensions, Keyboard, LayoutAnimation, View,
+    Dimensions, Keyboard, View,
 } from 'react-native';
 import * as StyleUtils from '../../styles/StyleUtils';
 import {propTypes, defaultProps} from './BaseKeyboardSpacerPropTypes';
-
-const defaultAnimation = {
-    duration: 500,
-    create: {
-        duration: 300,
-        type: LayoutAnimation.Types.easeInEaseOut,
-        property: LayoutAnimation.Properties.opacity,
-    },
-    update: {
-        type: LayoutAnimation.Types.spring,
-        springDamping: 200,
-    },
-};
 
 class BaseKeyboardSpacer extends PureComponent {
     constructor(props) {
@@ -52,7 +39,6 @@ class BaseKeyboardSpacer extends PureComponent {
             return;
         }
 
-        LayoutAnimation.configureNext(defaultAnimation);
         const screenHeight = Dimensions.get('window').height;
         const keyboardSpace = (screenHeight - event.endCoordinates.screenY) + this.props.topSpacing;
         this.setState({
@@ -66,8 +52,6 @@ class BaseKeyboardSpacer extends PureComponent {
      * @param {Object} [event] - A Keyboard Event.
      */
     resetKeyboardSpace() {
-        LayoutAnimation.configureNext(defaultAnimation);
-
         this.setState({
             keyboardSpace: 0,
         }, this.props.onToggle(false, 0));

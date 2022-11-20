@@ -18,9 +18,10 @@ import Text from '../components/Text';
 import Button from '../components/Button';
 import RoomNameInput from '../components/RoomNameInput';
 import Picker from '../components/Picker';
-import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from './workspace/withFullPolicy';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
+import reportPropTypes from './reportPropTypes';
+import withReportOrNavigateHome from './home/report/withReportOrNavigateHome';
 
 const propTypes = {
     /** Route params */
@@ -31,43 +32,12 @@ const propTypes = {
         }),
     }).isRequired,
 
-    ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
 
     /* Onyx Props */
 
     /** The active report */
-    report: PropTypes.shape({
-        /** The list of icons */
-        icons: PropTypes.arrayOf(PropTypes.string),
-
-        /** The report name */
-        reportName: PropTypes.string,
-
-        /** ID of the report */
-        reportID: PropTypes.number,
-
-        /** The current user's notification preference for this report */
-        notificationPreference: PropTypes.string,
-
-        /** Access setting e.g. whether the report is "restricted" */
-        visibility: PropTypes.string,
-
-        /** Linked policy's ID */
-        policyID: PropTypes.string,
-    }).isRequired,
-
-    /** All reports shared with the user */
-    reports: PropTypes.objectOf(PropTypes.shape({
-        /** The report name */
-        reportName: PropTypes.string,
-
-        /** The report type */
-        type: PropTypes.string,
-
-        /** ID of the policy */
-        policyID: PropTypes.string,
-    })).isRequired,
+    report: reportPropTypes.isRequired,
 
     /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({
@@ -77,17 +47,6 @@ const propTypes = {
         /** ID of the policy */
         id: PropTypes.string,
     }).isRequired,
-};
-
-const defaultProps = {
-    ...fullPolicyDefaultProps,
-    report: {
-        reportID: 0,
-        reportName: '',
-        policyID: '',
-        notificationPreference: '',
-        visibility: '',
-    },
 };
 
 class ReportSettingsPage extends Component {
@@ -125,11 +84,6 @@ class ReportSettingsPage extends Component {
      */
     resetToPreviousName() {
         this.setState({newRoomName: this.props.report.reportName});
-
-        // Reset the input's value back to the previously saved report name
-        if (this.roomNameInputRef) {
-            this.roomNameInputRef.setNativeProps({text: this.props.report.reportName.replace(CONST.POLICY.ROOM_PREFIX, '')});
-        }
         Report.clearPolicyRoomNameErrors(this.props.report.reportID);
     }
 
@@ -143,14 +97,14 @@ class ReportSettingsPage extends Component {
     validate() {
         const errors = {};
 
+        // When the report name is not changed, skip the form submission. Added check here to keep the code clean
+        if (this.state.newRoomName === this.props.report.reportName) {
+            return false;
+        }
+
         // We error if the user doesn't enter a room name or left blank
         if (!this.state.newRoomName || this.state.newRoomName === CONST.POLICY.ROOM_PREFIX) {
             errors.newRoomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
-        }
-
-        // We error if the room name already exists. We don't error if the room name matches same as previous.
-        if (ValidationUtils.isExistingRoomName(this.state.newRoomName, this.props.reports, this.props.report.policyID) && this.state.newRoomName !== this.props.report.reportName) {
-            errors.newRoomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
         }
 
         // Certain names are reserved for default rooms and should not be used for policy rooms.
@@ -187,8 +141,8 @@ class ReportSettingsPage extends Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('common.settings')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack()}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
+                    onBackButtonPress={Navigation.goBack}
+                    onCloseButtonPress={Navigation.dismissModal}
                 />
                 <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                     <View>
@@ -196,6 +150,10 @@ class ReportSettingsPage extends Component {
                             <Picker
                                 label={this.props.translate('notificationPreferences.label')}
                                 onInputChange={(notificationPreference) => {
+                                    if (this.props.report.notificationPreference === notificationPreference) {
+                                        return;
+                                    }
+
                                     Report.updateNotificationPreference(
                                         this.props.report.reportID,
                                         this.props.report.notificationPreference,
@@ -229,7 +187,7 @@ class ReportSettingsPage extends Component {
                                             : (
                                                 <RoomNameInput
                                                     ref={el => this.roomNameInputRef = el}
-                                                    initialValue={this.state.newRoomName}
+                                                    value={this.state.newRoomName}
                                                     policyID={linkedWorkspace && linkedWorkspace.id}
                                                     errorText={this.state.errors.newRoomName}
                                                     onChangeText={newRoomName => this.clearErrorAndSetValue('newRoomName', newRoomName)}
@@ -243,7 +201,7 @@ class ReportSettingsPage extends Component {
                                             success={!shouldDisableRename}
                                             text={this.props.translate('common.save')}
                                             onPress={this.validateAndUpdatePolicyRoomName}
-                                            style={[styles.ml2, styles.flex1]}
+                                            style={[styles.ml2, styles.mnw25]}
                                             textStyles={[styles.label]}
                                             innerStyles={[styles.ph5]}
                                             isDisabled={shouldDisableRename}
@@ -287,21 +245,13 @@ class ReportSettingsPage extends Component {
 }
 
 ReportSettingsPage.propTypes = propTypes;
-ReportSettingsPage.defaultProps = defaultProps;
-ReportSettingsPage.displayName = 'ReportSettingsPage';
 
 export default compose(
     withLocalize,
-    withFullPolicy,
+    withReportOrNavigateHome,
     withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-        },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
         },
     }),
 )(ReportSettingsPage);

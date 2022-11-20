@@ -15,6 +15,7 @@ import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButto
 import FormScrollView from '../../components/FormScrollView';
 import walletAdditionalDetailsDraftPropTypes from './walletAdditionalDetailsDraftPropTypes';
 import walletOnfidoDataPropTypes from './walletOnfidoDataPropTypes';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     /** Stores various information used to build the UI and call any APIs */
@@ -41,11 +42,11 @@ class OnfidoPrivacy extends React.Component {
     constructor(props) {
         super(props);
 
-        this.fetchOnfidoToken = this.fetchOnfidoToken.bind(this);
+        this.openOnfidoFlow = this.openOnfidoFlow.bind(this);
     }
 
-    fetchOnfidoToken() {
-        BankAccounts.fetchOnfidoToken(
+    openOnfidoFlow() {
+        BankAccounts.openOnfidoFlow(
             this.props.walletAdditionalDetailsDraft.legalFirstName,
             this.props.walletAdditionalDetailsDraft.legalLastName,
             this.props.walletAdditionalDetailsDraft.dob,
@@ -53,8 +54,7 @@ class OnfidoPrivacy extends React.Component {
     }
 
     render() {
-        const errors = lodashGet(this.props, 'walletOnfidoData.errors', {});
-        let onfidoError = _.isEmpty(errors) ? '' : _.last(_.values(errors));
+        let onfidoError = ErrorUtils.getLatestErrorMessage(this.props.walletOnfidoData) || '';
         const onfidoFixableErrors = lodashGet(this.props, 'walletOnfidoData.fixableErrors', []);
         onfidoError += !_.isEmpty(onfidoFixableErrors) ? `\n${onfidoFixableErrors.join('\n')}` : '';
 
@@ -87,17 +87,17 @@ class OnfidoPrivacy extends React.Component {
                         </View>
                         <FormAlertWithSubmitButton
                             isAlertVisible={Boolean(onfidoError)}
-                            onSubmit={this.fetchOnfidoToken}
+                            onSubmit={this.openOnfidoFlow}
                             onFixTheErrorsLinkPressed={() => {
                                 this.form.scrollTo({y: 0, animated: true});
                             }}
                             message={onfidoError}
-                            isLoading={this.props.walletOnfidoData.loading}
+                            isLoading={this.props.walletOnfidoData.isLoading}
                             buttonText={onfidoError ? this.props.translate('onfidoStep.tryAgain') : this.props.translate('common.continue')}
                         />
                     </FormScrollView>
                 ) : null}
-                {this.props.walletOnfidoData.hasAcceptedPrivacyPolicy && this.props.walletOnfidoData.loading ? <FullscreenLoadingIndicator /> : null}
+                {this.props.walletOnfidoData.hasAcceptedPrivacyPolicy && this.props.walletOnfidoData.isLoading ? <FullscreenLoadingIndicator /> : null}
             </View>
         );
     }

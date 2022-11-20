@@ -94,6 +94,8 @@ variables referenced here get updated since your local `.env` file is ignored.
    see [PERFORMANCE.md](contributingGuides/PERFORMANCE.md#performance-metrics-opt-in-on-local-release-builds) for more information
 - `ONYX_METRICS` (optional) - Set this to `true` to capture even more performance metrics and see them in Flipper
    see [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
+- `E2E_TESTING` (optional) - This needs to be set to `true` when running the e2e tests for performance regression testing. 
+   This happens usually automatically, read [this](e2e/README.md) for more information
 
 ----
 
@@ -119,7 +121,7 @@ Alternatively, you can also set up debugger using [Flipper](https://fbflipper.co
 Our React Native Android app now uses the `Hermes` JS engine which requires your browser for remote debugging. These instructions are specific to Chrome since that's what the Hermes documentation provided.
 1. Navigate to `chrome://inspect`
 2. Use the `Configure...` button to add the Metro server address (typically `localhost:8081`, check your `Metro` output)
-3. You should now see a "Hermes React Native" target with an "inspect" link which can be used to bring up a debugger. If you don't see the "inspect" link, make sure the Metro server is running.
+3. You should now see a "Hermes React Native" target with an "inspect" link which can be used to bring up a debugger. If you don't see the "inspect" link, make sure the Metro server is running
 4. You can now use the Chrome debug tools. See [React Native Debugging Hermes](https://reactnative.dev/docs/hermes#debugging-hermes-using-google-chromes-devtools)
 
 ## Web
@@ -221,9 +223,9 @@ created to house a collection of items in plural form and using camelCase (eg: p
 - components: React native components that are re-used in several places.
 - libs: Library classes/functions, these are not React native components (ie: they are not UI)
 - pages: These are components that define pages in the app. The component that defines the page itself should be named
-`<pageName>Page` if there are components used only inside one page, they should live in its own directory named after the `<pageName>`.
+`<pageName>Page` if there are components used only inside one page, they should live in its own directory named after the `<pageName>`
 - styles: These files define styles used among components/pages
-- contributingGuides: This is just a set of markdown files providing guides and insights to aid developers in learning how to contribute to this repo.
+- contributingGuides: This is just a set of markdown files providing guides and insights to aid developers in learning how to contribute to this repo
 
 **Note:** There is also a directory called `/docs`, which houses the Expensify Help site. It's a static site that's built with Jekyll and hosted on GitHub Pages.
 
@@ -309,7 +311,7 @@ This application is built with the following principles.
     - The UI should never call any Onyx methods except for `Onyx.connect()`. That is the job of Actions (see next section).
     - The UI always triggers an Action when something needs to happen (eg. a person inputs data, the UI triggers an Action with this data).
     - The UI should be as flexible as possible when it comes to:
-        - Incomplete or missing data. Always assume data is incomplete or not there. For example, when a comment is pushed to the client from a pusher event, it's possible that Onyx does not have data for that report yet. That's OK. A partial report object is added to Onyx for the report key `report_1234 = {reportID: 1234, isUnread: true}`. Then there is code that monitors Onyx for reports with incomplete data, and calls `fetchChatReportsByIDs(1234)` to get the full data for that report. The UI should be able to gracefully handle the report object not being complete. In this example, the sidebar wouldn't display any report that does not have a report name.
+        - Incomplete or missing data. Always assume data is incomplete or not there. For example, when a comment is pushed to the client from a pusher event, it's possible that Onyx does not have data for that report yet. That's OK. A partial report object is added to Onyx for the report key `report_1234 = {reportID: 1234, isUnread: true}`. Then there is code that monitors Onyx for reports with incomplete data, and calls `openReport(1234)` to get the full data for that report. The UI should be able to gracefully handle the report object not being complete. In this example, the sidebar wouldn't display any report that does not have a report name.
         - The order that actions are done in. All actions should be done in parallel instead of sequence.
             - Parallel actions are asynchronous methods that don't return promises. Any number of these actions can be called at one time and it doesn't matter what order they happen in or when they complete.
             - In-Sequence actions are asynchronous methods that return promises. This is necessary when one asynchronous method depends on the results from a previous asynchronous method. Example: Making an XHR to `command=CreateChatReport` which returns a reportID which is used to call `command=Get&rvl=reportStuff`.
@@ -329,7 +331,7 @@ This application is built with the following principles.
 
 1. **Cross Platform 99.9999%**
     1. A feature isn't done until it works on all platforms.  Accordingly, don't even bother writing a platform-specific code block because you're just going to need to undo it.
-    1. If the reason you can't write cross platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
+    1. If the reason you can't write cross-platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
     1. If there is a feature that simply doesn't exist on all platforms and thus doesn't exist in RN, rather than doing if (platform=iOS) { }, instead write a "shim" library that is implemented with NOOPs on the other platforms.  For example, rather than injecting platform-specific multi-tab code (which can only work on browsers, because it's the only platform with multiple tabs), write a TabManager class that just is NOOP for non-browser platforms.  This encapsulates the platform-specific code into a platform library, rather than sprinkling through the business logic.
     1. Put all platform specific code in dedicated files and folders, like /platform, and reject any PR that attempts to put platform-specific code anywhere else.  This maintains a strict separation between business logic and platform code.
 

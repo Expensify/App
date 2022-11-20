@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import {
-    Pressable, View, Animated, StyleSheet, Image,
+    Pressable, View, Image,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -20,6 +20,7 @@ import CONST from '../CONST';
 import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAnimation';
 import Tooltip from './Tooltip';
 import stylePropTypes from '../styles/stylePropTypes';
+import * as FileUtils from '../libs/fileDownload/FileUtils';
 
 const propTypes = {
     /** Avatar URL to display */
@@ -125,6 +126,17 @@ class AvatarWithImagePicker extends React.Component {
     }
 
     /**
+     * Check if the attachment extension is allowed.
+     *
+     * @param {Object} image
+     * @returns {Boolean}
+     */
+    isValidExtension(image) {
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(image, 'name', ''));
+        return _.contains(CONST.AVATAR_ALLOWED_EXTENSIONS, fileExtension.toLowerCase());
+    }
+
+    /**
      * Check if the attachment size is less than allowed size.
      *
      * @param {Object} image
@@ -154,6 +166,13 @@ class AvatarWithImagePicker extends React.Component {
      * @param {Object} image
      */
     showAvatarCropModal(image) {
+        if (!this.isValidExtension(image)) {
+            this.showErrorModal(
+                this.props.translate('avatarWithImagePicker.imageUploadFailed'),
+                this.props.translate('avatarWithImagePicker.notAllowedExtension', {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS}),
+            );
+            return;
+        }
         if (!this.isValidSize(image)) {
             this.showErrorModal(
                 this.props.translate('avatarWithImagePicker.imageUploadFailed'),
@@ -219,21 +238,10 @@ class AvatarWithImagePicker extends React.Component {
         const DefaultAvatar = this.props.DefaultAvatar;
         const additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
 
-        const indicatorStyles = [
-            styles.alignItemsCenter,
-            styles.justifyContentCenter,
-            this.props.size === CONST.AVATAR_SIZE.LARGE ? styles.statusIndicatorLarge : styles.statusIndicator,
-            styles.statusIndicatorOnline,
-            this.animation.getSyncingStyles(),
-        ];
-
-        const indicatorIconSize = this.props.size === CONST.AVATAR_SIZE.LARGE ? variables.iconSizeXXSmall : variables.iconSizeXXXSmall;
-
         return (
             <View style={[styles.alignItemsCenter, ...additionalStyles]}>
                 <Pressable
                     onPress={() => this.setState({isMenuVisible: true})}
-                    disabled={this.props.isUploading}
                 >
                     <View style={[styles.pRelative, styles.avatarLarge]}>
                         {this.props.avatarURL
@@ -252,41 +260,23 @@ class AvatarWithImagePicker extends React.Component {
                         <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
                             {({openPicker}) => (
                                 <>
-                                    {
-                                        this.props.isUploading
-                                            ? (
-                                                <Animated.View style={StyleSheet.flatten(indicatorStyles)}>
-
-                                                    <Icon
-                                                        src={Expensicons.Sync}
-                                                        fill={themeColors.textReversed}
-                                                        width={indicatorIconSize}
-                                                        height={indicatorIconSize}
-                                                    />
-                                                </Animated.View>
-                                            )
-                                            : (
-                                                <>
-                                                    <Tooltip absolute text={this.props.translate('avatarWithImagePicker.editImage')}>
-                                                        <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
-                                                            <Icon
-                                                                src={Expensicons.Camera}
-                                                                width={variables.iconSizeSmall}
-                                                                height={variables.iconSizeSmall}
-                                                                fill={themeColors.iconReversed}
-                                                            />
-                                                        </View>
-                                                    </Tooltip>
-                                                    <PopoverMenu
-                                                        isVisible={this.state.isMenuVisible}
-                                                        onClose={() => this.setState({isMenuVisible: false})}
-                                                        onItemSelected={() => this.setState({isMenuVisible: false})}
-                                                        menuItems={this.createMenuItems(openPicker)}
-                                                        anchorPosition={this.props.anchorPosition}
-                                                    />
-                                                </>
-                                            )
-                                    }
+                                    <Tooltip absolute text={this.props.translate('avatarWithImagePicker.editImage')}>
+                                        <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
+                                            <Icon
+                                                src={Expensicons.Camera}
+                                                width={variables.iconSizeSmall}
+                                                height={variables.iconSizeSmall}
+                                                fill={themeColors.iconReversed}
+                                            />
+                                        </View>
+                                    </Tooltip>
+                                    <PopoverMenu
+                                        isVisible={this.state.isMenuVisible}
+                                        onClose={() => this.setState({isMenuVisible: false})}
+                                        onItemSelected={() => this.setState({isMenuVisible: false})}
+                                        menuItems={this.createMenuItems(openPicker)}
+                                        anchorPosition={this.props.anchorPosition}
+                                    />
                                 </>
                             )}
                         </AttachmentPicker>

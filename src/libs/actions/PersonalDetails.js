@@ -12,7 +12,8 @@ import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../ReportUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
-import Timing from './Timing';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -27,13 +28,13 @@ Onyx.connect({
 });
 
 /**
- * Returns the URL for a user's avatar and handles someone not having any avatar at all
+ * Returns the URL for a user's avatar thumbnail and handles someone not having any avatar at all
  *
  * @param {Object} personalDetail
  * @param {String} login
  * @returns {String}
  */
-function getAvatar(personalDetail, login) {
+function getAvatarThumbnail(personalDetail, login) {
     if (personalDetail && personalDetail.avatarThumbnail) {
         return personalDetail.avatarThumbnail;
     }
@@ -72,7 +73,7 @@ function getDisplayName(login, personalDetail) {
  * @returns {String}
  */
 function getMaxCharacterError(isError) {
-    return isError ? Localize.translateLocal('personalDetails.error.characterLimit', {limit: 50}) : '';
+    return isError ? Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT}) : '';
 }
 
 /**
@@ -82,7 +83,6 @@ function getMaxCharacterError(isError) {
  * @return {Object}
  */
 function formatPersonalDetails(personalDetailsList) {
-    Timing.start(CONST.TIMING.PERSONAL_DETAILS_FORMATTED);
     const formattedResult = {};
 
     // This method needs to be SUPER PERFORMANT because it can be called with a massive list of logins depending on the policies that someone belongs to
@@ -91,7 +91,6 @@ function formatPersonalDetails(personalDetailsList) {
         const sanitizedLogin = LoginUtils.getEmailWithoutMergedAccountPrefix(login);
 
         // Form the details into something that has all the data in an easy to use format.
-        const avatar = getAvatar(details, sanitizedLogin);
         const displayName = getDisplayName(sanitizedLogin, details);
         const pronouns = details.pronouns || '';
         const timezone = details.timeZone || CONST.DEFAULT_TIME_ZONE;
@@ -99,10 +98,11 @@ function formatPersonalDetails(personalDetailsList) {
         const lastName = details.lastName || '';
         const payPalMeAddress = details.expensify_payPalMeAddress || '';
         const phoneNumber = details.phoneNumber || '';
-        const avatarHighResolution = details.avatar || details.avatarThumbnail;
+        const avatar = details.avatar || details.avatarThumbnail || ReportUtils.getDefaultAvatar(login);
+        const avatarThumbnail = getAvatarThumbnail(details, sanitizedLogin);
+        const validated = details.validated || false;
         formattedResult[sanitizedLogin] = {
             login: sanitizedLogin,
-            avatar,
             displayName,
             firstName,
             lastName,
@@ -110,10 +110,11 @@ function formatPersonalDetails(personalDetailsList) {
             timezone,
             payPalMeAddress,
             phoneNumber,
-            avatarHighResolution,
+            avatar,
+            avatarThumbnail,
+            validated,
         };
     });
-    Timing.end(CONST.TIMING.PERSONAL_DETAILS_FORMATTED);
     return formattedResult;
 }
 
@@ -262,8 +263,13 @@ function setPersonalDetails(details, shouldGrowl) {
         });
 }
 
+/**
+ * @param {String} firstName
+ * @param {String} lastName
+ * @param {String} pronouns
+ * @param {Object} timezone
+ */
 function updateProfile(firstName, lastName, pronouns, timezone) {
-    const myPersonalDetails = personalDetails[currentUserEmail];
     API.write('UpdateProfile', {
         firstName,
         lastName,
@@ -286,20 +292,49 @@ function updateProfile(firstName, lastName, pronouns, timezone) {
                 },
             },
         }],
-        failureData: [{
+    });
+}
+
+/**
+ * @param {String} pronouns
+ */
+function updatePronouns(pronouns) {
+    API.write('UpdatePronouns', {pronouns}, {
+        optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
-                    firstName: myPersonalDetails.firstName,
-                    lastName: myPersonalDetails.lastName,
-                    pronouns: myPersonalDetails.pronouns,
-                    timezone: myPersonalDetails.timeZone,
-                    displayName: myPersonalDetails.displayName,
+                    pronouns,
                 },
             },
         }],
     });
+    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+}
+
+/**
+ * @param {String} firstName
+ * @param {String} lastName
+ */
+function updateDisplayName(firstName, lastName) {
+    API.write('UpdateDisplayName', {firstName, lastName}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    firstName,
+                    lastName,
+                    displayName: getDisplayName(currentUserEmail, {
+                        firstName,
+                        lastName,
+                    }),
+                },
+            },
+        }],
+    });
+    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
 /**
@@ -310,27 +345,53 @@ function openIOUModalPage() {
 }
 
 /**
- * Sets the user's avatar image
+ * Updates the user's avatar image
  *
  * @param {File|Object} file
  */
-function setAvatar(file) {
-    setPersonalDetails({avatarUploading: true});
-    DeprecatedAPI.User_UploadAvatar({file})
-        .then((response) => {
-            // Once we get the s3url back, update the personal details for the user with the new avatar URL
-            if (response.jsonCode !== 200) {
-                setPersonalDetails({avatarUploading: false});
-                if (response.jsonCode === 405 || response.jsonCode === 502) {
-                    Growl.show(Localize.translateLocal('profilePage.invalidFileMessage'), CONST.GROWL.ERROR, 3000);
-                } else {
-                    Growl.show(Localize.translateLocal('profilePage.avatarUploadFailureMessage'), CONST.GROWL.ERROR, 3000);
-                }
-                return;
-            }
+function updateAvatar(file) {
+    const optimisticData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.PERSONAL_DETAILS,
+        value: {
+            [currentUserEmail]: {
+                avatar: file.uri,
+                avatarThumbnail: file.uri,
+                errorFields: {
+                    avatar: null,
+                },
+                pendingFields: {
+                    avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    }];
+    const successData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.PERSONAL_DETAILS,
+        value: {
+            [currentUserEmail]: {
+                pendingFields: {
+                    avatar: null,
+                },
+            },
+        },
+    }];
+    const failureData = [{
+        onyxMethod: CONST.ONYX.METHOD.MERGE,
+        key: ONYXKEYS.PERSONAL_DETAILS,
+        value: {
+            [currentUserEmail]: {
+                avatar: personalDetails[currentUserEmail].avatar,
+                avatarThumbnail: personalDetails[currentUserEmail].avatarThumbnail || personalDetails[currentUserEmail].avatar,
+                pendingFields: {
+                    avatar: null,
+                },
+            },
+        },
+    }];
 
-            setPersonalDetails({avatar: response.s3url, avatarUploading: false});
-        });
+    API.write('UpdateUserAvatar', {file}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -361,15 +422,34 @@ function deleteAvatar() {
     });
 }
 
+/**
+ * Clear error and pending fields for the current user's avatar
+ */
+function clearAvatarErrors() {
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
+        [currentUserEmail]: {
+            errorFields: {
+                avatar: null,
+            },
+            pendingFields: {
+                avatar: null,
+            },
+        },
+    });
+}
+
 export {
     formatPersonalDetails,
     getFromReportParticipants,
     getDisplayName,
     setPersonalDetails,
-    setAvatar,
+    updateAvatar,
     deleteAvatar,
     openIOUModalPage,
     getMaxCharacterError,
     extractFirstAndLastNameFromAvailableDetails,
     updateProfile,
+    updateDisplayName,
+    updatePronouns,
+    clearAvatarErrors,
 };

@@ -18,24 +18,37 @@ import * as API from '../API';
  * @param {String} lastName
  * @param {String} dob
  */
-function fetchOnfidoToken(firstName, lastName, dob) {
-    // Use Onyx.set() since we are resetting the Onfido flow completely.
-    Onyx.set(ONYXKEYS.WALLET_ONFIDO, {loading: true});
-    DeprecatedAPI.Wallet_GetOnfidoSDKToken(firstName, lastName, dob)
-        .then((response) => {
-            if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
-                const apiResult = lodashGet(response, ['requestorIdentityOnfido', 'apiResult'], {});
-                Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {
-                    applicantID: apiResult.applicantID,
-                    sdkToken: apiResult.sdkToken,
-                    loading: false,
-                    hasAcceptedPrivacyPolicy: true,
-                });
-                return;
-            }
-
-            Onyx.set(ONYXKEYS.WALLET_ONFIDO, {loading: false, error: CONST.WALLET.ERROR.UNEXPECTED});
-        });
+function openOnfidoFlow(firstName, lastName, dob) {
+    API.read('OpenOnfidoFlow', {firstName, lastName, dob}, {
+        optimisticData: [
+            {
+                // Use Onyx.set() since we are resetting the Onfido flow completely.
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: ONYXKEYS.WALLET_ONFIDO,
+                value: {
+                    isLoading: true,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ONFIDO,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ONFIDO,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+    });
 }
 
 /**
@@ -81,6 +94,15 @@ function setAdditionalDetailsShouldAskForFullSSN(shouldAskForFullSSN) {
  */
 function setWalletShouldShowFailedKYC(shouldShowFailedKYC) {
     Onyx.merge(ONYXKEYS.USER_WALLET, {shouldShowFailedKYC});
+}
+
+/**
+ * Save the ID of the chat whose IOU triggered showing the KYC wall.
+ *
+ * @param {Number} chatReportID
+ */
+function setKYCWallSourceChatReportID(chatReportID) {
+    Onyx.merge(ONYXKEYS.WALLET_TERMS, {chatReportID});
 }
 
 /**
@@ -173,8 +195,8 @@ function updatePersonalDetails(personalDetails) {
     const ssn = personalDetails.ssn || '';
     const phoneNumber = personalDetails.phoneNumber || '';
     API.write('UpdatePersonalDetailsForWallet', {
-        firstName,
-        lastName,
+        legalFirstName: firstName,
+        legalLastName: lastName,
         dob,
         addressStreet,
         addressCity,
@@ -398,7 +420,7 @@ function verifyIdentity(parameters) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.WALLET_ONFIDO,
                 value: {
-                    loading: true,
+                    isLoading: true,
                     errors: null,
                     fixableErrors: null,
                 },
@@ -416,7 +438,7 @@ function verifyIdentity(parameters) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.WALLET_ONFIDO,
                 value: {
-                    loading: false,
+                    isLoading: false,
                     errors: null,
                 },
             },
@@ -426,7 +448,7 @@ function verifyIdentity(parameters) {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.WALLET_ONFIDO,
                 value: {
-                    loading: false,
+                    isLoading: false,
                     hasAcceptedPrivacyPolicy: false,
                 },
             },
@@ -439,6 +461,7 @@ function verifyIdentity(parameters) {
  *
  * @param {Object} parameters
  * @param {Boolean} parameters.hasAcceptedTerms
+ * @param {Number} parameters.chatReportID When accepting the terms of wallet to pay an IOU, indicates the parent chat ID of the IOU
  */
 function acceptWalletTerms(parameters) {
     const optimisticData = [
@@ -472,11 +495,11 @@ function acceptWalletTerms(parameters) {
         },
     ];
 
-    API.write('AcceptWalletTerms', {hasAcceptedTerms: parameters.hasAcceptedTerms}, {optimisticData, successData, failureData});
+    API.write('AcceptWalletTerms', {hasAcceptedTerms: parameters.hasAcceptedTerms, reportID: parameters.chatReportID}, {optimisticData, successData, failureData});
 }
 
 /**
- * Fetches information about a user's Expensify Wallet
+ * Fetches data when the user opens the InitialSettingsPage
  *
  * @typedef {Object} UserWallet
  * @property {Number} availableBalance
@@ -484,16 +507,21 @@ function acceptWalletTerms(parameters) {
  * @property {String} currentStep - used to track which step of the "activate wallet" flow a user is in
  * @property {('SILVER'|'GOLD')} tierName - will be GOLD when fully activated. SILVER is able to recieve funds only.
  */
-function fetchUserWallet() {
-    DeprecatedAPI.Get({returnValueList: 'userWallet'})
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                return;
-            }
+function openInitialSettingsPage() {
+    API.read('OpenInitialSettingsPage');
+}
 
-            // When refreshing the wallet, we should not show the failed KYC page anymore, as we should allow them to retry.
-            Onyx.merge(ONYXKEYS.USER_WALLET, {...response.userWallet, shouldShowFailedKYC: false});
-        });
+/**
+ * Fetches data when the user opens the EnablePaymentsPage
+ *
+ * @typedef {Object} UserWallet
+ * @property {Number} availableBalance
+ * @property {Number} currentBalance
+ * @property {String} currentStep - used to track which step of the "activate wallet" flow a user is in
+ * @property {('SILVER'|'GOLD')} tierName - will be GOLD when fully activated. SILVER is able to recieve funds only.
+ */
+function openEnablePaymentsPage() {
+    API.read('OpenEnablePaymentsPage');
 }
 
 /**
@@ -510,17 +538,56 @@ function updateCurrentStep(currentStep) {
     Onyx.merge(ONYXKEYS.USER_WALLET, {currentStep});
 }
 
+/**
+ * @param {Array} answers
+ * @param {String} idNumber
+ */
+function answerQuestionsForWallet(answers, idNumber) {
+    const idologyAnswers = JSON.stringify(answers);
+    API.write('AnswerQuestionsForWallet',
+        {
+            idologyAnswers,
+            idNumber,
+        },
+        {
+            optimisticData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+                value: {
+                    isLoading: true,
+                },
+            }],
+            successData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                },
+            }],
+            failureData: [{
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                },
+            }],
+        });
+}
+
 export {
-    fetchOnfidoToken,
+    openOnfidoFlow,
     activateWallet,
-    fetchUserWallet,
+    openInitialSettingsPage,
+    openEnablePaymentsPage,
     setAdditionalDetailsErrors,
     updateAdditionalDetailsDraft,
     setAdditionalDetailsErrorMessage,
     setAdditionalDetailsQuestions,
     buildIdologyError,
     updateCurrentStep,
+    answerQuestionsForWallet,
     updatePersonalDetails,
     verifyIdentity,
     acceptWalletTerms,
+    setKYCWallSourceChatReportID,
 };

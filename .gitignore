@@ -35,6 +35,7 @@ local.properties
 *.iml
 android/*.hprof
 android/app/src/main/java/com/expensify/chat/generated/
+.cxx/
 
 # Vscode
 .vscode
@@ -88,3 +89,8 @@ storybook-static
 # Jest coverage report
 /coverage.data
 /coverage/
+
+.jest-cache
+
+# E2E test reports
+e2e/.results/

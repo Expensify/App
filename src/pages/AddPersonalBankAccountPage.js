@@ -20,20 +20,25 @@ import Icon from '../components/Icon';
 import defaultTheme from '../styles/themes/default';
 import Button from '../components/Button';
 import FixedFooter from '../components/FixedFooter';
-import FormScrollView from '../components/FormScrollView';
-import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
-import FormHelper from '../libs/FormHelper';
-import * as ReimbursementAccount from '../libs/actions/ReimbursementAccount';
-import TextInput from '../components/TextInput';
-import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus/index.native';
+import Form from '../components/Form';
 import ROUTES from '../ROUTES';
 
 const propTypes = {
     ...withLocalizePropTypes,
+
+    /** The details about the Personal bank account we are adding saved in Onyx */
     personalBankAccount: PropTypes.shape({
+        /** An error message to display to the user */
         error: PropTypes.string,
+
+        /** Whether we should show the view that the bank account was successfully added */
         shouldShowSuccess: PropTypes.bool,
-        loading: PropTypes.bool,
+
+        /** Whether the form is loading */
+        isLoading: PropTypes.bool,
+
+        /** The account ID of the selected bank account from Plaid */
+        plaidAccountID: PropTypes.string,
     }),
 };
 
@@ -41,7 +46,8 @@ const defaultProps = {
     personalBankAccount: {
         error: '',
         shouldShowSuccess: false,
-        loading: false,
+        isLoading: false,
+        plaidAccountID: '',
     },
 };
 
@@ -49,20 +55,12 @@ class AddPersonalBankAccountPage extends React.Component {
     constructor(props) {
         super(props);
 
-        this.getErrorText = this.getErrorText.bind(this);
-        this.clearError = this.clearError.bind(this);
         this.validate = this.validate.bind(this);
         this.submit = this.submit.bind(this);
 
         this.state = {
-            selectedPlaidBankAccount: undefined,
-            password: '',
+            selectedPlaidAccountID: '',
         };
-
-        this.formHelper = new FormHelper({
-            errorPath: 'personalBankAccount.errorFields',
-            setErrors: errorFields => ReimbursementAccount.setPersonalBankAccountFormValidationErrorFields(errorFields),
-        });
     }
 
     componentDidMount() {
@@ -72,65 +70,26 @@ class AddPersonalBankAccountPage extends React.Component {
     /**
      * @returns {Object}
      */
-    getErrors() {
-        return this.formHelper.getErrors(this.props);
-    }
-
-    /**
-     * @param {String} fieldName
-     * @returns {String}
-     */
-    getErrorText(fieldName) {
-        const errors = this.getErrors();
-        if (!errors[fieldName]) {
-            return '';
-        }
-
-        return this.props.translate(this.errorTranslationKeys[fieldName]);
-    }
-
-    /**
-     * @param {String} path
-     */
-    clearError(path) {
-        this.formHelper.clearError(this.props, path);
-    }
-
-    /**
-     * @returns {Boolean}
-     */
     validate() {
-        const errors = {};
-        if (_.isUndefined(this.state.selectedPlaidBankAccount)) {
-            errors.selectedBank = true;
-        }
-
-        if (this.props.isPasswordRequired && _.isEmpty(this.state.password)) {
-            errors.password = true;
-        }
-
-        ReimbursementAccount.setPersonalBankAccountFormValidationErrorFields(errors);
-        return _.isEmpty(errors);
+        return {};
     }
 
     submit() {
-        if (!this.validate()) {
-            return;
-        }
+        const selectedPlaidBankAccount = _.findWhere(lodashGet(this.props.plaidData, 'bankAccounts', []), {
+            plaidAccountID: this.state.selectedPlaidAccountID,
+        });
 
-        BankAccounts.addPersonalBankAccount(this.state.selectedPlaidBankAccount, this.state.password);
+        BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount);
     }
 
     render() {
         const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
-        const error = lodashGet(this.props, 'personalBankAccount.error', '');
-        const loading = lodashGet(this.props, 'personalBankAccount.loading', false);
 
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={this.props.translate('bankAccount.addBankAccount')}
-                    onCloseButtonPress={Navigation.goBack}
+                    onCloseButtonPress={Navigation.dismissModal}
                     shouldShowBackButton
                     onBackButtonPress={Navigation.goBack}
                 />
@@ -163,44 +122,25 @@ class AddPersonalBankAccountPage extends React.Component {
                         </FixedFooter>
                     </>
                 ) : (
-                    <FormScrollView>
-                        <View style={[styles.mh5, styles.mb5]}>
+                    <Form
+                        formID={ONYXKEYS.PERSONAL_BANK_ACCOUNT}
+                        isSubmitButtonVisible={Boolean(this.state.selectedPlaidAccountID)}
+                        submitButtonText={this.props.translate('common.saveAndContinue')}
+                        onSubmit={this.submit}
+                        validate={this.validate}
+                        style={[styles.mh5, styles.flex1]}
+                    >
+                        <>
                             <AddPlaidBankAccount
-                                onSelect={(params) => {
-                                    this.setState({
-                                        selectedPlaidBankAccount: params.selectedPlaidBankAccount,
-                                    });
+                                onSelect={(selectedPlaidAccountID) => {
+                                    this.setState({selectedPlaidAccountID});
                                 }}
                                 onExitPlaid={Navigation.goBack}
                                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
+                                selectedPlaidAccountID={this.state.selectedPlaidAccountID}
                             />
-                            {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
-                                <View style={[styles.mb5]}>
-                                    <TextInput
-                                        label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
-                                        secureTextEntry
-                                        value={this.state.password}
-                                        autoCompleteType="password"
-                                        textContentType="password"
-                                        autoCapitalize="none"
-                                        autoFocus={canFocusInputOnScreenFocus()}
-                                        onChangeText={text => this.setState({password: text})}
-                                        errorText={this.getErrorText('password')}
-                                        hasError={this.getErrors().password}
-                                    />
-                                </View>
-                            )}
-                        </View>
-                        {!_.isUndefined(this.state.selectedPlaidBankAccount) && (
-                            <FormAlertWithSubmitButton
-                                isAlertVisible={Boolean(error)}
-                                buttonText={this.props.translate('common.saveAndContinue')}
-                                onSubmit={this.submit}
-                                message={error}
-                                isLoading={loading}
-                            />
-                        )}
-                    </FormScrollView>
+                        </>
+                    </Form>
                 )}
             </ScreenWrapper>
         );
@@ -209,13 +149,15 @@ class AddPersonalBankAccountPage extends React.Component {
 
 AddPersonalBankAccountPage.propTypes = propTypes;
 AddPersonalBankAccountPage.defaultProps = defaultProps;
-AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
 
 export default compose(
     withLocalize,
     withOnyx({
         personalBankAccount: {
             key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+        },
+        plaidData: {
+            key: ONYXKEYS.PLAID_DATA,
         },
     }),
 )(AddPersonalBankAccountPage);
