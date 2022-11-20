@@ -12,6 +12,7 @@ const UrbanAirship = {
     setNamedUser: jest.fn(),
     removeAllListeners: jest.fn(),
     setBadgeNumber: jest.fn(),
+    getNotificationStatus: jest.fn(),
 };
 
 export default UrbanAirship;
