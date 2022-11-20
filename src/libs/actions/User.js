@@ -2,6 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import moment from 'moment';
+import DeviceInfo from 'react-native-device-info';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
@@ -503,14 +504,16 @@ function generateStatementPDF(period) {
  * @void
  */
 function setPushNotificationOptInStatus(arePushNotificationsEnabled) {
+    const deviceID = DeviceInfo.getDeviceId();
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.NVP_PUSH_NOTIFICATIONS_ENABLED,
-            value: arePushNotificationsEnabled,
+            value: {[deviceID]: arePushNotificationsEnabled},
         },
     ];
     API.write('SetPushNotificationOptInStatus', {
+        deviceID,
         pushNotificationOptInStatus: arePushNotificationsEnabled,
     }, {optimisticData});
 }
