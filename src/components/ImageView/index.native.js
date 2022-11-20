@@ -57,9 +57,8 @@ class ImageView extends PureComponent {
             onStartShouldSetPanResponder: this.updatePanResponderTouches.bind(this),
         });
 
-        this.imageLoad = this.imageLoad.bind(this);
         this.imageLoadingStart = this.imageLoadingStart.bind(this);
-        this.imageLoadingEnd = this.imageLoadingEnd.bind(this);
+        this.imageLoad = this.imageLoad.bind(this);
     }
 
     componentWillUnmount() {
@@ -105,16 +104,12 @@ class ImageView extends PureComponent {
             const maxDimensionsScale = 11;
             imageHeight = Math.min(imageHeight, (this.props.windowHeight * maxDimensionsScale));
             imageWidth = Math.min(imageWidth, (this.props.windowWidth * maxDimensionsScale));
-            this.setState({imageHeight, imageWidth});
+            this.setState({imageHeight, imageWidth, isLoading: false});
         });
     }
 
     imageLoadingStart() {
         this.setState({isLoading: true});
-    }
-
-    imageLoadingEnd() {
-        this.setState({isLoading: false});
     }
 
     render() {
@@ -176,6 +171,11 @@ class ImageView extends PureComponent {
                             styles.w100,
                             styles.h100,
                             this.props.style,
+
+                            // Hide image while loading so ImageZoom can get the image
+                            // size before presenting - preventing visual glitches or shift
+                            // due to ImageZoom
+                            this.state.isLoading ? styles.opacity0 : styles.opacity1,
                         ]}
                         source={{
                             uri: this.props.url,
@@ -183,7 +183,6 @@ class ImageView extends PureComponent {
                         }}
                         resizeMode={FastImage.resizeMode.contain}
                         onLoadStart={this.imageLoadingStart}
-                        onLoadEnd={this.imageLoadingEnd}
                         onLoad={this.imageLoad}
                     />
                     {/**
