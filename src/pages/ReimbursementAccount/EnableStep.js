@@ -24,7 +24,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const EnableStep = props => {
+const EnableStep = (props) => {
     const isUsingExpensifyCard = props.user.isUsingExpensifyCard;
     const reimbursementAccount = props.reimbursementAccount.achData || {};
     const {icon, iconSize} = getBankIcon(reimbursementAccount.bankName);
@@ -93,6 +93,7 @@ const EnableStep = props => {
     );
 };
 
+EnableStep.displayName = 'EnableStep';
 EnableStep.propTypes = propTypes;
 
 export default compose(
