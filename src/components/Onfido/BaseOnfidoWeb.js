@@ -33,7 +33,7 @@ class Onfido extends React.Component {
                 colorContentTitle: colors.dark,
                 colorContentSubtitle: colors.dark,
                 colorContentBody: colors.dark,
-                borderRadiusButton: `${variables.componentBorderRadius}px`,
+                borderRadiusButton: `${variables.buttonBorderRadius}px`,
                 colorBackgroundSurfaceModal: colors.white,
                 colorBorderDocTypeButton: colors.gray2,
                 colorBorderDocTypeButtonHover: colors.blue,
