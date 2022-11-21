@@ -26,8 +26,10 @@ const kycWallRef = createRef();
 
 /**
  * When we successfully add a payment method or pass the KYC checks we will continue with our setup action if we have one set.
+ *
+ * @param {Boolean} isComingFromPaymentsPage
  */
-function continueSetup() {
+function continueSetup(isComingFromPaymentsPage = false) {
     if (!kycWallRef.current || !kycWallRef.current.continue) {
         Navigation.goBack();
         return;
@@ -35,7 +37,11 @@ function continueSetup() {
 
     // Close the screen (Add Debit Card, Add Bank Account, or Enable Payments) on success and continue with setup
     Navigation.goBack();
-    kycWallRef.current.continue();
+
+    // We just want to redirect the user to the payments method page if they're just adding a debit card from Payments page.
+    if (!isComingFromPaymentsPage) {
+        kycWallRef.current.continue();
+    }
 }
 
 /**

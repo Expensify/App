@@ -50,7 +50,7 @@ class DebitCardPage extends Component {
             return;
         }
 
-        PaymentMethods.continueSetup();
+        PaymentMethods.continueSetup(true);
     }
 
     /**
