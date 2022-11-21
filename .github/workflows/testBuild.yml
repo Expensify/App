@@ -86,6 +86,32 @@ jobs:
           name: ios
           path: ./ios_paths.json
   
+  web:
+    name: Build and deploy Web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: Expensify/App/.github/actions/composite/setupNode@main
+
+      - name: Configure AWS Credentials
+        # Version: 1.5.5
+        uses: aws-actions/configure-aws-credentials@e97d7fbc8e0e5af69631c13daa0f4b5a8d88165b
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Build web for staging
+        run: npm run build-staging
+
+      - name: Build docs
+        run: npm run storybook-build
+        continue-on-error: true
+
+      - name: Deploy to S3 for internal testing
+        run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://ad-hoc-expensify-cash/web/"$PULL_REQUEST_NAME"
+        env:
+          PULL_REQUEST_NAME: ${{ github.event.pull_request.title }}
+
   postGithubComment:
     runs-on: ubuntu-latest
     name: An example job to comment a PR
