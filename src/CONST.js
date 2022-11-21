@@ -109,7 +109,7 @@ const CONST = {
         TYPE: {
             BUSINESS: 'BUSINESS',
             PERSONAL: 'PERSONAL',
-        }
+        },
     },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
