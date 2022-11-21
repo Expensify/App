@@ -106,7 +106,9 @@ function getDynamicHeaderIndices(emojis) {
 function getDynamicSpacing(emojiCount, suffix) {
     const spacerEmojis = [];
     let modLength = CONST.EMOJI_NUM_PER_ROW - (emojiCount % CONST.EMOJI_NUM_PER_ROW);
-    while (modLength > 0) {
+
+    // Empty spaces is pushed if the given row has less than eight emojis
+    while (modLength > 0 && modLength < CONST.EMOJI_NUM_PER_ROW) {
         spacerEmojis.push({
             code: `${CONST.EMOJI_SPACER}_${suffix}_${modLength}`,
             spacer: true,

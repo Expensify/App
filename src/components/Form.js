@@ -252,7 +252,11 @@ class Form extends React.Component {
                             message={_.isEmpty(this.props.formState.errorFields) ? this.getErrorMessage() : null}
                             onSubmit={this.submit}
                             onFixTheErrorsLinkPressed={() => {
-                                this.inputRefs[this.getFirstErroredInput()].focus();
+                                const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
+                                console.log(errors);
+                                const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
+                                console.log(focusKey);
+                                this.inputRefs[focusKey].focus();
                             }}
                             containerStyles={[styles.mh0, styles.mt5]}
                             enabledWhenOffline={this.props.enabledWhenOffline}
