@@ -33,7 +33,7 @@ describe('DateUtils', () => {
         expect(DateUtils.datetimeToCalendarTime(LOCALE, yesterday)).toBe('Yesterday at 7:43 AM');
 
         const date = moment.utc('2022-11-05').set({hour: 10, minute: 17});
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, date)).toBe('Nov 5 at 10:17 AM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, date)).toBe('Nov 5, 2022 at 10:17 AM');
     });
 
     it('should return the date in calendar time when calling datetimeToRelative', () => {
