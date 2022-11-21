@@ -11,7 +11,6 @@ env:
 jobs:
   android:
     name: Build and deploy Android
-    needs: validateActor
     runs-on: ubuntu-latest
     steps:
 
@@ -48,7 +47,6 @@ jobs:
 
   iOS:
     name: Build and deploy iOS
-    needs: validateActor
     runs-on: macos-12
     steps:
       - uses: Expensify/App/.github/actions/composite/setupNode@main
@@ -87,8 +85,7 @@ jobs:
         with:
           name: ios
           path: ./ios_paths.json
-      
-
+  
   postGithubComment:
     runs-on: ubuntu-latest
     name: An example job to comment a PR
