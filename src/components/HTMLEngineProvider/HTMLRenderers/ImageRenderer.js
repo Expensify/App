@@ -71,6 +71,8 @@ const ImageRenderer = (props) => {
                         previewSourceURL={previewSource}
                         style={styles.webViewStyles.tagStyles.img}
                         isAuthTokenRequired={isAttachment}
+                        imageWidth={imageWidth}
+                        imageHeight={imageHeight}
                     />
                 </PressableWithoutFocus>
             )}

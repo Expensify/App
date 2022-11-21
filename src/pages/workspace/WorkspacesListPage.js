@@ -80,6 +80,11 @@ function dismissWorkspaceError(policyID, pendingAction) {
         Policy.clearDeleteWorkspaceError(policyID);
         return;
     }
+
+    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        Policy.removeWorkspace(policyID);
+        return;
+    }
     throw new Error('Not implemented');
 }
 

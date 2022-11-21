@@ -20,6 +20,10 @@ import * as ComponentUtils from '../../libs/ComponentUtils';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
+import * as ErrorUtils from '../../libs/ErrorUtils';
+import {withNetwork} from '../../components/OnyxProvider';
+import networkPropTypes from '../../components/networkPropTypes';
+import OfflineIndicator from '../../components/OfflineIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -49,6 +53,7 @@ class PasswordForm extends React.Component {
         super(props);
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
         this.resetPassword = this.resetPassword.bind(this);
+        this.clearSignInData = this.clearSignInData.bind(this);
 
         this.state = {
             formError: false,
@@ -93,7 +98,16 @@ class PasswordForm extends React.Component {
         if (this.input2FA) {
             this.setState({twoFactorAuthCode: ''}, this.input2FA.clear);
         }
+        this.setState({formError: false});
         Session.resetPassword();
+    }
+
+    /**
+    * Clears local and Onyx sign in states
+    */
+    clearSignInData() {
+        this.setState({twoFactorAuthCode: '', formError: false});
+        Session.clearSignInData();
     }
 
     /**
@@ -174,9 +188,9 @@ class PasswordForm extends React.Component {
                     </View>
                 )}
 
-                {!this.state.formError && this.props.account && !_.isEmpty(this.props.account.error) && (
+                {!this.state.formError && this.props.account && !_.isEmpty(this.props.account.errors) && (
                     <Text style={[styles.formError]}>
-                        {this.props.account.error}
+                        {ErrorUtils.getLatestErrorMessage(this.props.account)}
                     </Text>
                 )}
 
@@ -194,7 +208,7 @@ class PasswordForm extends React.Component {
                         isLoading={this.props.account.isLoading}
                         onPress={this.validateAndSubmitForm}
                     />
-                    <ChangeExpensifyLoginLink />
+                    <ChangeExpensifyLoginLink onPress={this.clearSignInData} />
                 </View>
                 <OfflineIndicator containerStyles={[styles.mv5]} />
             </>

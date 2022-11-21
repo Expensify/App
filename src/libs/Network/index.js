@@ -3,7 +3,7 @@ import * as ActiveClientManager from '../ActiveClientManager';
 import CONST from '../../CONST';
 import * as MainQueue from './MainQueue';
 import * as SequentialQueue from './SequentialQueue';
-import {version} from '../../../package.json';
+import pkg from '../../../package.json';
 
 // We must wait until the ActiveClientManager is ready so that we ensure only the "leader" tab processes any persisted requests
 ActiveClientManager.isReady().then(() => {
@@ -37,7 +37,7 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
             ...data,
             shouldRetry: lodashGet(data, 'shouldRetry', true),
             canCancel: lodashGet(data, 'canCancel', true),
-            appversion: version,
+            appversion: pkg.version,
         };
 
         const shouldPersist = lodashGet(request, 'data.persist', false);

@@ -13,7 +13,7 @@ import ROUTES from '../../ROUTES';
 import * as Pusher from '../Pusher/pusher';
 import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
-import NameValuePair from './NameValuePair';
+import Growl from '../Growl';
 import * as Localize from '../Localize';
 import * as Link from './Link';
 import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
@@ -223,25 +223,8 @@ function validateLogin(accountID, validateCode) {
     API.write('ValidateLogin', {
         accountID,
         validateCode,
-    }).then((response) => {
-        if (response.jsonCode === 200) {
-            const {email} = response;
-
-            if (isLoggedIn) {
-                getUserDetails();
-            } else {
-                // Let the user know we've successfully validated their login
-                const success = lodashGet(response, 'message', `Your secondary login ${email} has been validated.`);
-                Onyx.merge(ONYXKEYS.ACCOUNT, {success});
-            }
-        } else {
-            const error = lodashGet(response, 'message', 'Unable to validate login.');
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error});
-        }
-    }).finally(() => {
-        Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
-        Navigation.navigate(redirectRoute);
-    });
+    }, {optimisticData});
+    Navigation.navigate(ROUTES.HOME);
 }
 
 /**
@@ -449,10 +432,10 @@ function updateChatPriorityMode(mode) {
 }
 
 /**
- * @param {Boolean} shouldUseSecureStaging
+ * @param {Boolean} shouldUseStagingServer
  */
-function setShouldUseSecureStaging(shouldUseSecureStaging) {
-    Onyx.merge(ONYXKEYS.USER, {shouldUseSecureStaging});
+function setShouldUseStagingServer(shouldUseStagingServer) {
+    Onyx.merge(ONYXKEYS.USER, {shouldUseStagingServer});
 }
 
 function clearUserErrorMessage() {
@@ -529,7 +512,7 @@ export {
     isBlockedFromConcierge,
     subscribeToUserEvents,
     updatePreferredSkinTone,
-    setShouldUseSecureStaging,
+    setShouldUseStagingServer,
     clearUserErrorMessage,
     subscribeToExpensifyCardUpdates,
     updateFrequentlyUsedEmojis,

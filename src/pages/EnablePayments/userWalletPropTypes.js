@@ -8,8 +8,8 @@ export default PropTypes.shape({
     /** The user's current wallet balance */
     currentBalance: PropTypes.number,
 
-        /** If we should show the FailedKYC view after the user submitted their info with a non fixable error */
-        shouldShowFailedKYC: PropTypes.bool,
+    /** What step in the activation flow are we on? */
+    currentStep: PropTypes.string,
 
     /** Error code returned by the server */
     errorCode: PropTypes.string,

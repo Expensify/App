@@ -76,6 +76,7 @@ export default {
     // Contains the users's block expiration (if they have one)
     NVP_BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
 
+    // Token needed to initialize Plaid link
     // Does this user have push notifications enabled?
     NVP_PUSH_NOTIFICATIONS_ENABLED: 'nvp_pushNotificationsEnabled',
 
@@ -174,6 +175,8 @@ export default {
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
         CLOSE_ACCOUNT_FORM: 'closeAccount',
+        PROFILE_SETTINGS_FORM: 'profileSettingsForm',
+        DISPLAY_NAME_FORM: 'displayNameForm',
     },
 
     // Whether we should show the compose input or not

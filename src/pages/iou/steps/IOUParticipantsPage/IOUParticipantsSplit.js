@@ -234,7 +234,6 @@ class IOUParticipantsSplit extends Component {
     }
 }
 
-IOUParticipantsSplit.displayName = 'IOUParticipantsSplit';
 IOUParticipantsSplit.propTypes = propTypes;
 IOUParticipantsSplit.defaultProps = defaultProps;
 

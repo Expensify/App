@@ -1,18 +1,18 @@
 PODS:
-  - Airship (16.10.3):
-    - Airship/Automation (= 16.10.3)
-    - Airship/Basement (= 16.10.3)
-    - Airship/Core (= 16.10.3)
-    - Airship/ExtendedActions (= 16.10.3)
-    - Airship/MessageCenter (= 16.10.3)
-  - Airship/Automation (16.10.3):
+  - Airship (16.8.0):
+    - Airship/Automation (= 16.8.0)
+    - Airship/Basement (= 16.8.0)
+    - Airship/Core (= 16.8.0)
+    - Airship/ExtendedActions (= 16.8.0)
+    - Airship/MessageCenter (= 16.8.0)
+  - Airship/Automation (16.8.0):
     - Airship/Core
-  - Airship/Basement (16.10.3)
-  - Airship/Core (16.10.3):
+  - Airship/Basement (16.8.0)
+  - Airship/Core (16.8.0):
     - Airship/Basement
-  - Airship/ExtendedActions (16.10.3):
+  - Airship/ExtendedActions (16.8.0):
     - Airship/Core
-  - Airship/MessageCenter (16.10.3):
+  - Airship/MessageCenter (16.8.0):
     - Airship/Core
   - boost (1.76.0)
   - CocoaAsyncSocket (7.6.5)
@@ -472,7 +472,7 @@ PODS:
     - React-Core
   - react-native-image-manipulator (1.0.5):
     - React
-  - react-native-image-picker (4.10.1):
+  - react-native-image-picker (4.8.5):
     - React-Core
   - react-native-netinfo (8.3.1):
     - React-Core
@@ -569,8 +569,6 @@ PODS:
     - React-Core
   - RNDateTimePicker (3.5.2):
     - React-Core
-  - RNDeviceInfo (10.3.0):
-    - React-Core
   - RNFastImage (8.5.11):
     - React-Core
     - SDWebImage (~> 5.11.1)
@@ -590,7 +588,7 @@ PODS:
     - Firebase/Performance (= 8.8.0)
     - React-Core
     - RNFBApp
-  - RNGestureHandler (2.5.0):
+  - RNGestureHandler (2.6.0):
     - React-Core
   - RNPermissions (3.6.1):
     - React-Core
@@ -635,8 +633,8 @@ PODS:
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.10)
   - SocketRocket (0.6.0)
-  - urbanairship-react-native (14.5.1):
-    - Airship (= 16.10.3)
+  - urbanairship-react-native (14.4.1):
+    - Airship (= 16.8.0)
     - React-Core
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
@@ -724,7 +722,6 @@ DEPENDENCIES:
   - "RNCClipboard (from `../node_modules/@react-native-community/clipboard`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
-  - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - "RNFastImage (from `../node_modules/@pieter-pot/react-native-fast-image`)"
   - "RNFBAnalytics (from `../node_modules/@react-native-firebase/analytics`)"
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
@@ -892,8 +889,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-picker/picker"
   RNDateTimePicker:
     :path: "../node_modules/@react-native-community/datetimepicker"
-  RNDeviceInfo:
-    :path: "../node_modules/react-native-device-info"
   RNFastImage:
     :path: "../node_modules/@pieter-pot/react-native-fast-image"
   RNFBAnalytics:
@@ -922,7 +917,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Airship: dfdb00e0447c3773f75c817e3c740716c79bdc50
+  Airship: 4657c3d5118441240e04674d9445cbd6e363c956
   boost: a7c83b31436843459a1961bfd74b96033dc77234
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
@@ -985,7 +980,7 @@ SPEC CHECKSUMS:
   react-native-document-picker: f68191637788994baed5f57d12994aa32cf8bf88
   react-native-flipper: dc5290261fbeeb2faec1bdc57ae6dd8d562e1de4
   react-native-image-manipulator: c48f64221cfcd46e9eec53619c4c0374f3328a56
-  react-native-image-picker: f2ab1215d17bcfe27b0eb6417cc236fd1f4775e7
+  react-native-image-picker: cd420f97f6ed6ff74fc4686d27dbcfdbd051db91
   react-native-netinfo: 1a6035d3b9780221d407c277ebfb5722ace00658
   react-native-pdf: 33c622cbdf776a649929e8b9d1ce2d313347c4fa
   react-native-plaid-link-sdk: 77052f329310ff5a36ddda276793f40d27c02bc4
@@ -1010,13 +1005,12 @@ SPEC CHECKSUMS:
   RNCClipboard: 41d8d918092ae8e676f18adada19104fa3e68495
   RNCPicker: 0b65be85fe7954fbb2062ef079e3d1cde252d888
   RNDateTimePicker: 7658208086d86d09e1627b5c34ba0cf237c60140
-  RNDeviceInfo: 4701f0bf2a06b34654745053db0ce4cb0c53ada7
   RNFastImage: 1f2cab428712a4baaf78d6169eaec7f622556dd7
   RNFBAnalytics: f76bfa164ac235b00505deb9fc1776634056898c
   RNFBApp: 729c0666395b1953198dc4a1ec6deb8fbe1c302e
   RNFBCrashlytics: 2061ca863e8e2fa1aae9b12477d7dfa8e88ca0f9
   RNFBPerf: 389914cda4000fe0d996a752532a591132cbf3f9
-  RNGestureHandler: bad495418bcbd3ab47017a38d93d290ebd406f50
+  RNGestureHandler: 920eb17f5b1e15dae6e5ed1904045f8f90e0b11e
   RNPermissions: dcdb7b99796bbeda6975a6e79ad519c41b251b1c
   RNReactNativeHapticFeedback: 1e3efeca9628ff9876ee7cdd9edec1b336913f8c
   RNReanimated: 6c980139eb3b043569a08b8cb3d92cdf46bd54fa
@@ -1025,10 +1019,10 @@ SPEC CHECKSUMS:
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
-  urbanairship-react-native: 3e79dec940d55527df9e1d9cd06328a5f9fd6a2d
+  urbanairship-react-native: 7e2e9a84c541b1d04798e51f7f390a2d5806eac0
   Yoga: affc5393470ecec3069bd7bf05d5877afffff995
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: dedd71c831211e170c7bd343fd1a6c53ef4db1cb
+PODFILE CHECKSUM: 48093a300788c218e76f70cf6d102915cd993f34
 
 COCOAPODS: 1.11.3

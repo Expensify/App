@@ -669,6 +669,10 @@ const styles = {
         paddingBottom: 9,
     },
 
+    offlineIndicatorRow: {
+        height: 25,
+    },
+
     // Actions
     actionAvatar: {
         borderRadius: 20,
@@ -732,7 +736,6 @@ const styles = {
         paddingBottom: 8,
         paddingHorizontal: 11,
         borderWidth: 0,
-        borderRadius: variables.componentBorderRadiusNormal,
     },
 
     textInputMultiline: {
@@ -814,13 +817,9 @@ const styles = {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
             ...picker,
-            ...(focused && {borderColor: themeColors.borderFocus}),
-            ...(error && {borderColor: themeColors.danger}),
         },
         inputNative: {
             ...picker,
-            ...(focused && {borderColor: themeColors.borderFocus}),
-            ...(error && {borderColor: themeColors.danger}),
         },
     }),
 
@@ -1340,10 +1339,6 @@ const styles = {
         ...wordBreak.breakWord,
     },
 
-    chatItemUnsentMessage: {
-        opacity: 0.6,
-    },
-
     chatItemMessageLink: {
         color: themeColors.link,
         fontSize: variables.fontSizeNormal,
@@ -1830,6 +1825,7 @@ const styles = {
         flex: 1,
         backgroundColor: themeColors.modalBackground,
     },
+
     PDFView: {
         // `display: grid` is not supported in native platforms!
         // It's being used on Web/Desktop only to vertically center short PDFs,
@@ -1842,6 +1838,12 @@ const styles = {
         overflow: 'hidden',
         overflowY: 'auto',
         alignItems: 'center',
+    },
+
+    pdfPasswordForm: {
+        wideScreenWidth: {
+            width: 350,
+        },
     },
 
     modalCenterContentContainer: {
@@ -2433,9 +2435,13 @@ const styles = {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        borderBottomWidth: 1,
+        ...spacing.pt2,
+    },
+
+    peopleRowBorderBottom: {
         borderColor: themeColors.border,
-        ...spacing.pv2,
+        borderBottomWidth: 1,
+        ...spacing.pb2,
     },
 
     peopleRowCell: {
@@ -2699,6 +2705,7 @@ const styles = {
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: themeColors.shadow,
+        cursor: 'move',
     },
 
     sliderKnob: {
@@ -2709,6 +2716,7 @@ const styles = {
         borderRadius: variables.sliderKnobSize / 2,
         top: -variables.sliderBarHeight,
         left: -(variables.sliderKnobSize / 2),
+        cursor: 'pointer',
     },
 
     sliderBar: {

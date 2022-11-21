@@ -10,5 +10,5 @@ outputs:
     NUMBER:
         description: StagingDeployCash issue number
 runs:
-    using: 'node12'
+    using: 'node16'
     main: 'index.js'

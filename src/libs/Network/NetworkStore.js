@@ -43,7 +43,10 @@ function checkRequiredData() {
 }
 
 function resetHasReadRequiredDataFromStorage() {
-    requiredDataReadyTask.reset();
+    // Create a new promise and a new resolve function
+    isReadyPromise = new Promise((resolve) => {
+        resolveIsReadyPromise = resolve;
+    });
 }
 
 Onyx.connect({

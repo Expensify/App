@@ -30,11 +30,7 @@ const propTypes = {
     personalDetails: personalDetailsPropType.isRequired,
 
     /** All reports shared with the user */
-    reports: PropTypes.shape({
-        reportID: PropTypes.number,
-        reportName: PropTypes.string,
-        participants: PropTypes.arrayOf(PropTypes.string),
-    }).isRequired,
+    reports: PropTypes.objectOf(reportPropTypes).isRequired,
 
     /** Session of currently logged in user */
     session: PropTypes.shape({
@@ -57,11 +53,7 @@ class NewChatPage extends Component {
         this.toggleOption = this.toggleOption.bind(this);
         this.createChat = this.createChat.bind(this);
         this.createGroup = this.createGroup.bind(this);
-        this.excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, [
-            CONST.EMAIL.CONCIERGE,
-            CONST.EMAIL.RECEIPTS,
-            CONST.EMAIL.INTEGRATION_TESTING_CREDS,
-        ]);
+        this.excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
 
         const {
             recentReports,
@@ -113,15 +105,15 @@ class NewChatPage extends Component {
 
         sections.push({
             title: this.props.translate('common.recents'),
-            data: _.difference(this.state.recentReports, this.state.selectedOptions),
-            shouldShow: !_.isEmpty(this.state.recentReports),
+            data: recentReportsWithoutSelected,
+            shouldShow: !_.isEmpty(recentReportsWithoutSelected),
             indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
         });
 
         sections.push({
             title: this.props.translate('common.contacts'),
-            data: _.difference(this.state.personalDetails, this.state.selectedOptions),
-            shouldShow: !_.isEmpty(this.state.personalDetails),
+            data: personalDetailsWithoutSelected,
+            shouldShow: !_.isEmpty(personalDetailsWithoutSelected),
             indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
         });
 

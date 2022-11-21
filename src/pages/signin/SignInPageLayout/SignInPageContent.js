@@ -59,7 +59,7 @@ const SignInPageContent = props => (
                 >
                     <KeyboardAvoidingView
                         behavior="position"
-                        contentContainerStyle={[
+                        style={[
                             StyleUtils.getModalPaddingStyles({
                                 shouldAddBottomSafeAreaPadding: true,
                                 modalContainerStylePaddingBottom: 20,

@@ -74,7 +74,7 @@ describe('actions/Report', () => {
             callback: val => reportActions = val,
         });
 
-        let sequenceNumber;
+        let clientID;
 
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
@@ -92,8 +92,8 @@ describe('actions/Report', () => {
             .then(() => {
                 const resultAction = _.first(_.values(reportActions));
 
-                // Store the generated sequenceNumber so that we can send it with our mock Pusher update
-                sequenceNumber = resultAction.sequenceNumber;
+                // Store the generated clientID so that we can send it with our mock Pusher update
+                clientID = resultAction.clientID;
                 expect(resultAction.message).toEqual(REPORT_ACTION.message);
                 expect(resultAction.person).toEqual(REPORT_ACTION.person);
                 expect(resultAction.pendingAction).toEqual(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -120,7 +120,7 @@ describe('actions/Report', () => {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         value: {
-                            [sequenceNumber]: null,
+                            [clientID]: null,
                             [ACTION_ID]: actionWithoutLoading,
                         },
                     },
@@ -164,25 +164,7 @@ describe('actions/Report', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // Before pusher event gets sent back, test that Onyx immediately updated the report pin state.
-                expect(reportIsPinned).toEqual(true);
-            })
-            .then(() => {
-                // We subscribed to the Pusher channel above and now we need to simulate a reportTogglePinned
-                // Pusher event so we can verify that pinning was handled correctly and merged into the report.
-                const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`);
-                channel.emit(Pusher.TYPE.REPORT_TOGGLE_PINNED, {
-                    reportID: REPORT_ID,
-                    isPinned: true,
-                });
-
-                // Once an event is emitted to the Pusher channel we should see the report pin get updated
-                // by the Pusher callback and added to the storage so we must wait for promises to resolve again and
-                // then verify the data is in Onyx.
-                return waitForPromisesToResolve();
-            })
-            .then(() => {
-                // Make sure the pin state gets from the Pusher callback into Onyx.
+                // Test that Onyx immediately updated the report pin state.
                 expect(reportIsPinned).toEqual(true);
             });
     });
@@ -286,32 +268,32 @@ describe('actions/Report', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // Then the report will have an unreadActionCount
-                expect(report.unreadActionCount).toBe(1);
+                // Then the report will be unread
+                expect(ReportUtils.isUnread(report)).toBe(true);
 
                 // When the user visits the report
-                Report.updateLastReadActionID(REPORT_ID);
+                Report.openReport(REPORT_ID);
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // The unreadActionCount will return to 0
-                expect(report.unreadActionCount).toBe(0);
+                // The report will be read
+                expect(ReportUtils.isUnread(report)).toBe(false);
 
                 // When the user manually marks a message as "unread"
-                Report.updateLastReadActionID(REPORT_ID, 1, true);
+                Report.markCommentAsUnread(REPORT_ID, 1);
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // The unreadActionCount will increase
-                expect(report.unreadActionCount).toBe(1);
+                // Then the report will be unread
+                expect(ReportUtils.isUnread(report)).toBe(true);
 
                 // When a new comment is added by the current user
                 Report.addComment(REPORT_ID, 'Current User Comment 1');
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // The unreadActionCount should be 0 and the lastReadSequenceNumber incremented
-                expect(report.unreadActionCount).toBe(0);
+                // The report will be read and the lastReadSequenceNumber incremented
+                expect(ReportUtils.isUnread(report)).toBe(false);
                 expect(report.lastReadSequenceNumber).toBe(2);
                 expect(report.lastMessageText).toBe('Current User Comment 1');
 
@@ -320,8 +302,8 @@ describe('actions/Report', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // The unreadActionCount should be 0 and the lastReadSequenceNumber incremented
-                expect(report.unreadActionCount).toBe(0);
+                // The report will be read and the lastReadSequenceNumber incremented
+                expect(ReportUtils.isUnread(report)).toBe(false);
                 expect(report.lastReadSequenceNumber).toBe(3);
                 expect(report.lastMessageText).toBe('Current User Comment 2');
 
@@ -330,8 +312,8 @@ describe('actions/Report', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // The unreadActionCount should be 0 and the lastReadSequenceNumber incremented
-                expect(report.unreadActionCount).toBe(0);
+                // The report will be read and the lastReadSequenceNumber incremented
+                expect(ReportUtils.isUnread(report)).toBe(false);
                 expect(report.lastReadSequenceNumber).toBe(4);
                 expect(report.lastMessageText).toBe('Current User Comment 3');
 
@@ -366,9 +348,9 @@ describe('actions/Report', () => {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         value: {
-                            [_.toArray(reportActions)[1].sequenceNumber]: null,
-                            [_.toArray(reportActions)[2].sequenceNumber]: null,
-                            [_.toArray(reportActions)[3].sequenceNumber]: null,
+                            [_.toArray(reportActions)[1].clientID]: null,
+                            [_.toArray(reportActions)[2].clientID]: null,
+                            [_.toArray(reportActions)[3].clientID]: null,
                             2: {
                                 ...USER_1_BASE_ACTION,
                                 message: [{type: 'COMMENT', html: 'Current User Comment 1', text: 'Current User Comment 1'}],
@@ -392,25 +374,25 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // If the user deletes a comment that is before the last read
-                Report.deleteReportComment(REPORT_ID, reportActions[2]);
+                Report.deleteReportComment(REPORT_ID, {...reportActions[2], sequenceNumber: 2, clientID: null});
                 return waitForPromisesToResolve();
             })
             .then(() => {
                 // Then no change will occur
                 expect(report.lastReadSequenceNumber).toBe(4);
-                expect(report.unreadActionCount).toBe(0);
+                expect(ReportUtils.isUnread(report)).toBe(false);
 
                 // When the user manually marks a message as "unread"
-                Report.updateLastReadActionID(REPORT_ID, 3, true);
+                Report.markCommentAsUnread(REPORT_ID, 3);
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // Then we should expect the unreadActionCount to be updated
-                expect(report.unreadActionCount).toBe(2);
+                // Then we should expect the report to be to be unread
+                expect(ReportUtils.isUnread(report)).toBe(true);
                 expect(report.lastReadSequenceNumber).toBe(2);
 
-                // If the user deletes the last comment after the last read the unreadActionCount will decrease and the lastMessageText will reflect the new last comment
-                Report.deleteReportComment(REPORT_ID, reportActions[4]);
+                // If the user deletes the last comment after the last read the lastMessageText will reflect the new last comment
+                Report.deleteReportComment(REPORT_ID, {...reportActions[4], sequenceNumber: 4, clientID: null});
                 return waitForPromisesToResolve();
             })
             .then(() => {

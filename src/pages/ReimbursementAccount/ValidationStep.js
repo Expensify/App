@@ -26,7 +26,6 @@ import Section from '../../components/Section';
 import CONST from '../../CONST';
 import Button from '../../components/Button';
 import MenuItem from '../../components/MenuItem';
-import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -37,6 +36,8 @@ const propTypes = {
 
 const defaultProps = {
     reimbursementAccount: {
+        errorFields: {},
+        errors: {},
         maxAttemptsReached: false,
     },
 };

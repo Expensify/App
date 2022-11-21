@@ -20,8 +20,6 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import Permissions from '../../libs/Permissions';
-import networkPropTypes from '../../components/networkPropTypes';
-import {withNetwork} from '../../components/OnyxProvider';
 import * as App from '../../libs/actions/App';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
@@ -53,6 +51,9 @@ const propTypes = {
 
         /** The user's role in the policy */
         role: PropTypes.string,
+
+        /** The current action that is waiting to happen on the policy */
+        pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
     })),
 
     /** The user's wallet account */
@@ -70,6 +71,9 @@ const propTypes = {
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    /** Information about the user accepting the terms for payments */
+    walletTerms: walletTermsPropTypes,
+
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
@@ -85,25 +89,6 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-/**
- * Dismisses the errors on one item
- *
- * @param {string} policyID
- * @param {string} pendingAction
- */
-function dismissWorkspaceError(policyID, pendingAction) {
-    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-        Policy.clearDeleteWorkspaceError(policyID);
-        return;
-    }
-
-    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-        Policy.removeWorkspace(policyID);
-        return;
-    }
-    throw new Error('Not implemented');
-}
-
 class InitialSettingsPage extends React.Component {
     constructor(props) {
         super(props);
@@ -113,64 +98,9 @@ class InitialSettingsPage extends React.Component {
         this.getMenuItem = this.getMenuItem.bind(this);
     }
 
-    const walletBalance = props.numberFormat(
-        props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
-        {style: 'currency', currency: 'USD'},
-    );
-
-    const defaultMenuItems = [
-        {
-            translationKey: 'common.profile',
-            icon: Expensicons.Profile,
-            action: () => { App.openProfile(); },
-        },
-        {
-            translationKey: 'common.preferences',
-            icon: Expensicons.Gear,
-            action: () => { Navigation.navigate(ROUTES.SETTINGS_PREFERENCES); },
-        },
-        {
-            translationKey: 'initialSettingsPage.security',
-            icon: Expensicons.Lock,
-            action: () => { Navigation.navigate(ROUTES.SETTINGS_SECURITY); },
-        },
-        {
-            translationKey: 'common.payments',
-            icon: Expensicons.Wallet,
-            action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
-            brickRoadIndicator: PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList) || !_.isEmpty(props.userWallet.errors) || !_.isEmpty(props.walletTerms.errors) ? 'error' : null,
-        },
-        {
-            translationKey: 'initialSettingsPage.about',
-            icon: Expensicons.Info,
-            action: () => { Navigation.navigate(ROUTES.SETTINGS_ABOUT); },
-        },
-        {
-            translationKey: 'initialSettingsPage.signOut',
-            icon: Expensicons.Exit,
-            action: Session.signOutAndRedirectToSignIn,
-        },
-    ];
-
-    // Add free policies (workspaces) to the list of menu items
-    const menuItems = _.chain(props.policies)
-        .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
-        .map(policy => ({
-            title: policy.name,
-            icon: policy.avatar ? policy.avatar : Expensicons.Building,
-            iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-            action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
-            iconStyles: policy.avatar ? [] : [styles.popoverMenuIconEmphasized],
-            iconFill: themeColors.iconReversed,
-            fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-            brickRoadIndicator: Policy.hasPolicyMemberError(lodashGet(props.policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {})) ? 'error' : null,
-            pendingAction: policy.pendingAction,
-            errors: policy.errors,
-            dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
-            disabled: policy.pendingAction === 'delete' && _.isEmpty(policy.errors),
-        }))
-        .value();
-    menuItems.push(...defaultMenuItems);
+    componentDidMount() {
+        Wallet.openInitialSettingsPage();
+    }
 
     /**
      * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
@@ -230,7 +160,8 @@ class InitialSettingsPage extends React.Component {
                 translationKey: 'common.payments',
                 icon: Expensicons.Wallet,
                 action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
-                brickRoadIndicator: PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.cardList) || !_.isEmpty(this.props.userWallet.errors) ? 'error' : null,
+                brickRoadIndicator: PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.cardList) || !_.isEmpty(this.props.userWallet.errors)
+                    || !_.isEmpty(this.props.walletTerms.errors) ? 'error' : null,
             },
             {
                 translationKey: 'initialSettingsPage.about',
@@ -243,35 +174,6 @@ class InitialSettingsPage extends React.Component {
                 action: Session.signOutAndRedirectToSignIn,
             },
         ]);
-    }
-
-    /**
-     * Add free policies (workspaces) to the list of menu items and returns the list of menu items
-     * @returns {Array} the menu item list
-     */
-    getMenuItemsList() {
-        const menuItems = _.chain(this.props.policies)
-            .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
-            .map(policy => ({
-                title: policy.name,
-                icon: policy.avatar ? policy.avatar : Expensicons.Building,
-                iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
-                iconStyles: policy.avatar ? [] : [styles.popoverMenuIconEmphasized],
-                iconFill: themeColors.iconReversed,
-                fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
-                pendingAction: policy.pendingAction,
-                isPolicy: true,
-                errors: policy.errors,
-                dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
-                disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            }))
-            .sortBy(policy => policy.title)
-            .value();
-        menuItems.push(...this.getDefaultMenuItems());
-
-        return menuItems;
     }
 
     getMenuItem(item, index) {
@@ -308,6 +210,7 @@ class InitialSettingsPage extends React.Component {
         if (_.isEmpty(this.props.currentUserPersonalDetails)) {
             return null;
         }
+
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -353,7 +256,6 @@ class InitialSettingsPage extends React.Component {
 
 InitialSettingsPage.propTypes = propTypes;
 InitialSettingsPage.defaultProps = defaultProps;
-InitialSettingsPage.displayName = 'InitialSettingsPage';
 
 export default compose(
     withLocalize,
@@ -379,6 +281,9 @@ export default compose(
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
+        },
+        walletTerms: {
+            key: ONYXKEYS.WALLET_TERMS,
         },
     }),
 )(InitialSettingsPage);

@@ -10,7 +10,6 @@ import compose from '../libs/compose';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import Tooltip from './Tooltip';
@@ -41,13 +40,14 @@ const propTypes = {
     policies: PropTypes.shape({
         /** The policy name */
         name: PropTypes.string,
-    }).isRequired,
+    }),
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     report: {},
+    policies: {},
 };
 
 const ReportWelcomeText = (props) => {
@@ -58,24 +58,7 @@ const ReportWelcomeText = (props) => {
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
         OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails),
-        ({
-            displayName, firstName, login, pronouns,
-        }) => {
-            const longName = displayName || Str.removeSMSDomain(login);
-            const longNameLocalized = Str.isSMSLogin(longName) ? props.toLocalPhone(longName) : longName;
-            const shortName = firstName || longNameLocalized;
-            let finalPronouns = pronouns;
-            if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
-                const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
-                finalPronouns = props.translate(`pronouns.${localeKey}`);
-            }
-            return {
-                displayName: isMultipleParticipant ? shortName : longNameLocalized,
-                tooltip: Str.removeSMSDomain(login),
-                pronouns: finalPronouns,
-                login,
-            };
-        },
+        isMultipleParticipant,
     );
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report, props.policies);
     return (
@@ -122,7 +105,7 @@ const ReportWelcomeText = (props) => {
                         {props.translate('reportActionsView.beginningOfChatHistory')}
                     </Text>
                     {_.map(displayNamesWithTooltips, ({
-                        displayName, pronouns, login, tooltip,
+                        displayName, pronouns, tooltip,
                     }, index) => (
                         <Text key={`${displayName}${pronouns}${index}`}>
                             <Tooltip text={tooltip} containerStyles={[styles.dInline]}>

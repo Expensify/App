@@ -1,5 +1,5 @@
 import React, {memo} from 'react';
-import {ActivityIndicator, ImageBackground, View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
@@ -51,6 +51,12 @@ const propTypes = {
     /** Should this fragment be contained in a single line? */
     isSingleLine: PropTypes.bool,
 
+    // Additional styles to add after local styles
+    style: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
+
     ...windowDimensionsPropTypes,
 
     /** localization props */
@@ -69,6 +75,7 @@ const defaultProps = {
     isSingleLine: false,
     tooltipText: '',
     source: '',
+    style: [],
 };
 
 const ReportActionItemFragment = (props) => {
@@ -87,8 +94,8 @@ const ReportActionItemFragment = (props) => {
                                     color={themeColors.textSupporting}
                                     style={[styles.flex1]}
                                 />
-                            )}
-                    </View>
+                            </View>
+                        )
                 );
             }
             let {html, text} = props.fragment;
@@ -96,10 +103,9 @@ const ReportActionItemFragment = (props) => {
             // If the only difference between fragment.text and fragment.html is <br /> tags
             // we replace them with line breaks and render it as text, not as html.
             // This is done to render emojis with line breaks between them as text.
-            const differByLineBreaksOnly = html.replaceAll('<br />', ' ') === text;
+            const differByLineBreaksOnly = Str.replaceAll(props.fragment.html, '<br />', ' ') === props.fragment.text;
             if (differByLineBreaksOnly) {
-                const textWithLineBreaks = html.replaceAll('<br />', '\n');
-                // eslint-disable-next-line no-param-reassign
+                const textWithLineBreaks = Str.replaceAll(props.fragment.html, '<br />', '\n');
                 html = textWithLineBreaks;
                 text = textWithLineBreaks;
             }
@@ -114,37 +120,22 @@ const ReportActionItemFragment = (props) => {
                             ? `<email-comment>${htmlContent}</email-comment>`
                             : `<comment>${htmlContent}</comment>`}
                     />
-                ) : (
-                    <Text
-                        selectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
-                        style={[EmojiUtils.containsOnlyEmojis(props.fragment.text) ? styles.onlyEmojisText : undefined, styles.ltr]}
-                    >
-                        {`\u2066${Str.htmlDecode(props.fragment.text)}`}
-                        {props.fragment.isEdited && (
-                        <Text
-                            fontSize={variables.fontSizeSmall}
-                            color={themeColors.textSupporting}
-                        >
-                            {` ${props.translate('reportActionCompose.edited')}`}
-                        </Text>
-                        )}
-                    </View>
                 );
             }
             return (
                 <Text
                     family="EMOJI_TEXT_FONT"
                     selectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
-                    style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined, styles.ltr]}
+                    style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
                 >
                     {StyleUtils.convertToLTR(Str.htmlDecode(text))}
                     {props.fragment.isEdited && (
-                        <Text
-                            fontSize={variables.fontSizeSmall}
-                            color={themeColors.textSupporting}
-                        >
-                            {` ${props.translate('reportActionCompose.edited')}`}
-                        </Text>
+                    <Text
+                        fontSize={variables.fontSizeSmall}
+                        color={themeColors.textSupporting}
+                    >
+                        {` ${props.translate('reportActionCompose.edited')}`}
+                    </Text>
                     )}
                 </Text>
             );

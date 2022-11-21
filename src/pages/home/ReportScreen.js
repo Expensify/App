@@ -19,6 +19,8 @@ import CONST from '../../CONST';
 import ReportActionsSkeletonView from '../../components/ReportActionsSkeletonView';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
+import addViewportResizeListener from '../../libs/VisualViewport';
+import {withNetwork} from '../../components/OnyxProvider';
 import compose from '../../libs/compose';
 import networkPropTypes from '../../components/networkPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
@@ -45,28 +47,10 @@ const propTypes = {
     isSidebarLoaded: PropTypes.bool,
 
     /** The report currently being looked at */
-    report: PropTypes.shape({
-        /** Number of actions unread */
-        unreadActionCount: PropTypes.number,
-
-        /** The largest sequenceNumber on this report */
-        maxSequenceNumber: PropTypes.number,
-
-        /** Whether there is an outstanding amount in IOU */
-        hasOutstandingIOU: PropTypes.bool,
-
-        /** Flag to check if the report actions data are loading */
-        isLoadingReportActions: PropTypes.bool,
-
-        /** ID for the report */
-        reportID: PropTypes.string,
-    }),
+    report: reportPropTypes,
 
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
-
-    /** Are we waiting for more report data? */
-    isLoadingReportData: PropTypes.bool,
 
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
@@ -85,18 +69,19 @@ const propTypes = {
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
+
+    ...windowDimensionsPropTypes,
+    ...withDrawerPropTypes,
 };
 
 const defaultProps = {
     isSidebarLoaded: false,
     reportActions: {},
     report: {
-        unreadActionCount: 0,
         maxSequenceNumber: 0,
         hasOutstandingIOU: false,
         isLoadingReportActions: false,
     },
-    isLoadingReportData: false,
     isComposerFullSize: false,
     betas: [],
     policies: {},
@@ -108,11 +93,10 @@ const defaultProps = {
  * @param {Object} route
  * @param {Object} route.params
  * @param {String} route.params.reportID
- * @returns {Number}
+ * @returns {String}
  */
 function getReportID(route) {
-    const params = route.params;
-    return Number.parseInt(params.reportID, 10);
+    return route.params.reportID.toString();
 }
 
 // Keep a reference to the list view height so we can use it when a new ReportScreen component mounts
@@ -136,7 +120,8 @@ class ReportScreen extends React.Component {
     }
 
     componentDidMount() {
-        this.storeCurrentlyViewedReport();
+        this.fetchReportIfNeeded();
+        toggleReportActionComposeView(true);
         this.removeViewportResizeListener = addViewportResizeListener(this.updateViewportOffsetTop);
     }
 
@@ -145,7 +130,8 @@ class ReportScreen extends React.Component {
             return;
         }
 
-        this.storeCurrentlyViewedReport();
+        this.fetchReportIfNeeded();
+        toggleReportActionComposeView(true);
     }
 
     componentWillUnmount() {
@@ -174,14 +160,6 @@ class ReportScreen extends React.Component {
 
     fetchReportIfNeeded() {
         const reportIDFromPath = getReportID(this.props.route);
-        if (_.isNaN(reportIDFromPath)) {
-            Report.handleInaccessibleReport();
-            return;
-        }
-
-        // Always reset the state of the composer view when the current reportID changes
-        toggleReportActionComposeView(true);
-        Report.updateCurrentlyViewedReportID(reportIDFromPath);
 
         // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
         // is not stored locally yet. If props.report.reportID exists, then the report has been stored locally and nothing more needs to be done.
@@ -214,10 +192,14 @@ class ReportScreen extends React.Component {
             return null;
         }
 
-        // We let Free Plan default rooms to be shown in the App - it's the one exception to the beta, otherwise do not show policy rooms in product
+        // We create policy rooms for all policies, however we don't show them unless
+        // - It's a free plan workspace
+        // - The report includes guides participants (@team.expensify.com) for 1:1 Assigned
         if (!Permissions.canUseDefaultRooms(this.props.betas)
             && ReportUtils.isDefaultRoom(this.props.report)
-            && ReportUtils.getPolicyType(this.props.report, this.props.policies) !== CONST.POLICY.TYPE.FREE) {
+            && ReportUtils.getPolicyType(this.props.report, this.props.policies) !== CONST.POLICY.TYPE.FREE
+            && !ReportUtils.hasExpensifyGuidesEmails(lodashGet(this.props.report, ['participants'], []))
+        ) {
             return null;
         }
 
@@ -230,21 +212,33 @@ class ReportScreen extends React.Component {
         const reportID = getReportID(this.props.route);
         const addWorkspaceRoomOrChatPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(this.props.report, 'pendingFields.createChat');
         const addWorkspaceRoomOrChatErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom') || lodashGet(this.props.report, 'errorFields.createChat');
-        const screenWrapperStyle = [styles.appContent, {marginTop: this.state.viewportOffsetTop}];
+        const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}];
 
         // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
         return (
-            <ScreenWrapper
-                style={[styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}]}
+            <Freeze
+                freeze={this.props.isSmallScreenWidth && this.props.isDrawerOpen}
+                placeholder={(
+                    <ScreenWrapper
+                        style={screenWrapperStyle}
+                    >
+                        <ReportHeaderSkeletonView />
+                        <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
+                    </ScreenWrapper>
+                )}
             >
                 <ScreenWrapper
                     style={screenWrapperStyle}
                 >
-                    <OfflineWithFeedback
-                        pendingAction={pendingAction}
-                        errors={errors}
-                        errorRowStyles={styles.dNone}
+                    <FullPageNotFoundView
+                        shouldShow={!this.props.report.reportID}
+                        subtitleKey="notFound.noAccess"
+                        shouldShowCloseButton={false}
+                        shouldShowBackButton={this.props.isSmallScreenWidth}
+                        onBackButtonPress={() => {
+                            Navigation.navigate(ROUTES.HOME);
+                        }}
                     >
                         <OfflineWithFeedback
                             pendingAction={addWorkspaceRoomOrChatPendingAction}
@@ -256,8 +250,17 @@ class ReportScreen extends React.Component {
                                 onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                                 personalDetails={this.props.personalDetails}
                                 report={this.props.report}
-                                session={this.props.session}
-                                isComposerFullSize={this.props.isComposerFullSize}
+                                policies={this.props.policies}
+                            />
+                        </OfflineWithFeedback>
+                        {this.props.accountManagerReportID && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
+                            <Banner
+                                containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
+                                textStyles={[styles.colorReversed]}
+                                text={this.props.translate('reportActionsView.chatWithAccountManager')}
+                                onClose={this.dismissBanner}
+                                onPress={this.chatWithAccountManager}
+                                shouldShowCloseButton
                             />
                         )}
                         <View
@@ -317,6 +320,9 @@ ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
 
 export default compose(
+    withLocalize,
+    withWindowDimensions,
+    withDrawerState,
     withNetwork(),
     withOnyx({
         isSidebarLoaded: {

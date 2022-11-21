@@ -27,6 +27,8 @@ const CONST = {
 
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
 
+    AVATAR_ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'bmp'],
+
     // Minimum width and height size in px for a selected image
     AVATAR_MIN_WIDTH_PX: 80,
     AVATAR_MIN_HEIGHT_PX: 80,
@@ -54,8 +56,6 @@ const CONST = {
             MAX_ROUTING_NUMBER: '402 Maximum Size Exceeded routingNumber',
             MISSING_INCORPORATION_STATE: '402 Missing incorporationState in additionalData',
             MISSING_INCORPORATION_TYPE: '402 Missing incorporationType in additionalData',
-            MAX_VALIDATION_ATTEMPTS_REACHED: 'Validation for this bank account has been disabled due to too many incorrect attempts. Please contact us.',
-            INCORRECT_VALIDATION_AMOUNTS: 'The validate code you entered is incorrect, please try again.',
         },
         STEP: {
             // In the order they appear in the VBA flow
@@ -100,6 +100,7 @@ const CONST = {
         STATE: {
             VERIFYING: 'VERIFYING',
             PENDING: 'PENDING',
+            OPEN: 'OPEN',
         },
         MAX_LENGTH: {
             SSN: 4,
@@ -234,7 +235,6 @@ const CONST = {
     MANAGE_CARDS_URL: 'domain_companycards',
     FEES_URL: `${USE_EXPENSIFY_URL}/fees`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
-    STAGING_SECURE_URL: 'https://staging-secure.expensify.com/',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
@@ -267,6 +267,7 @@ const CONST = {
         MESSAGE: {
             TYPE: {
                 COMMENT: 'COMMENT',
+                TEXT: 'TEXT',
             },
         },
         TYPE: {
@@ -279,6 +280,13 @@ const CONST = {
             DOMAIN_ALL: 'domainAll',
             POLICY_ROOM: 'policyRoom',
             POLICY_EXPENSE_CHAT: 'policyExpenseChat',
+        },
+        WORKSPACE_CHAT_ROOMS: {
+            ANNOUNCE: '#announce',
+            ADMINS: '#admins',
+        },
+        STATE: {
+            SUBMITTED: 'SUBMITTED',
         },
         STATE_NUM: {
             OPEN: 0,
@@ -342,7 +350,6 @@ const CONST = {
         REPORT_INITIAL_RENDER: 'report_initial_render',
         SWITCH_REPORT: 'switch_report',
         SIDEBAR_LOADED: 'sidebar_loaded',
-        PERSONAL_DETAILS_FORMATTED: 'personal_details_formatted',
         COLD: 'cold',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         TOOLTIP_SENSE: 1000,
@@ -410,7 +417,8 @@ const CONST = {
         PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
-    DEFAULT_ACCOUNT_DATA: {error: '', success: '', loading: false},
+    DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
+    DEFAULT_CLOSE_ACCOUNT_DATA: {error: '', success: '', isLoading: false},
     APP_STATE: {
         ACTIVE: 'active',
         BACKGROUND: 'background',
@@ -511,6 +519,7 @@ const CONST = {
         SVFG: 'svfg@expensify.com',
         INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
         ADMIN: 'admin@expensify.com',
+        GUIDES_DOMAIN: 'team.expensify.com',
     },
 
     ENVIRONMENT: {
@@ -649,6 +658,7 @@ const CONST = {
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
             CREATE: 'create',
+            SPLIT: 'split',
             DECLINE: 'decline',
             CANCEL: 'cancel',
         },
@@ -671,11 +681,18 @@ const CONST = {
             FREE: 'free',
             PERSONAL: 'personal',
             CORPORATE: 'corporate',
+            TEAM: 'team',
         },
         ROLE: {
             ADMIN: 'admin',
         },
         ROOM_PREFIX: '#',
+        CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
+        OWNER_EMAIL_FAKE: '_FAKE_',
+    },
+
+    CUSTOM_UNITS: {
+        NAME_DISTANCE: 'Distance',
     },
 
     TERMS: {
@@ -720,7 +737,6 @@ const CONST = {
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
-        RATE_VALUE: /^\d{1,8}(\.\d*)?$/,
 
         // Adapted from: https://gist.github.com/dperini/729294
         // eslint-disable-next-line max-len
@@ -773,6 +789,7 @@ const CONST = {
     // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
     MAX_COMMENT_LENGTH: 15000,
 
+    FORM_CHARACTER_LIMIT: 50,
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
         // Values define in how many times the image can be bigger than its container.
@@ -817,6 +834,28 @@ const CONST = {
     // When generating a random value to fit in 7 digits (for the `middle` or `right` parts above), this is the maximum value to multiply by Math.random().
     MAX_INT_FOR_RANDOM_7_DIGIT_VALUE: 10000000,
     IOS_KEYBOARD_SPACE_OFFSET: -30,
+
+    PDF_PASSWORD_FORM: {
+        // Constants for password-related error responses received from react-pdf.
+        REACT_PDF_PASSWORD_RESPONSES: {
+            NEED_PASSWORD: 1,
+            INCORRECT_PASSWORD: 2,
+        },
+    },
+    TESTING: {
+        SCREEN_SIZE: {
+            SMALL: {
+                width: 300, height: 700, scale: 1, fontScale: 1,
+            },
+        },
+    },
+    API_REQUEST_TYPE: {
+        READ: 'read',
+        WRITE: 'write',
+        MAKE_REQUEST_WITH_SIDE_EFFECTS: 'makeRequestWithSideEffects',
+    },
+
+    TFA_CODE_LENGTH: 6,
 };
 
 export default CONST;

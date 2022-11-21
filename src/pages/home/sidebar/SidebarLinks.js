@@ -3,8 +3,7 @@ import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import memoizeOne from 'memoize-one';
+import {Freeze} from 'react-freeze';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -14,18 +13,20 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import Icon from '../../../components/Icon';
 import Header from '../../../components/Header';
-import OptionsList from '../../../components/OptionsList';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
-import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 import Tooltip from '../../../components/Tooltip';
 import CONST from '../../../CONST';
 import participantPropTypes from '../../../components/participantPropTypes';
-import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
+import withWindowDimensions from '../../../components/withWindowDimensions';
+import reportActionPropTypes from '../report/reportActionPropTypes';
+import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
+import SidebarUtils from '../../../libs/SidebarUtils';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -36,19 +37,12 @@ const propTypes = {
 
     /* Onyx Props */
     /** List of reports */
-    reports: PropTypes.objectOf(PropTypes.shape({
-        /** ID of the report */
-        reportID: PropTypes.number,
+    // eslint-disable-next-line react/no-unused-prop-types
+    reports: PropTypes.objectOf(reportPropTypes),
 
-        /** Name of the report */
-        reportName: PropTypes.string,
-
-        /** Number of unread actions on the report */
-        unreadActionCount: PropTypes.number,
-
-        /** Whether the report has a draft comment */
-        hasDraft: PropTypes.bool,
-    })),
+    /** All report actions for all reports */
+    // eslint-disable-next-line react/no-unused-prop-types
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** List of users' personal details */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -71,51 +65,19 @@ const propTypes = {
     /** The chat priority mode */
     priorityMode: PropTypes.string,
 
-    /** Actions from the ChatReport */
-    // It's used in a static method, but I guess ESLint can't find it
-    // eslint-disable-next-line react/no-unused-prop-types
-    reportActions: PropTypes.shape(reportActionPropTypes),
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     reports: {},
+    reportActions: {},
     personalDetails: {},
     currentUserPersonalDetails: {
         avatar: ReportUtils.getDefaultAvatar(),
     },
     reportIDFromRoute: '',
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
-    isSyncingData: false,
-    network: {},
 };
-
-/**
- * @param {Object} nextUnreadReports
- * @param {Object} unreadReports
- * @returns {Boolean}
- */
-function checkForNewUnreadReports(nextUnreadReports, unreadReports) {
-    return nextUnreadReports.length > 0
-            && _.some(nextUnreadReports,
-                nextUnreadReport => !_.some(unreadReports, unreadReport => unreadReport.reportID === nextUnreadReport.reportID));
-}
-const memoizeCheckForNewUnreadReports = memoizeOne(checkForNewUnreadReports);
-
-/**
- * @param {Object} reportsObject
- * @returns {Array}
- */
-function getUnreadReports(reportsObject) {
-    const reports = _.values(reportsObject);
-    if (reports.length === 0) {
-        return [];
-    }
-    const unreadReports = _.filter(reports, report => report && report.unreadActionCount > 0);
-    return unreadReports;
-}
-const memoizeGetUnreadReports = memoizeOne(getUnreadReports);
 
 class SidebarLinks extends React.Component {
     constructor(props) {
@@ -158,13 +120,17 @@ class SidebarLinks extends React.Component {
     }
 
     render() {
-        // Wait until the reports and personalDetails are actually loaded before displaying the LHN
+        // Wait until the personalDetails are actually loaded before displaying the LHN
         if (_.isEmpty(this.props.personalDetails)) {
             return null;
         }
         const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
         return (
-            <View style={[styles.flex1, styles.h100]}>
+            <View
+                accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
+                accessibilityLabel="List of chats"
+                style={[styles.flex1, styles.h100]}
+            >
                 <View
                     style={[
                         styles.flexRow,

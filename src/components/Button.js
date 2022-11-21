@@ -108,9 +108,6 @@ const propTypes = {
 
     /** Id to use for this button */
     nativeID: PropTypes.string,
-
-    /** Whether text in Button should selectable */
-    textSelectable: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -142,7 +139,6 @@ const defaultProps = {
     shouldRemoveLeftBorderRadius: false,
     shouldEnableHapticFeedback: false,
     nativeID: '',
-    textSelectable: true,
 };
 
 class Button extends Component {
@@ -165,6 +161,7 @@ class Button extends Component {
             if (!this.props.isFocused || this.props.isDisabled || this.props.isLoading || (e && e.target.nodeName === 'TEXTAREA')) {
                 return;
             }
+            e.preventDefault();
             this.props.onPress();
         }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true, false, this.props.enterKeyEventListenerPriority, false);
     }
@@ -185,7 +182,7 @@ class Button extends Component {
 
         const textComponent = (
             <Text
-                selectable={this.props.textSelectable}
+                selectable={false}
                 style={[
                     this.props.isLoading && styles.opacity0,
                     styles.pointerEventsNone,

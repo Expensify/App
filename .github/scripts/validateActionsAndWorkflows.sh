@@ -69,7 +69,15 @@ if [[ -z "${CI}" && -z "$(command -v shellcheck)" ]]; then
   brew install shellcheck
 fi
 
-bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+info 'Downloading actionlint...'
+if bash <(curl --silent https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash); then
+  success 'Successfully downloaded actionlint!'
+else
+  error 'Error downloading actionlint'
+  exit 1
+fi
+
+info 'Linting workflows...'
 ./actionlint -color || EXIT_CODE=1
 if [[ "$EXIT_CODE" == 0 ]]; then
   success 'Workflows passed actionlint!'

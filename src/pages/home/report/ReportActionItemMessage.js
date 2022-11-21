@@ -6,17 +6,17 @@ import lodashGet from 'lodash/get';
 import styles from '../../../styles/styles';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import reportActionPropTypes from './reportActionPropTypes';
-import {withNetwork} from '../../../components/OnyxProvider';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import compose from '../../../libs/compose';
-import networkPropTypes from '../../../components/networkPropTypes';
 
 const propTypes = {
     /** The report action */
     action: PropTypes.shape(reportActionPropTypes).isRequired,
 
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
+    /** Additional styles to add after local styles. */
+    style: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
 
     /** Additional styles to add after local styles. */
     style: PropTypes.oneOfType([
@@ -52,7 +52,4 @@ ReportActionItemMessage.propTypes = propTypes;
 ReportActionItemMessage.defaultProps = defaultProps;
 ReportActionItemMessage.displayName = 'ReportActionItemMessage';
 
-export default compose(
-    withNetwork(),
-    withLocalize,
-)(ReportActionItemMessage);
+export default withLocalize(ReportActionItemMessage);

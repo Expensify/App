@@ -21,6 +21,9 @@ import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButto
 import OfflineIndicator from '../../components/OfflineIndicator';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
+import * as ErrorUtils from '../../libs/ErrorUtils';
+import DotIndicatorMessage from '../../components/DotIndicatorMessage';
+import * as CloseAccount from '../../libs/actions/CloseAccount';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -31,7 +34,7 @@ const propTypes = {
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
         /** An error message to display to the user */
-        error: PropTypes.string,
+        errors: PropTypes.objectOf(PropTypes.string),
 
         /** Success message to display when necessary */
         success: PropTypes.string,
@@ -158,16 +161,10 @@ class LoginForm extends React.Component {
 
     render() {
         const formErrorTranslated = this.state.formError && this.props.translate(this.state.formError);
-        const error = formErrorTranslated || _.chain(this.props.account.errors || [])
-            .keys()
-            .sortBy()
-            .reverse()
-            .map(key => this.props.account.errors[key])
-            .first()
-            .value();
+        const error = formErrorTranslated || ErrorUtils.getLatestErrorMessage(this.props.account);
         return (
             <>
-                <View style={[styles.mt3]}>
+                <View accessibilityLabel="Login form" style={[styles.mt3]}>
                     <TextInput
                         ref={el => this.input = el}
                         label={this.props.translate('loginForm.phoneOrEmail')}

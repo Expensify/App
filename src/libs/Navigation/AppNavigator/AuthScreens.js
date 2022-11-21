@@ -103,7 +103,7 @@ class AuthScreens extends React.Component {
         // Listen for report changes and fetch some data we need on initialization
         UnreadIndicatorUpdater.listenForReportChanges();
         App.openApp();
-
+        App.setUpPoliciesAndNavigate(this.props.session);
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
@@ -121,11 +121,6 @@ class AuthScreens extends React.Component {
     }
 
     shouldComponentUpdate(nextProps) {
-        // we perform this check here instead of componentDidUpdate to skip an unnecessary re-render
-        if (this.props.currentPath !== nextProps.currentPath) {
-            App.setUpPoliciesAndNavigate(nextProps.session, nextProps.currentPath);
-        }
-
         return nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth;
     }
 
@@ -269,6 +264,7 @@ class AuthScreens extends React.Component {
                     name="Participants"
                     options={modalScreenOptions}
                     component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
+                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="IOU_Request"
@@ -292,6 +288,7 @@ class AuthScreens extends React.Component {
                     name="IOU_Details"
                     options={modalScreenOptions}
                     component={ModalStackNavigators.IOUDetailsModalStackNavigator}
+                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="AddPersonalBankAccount"

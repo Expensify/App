@@ -30,6 +30,9 @@ hubs:
     title: Request money
     icon: /assets/images/money-circle.svg
     description: Request money for work expenses, bills, or a night out with friends.
+    articles:
+      - href: Request-and-Send-Money
+        title: Request and Send Money
 
   - href: other
     title: Other

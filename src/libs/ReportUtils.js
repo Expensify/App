@@ -114,6 +114,7 @@ function canEditReportAction(reportAction) {
         && reportAction.reportActionID
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
         && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {}))
+        && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
         && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
@@ -129,6 +130,7 @@ function canDeleteReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.reportActionID
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
+        && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
         && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
@@ -218,6 +220,15 @@ function getPolicyType(report, policies) {
 }
 
 /**
+ * Returns true if there are any guides accounts (team.expensify.com) in emails
+ * @param {Array} emails
+ * @returns {Boolean}
+ */
+function hasExpensifyGuidesEmails(emails) {
+    return _.some(emails, email => Str.extractEmailDomain(email) === CONST.EMAIL.GUIDES_DOMAIN);
+}
+
+/**
  * Given a collection of reports returns the most recently accessed one
  *
  * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
@@ -229,7 +240,9 @@ function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
     let sortedReports = sortReportsByLastVisited(reports);
 
     if (ignoreDefaultRooms) {
-        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report) || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE);
+        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report)
+            || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE
+            || hasExpensifyGuidesEmails(lodashGet(report, ['participants'], [])));
     }
 
     return _.last(sortedReports);
@@ -255,8 +268,18 @@ function isArchivedRoom(report) {
  * @returns {String}
  */
 function getPolicyName(report, policies) {
-    const defaultValue = report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
-    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'], defaultValue);
+    if (_.isEmpty(policies)) {
+        return Localize.translateLocal('workspace.common.unavailable');
+    }
+
+    const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+    if (!policy) {
+        return Localize.translateLocal('workspace.common.unavailable');
+    }
+
+    return policy.name
+        || report.oldPolicyName
+        || Localize.translateLocal('workspace.common.unavailable');
 }
 
 /**
@@ -419,8 +442,6 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
     if (isPolicyExpenseChat(report)) {
         const policyExpenseChatAvatarSource = lodashGet(policies, [
             `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar',
-        ]) || lodashGet(policies, [
-            `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatarURL',
         ]) || Expensicons.Workspace;
 
         // Return the workspace avatar if the user is the owner of the policy expense chat
@@ -464,24 +485,22 @@ function getPersonalDetailsForLogin(login) {
 /**
  * Get the displayName for a single report participant.
  *
- * @param {Object} participant
- * @param {String} participant.displayName
- * @param {String} participant.firstName
- * @param {String} participant.login
+ * @param {String} login
  * @param {Boolean} [shouldUseShortForm]
  * @returns {String}
  */
-function getDisplayNameForParticipant(participant, shouldUseShortForm = false) {
-    if (!participant) {
+function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
+    if (!login) {
         return '';
     }
+    const personalDetails = getPersonalDetailsForLogin(login);
 
     const loginWithoutSMSDomain = Str.removeSMSDomain(personalDetails.login);
     let longName = personalDetails.displayName || loginWithoutSMSDomain;
-    if (Str.isSMSLogin(longName)) {
+    if (longName === loginWithoutSMSDomain && Str.isSMSLogin(longName)) {
         longName = LocalePhoneNumber.toLocalPhone(preferredLocale, longName);
     }
-    const shortName = participant.firstName || longName;
+    const shortName = personalDetails.firstName || longName;
 
     return shouldUseShortForm ? shortName : longName;
 }
@@ -573,7 +592,7 @@ function navigateToDetailsPage(report) {
  * @returns {String}
  */
 function generateReportID() {
-    return String((Math.floor(Math.random() * (2 ** 21)) * (2 ** 32)) + Math.floor(Math.random() * (2 ** 32)));
+    return ((Math.floor(Math.random() * (2 ** 21)) * (2 ** 32)) + Math.floor(Math.random() * (2 ** 32))).toString();
 }
 
 /**
@@ -653,11 +672,12 @@ function buildOptimisticReportAction(sequenceNumber, text, file) {
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportID, currency, locale) {
-    const formattedTotal = NumberFormatUtils.format(locale, total / 100, {
-        style: 'currency',
-        currency,
-    });
+function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, currency, locale) {
+    const formattedTotal = NumberFormatUtils.format(locale,
+        total, {
+            style: 'currency',
+            currency,
+        });
     return {
         cachedTotal: formattedTotal,
         chatReportID,
@@ -682,7 +702,7 @@ function buildOptimisticIOUReport(ownerEmail, recipientEmail, total, chatReportI
  */
 function getIOUReportActionMessage(type, total, participants, comment, currency) {
     const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
-    const displayNames = _.map(participants, participant => getDisplayNameForParticipant(allPersonalDetails[participant.login], true) || participant.login);
+    const displayNames = _.map(participants, participant => getDisplayNameForParticipant(participant.login, true));
     const who = displayNames.length < 3
         ? displayNames.join(' and ')
         : `${displayNames.slice(0, -1).join(', ')}, and ${_.last(displayNames)}`;
@@ -726,15 +746,14 @@ function getIOUReportActionMessage(type, total, participants, comment, currency)
  * @param {String} comment - User comment for the IOU.
  * @param {Array}  participants - An array with participants details.
  * @param {String} paymentType - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
- * @param {String} existingIOUTransactionID - Only required if the IOUReportAction type is oneOf(cancel, decline). Generates a randomID as default.
- * @param {Number} existingIOUReportID - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
- * @param {String} debtorEmail
+ * @param {String} iouTransactionID - Only required if the IOUReportAction type is oneOf(cancel, decline). Generates a randomID as default.
+ * @param {String} iouReportID - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, comment, paymentType = '', existingIOUTransactionID = '', existingIOUReportID = '', debtorEmail = '') {
-    const IOUTransactionID = existingIOUTransactionID || NumberUtils.rand64();
-    const IOUReportID = existingIOUReportID || generateReportID();
+function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, comment, participants, paymentType = '', iouTransactionID = '', iouReportID = '') {
+    const IOUTransactionID = iouTransactionID || NumberUtils.rand64();
+    const IOUReportID = iouReportID || generateReportID();
     const originalMessage = {
         amount,
         comment,
@@ -764,12 +783,8 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, 
         actorEmail: currentUserEmail,
         automatic: false,
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
-
-        // For now, the clientID and sequenceNumber are the same.
-        // We are changing that as we roll out the optimistiReportAction IDs and related refactors.
-        clientID: sequenceNumber,
+        clientID: NumberUtils.generateReportActionClientID(),
         isAttachment: false,
-        message,
         originalMessage,
         message: getIOUReportActionMessage(type, amount, participants, comment, currency),
         person: [{
@@ -1139,6 +1154,11 @@ export {
     navigateToDetailsPage,
     generateReportID,
     hasReportNameError,
+    isUnread,
+    buildOptimisticWorkspaceChats,
+    buildOptimisticChatReport,
+    buildOptimisticCreatedReportAction,
+    buildOptimisticIOUReport,
     buildOptimisticIOUReportAction,
     buildOptimisticReportAction,
     shouldReportBeInOptionList,

@@ -2,20 +2,16 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View, findNodeHandle} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
 import Button from '../Button';
 import FixedFooter from '../FixedFooter';
 import OptionsList from '../OptionsList';
-import Text from '../Text';
-import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
-import withLocalize from '../withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import TextInput from '../TextInput';
 import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
-import ONYXKEYS from '../../ONYXKEYS';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import {propTypes as optionsSelectorPropTypes, defaultProps as optionsSelectorDefaultProps} from './optionsSelectorPropTypes';
 import setSelection from '../../libs/setSelection';
@@ -25,6 +21,7 @@ const propTypes = {
     shouldDelayFocus: PropTypes.bool,
 
     ...optionsSelectorPropTypes,
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -87,6 +84,10 @@ class BaseOptionsSelector extends Component {
             true,
         );
 
+        if (!this.props.autoFocus) {
+            return;
+        }
+
         if (this.props.shouldDelayFocus) {
             this.focusTimeout = setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
         } else {
@@ -118,11 +119,6 @@ class BaseOptionsSelector extends Component {
             }
             this.scrollToIndex(this.state.focusedIndex);
         });
-
-        if (newOptions.length <= newFocusedIndex || !_.isEqual(this.props.selectedOptions, prevProps.selectedOptions)) {
-            return;
-        }
-        this.scrollToIndex(newFocusedIndex);
     }
 
     componentWillUnmount() {
@@ -150,6 +146,8 @@ class BaseOptionsSelector extends Component {
      */
     flattenSections() {
         const allOptions = [];
+        this.disabledOptionsIndexes = [];
+        let index = 0;
         _.each(this.props.sections, (section, sectionIndex) => {
             _.each(section.data, (option, optionIndex) => {
                 allOptions.push({
@@ -157,6 +155,10 @@ class BaseOptionsSelector extends Component {
                     sectionIndex,
                     index: optionIndex,
                 });
+                if (section.isDisabled || option.isDisabled) {
+                    this.disabledOptionsIndexes.push(index);
+                }
+                index += 1;
             });
         });
         return allOptions;
@@ -205,8 +207,8 @@ class BaseOptionsSelector extends Component {
     selectRow(option, ref) {
         if (this.props.shouldFocusOnSelectRow) {
             // Input is permanently focused on native platforms, so we always highlight the text inside of it
-            this.textInput.setNativeProps({selection: {start: 0, end: this.props.value.length}});
-            if (this.relatedTarget && ref === findNodeHandle(this.relatedTarget)) {
+            setSelection(this.textInput, 0, this.props.value.length);
+            if (this.relatedTarget && ref === this.relatedTarget) {
                 this.textInput.focus();
             }
             this.relatedTarget = null;
@@ -235,12 +237,7 @@ class BaseOptionsSelector extends Component {
                 ref={el => this.textInput = el}
                 value={this.props.value}
                 label={this.props.textInputLabel}
-                onChangeText={(text) => {
-                    if (this.props.shouldFocusOnSelectRow) {
-                        this.textInput.setNativeProps({selection: null});
-                    }
-                    this.props.onChangeText(text);
-                }}
+                onChangeText={this.props.onChangeText}
                 placeholder={this.props.placeholderText || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                 onBlur={(e) => {
                     if (!this.props.shouldFocusOnSelectRow) {
@@ -271,8 +268,9 @@ class BaseOptionsSelector extends Component {
         ) : <FullScreenLoadingIndicator />;
         return (
             <ArrowKeyFocusManager
+                disabledIndexes={this.disabledOptionsIndexes}
                 focusedIndex={this.state.focusedIndex}
-                maxIndex={this.props.canSelectMultipleOptions ? this.state.allOptions.length : this.state.allOptions.length - 1}
+                maxIndex={this.state.allOptions.length - 1}
                 onFocusedIndexChanged={this.props.disableArrowKeysActions ? () => {} : this.updateFocusedIndex}
             >
                 <View style={[styles.flex1]}>
@@ -299,11 +297,6 @@ class BaseOptionsSelector extends Component {
                 </View>
                 {shouldShowFooter && (
                     <FixedFooter>
-                        {this.props.shouldShowOfflineMessage && this.props.network.isOffline && (
-                            <Text style={[styles.formError, styles.pb2]}>
-                                {this.props.translate('session.offlineMessage')}
-                            </Text>
-                        )}
                         {shouldShowDefaultConfirmButton && (
                             <Button
                                 success
@@ -325,11 +318,4 @@ class BaseOptionsSelector extends Component {
 BaseOptionsSelector.defaultProps = defaultProps;
 BaseOptionsSelector.propTypes = propTypes;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        network: {
-            key: ONYXKEYS.NETWORK,
-        },
-    }),
-)(BaseOptionsSelector);
+export default withLocalize(BaseOptionsSelector);

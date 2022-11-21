@@ -3,7 +3,6 @@ import {TouchableWithoutFeedback, View, KeyboardAvoidingView} from 'react-native
 import PDF from 'react-native-pdf';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import PDFPasswordForm from './PDFPasswordForm';
 import * as pdfViewPropTypes from './pdfViewPropTypes';
@@ -12,29 +11,50 @@ import withWindowDimensions from '../withWindowDimensions';
 import withKeyboardState from '../withKeyboardState';
 
 /**
- * On the native layer, we use a pdf library to display PDFs
+ * On the native layer, we use react-native-pdf/PDF to display PDFs. If a PDF is
+ * password-protected we render a PDFPasswordForm to request a password
+ * from the user.
  *
- * @param props
- * @returns {JSX.Element}
+ * In order to render things nicely during a password challenge we need
+ * to keep track of additional state. In particular, the
+ * react-native-pdf/PDF component is both conditionally rendered and hidden
+ * depending upon the situation. It needs to be rerendered on each password
+ * submission because it doesn't dynamically handle updates to its
+ * password property. And we need to hide it during password challenges
+ * so that PDFPasswordForm doesn't bounce when react-native-pdf/PDF
+ * is (temporarily) rendered.
  */
+class PDFView extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            shouldRequestPassword: false,
+            shouldAttemptPdfLoad: true,
+            shouldShowLoadingIndicator: true,
+            isPasswordInvalid: false,
+            password: '',
+        };
+        this.initiatePasswordChallenge = this.initiatePasswordChallenge.bind(this);
+        this.attemptPdfLoadWithPassword = this.attemptPdfLoadWithPassword.bind(this);
+        this.finishPdfLoad = this.finishPdfLoad.bind(this);
+    }
 
-const PDFView = props => (
-    <TouchableWithoutFeedback style={[styles.flex1, props.style]}>
-        <PDF
-            trustAllCerts={false}
-            activityIndicator={<FullScreenLoadingIndicator />}
-            source={{uri: props.sourceURL}}
-            style={[
-                styles.imageModalPDF,
-                StyleUtils.getWidthAndHeightStyle(props.windowWidth, props.windowHeight),
-            ]}
-        />
-    </TouchableWithoutFeedback>
-);
+    componentDidUpdate() {
+        this.props.onToggleKeyboard(this.props.isShown);
+    }
 
-PDFView.propTypes = propTypes;
-PDFView.defaultProps = defaultProps;
-PDFView.displayName = 'PDFView';
+    /**
+     * Initiate password challenge if message received from react-native-pdf/PDF
+     * indicates that a password is required or invalid.
+     *
+     * For a password challenge the message is "Password required or incorrect password."
+     * Note that the message doesn't specify whether the password is simply empty or
+     * invalid.
+     *
+     * @param {String} message
+     */
+    initiatePasswordChallenge({message}) {
+        this.setState({shouldShowLoadingIndicator: false});
 
         if (!message.match(/password/i)) {
             return;

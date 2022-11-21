@@ -125,6 +125,7 @@ The reviewer will copy/paste it into a new comment and complete it after the aut
     - [ ] I turned off my network connection and tested it while offline to ensure it matches the expected behavior (i.e. verify the default avatar icon is displayed if app is offline)
     - [ ] I tested this PR with a [High Traffic account](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#high-traffic-accounts) against the staging or production API to ensure there are no regressions (e.g. long loading states that impact usability).
 - [ ] I checked that screenshots or videos are included for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
+- [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I verified tests pass on **all platforms** & I tested again on:
     - [ ] iOS / native
     - [ ] Android / native
@@ -138,7 +139,7 @@ The reviewer will copy/paste it into a new comment and complete it after the aut
     - [ ] I verified that comments were added to code that is not self explanatory
     - [ ] I verified that any new or modified comments were clear, correct English, and explained "why" the code was doing something instead of only explaining "what" the code was doing.
     - [ ] I verified any copy / text shown in the product was added in all `src/languages/*` files
-    - [ ] I verified any copy / text that was added to the app is correct English and approved by marketing by tagging the marketing team on the original GH to get the correct copy.
+    - [ ] I verified any copy / text that was added to the app is correct English and approved by marketing by adding the `Waiting for Copy` label for a copy review on the original GH to get the correct copy.
     - [ ] I verified proper file naming conventions were followed for any new files or renamed files. All non-platform specific files are named after what they export and are not named "index.js". All platform-specific files are named for the platform the code supports as outlined in the README.
     - [ ] I verified the JSDocs style guidelines (in [`STYLE.md`](https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md#jsdocs)) were followed
 - [ ] If a new code pattern is added I verified it was agreed to be used by multiple Expensify engineers
@@ -166,29 +167,17 @@ The reviewer will copy/paste it into a new comment and complete it after the aut
 
 </details>
 
-
-### QA Steps
-<!---
-Add a numbered list of manual tests that can be performed by our QA engineers on the staging environment to validate that your changes work on all platforms, and that there are no regressions present.
-Add any additional QA steps if test steps are unique to a particular platform.
-Manual test steps should be written so that the QA engineer can repeat and verify one or more expected outcomes in the staging environment.
-
-For example:
-1. Click on the text input to bring it into focus
-2. Upload an image via copy paste
-3. Verify a modal appears displaying a preview of that image
---->
-
-- [ ] Verify that no errors appear in the JS console
-
 ### Screenshots
 <!-- Add screenshots for all platforms tested. Pull requests won't be merged unless the screenshots show the app was tested on all platforms.-->
 
 #### Web
 <!-- Insert screenshots of your changes on the web platform-->
 
-#### Mobile Web
-<!-- Insert screenshots of your changes on the web platform (from a mobile browser)-->
+#### Mobile Web - Chrome
+<!-- Insert screenshots of your changes on the web platform (from chrome mobile browser)-->
+
+#### Mobile Web - Safari
+<!-- Insert screenshots of your changes on the web platform (from safari mobile browser)-->
 
 #### Desktop
 <!-- Insert screenshots of your changes on the desktop platform-->

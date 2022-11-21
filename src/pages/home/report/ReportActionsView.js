@@ -12,7 +12,7 @@ import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
+import {withDrawerPropTypes} from '../../../components/withDrawerState';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
@@ -34,22 +34,7 @@ const propTypes = {
     /* Onyx Props */
 
     /** The report currently being looked at */
-    report: PropTypes.shape({
-        /** The ID of the report actions will be created for */
-        reportID: PropTypes.number.isRequired,
-
-        /** Number of actions unread */
-        unreadActionCount: PropTypes.number,
-
-        /** The largest sequenceNumber on this report */
-        maxSequenceNumber: PropTypes.number,
-
-        /** Whether there is an outstanding amount in IOU */
-        hasOutstandingIOU: PropTypes.bool,
-
-        /** Are we loading more report actions? */
-        isLoadingMoreReportActions: PropTypes.bool,
-    }).isRequired,
+    report: reportPropTypes.isRequired,
 
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
@@ -104,7 +89,7 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
-        this.appStateChangeListener = AppState.addEventListener('change', (state) => {
+        this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
             if (!this.getIsReportFullyVisible()) {
                 return;
             }
@@ -222,7 +207,7 @@ class ReportActionsView extends React.Component {
         const didReportBecomeVisible = isReportFullyVisible && (didSidebarClose || didScreenSizeIncrease);
         if (didReportBecomeVisible) {
             this.setState({
-                newMarkerSequenceNumber: this.props.report.unreadActionCount === 0
+                newMarkerSequenceNumber: !ReportUtils.isUnread(this.props.report)
                     ? 0
                     : this.props.report.lastReadSequenceNumber + 1,
             });
@@ -232,15 +217,15 @@ class ReportActionsView extends React.Component {
         // When the user navigates to the LHN the ReportActionsView doesn't unmount and just remains hidden.
         // The next time we navigate to the same report (e.g. by swiping or tapping the LHN row) we want the new marker to clear.
         const didSidebarOpen = !prevProps.isDrawerOpen && this.props.isDrawerOpen;
-        const didUserNavigateToSidebarAfterReadingReport = didSidebarOpen && this.props.report.unreadActionCount === 0;
+        const didUserNavigateToSidebarAfterReadingReport = didSidebarOpen && !ReportUtils.isUnread(this.props.report);
         if (didUserNavigateToSidebarAfterReadingReport) {
             this.setState({newMarkerSequenceNumber: 0});
         }
 
         // Checks to see if a report comment has been manually "marked as unread". All other times when the lastReadSequenceNumber
-        // changes it will be because we marked the entire report as read and there should be an unreadActionCount of 0.
+        // changes it will be because we marked the entire report as read.
         const didManuallyMarkReportAsUnread = (prevProps.report.lastReadSequenceNumber !== this.props.report.lastReadSequenceNumber)
-            && this.props.report.unreadActionCount > 0;
+            && ReportUtils.isUnread(this.props.report);
         if (didManuallyMarkReportAsUnread) {
             this.setState({newMarkerSequenceNumber: this.props.report.lastReadSequenceNumber + 1});
         }
@@ -407,7 +392,6 @@ ReportActionsView.defaultProps = defaultProps;
 export default compose(
     Performance.withRenderTrace({id: '<ReportActionsView> rendering'}),
     withWindowDimensions,
-    withDrawerState,
     withLocalize,
     withNetwork(),
 )(ReportActionsView);

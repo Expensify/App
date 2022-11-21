@@ -6,8 +6,6 @@ import Str from 'expensify-common/lib/str';
 import {escapeRegExp} from 'lodash';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
-import Growl from '../Growl';
-import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
@@ -60,6 +58,7 @@ function updateLastAccessedWorkspace(policyID) {
  * Delete the workspace
  *
  * @param {String} policyID
+ * @param {Array<Object>} reports
  */
 function deleteWorkspace(policyID, reports) {
     const optimisticData = [
@@ -99,32 +98,15 @@ function deleteWorkspace(policyID, reports) {
         })),
     ];
 
-/**
- * Delete the policy
- *
- * @param {String} [policyID]
- * @returns {Promise}
- */
-function deletePolicy(policyID) {
-    return DeprecatedAPI.Policy_Delete({policyID})
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                // Show the user feedback
-                const errorMessage = Localize.translateLocal('workspace.common.growlMessageOnDeleteError');
-                Growl.error(errorMessage, 5000);
-                return;
-            }
+    // We don't need success data since the push notification will update
+    // the onyxData for all connected clients.
+    const successData = [];
+    API.write('DeleteWorkspace', {policyID}, {optimisticData, successData, failureData});
 
-            Growl.show(Localize.translateLocal('workspace.common.growlMessageOnDelete'), CONST.GROWL.SUCCESS, 3000);
-
-            // Removing the workspace data from Onyx as well
-            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, null);
-        })
-        .then(() => Report.fetchAllReports(false))
-        .then(() => {
-            Navigation.goBack();
-            return Promise.resolve();
-        });
+    // Reset the lastAccessedWorkspacePolicyID
+    if (policyID === lastAccessedWorkspacePolicyID) {
+        updateLastAccessedWorkspace(null);
+    }
 }
 
 /**
@@ -255,7 +237,8 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID) {
 }
 
 /**
- * Sets local values for the policy
+ * Updates a workspace avatar image
+ *
  * @param {String} policyID
  * @param {File|Object} file
  */
@@ -307,12 +290,12 @@ function deleteWorkspaceAvatar(policyID) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    avatarURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
                 errorFields: {
-                    avatarURL: null,
+                    avatar: null,
                 },
-                avatarURL: '',
+                avatar: '',
             },
         },
     ];
@@ -322,10 +305,7 @@ function deleteWorkspaceAvatar(policyID) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    avatarURL: null,
-                },
-                errorFields: {
-                    avatarURL: null,
+                    avatar: null,
                 },
             },
         },
@@ -336,10 +316,10 @@ function deleteWorkspaceAvatar(policyID) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    avatarURL: null,
+                    avatar: null,
                 },
                 errorFields: {
-                    avatarURL: {
+                    avatar: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('avatarWithImagePicker.deleteWorkspaceError'),
                     },
                 },
@@ -356,10 +336,10 @@ function deleteWorkspaceAvatar(policyID) {
 function clearAvatarErrors(policyID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         errorFields: {
-            avatarURL: null,
+            avatar: null,
         },
         pendingFields: {
-            avatarURL: null,
+            avatar: null,
         },
     });
 }
@@ -434,47 +414,35 @@ function clearWorkspaceGeneralSettingsErrors(policyID) {
 }
 
 /**
- * Uploads the avatar image to S3 bucket and updates the policy with new avatarURL
- *
- * @param {String} policyID
- * @param {Object} file
- */
-function uploadAvatar(policyID, file) {
-    updateLocalPolicyValues(policyID, {isAvatarUploading: true});
-    DeprecatedAPI.User_UploadAvatar({file})
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                // Update the policy with the new avatarURL as soon as we get it
-                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatarURL: response.s3url, isAvatarUploading: false});
-                update(policyID, {avatarURL: response.s3url}, true);
-                return;
-            }
-
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isAvatarUploading: false});
-            const errorMessage = Localize.translateLocal('workspace.editor.avatarUploadFailureMessage');
-            Growl.error(errorMessage, 5000);
-        });
-}
-
-/**
  * @param {String} policyID
  * @param {Object} errors
  */
 function setWorkspaceErrors(policyID, errors) {
+    if (!allPolicies[policyID]) {
+        return;
+    }
+
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errors: null});
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errors});
 }
 
 /**
  * @param {String} policyID
- * @param {Number} customUnitID
+ * @param {String} customUnitID
+ * @param {String} customUnitRateID
  */
-function removeUnitError(policyID, customUnitID) {
+function clearCustomUnitErrors(policyID, customUnitID, customUnitRateID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         customUnits: {
             [customUnitID]: {
                 errors: null,
                 pendingAction: null,
+                rates: {
+                    [customUnitRateID]: {
+                        errors: null,
+                        pendingAction: null,
+                    },
+                },
             },
         },
     });
@@ -484,6 +452,10 @@ function removeUnitError(policyID, customUnitID) {
  * @param {String} policyID
  */
 function hideWorkspaceAlertMessage(policyID) {
+    if (!allPolicies[policyID]) {
+        return;
+    }
+
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {alertMessage: ''});
 }
 
@@ -500,8 +472,8 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    [values.customUnitID]: {
-                        ...values,
+                    [newCustomUnit.customUnitID]: {
+                        ...newCustomUnit,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
@@ -515,7 +487,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    [values.customUnitID]: {
+                    [newCustomUnit.customUnitID]: {
                         pendingAction: null,
                         errors: null,
                     },
@@ -552,6 +524,7 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
 
 /**
  * @param {String} policyID
+ * @param {Object} currentCustomUnitRate
  * @param {String} customUnitID
  * @param {Object} newCustomUnitRate
  * @param {Number} lastModified
@@ -573,12 +546,9 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
                         },
                     },
                 },
-            });
-        }).catch(() => {
-            // Show the user feedback
-            Growl.error(Localize.translateLocal('workspace.editor.genericFailureMessage'), 5000);
-        });
-}
+            },
+        },
+    ];
 
     const successData = [
         {
@@ -655,11 +625,15 @@ function clearAddMemberError(policyID, memberEmail) {
 }
 
 /**
- * @param {String} value
- * @returns {String}
+ * Removes an error after trying to delete a workspace
+ *
+ * @param {String} policyID
  */
-function capitalizeFirstLetter(value) {
-    return value.charAt(0).toUpperCase() + value.slice(1);
+function clearDeleteWorkspaceError(policyID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        pendingAction: null,
+        errors: null,
+    });
 }
 
 /**
@@ -686,9 +660,9 @@ function generateDefaultWorkspaceName(email = '') {
     const domain = emailParts[1];
 
     if (_.includes(PUBLIC_DOMAINS, domain.toLowerCase())) {
-        defaultWorkspaceName = `${capitalizeFirstLetter(username)}'s Workspace`;
+        defaultWorkspaceName = `${Str.UCFirst(username)}'s Workspace`;
     } else {
-        defaultWorkspaceName = `${capitalizeFirstLetter(domain.split('.')[0])}'s Workspace`;
+        defaultWorkspaceName = `${Str.UCFirst(domain.split('.')[0])}'s Workspace`;
     }
 
     if (`@${domain.toLowerCase()}` === CONST.SMS.DOMAIN) {
@@ -934,20 +908,21 @@ export {
     isAdminOfFreePolicy,
     hasActiveFreePolicy,
     setWorkspaceErrors,
-    removeUnitError,
+    clearCustomUnitErrors,
     hideWorkspaceAlertMessage,
-    deletePolicy,
-    createAndNavigate,
-    createAndGetPolicyList,
+    deleteWorkspace,
     updateWorkspaceCustomUnit,
-    setCustomUnitRate,
+    updateCustomUnitRate,
     updateLastAccessedWorkspace,
     clearDeleteMemberError,
     clearAddMemberError,
+    clearDeleteWorkspaceError,
+    openWorkspaceReimburseView,
     generateDefaultWorkspaceName,
     updateGeneralSettings,
     clearWorkspaceGeneralSettingsErrors,
     deleteWorkspaceAvatar,
+    updateWorkspaceAvatar,
     clearAvatarErrors,
     generatePolicyID,
     createWorkspace,

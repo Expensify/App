@@ -14,7 +14,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import MenuItem from '../../../components/MenuItem';
 import Logo from '../../../../assets/images/new-expensify.svg';
-import {version} from '../../../../package.json';
+import pkg from '../../../../package.json';
 import * as Report from '../../../libs/actions/Report';
 import * as Link from '../../../libs/actions/Link';
 import getPlatformSpecificMenuItems from './getPlatformSpecificMenuItems';
@@ -90,7 +90,7 @@ const AboutPage = (props) => {
                                 ]}
                             >
                                 v
-                                {version}
+                                {pkg.version}
                             </Text>
                             <Text style={[styles.baseFontStyle, styles.mv5]}>
                                 {props.translate('initialSettingsPage.aboutPage.description')}

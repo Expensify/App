@@ -10,32 +10,9 @@ import Growl from '../Growl';
 import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
-import ROUTES from '../../ROUTES';
 import * as User from './User';
 import * as store from './ReimbursementAccount/store';
 import ROUTES from '../../ROUTES';
-
-/**
- * Deletes a debit card
- *
- * @param {Number} fundID
- *
- * @returns {Promise}
- */
-function deleteDebitCard(fundID) {
-    return DeprecatedAPI.DeleteFund({fundID})
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                Growl.show(Localize.translateLocal('paymentsPage.deleteDebitCardSuccess'), CONST.GROWL.SUCCESS, 3000);
-                Onyx.merge(ONYXKEYS.CARD_LIST, {[fundID]: null});
-            } else {
-                Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
-            }
-        })
-        .catch(() => {
-            Growl.show(Localize.translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
-        });
-}
 
 function deletePayPalMe() {
     User.deletePaypalMeAddress();
@@ -378,6 +355,13 @@ function clearWalletError() {
     Onyx.merge(ONYXKEYS.USER_WALLET, {errors: null});
 }
 
+/**
+ * Clear any error(s) related to the user's wallet terms
+ */
+function clearWalletTermsError() {
+    Onyx.merge(ONYXKEYS.WALLET_TERMS, {errors: null});
+}
+
 function deletePaymentCard(fundID) {
     API.write('DeletePaymentCard', {
         fundID,
@@ -396,8 +380,9 @@ export {
     deletePayPalMe,
     deletePaymentCard,
     getPaymentMethods,
-    setWalletLinkedAccount,
     addPaymentCard,
+    openPaymentsPage,
+    makeDefaultPaymentMethod,
     kycWallRef,
     continueSetup,
     clearDebitCardFormErrorAndSubmit,
@@ -411,4 +396,5 @@ export {
     clearDeletePaymentMethodError,
     clearAddPaymentMethodError,
     clearWalletError,
+    clearWalletTermsError,
 };

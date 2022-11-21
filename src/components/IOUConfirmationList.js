@@ -57,6 +57,9 @@ const propTypes = {
         phoneNumber: PropTypes.string,
     })).isRequired,
 
+    /** Is this IOU associated with existing report */
+    isIOUAttachedToExistingChatReport: PropTypes.bool.isRequired,
+
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
@@ -303,14 +306,12 @@ class IOUConfirmationList extends Component {
                             addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
                             addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                             currency={this.props.iou.selectedCurrencyCode}
-                            isLoading={isLoading}
                         />
                     ) : (
                         <ButtonWithMenu
                             isDisabled={shouldDisableButton}
                             onPress={(_event, value) => this.confirm(value)}
                             options={this.splitOrRequestOptions}
-                            isLoading={isLoading}
                         />
                     )}
             />

@@ -3,6 +3,7 @@ import CONST from '../../CONST';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Localize from '../Localize';
+import DateUtils from '../DateUtils';
 
 export {
     setupWithdrawalAccount,
@@ -10,7 +11,6 @@ export {
     setBankAccountFormValidationErrors,
     resetReimbursementAccount,
     resetFreePlanBankAccount,
-    validateBankAccount,
     hideBankAccountErrors,
     setWorkspaceIDForReimbursementAccount,
     setBankAccountSubStep,
@@ -25,6 +25,7 @@ export {
 export {
     openOnfidoFlow,
     activateWallet,
+    answerQuestionsForWallet,
     verifyIdentity,
     acceptWalletTerms,
 } from './Wallet';
@@ -86,6 +87,27 @@ function getVBBADataForOnyx() {
             },
         ],
     };
+}
+
+/**
+ * Submit Bank Account step with Plaid data so php can perform some checks.
+ *
+ * @param {Number} bankAccountID
+ * @param {Object} selectedPlaidBankAccount
+ */
+function connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount) {
+    const commandName = 'ConnectBankAccountWithPlaid';
+
+    const parameters = {
+        bankAccountID,
+        routingNumber: selectedPlaidBankAccount.routingNumber,
+        accountNumber: selectedPlaidBankAccount.accountNumber,
+        bank: selectedPlaidBankAccount.bankName,
+        plaidAccountID: selectedPlaidBankAccount.plaidAccountID,
+        plaidAccessToken: selectedPlaidBankAccount.plaidAccessToken,
+    };
+
+    API.write(commandName, parameters, getVBBADataForOnyx());
 }
 
 /**
@@ -293,6 +315,22 @@ function updateCompanyInformationForBankAccount(bankAccount) {
 }
 
 /**
+ * Add beneficial owners for the bank account, accept the ACH terms and conditions and verify the accuracy of the information provided
+ *
+ * @param {Object} params
+ *
+ * // ACH Contract Step
+ * @param {Boolean} [params.ownsMoreThan25Percent]
+ * @param {Boolean} [params.hasOtherBeneficialOwners]
+ * @param {Boolean} [params.acceptTermsAndConditions]
+ * @param {Boolean} [params.certifyTrueInformation]
+ * @param {String}  [params.beneficialOwners]
+ */
+function updateBeneficialOwnersForBankAccount(params) {
+    API.write('UpdateBeneficialOwnersForBankAccount', {...params}, getVBBADataForOnyx());
+}
+
+/**
  * Create the bank account with manually entered data.
  *
  * @param {String} [bankAccountID]
@@ -329,16 +367,13 @@ function openWorkspaceView() {
 
 export {
     addPersonalBankAccount,
-    connectBankAccountManually,
+    clearOnfidoToken,
     clearPersonalBankAccount,
     clearPlaid,
-    clearOnfidoToken,
-    openReimbursementAccountPage,
-    updatePersonalInformationForBankAccount,
-    validateBankAccount,
-    updateCompanyInformationForBankAccount,
+    connectBankAccountManually,
     connectBankAccountWithPlaid,
     deletePaymentBankAccount,
+    openReimbursementAccountPage,
     updateBeneficialOwnersForBankAccount,
     updateCompanyInformationForBankAccount,
     updatePersonalInformationForBankAccount,

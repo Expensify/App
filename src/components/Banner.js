@@ -26,13 +26,29 @@ const propTypes = {
     /** Should this component render the text as HTML? */
     shouldRenderHTML: PropTypes.bool,
 
-    /** Children view component for this action item */
-    children: PropTypes.node,
+    /** Callback called when the close button is pressed */
+    onClose: PropTypes.func,
+
+    /** Callback called when the message is pressed */
+    onPress: PropTypes.func,
+
+    // eslint-disable-next-line react/forbid-prop-types
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
+
+    // eslint-disable-next-line react/forbid-prop-types
+    textStyles: PropTypes.arrayOf(PropTypes.object),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     shouldRenderHTML: false,
-    children: null,
+    shouldShowIcon: false,
+    shouldShowCloseButton: false,
+    onClose: () => {},
+    onPress: () => {},
+    containerStyles: [],
+    textStyles: [],
 };
 
 const Banner = props => (

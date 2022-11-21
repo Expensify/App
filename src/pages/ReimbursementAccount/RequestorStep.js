@@ -48,7 +48,6 @@ class RequestorStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
-        this.submitOnfidoVerification = this.submitOnfidoVerification.bind(this);
         this.clearErrorsAndSetValues = this.clearErrorsAndSetValues.bind(this);
         this.setOnfidoAsComplete = this.setOnfidoAsComplete.bind(this);
 
@@ -184,27 +183,9 @@ class RequestorStep extends React.Component {
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 {shouldShowOnfido ? (
-                    <ScrollView contentContainerStyle={styles.flex1}>
-                        <Onfido
-                            sdkToken={this.props.onfidoToken}
-                            onUserExit={() => {
-                                BankAccounts.clearOnfidoToken();
-                                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
-                            }}
-                            onError={() => {
-                            // In case of any unexpected error we log it to the server, show a growl, and return the user back to the company step so they can try again.
-                                Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
-                                BankAccounts.clearOnfidoToken();
-                                BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
-                            }}
-                            onSuccess={(onfidoData) => {
-                                this.setState({
-                                    onfidoData,
-                                    isOnfidoSetupComplete: true,
-                                }, this.submitOnfidoVerification);
-                            }}
-                        />
-                    </ScrollView>
+                    <RequestorOnfidoStep
+                        onComplete={this.setOnfidoAsComplete}
+                    />
                 ) : (
                     <ReimbursementAccountForm
                         onSubmit={this.submit}

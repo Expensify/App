@@ -46,7 +46,7 @@ const propTypes = {
         }),
     }).isRequired,
 
-    ...fullPolicyPropTypes,
+    ...policyPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
     network: networkPropTypes.isRequired,
@@ -252,10 +252,10 @@ class WorkspaceMembersPage extends React.Component {
     }) {
         const canBeRemoved = this.props.policy.owner !== item.login && this.props.session.email !== item.login;
         return (
-            <OfflineWithFeedback onClose={() => this.dismissError(item)} pendingAction={item.pendingAction} errors={item.errors}>
+            <OfflineWithFeedback errorRowStyles={[styles.peopleRowBorderBottom]} onClose={() => this.dismissError(item)} pendingAction={item.pendingAction} errors={item.errors}>
                 <Hoverable onHoverIn={() => this.willTooltipShowForLogin(item.login, true)} onHoverOut={() => this.setState({showTooltipForLogin: ''})}>
                     <TouchableOpacity
-                        style={[styles.peopleRow, !canBeRemoved && styles.cursorDisabled]}
+                        style={[styles.peopleRow, !item.errors && styles.peopleRowBorderBottom, !canBeRemoved && styles.cursorDisabled]}
                         onPress={() => this.toggleUser(item.login)}
                         activeOpacity={0.7}
                     >
@@ -377,28 +377,7 @@ class WorkspaceMembersPage extends React.Component {
                             />
                         </View>
                     </View>
-                    <View style={[styles.w100, styles.mt4, styles.flex1]}>
-                        <View style={[styles.peopleRow]}>
-                            <View style={[styles.peopleRowCell]}>
-                                <Checkbox
-                                    isChecked={this.state.selectedEmployees.length === removableMembers.length && removableMembers.length !== 0}
-                                    onPress={() => this.toggleAllUsers()}
-                                />
-                            </View>
-                            <View style={[styles.peopleRowCell, styles.flex1]}>
-                                <Text style={[styles.textStrong, styles.ph5]}>
-                                    {this.props.translate('workspace.people.selectAll')}
-                                </Text>
-                            </View>
-                        </View>
-                        <FlatList
-                            renderItem={this.renderItem}
-                            data={data}
-                            keyExtractor={item => item.login}
-                            showsVerticalScrollIndicator={false}
-                        />
-                    </View>
-                </View>
+                </FullPageNotFoundView>
             </ScreenWrapper>
         );
     }
@@ -410,7 +389,8 @@ WorkspaceMembersPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
-    withFullPolicy,
+    withPolicy,
+    withNetwork(),
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,

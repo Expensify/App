@@ -34,8 +34,8 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import participantPropTypes from '../../../components/participantPropTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
-import { withPersonalDetails } from '../../../components/OnyxProvider';
-import withCurrentUserPersonalDetails, { withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps } from '../../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
+import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
@@ -50,7 +50,7 @@ import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** A method to call when the form is submitted */
     onSubmit: PropTypes.func.isRequired,
@@ -59,7 +59,7 @@ const propTypes = {
     comment: PropTypes.string,
 
     /** The ID of the report actions will be created for */
-    reportID: PropTypes.number.isRequired,
+    reportID: PropTypes.string.isRequired,
 
     /** Details about any modals being used */
     modal: PropTypes.shape({
@@ -88,9 +88,6 @@ const propTypes = {
     /** Is the composer full size */
     isComposerFullSize: PropTypes.bool.isRequired,
 
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
     // The NVP describing a user's block status
     blockedFromConcierge: PropTypes.shape({
         // The date that the user will be unblocked
@@ -103,6 +100,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    betas: [],
     comment: '',
     modal: {},
     report: {},
@@ -255,7 +253,7 @@ class ReportActionCompose extends React.Component {
             return this.props.translate('reportActionCompose.conciergePlaceholderOptions')[this.state.conciergePlaceholderRandomIndex];
         }
 
-        if (_.size(this.props.reportActions) === 1) {
+        if (this.isEmptyChat()) {
             return this.props.translate('reportActionCompose.sayHello');
         }
 
@@ -324,10 +322,7 @@ class ReportActionCompose extends React.Component {
     addEmojiToTextBox(emoji) {
         const emojiWithSpace = `${emoji} `;
         const newComment = this.comment.slice(0, this.state.selection.start)
-            + emoji + this.comment.slice(this.state.selection.end, this.comment.length);
-        this.textInput.setNativeProps({
-            text: newComment,
-        });
+            + emojiWithSpace + this.comment.slice(this.state.selection.end, this.comment.length);
         this.setState(prevState => ({
             selection: {
                 start: prevState.selection.start + emojiWithSpace.length,
@@ -414,7 +409,11 @@ class ReportActionCompose extends React.Component {
         }
 
         this.comment = newComment;
-        this.debouncedSaveReportComment(newComment);
+        if (shouldDebounceSaveComment) {
+            this.debouncedSaveReportComment(newComment);
+        } else {
+            Report.saveReportComment(this.props.reportID, newComment || '');
+        }
         if (newComment) {
             this.debouncedBroadcastUserIsTyping();
         }
@@ -470,8 +469,6 @@ class ReportActionCompose extends React.Component {
         }
         this.setState({isFullComposerAvailable: false});
 
-        // Important to reset the selection on Submit action
-        this.textInput.setNativeProps({selection: {start: 0, end: 0}});
         return trimmedComment;
     }
 
@@ -513,8 +510,7 @@ class ReportActionCompose extends React.Component {
             return null;
         }
 
-        console.log('My Personal Details', this.props.personalDetails);
-        const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.personalDetails.login);
+        const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.currentUserPersonalDetails.login);
         const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
         const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyEmails[0]];
 
@@ -529,7 +525,7 @@ class ReportActionCompose extends React.Component {
 
         return (
             <View style={[
-                shouldShowReportRecipientLocalTime && !this.props.network.isOffline && styles.chatItemComposeWithFirstRow,
+                shouldShowReportRecipientLocalTime && !lodashGet(this.props.network, 'isOffline') && styles.chatItemComposeWithFirstRow,
                 this.props.isComposerFullSize && styles.chatItemFullComposeRow,
             ]}
             >
@@ -620,9 +616,7 @@ class ReportActionCompose extends React.Component {
                                                         text: this.props.translate('reportActionCompose.addAttachment'),
                                                         onSelected: () => {
                                                             openPicker({
-                                                                onPicked: (file) => {
-                                                                    displayFileInModal({file});
-                                                                },
+                                                                onPicked: displayFileInModal,
                                                             });
                                                         },
                                                     },
@@ -664,15 +658,14 @@ class ReportActionCompose extends React.Component {
                                                 return;
                                             }
 
-                                            displayFileInModal({file});
+                                            displayFileInModal(file);
                                             this.setState({isDraggingOver: false});
                                         }}
                                         style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
-                                        defaultValue={this.props.comment}
                                         maxLines={this.state.maxLines}
                                         onFocus={() => this.setIsFocused(true)}
                                         onBlur={() => this.setIsFocused(false)}
-                                        onPasteFile={file => displayFileInModal({file})}
+                                        onPasteFile={displayFileInModal}
                                         shouldClear={this.state.textInputShouldClear}
                                         onClear={() => this.setTextInputShouldClear(false)}
                                         isDisabled={isComposeDisabled || isBlockedFromConcierge}
@@ -681,6 +674,7 @@ class ReportActionCompose extends React.Component {
                                         isFullComposerAvailable={this.state.isFullComposerAvailable}
                                         setIsFullComposerAvailable={this.setIsFullComposerAvailable}
                                         isComposerFullSize={this.props.isComposerFullSize}
+                                        value={this.state.value}
                                     />
                                 </View>
                             </>
@@ -716,7 +710,12 @@ class ReportActionCompose extends React.Component {
                         </Tooltip>
                     </View>
                 </View>
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                <View style={[
+                    styles.flexRow,
+                    styles.justifyContentBetween,
+                    styles.alignItemsCenter,
+                    (!this.props.isSmallScreenWidth || (this.props.isSmallScreenWidth && !this.props.network.isOffline)) && styles.chatItemComposeSecondaryRow]}
+                >
                     {!this.props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                     <ReportTypingIndicator reportID={this.props.reportID} />
                     <ExceededCommentLength commentLength={this.comment.length} />

@@ -242,6 +242,17 @@ function setIsNavigationReady() {
     resolveNavigationIsReadyPromise();
 }
 
+/**
+ * @returns {Promise}
+ */
+function isDrawerReady() {
+    return drawerIsReadyPromise;
+}
+
+function setIsDrawerReady() {
+    resolveDrawerIsReadyPromise();
+}
+
 export default {
     canNavigate,
     navigate,
@@ -255,6 +266,9 @@ export default {
     isNavigationReady,
     setIsNavigationReady,
     getReportIDFromRoute,
+    isDrawerReady,
+    setIsDrawerReady,
+    isDrawerRoute,
 };
 
 export {

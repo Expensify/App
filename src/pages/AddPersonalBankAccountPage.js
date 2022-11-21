@@ -93,22 +93,44 @@ class AddPersonalBankAccountPage extends React.Component {
                     shouldShowBackButton
                     onBackButtonPress={Navigation.goBack}
                 />
-                {success ? (
+                {shouldShowSuccess ? (
                     <>
-                        <Text style={[styles.formSuccess, styles.mh5]}>
-                            {success}
-                        </Text>
-                        <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd]}>
+                        <View style={[styles.pageWrapper, styles.flex1, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            <Icon
+                                src={Illustrations.TadaBlue}
+                                height={100}
+                                width={100}
+                                fill={defaultTheme.iconSuccessFill}
+                            />
+                            <View style={[styles.ph5]}>
+                                <Text style={[styles.mt5, styles.h1, styles.textAlignCenter]}>
+                                    {this.props.translate('addPersonalBankAccountPage.successTitle')}
+                                </Text>
+                                <Text style={[styles.mt3, styles.textAlignCenter]}>
+                                    {this.props.translate('addPersonalBankAccountPage.successMessage')}
+                                </Text>
+                            </View>
+                        </View>
+                        <FixedFooter>
                             <Button
-                                success
                                 text={this.props.translate('common.continue')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
+                                style={[styles.mt4]}
+                                iconStyles={[styles.mr5]}
+                                success
                             />
-                        </View>
+                        </FixedFooter>
                     </>
                 ) : (
-                    <FormScrollView>
-                        <View style={[styles.mh5, styles.mb5]}>
+                    <Form
+                        formID={ONYXKEYS.PERSONAL_BANK_ACCOUNT}
+                        isSubmitButtonVisible={Boolean(this.state.selectedPlaidAccountID)}
+                        submitButtonText={this.props.translate('common.saveAndContinue')}
+                        onSubmit={this.submit}
+                        validate={this.validate}
+                        style={[styles.mh5, styles.flex1]}
+                    >
+                        <>
                             <AddPlaidBankAccount
                                 onSelect={(selectedPlaidAccountID) => {
                                     this.setState({selectedPlaidAccountID});
@@ -127,7 +149,6 @@ class AddPersonalBankAccountPage extends React.Component {
 
 AddPersonalBankAccountPage.propTypes = propTypes;
 AddPersonalBankAccountPage.defaultProps = defaultProps;
-AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
 
 export default compose(
     withLocalize,

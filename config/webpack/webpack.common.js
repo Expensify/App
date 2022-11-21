@@ -1,5 +1,7 @@
 const path = require('path');
-const {IgnorePlugin, DefinePlugin} = require('webpack');
+const {
+    IgnorePlugin, DefinePlugin, ProvidePlugin, EnvironmentPlugin,
+} = require('webpack');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
@@ -54,7 +56,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         splash: ['./web/splash/splash.js'],
     },
     output: {
-        filename: '[name]-[hash].bundle.js',
+        filename: '[name]-[contenthash].bundle.js',
         path: path.resolve(__dirname, '../../dist'),
         publicPath: '/',
     },
@@ -98,7 +100,11 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 {from: 'node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
             ],
         }),
-        new IgnorePlugin(/^\.\/locale$/, /moment$/),
+        new EnvironmentPlugin({JEST_WORKER_ID: null}),
+        new IgnorePlugin({
+            resourceRegExp: /^\.\/locale$/,
+            contextRegExp: /moment$/,
+        }),
         ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
         new DefinePlugin({
             ...(platform === 'desktop' ? {} : {process: {env: {}}}),

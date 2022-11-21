@@ -15,6 +15,9 @@ import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
 
 const propTypes = {
+    /** Callback to execute when this button is pressed. Receives a single payment type argument. */
+    onPress: PropTypes.func.isRequired,
+
     /** Settlement currency type */
     currency: PropTypes.string,
 
@@ -77,6 +80,7 @@ class SettlementButton extends React.Component {
                 addBankAccountRoute={this.props.addBankAccountRoute}
                 addDebitCardRoute={this.props.addDebitCardRoute}
                 isDisabled={this.props.network.isOffline}
+                chatReportID={this.props.chatReportID}
             >
                 {triggerKYCFlow => (
                     <ButtonWithMenu

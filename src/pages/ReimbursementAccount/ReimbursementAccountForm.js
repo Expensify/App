@@ -1,4 +1,4 @@
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
@@ -12,6 +12,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import FormScrollView from '../../components/FormScrollView';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     /** Data for the bank account actively being set up */
@@ -40,13 +41,13 @@ class ReimbursementAccountForm extends React.Component {
     }
 
     render() {
-        const errorMessage = this.getErrorMessage();
-
-        const currentStep = lodashGet(
-            this.props,
-            'reimbursementAccount.achData.currentStep',
-            CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
-        );
+        const hasErrorFields = _.size(this.props.reimbursementAccount.errorFields) > 0;
+        const error = this.props.reimbursementAccount.error || ErrorUtils.getLatestErrorMessage(this.props.reimbursementAccount) || '';
+        const isErrorVisible = hasErrorFields || Boolean(error);
+        const viewStyles = [styles.mh5, styles.mb5];
+        if (lodashGet(this.props, 'children.props.plaidLinkOAuthToken') === '') {
+            viewStyles.push(styles.flex1);
+        }
 
         return (
             <FormScrollView
@@ -56,17 +57,19 @@ class ReimbursementAccountForm extends React.Component {
                 <View style={viewStyles}>
                     {this.props.children}
                 </View>
-                <FormAlertWithSubmitButton
-                    isAlertVisible={Boolean(errorMessage)}
-                    buttonText={currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION ? this.props.translate('validationStep.buttonText') : this.props.translate('common.saveAndContinue')}
-                    onSubmit={this.props.onSubmit}
-                    onFixTheErrorsLinkPressed={() => {
-                        this.form.scrollTo({y: 0, animated: true});
-                    }}
-                    message={this.props.reimbursementAccount.error}
-                    isMessageHtml={this.props.reimbursementAccount.isErrorHtml}
-                    isLoading={this.props.reimbursementAccount.loading}
-                />
+                {!this.props.hideSubmitButton && (
+                    <FormAlertWithSubmitButton
+                        isAlertVisible={isErrorVisible}
+                        buttonText={this.props.buttonText || this.props.translate('common.saveAndContinue')}
+                        onSubmit={this.props.onSubmit}
+                        onFixTheErrorsLinkPressed={() => {
+                            this.form.scrollTo({y: 0, animated: true});
+                        }}
+                        message={error}
+                        isMessageHtml={this.props.reimbursementAccount.isErrorHtml}
+                        isLoading={this.props.reimbursementAccount.isLoading}
+                    />
+                )}
             </FormScrollView>
         );
     }

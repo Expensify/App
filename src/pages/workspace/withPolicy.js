@@ -42,9 +42,6 @@ const policyPropTypes = {
         /** The URL for the policy avatar */
         avatar: PropTypes.string,
 
-        /** A list of emails for the employees on the policy */
-        employeeList: PropTypes.arrayOf(PropTypes.string),
-
         /** Errors on the policy keyed by microtime */
         errors: PropTypes.objectOf(PropTypes.string),
 
@@ -91,15 +88,11 @@ export default function (WrappedComponent) {
         const currentRoute = _.last(useNavigationState(state => state.routes || []));
         const policyID = getPolicyIDFromRoute(currentRoute);
 
-        if (_.isString(policyID) && !_.isEmpty(policyID) && (!isFromFullPolicy || !isPreviousRouteInSameWorkspace(currentRoute.name, policyID))) {
-            Policy.loadFullPolicy(policyID);
+        if (_.isString(policyID) && !_.isEmpty(policyID)) {
             Policy.updateLastAccessedWorkspace(policyID);
         }
 
-        previousRouteName = currentRoute.name;
-        previousRoutePolicyID = policyID;
-
-        const rest = _.omit(props, ['forwardedRef', 'policy', 'policyMemberList']);
+        const rest = _.omit(props, ['forwardedRef']);
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading

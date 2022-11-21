@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import ScreenWrapper from '../../components/ScreenWrapper';
+import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -15,16 +14,25 @@ import defaultTheme from '../../styles/themes/default';
 import FixedFooter from '../../components/FixedFooter';
 import Button from '../../components/Button';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
+import compose from '../../libs/compose';
+import ONYXKEYS from '../../ONYXKEYS';
+import walletTermsPropTypes from './walletTermsPropTypes';
 
 const propTypes = {
     ...withLocalizePropTypes,
 
     /** The user's wallet */
-    userWallet: PropTypes.objectOf(userWalletPropTypes),
+    userWallet: userWalletPropTypes,
+
+    /** Information about the user accepting the terms for payments */
+    walletTerms: walletTermsPropTypes,
 };
 
 const defaultProps = {
     userWallet: {},
+    walletTerms: {
+        chatReportID: 0,
+    },
 };
 
 const ActivateStep = (props) => {
@@ -32,12 +40,15 @@ const ActivateStep = (props) => {
     const illustration = isGoldWallet ? Illustrations.TadaBlue : Illustrations.ReceiptsSearchYellow;
     const continueButtonText = props.walletTerms.chatReportID ? props.translate('activateStep.continueToPayment') : props.translate('activateStep.continueToTransfer');
 
-        this.renderGoldWalletActivationStep = this.renderGoldWalletActivationStep.bind(this);
-    }
-
-    renderGoldWalletActivationStep() {
-        return (
-            <>
+    return (
+        <>
+            <HeaderWithCloseButton
+                title={props.translate('activateStep.headerTitle')}
+                onCloseButtonPress={() => Navigation.dismissModal()}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.goBack()}
+            />
+            <View style={styles.flex1}>
                 <View style={[styles.pageWrapper, styles.flex1, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
                         src={illustration}
@@ -54,40 +65,31 @@ const ActivateStep = (props) => {
                         </Text>
                     </View>
                 </View>
-                <FixedFooter>
-                    <Button
-                        text={this.props.translate('common.continue')}
-                        onPress={PaymentMethods.continueSetup}
-                        style={[styles.mt4]}
-                        iconStyles={[styles.mr5]}
-                        success
-                    />
-                </FixedFooter>
-            </>
-        );
-    }
-
-    render() {
-        return (
-            <>
-                <HeaderWithCloseButton
-                    title={this.props.translate('activateStep.headerTitle')}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
-                <View style={styles.flex1}>
-                    {this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD && this.renderGoldWalletActivationStep()}
-                    {this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.SILVER && (
-                        <Text>{this.props.translate('activateStep.checkBackLater')}</Text>
-                    )}
-                </View>
-            </>
-        );
-    }
-}
+                {isGoldWallet && (
+                    <FixedFooter>
+                        <Button
+                            text={continueButtonText}
+                            onPress={PaymentMethods.continueSetup}
+                            style={[styles.mt4]}
+                            iconStyles={[styles.mr5]}
+                            success
+                        />
+                    </FixedFooter>
+                )}
+            </View>
+        </>
+    );
+};
 
 ActivateStep.propTypes = propTypes;
 ActivateStep.defaultProps = defaultProps;
 ActivateStep.displayName = 'ActivateStep';
-export default withLocalize(ActivateStep);
+
+export default compose(
+    withLocalize,
+    withOnyx({
+        walletTerms: {
+            key: ONYXKEYS.WALLET_TERMS,
+        },
+    }),
+)(ActivateStep);

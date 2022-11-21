@@ -121,13 +121,9 @@ if (Metrics.canCapturePerformanceMetrics()) {
                         Performance.measureFailSafe(name, start, end);
                     }
 
-                        // Capture any custom measures or metrics below
-                        if (mark.name === `${CONST.TIMING.SIDEBAR_LOADED}_end`) {
-                            Performance.measureTTI(mark.name);
-                        }
-                    } catch (error) {
-                        // Sometimes there might be no start mark recorded and the measure will fail with an error
-                        console.debug(error.message);
+                    // Capture any custom measures or metrics below
+                    if (mark.name === `${CONST.TIMING.SIDEBAR_LOADED}_end`) {
+                        Performance.measureTTI(mark.name);
                     }
                 });
         }).observe({type: 'mark', buffered: true});

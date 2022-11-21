@@ -27,20 +27,7 @@ class BankAccountManualStep extends React.Component {
     constructor(props) {
         super(props);
         this.submit = this.submit.bind(this);
-        this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
-        this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
-        this.state = {
-            acceptTerms: ReimbursementAccountUtils.getDefaultStateForField(props, 'acceptTerms', true),
-            routingNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'routingNumber'),
-            accountNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'accountNumber'),
-        };
-
-        // Map a field to the key of the error's translation
-        this.errorTranslationKeys = {
-            routingNumber: 'bankAccount.error.routingNumber',
-            accountNumber: 'bankAccount.error.accountNumber',
-            acceptTerms: 'common.error.acceptedTerms',
-        };
+        this.validate = this.validate.bind(this);
     }
 
     /**
@@ -68,14 +55,12 @@ class BankAccountManualStep extends React.Component {
     }
 
     submit(values) {
-        const params = {
-            bankAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
-            mask: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidMask'),
-            bankName: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankName'),
-            plaidAccountID: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidAccountID'),
-            ...values,
-        };
-        BankAccounts.setupWithdrawalAccount(params);
+        BankAccounts.connectBankAccountManually(
+            ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
+            values.accountNumber,
+            values.routingNumber,
+            ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidMask'),
+        );
     }
 
     render() {

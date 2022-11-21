@@ -2,6 +2,8 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, ScrollView, Pressable} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
@@ -18,35 +20,22 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
 import Avatar from '../../components/Avatar';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
-import * as PolicyActions from '../../libs/actions/Policy';
+import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
+import reportPropTypes from '../reportPropTypes';
+import * as Policy from '../../libs/actions/Policy';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import CONST from '../../CONST';
 import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import ONYXKEYS from '../../ONYXKEYS';
-import policyMemberPropType from '../policyMemberPropType';
+import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
 const propTypes = {
     ...policyPropTypes,
     ...withLocalizePropTypes,
 
-    /** The employee list of this policy (coming from Onyx) */
-    policyMemberList: PropTypes.objectOf(policyMemberPropType),
-
     /** All reports shared with the user (coming from Onyx) */
-    reports: PropTypes.shape({
-        /** The report name */
-        reportID: PropTypes.number,
+    reports: PropTypes.objectOf(reportPropTypes),
 
-        /** The report state number */
-        stateNum: PropTypes.number,
-
-        /** The report status number */
-        statusNum: PropTypes.number,
-
-        /** ID of the policy */
-        policyID: PropTypes.string,
-    }),
 };
 
 const defaultProps = {
@@ -87,7 +76,8 @@ class WorkspaceInitialPage extends React.Component {
      * Call the delete policy and hide the modal
      */
     confirmDeleteAndHideModal() {
-        PolicyActions.deletePolicy(this.props.policy.id);
+        const policyReports = _.filter(this.props.reports, report => report && report.policyID === this.props.policy.id);
+        Policy.deleteWorkspace(this.props.policy.id, policyReports);
         this.toggleDeleteModal(false);
         Navigation.navigate(ROUTES.SETTINGS);
     }
@@ -100,7 +90,7 @@ class WorkspaceInitialPage extends React.Component {
     }
 
     dismissError() {
-        Navigation.navigate(ROUTES.SETTINGS);
+        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
         Policy.removeWorkspace(this.props.policy.id);
     }
 
@@ -108,7 +98,7 @@ class WorkspaceInitialPage extends React.Component {
         const policy = this.props.policy;
         const hasMembersError = PolicyUtils.hasPolicyMemberError(this.props.policyMemberList);
         const hasGeneralSettingsError = !_.isEmpty(lodashGet(this.props.policy, 'errorFields.generalSettings', {}))
-            || !_.isEmpty(lodashGet(this.props.policy, 'errorFields.avatarURL', {}));
+            || !_.isEmpty(lodashGet(this.props.policy, 'errorFields.avatar', {}));
         const hasCustomUnitsError = PolicyUtils.hasCustomUnitsError(this.props.policy);
         const menuItems = [
             {
@@ -197,17 +187,24 @@ class WorkspaceInitialPage extends React.Component {
                                             style={[styles.pRelative, styles.avatarLarge]}
                                             onPress={this.openEditor}
                                         >
-                                            <Tooltip text={this.props.policy.name}>
-                                                <Text
-                                                    numberOfLines={1}
-                                                    style={[
-                                                        styles.displayName,
-                                                        styles.alignSelfCenter,
-                                                    ]}
-                                                >
-                                                    {this.props.policy.name}
-                                                </Text>
-                                            </Tooltip>
+                                            {this.props.policy.avatar
+                                                ? (
+                                                    <Avatar
+                                                        containerStyles={styles.avatarLarge}
+                                                        imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                                        source={this.props.policy.avatar}
+                                                        fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                                                        size={CONST.AVATAR_SIZE.LARGE}
+                                                    />
+                                                )
+                                                : (
+                                                    <Icon
+                                                        src={Expensicons.Workspace}
+                                                        height={80}
+                                                        width={80}
+                                                        fill={themedefault.iconSuccessFill}
+                                                    />
+                                                )}
                                         </Pressable>
                                         {!_.isEmpty(this.props.policy.name) && (
                                             <Pressable
@@ -249,18 +246,7 @@ class WorkspaceInitialPage extends React.Component {
                                     />
                                 ))}
                             </View>
-                            {_.map(menuItems, item => (
-                                <MenuItem
-                                    key={item.translationKey}
-                                    title={this.props.translate(item.translationKey)}
-                                    icon={item.icon}
-                                    iconRight={item.iconRight}
-                                    onPress={() => item.action()}
-                                    shouldShowRightIcon
-                                    brickRoadIndicator={item.brickRoadIndicator}
-                                />
-                            ))}
-                        </View>
+                        </OfflineWithFeedback>
                     </ScrollView>
                     <ConfirmModal
                         title={this.props.translate('workspace.common.delete')}
@@ -280,15 +266,11 @@ class WorkspaceInitialPage extends React.Component {
 
 WorkspaceInitialPage.propTypes = propTypes;
 WorkspaceInitialPage.defaultProps = defaultProps;
-WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 
 export default compose(
     withLocalize,
     withPolicy,
     withOnyx({
-        policyMemberList: {
-            key: ({policy}) => `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`,
-        },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },

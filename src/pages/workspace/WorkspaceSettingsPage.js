@@ -112,15 +112,6 @@ class WorkspaceSettingsPage extends React.Component {
                                     onImageRemoved={() => Policy.deleteWorkspaceAvatar(lodashGet(this.props.policy, 'id', ''))}
                                 />
                             </OfflineWithFeedback>
-                            <TextInput
-                                label={this.props.translate('workspace.editor.nameInputLabel')}
-                                containerStyles={[styles.mt4]}
-                                onChangeText={name => this.setState({name})}
-                                value={this.state.name}
-                                hasError={!this.state.name.trim().length}
-                                errorText={this.state.name.trim().length ? '' : this.props.translate('workspace.editor.nameIsRequiredError')}
-                            />
-
                             <OfflineWithFeedback
                                 pendingAction={lodashGet(this.props.policy, 'pendingFields.generalSettings')}
                             >

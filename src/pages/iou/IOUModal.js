@@ -144,7 +144,7 @@ class IOUModal extends Component {
     }
 
     componentDidMount() {
-        this.fetchData();
+        PersonalDetails.openIOUModalPage();
         IOU.setIOUSelectedCurrency(this.props.currentUserPersonalDetails.localCurrencyCode);
     }
 
@@ -226,10 +226,6 @@ class IOUModal extends Component {
         }
 
         return this.props.translate(this.steps[currentStepIndex]) || '';
-    }
-
-    fetchData() {
-        PersonalDetails.fetchLocalCurrency();
     }
 
     /**
@@ -350,8 +346,7 @@ class IOUModal extends Component {
             Math.round(this.state.amount * 100),
             this.props.iou.selectedCurrencyCode,
             this.props.currentUserPersonalDetails.login,
-            OptionsListUtils.addSMSDomainIfPhoneNumber(this.state.participants[0].login),
-            lodashGet(this.state.participants[0], 'firstName', ''),
+            selectedParticipants[0],
             this.state.comment);
     }
 
@@ -447,11 +442,7 @@ class IOUModal extends Component {
                                                 comment={this.state.comment}
                                                 onUpdateComment={this.updateComment}
                                                 iouType={this.props.iouType}
-
-                                                // Note: We do not allow participants to be adjusted if this was opened from the global create menu,
-                                                // because if a user reaches the confirm step from that flow, they've already hand-picked the participants.
-                                                // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                                                canModifyParticipants={this.steps.length === 2}
+                                                isIOUAttachedToExistingChatReport={!_.isEmpty(reportID)}
                                             />
                                         </AnimatedStep>
                                     )}

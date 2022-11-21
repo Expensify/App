@@ -42,13 +42,11 @@
             {% endif %}
         </div>
 
-        <div id="content-area">
+        <!-- Concierge button anchored at the bottom of the LHN (rendered on wider screens) -->
+        {% include floating-concierge-button.html id="floating-concierge-button-lhn" %}
+    </div>
 
-            <!-- Article title (only shown in article pages) -->
-            {% if page.lhn_content == nil %}
-                <h1 class="title">
-                    {{ page.name | remove: '.md' | split: "-" |  join: " " }}
-                </h1>
+    <div id="content-area">
 
         <!-- Article title (only shown in article pages) -->
         {% if page.url contains "/articles/" %}
@@ -56,17 +54,14 @@
                 {{ page.name | remove: '.md' | split: "-" |  join: " " }}
             </h1>
 
-            <!-- Concierge button at the bottom of the page -->
-            <a class="card get-help" href="{{ CONCIERGE_CHAT_URL }}" target="_blank">
-                <div class="body">
-                    <h3 class="title">Didn't find what you were looking for?</h3>
-                    <p class="description">Concierge is here to answer all your questions.</p>
-                </div>
-                <div class="submit-button">
-                    <button class="success">Send a message</button>
-                </div>
-            </a>
-        </div>
+            <div class="article-toc-content article">
+                {{ content }}
+            </div>
+        {% else %}
+            <div class="article-toc-content lhn">
+                {{ content }}
+            </div>
+        {% endif %}
 
         <!-- Concierge button at the bottom of the page -->
         <a class="card get-help" href="{{ CONCIERGE_CHAT_URL }}" target="_blank">
@@ -79,6 +74,5 @@
             </div>
         </a>
     </div>
-
 </body>
 </html>

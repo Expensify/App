@@ -13,23 +13,11 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import * as IOU from '../../libs/actions/IOU';
 import * as CurrencySymbolUtils from '../../libs/CurrencySymbolUtils';
 import {withNetwork} from '../../components/OnyxProvider';
-import networkPropTypes from '../../components/networkPropTypes';
 
 /**
  * IOU Currency selection for selecting currency
  */
 const propTypes = {
-
-    /** Personal details of all the users, including current user */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
-    /** Holds data related to IOU */
-    iou: PropTypes.shape({
-
-        // Selected Currency Code of the current IOU
-        selectedCurrencyCode: PropTypes.string,
-    }),
-
     // The currency list constant object from Onyx
     currencyList: PropTypes.objectOf(PropTypes.shape({
         // Symbol for the currency
@@ -46,10 +34,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    personalDetails: {},
-    iou: {
-        selectedCurrencyCode: CONST.CURRENCY.USD,
-    },
     currencyList: {},
 };
 
@@ -62,7 +46,6 @@ class IOUCurrencySelection extends Component {
         this.state = {
             searchValue: '',
             currencyData: currencyOptions,
-            toggledCurrencyCode: this.props.iou.selectedCurrencyCode || this.myPersonalDetails.localCurrencyCode,
         };
         this.getCurrencyOptions = this.getCurrencyOptions.bind(this);
         this.getSections = this.getSections.bind(this);
@@ -96,7 +79,6 @@ class IOUCurrencySelection extends Component {
     getCurrencyOptions() {
         return _.map(this.props.currencyList, (currencyInfo, currencyCode) => ({
             text: `${currencyCode} - ${CurrencySymbolUtils.getLocalizedCurrencySymbol(this.props.preferredLocale, currencyCode)}`,
-            searchText: `${currencyCode} ${currencyInfo.symbol}`,
             currencyCode,
             keyForList: currencyCode,
         }));
@@ -133,20 +115,18 @@ class IOUCurrencySelection extends Component {
         const headerMessage = this.state.searchValue.trim() && !this.state.currencyData.length ? this.props.translate('common.noResultsFound') : '';
         return (
             <ScreenWrapper>
-                <KeyboardAvoidingView>
-                    <HeaderWithCloseButton
-                        title={this.props.translate('iOUCurrencySelection.selectCurrency')}
-                        onCloseButtonPress={Navigation.goBack}
-                    />
-                    <OptionsSelector
-                        sections={this.getSections()}
-                        onSelectRow={this.confirmCurrencySelection}
-                        value={this.state.searchValue}
-                        onChangeText={this.changeSearchValue}
-                        placeholderText={this.props.translate('common.search')}
-                        headerMessage={headerMessage}
-                    />
-                </KeyboardAvoidingView>
+                <HeaderWithCloseButton
+                    title={this.props.translate('iOUCurrencySelection.selectCurrency')}
+                    onCloseButtonPress={Navigation.goBack}
+                />
+                <OptionsSelector
+                    sections={this.getSections()}
+                    onSelectRow={this.confirmCurrencySelection}
+                    value={this.state.searchValue}
+                    onChangeText={this.changeSearchValue}
+                    placeholderText={this.props.translate('common.search')}
+                    headerMessage={headerMessage}
+                />
             </ScreenWrapper>
         );
     }
@@ -159,8 +139,6 @@ export default compose(
     withLocalize,
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
-        personalDetails: {key: ONYXKEYS.PERSONAL_DETAILS},
-        iou: {key: ONYXKEYS.IOU},
     }),
     withNetwork(),
 )(IOUCurrencySelection);

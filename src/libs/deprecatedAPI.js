@@ -176,18 +176,6 @@ function PersonalDetails_Update(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.reportID
- * @returns {Promise}
- */
-function Report_GetHistory(parameters) {
-    const commandName = 'Report_GetHistory';
-    requireParameters(['reportID'],
-        parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.email
  * @returns {Promise}
  */
@@ -220,52 +208,6 @@ function SetPassword(parameters) {
     const commandName = 'SetPassword';
     requireParameters(['accountID', 'password', 'validateCode'], parameters, commandName);
     return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.password
- * @param {String|null} parameters.bankAccountID
- * @param {String|null} parameters.fundID
- * @returns {Promise}
- */
-function SetWalletLinkedAccount(parameters) {
-    const commandName = 'SetWalletLinkedAccount';
-    requireParameters(['password'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.subscribed
- * @returns {Promise}
- */
-function UpdateAccount(parameters) {
-    const commandName = 'UpdateAccount';
-    requireParameters(['subscribed'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @returns {Promise}
- */
-function User_GetBetas() {
-    return Network.post('User_GetBetas');
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.email
- * @param {Boolean} [parameters.requireCertainty]
- * @returns {Promise}
- */
-function User_IsFromPublicDomain(parameters) {
-    const commandName = 'User_IsFromPublicDomain';
-    requireParameters(['email'], parameters, commandName);
-    return Network.post(commandName, {
-        ...{requireCertainty: true},
-        ...parameters,
-    });
 }
 
 /**
@@ -350,74 +292,6 @@ function BankAccount_SetupWithdrawal(parameters) {
 }
 
 /**
- * @param {Object} parameters
- * @param {Number} [parameters.latitude]
- * @param {Number} [parameters.longitude]
- * @returns {Promise}
- */
-function GetLocalCurrency(parameters) {
-    const commandName = 'GetLocalCurrency';
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @returns {Promise}
- */
-function User_IsUsingExpensifyCard() {
-    return Network.post('User_IsUsingExpensifyCard', {});
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.policyID
- * @param {String} parameters.customUnitID
- * @param {String} parameters.value
- * @returns {Promise}
- */
-function Policy_CustomUnitRate_Update(parameters) {
-    const commandName = 'Policy_CustomUnitRate_Update';
-    requireParameters(['policyID', 'customUnitID', 'customUnitRate'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} [parameters.policyID]
- * @returns {Promise}
- */
-function Policy_Delete(parameters) {
-    const commandName = 'Policy_Delete';
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.policyID
- * @param {Array} parameters.emailList
- * @returns {Promise}
- */
-function Policy_Employees_Remove(parameters) {
-    const commandName = 'Policy_Employees_Remove';
-    requireParameters(['policyID', 'emailList'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.taskID
- * @param {String} parameters.policyID
- * @param {String} parameters.firstName
- * @param {String} parameters.lastName
- * @param {String} parameters.phoneNumber
- * @returns {Promise}
- */
-function Inbox_CallUser(parameters) {
-    const commandName = 'Inbox_CallUser';
-    requireParameters(['taskID', 'policyID', 'firstName', 'lastName', 'phoneNumber'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
  * Transfer Wallet balance and takes either the bankAccoundID or fundID
  * @param {Object} parameters
  * @param {String} [parameters.bankAccountID]
@@ -444,25 +318,18 @@ function GetStatementPDF(parameters) {
 }
 
 export {
-    BankAccount_Create,
-    BankAccount_Get,
     BankAccount_SetupWithdrawal,
-    BankAccount_Validate,
     ChangePassword,
     CreateLogin,
     DeleteLogin,
     Get,
     GetStatementPDF,
     GetIOUReport,
-    GetFullPolicy,
-    GetPolicySummaryList,
     Graphite_Timer,
     PayIOU,
     PayWithWallet,
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
-    Policy_Employees_Merge,
-    Report_GetHistory,
     ResendValidateCode,
     SetNameValuePair,
     SetPassword,

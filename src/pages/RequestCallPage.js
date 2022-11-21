@@ -228,14 +228,26 @@ class RequestCallPage extends Component {
             errors.lastName = this.props.translate('requestCallPage.error.lastName');
         }
 
-        const [hasFirstNameError, hasLastNameError] = ValidationUtils.doesFailCharacterLimit(CONST.FORM_CHARACTER_LIMIT, [this.state.firstName, this.state.lastName]);
-        this.setState({
-            hasFirstNameError,
-            hasLastNameError,
-            phoneNumberError,
-            phoneExtensionError,
-        });
-        return !firstOrLastNameEmpty && _.isEmpty(phoneNumberError) && _.isEmpty(phoneExtensionError) && !hasFirstNameError && !hasLastNameError;
+        const [firstNameLengthError, lastNameLengthError] = ValidationUtils.doesFailCharacterLimit(50, [values.firstName, values.lastName]);
+
+        if (firstNameLengthError) {
+            errors.firstName = this.props.translate('requestCallPage.error.firstNameLength');
+        }
+
+        if (lastNameLengthError) {
+            errors.lastName = this.props.translate('requestCallPage.error.lastNameLength');
+        }
+
+        const phoneNumber = LoginUtils.getPhoneNumberWithoutSpecialChars(values.phoneNumber);
+        if (_.isEmpty(values.phoneNumber.trim()) || !Str.isValidPhone(phoneNumber)) {
+            errors.phoneNumber = this.props.translate('common.error.phoneNumber');
+        }
+
+        if (!_.isEmpty(values.phoneNumberExtension) && !ValidationUtils.isPositiveInteger(values.phoneNumberExtension)) {
+            errors.phoneNumberExtension = this.props.translate('requestCallPage.error.phoneNumberExtension');
+        }
+
+        return errors;
     }
 
     render() {

@@ -13,6 +13,7 @@ import fileDownload from '../../../../libs/fileDownload';
 import addEncryptedAuthTokenToURL from '../../../../libs/addEncryptedAuthTokenToURL';
 import * as ContextMenuUtils from './ContextMenuUtils';
 import * as Environment from '../../../../libs/Environment/Environment';
+import Permissions from '../../../../libs/Permissions';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -131,7 +132,7 @@ export default [
 
             // Only hide the copylink menu item when context menu is opened over img element.
             const isAttachmentTarget = lodashGet(menuTarget, 'tagName') === 'IMG' && isAttachment;
-            return type === CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget;
+            return Permissions.canUseCommentLinking(betas) && type === CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget;
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             Environment.getEnvironmentURL()

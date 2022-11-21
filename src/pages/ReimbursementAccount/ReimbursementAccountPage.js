@@ -243,7 +243,6 @@ class ReimbursementAccountPage extends React.Component {
             <ScreenWrapper>
                 {currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && (
                     <BankAccountStep
-                        isPlaidDisabled={this.props.plaidData.isPlaidDisabled}
                         receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                         plaidLinkOAuthToken={this.props.plaidLinkToken}
                     />

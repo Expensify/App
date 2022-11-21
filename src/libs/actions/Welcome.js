@@ -113,7 +113,7 @@ function show({routes, showCreateMenu}) {
 
         // We want to display the Workspace chat first since that means a user is already in a Workspace and doesn't need to create another one
         const workspaceChatReport = _.find(allReports, report => ReportUtils.isPolicyExpenseChat(report) && report.ownerEmail === email);
-        if (workspaceChatReport) {
+        if (workspaceChatReport && !isDisplayingWorkspaceRoute) {
             Navigation.navigate(ROUTES.getReportRoute(workspaceChatReport.reportID));
             return;
         }
