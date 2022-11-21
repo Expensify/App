@@ -138,7 +138,7 @@ class ReportActionItem extends Component {
                     chatReportID={this.props.report.reportID}
                     action={this.props.action}
                     isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
-                    isFocused={hovered}
+                    isHovered={hovered}
                 />
             );
         } else {

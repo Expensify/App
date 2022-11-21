@@ -66,7 +66,7 @@ const propTypes = {
     }),
 
     /** True if the IOU Preview card is hovered */
-    isFocused: PropTypes.bool,
+    isHovered: PropTypes.bool,
 
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(PropTypes.shape({
@@ -98,7 +98,7 @@ const defaultProps = {
     containerStyles: [],
     walletTerms: {},
     pendingAction: null,
-    isFocused: false,
+    isHovered: false,
 };
 
 const IOUPreview = (props) => {
@@ -164,7 +164,7 @@ const IOUPreview = (props) => {
                                         <MultipleAvatars
                                             icons={[managerAvatar, ownerAvatar]}
                                             secondAvatarStyle={[styles.secondAvatarInline,
-                                                props.isFocused && styles.iouPreviewBoxAvatarHover]}
+                                                props.isHovered && styles.iouPreviewBoxAvatarHover]}
                                             avatarTooltips={avatarTooltip}
                                         />
                                     </View>

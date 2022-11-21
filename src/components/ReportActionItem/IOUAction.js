@@ -27,8 +27,8 @@ const propTypes = {
         participants: PropTypes.arrayOf(PropTypes.string),
     }),
 
-    /** Whether this option is currently in focus so we can modify its style */
-    isFocused: PropTypes.bool,
+    /** Whether the IOU is hovered so we can modify its style */
+    isHovered: PropTypes.bool,
 
 };
 
@@ -36,7 +36,7 @@ const defaultProps = {
     chatReport: {
         participants: [],
     },
-    isFocused: false,
+    isHovered: false,
 };
 
 const IOUAction = (props) => {
@@ -58,10 +58,10 @@ const IOUAction = (props) => {
                         onPayButtonPressed={launchDetailsModal}
                         onPreviewPressed={launchDetailsModal}
                         containerStyles={[styles.cursorPointer,
-                            props.isFocused
+                            props.isHovered
                                 ? styles.iouPreviewBoxHover
                                 : undefined]}
-                        isFocused={props.isFocused}
+                        isHovered={props.isHovered}
                     />
             )}
         </>

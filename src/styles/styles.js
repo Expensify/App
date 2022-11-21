@@ -2180,7 +2180,7 @@ const styles = {
     },
 
     iouPreviewBoxHover: {
-        backgroundColor: themeColors.activeComponentBG,
+        backgroundColor: themeColors.border,
     },
 
     iouPreviewBoxLoading: {
