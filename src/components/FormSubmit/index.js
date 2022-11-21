@@ -12,8 +12,8 @@ class FormSubmit extends React.Component {
     }
 
     /**
-     * Submits the form when ENTER is pressed on form element.
-     * @param {SyntheticEvent} event
+     * Calls the submit callback when ENTER is pressed on a form element.
+     * @param {Object} event
      */
 
     submitForm(event) {
@@ -24,7 +24,7 @@ class FormSubmit extends React.Component {
 
         const tagName = lodashGet(event, 'target.tagName', '');
 
-        // ENTER is pressed on INPUT or SELECT element, submit the form
+        // ENTER is pressed on INPUT or SELECT element, call the submit callback.
         if (tagName === 'INPUT' || tagName === 'SELECT') {
             this.props.onSubmit();
             return;
@@ -38,7 +38,7 @@ class FormSubmit extends React.Component {
             return;
         }
 
-        // ENTER is pressed on checkbox element, submit the form
+        // ENTER is pressed on checkbox element, call the submit callback.
         if (lodashGet(event, 'target.role') === 'checkbox') {
             this.props.onSubmit();
         }
