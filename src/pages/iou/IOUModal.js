@@ -287,16 +287,15 @@ class IOUModal extends Component {
         const comment = this.state.comment;
         const participant = this.state.participants[0];
 
-        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-            IOU.sendMoneyElsewhere(
-                this.props.report,
-                amount,
-                currency,
-                comment,
-                this.props.currentUserPersonalDetails.login,
-                participant,
-            );
-        }
+        IOU.sendMoneyElsewhere(
+            this.props.report,
+            amount,
+            currency,
+            comment,
+            paymentMethodType,
+            this.props.currentUserPersonalDetails.login,
+            participant,
+        );
     }
 
     /**
