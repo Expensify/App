@@ -127,7 +127,7 @@ class ReportActionItem extends Component {
 
     /**
      * Get the content of ReportActionItem
-     * @param {Bool} hovered whether the ReportActionItem is hovered
+     * @param {Boolean} hovered whether the ReportActionItem is hovered
      * @returns {Object} child component(s)
      */
     renderItemContent(hovered = false) {
