@@ -22,6 +22,11 @@ class PressableDismissKeyboard extends React.Component {
         Keyboard.addListener('keyboardDidHide', () => this.setState({isKeyboardShowing: false}));
     }
 
+    componentWillUnmount() {
+        Keyboard.removeAllListeners('keyboardDidShow');
+        Keyboard.removeAllListeners('keyboardDidHide');
+    }
+
     dismissKeyboardIfOpen() {
         if (!this.state.isKeyboardShowing) {
             return;
