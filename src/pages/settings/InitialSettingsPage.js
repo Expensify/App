@@ -98,6 +98,7 @@ class InitialSettingsPage extends React.Component {
         this.getWalletBalance = this.getWalletBalance.bind(this);
         this.getDefaultMenuItems = this.getDefaultMenuItems.bind(this);
         this.getMenuItem = this.getMenuItem.bind(this);
+        this.toggleSignoutConfirmModal = this.toggleSignoutConfirmModal.bind(this);
         this.signout = this.signOut.bind(this);
 
         this.state = {
@@ -183,10 +184,6 @@ class InitialSettingsPage extends React.Component {
         ]);
     }
 
-    toggleSignoutConfirmModal(value) {
-        this.setState({shouldShowSignoutConfirmModal: value});
-    }
-
     getMenuItem(item, index) {
         const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
         const isPaymentItem = item.translationKey === 'common.payments';
@@ -208,6 +205,10 @@ class InitialSettingsPage extends React.Component {
                 shouldStackHorizontally={item.shouldStackHorizontally}
             />
         );
+    }
+
+    toggleSignoutConfirmModal(value) {
+        this.setState({shouldShowSignoutConfirmModal: value});
     }
 
     signOut(shouldForceSignout = false) {
