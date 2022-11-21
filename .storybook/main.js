@@ -12,4 +12,7 @@ module.exports = {
         './public',
         '../assets/css',
     ],
+    core: {
+        builder: 'webpack5',
+    },
 };

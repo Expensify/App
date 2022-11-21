@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import IOUQuote from './IOUQuote';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
@@ -14,7 +15,7 @@ const propTypes = {
     action: PropTypes.shape(reportActionPropTypes).isRequired,
 
     /** The associated chatReport */
-    chatReportID: PropTypes.number.isRequired,
+    chatReportID: PropTypes.string.isRequired,
 
     /** Is this IOUACTION the most recent? */
     isMostRecentIOUReportAction: PropTypes.bool.isRequired,
@@ -47,7 +48,8 @@ const IOUAction = (props) => {
             {((props.isMostRecentIOUReportAction && Boolean(props.action.originalMessage.IOUReportID))
                 || (props.action.originalMessage.type === 'pay')) && (
                     <IOUPreview
-                        iouReportID={props.action.originalMessage.IOUReportID}
+                        pendingAction={lodashGet(props.action, 'pendingAction', null)}
+                        iouReportID={props.action.originalMessage.IOUReportID.toString()}
                         chatReportID={props.chatReportID}
                         onPayButtonPressed={launchDetailsModal}
                         onPreviewPressed={launchDetailsModal}

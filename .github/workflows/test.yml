@@ -6,10 +6,38 @@ on:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
 
+env:
+  # Number of parallel jobs for jest tests
+  CHUNKS: 3
 jobs:
+  config:
+    runs-on: ubuntu-latest
+    name: Define matrix parameters
+    outputs:
+      MATRIX: ${{ steps.set-matrix.outputs.MATRIX }}
+      JEST_CHUNKS: ${{ steps.set-matrix.outputs.JEST_CHUNKS }}
+    steps:
+      - name: Set Matrix
+        id: set-matrix
+        uses: actions/github-script@v6
+        with:
+          # Generate matrix array i.e. [0, 1, 2, ...., CHUNKS - 1] for test job
+          script: |
+            core.setOutput('MATRIX', Array.from({ length: Number(process.env.CHUNKS) }, (v, i) => i + 1));
+            core.setOutput('JEST_CHUNKS', Number(process.env.CHUNKS) - 1);
+
   test:
+    needs: config
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
+    name: test (job ${{ fromJSON(matrix.chunk) }})
+    env:
+      CI: true
+    strategy:
+      fail-fast: false
+      matrix:
+        chunk: ${{fromJson(needs.config.outputs.MATRIX)}}
+
     steps:
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
@@ -23,10 +51,19 @@ jobs:
             exit 1
           fi
 
-      - name: Jest Unit Tests
-        run: npm run test
-        env:
-          CI: true
+      - name: Cache Jest cache
+        id: cache-jest-cache
+        uses: actions/cache@v1
+        with:
+          path: .jest-cache
+          key: ${{ runner.os }}-jest
+
+      - name: All Unit Tests
+        if: ${{ fromJSON(matrix.chunk) < fromJSON(env.CHUNKS) }}
+        # Split the jest based test files in multiple chunks/groups and then execute them in parallel in different jobs/runners.
+        run: npx jest --listTests --json | jq -cM '[_nwise(length / ${{ fromJSON(needs.config.outputs.JEST_CHUNKS) }} | ceil)]' | jq '[[]] + .' | jq '.[${{ fromJSON(matrix.chunk) }}] | .[] | @text' | xargs npm test
 
       - name: Pull Request Tests
+        # Pull request related tests will be run in separate runner in parallel.
+        if: ${{ fromJSON(matrix.chunk) == fromJSON(env.CHUNKS) }}
         run: tests/unit/getPullRequestsMergedBetweenTest.sh

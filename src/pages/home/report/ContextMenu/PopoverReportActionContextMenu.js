@@ -3,6 +3,7 @@ import {
     Dimensions,
 } from 'react-native';
 import _ from 'underscore';
+import PropTypes from 'prop-types';
 import * as Report from '../../../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
@@ -10,7 +11,18 @@ import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 import ConfirmModal from '../../../../components/ConfirmModal';
 
 const propTypes = {
+    /** Flag to check if the chat participant is Chronos */
+    isChronosReport: PropTypes.bool,
+
+    /** Whether the provided report is an archived room */
+    isArchivedRoom: PropTypes.bool,
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    isChronosReport: false,
+    isArchivedRoom: false,
 };
 
 class PopoverReportActionContextMenu extends React.Component {
@@ -18,7 +30,7 @@ class PopoverReportActionContextMenu extends React.Component {
         super(props);
 
         this.state = {
-            reportID: 0,
+            reportID: '0',
             reportAction: {},
             selection: '',
             reportActionDraftMessage: '',
@@ -105,7 +117,7 @@ class PopoverReportActionContextMenu extends React.Component {
      * @param {Object} [event] - A press event.
      * @param {String} [selection] - Copied content.
      * @param {Element} contextMenuAnchor - popoverAnchor
-     * @param {Number} reportID - Active Report Id
+     * @param {String} reportID - Active Report Id
      * @param {Object} reportAction - ReportAction for ContextMenu
      * @param {String} draftMessage - ReportAction Draftmessage
      * @param {Function} [onShow] - Run a callback when Menu is shown
@@ -202,8 +214,6 @@ class PopoverReportActionContextMenu extends React.Component {
             this.onPopoverHideActionCallback = onHideActionCallback;
         }
         this.setState({
-            reportID: 0,
-            reportAction: {},
             selection: '',
             reportActionDraftMessage: '',
             isPopoverVisible: false,
@@ -223,6 +233,8 @@ class PopoverReportActionContextMenu extends React.Component {
                 selection={this.state.selection}
                 reportID={this.state.reportID}
                 reportAction={this.state.reportAction}
+                isArchivedRoom={this.props.isArchivedRoom}
+                isChronosReport={this.props.isChronosReport}
                 anchor={this.contextMenuTargetNode}
             />
         );
@@ -247,7 +259,7 @@ class PopoverReportActionContextMenu extends React.Component {
     hideDeleteModal() {
         this.callbackWhenDeleteModalHide = () => this.onCancelDeleteModal = this.runAndResetCallback(this.onCancelDeleteModal);
         this.setState({
-            reportID: 0,
+            reportID: '0',
             reportAction: {},
             isDeleteCommentConfirmModalVisible: false,
             shouldSetModalVisibilityForDeleteConfirmation: true,
@@ -256,7 +268,7 @@ class PopoverReportActionContextMenu extends React.Component {
 
     /**
      * Opens the Confirm delete action modal
-     * @param {Number} reportID
+     * @param {String} reportID
      * @param {Object} reportAction
      * @param {Boolean} [shouldSetModalVisibility]
      * @param {Function} [onConfirm]
@@ -295,6 +307,8 @@ class PopoverReportActionContextMenu extends React.Component {
                         reportID={this.state.reportID}
                         reportAction={this.state.reportAction}
                         draftMessage={this.state.reportActionDraftMessage}
+                        isArchivedRoom={this.props.isArchivedRoom}
+                        isChronosReport={this.props.isChronosReport}
                         anchor={this.contextMenuTargetNode}
                     />
                 </PopoverWithMeasuredContent>
@@ -316,5 +330,6 @@ class PopoverReportActionContextMenu extends React.Component {
 }
 
 PopoverReportActionContextMenu.propTypes = propTypes;
+PopoverReportActionContextMenu.defaultProps = defaultProps;
 
 export default withLocalize(PopoverReportActionContextMenu);

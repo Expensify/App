@@ -41,7 +41,14 @@ class Onfido extends React.Component {
 
                 // If the user cancels the Onfido flow we won't log this error as it's normal. In the React Native SDK the user exiting the flow will trigger this error which we can use as
                 // our "user exited the flow" callback. On web, this event has it's own callback passed as a config so we don't need to bother with this there.
-                if (_.contains([CONST.ONFIDO.ERROR.USER_CANCELLED, CONST.ONFIDO.ERROR.USER_TAPPED_BACK], errorMessage)) {
+                if (_.contains(
+                    [
+                        CONST.ONFIDO.ERROR.USER_CANCELLED,
+                        CONST.ONFIDO.ERROR.USER_TAPPED_BACK,
+                        CONST.ONFIDO.ERROR.USER_EXITED,
+                    ],
+                    errorMessage,
+                )) {
                     this.props.onUserExit();
                     return;
                 }

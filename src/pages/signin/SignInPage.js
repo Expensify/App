@@ -13,6 +13,7 @@ import LoginForm from './LoginForm';
 import PasswordForm from './PasswordForm';
 import ResendValidationForm from './ResendValidationForm';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import Performance from '../../libs/Performance';
 
 const propTypes = {
     /* Onyx Props */
@@ -20,7 +21,7 @@ const propTypes = {
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
         /** Error to display when there is an account error returned */
-        error: PropTypes.string,
+        errors: PropTypes.objectOf(PropTypes.string),
 
         /** Whether the account is validated */
         validated: PropTypes.bool,
@@ -46,6 +47,7 @@ class SignInPage extends Component {
         // Always reset the unread counter to zero on this page
         // NOTE: We need to wait for the next tick to ensure that the unread indicator is updated
         setTimeout(() => updateUnread(0), 0);
+        Performance.measureTTI();
     }
 
     render() {

@@ -87,9 +87,13 @@ if (pullRequestNumber) {
         ...DEFAULT_PAYLOAD,
         state: 'all',
     })
+        .then(({data}) => _.find(data, PR => PR.user.login === user && titleRegex.test(PR.title)).number)
+        .then(matchingPRNum => GithubUtils.octokit.pulls.get({
+            ...DEFAULT_PAYLOAD,
+            pull_number: matchingPRNum,
+        }))
         .then(({data}) => {
-            const matchingPR = _.find(data, PR => PR.user.login === user && titleRegex.test(PR.title));
-            outputMergeCommitHash(matchingPR);
-            outputMergeActor(matchingPR);
+            outputMergeCommitHash(data);
+            outputMergeActor(data);
         });
 }

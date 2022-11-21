@@ -14,6 +14,7 @@ import * as Policy from './Policy';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
+import getCurrentUrl from '../Navigation/currentUrl';
 
 let currentUserAccountID;
 let currentUserEmail = '';
@@ -44,14 +45,24 @@ Onyx.connect({
     },
 });
 
-let policyIDList = [];
+let allPolicies = [];
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
-    callback: (policies) => {
-        policyIDList = _.compact(_.pluck(policies, 'id'));
-    },
+    callback: policies => allPolicies = policies,
 });
+
+/**
+ * @param {Array} policies
+ * @return {Array<String>} array of policy ids
+*/
+function getNonOptimisticPolicyIDs(policies) {
+    return _.chain(policies)
+        .reject(policy => lodashGet(policy, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
+        .pluck('id')
+        .compact()
+        .value();
+}
 
 /**
 * @param {String} locale
@@ -100,22 +111,36 @@ AppState.addEventListener('change', (nextAppState) => {
  * Fetches data needed for app initialization
  */
 function openApp() {
-    API.read('OpenApp', {policyIDList}, {
-        optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-            value: true,
-        }],
-        successData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-            value: false,
-        }],
-        failureData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-            value: false,
-        }],
+    // We need a fresh connection/callback here to make sure that the list of policyIDs that is sent to OpenApp is the most updated list from Onyx
+    const connectionID = Onyx.connect({
+        key: ONYXKEYS.COLLECTION.POLICY,
+        waitForCollectionCallback: true,
+        callback: (policies) => {
+            Onyx.disconnect(connectionID);
+            API.read('OpenApp', {policyIDList: getNonOptimisticPolicyIDs(policies)}, {
+                optimisticData: [
+                    {
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                        value: true,
+                    },
+                ],
+                successData: [
+                    {
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                        value: false,
+                    },
+                ],
+                failureData: [
+                    {
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                        value: false,
+                    },
+                ],
+            });
+        },
     });
 }
 
@@ -123,7 +148,7 @@ function openApp() {
  * Refreshes data when the app reconnects
  */
 function reconnectApp() {
-    API.read('ReconnectApp', {policyIDList}, {
+    API.write('ReconnectApp', {policyIDList: getNonOptimisticPolicyIDs(allPolicies)}, {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
@@ -155,41 +180,55 @@ function reconnectApp() {
  * will occur.
 
  * When the exitTo route is 'workspace/new', we create a new
- * workspace and navigate to it via Policy.createAndGetPolicyList.
+ * workspace and navigate to it
  *
  * We subscribe to the session using withOnyx in the AuthScreens and
  * pass it in as a parameter. withOnyx guarantees that the value has been read
  * from Onyx because it will not render the AuthScreens until that point.
  * @param {Object} session
- * @param {string} currentPath
  */
-function setUpPoliciesAndNavigate(session, currentPath) {
-    if (!session || !currentPath || !currentPath.includes('exitTo')) {
+function setUpPoliciesAndNavigate(session) {
+    const currentUrl = getCurrentUrl();
+    if (!session || !currentUrl || !currentUrl.includes('exitTo')) {
         return;
     }
 
-    let exitTo;
-    try {
-        const url = new URL(currentPath, CONST.NEW_EXPENSIFY_URL);
-        exitTo = url.searchParams.get('exitTo');
-    } catch (error) {
-        // URLSearchParams is unsupported on iOS so we catch th error and
-        // silence it here since this is primarily a Web flow
-        return;
-    }
+    const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
+    const url = new URL(currentUrl);
+    const exitTo = url.searchParams.get('exitTo');
 
-    const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentPath, session.email);
+    // Approved Accountants and Guides can enter a flow where they make a workspace for other users,
+    // and those are passed as a search parameter when using transition links
+    const ownerEmail = url.searchParams.get('ownerEmail');
+    const makeMeAdmin = url.searchParams.get('makeMeAdmin');
+    const policyName = url.searchParams.get('policyName');
+
     const shouldCreateFreePolicy = !isLoggingInAsNewUser
-                        && Str.startsWith(currentPath, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
+                        && Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
                         && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        Policy.createAndGetPolicyList();
+        Policy.createWorkspace(ownerEmail, makeMeAdmin, policyName, true);
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
-        // We must call dismissModal() to remove the /transition route from history
-        Navigation.dismissModal();
-        Navigation.navigate(exitTo);
+        if (Navigation.isDrawerRoute(exitTo)) {
+            // The drawer navigation is only created after we have fetched reports from the server.
+            // Thus, if we use the standard navigation and try to navigate to a drawer route before
+            // the reports have been fetched, we will fail to navigate.
+            Navigation.isDrawerReady()
+                .then(() => {
+                    // We must call dismissModal() to remove the /transition route from history
+                    Navigation.dismissModal();
+                    Navigation.navigate(exitTo);
+                });
+            return;
+        }
+        Navigation.isNavigationReady()
+            .then(() => {
+                // We must call dismissModal() to remove the /transition route from history
+                Navigation.dismissModal();
+                Navigation.navigate(exitTo);
+            });
     }
 }
 

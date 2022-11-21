@@ -5,7 +5,6 @@ import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -23,12 +22,12 @@ import CONST from '../../CONST';
 import Permissions from '../../libs/Permissions';
 import * as App from '../../libs/actions/App';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import policyMemberPropType from '../policyMemberPropType';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import cardPropTypes from '../../components/cardPropTypes';
 import * as Wallet from '../../libs/actions/Wallet';
+import walletTermsPropTypes from '../EnablePayments/walletTermsPropTypes';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -52,10 +51,10 @@ const propTypes = {
 
         /** The user's role in the policy */
         role: PropTypes.string,
-    })),
 
-    /** List of policy members */
-    policyMembers: PropTypes.objectOf(policyMemberPropType),
+        /** The current action that is waiting to happen on the policy */
+        pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
+    })),
 
     /** The user's wallet account */
     userWallet: PropTypes.shape({
@@ -72,6 +71,9 @@ const propTypes = {
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    /** Information about the user accepting the terms for payments */
+    walletTerms: walletTermsPropTypes,
+
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
@@ -83,7 +85,7 @@ const defaultProps = {
         currentBalance: 0,
     },
     betas: [],
-    policyMembers: {},
+    walletTerms: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -93,7 +95,7 @@ class InitialSettingsPage extends React.Component {
 
         this.getWalletBalance = this.getWalletBalance.bind(this);
         this.getDefaultMenuItems = this.getDefaultMenuItems.bind(this);
-        this.getMenuItems = this.getMenuItems.bind(this);
+        this.getMenuItem = this.getMenuItem.bind(this);
     }
 
     componentDidMount() {
@@ -117,7 +119,28 @@ class InitialSettingsPage extends React.Component {
      * @returns {Array} the default menu items
      */
     getDefaultMenuItems() {
+        const policiesAvatars = _.chain(this.props.policies)
+            .filter(policy => policy
+                && policy.type === CONST.POLICY.TYPE.FREE
+                && policy.role === CONST.POLICY.ROLE.ADMIN
+                && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .sortBy(policy => policy.name)
+            .pluck('avatar')
+            .value();
+        const policyBrickRoadIndicator = _.chain(this.props.policies)
+            .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
+            .find(policy => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers))
+            .value() ? 'error' : null;
+
         return ([
+            {
+                translationKey: 'common.workspaces',
+                icon: Expensicons.Building,
+                action: () => { Navigation.navigate(ROUTES.SETTINGS_WORKSPACES); },
+                floatRightAvatars: policiesAvatars,
+                shouldStackHorizontally: true,
+                brickRoadIndicator: policyBrickRoadIndicator,
+            },
             {
                 translationKey: 'common.profile',
                 icon: Expensicons.Profile,
@@ -137,7 +160,8 @@ class InitialSettingsPage extends React.Component {
                 translationKey: 'common.payments',
                 icon: Expensicons.Wallet,
                 action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
-                brickRoadIndicator: PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.cardList) || !_.isEmpty(this.props.userWallet.errors) ? 'error' : null,
+                brickRoadIndicator: PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.cardList) || !_.isEmpty(this.props.userWallet.errors)
+                    || !_.isEmpty(this.props.walletTerms.errors) ? 'error' : null,
             },
             {
                 translationKey: 'initialSettingsPage.about',
@@ -152,27 +176,27 @@ class InitialSettingsPage extends React.Component {
         ]);
     }
 
-    /**
-     * Add free policies (workspaces) to the list of menu items and returns the list of menu items
-     * @returns {Array} the menu item list
-     */
-    getMenuItems() {
-        const menuItems = _.chain(this.props.policies)
-            .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
-            .map(policy => ({
-                title: policy.name,
-                icon: policy.avatar ? policy.avatar : Expensicons.Building,
-                iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
-                iconStyles: policy.avatar ? [] : [styles.popoverMenuIconEmphasized],
-                iconFill: themeColors.iconReversed,
-                fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
-            }))
-            .value();
-        menuItems.push(...this.getDefaultMenuItems());
+    getMenuItem(item, index) {
+        const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
+        const isPaymentItem = item.translationKey === 'common.payments';
 
-        return menuItems;
+        return (
+            <MenuItem
+                key={`${keyTitle}_${index}`}
+                title={keyTitle}
+                icon={item.icon}
+                iconType={item.iconType}
+                onPress={item.action}
+                iconStyles={item.iconStyles}
+                iconFill={item.iconFill}
+                shouldShowRightIcon
+                badgeText={this.getWalletBalance(isPaymentItem)}
+                fallbackIcon={item.fallbackIcon}
+                brickRoadIndicator={item.brickRoadIndicator}
+                floatRightAvatars={item.floatRightAvatars}
+                shouldStackHorizontally={item.shouldStackHorizontally}
+            />
+        );
     }
 
     openProfileSettings() {
@@ -222,25 +246,7 @@ class InitialSettingsPage extends React.Component {
                                 </Text>
                             )}
                         </View>
-                        {_.map(this.getMenuItems(), (item, index) => {
-                            const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
-                            const isPaymentItem = item.translationKey === 'common.payments';
-                            return (
-                                <MenuItem
-                                    key={`${keyTitle}_${index}`}
-                                    title={keyTitle}
-                                    icon={item.icon}
-                                    iconType={item.iconType}
-                                    onPress={item.action}
-                                    iconStyles={item.iconStyles}
-                                    iconFill={item.iconFill}
-                                    shouldShowRightIcon
-                                    badgeText={this.getWalletBalance(isPaymentItem)}
-                                    fallbackIcon={item.fallbackIcon}
-                                    brickRoadIndicator={item.brickRoadIndicator}
-                                />
-                            );
-                        })}
+                        {_.map(this.getDefaultMenuItems(), (item, index) => this.getMenuItem(item, index))}
                     </View>
                 </ScrollView>
             </ScreenWrapper>
@@ -250,7 +256,6 @@ class InitialSettingsPage extends React.Component {
 
 InitialSettingsPage.propTypes = propTypes;
 InitialSettingsPage.defaultProps = defaultProps;
-InitialSettingsPage.displayName = 'InitialSettingsPage';
 
 export default compose(
     withLocalize,
@@ -276,6 +281,9 @@ export default compose(
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
+        },
+        walletTerms: {
+            key: ONYXKEYS.WALLET_TERMS,
         },
     }),
 )(InitialSettingsPage);

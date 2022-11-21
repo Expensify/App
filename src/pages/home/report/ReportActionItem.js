@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import CONST from '../../../CONST';
@@ -24,7 +23,7 @@ import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
-import {withNetwork, withReportActionsDrafts} from '../../../components/OnyxProvider';
+import {withBlockedFromConcierge, withNetwork, withReportActionsDrafts} from '../../../components/OnyxProvider';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
 import InlineSystemMessage from '../../../components/InlineSystemMessage';
 import styles from '../../../styles/styles';
@@ -33,10 +32,11 @@ import * as User from '../../../libs/actions/User';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ReportActions from '../../../libs/actions/ReportActions';
+import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
-    /** The ID of the report this action is on. */
-    reportID: PropTypes.number.isRequired,
+    /** Report for this action */
+    report: reportPropTypes.isRequired,
 
     /** All the data of the action item */
     action: PropTypes.shape(reportActionPropTypes).isRequired,
@@ -113,7 +113,7 @@ class ReportActionItem extends Component {
             event,
             selection,
             this.popoverAnchor,
-            this.props.reportID,
+            this.props.report.reportID,
             this.props.action,
             this.props.draftMessage,
             this.checkIfContextMenuActive,
@@ -127,7 +127,7 @@ class ReportActionItem extends Component {
 
     render() {
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-            return <ReportActionItemCreated reportID={this.props.reportID} />;
+            return <ReportActionItemCreated reportID={this.props.report.reportID} />;
         }
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             return <RenameAction action={this.props.action} />;
@@ -137,7 +137,7 @@ class ReportActionItem extends Component {
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
             children = (
                 <IOUAction
-                    chatReportID={this.props.reportID}
+                    chatReportID={this.props.report.reportID}
                     action={this.props.action}
                     isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
                 />
@@ -150,7 +150,7 @@ class ReportActionItem extends Component {
                     <ReportActionItemMessageEdit
                         action={this.props.action}
                         draftMessage={this.props.draftMessage}
-                        reportID={this.props.reportID}
+                        reportID={this.props.report.reportID}
                         index={this.props.index}
                         ref={el => this.textInput = el}
                         report={this.props.report}
@@ -168,16 +168,12 @@ class ReportActionItem extends Component {
                 onPressOut={() => ControlSelection.unblock()}
                 onSecondaryInteraction={this.showPopover}
                 preventDefaultContentMenu={!this.props.draftMessage}
-                onKeyDown={(event) => {
-                    // Blur the input after a key is pressed to keep the blue focus border from appearing
-                    event.target.blur();
-                }}
             >
-                <Hoverable resetsOnClickOutside>
+                <Hoverable>
                     {hovered => (
-                        <View>
+                        <View accessibilityLabel="Chat message">
                             {this.props.shouldDisplayNewIndicator && (
-                                <UnreadActionIndicator />
+                                <UnreadActionIndicator sequenceNumber={this.props.action.sequenceNumber} />
                             )}
                             <View
                                 style={StyleUtils.getReportActionItemStyle(
@@ -190,12 +186,12 @@ class ReportActionItem extends Component {
                                 <OfflineWithFeedback
                                     onClose={() => {
                                         if (this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                                            ReportActions.deleteOptimisticReportAction(this.props.report.reportID, this.props.action.sequenceNumber);
+                                            ReportActions.deleteOptimisticReportAction(this.props.report.reportID, this.props.action.clientID);
                                         } else {
                                             ReportActions.clearReportActionErrors(this.props.report.reportID, this.props.action.sequenceNumber);
                                         }
                                     }}
-                                    pendingAction={this.props.action.pendingAction}
+                                    pendingAction={this.props.draftMessage ? null : this.props.action.pendingAction}
                                     errors={this.props.action.errors}
                                     errorRowStyles={[styles.ml10, styles.mr2]}
                                 >
@@ -213,8 +209,9 @@ class ReportActionItem extends Component {
                                 </OfflineWithFeedback>
                             </View>
                             <MiniReportActionContextMenu
-                                reportID={this.props.reportID}
+                                reportID={this.props.report.reportID}
                                 reportAction={this.props.action}
+                                isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
                                 displayAsGroup={this.props.displayAsGroup}
                                 isVisible={
                                     hovered
@@ -222,6 +219,7 @@ class ReportActionItem extends Component {
                                     && !this.props.draftMessage
                                 }
                                 draftMessage={this.props.draftMessage}
+                                isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
                             />
                         </View>
                     )}
@@ -239,19 +237,12 @@ ReportActionItem.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withNetwork(),
+    withBlockedFromConcierge({propName: 'blockedFromConcierge'}),
     withReportActionsDrafts({
         propName: 'draftMessage',
         transformValue: (drafts, props) => {
-            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.reportID}_${props.action.reportActionID}`;
+            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.report.reportID}_${props.action.reportActionID}`;
             return lodashGet(drafts, draftKey, '');
-        },
-    }),
-    withOnyx({
-        blockedFromConcierge: {
-            key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
-        },
-        report: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
     }),
 )(ReportActionItem);

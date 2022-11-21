@@ -198,16 +198,52 @@ function onSubmit(values) {
 </Form>
 ```
 
+`Form.js` also works with inputs nested in a custom component, e.g. [AddressForm](https://github.com/Expensify/App/blob/86579225ff30b21dea507347735259637a2df461/src/pages/ReimbursementAccount/AddressForm.js). The only exception is that the nested component shouldn't be wrapped around any HoC.
+
+```jsx
+const BankAccountForm = () => (
+    <>
+        <View>
+            <TextInput
+                label="Routing number"
+                inputID="routingNumber"
+                maxLength={8}
+                shouldSaveDraft
+            />
+        </View>
+        <TextInput
+            label="Account number"
+            inputID="accountNumber"
+            containerStyles={[styles.mt4]}
+        />
+    </>
+);
+
+// ...
+<Form
+    formID="testForm"
+    submitButtonText="Submit"
+    validate={this.validate}
+    onSubmit={this.onSubmit}
+>
+    <BankAccountForm />
+</Form>
+```
+
 ### Props provided to Form inputs
 
 The following prop is available to form inputs:
 
 - inputID: An unique identifier for the input.
+- shouldSaveDraft: Saves a draft of the input value.
+- defaultValue: The initial value of the input.
+- value: The value to show for the input.
+- onValueChange: A callback that is called when the input's value changes.
 
 Form.js will automatically provide the following props to any input with the inputID prop.
 
 - ref: A React ref that must be attached to the input.
-- defaultValue: The input default value.
+- value: The input value.
 - errorText: The translated error text that is returned by validate for that specific input.
 - onBlur: An onBlur handler that calls validate.
 - onInputChange: An onChange handler that saves draft values and calls validate for that input (inputA). Passing an inputID as a second param allows inputA to manipulate the input value of the provided inputID (inputB).

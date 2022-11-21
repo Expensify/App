@@ -1,7 +1,6 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {ActivityIndicator, Dimensions} from 'react-native';
-import themeColors from '../../styles/themes/default';
+import {Dimensions} from 'react-native';
 import CONST from '../../CONST';
 import Navigation from '../../libs/Navigation/Navigation';
 import AddPaymentMethodMenu from '../AddPaymentMethodMenu';
@@ -11,6 +10,7 @@ import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import ONYXKEYS from '../../ONYXKEYS';
 import Log from '../../libs/Log';
 import {propTypes, defaultProps} from './kycWallPropTypes';
+import * as Wallet from '../../libs/actions/Wallet';
 
 // This component allows us to block various actions by forcing the user to first add a default payment method and successfully make it through our Know Your Customer flow
 // before continuing to take whatever action they originally intended to take. It requires a button as a child and a native event so we can get the coordinates and use it
@@ -35,6 +35,7 @@ class KYCWall extends React.Component {
         if (this.props.shouldListenForResize) {
             this.dimensionsSubscription = Dimensions.addEventListener('change', this.setMenuPosition);
         }
+        Wallet.setKYCWallSourceChatReportID(this.props.chatReportID);
     }
 
     componentWillUnmount() {
@@ -139,9 +140,7 @@ class KYCWall extends React.Component {
                         }
                     }}
                 />
-                {this.props.isLoadingPaymentMethods && !this.props.isDisabled
-                    ? (<ActivityIndicator color={themeColors.spinner} size="large" />)
-                    : this.props.children(this.continue)}
+                {this.props.children(this.continue)}
             </>
         );
     }

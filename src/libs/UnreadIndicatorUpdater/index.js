@@ -1,27 +1,20 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
 import updateUnread from './updateUnread';
+import * as ReportUtils from '../ReportUtils';
 
-// Stash the unread action counts for each report
-const unreadActionCounts = {};
+const reports = {};
 
 /**
- * Updates the title and favicon of the current browser tab
- * and Mac OS or iOS dock icon with an unread indicator.
+ * Updates the title and favicon of the current browser tab and Mac OS or iOS dock icon with an unread indicator.
+ * Note: We are throttling this since listening for report changes can trigger many updates depending on how many reports
+ * a user has and how often they are updated.
  */
 const throttledUpdatePageTitleAndUnreadCount = _.throttle(() => {
-    const totalCount = _.reduce(unreadActionCounts, (total, reportCount) => total + Math.max(reportCount, 0), 0);
-
-    // When we don't have an exact count we just let the user know there's something new
-    if (totalCount === 0 && _.some(unreadActionCounts, count => count === -1)) {
-        updateUnread(1);
-        return;
-    }
-
+    const totalCount = _.filter(reports, ReportUtils.isUnread).length;
     updateUnread(totalCount);
-}, 1000, {leading: false});
+}, 100, {leading: false});
 
 let connectionID;
 
@@ -37,17 +30,7 @@ function listenForReportChanges() {
                 return;
             }
 
-            if (report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE) {
-                return;
-            }
-
-            // An unreadActionCount of -1 signifies that we're not interested in showing exact count
-            if (report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY
-                && report.unreadActionCount > 0) {
-                unreadActionCounts[report.reportID] = -1;
-            } else {
-                unreadActionCounts[report.reportID] = report.unreadActionCount || 0;
-            }
+            reports[report.reportID] = report;
             throttledUpdatePageTitleAndUnreadCount();
         },
     });
@@ -67,4 +50,5 @@ function stopListeningForReportChanges() {
 export default {
     listenForReportChanges,
     stopListeningForReportChanges,
+    throttledUpdatePageTitleAndUnreadCount,
 };

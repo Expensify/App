@@ -42,6 +42,7 @@ class DebitCardPage extends Component {
         super(props);
 
         this.validate = this.validate.bind(this);
+        PaymentMethods.clearDebitCardFormErrorAndSubmit();
     }
 
     componentDidUpdate(prevProps) {
@@ -191,7 +192,6 @@ class DebitCardPage extends Component {
                             </>
                         )}
                         style={[styles.mt4]}
-                        shouldSaveDraft
                     />
                 </Form>
             </ScreenWrapper>

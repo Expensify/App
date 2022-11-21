@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import getReportActionContextMenuStyles from '../../../../styles/getReportActionContextMenuStyles';
@@ -13,7 +12,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import ContextMenuActions, {CONTEXT_MENU_TYPES} from './ContextMenuActions';
 import compose from '../../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
-import ONYXKEYS from '../../../../ONYXKEYS';
+import {withBetas} from '../../../../components/OnyxProvider';
 
 const propTypes = {
     /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
@@ -21,6 +20,13 @@ const propTypes = {
 
     /** Target node which is the target of ContentMenu */
     anchor: PropTypes.node,
+
+    /** Flag to check if the chat participant is Chronos */
+    isChronosReport: PropTypes.bool,
+
+    /** Whether the provided report is an archived room */
+    isArchivedRoom: PropTypes.bool,
+
     ...genericReportActionContextMenuPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
@@ -29,6 +35,8 @@ const propTypes = {
 const defaultProps = {
     type: CONTEXT_MENU_TYPES.REPORT_ACTION,
     anchor: null,
+    isChronosReport: false,
+    isArchivedRoom: false,
     ...GenericReportActionContextMenuDefaultProps,
 };
 class BaseReportActionContextMenu extends React.Component {
@@ -38,7 +46,14 @@ class BaseReportActionContextMenu extends React.Component {
     }
 
     render() {
-        const shouldShowFilter = contextAction => contextAction.shouldShow(this.props.type, this.props.reportAction, this.props.betas, this.props.anchor);
+        const shouldShowFilter = contextAction => contextAction.shouldShow(
+            this.props.type,
+            this.props.reportAction,
+            this.props.isArchivedRoom,
+            this.props.betas,
+            this.props.anchor,
+            this.props.isChronosReport,
+        );
 
         return this.props.isVisible && (
             <View style={this.wrapperStyle}>
@@ -59,6 +74,7 @@ class BaseReportActionContextMenu extends React.Component {
                             selection: this.props.selection,
                         })}
                         description={contextAction.getDescription(this.props.selection, this.props.isSmallScreenWidth)}
+                        autoReset={contextAction.autoReset}
                     />
                 ))}
             </View>
@@ -71,10 +87,6 @@ BaseReportActionContextMenu.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-    }),
+    withBetas(),
     withWindowDimensions,
 )(BaseReportActionContextMenu);

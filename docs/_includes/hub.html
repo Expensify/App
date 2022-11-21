@@ -1,0 +1,34 @@
+{% assign activeHub = page.url | remove: "/hubs/" | remove: ".html" %}
+{% assign hub = site.data.routes.hubs | where: "href", activeHub | first %}
+
+<h1 class="title">
+    {{ hub.title }}
+</h1>
+
+<p>
+    {{ hub.description }}
+</p>
+
+{% for section in hub.sections %}
+    <section>
+        <h2 id="{{ section.href }}">
+            {{ section.title }}
+        </h2>
+
+        <div class="cards-group">
+            {% for article in section.articles %}
+                {% include article-card.html hub=hub.href href=article.href title=article.title %}
+            {% endfor %}
+        </div>
+    </section>
+{% endfor %}
+
+{% if hub.articles %}
+    <section>
+        <div class="cards-group">
+            {% for article in hub.articles %}
+                {% include article-card.html hub=hub.href href=article.href title=article.title %}
+            {% endfor %}
+        </div>
+    </section>
+{% endif %}

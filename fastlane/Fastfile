@@ -14,6 +14,17 @@ skip_docs
 opt_out_usage
 
 platform :android do
+  desc "Generate a new local APK for e2e testing"
+  lane :build_e2e do
+    ENV["ENVFILE"]="e2e/.env.e2e"
+    ENV["ENTRY_FILE"]="src/libs/E2E/reactNativeLaunchingTest.js"
+
+    gradle(
+      project_dir: './android',
+      task: ':app:assembleE2eRelease',
+    )
+  end
+
   desc "Generate a new local APK"
   lane :build do
     ENV["ENVFILE"]=".env.production"
@@ -141,6 +152,7 @@ platform :ios do
     end
 
     upload_symbols_to_crashlytics(
+      app_id: "1:921154746561:ios:216bd10ccc947659027c40",
       dsym_path: lane_context[SharedValues::DSYM_OUTPUT_PATH],
       gsp_path: "./ios/GoogleService-Info.plist",
       binary_path: "./ios/Pods/FirebaseCrashlytics/upload-symbols"

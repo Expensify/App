@@ -21,6 +21,8 @@ import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
 import Text from '../components/Text';
 import CONST from '../CONST';
+import reportPropTypes from './reportPropTypes';
+import withReportOrNavigateHome from './home/report/withReportOrNavigateHome';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -31,19 +33,7 @@ const propTypes = {
     }).isRequired,
 
     /** The report currently being looked at */
-    report: PropTypes.shape({
-        /** Name of the report */
-        reportName: PropTypes.string,
-
-        /** List of primarylogins of participants of the report */
-        participants: PropTypes.arrayOf(PropTypes.string),
-
-        /** List of icons for report participants */
-        icons: PropTypes.arrayOf(PropTypes.string),
-
-        /** ID of the report */
-        reportID: PropTypes.number,
-    }).isRequired,
+    report: reportPropTypes.isRequired,
 
     /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({
@@ -77,7 +67,7 @@ class ReportDetailsPage extends Component {
             key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
             translationKey: 'common.members',
             icon: Expensicons.Users,
-            subtitle: props.report.participants.length,
+            subtitle: lodashGet(props.report, 'participants', []).length,
             action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
         });
 
@@ -137,7 +127,7 @@ class ReportDetailsPage extends Component {
                             <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                                 <View style={[styles.alignSelfCenter, styles.w100]}>
                                     <DisplayNames
-                                        fullTitle={ReportUtils.getReportName(this.props.report, this.props.personalDetails, this.props.policies)}
+                                        fullTitle={ReportUtils.getReportName(this.props.report, this.props.policies)}
                                         displayNamesWithTooltips={displayNamesWithTooltips}
                                         tooltipEnabled
                                         numberOfLines={1}
@@ -188,10 +178,8 @@ ReportDetailsPage.propTypes = propTypes;
 
 export default compose(
     withLocalize,
+    withReportOrNavigateHome,
     withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
         },

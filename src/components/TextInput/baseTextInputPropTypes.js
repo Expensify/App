@@ -55,6 +55,9 @@ const propTypes = {
     /** Prefix character */
     prefixCharacter: PropTypes.string,
 
+    /** Whether autoCorrect functionality should enable  */
+    autoCorrect: PropTypes.bool,
+
     /** Form props */
     /** The ID used to uniquely identify the input in a Form */
     inputID: PropTypes.string,
@@ -79,6 +82,7 @@ const defaultProps = {
     textInputContainerStyles: [],
     inputStyle: [],
     autoFocus: false,
+    autoCorrect: true,
 
     /**
      * To be able to function as either controlled or uncontrolled component we should not

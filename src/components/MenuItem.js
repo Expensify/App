@@ -16,6 +16,7 @@ import menuItemPropTypes from './menuItemPropTypes';
 import SelectCircle from './SelectCircle';
 import colors from '../styles/colors';
 import variables from '../styles/variables';
+import MultipleAvatars from './MultipleAvatars';
 
 const propTypes = {
     ...menuItemPropTypes,
@@ -25,6 +26,8 @@ const defaultProps = {
     badgeText: undefined,
     shouldShowRightIcon: false,
     shouldShowSelectedState: false,
+    shouldShowBasicTitle: false,
+    shouldShowDescriptionOnTop: false,
     wrapperStyle: [],
     style: {},
     success: false,
@@ -44,15 +47,18 @@ const defaultProps = {
     interactive: true,
     fallbackIcon: Expensicons.FallbackAvatar,
     brickRoadIndicator: '',
+    floatRightAvatars: [],
+    shouldStackHorizontally: false,
 };
 
 const MenuItem = (props) => {
     const titleTextStyle = StyleUtils.combineStyles([
         styles.popoverMenuText,
         styles.ml3,
-        (props.interactive && props.disabled ? styles.disabledText : undefined),
+        (props.shouldShowBasicTitle ? undefined : styles.textStrong),
+        (props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined),
     ], props.style);
-    const descriptionTextStyle = StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml3, styles.mt1, styles.breakAll], props.style);
+    const descriptionTextStyle = StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml3, styles.breakAll, styles.lh16], props.style);
 
     return (
         <Pressable
@@ -76,7 +82,7 @@ const MenuItem = (props) => {
         >
             {({hovered, pressed}) => (
                 <>
-                    <View style={[styles.flexRow, styles.pointerEventsNone, styles.flex1]}>
+                    <View style={[styles.flexRow, styles.pointerEventsAuto, styles.flex1, props.disabled && styles.cursorDisabled]}>
                         {(props.icon && props.iconType === CONST.ICON_TYPE_ICON) && (
                             <View
                                 style={[
@@ -108,14 +114,24 @@ const MenuItem = (props) => {
                                 />
                             </View>
                         )}
-                        <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1]}>
-                            <Text
-                                style={titleTextStyle}
-                                numberOfLines={1}
-                            >
-                                {props.title}
-                            </Text>
-                            {Boolean(props.description) && (
+                        <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1, styles.gap1]}>
+                            {Boolean(props.description) && props.shouldShowDescriptionOnTop && (
+                                <Text
+                                    style={descriptionTextStyle}
+                                    numberOfLines={2}
+                                >
+                                    {props.description}
+                                </Text>
+                            )}
+                            {Boolean(props.title) && (
+                                <Text
+                                    style={titleTextStyle}
+                                    numberOfLines={1}
+                                >
+                                    {props.title}
+                                </Text>
+                            )}
+                            {Boolean(props.description) && !props.shouldShowDescriptionOnTop && (
                                 <Text
                                     style={descriptionTextStyle}
                                     numberOfLines={2}
@@ -137,8 +153,18 @@ const MenuItem = (props) => {
                                 </Text>
                             </View>
                         )}
+                        {!_.isEmpty(props.floatRightAvatars) && (
+                            <View style={[styles.justifyContentCenter, (props.brickRoadIndicator ? styles.mr4 : styles.mr3)]}>
+                                <MultipleAvatars
+                                    icons={props.floatRightAvatars}
+                                    size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                    fallbackIcon={Expensicons.Workspace}
+                                    shouldStackHorizontally={props.shouldStackHorizontally}
+                                />
+                            </View>
+                        )}
                         {Boolean(props.brickRoadIndicator) && (
-                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.l4]}>
                                 <Icon
                                     src={Expensicons.DotIndicator}
                                     fill={props.brickRoadIndicator === 'error' ? colors.red : colors.green}
@@ -148,7 +174,7 @@ const MenuItem = (props) => {
                             </View>
                         )}
                         {Boolean(props.shouldShowRightIcon) && (
-                            <View style={styles.popoverMenuIcon}>
+                            <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled]}>
                                 <Icon
                                     src={props.iconRight}
                                     fill={StyleUtils.getIconFillColor(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive))}

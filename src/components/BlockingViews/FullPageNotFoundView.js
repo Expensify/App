@@ -18,10 +18,30 @@ const propTypes = {
 
     /** If true, child components are replaced with a blocking "not found" view */
     shouldShow: PropTypes.bool,
+
+    /** The key in the translations file to use for the title */
+    titleKey: PropTypes.string,
+
+    /** The key in the translations file to use for the subtitle */
+    subtitleKey: PropTypes.string,
+
+    /** Whether we should show a back icon */
+    shouldShowBackButton: PropTypes.bool,
+
+    /** Whether we should show a close button */
+    shouldShowCloseButton: PropTypes.bool,
+
+    /** Method to trigger when pressing the back button of the header */
+    onBackButtonPress: PropTypes.func,
 };
 
 const defaultProps = {
     shouldShow: false,
+    titleKey: 'notFound.notHere',
+    subtitleKey: 'notFound.pageNotFound',
+    shouldShowBackButton: true,
+    shouldShowCloseButton: true,
+    onBackButtonPress: () => Navigation.dismissModal(),
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
@@ -30,15 +50,16 @@ const FullPageNotFoundView = (props) => {
         return (
             <>
                 <HeaderWithCloseButton
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.dismissModal()}
+                    shouldShowBackButton={props.shouldShowBackButton}
+                    shouldShowCloseButton={props.shouldShowCloseButton}
+                    onBackButtonPress={props.onBackButtonPress}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
-                <View style={styles.flex1}>
+                <View style={[styles.flex1, styles.blockingViewContainer]}>
                     <BlockingView
                         icon={Expensicons.QuestionMark}
-                        title={props.translate('notFound.notHere')}
-                        subtitle={props.translate('notFound.pageNotFound')}
+                        title={props.translate(props.titleKey)}
+                        subtitle={props.translate(props.subtitleKey)}
                     />
                 </View>
             </>

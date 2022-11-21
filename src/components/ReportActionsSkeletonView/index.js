@@ -10,7 +10,7 @@ const propTypes = {
 
 const ReportActionsSkeletonView = (props) => {
     // Determines the number of content items based on container height
-    const possibleVisibleContentItems = Math.floor(props.containerHeight / CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT);
+    const possibleVisibleContentItems = Math.ceil(props.containerHeight / CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT);
     const skeletonViewLines = [];
     for (let index = 0; index < possibleVisibleContentItems; index++) {
         const iconIndex = (index + 1) % 4;

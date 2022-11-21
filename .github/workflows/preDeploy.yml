@@ -49,15 +49,15 @@ jobs:
 
       - name: Check if merged pull request was an automated PR
         id: isAutomatedPullRequest
-        run: echo "::set-output name=IS_AUTOMATED_PR::${{ github.actor == 'OSBotify' }}"
+        run: echo "IS_AUTOMATED_PR=${{ github.actor == 'OSBotify' }}" >> "$GITHUB_OUTPUT"
 
       - name: Check if merged pull request has `CP Staging` label
         id: hasCherryPickLabel
-        run: echo "::set-output name=HAS_CP_LABEL::${{ contains(steps.getMergedPullRequest.outputs.labels, 'CP Staging') }}"
+        run: echo "HAS_CP_LABEL=${{ contains(steps.getMergedPullRequest.outputs.labels, 'CP Staging') }}" >> "$GITHUB_OUTPUT"
 
       - name: Check if merged pull request should trigger a deploy
         id: shouldDeploy
-        run: echo "::set-output name=SHOULD_DEPLOY::${{ fromJSON(steps.hasCherryPickLabel.outputs.HAS_CP_LABEL) || (!fromJSON(steps.isStagingDeployLocked.outputs.IS_LOCKED) && !fromJSON(steps.isAutomatedPullRequest.outputs.IS_AUTOMATED_PR)) }}"
+        run: echo "SHOULD_DEPLOY=${{ fromJSON(steps.hasCherryPickLabel.outputs.HAS_CP_LABEL) || (!fromJSON(steps.isStagingDeployLocked.outputs.IS_LOCKED) && !fromJSON(steps.isAutomatedPullRequest.outputs.IS_AUTOMATED_PR)) }}" >> "$GITHUB_OUTPUT"
 
   skipDeploy:
     runs-on: ubuntu-latest
@@ -82,7 +82,8 @@ jobs:
     needs: [chooseDeployActions, createNewVersion]
     runs-on: ubuntu-latest
     steps:
-      - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
+      # TODO: Point back at upstream when https://github.com/softprops/turnstyle/pull/46 is merged
+      - uses: roryabraham/turnstyle@d50d3ffc3f2c8d280dec4cd802c1c735fcda77c8
         with:
           poll-interval-seconds: 10
         env:
@@ -105,7 +106,7 @@ jobs:
           INPUTS: '{ "PULL_REQUEST_NUMBER": "${{ needs.chooseDeployActions.outputs.MERGED_PR }}", "NEW_VERSION": "${{ needs.createNewVersion.outputs.NEW_VERSION }}" }'
 
       # Version: 3.0.2
-      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           ref: staging
           fetch-depth: 0
@@ -125,7 +126,7 @@ jobs:
 
       - name: Find open StagingDeployCash
         id: getStagingDeployCash
-        run: echo "::set-output name=STAGING_DEPLOY_CASH::$(gh issue list --label StagingDeployCash --json number --jq '.[0].number')"
+        run: echo "STAGING_DEPLOY_CASH=$(gh issue list --label StagingDeployCash --json number --jq '.[0].number')" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
@@ -189,7 +190,7 @@ jobs:
     if: ${{ github.actor != 'OSBotify' && !fromJSON(needs.isExpensifyEmployee.outputs.IS_EXPENSIFY_EMPLOYEE) }}
     steps:
       # Version: 2.3.4
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 

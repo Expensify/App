@@ -1,10 +1,7 @@
-import org.apache.tools.ant.taskdefs.condition.Os
-
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
     ext {
-        buildToolsVersion = "31.0.0"
         minSdkVersion = 21
         compileSdkVersion = 31
         targetSdkVersion = 31
@@ -24,11 +21,10 @@ buildscript {
     }
     repositories {
         google()
-        jcenter()
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:7.1.1")
+        classpath("com.android.tools.build:gradle:7.2.1")
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("de.undercouch:gradle-download-task:5.0.1")
         classpath("com.google.gms:google-services:4.3.4")
@@ -45,10 +41,14 @@ allprojects {
     configurations.all {
         resolutionStrategy {
             force 'org.xerial:sqlite-jdbc:3.34.0'
+
+            // Manually set the react-native version to resolve this upstream issue: https://github.com/facebook/react-native/issues/35210
+            def REACT_NATIVE_VERSION = new File(['node', '--print',"JSON.parse(require('fs').readFileSync(require.resolve('react-native/package.json'), 'utf-8')).version"].execute(null, rootDir).text.trim())
+            force "com.facebook.react:react-native:" + REACT_NATIVE_VERSION
+            force "com.facebook.react:hermes-engine:" + REACT_NATIVE_VERSION
         }
     }
     repositories {
-        jcenter()
         maven {
             // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
             url("$rootDir/../node_modules/react-native/android")

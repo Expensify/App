@@ -3,6 +3,7 @@ import {StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import Str from 'expensify-common/lib/str';
 import RNTextInput from '../RNTextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
@@ -71,6 +72,9 @@ const propTypes = {
     /** Allow the full composer to be opened */
     setIsFullComposerAvailable: PropTypes.func,
 
+    /** Whether the composer is full size */
+    isComposerFullSize: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -96,6 +100,7 @@ const defaultProps = {
     },
     isFullComposerAvailable: false,
     setIsFullComposerAvailable: () => {},
+    isComposerFullSize: false,
 };
 
 const IMAGE_EXTENSIONS = {
@@ -130,9 +135,11 @@ class Composer extends React.Component {
             },
         };
         this.dragNDropListener = this.dragNDropListener.bind(this);
+        this.paste = this.paste.bind(this);
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
+        this.shouldCallUpdateNumberOfLines = this.shouldCallUpdateNumberOfLines.bind(this);
     }
 
     componentDidMount() {
@@ -167,7 +174,9 @@ class Composer extends React.Component {
             this.setState({numberOfLines: 1});
             this.props.onClear();
         }
-        if (prevProps.defaultValue !== this.props.defaultValue
+
+        if (prevProps.value !== this.props.value
+            || prevProps.defaultValue !== this.props.defaultValue
             || prevProps.isComposerFullSize !== this.props.isComposerFullSize) {
             this.updateNumberOfLines();
         }
@@ -233,15 +242,12 @@ class Composer extends React.Component {
     }
 
     /**
-     * Manually place the pasted HTML into Composer
-     *
-     * @param {String} html - pasted HTML
+     * Set pasted text to clipboard
+     * @param {String} text
      */
-    handlePastedHTML(html) {
-        const parser = new ExpensiMark();
-        const markdownText = parser.htmlToMarkdown(html);
+    paste(text) {
         try {
-            document.execCommand('insertText', false, markdownText);
+            document.execCommand('insertText', false, text);
             this.updateNumberOfLines();
 
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
@@ -252,19 +258,30 @@ class Composer extends React.Component {
     }
 
     /**
+     * Manually place the pasted HTML into Composer
+     *
+     * @param {String} html - pasted HTML
+     */
+    handlePastedHTML(html) {
+        const parser = new ExpensiMark();
+        this.paste(parser.htmlToMarkdown(html));
+    }
+
+    /**
      * Check the paste event for an attachment, parse the data and call onPasteFile from props with the selected file,
      * Otherwise, convert pasted HTML to Markdown and set it on the composer.
      *
      * @param {ClipboardEvent} event
      */
     handlePaste(event) {
+        event.preventDefault();
+
         const {files, types} = event.clipboardData;
         const TEXT_HTML = 'text/html';
 
         // If paste contains files, then trigger file management
         if (files.length > 0) {
             // Prevent the default so we do not post the file name into the text box
-            event.preventDefault();
             this.props.onPasteFile(event.clipboardData.files[0]);
             return;
         }
@@ -273,12 +290,11 @@ class Composer extends React.Component {
         if (types.includes(TEXT_HTML)) {
             const pastedHTML = event.clipboardData.getData(TEXT_HTML);
 
-            event.preventDefault();
             const domparser = new DOMParser();
             const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
 
             // If HTML has img tag, then fetch images from it.
-            if (embeddedImages.length > 0) {
+            if (embeddedImages.length > 0 && embeddedImages[0].src) {
                 fetch(embeddedImages[0].src)
                     .then((response) => {
                         if (!response.ok) { throw Error(response.statusText); }
@@ -309,7 +325,11 @@ class Composer extends React.Component {
             }
 
             this.handlePastedHTML(pastedHTML);
+            return;
         }
+
+        const plainText = event.clipboardData.getData('text/plain');
+        this.paste(Str.htmlDecode(plainText));
     }
 
     /**
@@ -324,6 +344,18 @@ class Composer extends React.Component {
         this.textInput.scrollTop += event.deltaY;
         event.preventDefault();
         event.stopPropagation();
+    }
+
+    /**
+     * We want to call updateNumberOfLines only when the parent doesn't provide value in props
+     * as updateNumberOfLines is already being called when value changes in componentDidUpdate
+     */
+    shouldCallUpdateNumberOfLines() {
+        if (!_.isEmpty(this.props.value)) {
+            return;
+        }
+
+        this.updateNumberOfLines();
     }
 
     /**
@@ -360,9 +392,7 @@ class Composer extends React.Component {
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
                 selection={this.state.selection}
-                onChange={() => {
-                    this.updateNumberOfLines();
-                }}
+                onChange={this.shouldCallUpdateNumberOfLines}
                 onSelectionChange={this.onSelectionChange}
                 numberOfLines={this.state.numberOfLines}
                 style={propStyles}

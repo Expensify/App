@@ -8,7 +8,7 @@ import * as Expensicons from './Icon/Expensicons';
 
 const propTypes = {
     /** Whether checkbox is checked */
-    isChecked: PropTypes.bool.isRequired,
+    isChecked: PropTypes.bool,
 
     /** A function that is called when the box/label is pressed */
     onPress: PropTypes.func.isRequired,
@@ -25,6 +25,9 @@ const propTypes = {
     /** Additional styles to add to checkbox button */
     style: stylePropTypes,
 
+    /** Callback that is called when mousedown is triggered. */
+    onMouseDown: PropTypes.func,
+
     /** A ref to forward to the Pressable */
     forwardedRef: PropTypes.oneOfType([
         PropTypes.func,
@@ -33,11 +36,13 @@ const propTypes = {
 };
 
 const defaultProps = {
+    isChecked: false,
     hasError: false,
     disabled: false,
     style: [],
     forwardedRef: undefined,
     children: null,
+    onMouseDown: undefined,
 };
 
 class Checkbox extends React.Component {
@@ -84,6 +89,7 @@ class Checkbox extends React.Component {
             <Pressable
                 disabled={this.props.disabled}
                 onPress={this.firePressHandlerOnClick}
+                onMouseDown={this.props.onMouseDown}
                 onFocus={this.onFocus}
                 onBlur={this.onBlur}
                 ref={this.props.forwardedRef}

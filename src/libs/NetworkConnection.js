@@ -6,15 +6,12 @@ import * as NetworkActions from './actions/Network';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 
-// NetInfo.addEventListener() returns a function used to unsubscribe the
-// listener so we must create a reference to it and call it in stopListeningForReconnect()
-let unsubscribeFromNetInfo;
-let unsubscribeFromAppState;
 let isOffline = false;
 let hasPendingNetworkCheck = false;
 
 // Holds all of the callbacks that need to be triggered when the network reconnects
-const reconnectionCallbacks = [];
+let callbackID = 0;
+const reconnectionCallbacks = {};
 
 /**
  * Loop over all reconnection callbacks and fire each one
@@ -66,7 +63,7 @@ function subscribeToNetInfo() {
 
     // Subscribe to the state change event via NetInfo so we can update
     // whether a user has internet connectivity or not.
-    unsubscribeFromNetInfo = NetInfo.addEventListener((state) => {
+    NetInfo.addEventListener((state) => {
         Log.info('[NetworkConnection] NetInfo state change', false, state);
         setOfflineStatus(state.isInternetReachable === false);
     });
@@ -75,33 +72,22 @@ function subscribeToNetInfo() {
 function listenForReconnect() {
     Log.info('[NetworkConnection] listenForReconnect called');
 
-    unsubscribeFromAppState = AppStateMonitor.addBecameActiveListener(() => {
+    AppStateMonitor.addBecameActiveListener(() => {
         triggerReconnectionCallbacks('app became active');
     });
-}
-
-/**
- * Tear down the event listeners when we are finished with them.
- */
-function stopListeningForReconnect() {
-    Log.info('[NetworkConnection] stopListeningForReconnect called');
-    if (unsubscribeFromNetInfo) {
-        unsubscribeFromNetInfo();
-        unsubscribeFromNetInfo = undefined;
-    }
-    if (unsubscribeFromAppState) {
-        unsubscribeFromAppState();
-        unsubscribeFromAppState = undefined;
-    }
 }
 
 /**
  * Register callback to fire when we reconnect
  *
  * @param {Function} callback - must return a Promise
+ * @returns {Function} unsubscribe method
  */
 function onReconnect(callback) {
-    reconnectionCallbacks.push(callback);
+    const currentID = callbackID;
+    callbackID++;
+    reconnectionCallbacks[currentID] = callback;
+    return () => delete reconnectionCallbacks[currentID];
 }
 
 /**
@@ -121,7 +107,6 @@ function recheckNetworkConnection() {
 export default {
     setOfflineStatus,
     listenForReconnect,
-    stopListeningForReconnect,
     onReconnect,
     triggerReconnectionCallbacks,
     recheckNetworkConnection,

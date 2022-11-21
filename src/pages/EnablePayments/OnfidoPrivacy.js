@@ -15,6 +15,7 @@ import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButto
 import FormScrollView from '../../components/FormScrollView';
 import walletAdditionalDetailsDraftPropTypes from './walletAdditionalDetailsDraftPropTypes';
 import walletOnfidoDataPropTypes from './walletOnfidoDataPropTypes';
+import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     /** Stores various information used to build the UI and call any APIs */
@@ -53,8 +54,7 @@ class OnfidoPrivacy extends React.Component {
     }
 
     render() {
-        const errors = lodashGet(this.props, 'walletOnfidoData.errors', {});
-        let onfidoError = _.isEmpty(errors) ? '' : _.last(_.values(errors));
+        let onfidoError = ErrorUtils.getLatestErrorMessage(this.props.walletOnfidoData) || '';
         const onfidoFixableErrors = lodashGet(this.props, 'walletOnfidoData.fixableErrors', []);
         onfidoError += !_.isEmpty(onfidoFixableErrors) ? `\n${onfidoFixableErrors.join('\n')}` : '';
 

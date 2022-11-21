@@ -14,11 +14,15 @@ const propTypes = {
     /** Flag to disable the emoji picker button */
     isDisabled: PropTypes.bool,
 
+    /** Id to use for the emoji picker button */
+    nativeID: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     isDisabled: false,
+    nativeID: '',
 };
 
 const EmojiPickerButton = (props) => {
@@ -32,6 +36,7 @@ const EmojiPickerButton = (props) => {
             ])}
             disabled={props.isDisabled}
             onPress={() => EmojiPickerAction.showEmojiPicker(props.onModalHide, props.onEmojiSelected, emojiPopoverAnchor)}
+            nativeID={props.nativeID}
         >
             {({hovered, pressed}) => (
                 <Tooltip text={props.translate('reportActionCompose.emoji')}>

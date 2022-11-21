@@ -3,20 +3,13 @@ import ONYXKEYS from '../../ONYXKEYS';
 
 /**
  * @param {Array} activeClients
+ * @return {Promise}
  */
 function setActiveClients(activeClients) {
-    Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
-}
-
-/**
- * @param {Number} clientID
- * @returns {Promise}
- */
-function addClient(clientID) {
-    return Onyx.merge(ONYXKEYS.ACTIVE_CLIENTS, [clientID]);
+    return Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
 }
 
 export {
+    // eslint-disable-next-line import/prefer-default-export
     setActiveClients,
-    addClient,
 };

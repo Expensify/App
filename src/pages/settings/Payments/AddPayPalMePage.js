@@ -1,9 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import CONST from '../../../CONST';
-import ONYXKEYS from '../../../ONYXKEYS';
 import ROUTES from '../../../ROUTES';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Text from '../../../components/Text';
@@ -11,7 +9,6 @@ import ScreenWrapper from '../../../components/ScreenWrapper';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
 import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
@@ -19,26 +16,16 @@ import TextInput from '../../../components/TextInput';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import * as User from '../../../libs/actions/User';
 
-const propTypes = {
-    /** Username for PayPal.Me */
-    payPalMeUsername: PropTypes.string,
-
-    ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    payPalMeUsername: '',
-};
-
 class AddPayPalMePage extends React.Component {
     constructor(props) {
         super(props);
 
         this.state = {
-            payPalMeUsername: props.payPalMeUsername,
+            payPalMeUsername: '',
             payPalMeUsernameError: false,
         };
         this.setPayPalMeUsername = this.setPayPalMeUsername.bind(this);
+        this.focusPayPalMeInput = this.focusPayPalMeInput.bind(this);
     }
 
     /**
@@ -57,9 +44,17 @@ class AddPayPalMePage extends React.Component {
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
     }
 
+    focusPayPalMeInput() {
+        if (!this.payPalMeInputRef) {
+            return;
+        }
+
+        this.payPalMeInputRef.focus();
+    }
+
     render() {
         return (
-            <ScreenWrapper>
+            <ScreenWrapper onTransitionEnd={this.focusPayPalMeInput}>
                 <HeaderWithCloseButton
                     title={this.props.translate('common.payPalMe')}
                     shouldShowBackButton
@@ -72,6 +67,7 @@ class AddPayPalMePage extends React.Component {
                             {this.props.translate('addPayPalMePage.enterYourUsernameToGetPaidViaPayPal')}
                         </Text>
                         <TextInput
+                            ref={el => this.payPalMeInputRef = el}
                             label={this.props.translate('addPayPalMePage.payPalMe')}
                             autoCompleteType="off"
                             autoCorrect={false}
@@ -90,10 +86,8 @@ class AddPayPalMePage extends React.Component {
                         onPress={this.setPayPalMeUsername}
                         pressOnEnter
                         style={[styles.mt3]}
-                        isDisabled={this.state.payPalMeUsername === this.props.payPalMeUsername}
-                        text={this.props.payPalMeUsername
-                            ? this.props.translate('addPayPalMePage.editPayPalAccount')
-                            : this.props.translate('addPayPalMePage.addPayPalAccount')}
+                        isDisabled={_.isEmpty(this.state.payPalMeUsername.trim())}
+                        text={this.props.translate('addPayPalMePage.addPayPalAccount')}
                     />
                 </FixedFooter>
             </ScreenWrapper>
@@ -101,15 +95,6 @@ class AddPayPalMePage extends React.Component {
     }
 }
 
-AddPayPalMePage.propTypes = propTypes;
-AddPayPalMePage.defaultProps = defaultProps;
-AddPayPalMePage.displayName = 'AddPayPalMePage';
+AddPayPalMePage.propTypes = {...withLocalizePropTypes};
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        payPalMeUsername: {
-            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
-        },
-    }),
-)(AddPayPalMePage);
+export default withLocalize(AddPayPalMePage);

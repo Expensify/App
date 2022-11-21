@@ -35,7 +35,7 @@ const BlockingView = props => (
             width={variables.iconSizeSuperLarge}
             height={variables.iconSizeSuperLarge}
         />
-        <Text style={[styles.headerText, styles.textLarge, styles.mt5]}>{props.title}</Text>
+        <Text style={[styles.headerText, styles.textLarge, styles.mt5, styles.mb2]}>{props.title}</Text>
         <Text style={[styles.w70, styles.textAlignCenter]}>{props.subtitle}</Text>
     </View>
 );

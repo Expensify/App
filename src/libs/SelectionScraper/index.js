@@ -133,7 +133,7 @@ const getCurrentSelection = () => {
     const domRepresentation = parseDocument(getHTMLOfSelection());
     domRepresentation.children = _.map(domRepresentation.children, replaceNodes);
 
-    const newHtml = render(domRepresentation);
+    const newHtml = Str.htmlDecode(render(domRepresentation));
     return newHtml || '';
 };
 

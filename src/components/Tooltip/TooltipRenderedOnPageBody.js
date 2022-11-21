@@ -27,11 +27,11 @@ const propTypes = {
 
     /** Any additional amount to manually adjust the horizontal position of the tooltip.
     A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */
-    shiftHorizontal: PropTypes.number.isRequired,
+    shiftHorizontal: PropTypes.number,
 
     /** Any additional amount to manually adjust the vertical position of the tooltip.
     A positive value shifts the tooltip down, and a negative value shifts it up. */
-    shiftVertical: PropTypes.number.isRequired,
+    shiftVertical: PropTypes.number,
 
     /** Text to be shown in the tooltip */
     text: PropTypes.string.isRequired,
@@ -41,6 +41,11 @@ const propTypes = {
 
     /** Maximum number of lines to show in tooltip */
     numberOfLines: PropTypes.number.isRequired,
+};
+
+const defaultProps = {
+    shiftHorizontal: 0,
+    shiftVertical: 0,
 };
 
 // Props will change frequently.
@@ -72,7 +77,10 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
         if (prevProps.text === this.props.text) {
             return;
         }
-        this.updateTooltipTextWidth();
+
+        // Reset the tooltip text width to 0 so that we can measure it again.
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({tooltipTextWidth: 0}, this.updateTooltipTextWidth);
     }
 
     updateTooltipTextWidth() {
@@ -132,5 +140,6 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
 }
 
 TooltipRenderedOnPageBody.propTypes = propTypes;
+TooltipRenderedOnPageBody.defaultProps = defaultProps;
 
 export default TooltipRenderedOnPageBody;

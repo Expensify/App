@@ -1,12 +1,23 @@
 ---
-lhn_content: 'coming_soon'
 ---
 
-<img id="logo" src="/assets/images/expensify-help.svg" />
+<div class="homepage">
+    <h1 class="title">{{ site.data.routes.home.title }}</h1>
 
-<div class="centered-content">
-    <img class="icon" src="/assets/images/circle-hourglass.svg" />
-    <strong>Coming soon</strong>
-    <div>Looking for our old help site? Check it out <a href="https://community.expensify.com/">here</a>.</div>
+    <p>{{ site.data.routes.home.description }}</p>
+
+    <h2>
+        Which best describes how you use Expensify?
+    </h2>
+
+    <div class="cards-group">
+        {% include hub-card.html href="send-money" %}
+        {% include hub-card.html href="request-money" %}
+        {% include hub-card.html href="other" %}
+    </div>
+
+    <div class="cards-group">
+        <!-- Concierge button anchored globally (rendered on narrow screens) -->
+        {% include floating-concierge-button.html id="floating-concierge-button-global" %}
+    </div>
 </div>
-

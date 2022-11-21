@@ -5,7 +5,6 @@ import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './datepickerPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import canUseTouchScreen from '../../libs/canUseTouchscreen';
 import './styles.css';
 
 const datePickerPropTypes = {
@@ -43,7 +42,7 @@ class DatePicker extends React.Component {
      */
     setDate(text) {
         if (!text) {
-            this.props.onInputChange(null);
+            this.props.onInputChange('');
             return;
         }
 
@@ -69,7 +68,7 @@ class DatePicker extends React.Component {
     render() {
         return (
             <TextInput
-                forceActiveLabel={!canUseTouchScreen()}
+                forceActiveLabel
                 ref={(el) => {
                     this.inputRef = el;
 
@@ -80,6 +79,7 @@ class DatePicker extends React.Component {
                 onFocus={this.showDatepicker}
                 label={this.props.label}
                 onInputChange={this.setDate}
+                value={this.props.value}
                 defaultValue={this.defaultValue}
                 placeholder={this.props.placeholder}
                 errorText={this.props.errorText}

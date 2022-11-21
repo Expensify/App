@@ -12,7 +12,8 @@ import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../ReportUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
-import Timing from './Timing';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -72,7 +73,7 @@ function getDisplayName(login, personalDetail) {
  * @returns {String}
  */
 function getMaxCharacterError(isError) {
-    return isError ? Localize.translateLocal('personalDetails.error.characterLimit', {limit: 50}) : '';
+    return isError ? Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT}) : '';
 }
 
 /**
@@ -82,7 +83,6 @@ function getMaxCharacterError(isError) {
  * @return {Object}
  */
 function formatPersonalDetails(personalDetailsList) {
-    Timing.start(CONST.TIMING.PERSONAL_DETAILS_FORMATTED);
     const formattedResult = {};
 
     // This method needs to be SUPER PERFORMANT because it can be called with a massive list of logins depending on the policies that someone belongs to
@@ -100,6 +100,7 @@ function formatPersonalDetails(personalDetailsList) {
         const phoneNumber = details.phoneNumber || '';
         const avatar = details.avatar || details.avatarThumbnail || ReportUtils.getDefaultAvatar(login);
         const avatarThumbnail = getAvatarThumbnail(details, sanitizedLogin);
+        const validated = details.validated || false;
         formattedResult[sanitizedLogin] = {
             login: sanitizedLogin,
             displayName,
@@ -111,9 +112,9 @@ function formatPersonalDetails(personalDetailsList) {
             phoneNumber,
             avatar,
             avatarThumbnail,
+            validated,
         };
     });
-    Timing.end(CONST.TIMING.PERSONAL_DETAILS_FORMATTED);
     return formattedResult;
 }
 
@@ -262,8 +263,13 @@ function setPersonalDetails(details, shouldGrowl) {
         });
 }
 
+/**
+ * @param {String} firstName
+ * @param {String} lastName
+ * @param {String} pronouns
+ * @param {Object} timezone
+ */
 function updateProfile(firstName, lastName, pronouns, timezone) {
-    const myPersonalDetails = personalDetails[currentUserEmail];
     API.write('UpdateProfile', {
         firstName,
         lastName,
@@ -286,20 +292,49 @@ function updateProfile(firstName, lastName, pronouns, timezone) {
                 },
             },
         }],
-        failureData: [{
+    });
+}
+
+/**
+ * @param {String} pronouns
+ */
+function updatePronouns(pronouns) {
+    API.write('UpdatePronouns', {pronouns}, {
+        optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
-                    firstName: myPersonalDetails.firstName,
-                    lastName: myPersonalDetails.lastName,
-                    pronouns: myPersonalDetails.pronouns,
-                    timezone: myPersonalDetails.timeZone,
-                    displayName: myPersonalDetails.displayName,
+                    pronouns,
                 },
             },
         }],
     });
+    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+}
+
+/**
+ * @param {String} firstName
+ * @param {String} lastName
+ */
+function updateDisplayName(firstName, lastName) {
+    API.write('UpdateDisplayName', {firstName, lastName}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    firstName,
+                    lastName,
+                    displayName: getDisplayName(currentUserEmail, {
+                        firstName,
+                        lastName,
+                    }),
+                },
+            },
+        }],
+    });
+    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
 /**
@@ -414,5 +449,7 @@ export {
     getMaxCharacterError,
     extractFirstAndLastNameFromAvailableDetails,
     updateProfile,
+    updateDisplayName,
+    updatePronouns,
     clearAvatarErrors,
 };

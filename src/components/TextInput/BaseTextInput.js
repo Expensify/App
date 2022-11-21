@@ -14,9 +14,11 @@ import * as Expensicons from '../Icon/Expensicons';
 import Text from '../Text';
 import * as styleConst from './styleConst';
 import * as StyleUtils from '../../styles/StyleUtils';
+import variables from '../../styles/variables';
 import Checkbox from '../Checkbox';
 import getSecureEntryKeyboardType from '../../libs/getSecureEntryKeyboardType';
 import CONST from '../../CONST';
+import FormHelpMessage from '../FormHelpMessage';
 
 class BaseTextInput extends Component {
     constructor(props) {
@@ -33,6 +35,7 @@ class BaseTextInput extends Component {
             textInputWidth: 0,
             prefixWidth: 0,
             selection: props.selection,
+            height: variables.componentSizeLarge,
 
             // Value should be kept in state for the autoGrow feature to work - https://github.com/Expensify/App/pull/8232#issuecomment-1077282006
             value,
@@ -196,7 +199,6 @@ class BaseTextInput extends Component {
         const inputProps = _.omit(this.props, _.keys(baseTextInputPropTypes.propTypes));
         const hasLabel = Boolean(this.props.label.length);
         const inputHelpText = this.props.errorText || this.props.hint;
-        const formHelpStyles = this.props.errorText ? styles.formError : styles.formHelp;
         const placeholder = (this.props.prefixCharacter || this.state.isFocused || !hasLabel || (hasLabel && this.props.forceActiveLabel)) ? this.props.placeholder : null;
         const textInputContainerStyles = _.reduce([
             styles.textInputContainer,
@@ -217,6 +219,9 @@ class BaseTextInput extends Component {
                     >
                         <TouchableWithoutFeedback onPress={this.onPress} focusable={false}>
                             <View
+
+                                // When multiline is not supplied, calculating textinput height using onLayout
+                                onLayout={event => !this.props.multiline && this.setState({height: event.nativeEvent.layout.height})}
                                 style={[
                                     textInputContainerStyles,
 
@@ -258,6 +263,7 @@ class BaseTextInput extends Component {
                                         }}
                                         // eslint-disable-next-line
                                         {...inputProps}
+                                        autoCorrect={this.props.secureTextEntry ? false : this.props.autoCorrect}
                                         placeholder={placeholder}
                                         placeholderTextColor={themeColors.placeholderText}
                                         underlineColorAndroid="transparent"
@@ -268,6 +274,7 @@ class BaseTextInput extends Component {
                                             !hasLabel && styles.pv0,
                                             this.props.prefixCharacter && StyleUtils.getPaddingLeft(this.state.prefixWidth + styles.pl1.paddingLeft),
                                             this.props.secureTextEntry && styles.secureInput,
+                                            !this.props.multiline && {height: this.state.height},
                                         ]}
                                         multiline={this.props.multiline}
                                         maxLength={this.props.maxLength}
@@ -285,6 +292,7 @@ class BaseTextInput extends Component {
                                         <Checkbox
                                             style={styles.secureInputShowPasswordButton}
                                             onPress={this.togglePasswordVisibility}
+                                            onMouseDown={e => e.preventDefault()}
                                         >
                                             <Icon
                                                 src={this.state.passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
@@ -297,9 +305,7 @@ class BaseTextInput extends Component {
                         </TouchableWithoutFeedback>
                     </View>
                     {!_.isEmpty(inputHelpText) && (
-                        <Text style={[formHelpStyles, styles.mt1, styles.ph3]}>
-                            {inputHelpText}
-                        </Text>
+                        <FormHelpMessage isError={!_.isEmpty(this.props.errorText)} message={inputHelpText} />
                     )}
                 </View>
                 {/*

@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
-import colors from '../../../styles/colors';
+import themeColors from '../../../styles/themes/default';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import Icon from '../../../components/Icon';
 import ROUTES from '../../../ROUTES';
@@ -112,7 +112,7 @@ class LoginField extends Component {
                                 style={[styles.mb2]}
                                 onPress={this.onResendClicked}
                                 ContentComponent={() => (this.state.showCheckmarkIcon ? (
-                                    <Icon fill={colors.black} src={Expensicons.Checkmark} />
+                                    <Icon fill={themeColors.inverse} src={Expensicons.Checkmark} />
                                 ) : (
                                     <Text style={styles.buttonSmallText}>
                                         {this.props.translate('common.resend')}

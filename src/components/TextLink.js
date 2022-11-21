@@ -32,20 +32,37 @@ const defaultProps = {
 
 const TextLink = (props) => {
     const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
+
+    /**
+     * @param {Event} event
+     */
+    const openLink = (event) => {
+        event.preventDefault();
+        if (props.onPress) {
+            props.onPress();
+            return;
+        }
+
+        Linking.openURL(props.href);
+    };
+
+    /**
+     * @param {Event} event
+     */
+    const openLinkIfEnterKeyPressed = (event) => {
+        if (event.key !== 'Enter') {
+            return;
+        }
+        openLink(event);
+    };
+
     return (
         <Text
             style={[styles.link, ...additionalStyles]}
             accessibilityRole="link"
             href={props.href}
-            onPress={(e) => {
-                e.preventDefault();
-                if (props.onPress) {
-                    props.onPress();
-                    return;
-                }
-
-                Linking.openURL(props.href);
-            }}
+            onPress={openLink}
+            onKeyDown={openLinkIfEnterKeyPressed}
         >
             {props.children}
         </Text>

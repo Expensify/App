@@ -17,6 +17,7 @@ import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
+import reportPropTypes from './reportPropTypes';
 
 const propTypes = {
     /** Whether screen is used to create group chat */
@@ -29,10 +30,7 @@ const propTypes = {
     personalDetails: personalDetailsPropType.isRequired,
 
     /** All reports shared with the user */
-    reports: PropTypes.shape({
-        reportID: PropTypes.number,
-        reportName: PropTypes.string,
-    }).isRequired,
+    reports: PropTypes.objectOf(reportPropTypes).isRequired,
 
     /** Session of currently logged in user */
     session: PropTypes.shape({
@@ -181,10 +179,7 @@ class NewChatPage extends Component {
      * @param {Object} option
      */
     createChat(option) {
-        Report.fetchOrCreateChatReport([
-            this.props.session.email,
-            option.login,
-        ]);
+        Report.navigateToAndOpenReport([option.login]);
     }
 
     /**
@@ -196,8 +191,7 @@ class NewChatPage extends Component {
         if (userLogins.length < 1) {
             return;
         }
-
-        Report.fetchOrCreateChatReport([this.props.session.email, ...userLogins]);
+        Report.navigateToAndOpenReport(userLogins);
     }
 
     render() {
@@ -210,7 +204,7 @@ class NewChatPage extends Component {
             maxParticipantsReached,
         );
         return (
-            <ScreenWrapper keyboardAvoidingViewBehavior="height">
+            <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
                     <>
                         <HeaderWithCloseButton
