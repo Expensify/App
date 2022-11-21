@@ -14,9 +14,7 @@ import CONST from '../../CONST';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import MenuItem from '../../components/MenuItem';
 import getBankIcon from '../../components/Icon/BankIcons';
-import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import confettiPop from '../../../assets/images/confetti-pop.gif';
 import Icon from '../../components/Icon';
 import Section from '../../components/Section';
@@ -28,62 +26,23 @@ import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 
 const propTypes = {
-    /** Are we loading payment methods? */
-    isLoadingPaymentMethods: PropTypes.bool,
-
     /** Information about the network */
     network: networkPropTypes.isRequired,
-
-    /** List of bank accounts */
-    bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
     ...withLocalizePropTypes,
 };
 
-const defaultProps = {
-    isLoadingPaymentMethods: true,
-    bankAccountList: {},
-};
-
 class EnableStep extends React.Component {
-    componentDidMount() {
-        this.fetchData();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (!prevProps.network.isOffline || this.props.network.isOffline) {
-            return;
-        }
-
-        this.fetchData();
-    }
-
-    fetchData() {
-        PaymentMethods.getPaymentMethods();
-    }
-
     render() {
-        if (this.props.isLoadingPaymentMethods || _.isEmpty(this.props.bankAccountList)) {
-            return (
-                <FullScreenLoadingIndicator />
-            );
-        }
-
         const isUsingExpensifyCard = this.props.user.isUsingExpensifyCard;
-        const account = _.find(this.props.bankAccountList, bankAccount => bankAccount.bankAccountID === this.props.reimbursementAccount.achData.bankAccountID);
-        if (!account) {
-            // This shouldn't happen as we can only end up here if we have successfully added a bank account.
-            // But in case it does we'll throw here directly so it can be caught by the error boundary.
-            throw new Error('Account not found in EnableStep');
-        }
-
-        const {icon, iconSize} = getBankIcon(account.additionalData.bankName);
-        const formattedBankAccountNumber = account.accountNumber
+        const reimbursementAccount = this.props.reimbursementAccount.achData || {};
+        const {icon, iconSize} = getBankIcon(reimbursementAccount.bankName);
+        const formattedBankAccountNumber = reimbursementAccount.accountNumber
             ? `${this.props.translate('paymentMethodList.accountLastFour')} ${
-                account.accountNumber.slice(-4)
+                reimbursementAccount.accountNumber.slice(-4)
             }`
             : '';
-        const bankName = account.addressName;
+        const bankName = reimbursementAccount.addressName;
         const menuItems = [{
             title: this.props.translate('workspace.bankAccount.disconnectBankAccount'),
             icon: Expensicons.Close,
@@ -146,25 +105,16 @@ class EnableStep extends React.Component {
 }
 
 EnableStep.propTypes = propTypes;
-EnableStep.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
     withNetwork(),
     withOnyx({
-        isLoadingPaymentMethods: {
-            key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
-            initWithStoredValues: false,
-        },
-        user: {
-            key: ONYXKEYS.USER,
-        },
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
-        bankAccountList: {
-            key: ONYXKEYS.BANK_ACCOUNT_LIST,
-            initWithStoredValues: false,
+        user: {
+            key: ONYXKEYS.USER,
         },
     }),
 )(EnableStep);
