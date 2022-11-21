@@ -163,8 +163,12 @@ const IOUPreview = (props) => {
                                     <View style={styles.iouPreviewBoxAvatar}>
                                         <MultipleAvatars
                                             icons={[managerAvatar, ownerAvatar]}
-                                            secondAvatarStyle={[styles.secondAvatarInline,
-                                                props.isHovered && styles.iouPreviewBoxAvatarHover]}
+                                            secondAvatarStyle={[
+                                                styles.secondAvatarInline,
+                                                props.isHovered
+                                                    ? styles.iouPreviewBoxAvatarHover
+                                                    : undefined,
+                                            ]}
                                             avatarTooltips={avatarTooltip}
                                         />
                                     </View>

@@ -57,10 +57,12 @@ const IOUAction = (props) => {
                         chatReportID={props.chatReportID}
                         onPayButtonPressed={launchDetailsModal}
                         onPreviewPressed={launchDetailsModal}
-                        containerStyles={[styles.cursorPointer,
+                        containerStyles={[
+                            styles.cursorPointer,
                             props.isHovered
                                 ? styles.iouPreviewBoxHover
-                                : undefined]}
+                                : undefined,
+                        ]}
                         isHovered={props.isHovered}
                     />
             )}
