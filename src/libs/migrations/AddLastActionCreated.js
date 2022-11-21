@@ -8,30 +8,39 @@ import ONYXKEYS from '../../ONYXKEYS';
  *
  * @returns {Promise}
  */
-export default function() {
+export default function () {
     return new Promise((resolve) => {
         const connectionID = Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT,
             waitForCollectionCallbacks: true,
             callback: (allReports) => {
                 Onyx.disconnect(connectionID);
-                Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, _.map(allReports, (report) => {
+                const reportsToUpdate = {};
+                _.each(allReports, (report, key) => {
                     if (_.has(report, 'lastActionCreated')) {
-                        return report;
+                        return;
                     }
 
                     if (!_.has(report, 'lastMessageTimestamp')) {
-                        return report;
+                        return;
                     }
 
-                    report.lastActionCreated = new Date(report.lastMessageTimestamp)
+                    reportsToUpdate[key] = report;
+                    reportsToUpdate[key].lastActionCreated = new Date(report.lastMessageTimestamp)
                         .toISOString()
                         .replace('T', ' ')
                         .replace('Z', '');
-                    return report;
-                }));
+                });
+
+                if (_.isEmpty(reportsToUpdate)) {
+                    Log.info('[Migrate Onyx] Skipped migration AddLastActionCreated');
+                } else {
+                    Log.info(`[Migrate Onyx] Adding lastActionCreated field to ${_.keys(reportsToUpdate).length} reports`);
+                    // eslint-disable-next-line rulesdir/prefer-actions-set-data
+                    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportsToUpdate);
+                }
             },
         });
         return resolve();
-    })
+    });
 }
