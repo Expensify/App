@@ -239,6 +239,9 @@ class Form extends React.Component {
                             containerStyles={[styles.mh0, styles.mt5]}
                             enabledWhenOffline={this.props.enabledWhenOffline}
                             isDangerousAction={this.props.isDangerousAction}
+
+                            // Temporarily disable press on enter, this will be removed when all instances of
+                            // form submit event handler is replaced with FormSubmit component
                             disablePressOnEnter
                         />
                         )}

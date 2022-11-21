@@ -36,9 +36,7 @@ const propTypes = {
     /** Should the button be enabled when offline */
     enabledWhenOffline: PropTypes.bool,
 
-    /** Temporarily disable press on enter, this will be removed when all instances of
-     * submit event handler is replaced with FormSubmit component
-      */
+    /** Disable press on enter for submit button */
     disablePressOnEnter: PropTypes.bool,
 
     /** Whether the action is dangerous */
