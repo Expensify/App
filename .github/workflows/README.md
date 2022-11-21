@@ -3,6 +3,8 @@
 ## Important tip for creating GitHub Workflows
 All inputs and outputs to GitHub Actions and any data passed between jobs or workflows is JSON-encoded (AKA, strings). Keep this in mind whenever writing GitHub workflows – you may need to JSON-decode variables to access them accurately. Here's an example of a common way to misuse GitHub Actions data:
 
+
+
 ```yaml
 name: CI
 on: pull_request
@@ -76,6 +78,7 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 1. `APPLE_CONTACT_PHONE` - Phone number used for contact between Expensify and Apple for https://appstoreconnect.apple.com/
 1. `APPLE_DEMO_EMAIL` - Demo account email used for https://appstoreconnect.apple.com/
 1. `APPLE_DEMO_PASSWORD` - Demo account password used for https://appstoreconnect.apple.com/
+1. `BROWSERSTACK` - Used to access Browserstack's API
 
 ## Actions
 
