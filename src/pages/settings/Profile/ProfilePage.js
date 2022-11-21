@@ -241,7 +241,7 @@ class ProfilePage extends Component {
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
-                    formID={CONST.PROFILE_SETTINGS_FORM}
+                    formID={ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM}
                     validate={this.validate}
                     onSubmit={this.updatePersonalDetails}
                     submitButtonText={this.props.translate('common.save')}

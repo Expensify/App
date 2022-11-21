@@ -155,7 +155,6 @@ function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
                         right: 0,
                         bottom: 0,
                     }}
-                    onAvatarClick={() => {}}
                     isSmallScreenWidth={false}
                     reportIDFromRoute={reportIDFromRoute}
                 />

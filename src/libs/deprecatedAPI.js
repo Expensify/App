@@ -37,18 +37,6 @@ function ChangePassword(parameters) {
 }
 
 /**
- * @param {object} parameters
- * @param {string} parameters.emailList
- * @returns {Promise}
- */
-function CreateChatReport(parameters) {
-    const commandName = 'CreateChatReport';
-    requireParameters(['emailList'],
-        parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
  * @param {Object} parameters
  * @param {String} parameters.email
  * @returns {Promise}
@@ -188,18 +176,6 @@ function PersonalDetails_Update(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.reportID
- * @param {String} parameters.transactionID
- * @returns {Promise}
- */
-function RejectTransaction(parameters) {
-    const commandName = 'RejectTransaction';
-    requireParameters(['reportID', 'transactionID'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.email
  * @returns {Promise}
  */
@@ -316,17 +292,6 @@ function BankAccount_SetupWithdrawal(parameters) {
 }
 
 /**
- * @param {Object} parameters
- * @param {String} parameters.reportIDList
- * @returns {Promise}
- */
-function GetReportSummaryList(parameters) {
-    const commandName = 'Get';
-    requireParameters(['reportIDList'], parameters, commandName);
-    return Network.post(commandName, {...parameters, returnValueList: 'reportSummaryList'});
-}
-
-/**
  * Transfer Wallet balance and takes either the bankAccoundID or fundID
  * @param {Object} parameters
  * @param {String} [parameters.bankAccountID]
@@ -355,19 +320,16 @@ function GetStatementPDF(parameters) {
 export {
     BankAccount_SetupWithdrawal,
     ChangePassword,
-    CreateChatReport,
     CreateLogin,
     DeleteLogin,
     Get,
     GetStatementPDF,
     GetIOUReport,
-    GetReportSummaryList,
     Graphite_Timer,
     PayIOU,
     PayWithWallet,
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
-    RejectTransaction,
     ResendValidateCode,
     SetNameValuePair,
     SetPassword,

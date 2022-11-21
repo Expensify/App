@@ -28,7 +28,7 @@ const propTypes = {
     network: networkPropTypes.isRequired,
 
     /** When the button is opened via an IOU, ID for the chatReport that the IOU is linked to */
-    chatReportID: PropTypes.number,
+    chatReportID: PropTypes.string,
 
     ...withLocalizePropTypes,
 };
@@ -36,44 +36,40 @@ const propTypes = {
 const defaultProps = {
     currency: CONST.CURRENCY.USD,
     shouldShowPaypal: false,
-    chatReportID: 0,
+    chatReportID: '',
 };
 
 class SettlementButton extends React.Component {
-    constructor(props) {
-        super(props);
+    componentDidMount() {
+        PaymentMethods.openPaymentsPage();
+    }
 
+    getButtonOptionsFromProps() {
         const buttonOptions = [];
 
-        if (props.currency === CONST.CURRENCY.USD && Permissions.canUsePayWithExpensify(props.betas) && Permissions.canUseWallet(props.betas)) {
+        if (this.props.currency === CONST.CURRENCY.USD && Permissions.canUsePayWithExpensify(this.props.betas) && Permissions.canUseWallet(this.props.betas)) {
             buttonOptions.push({
-                text: props.translate('iou.settleExpensify'),
+                text: this.props.translate('iou.settleExpensify'),
                 icon: Expensicons.Wallet,
                 value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
             });
         }
 
-        if (props.shouldShowPaypal) {
+        if (this.props.shouldShowPaypal) {
             buttonOptions.push({
-                text: props.translate('iou.settlePaypalMe'),
+                text: this.props.translate('iou.settlePaypalMe'),
                 icon: Expensicons.PayPal,
                 value: CONST.IOU.PAYMENT_TYPE.PAYPAL_ME,
             });
         }
 
         buttonOptions.push({
-            text: props.translate('iou.settleElsewhere'),
+            text: this.props.translate('iou.settleElsewhere'),
             icon: Expensicons.Cash,
             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
         });
 
-        this.state = {
-            buttonOptions,
-        };
-    }
-
-    componentDidMount() {
-        PaymentMethods.openPaymentsPage();
+        return buttonOptions;
     }
 
     render() {
@@ -98,7 +94,7 @@ class SettlementButton extends React.Component {
 
                             this.props.onPress(iouPaymentType);
                         }}
-                        options={this.state.buttonOptions}
+                        options={this.getButtonOptionsFromProps()}
                     />
                 )}
             </KYCWall>

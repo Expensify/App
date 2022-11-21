@@ -17,6 +17,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
 import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from '../home/report/ContextMenu/ContextMenuActions';
+import PopoverReportActionContextMenu from '../home/report/ContextMenu/PopoverReportActionContextMenu';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -80,6 +81,9 @@ const AppDownloadLinksPage = (props) => {
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <ScrollView style={[styles.mt5]}>
+                <PopoverReportActionContextMenu
+                    ref={ReportActionContextMenu.contextMenuRef}
+                />
                 {_.map(menuItems, item => (
                     <PressableWithSecondaryInteraction
                         key={item.translationKey}

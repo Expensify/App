@@ -29,7 +29,7 @@ const defaultProps = {
 const IOUQuote = props => (
     <View style={[styles.chatItemMessage]}>
         {_.map(props.action.message, (fragment, index) => (
-            <View key={`iouQuote-${props.action.sequenceNumber}-${index}`} style={[styles.alignItemsStart, styles.blockquote]}>
+            <View key={`iouQuote-${props.action.reportActionID}-${index}`} style={[styles.alignItemsStart, styles.blockquote]}>
                 <Text style={[styles.chatItemMessage]}>
                     {Str.htmlDecode(fragment.text)}
                 </Text>
