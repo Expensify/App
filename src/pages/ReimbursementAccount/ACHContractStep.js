@@ -231,6 +231,7 @@ class ACHContractStep extends React.Component {
                                         {this.props.translate('beneficialOwnersStep.additionalOwner')}
                                     </Text>
                                     <IdentityForm
+                                        translate={this.props.translate}
                                         style={[styles.mb2]}
                                         onFieldChange={values => this.clearErrorAndSetBeneficialOwnerValues(index, values)}
                                         values={{

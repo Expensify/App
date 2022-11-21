@@ -6,7 +6,6 @@ import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ROUTES from '../../../ROUTES';
 import Navigation from '../../Navigation/Navigation';
-import BankAccount from '../../models/BankAccount';
 
 const WITHDRAWAL_ACCOUNT_STEPS = [
     {
@@ -95,18 +94,9 @@ function goToWithdrawalAccountSetupStep(stepID, achData) {
 
 /**
  * Navigate to the correct bank account route based on the bank account state and type
- *
- * @param {String} policyID
  */
-function navigateToBankAccountRoute(policyID) {
-    const achData = store.getReimbursementAccountInSetup();
-    const state = lodashGet(achData, 'state');
-    const isShowPage = lodashGet(achData, 'bankAccountID') && state !== BankAccount.STATE.OPEN;
-    if (isShowPage) {
-        Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(policyID));
-    } else {
-        Navigation.navigate(ROUTES.getBankAccountRoute());
-    }
+function navigateToBankAccountRoute() {
+    Navigation.navigate(ROUTES.getBankAccountRoute());
 }
 
 export {

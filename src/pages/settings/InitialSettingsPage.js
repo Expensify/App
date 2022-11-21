@@ -129,7 +129,7 @@ class InitialSettingsPage extends React.Component {
             .value();
         const policyBrickRoadIndicator = _.chain(this.props.policies)
             .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
-            .find(policy => PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers))
+            .find(policy => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers))
             .value() ? 'error' : null;
 
         return ([

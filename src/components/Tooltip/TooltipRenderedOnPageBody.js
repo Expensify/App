@@ -77,7 +77,10 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
         if (prevProps.text === this.props.text) {
             return;
         }
-        this.updateTooltipTextWidth();
+
+        // Reset the tooltip text width to 0 so that we can measure it again.
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({tooltipTextWidth: 0}, this.updateTooltipTextWidth);
     }
 
     updateTooltipTextWidth() {

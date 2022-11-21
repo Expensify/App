@@ -3,6 +3,7 @@ import _ from 'underscore';
 import lodashMerge from 'lodash/merge';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Onyx from 'react-native-onyx';
+import moment from 'moment';
 import * as CollectionUtils from './CollectionUtils';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
@@ -55,14 +56,13 @@ function getSortedReportActions(reportActions) {
  * Finds most recent IOU report action number.
  *
  * @param {Array} reportActions
- * @returns {Number}
+ * @returns {String}
  */
-function getMostRecentIOUReportSequenceNumber(reportActions) {
+function getMostRecentIOUReportActionID(reportActions) {
     return _.chain(reportActions)
-        .sortBy('sequenceNumber')
-        .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU)
+        .where({actionName: CONST.REPORT.ACTIONS.TYPE.IOU})
         .max(action => action.sequenceNumber)
-        .value().sequenceNumber;
+        .value().reportActionID;
 }
 
 /**
@@ -84,7 +84,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
     }
 
     // Comments are only grouped if they happen within 5 minutes of each other
-    if (currentAction.action.timestamp - previousAction.action.timestamp > 300) {
+    if (moment(currentAction.action.created).unix() - moment(previousAction.action.created).unix() > 300) {
         return false;
     }
 
@@ -151,7 +151,7 @@ export {
     getOptimisticLastReadSequenceNumberForDeletedAction,
     getLastVisibleMessageText,
     getSortedReportActions,
-    getMostRecentIOUReportSequenceNumber,
+    getMostRecentIOUReportActionID,
     isDeletedAction,
     isConsecutiveActionMadeByPreviousActor,
 };

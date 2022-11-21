@@ -24,7 +24,7 @@ const propTypes = {
     userWallet: userWalletPropTypes,
 
     /** When the button is opened via an IOU, ID for the chatReport that the IOU is linked to */
-    chatReportID: PropTypes.number,
+    chatReportID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -32,7 +32,7 @@ const defaultProps = {
     popoverPlacement: 'top',
     shouldListenForResize: false,
     isDisabled: false,
-    chatReportID: 0,
+    chatReportID: '',
 };
 
 export {propTypes, defaultProps};

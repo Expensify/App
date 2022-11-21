@@ -115,6 +115,8 @@ class IOUModal extends Component {
         const participantsWithDetails = _.map(OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails), personalDetails => ({
             login: personalDetails.login,
             text: personalDetails.displayName,
+            firstName: lodashGet(personalDetails, 'firstName', ''),
+            lastName: lodashGet(personalDetails, 'lastName', ''),
             alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
             icons: [personalDetails.avatar],
             keyForList: personalDetails.login,
@@ -340,7 +342,6 @@ class IOUModal extends Component {
             );
             return;
         }
-
         IOU.requestMoney(this.props.report,
             Math.round(this.state.amount * 100),
             this.props.iou.selectedCurrencyCode,

@@ -40,6 +40,9 @@ const propTypes = {
      * submit event handler is replaced with FormSubmit component
       */
     disablePressOnEnter: PropTypes.bool,
+
+    /** Whether the action is dangerous */
+    isDangerousAction: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -51,6 +54,7 @@ const defaultProps = {
     onFixTheErrorsLinkPressed: () => {},
     enabledWhenOffline: false,
     disablePressOnEnter: false,
+    isDangerousAction: false,
 };
 
 const FormAlertWithSubmitButton = props => (
@@ -67,6 +71,7 @@ const FormAlertWithSubmitButton = props => (
                 isDisabled
                 text={props.buttonText}
                 style={[styles.mb3]}
+                danger={props.isDangerousAction}
             />
         ) : (
             <Button
@@ -76,6 +81,7 @@ const FormAlertWithSubmitButton = props => (
                 onPress={props.onSubmit}
                 isDisabled={props.isDisabled}
                 isLoading={props.isLoading}
+                danger={props.isDangerousAction}
             />
         ))}
     </FormAlertWrapper>

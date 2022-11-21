@@ -1,11 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View, TouchableOpacity} from 'react-native';
-import _ from 'underscore';
 import styles from '../styles/styles';
 import Checkbox from './Checkbox';
 import Text from './Text';
-import InlineErrorText from './InlineErrorText';
+import FormHelpMessage from './FormHelpMessage';
 
 const requiredPropsCheck = (props) => {
     if (!props.label && !props.LabelComponent) {
@@ -77,8 +76,6 @@ class CheckboxWithLabel extends React.Component {
 
         this.isChecked = props.value || props.defaultValue || props.isChecked;
         this.LabelComponent = props.LabelComponent;
-        this.defaultStyles = [styles.flexRow, styles.alignItemsCenter];
-        this.wrapperStyles = _.isArray(props.style) ? [...this.defaultStyles, ...props.style] : [...this.defaultStyles, props.style];
 
         this.toggleCheckbox = this.toggleCheckbox.bind(this);
     }
@@ -90,8 +87,8 @@ class CheckboxWithLabel extends React.Component {
 
     render() {
         return (
-            <>
-                <View style={this.wrapperStyles}>
+            <View style={this.props.style}>
+                <View style={[styles.flexRow, styles.alignItemsCenter]}>
                     <Checkbox
                         isChecked={this.isChecked}
                         onPress={this.toggleCheckbox}
@@ -121,10 +118,8 @@ class CheckboxWithLabel extends React.Component {
                         {this.LabelComponent && (<this.LabelComponent />)}
                     </TouchableOpacity>
                 </View>
-                <InlineErrorText styles={[styles.ml8]}>
-                    {this.props.errorText}
-                </InlineErrorText>
-            </>
+                <FormHelpMessage message={this.props.errorText} />
+            </View>
         );
     }
 }

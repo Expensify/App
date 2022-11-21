@@ -24,15 +24,11 @@ const propTypes = {
 
     /** Should we measure these items and call getItemLayout? */
     shouldMeasureItems: PropTypes.bool,
-
-    /** Should we remove the clipped sub views? */
-    shouldRemoveClippedSubviews: PropTypes.bool,
 };
 
 const defaultProps = {
     data: [],
     shouldMeasureItems: false,
-    shouldRemoveClippedSubviews: false,
 };
 
 class BaseInvertedFlatList extends Component {
@@ -149,7 +145,6 @@ class BaseInvertedFlatList extends Component {
                 // We keep this property very low so that chat switching remains fast
                 maxToRenderPerBatch={1}
                 windowSize={15}
-                removeClippedSubviews={this.props.shouldRemoveClippedSubviews}
                 maintainVisibleContentPosition={{minIndexForVisible: 0, autoscrollToTopThreshold: 0}}
             />
         );
