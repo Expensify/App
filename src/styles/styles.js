@@ -337,7 +337,7 @@ const styles = {
     },
 
     borderRadiusNormal: {
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
     },
 
     button: {
@@ -370,7 +370,7 @@ const styles = {
     },
 
     buttonMedium: {
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeNormal,
         paddingTop: 6,
         paddingRight: 12,
@@ -380,7 +380,7 @@ const styles = {
     },
 
     buttonLarge: {
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeLarge,
         paddingTop: 8,
         paddingRight: 14,
@@ -615,7 +615,7 @@ const styles = {
 
     border: {
         borderWidth: 1,
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
         borderColor: themeColors.border,
     },
 
@@ -688,7 +688,7 @@ const styles = {
 
     textInputContainer: {
         flex: 1,
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
         justifyContent: 'center',
         height: '100%',
         backgroundColor: themeColors.componentBG,
@@ -2672,6 +2672,7 @@ const styles = {
     errorPageContainer: {
         backgroundColor: themeColors.componentBG,
     },
+
     transferBalancePayment: {
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
