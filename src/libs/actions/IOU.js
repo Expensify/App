@@ -730,7 +730,7 @@ function payIOUReport({
  * @param {String} managerEmail - Email of the person sending the money
  * @param {Object} recipient - The user receiving the money
  */
-function sendMoneyElsewhere(report, amount, currency, comment, paymentMethodType, managerEmail, recipient) {
+function sendMoney(report, amount, currency, comment, paymentMethodType, managerEmail, recipient) {
     const newIOUReportDetails = JSON.stringify({
         amount,
         currency,
@@ -851,12 +851,34 @@ function sendMoneyElsewhere(report, amount, currency, comment, paymentMethodType
         newIOUReportDetails,
     }, {optimisticData, successData, failureData});
 
-    if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-        const url = buildPayPalPaymentUrl(amount, recipient.payPalMeAddress, currency);
-        asyncOpenURL(Promise.resolve(), url);
-    }
-
     Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
+}
+
+/**
+ * @param {Object} report
+ * @param {Number} amount
+ * @param {String} currency
+ * @param {String} comment
+ * @param {String} managerEmail - Email of the person sending the money
+ * @param {Object} recipient - The user receiving the money
+ */
+function sendMoneyElsewhere(report, amount, currency, comment, managerEmail, recipient) {
+    const paymentMethodType = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
+    sendMoney(report, amount, currency, comment, paymentMethodType, managerEmail, recipient);
+}
+
+/**
+ * @param {Object} report
+ * @param {Number} amount
+ * @param {String} currency
+ * @param {String} comment
+ * @param {String} managerEmail - Email of the person sending the money
+ * @param {Object} recipient - The user receiving the money
+ */
+function sendMoneyViaPaypal(report, amount, currency, comment, managerEmail, recipient) {
+    const paymentMethodType = CONST.IOU.PAYMENT_TYPE.PAYPAL_ME;
+    sendMoney(report, amount, currency, comment, paymentMethodType, managerEmail, recipient);
+    asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(amount, recipient.payPalMeAddress, currency));
 }
 
 export {
@@ -867,4 +889,5 @@ export {
     payIOUReport,
     setIOUSelectedCurrency,
     sendMoneyElsewhere,
+    sendMoneyViaPaypal,
 };
