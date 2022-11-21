@@ -3,8 +3,8 @@ import {View, ScrollView, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
-import { withNetwork } from '../../components/OnyxProvider';
 import Str from 'expensify-common/lib/str';
+import {withNetwork} from '../../components/OnyxProvider';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
@@ -179,22 +179,12 @@ class InitialSettingsPage extends React.Component {
                 translationKey: 'initialSettingsPage.signOut',
                 icon: Expensicons.Exit,
                 action: () => { this.signout(false); },
-            }
+            },
         ]);
     }
 
-    signOut(shouldForceSignout = false) {
-        if (!this.props.network.isOffline || shouldForceSignout) {
-            Session.signOutAndRedirectToSignIn();
-            return;
-        }
-
-        // When offline, warn the user that any actions they took while offline will be lost if they sign out
-        this.toggleSignoutConfirmModal(true);
-    }
-
     toggleSignoutConfirmModal(value) {
-        this.setState({ shouldShowSignoutConfirmModal: value });
+        this.setState({shouldShowSignoutConfirmModal: value});
     }
 
     getMenuItem(item, index) {
@@ -218,6 +208,16 @@ class InitialSettingsPage extends React.Component {
                 shouldStackHorizontally={item.shouldStackHorizontally}
             />
         );
+    }
+
+    signOut(shouldForceSignout = false) {
+        if (!this.props.network.isOffline || shouldForceSignout) {
+            Session.signOutAndRedirectToSignIn();
+            return;
+        }
+
+        // When offline, warn the user that any actions they took while offline will be lost if they sign out
+        this.toggleSignoutConfirmModal(true);
     }
 
     openProfileSettings() {
