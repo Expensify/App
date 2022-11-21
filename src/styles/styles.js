@@ -2634,7 +2634,7 @@ const styles = {
     },
 
     invert: {
-        // it's important to invert the Y **AND X** axis to prevent a react native issue that can lead to ANRs on android 13
+        // It's important to invert the Y AND X axis to prevent a react native issue that can lead to ANRs on android 13
         transform: [{scaleX: -1}, {scaleY: -1}],
     },
 
