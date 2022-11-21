@@ -684,7 +684,7 @@ const styles = {
 
     textInputContainer: {
         flex: 1,
-        borderRadius: variables.buttonBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         justifyContent: 'center',
         height: '100%',
         backgroundColor: themeColors.componentBG,
