@@ -228,6 +228,7 @@ class ReportActionItem extends Component {
                                     && !this.props.draftMessage
                                 }
                                 draftMessage={this.props.draftMessage}
+                                isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
                             />
                         </View>
                     )}
