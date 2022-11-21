@@ -322,7 +322,7 @@ class WorkspaceInvitePage extends React.Component {
                                         message={this.props.policy.alertMessage}
                                         containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                                         enabledWhenOffline
-                                        tempDisablePressOnEnter
+                                        disablePressOnEnter
                                     />
                                     <Pressable
                                         onPress={(e) => {
