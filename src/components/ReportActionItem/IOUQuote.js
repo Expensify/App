@@ -28,19 +28,20 @@ const defaultProps = {
 const IOUQuote = props => (
     <View style={[styles.chatItemMessage]}>
         {_.map(props.action.message, (fragment, index) => (
-            <View key={`iouQuote-${props.action.reportActionID}-${index}`} style={[styles.textInputAndIconContainer, styles.alignItemsStart, styles.justifyContentBetween]}>
-                <Text>
-                    <Text
-                        style={[styles.chatItemMessageLink]}
-                        onPress={props.onViewDetailsPressed}
-                    >
-                        {Str.htmlDecode(fragment.text.split(' ')[0])}
+            <View
+                key={`iouQuote-${props.action.reportActionID}-${index}`}
+            >
+                <Pressable onPress={props.onViewDetailsPressed} style={[styles.flexRow, styles.justifyContentBetween]}>
+                    <Text>
+                        <Text style={[styles.chatItemMessageLink]}>
+                            {/* Get first word of IOU message */}
+                            {Str.htmlDecode(fragment.text.split(' ')[0])}
+                        </Text>
+                        <Text style={[styles.chatItemMessage]}>
+                            {/* Get remainder of IOU message */}
+                            {Str.htmlDecode(fragment.text.substring(fragment.text.indexOf(' ')))}
+                        </Text>
                     </Text>
-                    <Text style={[styles.chatItemMessage]}>
-                        {Str.htmlDecode(fragment.text.substring(fragment.text.indexOf(' ')))}
-                    </Text>
-                </Text>
-                <Pressable onPress={props.onViewDetailsPressed}>
                     <Icon src={Expensicons.ArrowRight} fill={themeColors.gray3} />
                 </Pressable>
             </View>
