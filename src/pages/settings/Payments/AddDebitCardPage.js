@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import compose from '../../../libs/compose';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -28,12 +29,26 @@ const propTypes = {
         setupComplete: PropTypes.bool,
     }),
 
+    /** Route object from navigation */
+    route: PropTypes.shape({
+        /** Params that are passed into the route */
+        params: PropTypes.shape({
+            /** Flag to indicate if we the user is coming from Settings page, so we navigate to that page again if a debit card was added successfully */
+            isComingFromSettingsPage: PropTypes.bool,
+        }),
+    }),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     formData: {
         setupComplete: false,
+    },
+    route: {
+        params: {
+            isComingFromSettingsPage: false,
+        },
     },
 };
 
@@ -50,7 +65,7 @@ class DebitCardPage extends Component {
             return;
         }
 
-        PaymentMethods.continueSetup(true);
+        PaymentMethods.continueSetup(lodashGet(this.props.route, ['params', 'isComingFromSettingsPage']));
     }
 
     /**
