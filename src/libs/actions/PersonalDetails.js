@@ -368,17 +368,16 @@ function updateAutomaticTimezone(timezone) {
  * @param {String} selectedTimezone
  */
 function updateSelectedTimezone(selectedTimezone) {
+    const timezone = { selected: selectedTimezone, };
     API.write('UpdateSelectedTimezone', {
-        text: selectedTimezone,
+        timezone: JSON.stringify(timezone),
     }, {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
-                    timezone: {
-                        selected: selectedTimezone,
-                    },
+                    timezone,
                 },
             },
         }],
