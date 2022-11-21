@@ -43,6 +43,18 @@ class BaseScreenWrapper extends React.Component {
         });
     }
 
+    /**
+     * We explicitly want to ignore if props.modal changes, and only want to rerender if
+     * any of the other props **used for the rendering output** is changed.
+     * @param {Object} nextProps
+     * @param {Object} nextState
+     * @returns {boolean}
+     */
+    shouldComponentUpdate(nextProps, nextState) {
+        return !_.isEqual(this.state, nextState)
+            || !_.isEqual(_.omit(this.props, 'modal'), _.omit(nextProps, 'modal'));
+    }
+
     componentWillUnmount() {
         if (this.unsubscribeEscapeKey) {
             this.unsubscribeEscapeKey();
