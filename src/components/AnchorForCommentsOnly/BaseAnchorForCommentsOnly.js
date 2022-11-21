@@ -46,7 +46,7 @@ const BaseAnchorForCommentsOnly = (props) => {
                 }
             }
         >
-            <Tooltip text={Str.isValidEmail(props.displayName) ? '' : props.href}>
+            <Tooltip containerStyles={[styles.dInline]} text={Str.isValidEmail(props.displayName) ? '' : props.href}>
                 <Text
                     ref={el => linkRef = el}
                     style={StyleSheet.flatten([props.style, defaultTextStyle])}
