@@ -64,7 +64,7 @@ class RoomNameInput extends Component {
             const selection = {
                 start: this.state.selection.start + offset,
                 end: this.state.selection.end + offset,
-            }
+            };
             this.setSelection(selection);
         }
     }
@@ -74,9 +74,7 @@ class RoomNameInput extends Component {
      * @param {Object} selection
      */
     setSelection(selection) {
-        this.setState({
-            selection: selection,
-        });
+        this.setState({selection});
     }
 
     /**
@@ -108,7 +106,7 @@ class RoomNameInput extends Component {
                 onChange={this.setModifiedRoomName}
                 value={this.props.value.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.
                 selection={this.state.selection}
-                onSelectionChange={(event) => this.setSelection(event.nativeEvent.selection)}
+                onSelectionChange={event => this.setSelection(event.nativeEvent.selection)}
                 errorText={this.props.errorText}
                 autoCapitalize="none"
             />
