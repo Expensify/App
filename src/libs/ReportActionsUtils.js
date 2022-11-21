@@ -74,7 +74,8 @@ function getMostRecentIOUReportActionID(reportActions) {
  * @returns {Boolean}
  */
 function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
-    const previousAction = reportActions[actionIndex + 1];
+    // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list
+    const previousAction = _.find(_.drop(reportActions, actionIndex + 1), (action) => action.action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const currentAction = reportActions[actionIndex];
 
     // It's OK for there to be no previous action, and in that case, false will be returned
