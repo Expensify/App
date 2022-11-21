@@ -368,7 +368,9 @@ function updateAutomaticTimezone(timezone) {
  * @param {String} selectedTimezone
  */
 function updateSelectedTimezone(selectedTimezone) {
-    const timezone = { selected: selectedTimezone, };
+    const timezone = {
+        selected: selectedTimezone,
+    };
     API.write('UpdateSelectedTimezone', {
         timezone: JSON.stringify(timezone),
     }, {
