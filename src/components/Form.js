@@ -253,9 +253,7 @@ class Form extends React.Component {
                             onSubmit={this.submit}
                             onFixTheErrorsLinkPressed={() => {
                                 const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
-                                console.log(errors);
                                 const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
-                                console.log(focusKey);
                                 this.inputRefs[focusKey].focus();
                             }}
                             containerStyles={[styles.mh0, styles.mt5]}
