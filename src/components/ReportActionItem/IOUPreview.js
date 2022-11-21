@@ -150,7 +150,7 @@ const IOUPreview = (props) => {
                         >
                             <View>
                                 <View style={[styles.flexRow]}>
-                                    <View style={[styles.flex1, styles.flexColumn, styles.alignItemsStart]}>
+                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                         <Text style={styles.h1}>
                                             {cachedTotal}
                                         </Text>
