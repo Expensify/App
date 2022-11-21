@@ -42,7 +42,7 @@ const SignInPageContent = props => (
             style={[styles.h100]}
             contentContainerStyle={[scrollViewContentContainerStyles]}
             keyboardShouldPersistTaps="handled"
-            howsVerticalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
         >
 
             {/* This empty view creates margin on the top of the sign in form which will shrink and grow depending on if the keyboard is open or not */}
