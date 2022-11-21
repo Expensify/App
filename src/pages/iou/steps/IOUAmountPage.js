@@ -210,25 +210,24 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
-     * Adds a leading zero to amount if user entered just the decimal separator
+     * Replaces each character by calling `convertFn`. If `convertFn` throws an error, then
+     * the original character will be preserved.
      *
-     * @param {String} amount - Changed amount from user input
+     * @param {String} text
+     * @param {Function} convertFn - `this.props.fromLocaleDigit` or `this.props.toLocaleDigit`
      * @returns {String}
      */
-    addLeadingZero(amount) {
-        const decimalSeparator = this.props.fromLocaleDigit('.');
-        if (amount === decimalSeparator) {
-            return `0${decimalSeparator}`;
-        }
-        return amount;
-    }
-
-    navigateToCurrencySelectionPage() {
-        Navigation.navigate(
-            this.props.hasMultipleParticipants
-                ? ROUTES.getIouBillCurrencyRoute(this.props.reportID)
-                : ROUTES.getIouRequestCurrencyRoute(this.props.reportID),
-        );
+    replaceAllDigits(text, convertFn) {
+        return _.chain([...text])
+            .map((char) => {
+                try {
+                    return convertFn(char);
+                } catch {
+                    return char;
+                }
+            })
+            .join('')
+            .value();
     }
 
     navigateToCurrencySelectionPage() {

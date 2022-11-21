@@ -74,10 +74,10 @@ function reauthenticate(command = '') {
                 // If authentication fails, then the network can be unpaused
                 NetworkStore.setIsAuthenticating(false);
 
-            // If authentication fails throw so that we hit
-            // the catch below and redirect to sign in
-            if (response.jsonCode !== 200) {
-                throw new Error(response.message);
+                // When a fetch() fails due to a network issue and an error is thrown we won't log the user out. Most likely they
+                // have a spotty connection and will need to try to reauthenticate when they come back online. We will error so it
+                // can be handled by callers of reauthenticate().
+                throw new Error('Unable to retry Authenticate request');
             }
 
             // If authentication fails and we are online then log the user out

@@ -18,12 +18,6 @@ const propTypes = {
         PropTypes.object,
     ]),
 
-    /** Additional styles to add after local styles. */
-    style: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
-
     /** localization props */
     ...withLocalizePropTypes,
 };

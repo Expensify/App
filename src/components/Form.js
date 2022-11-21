@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import compose from '../libs/compose';
-import * as ErrorUtils from '../libs/ErrorUtils';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as FormActions from '../libs/actions/FormActions';
 import * as ErrorUtils from '../libs/ErrorUtils';
