@@ -115,7 +115,7 @@ jobs:
   postGithubComment:
     runs-on: ubuntu-latest
     name: An example job to comment a PR
-    needs: [android, ios]
+    needs: [android, ios, web]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
