@@ -218,7 +218,7 @@ class ReportScreen extends React.Component {
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
 
         const freeze = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
-        const animatePlaceholder = !this.props.isSmallScreenWidth || !this.props.isDrawerOpen;
+        const animatePlaceholder = !freeze;
 
         return (
             <Freeze
