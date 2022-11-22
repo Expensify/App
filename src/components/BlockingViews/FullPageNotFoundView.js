@@ -2,12 +2,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import BlockingView from './BlockingView';
 import * as Expensicons from '../Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import HeaderWithCloseButton from '../HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
+import compose from '../../libs/compose';
+import ONYXKEYS from '../../ONYXKEYS';
+import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 
 const propTypes = {
     /** Props to fetch translation features */
@@ -46,6 +50,9 @@ const defaultProps = {
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 const FullPageNotFoundView = (props) => {
+    if (props.isLoadingInitialAppData) {
+        return <FullScreenLoadingIndicator />;
+    }
     if (props.shouldShow) {
         return (
             <>
@@ -74,4 +81,11 @@ FullPageNotFoundView.propTypes = propTypes;
 FullPageNotFoundView.defaultProps = defaultProps;
 FullPageNotFoundView.displayName = 'FullPageNotFoundView';
 
-export default withLocalize(FullPageNotFoundView);
+export default compose(
+    withLocalize,
+    withOnyx({
+        isLoadingInitialAppData: {
+            key: ONYXKEYS.IS_LOADING_INITIAL_APP_DATA,
+        },
+    }),
+)(FullPageNotFoundView);
