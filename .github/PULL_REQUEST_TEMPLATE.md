@@ -166,23 +166,45 @@ The reviewer will copy/paste it into a new comment and complete it after the aut
 
 </details>
 
-### Screenshots
-<!-- Add screenshots for all platforms tested. Pull requests won't be merged unless the screenshots show the app was tested on all platforms.-->
+### Screenshots/Videos
+<details>
+<summary>Web</summary>
 
-#### Web
-<!-- Insert screenshots of your changes on the web platform-->
+<!-- add screenshots or videos here -->
 
-#### Mobile Web - Chrome
-<!-- Insert screenshots of your changes on the web platform (from chrome mobile browser)-->
+</details>
 
-#### Mobile Web - Safari
-<!-- Insert screenshots of your changes on the web platform (from safari mobile browser)-->
+<details>
+<summary>Mobile Web - Chrome</summary>
 
-#### Desktop
-<!-- Insert screenshots of your changes on the desktop platform-->
+<!-- add screenshots or videos here -->
 
-#### iOS
-<!-- Insert screenshots of your changes on the iOS platform-->
+</details>
 
-#### Android
-<!-- Insert screenshots of your changes on the Android platform-->
+<details>
+<summary>Mobile Web - Safari</summary>
+
+<!-- add screenshots or videos here -->
+
+</details>
+
+<details>
+<summary>Desktop</summary>
+
+<!-- add screenshots or videos here -->
+
+</details>
+
+<details>
+<summary>iOS</summary>
+
+<!-- add screenshots or videos here -->
+
+</details>
+
+<details>
+<summary>Android</summary>
+
+<!-- add screenshots or videos here -->
+
+</details>
