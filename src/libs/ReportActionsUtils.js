@@ -128,35 +128,18 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
 }
 
 /**
+ * Get the last
  * @param {String} reportID
  * @param {Object} [actionsToMerge]
- * @param {Number} deletedSequenceNumber
- * @param {Number} lastReadSequenceNumber
- * @return {Number}
+ * @returns {Number}
  */
-function getOptimisticLastReadSequenceNumberForDeletedAction(reportID, actionsToMerge = {}, deletedSequenceNumber, lastReadSequenceNumber) {
-    // If the action we are deleting is unread then just return the current last read sequence number
-    if (deletedSequenceNumber > lastReadSequenceNumber) {
-        return lastReadSequenceNumber;
-    }
-
-    // Otherwise, we must find the first previous index of an action that is not deleted and less than the lastReadSequenceNumber
-    const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const sortedActions = _.sortBy(actions, 'sequenceNumber');
-    const lastMessageIndex = _.findLastIndex(sortedActions, action => (
-        !isDeletedAction(action) && action.sequenceNumber <= lastReadSequenceNumber
-    ));
-
-    // It's possible we won't find any and in that case the last read should be reset
-    if (lastMessageIndex < 0) {
-        return 0;
-    }
-
-    return sortedActions[lastMessageIndex].sequenceNumber;
+ function getLastMessageTimestamp(reportID, actionsToMerge = {}) {
+    const actions = lodashMerge({}, allReportActions[reportID], actionsToMerge);
+    return _.max(actions, action => action.timestamp).timestamp;
 }
 
 export {
-    getOptimisticLastReadSequenceNumberForDeletedAction,
+    getLastMessageTimestamp,
     getLastVisibleMessageText,
     getSortedReportActions,
     getMostRecentIOUReportActionID,
