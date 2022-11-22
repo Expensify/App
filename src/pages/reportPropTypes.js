@@ -32,6 +32,9 @@ export default PropTypes.shape({
     lastMessageText: PropTypes.string,
 
     /** The time of the last message on the report */
+    lastActionCreated: PropTypes.string,
+
+    /** The time of the last message on the report (in unix timestamp form) */
     lastMessageTimestamp: PropTypes.number,
 
     /** The sequence number of the last action read by the user */
