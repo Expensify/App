@@ -669,7 +669,7 @@ function buildOptimisticReportAction(sequenceNumber, text, file) {
  * @param {String} chatReportID - Report ID of the chat where the IOU is.
  * @param {String} currency - IOU currency.
  * @param {String} locale - Locale where the IOU is created
- * @param {Boolean} isSendingMoney - Whether we're requesting or sending money
+ * @param {Boolean} isSendingMoney - If we send money the IOU should be created as settled
  *
  * @returns {Object}
  */
