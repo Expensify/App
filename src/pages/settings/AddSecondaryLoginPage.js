@@ -91,6 +91,7 @@ class AddSecondaryLoginPage extends Component {
     render() {
         return (
             <ScreenWrapper
+                keyboardAvoidingViewBehavior="bottom"
                 onTransitionEnd={() => {
                     if (!this.phoneNumberInputRef) {
                         return;
