@@ -196,7 +196,7 @@ class CompanyStep extends React.Component {
                         inputID="website"
                         label={this.props.translate('companyStep.companyWebsite')}
                         containerStyles={[styles.mt4]}
-                        defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'website')}
+                        defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'website', this.defaultWebsite)}
                         shouldSaveDraft
                     />
                     <TextInput
