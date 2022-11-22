@@ -39,7 +39,6 @@ Onyx.connect({
  * @returns {Array}
  */
 function sortReportActions(reportActions) {
-    // FIXME: sorting order is broken because `created` looks like "Sep 28 2022 9:26am PDT" instead of "2022-09-28 09:26:XX.xx"
     if (!_.isArray(reportActions)) {
         throw new Error(`ReportActionsUtils::sortReportActions requires an array, received ${typeof reportActions}`);
     }
