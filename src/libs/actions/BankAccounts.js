@@ -6,8 +6,6 @@ import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
 
 export {
-    setupWithdrawalAccount,
-    fetchFreePlanVerifiedBankAccount,
     goToWithdrawalAccountSetupStep,
     setBankAccountFormValidationErrors,
     resetReimbursementAccount,
@@ -362,6 +360,10 @@ function verifyIdentityForBankAccount(bankAccountID, onfidoData) {
     }, getVBBADataForOnyx());
 }
 
+function openWorkspaceView() {
+    API.read('OpenWorkspaceView');
+}
+
 export {
     addPersonalBankAccount,
     clearOnfidoToken,
@@ -375,6 +377,7 @@ export {
     updateCompanyInformationForBankAccount,
     updatePersonalInformationForBankAccount,
     updatePlaidData,
+    openWorkspaceView,
     validateBankAccount,
     verifyIdentityForBankAccount,
 };

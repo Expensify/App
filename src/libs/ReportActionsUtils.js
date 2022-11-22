@@ -3,6 +3,7 @@ import _ from 'underscore';
 import lodashMerge from 'lodash/merge';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Onyx from 'react-native-onyx';
+import moment from 'moment';
 import * as CollectionUtils from './CollectionUtils';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
@@ -19,6 +20,12 @@ Onyx.connect({
         const reportID = CollectionUtils.extractCollectionItemID(key);
         allReportActions[reportID] = actions;
     },
+});
+
+let isNetworkOffline = false;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: val => isNetworkOffline = lodashGet(val, 'isOffline', false),
 });
 
 /**
@@ -85,7 +92,9 @@ function getMostRecentIOUReportActionID(reportActions) {
  * @returns {Boolean}
  */
 function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
-    const previousAction = reportActions[actionIndex + 1];
+    // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
+    // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
+    const previousAction = _.find(_.drop(reportActions, actionIndex + 1), action => isNetworkOffline || (action.action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
     const currentAction = reportActions[actionIndex];
 
     // It's OK for there to be no previous action, and in that case, false will be returned
@@ -95,7 +104,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
     }
 
     // Comments are only grouped if they happen within 5 minutes of each other
-    if (currentAction.timestamp - previousAction.timestamp > 300) {
+    if (moment(currentAction.created).unix() - moment(previousAction.created).unix() > 300) {
         return false;
     }
 

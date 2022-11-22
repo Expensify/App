@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import {View, Animated} from 'react-native';
+import {Animated} from 'react-native';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 import compose from '../../../libs/compose';
@@ -61,7 +61,6 @@ class ReportActionsList extends React.Component {
     constructor(props) {
         super(props);
         this.renderItem = this.renderItem.bind(this);
-        this.renderCell = this.renderCell.bind(this);
         this.keyExtractor = this.keyExtractor.bind(this);
 
         this.state = {
@@ -98,12 +97,12 @@ class ReportActionsList extends React.Component {
      * Create a unique key for each action in the FlatList.
      * We use the reportActionID that is a string representation of a random 64-bit int, which should be
      * random enough to avoid collisions
-     * @param {Object} reportAction
-     * @param {String} reportAction.reportActionID
+     * @param {Object} item
+     * @param {Object} item.action
      * @return {String}
      */
-    keyExtractor(reportAction) {
-        return reportAction.reportActionID;
+    keyExtractor(item) {
+        return item.action.reportActionID;
     }
 
     /**
@@ -139,32 +138,6 @@ class ReportActionsList extends React.Component {
         );
     }
 
-    /**
-     * This function overrides the CellRendererComponent (defaults to a plain View), giving each ReportActionItem a
-     * higher z-index than the one below it. This prevents issues where the ReportActionContextMenu overlapping between
-     * rows is hidden beneath other rows.
-     *
-     * @param {Object} cellData
-     * @param {Object} cellData.item - The ReportAction item in the FlatList.
-     * @param {Number} cellData.index – The index of the item in the FlatList
-     * @param {Object|Array} cellData.style – The default styles of the CellRendererComponent provided by the CellRenderer.
-     * @param {Object} props – All the other Props provided to the CellRendererComponent by default.
-     * @returns {JSX.Element}
-     */
-    renderCell({
-        item,
-        index,
-        style,
-        ...props
-    }) {
-        const cellStyle = [
-            style,
-            {zIndex: index},
-        ];
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        return <View style={cellStyle} {...props} />;
-    }
-
     render() {
         // Native mobile does not render updates flatlist the changes even though component did update called.
         // To notify there something changes we can use extraData prop to flatlist
@@ -177,7 +150,6 @@ class ReportActionsList extends React.Component {
                     ref={ReportScrollManager.flatListRef}
                     data={this.props.sortedReportActions}
                     renderItem={this.renderItem}
-                    CellRendererComponent={this.renderCell}
                     contentContainerStyle={[
                         styles.chatContentScrollView,
                         shouldShowReportRecipientLocalTime && styles.pt0,
