@@ -212,14 +212,24 @@ class PopoverReportActionContextMenu extends React.Component {
     hideContextMenu(onHideActionCallback) {
         if (_.isFunction(onHideActionCallback)) {
             this.onPopoverHideActionCallback = onHideActionCallback;
+            if (!this.state.isDeleteCommentConfirmModalVisible) {
+                this.setState({
+                    reportID: '0',
+                    reportAction: {},
+                    selection: '',
+                    reportActionDraftMessage: '',
+                    isPopoverVisible: false,
+                });
+            }
+        } else {
+            this.setState({
+                reportID: '0',
+                reportAction: {},
+                selection: '',
+                reportActionDraftMessage: '',
+                isPopoverVisible: false,
+            });
         }
-        this.setState({
-            reportID: '0',
-            reportAction: {},
-            selection: '',
-            reportActionDraftMessage: '',
-            isPopoverVisible: false,
-        });
     }
 
     /**
