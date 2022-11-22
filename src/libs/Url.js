@@ -41,6 +41,9 @@ function getURLObject(href) {
 function hasSameOrigin(url1, url2) {
     const host1 = getURLObject(url1).hostname;
     const host2 = getURLObject(url2).hostname;
+    if (host1 === host2) {
+        return true;
+    }
     if (!host1 || !host2) {
         return false;
     }
