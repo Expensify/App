@@ -7,7 +7,6 @@ import DateUtils from '../DateUtils';
 
 export {
     setupWithdrawalAccount,
-    fetchFreePlanVerifiedBankAccount,
     goToWithdrawalAccountSetupStep,
     setBankAccountFormValidationErrors,
     resetReimbursementAccount,
