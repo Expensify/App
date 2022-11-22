@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
 import getPlatform from '../../src/libs/getPlatform';
 import AddLastActionCreated from '../../src/libs/migrations/AddLastActionCreated';
@@ -13,14 +14,23 @@ jest.mock('../../src/libs/getPlatform');
 jest.useRealTimers();
 
 describe('Migrations', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+        return waitForPromisesToResolve();
+    });
+
+    beforeEach(() => {
+        Onyx.clear();
+        return waitForPromisesToResolve();
+    });
+
     describe('MoveToIndexedDb', () => {
         beforeEach(() => {
-            jest.resetAllMocks();
+            jest.clearAllMocks();
             getPlatform.mockImplementation(() => CONST.PLATFORM.WEB);
             jest.spyOn(Onyx, 'multiSet').mockImplementation(() => Promise.resolve());
             localStorage.clear();
         });
-
         it('Should do nothing for non web/desktop platforms', () => {
             // Given the migration is not running on web or desktop
             getPlatform.mockImplementation(() => CONST.PLATFORM.ANDROID);
@@ -79,47 +89,44 @@ describe('Migrations', () => {
 
     describe('AddLastActionCreated', () => {
         it('Should add lastActionCreated wherever lastMessageTimestamp currently is', () => {
-            Onyx.init({
-                keys: {COLLECTION: {REPORT: ONYXKEYS.COLLECTION.REPORT}},
-                initialKeyStates: {
-                    report_1: {
-                        lastMessageTimestamp: 1668562273702,
-                    },
-                    report_2: {
-                        lastMessageTimestamp: 1668562314821,
-                    },
+            Onyx.set(ONYXKEYS.COLLECTION.REPORT, {
+                report_1: {
+                    lastMessageTimestamp: 1668562273702,
                 },
-            });
-            AddLastActionCreated();
-            const connectionID = Onyx.connect({
-                key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallbacks: true,
-                callback: (allReports) => {
-                    Onyx.disconnect(connectionID);
-                    expect(_.keys(allReports).length).toBe(2);
-                    _.each(allReports, (report) => {
-                        expect(_.has(report, 'lastActionCreated')).toBe(true);
+                report_2: {
+                    lastMessageTimestamp: 1668562314821,
+                },
+            })
+                .then(AddLastActionCreated)
+                .then(() => {
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        waitForCollectionCallbacks: true,
+                        callback: (allReports) => {
+                            Onyx.disconnect(connectionID);
+                            expect(_.keys(allReports).length).toBe(2);
+                            _.each(allReports, (report) => {
+                                expect(_.has(report, 'lastActionCreated')).toBe(true);
+                            });
+                            expect(allReports.report_1.lastActionCreated).toBe('2022-11-16 01:31:13.702');
+                            expect(allReports.report_2.lastActionCreated).toBe('2022-11-16 01:31:54.821');
+                        },
                     });
-                    expect(allReports.report_1.lastActionCreated).toBe('2022-11-16 01:31:13.702');
-                    expect(allReports.report_2.lastActionCreated).toBe('2022-11-16 01:31:54.821');
-                },
-            });
+                });
         });
 
         it('Should work even if there is no report data', () => {
-            Onyx.init({
-                keys: {COLLECTION: {REPORT: ONYXKEYS.COLLECTION.REPORT}},
-                initialKeyStates: {},
-            });
-            AddLastActionCreated();
-            const connectionID = Onyx.connect({
-                key: ONYXKEYS.COLLECTION.REPORT,
-                waitForCollectionCallbacks: true,
-                callback: (allReports) => {
-                    Onyx.disconnect(connectionID);
-                    expect(allReports).toBeEmpty();
-                },
-            });
+            AddLastActionCreated()
+                .then(() => {
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        waitForCollectionCallbacks: true,
+                        callback: (allReports) => {
+                            Onyx.disconnect(connectionID);
+                            expect(allReports).toBeEmpty();
+                        },
+                    });
+                });
         });
     });
 });
