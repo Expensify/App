@@ -28,7 +28,6 @@ import * as ValidationUtils from '../../../libs/ValidationUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import Form from '../../../components/Form';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import * as LoginUtils from '../../../libs/LoginUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -37,10 +36,10 @@ const propTypes = {
     loginList: PropTypes.shape({
         /** Value of partner name */
         partnerName: PropTypes.string,
-    
+
         /** Phone/Email associated with user */
         partnerUserID: PropTypes.string,
-    
+
         /** Date of when login was validated */
         validatedDate: PropTypes.string,
     }),
