@@ -1,8 +1,10 @@
 name: Build and deploy apps for testing
 
 on:
-  pull_request:
-    types: [opened, synchronize]
+  workflow_run:
+    workflows: [Jest Unit Tests]
+    types:
+      - completed
 
 env:
   DEVELOPER_DIR: /Applications/Xcode_14.0.1.app/Contents/Developer
