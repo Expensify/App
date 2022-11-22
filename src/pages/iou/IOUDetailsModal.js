@@ -99,14 +99,27 @@ class IOUDetailsModal extends Component {
      * @param {String} paymentMethodType
      */
     performIOUPayment(paymentMethodType) {
-        IOU.payIOUReport({
-            chatReportID: this.props.route.params.chatReportID,
-            reportID: this.props.route.params.iouReportID,
-            paymentMethodType,
-            amount: this.props.iouReport.total,
-            currency: this.props.iouReport.currency,
-            requestorPayPalMeAddress: this.props.iouReport.submitterPayPalMeAddress,
-        });
+        const recipient = {
+            login: this.props.iouReport.ownerEmail,
+            payPalMeAddress: this.props.iouReport.submitterPayPalMeAddress,
+        };
+
+        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            IOU.payMoneyRequestElsewhere(
+                this.props.chatReport,
+                this.props.iouReport,
+                recipient,
+            );
+            return;
+        }
+
+        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
+            IOU.payMoneyRequestViaPaypal(
+                this.props.chatReport,
+                this.props.iouReport,
+                recipient,
+            );
+        }
     }
 
     render() {
@@ -165,6 +178,9 @@ export default compose(
     withOnyx({
         iou: {
             key: ONYXKEYS.IOU,
+        },
+        chatReport: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.chatReportID}`,
         },
         iouReport: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${route.params.iouReportID}`,

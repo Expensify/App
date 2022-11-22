@@ -881,13 +881,107 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerEmail, rec
     asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(amount, recipient.payPalMeAddress, currency));
 }
 
+function payMoneyRequest(chatReport, iouReport, recipient, paymentMethodType) {
+    const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
+
+    const optimisticPaidReportAction = ReportUtils.buildOptimisticIOUReportAction(
+        newSequenceNumber,
+        CONST.IOU.REPORT_ACTION_TYPE.PAY,
+        iouReport.total,
+        iouReport.currency,
+        '',
+        [recipient],
+        paymentMethodType,
+        '',
+        iouReport.reportID,
+    );
+
+    // First, add data that will be used in all cases
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                ...chatReport,
+                lastVisitedTimestamp: Date.now(),
+                lastReadSequenceNumber: newSequenceNumber,
+                maxSequenceNumber: newSequenceNumber,
+                lastMessageText: optimisticPaidReportAction.message[0].text,
+                lastMessageHtml: optimisticPaidReportAction.message[0].html,
+                hasOutstandingIOU: false,
+                iouReportID: iouReport.reportID,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticPaidReportAction.sequenceNumber]: {
+                    ...optimisticPaidReportAction,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReport.reportID}`,
+            value: iouReport,
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticPaidReportAction.sequenceNumber]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticPaidReportAction.sequenceNumber]: {
+                    ...optimisticPaidReportAction,
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    API.write('PayMoneyRequest', {
+        iouReportID: iouReport.reportID,
+        paidReportActionID: optimisticPaidReportAction.reportActionID,
+        paymentMethodType,
+        clientID: optimisticPaidReportAction.sequenceNumber,
+    }, {optimisticData, successData, failureData});
+}
+
+function payMoneyRequestElsewhere(chatReport, iouReport, recipient) {
+    payMoneyRequest(chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+}
+
+function payMoneyRequestViaPaypal(chatReport, iouReport, recipient) {
+    payMoneyRequest(chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.PAYPAL_ME);
+    asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(
+        iouReport.total, recipient.payPalMeAddress, iouReport.currency,
+    ));
+}
+
 export {
     cancelMoneyRequest,
     splitBill,
     splitBillAndOpenReport,
     requestMoney,
     payIOUReport,
-    setIOUSelectedCurrency,
     sendMoneyElsewhere,
     sendMoneyViaPaypal,
+    payMoneyRequestElsewhere,
+    payMoneyRequestViaPaypal,
+    setIOUSelectedCurrency,
 };
