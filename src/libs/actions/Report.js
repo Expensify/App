@@ -45,22 +45,6 @@ let conciergeChatReportID;
 const typingWatchTimers = {};
 
 /**
- * @param {String} reportID
- * @returns {Number}
- */
-function getLastReadSequenceNumber(reportID) {
-    return lodashGet(allReports, [reportID, 'lastReadSequenceNumber'], 0);
-}
-
-/**
- * @param {String} reportID
- * @returns {Number}
- */
-function getMaxSequenceNumber(reportID) {
-    return lodashGet(allReports, [reportID, 'maxSequenceNumber'], 0);
-}
-
-/**
  * @param {Object} report
  * @return {String[]}
  */
