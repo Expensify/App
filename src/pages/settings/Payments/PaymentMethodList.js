@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {ActivityIndicator, FlatList} from 'react-native';
+import {ActivityIndicator, FlatList, ScrollView} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
@@ -213,7 +213,9 @@ class PaymentMethodList extends Component {
         return (
             <>
                 {this.props.isLoadingPaymentMethods && !this.props.network.isOffline ? (
-                    <ActivityIndicator color={themeColors.spinner} size="large" />
+                    <ScrollView>
+                        <ActivityIndicator color={themeColors.spinner} size="large" />
+                    </ScrollView>
                 ) : (
                     <FlatList
                         data={this.getFilteredPaymentMethods()}
