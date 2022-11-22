@@ -27,9 +27,7 @@ Onyx.connect({
 let loginList;
 Onyx.connect({
     key: ONYXKEYS.LOGIN_LIST,
-    callback: (val) => {
-        loginList = LoginUtils.convertLoginListToObject(val);
-    },
+    callback: val => loginList = _.isEmpty(val) ? {} : val,
 });
 
 let countryCodeByIP;
