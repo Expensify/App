@@ -333,8 +333,8 @@ export default {
     },
     timezonePage: {
         timezone: 'Zona horaria',
-        isShownOnProfile: '',
-        getLocationAutomatically: '',
+        isShownOnProfile: 'Tu zona horaria se muestra en tu perfil.',
+        getLocationAutomatically: 'Detecta tu ubicación automáticamente.',
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Agregar número de teléfono',
