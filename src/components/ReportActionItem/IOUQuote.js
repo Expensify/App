@@ -15,7 +15,7 @@ const propTypes = {
     /** All the data of the action */
     action: PropTypes.shape(reportActionPropTypes).isRequired,
 
-    /** Should the View Details link be displayed? */
+    /** Whether it is allowed to view details. */
     shouldAllowViewDetails: PropTypes.bool,
 
     /** Callback invoked when View Details is pressed */
