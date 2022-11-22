@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, Image} from 'react-native';
+import {View, Image, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -111,7 +111,7 @@ class EnableStep extends React.Component {
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                <View style={[styles.flex1]}>
+                <ScrollView style={[styles.flex1]}>
                     <Section
                         title={!isUsingExpensifyCard ? this.props.translate('workspace.bankAccount.oneMoreThing') : this.props.translate('workspace.bankAccount.allSet')}
                         // eslint-disable-next-line max-len
@@ -139,7 +139,7 @@ class EnableStep extends React.Component {
                             {this.props.translate('workspace.card.checkingDomain')}
                         </Text>
                     )}
-                </View>
+                </ScrollView>
             </View>
         );
     }
