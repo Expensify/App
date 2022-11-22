@@ -835,7 +835,6 @@ function buildOptimisticChatReport(
         lastMessageText: null,
         lastReadSequenceNumber: 0,
         lastActionCreated: '',
-        lastMessageTimestamp: 0,
         lastVisitedTimestamp: 0,
         maxSequenceNumber: 0,
         notificationPreference,

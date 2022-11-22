@@ -13,7 +13,6 @@ describe('OptionsListUtils', () => {
         1: {
             lastVisitedTimestamp: 1610666739295,
             lastActionCreated: '2022-11-22 03:26:02.015',
-            lastMessageTimestamp: 15,
             isPinned: false,
             reportID: 1,
             participants: ['tonystark@expensify.com', 'reedrichards@expensify.com'],
@@ -25,7 +24,6 @@ describe('OptionsListUtils', () => {
         2: {
             lastVisitedTimestamp: 1610666739296,
             lastActionCreated: '2022-11-22 03:26:02.016',
-            lastMessageTimestamp: 16,
             isPinned: false,
             reportID: 2,
             participants: ['peterparker@expensify.com'],
@@ -38,7 +36,6 @@ describe('OptionsListUtils', () => {
         3: {
             lastVisitedTimestamp: 1610666739297,
             lastActionCreated: '2022-11-22 03:26:02.170',
-            lastMessageTimestamp: 170,
             isPinned: true,
             reportID: 3,
             participants: ['reedrichards@expensify.com'],
@@ -49,7 +46,6 @@ describe('OptionsListUtils', () => {
         4: {
             lastVisitedTimestamp: 1610666739298,
             lastActionCreated: '2022-11-22 03:26:02.180',
-            lastMessageTimestamp: 180,
             isPinned: false,
             reportID: 4,
             participants: ['tchalla@expensify.com'],
@@ -60,7 +56,6 @@ describe('OptionsListUtils', () => {
         5: {
             lastVisitedTimestamp: 1610666739299,
             lastActionCreated: '2022-11-22 03:26:02.019',
-            lastMessageTimestamp: 19,
             isPinned: false,
             reportID: 5,
             participants: ['suestorm@expensify.com'],
@@ -71,7 +66,6 @@ describe('OptionsListUtils', () => {
         6: {
             lastVisitedTimestamp: 1610666739300,
             lastActionCreated: '2022-11-22 03:26:02.020',
-            lastMessageTimestamp: 20,
             isPinned: false,
             reportID: 6,
             participants: ['thor@expensify.com'],
@@ -80,11 +74,10 @@ describe('OptionsListUtils', () => {
             maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
 
-        // Note: This report has the largest lastMessageTimestamp
+        // Note: This report has the largest lastActionCreated
         7: {
             lastVisitedTimestamp: 1610666739301,
             lastActionCreated: '2022-11-22 03:26:03.999',
-            lastMessageTimestamp: 999,
             isPinned: false,
             reportID: 7,
             participants: ['steverogers@expensify.com'],
@@ -93,11 +86,10 @@ describe('OptionsListUtils', () => {
             maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
 
-        // Note: This report has no lastMessageTimestamp
+        // Note: This report has no lastActionCreated
         8: {
             lastVisitedTimestamp: 1610666739301,
             lastActionCreated: '2022-11-22 03:26:02.000',
-            lastMessageTimestamp: 0,
             isPinned: false,
             reportID: 8,
             participants: ['galactus_herald@expensify.com'],
@@ -110,7 +102,6 @@ describe('OptionsListUtils', () => {
         9: {
             lastVisitedTimestamp: 1610666739302,
             lastActionCreated: '2022-11-22 03:26:02.998',
-            lastMessageTimestamp: 998,
             isPinned: false,
             reportID: 9,
             participants: ['mistersinister@marauders.com'],
@@ -125,7 +116,6 @@ describe('OptionsListUtils', () => {
         10: {
             lastVisitedTimestamp: 1610666739200,
             lastActionCreated: '2022-11-22 03:26:02.001',
-            lastMessageTimestamp: 1,
             reportID: 10,
             isPinned: false,
             participants: ['tonystark@expensify.com', 'steverogers@expensify.com'],
@@ -191,7 +181,6 @@ describe('OptionsListUtils', () => {
         11: {
             lastVisitedTimestamp: 1610666739302,
             lastActionCreated: '2022-11-22 03:26:02.022',
-            lastMessageTimestamp: 22,
             isPinned: false,
             reportID: 11,
             participants: ['concierge@expensify.com'],
@@ -206,7 +195,6 @@ describe('OptionsListUtils', () => {
         12: {
             lastVisitedTimestamp: 1610666739302,
             lastActionCreated: '2022-11-22 03:26:02.022',
-            lastMessageTimestamp: 22,
             isPinned: false,
             reportID: 12,
             participants: ['chronos@expensify.com'],
@@ -221,7 +209,6 @@ describe('OptionsListUtils', () => {
         13: {
             lastVisitedTimestamp: 1610666739302,
             lastActionCreated: '2022-11-22 03:26:02.022',
-            lastMessageTimestamp: 22,
             isPinned: false,
             reportID: 13,
             participants: ['receipts@expensify.com'],
@@ -310,7 +297,7 @@ describe('OptionsListUtils', () => {
         // When we filter again but provide a searchValue that should match multiple times
         results = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS, 'fantastic');
 
-        // Value with latest lastMessageTimestamp should be at the top.
+        // Value with latest lastActionCreated should be at the top.
         expect(results.recentReports.length).toBe(2);
         expect(results.recentReports[0].text).toBe('Mister Fantastic');
         expect(results.recentReports[1].text).toBe('Mister Fantastic');
@@ -383,7 +370,7 @@ describe('OptionsListUtils', () => {
 
         // Then several options will be returned and they will be each have the search string in their email or name
         // even though the currently logged in user matches they should not show.
-        // Should be ordered by lastMessageTimestamp values.
+        // Should be ordered by lastActionCreated values.
         expect(results.personalDetails.length).toBe(4);
         expect(results.recentReports.length).toBe(5);
         expect(results.personalDetails[0].login).toBe('natasharomanoff@expensify.com');

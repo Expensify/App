@@ -80,7 +80,6 @@ function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], mi
         maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         lastActionCreated: DateUtils.getDBTime(Date.now() - millisecondsInThePast),
-        lastMessageTimestamp: Date.now() - millisecondsInThePast,
         participants,
     };
 }

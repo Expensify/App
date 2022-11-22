@@ -91,7 +91,6 @@ function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs,
  */
 function getSimplifiedReportObject(report) {
     const lastActionCreated = lodashGet(report, 'lastActionCreated', 0);
-    const lastMessageTimestamp = moment.utc(lastActionCreated).unix();
     const lastActionMessage = lodashGet(report, ['lastActionMessage', 'html'], '');
     const isLastMessageAttachment = new RegExp(`<img|a\\s[^>]*${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}\\s*=\\s*"[^"]*"[^>]*>`, 'gi').test(lastActionMessage);
     const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
@@ -136,7 +135,6 @@ function getSimplifiedReportObject(report) {
         ], 0),
         lastReadSequenceNumber,
         lastActionCreated,
-        lastMessageTimestamp,
         lastMessageText: isLastMessageAttachment ? '[Attachment]' : lastMessageText,
         lastActorEmail,
         notificationPreference,
@@ -416,7 +414,6 @@ function addActions(reportID, text = '', file) {
     const optimisticReport = {
         maxSequenceNumber: newSequenceNumber,
         lastActionCreated: DateUtils.getDBTime(),
-        lastMessageTimestamp: Date.now(),
         lastMessageText: ReportUtils.formatReportLastMessageText(lastAction.message[0].text),
         lastActorEmail: currentUserEmail,
         lastReadSequenceNumber: newSequenceNumber,

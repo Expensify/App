@@ -601,7 +601,6 @@ describe('Sidebar', () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
                     lastActionCreated: '2022-11-22 03:48:27.267',
-                    lastMessageTimestamp: 0,
                     statusNum: CONST.REPORT.STATUS.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 };
@@ -631,7 +630,6 @@ describe('Sidebar', () => {
 
                     // When the report has comments
                     .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {
-                        lastMessageTimestamp: Date.now(),
                         lastActionCreated: DateUtils.getDBTime(),
                     }))
 
@@ -785,7 +783,6 @@ describe('Sidebar', () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
                     lastActionCreated: '2022-11-22 03:48:27.267',
-                    lastMessageTimestamp: 0,
                     statusNum: CONST.REPORT.STATUS.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 };
@@ -815,7 +812,6 @@ describe('Sidebar', () => {
 
                     // When the report has comments
                     .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {
-                        lastMessageTimestamp: Date.now(),
                         lastActionCreated: DateUtils.getDBTime(),
                     }))
 

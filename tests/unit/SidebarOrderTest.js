@@ -181,9 +181,8 @@ describe('Sidebar', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
                 }))
 
-                // When a new comment is added to report 1 (eg. it's lastMessageTimestamp is updated)
+                // When a new comment is added to report 1 (eg. it's lastActionCreated is updated)
                 .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`, {
-                    lastMessageTimestamp: Date.now(),
                     lastActionCreated: DateUtils.getDBTime(),
                 }))
 

@@ -134,7 +134,6 @@ function signInAndGetAppWithUnreadChat() {
                 reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                 maxSequenceNumber: 9,
                 lastReadSequenceNumber: 1,
-                lastMessageTimestamp: MOMENT_TEN_MINUTES_AGO.utc().valueOf(),
                 lastActionCreated: DateUtils.getDBTime(MOMENT_TEN_MINUTES_AGO.utc().valueOf()),
                 lastMessageText: 'Test',
                 participants: [USER_B_EMAIL],
@@ -270,7 +269,6 @@ describe('Unread Indicators', () => {
                     reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                     maxSequenceNumber: 1,
                     lastReadSequenceNumber: 0,
-                    lastMessageTimestamp: NEW_REPORT_CREATED_MOMENT.utc().valueOf(),
                     lastActionCreated: DateUtils.getDBTime(NEW_REPORT_CREATED_MOMENT.utc().valueOf()),
                     lastMessageText: 'Comment 1',
                     participants: [USER_C_EMAIL],
@@ -500,7 +498,6 @@ describe('Unread Indicators', () => {
                 delete lastReportAction[lastReportAction.clientID];
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                     lastMessageText: lastReportAction.message[0].text,
-                    lastMessageTimestamp: lastReportAction.timestamp,
                     lastActionCreated: DateUtils.getDBTime(lastReportAction.timestamp),
                     lastActorEmail: lastReportAction.actorEmail,
                     maxSequenceNumber: lastReportAction.sequenceNumber,
