@@ -2333,6 +2333,10 @@ const styles = {
         marginVertical: 4,
     },
 
+    cursorDefault: {
+        cursor: 'default',
+    },
+
     cursorDisabled: {
         cursor: 'not-allowed',
     },

@@ -37,7 +37,12 @@ const IOUQuote = props => (
                 onPress={props.shouldAllowViewDetails
                     ? props.onViewDetailsPressed
                     : () => {}}
-                style={[styles.flexRow, styles.justifyContentBetween]}
+                style={[styles.flexRow, styles.justifyContentBetween,
+                    props.shouldAllowViewDetails
+                        ? undefined
+                        : styles.cursorDefault,
+                ]}
+                focusable={props.shouldAllowViewDetails}
             >
                 <Text>
                     <Text style={[styles.chatItemMessageLink]}>
