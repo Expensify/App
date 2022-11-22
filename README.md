@@ -293,7 +293,7 @@ export default withOnyx({
 This application is built with the following principles.
 1. **Data Flow** - Ideally, this is how data flows through the app:
     1. Server pushes data to the disk of any client (Server -> Pusher event -> Action listening to pusher event -> Onyx).
-    >**Note:** Currently the code only does this with report comments. Until we make more server changes, this steps is actually done by the client requesting data from the server via XHR and then storing the response in Onyx.
+    >**Note:** Currently the code only does this with report comments. Until we make more server changes, this step is actually done by the client requesting data from the server via XHR and then storing the response in Onyx.
     2. Disk pushes data to the UI (Onyx -> withOnyx() -> React component).
     3. UI pushes data to people's brains (React component -> device screen).
     4. Brain pushes data into UI inputs (Device input -> React component).
