@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo} from 'react';
+import React from 'react';
 import {Image} from 'react-native';
 import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
 
@@ -9,38 +9,53 @@ const RESIZE_MODES = {
     center: 'center',
 };
 
-const FastImage = (props) => {
-    // eslint-disable-next-line
-    const {source, onLoad, ...rest} = props;
+class FastImage extends React.Component {
+    constructor(props) {
+        super(props);
 
-    // Check for headers - if it has them then we need to instead just add the
-    // encryptedAuthToken to the url as RNW's Image component headers do not properly cache
-    const imageSource = useMemo(() => {
-        if (typeof source === 'number' || source.headers == null) {
-            return source;
+        this.state = {
+            imageSource: undefined,
+        };
+    }
+
+    componentDidMount() {
+        this.configureImageSource();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.source === this.props.source) {
+            return;
         }
-        return {uri: addEncryptedAuthTokenToURL(source.uri)};
-    }, [source]);
+        this.configureImageSource();
+    }
 
-    // Conform DOM onLoad event to return width and height to match RNFastImage
-    // https://github.com/DylanVann/react-native-fast-image#onload-event--void
-    useEffect(() => {
-        if (onLoad == null) {
+    configureImageSource() {
+        const source = this.props.source;
+        let imageSource = source;
+        if (typeof source !== 'number' && source.headers != null) {
+            imageSource = {uri: addEncryptedAuthTokenToURL(source.uri)};
+        }
+        this.setState({imageSource});
+        if (this.props.onLoad == null) {
             return;
         }
         const uri = typeof imageSource === 'number'
             ? Image.resolveAssetSource(imageSource).uri
             : imageSource.uri;
         Image.getSize(uri, (width, height) => {
-            onLoad({nativeEvent: {width, height}});
+            this.props.onLoad({nativeEvent: {width, height}});
         });
-    }, [imageSource, onLoad]);
+    }
 
-    // eslint-disable-next-line
-    return <Image {...rest} source={imageSource} />;
-};
+    render() {
+        // eslint-disable-next-line
+        const { source, onLoad, ...rest } = this.props;
 
-FastImage.displayName = 'FastImage';
+        // eslint-disable-next-line
+        return <Image {...rest} source={this.state.imageSource} />;
+    }
+}
+
 FastImage.propTypes = Image.propTypes;
 FastImage.resizeMode = RESIZE_MODES;
 export default FastImage;
