@@ -1,5 +1,5 @@
 import React from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import styles from '../../../styles/styles';
@@ -11,7 +11,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import SignInPageForm from '../../../components/SignInPageForm';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import scrollViewContentContainerStyles from './signInPageStyles';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -38,50 +37,41 @@ const SignInPageContent = props => (
             !props.isMediumScreenWidth && !props.isSmallScreenWidth && styles.signInPageWideLeftContainer,
         ]}
     >
-        <ScrollView
-            style={[styles.h100]}
-            contentContainerStyle={[scrollViewContentContainerStyles]}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
+        {/* This empty view creates margin on the top of the sign in form which will shrink and grow depending on if the keyboard is open or not */}
+        <View style={[styles.flexGrow1, styles.signInPageContentTopSpacer]} />
+
+        <View
+            style={[
+                styles.flexGrow2,
+                styles.alignSelfCenter,
+                styles.signInPageWideLeftContainer,
+            ]}
         >
-
-            {/* This empty view creates margin on the top of the sign in form which will shrink and grow depending on if the keyboard is open or not */}
-            <View style={[styles.flexGrow1, styles.signInPageContentTopSpacer]} />
-
-            <View
-                style={[
-                    styles.flexGrow2,
-                    styles.alignSelfCenter,
-                    styles.signInPageWideLeftContainer,
-                ]}
+            <SignInPageForm style={[
+                styles.alignSelfStretch,
+            ]}
             >
-                <SignInPageForm style={[
-                    styles.alignSelfStretch,
+                <View style={[
+                    styles.componentHeightLarge,
+                    ...(props.isSmallScreenWidth ? [styles.mb2] : [styles.mt6, styles.mb5]),
                 ]}
                 >
-                    <View style={[
-                        styles.componentHeightLarge,
-                        ...(props.isSmallScreenWidth ? [styles.mb2] : [styles.mt6, styles.mb5]),
-                    ]}
-                    >
-                        <ExpensifyCashLogo
-                            width={variables.componentSizeLarge}
-                            height={variables.componentSizeLarge}
-                        />
-                    </View>
-                    {props.shouldShowWelcomeText && (
-                        <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
-                            {props.welcomeText}
-                        </Text>
-                    )}
-                    {props.children}
-                </SignInPageForm>
-            </View>
-            <View style={[styles.mb5, styles.alignSelfCenter, styles.ph5]}>
-                <TermsAndLicenses />
-            </View>
-
-        </ScrollView>
+                    <ExpensifyCashLogo
+                        width={variables.componentSizeLarge}
+                        height={variables.componentSizeLarge}
+                    />
+                </View>
+                {props.shouldShowWelcomeText && (
+                    <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
+                        {props.welcomeText}
+                    </Text>
+                )}
+                {props.children}
+            </SignInPageForm>
+        </View>
+        <View style={[styles.mb5, styles.alignSelfCenter, styles.ph5]}>
+            <TermsAndLicenses />
+        </View>
     </View>
 );
 
