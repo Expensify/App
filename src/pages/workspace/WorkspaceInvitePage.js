@@ -133,6 +133,7 @@ class WorkspaceInvitePage extends React.Component {
     getSections() {
         const sections = [];
         let indexOffset = 0;
+
         sections.push({
             title: undefined,
             data: this.state.selectedOptions,

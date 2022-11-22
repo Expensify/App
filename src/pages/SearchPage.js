@@ -88,6 +88,7 @@ class SearchPage extends Component {
     getSections() {
         const sections = [];
         let indexOffset = 0;
+
         if (this.state.recentReports.length > 0) {
             sections.push(({
                 data: this.state.recentReports,
