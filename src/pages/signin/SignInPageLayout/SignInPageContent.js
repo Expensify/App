@@ -31,7 +31,7 @@ const propTypes = {
 
 const SignInPageContent = (props) => {
     const dismissKeyboardWhenTappedOutsideOfInput = () => {
-        // This prop comes from with
+        // This prop comes from withKeyboardState
         if (!props.isShown) {
             return;
         }
@@ -45,8 +45,8 @@ const SignInPageContent = (props) => {
                     styles.flex1,
                     styles.signInPageLeftContainer,
 
-                    // Restrict the width if the left container only for large screens. For smaller screens, the width needs to be fluid to span the entire width of the page.
-                    !props.isMediumScreenWidth && !props.isSmallScreenWidth && styles.signInPageWideLeftContainer,
+                    // Restrict the width of the left container only for large screens. For smaller screens, the width needs to be fluid to span the entire width of the page.
+                    props.isLargeScreenWidth && styles.signInPageWideLeftContainer,
                 ]}
             >
                 {/* This empty view creates margin on the top of the sign in form which will shrink and grow depending on if the keyboard is open or not */}
