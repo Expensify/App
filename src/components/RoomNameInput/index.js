@@ -13,7 +13,7 @@ class RoomNameInput extends Component {
         this.setSelection = this.setSelection.bind(this);
 
         this.state = {
-            selection: {start: 0, end: 0},
+            selection: undefined,
         };
     }
 
