@@ -125,7 +125,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
 function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
     const parser = new ExpensiMark();
     const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const sortedActions = _.sortBy(actions, 'sequenceNumber');
+    const sortedActions = sortReportActions(actions);
     const lastMessageIndex = _.findLastIndex(sortedActions, action => (
         !isDeletedAction(action)
     ));
@@ -153,7 +153,7 @@ function getOptimisticLastReadSequenceNumberForDeletedAction(reportID, actionsTo
 
     // Otherwise, we must find the first previous index of an action that is not deleted and less than the lastReadSequenceNumber
     const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const sortedActions = _.sortBy(actions, 'sequenceNumber');
+    const sortedActions = sortReportActions(actions);
     const lastMessageIndex = _.findLastIndex(sortedActions, action => (
         !isDeletedAction(action) && action.sequenceNumber <= lastReadSequenceNumber
     ));
