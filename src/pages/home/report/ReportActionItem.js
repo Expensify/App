@@ -208,12 +208,12 @@ class ReportActionItem extends Component {
                                     {!this.props.displayAsGroup
                                         ? (
                                             <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>
-                                                {this.renderItemContent(hovered)}
+                                                {this.renderItemContent(hovered || this.state.isContextMenuActive)}
                                             </ReportActionItemSingle>
                                         )
                                         : (
                                             <ReportActionItemGrouped>
-                                                {this.renderItemContent(hovered)}
+                                                {this.renderItemContent(hovered || this.state.isContextMenuActive)}
                                             </ReportActionItemGrouped>
                                         )}
                                 </OfflineWithFeedback>
