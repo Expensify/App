@@ -105,9 +105,6 @@ class IOUParticipantsSplit extends Component {
             title: this.props.translate('common.recents'),
             data: this.state.recentReports,
             shouldShow: !_.isEmpty(this.state.recentReports),
-
-            // takes the sum off the length of all data
-            // (this.state.selectedOptions) in previous sections
             indexOffset,
         });
         indexOffset += this.state.recentReports.length;
@@ -116,9 +113,6 @@ class IOUParticipantsSplit extends Component {
             title: this.props.translate('common.contacts'),
             data: this.state.personalDetails,
             shouldShow: !_.isEmpty(this.state.personalDetails),
-
-            // takes the sum off the length of all data
-            // (this.state.selectedOptions, this.state.recentReports) in previous sections
             indexOffset,
         });
         indexOffset += this.state.personalDetails.length;
