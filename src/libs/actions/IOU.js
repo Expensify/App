@@ -881,6 +881,12 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerEmail, rec
     asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(amount, recipient.payPalMeAddress, currency));
 }
 
+/**
+ * @param {Object} chatReport
+ * @param {Object} iouReport
+ * @param {Object} recipient
+ * @param {String} paymentMethodType
+ */
 function payMoneyRequest(chatReport, iouReport, recipient, paymentMethodType) {
     const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
 
@@ -962,10 +968,20 @@ function payMoneyRequest(chatReport, iouReport, recipient, paymentMethodType) {
     }, {optimisticData, successData, failureData});
 }
 
+/**
+ * @param {Object} chatReport
+ * @param {Object} iouReport
+ * @param {Object} recipient
+ */
 function payMoneyRequestElsewhere(chatReport, iouReport, recipient) {
     payMoneyRequest(chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
 }
 
+/**
+ * @param {Object} chatReport
+ * @param {Object} iouReport
+ * @param {Object} recipient
+ */
 function payMoneyRequestViaPaypal(chatReport, iouReport, recipient) {
     payMoneyRequest(chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.PAYPAL_ME);
     asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(
