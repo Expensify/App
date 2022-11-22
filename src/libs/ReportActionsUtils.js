@@ -33,8 +33,6 @@ Onyx.connect({
  * using actionName as a secondary sorting parameter,
  * finally falling back on reportActionID in case multiple reportActions of the same actionName are created in the same millisecond.
  *
- * Note: this sorts the array in-place instead of returning a copy
- *
  * @param {Array} reportActions
  * @param {Boolean} [shouldInvertSortingOrder]
  * @returns {Array}
