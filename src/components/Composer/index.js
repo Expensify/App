@@ -138,7 +138,6 @@ class Composer extends React.Component {
         this.paste = this.paste.bind(this);
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
-        this.handleWheel = this.handleWheel.bind(this);
         this.shouldCallUpdateNumberOfLines = this.shouldCallUpdateNumberOfLines.bind(this);
     }
 
@@ -163,7 +162,6 @@ class Composer extends React.Component {
             document.addEventListener('dragleave', this.dragNDropListener);
             document.addEventListener('drop', this.dragNDropListener);
             this.textInput.addEventListener('paste', this.handlePaste);
-            this.textInput.addEventListener('wheel', this.handleWheel);
         }
     }
 
@@ -197,7 +195,6 @@ class Composer extends React.Component {
         document.removeEventListener('dragleave', this.dragNDropListener);
         document.removeEventListener('drop', this.dragNDropListener);
         this.textInput.removeEventListener('paste', this.handlePaste);
-        this.textInput.removeEventListener('wheel', this.handleWheel);
     }
 
     /**
@@ -330,20 +327,6 @@ class Composer extends React.Component {
 
         const plainText = event.clipboardData.getData('text/plain');
         this.paste(Str.htmlDecode(plainText));
-    }
-
-    /**
-     * Manually scrolls the text input, then prevents the event from being passed up to the parent.
-     * @param {Object} event native Event
-     */
-    handleWheel(event) {
-        if (event.target !== document.activeElement) {
-            return;
-        }
-
-        this.textInput.scrollTop += event.deltaY;
-        event.preventDefault();
-        event.stopPropagation();
     }
 
     /**
