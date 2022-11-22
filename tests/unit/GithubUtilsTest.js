@@ -290,14 +290,14 @@ describe('GithubUtils', () => {
             },
             {
                 number: 5,
-                title: '[No QA] Test No QA PR uppercase',
+                title: '[NO QA] Test No QA PR uppercase',
                 html_url: 'https://github.com/Expensify/App/pull/5',
                 user: {login: 'testUser'},
                 labels: [],
             },
             {
                 number: 6,
-                title: '[No QA] Test No QA PR Title Case',
+                title: '[NoQa] Test No QA PR Title Case',
                 html_url: 'https://github.com/Expensify/App/pull/6',
                 user: {login: 'testUser'},
                 labels: [],

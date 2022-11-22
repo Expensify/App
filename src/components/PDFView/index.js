@@ -114,12 +114,13 @@ class PDFView extends Component {
         // If we're requesting a password then we need to hide - but still render -
         // the PDF component.
         const pdfContainerStyle = this.state.shouldRequestPassword
-            ? [styles.PDFView, this.props.style, styles.invisible]
-            : [styles.PDFView, this.props.style];
+            ? [styles.PDFView, styles.noSelect, this.props.style, styles.invisible]
+            : [styles.PDFView, styles.noSelect, this.props.style];
 
         return (
             <View style={outerContainerStyle}>
                 <View
+                    focusable
                     style={pdfContainerStyle}
                     onLayout={event => this.setState({windowWidth: event.nativeEvent.layout.width})}
                 >

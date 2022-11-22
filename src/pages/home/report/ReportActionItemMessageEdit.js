@@ -102,7 +102,17 @@ class ReportActionItemMessageEdit extends React.Component {
      */
     updateDraft(draft) {
         const newDraft = EmojiUtils.replaceEmojis(draft);
-        this.setState({draft: newDraft});
+        this.setState((prevState) => {
+            const newState = {draft: newDraft};
+            if (draft !== newDraft) {
+                const remainder = prevState.draft.slice(prevState.selection.end).length;
+                newState.selection = {
+                    start: newDraft.length - remainder,
+                    end: newDraft.length - remainder,
+                };
+            }
+            return newState;
+        });
 
         // This component is rendered only when draft is set to a non-empty string. In order to prevent component
         // unmount when user deletes content of textarea, we set previous message instead of empty string.

@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import moment from 'moment';
 import {
     beforeEach, beforeAll, afterEach, jest, describe, it, expect,
 } from '@jest/globals';
@@ -17,6 +16,7 @@ import Log from '../../src/libs/Log';
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 import * as User from '../../src/libs/actions/User';
 import * as ReportUtils from '../../src/libs/ReportUtils';
+import DateUtils from '../../src/libs/DateUtils';
 
 describe('actions/Report', () => {
     beforeAll(() => {
@@ -260,7 +260,7 @@ describe('actions/Report', () => {
                                 person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
                                 sequenceNumber: 1,
                                 shouldShow: true,
-                                timestamp: moment().unix(),
+                                created: DateUtils.currentDBTime(),
                             },
                         },
                     },
@@ -325,7 +325,7 @@ describe('actions/Report', () => {
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
                     person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
                     shouldShow: true,
-                    timestamp: moment().unix(),
+                    created: DateUtils.currentDBTime(),
                     reportActionID: 'derp',
                 };
 
@@ -396,7 +396,7 @@ describe('actions/Report', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                expect(ReportUtils.isUnread(report)).toBe(true);
+                expect(ReportUtils.isUnread(report)).toBe(false);
                 expect(report.lastMessageText).toBe('Current User Comment 2');
             });
     });

@@ -296,6 +296,24 @@ function updateProfile(firstName, lastName, pronouns, timezone) {
 }
 
 /**
+ * @param {String} pronouns
+ */
+function updatePronouns(pronouns) {
+    API.write('UpdatePronouns', {pronouns}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    pronouns,
+                },
+            },
+        }],
+    });
+    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+}
+
+/**
  * @param {String} firstName
  * @param {String} lastName
  */
@@ -432,5 +450,6 @@ export {
     extractFirstAndLastNameFromAvailableDetails,
     updateProfile,
     updateDisplayName,
+    updatePronouns,
     clearAvatarErrors,
 };
