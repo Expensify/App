@@ -903,6 +903,7 @@ const styles = {
 
     signInPageContentTopSpacer: {
         maxHeight: 132,
+        minHeight: 24,
     },
 
     signInPageLeftContainer: {
