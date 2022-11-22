@@ -56,6 +56,7 @@ const darkTheme = {
     uploadPreviewActivityIndicator: colors.greenHighlightBackground,
 };
 
+// DEPRECATED THEME, Delete after successful rebranding.
 const oldTheme = {
     shadow: colors.black,
     link: colors.blue,
@@ -111,4 +112,4 @@ const oldTheme = {
     textDark: colors.dark,
 };
 
-export default oldTheme;
+export default darkTheme;
