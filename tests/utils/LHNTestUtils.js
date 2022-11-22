@@ -5,7 +5,7 @@ import OnyxProvider from '../../src/components/OnyxProvider';
 import {LocaleContextProvider} from '../../src/components/withLocalize';
 import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
 import CONST from '../../src/CONST';
-import DateUtils from "../../src/libs/DateUtils";
+import DateUtils from '../../src/libs/DateUtils';
 
 const TEST_MAX_SEQUENCE_NUMBER = 10;
 
