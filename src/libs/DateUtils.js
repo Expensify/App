@@ -168,7 +168,7 @@ function getMicroseconds() {
  *
  * @returns {String}
  */
-function currentDBTime(timestamp = '') {
+function getDBTime(timestamp = '') {
     const datetime = timestamp ? new Date(timestamp) : new Date();
     return datetime.toISOString()
         .replace('T', ' ')
@@ -187,7 +187,7 @@ const DateUtils = {
     canUpdateTimezone,
     setTimezoneUpdated,
     getMicroseconds,
-    currentDBTime,
+    getDBTime,
 };
 
 export default DateUtils;

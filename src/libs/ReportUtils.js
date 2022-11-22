@@ -643,7 +643,7 @@ function buildOptimisticReportAction(sequenceNumber, text, file) {
             sequenceNumber,
             clientID: NumberUtils.generateReportActionClientID(),
             avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
-            created: DateUtils.currentDBTime(),
+            created: DateUtils.getDBTime(),
             message: [
                 {
                     type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
@@ -795,7 +795,7 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, 
         reportActionID: NumberUtils.rand64(),
         sequenceNumber,
         shouldShow: true,
-        created: DateUtils.currentDBTime(),
+        created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 }
@@ -883,7 +883,7 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
             automatic: false,
             sequenceNumber: 0,
             avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
-            created: DateUtils.currentDBTime(),
+            created: DateUtils.getDBTime(),
             shouldShow: true,
         },
     };
