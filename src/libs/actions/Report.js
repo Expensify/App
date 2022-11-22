@@ -510,7 +510,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
                 isLoadingMoreReportActions: false,
                 lastVisitedTimestamp: Date.now(),
                 lastReadSequenceNumber: getMaxSequenceNumber(reportID),
-                reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
+                reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
             },
         }],
         successData: [{
@@ -823,7 +823,7 @@ function deleteReportComment(reportID, reportAction) {
     };
 
     // If we are deleting the last visible message, let's find the previous visible one and update the lastMessageText in the LHN.
-    // Similarly, we are deleting the last read comment will want to update the lastReadSequenceNumber to use the previous visible message.
+    // Similarly, if we are deleting the last read comment we will want to update the lastReadSequenceNumber and maxSequenceNumber to use the previous visible message.
     const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID, optimisticReportActions);
     const lastReadSequenceNumber = ReportActionsUtils.getOptimisticLastReadSequenceNumberForDeletedAction(
         reportID,
@@ -834,6 +834,7 @@ function deleteReportComment(reportID, reportAction) {
     const optimisticReport = {
         lastMessageText,
         lastReadSequenceNumber,
+        maxSequenceNumber: lastReadSequenceNumber,
     };
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
@@ -1323,12 +1324,12 @@ Onyx.connect({
                 return;
             }
 
-            if (!action.timestamp) {
+            if (!action.created) {
                 return;
             }
 
             // If we are past the deadline to notify for this comment don't do it
-            if (moment.utc(action.timestamp * 1000).isBefore(moment.utc().subtract(10, 'seconds'))) {
+            if (moment.utc(moment(action.created).unix() * 1000).isBefore(moment.utc().subtract(10, 'seconds'))) {
                 handledReportActions[reportID] = handledReportActions[reportID] || {};
                 handledReportActions[reportID][action.sequenceNumber] = true;
                 return;

@@ -58,7 +58,6 @@ jobs:
           MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
           MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
 
-
       - name: Run Fastlane production
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane android production
@@ -70,6 +69,12 @@ jobs:
         with:
           name: android-sourcemap
           path: android/app/build/generated/sourcemaps/react/release/*.map
+
+      - name: Upload Android version to Browser Stack
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@./android/app/build/outputs/bundle/release/app-release.aab"
+        env:
+          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
       - name: Warn deployers if Android production deploy failed
         if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -173,6 +178,12 @@ jobs:
         with:
           name: ios-sourcemap
           path: main.jsbundle.map
+
+      - name: Upload iOS version to Browser Stack
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/Users/runner/work/App/App/New Expensify.ipa"
+        env:
+          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
       - name: Set iOS version in ENV
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}

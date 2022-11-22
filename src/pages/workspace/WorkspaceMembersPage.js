@@ -35,7 +35,7 @@ import * as Expensicons from '../../components/Icon/Expensicons';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
-    personalDetails: personalDetailsPropType.isRequired,
+    personalDetails: personalDetailsPropType,
 
     /** URL Route params */
     route: PropTypes.shape({
@@ -73,8 +73,7 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     componentDidMount() {
-        const clientMemberEmails = _.keys(this.props.policyMemberList);
-        Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
+        this.getWorkspaceMembers();
     }
 
     componentDidUpdate(prevProps) {
@@ -83,7 +82,20 @@ class WorkspaceMembersPage extends React.Component {
             return;
         }
 
-        const clientMemberEmails = _.keys(this.props.policyMemberList);
+        this.getWorkspaceMembers();
+    }
+
+    /**
+     * Get members for the current workspace
+     */
+    getWorkspaceMembers() {
+        /**
+         * clientMemberEmails should be filtered to only pass valid members, failure to do so
+         * will remove all non-existing members that should be displayed (e.g. non-existing members that should display an error).
+         * This is due to how calling `Onyx::merge` on array fields overwrites the array.
+         * see https://github.com/Expensify/App/issues/12265#issuecomment-1307889721 for more context
+         */
+        const clientMemberEmails = _.keys(_.pick(this.props.policyMemberList, member => member.role));
         Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
     }
 
@@ -126,7 +138,8 @@ class WorkspaceMembersPage extends React.Component {
      */
     toggleAllUsers() {
         this.setState({showTooltipForLogin: ''});
-        const policyMemberList = _.keys(lodashGet(this.props, 'policyMemberList', {}));
+        let policyMemberList = lodashGet(this.props, 'policyMemberList', {});
+        policyMemberList = _.filter(_.keys(policyMemberList), policyMember => policyMemberList[policyMember].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const removableMembers = _.without(policyMemberList, this.props.session.email, this.props.policy.owner);
         this.setState(prevState => ({
             selectedEmployees: removableMembers.length !== prevState.selectedEmployees.length
@@ -288,10 +301,11 @@ class WorkspaceMembersPage extends React.Component {
         const removableMembers = [];
         let data = [];
         _.each(policyMemberList, (policyMember, email) => {
+            if (policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) { return; }
             if (email !== this.props.session.email && email !== this.props.policy.owner) {
                 removableMembers.push(email);
             }
-            const details = this.props.personalDetails[email] || {displayName: email, login: email, avatar: Expensicons.FallbackAvatar};
+            const details = lodashGet(this.props.personalDetails, email, {displayName: email, login: email, avatar: Expensicons.FallbackAvatar});
             data.push({
                 ...policyMember,
                 ...details,

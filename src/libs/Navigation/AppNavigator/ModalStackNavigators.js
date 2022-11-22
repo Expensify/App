@@ -219,6 +219,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsPronounsPage = require('../../../pages/settings/Profile/PronounsPage').default;
+            return SettingsPronounsPage;
+        },
+        name: 'Settings_Pronouns',
+    },
+    {
+        getComponent: () => {
             const SettingsDisplayNamePage = require('../../../pages/settings/Profile/DisplayNamePage').default;
             return SettingsDisplayNamePage;
         },

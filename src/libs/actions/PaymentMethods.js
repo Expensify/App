@@ -120,20 +120,24 @@ function openPaymentsPage() {
  *
  */
 function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, isOptimisticData = true) {
-    const onxyData = [
+    const onyxData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.USER_WALLET,
             value: {
                 walletLinkedAccountID: bankAccountID || fundID,
                 walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
-                errors: null,
             },
         },
     ];
 
+    // Only clear the error if this is optimistic data. If this is failure data, we do not want to clear the error that came from the server.
+    if (isOptimisticData) {
+        onyxData[0].value.errors = null;
+    }
+
     if (previousPaymentMethod) {
-        onxyData.push({
+        onyxData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: previousPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
             value: {
@@ -145,7 +149,7 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
     }
 
     if (currentPaymentMethod) {
-        onxyData.push({
+        onyxData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: currentPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
             value: {
@@ -156,7 +160,7 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
         });
     }
 
-    return onxyData;
+    return onyxData;
 }
 
 /**
