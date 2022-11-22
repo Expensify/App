@@ -906,8 +906,8 @@ const styles = {
     },
 
     signInPageLeftContainer: {
-        paddingLeft: 52,
-        paddingRight: 52,
+        paddingLeft: 40,
+        paddingRight: 40,
     },
 
     signInPageWideLeftContainer: {
