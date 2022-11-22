@@ -113,7 +113,7 @@ class Checkbox extends React.Component {
                                 this.state.isFocused && styles.borderColorFocus,
                             ]}
                         >
-                            <Icon src={Expensicons.Checkmark} fill={this.props.isChecked ? themeColors.textLight : themeColors.transparent} height={14} width={14} />
+                            {this.props.isChecked && <Icon src={Expensicons.Checkmark} fill={themeColors.textLight} height={14} width={14} />}
                         </View>
                     )}
             </Pressable>
