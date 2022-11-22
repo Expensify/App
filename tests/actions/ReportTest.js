@@ -16,6 +16,7 @@ import Log from '../../src/libs/Log';
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 import * as User from '../../src/libs/actions/User';
 import * as ReportUtils from '../../src/libs/ReportUtils';
+import DateUtils from '../../src/libs/DateUtils';
 
 describe('actions/Report', () => {
     beforeAll(() => {
@@ -259,7 +260,7 @@ describe('actions/Report', () => {
                                 person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
                                 sequenceNumber: 1,
                                 shouldShow: true,
-                                timestamp: Date.now(),
+                                created: DateUtils.currentDBTime(),
                             },
                         },
                     },
@@ -324,7 +325,7 @@ describe('actions/Report', () => {
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
                     person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
                     shouldShow: true,
-                    timestamp: Date.now(),
+                    created: DateUtils.currentDBTime(),
                     reportActionID: 'derp',
                 };
 

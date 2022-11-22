@@ -14,6 +14,7 @@ import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
 import * as NumberFormatUtils from './NumberFormatUtils';
 import Permissions from './Permissions';
+import DateUtils from './DateUtils';
 
 let sessionEmail;
 Onyx.connect({
@@ -642,7 +643,7 @@ function buildOptimisticReportAction(sequenceNumber, text, file) {
             sequenceNumber,
             clientID: NumberUtils.generateReportActionClientID(),
             avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
-            timestamp: Date.now(),
+            created: DateUtils.currentDBTime(),
             message: [
                 {
                     type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
@@ -794,7 +795,7 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, 
         reportActionID: NumberUtils.rand64(),
         sequenceNumber,
         shouldShow: true,
-        timestamp: Date.now(),
+        created: DateUtils.currentDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 }
@@ -882,7 +883,7 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
             automatic: false,
             sequenceNumber: 0,
             avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
-            timestamp: Date.now(),
+            created: DateUtils.currentDBTime(),
             shouldShow: true,
         },
     };
@@ -966,7 +967,6 @@ function isUnread(report) {
  * @param {Object} iouReports
  * @returns {boolean}
  */
-
 function hasOutstandingIOU(report, currentUserLogin, iouReports) {
     if (!report || !report.iouReportID || _.isUndefined(report.hasOutstandingIOU)) {
         return false;
@@ -982,6 +982,39 @@ function hasOutstandingIOU(report, currentUserLogin, iouReports) {
     }
 
     return report.hasOutstandingIOU;
+}
+
+/**
+ * @param {Object} report
+ * @param {String} report.iouReportID
+ * @param {Object} iouReports
+ * @returns {Number}
+ */
+function getIOUTotal(report, iouReports = {}) {
+    if (report.hasOutstandingIOU) {
+        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
+        if (iouReport) {
+            return iouReport.total;
+        }
+    }
+    return 0;
+}
+
+/**
+ * @param {Object} report
+ * @param {String} report.iouReportID
+ * @param {String} currentUserLogin
+ * @param {Object} iouReports
+ * @returns {Boolean}
+ */
+function isIOUOwnedByCurrentUser(report, currentUserLogin, iouReports = {}) {
+    if (report.hasOutstandingIOU) {
+        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
+        if (iouReport) {
+            return iouReport.ownerEmail === currentUserLogin;
+        }
+    }
+    return false;
 }
 
 /**
@@ -1077,6 +1110,16 @@ function getChatByParticipants(newParticipantList) {
     });
 }
 
+/**
+* Returns true if Chronos is one of the chat participants (1:1)
+* @param {Object} report
+* @returns {Boolean}
+*/
+function chatIncludesChronos(report) {
+    return report.participants
+                && _.contains(report.participants, CONST.EMAIL.CHRONOS);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1097,6 +1140,8 @@ export {
     hasExpensifyEmails,
     hasExpensifyGuidesEmails,
     hasOutstandingIOU,
+    isIOUOwnedByCurrentUser,
+    getIOUTotal,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
     chatIncludesConcierge,
@@ -1120,4 +1165,5 @@ export {
     getChatByParticipants,
     getIOUReportActionMessage,
     getDisplayNameForParticipant,
+    chatIncludesChronos,
 };
