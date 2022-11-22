@@ -1,5 +1,4 @@
 import React, {Component} from 'react';
-import PropTypes from 'prop-types';
 import CONST from '../../CONST';
 import withLocalize from '../withLocalize';
 import TextInput from '../TextInput';
