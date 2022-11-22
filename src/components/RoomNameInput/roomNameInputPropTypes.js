@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
     /** Callback to execute when the text input is modified correctly */

@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import CONST from '../../CONST';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import withLocalize from '../withLocalize';
 import TextInput from '../TextInput';
 import * as roomNameInputPropTypes from './roomNameInputPropTypes';
 
