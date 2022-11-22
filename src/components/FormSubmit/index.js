@@ -30,8 +30,7 @@ class FormSubmit extends React.Component {
             return;
         }
 
-        // FormSubmit Enter key handler does not have access to direct props.
-        // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
+        // Pressing Enter on TEXTAREA element adds a new line. When `dataset.submitOnEnter` prop is passed, call the submit callback.
         if (tagName === 'TEXTAREA' && lodashGet(event, 'target.dataset.submitOnEnter', 'false') === 'true') {
             this.props.onSubmit();
             return;
@@ -46,8 +45,9 @@ class FormSubmit extends React.Component {
     render() {
         return (
 
-            // When Enter is pressed on `TextInput` the event is stopped (react-native-web).
-            // We are using capture phase here to track the keyboard input, and call the submit callback.
+            // react-native-web prevents event bubbling on TextInput for key presses
+            // https://github.com/necolas/react-native-web/blob/fa47f80d34ee6cde2536b2a2241e326f84b633c4/packages/react-native-web/src/exports/TextInput/index.js#L272
+            // Thus use capture phase.
             <View onKeyDownCapture={this.submitForm} style={this.props.style}>{this.props.children}</View>
         );
     }
