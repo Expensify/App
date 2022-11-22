@@ -1,7 +1,7 @@
 /**
  * This is a file containing constants for all the top level keys in our store
  */
-export default {
+ export default {
     // Holds information about the users account that is logging in
     ACCOUNT: 'account',
 
@@ -154,6 +154,9 @@ export default {
 
     // Is report data loading?
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
+
+    // Are we loading the initial app data?
+    IS_LOADING_INITIAL_APP_DATA: 'isLoadingInitialAppData',
 
     // Is Keyboard shortcuts modal open?
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
