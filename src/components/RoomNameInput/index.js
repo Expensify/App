@@ -3,6 +3,7 @@ import CONST from '../../CONST';
 import withLocalize from '../withLocalize';
 import TextInput from '../TextInput';
 import * as roomNameInputPropTypes from './roomNameInputPropTypes';
+import * as RoomNameInputUtils from '../../libs/RoomNameInputUtils';
 
 class RoomNameInput extends Component {
     constructor(props) {
@@ -22,7 +23,7 @@ class RoomNameInput extends Component {
      */
     setModifiedRoomName(event) {
         const roomName = event.nativeEvent.text;
-        const modifiedRoomName = this.modifyRoomName(roomName);
+        const modifiedRoomName = RoomNameInputUtils.modifyRoomName(roomName);
         this.props.onChangeText(modifiedRoomName);
 
         // Prevent cursor jump behaviour:
@@ -48,24 +49,6 @@ class RoomNameInput extends Component {
      */
     setSelection(selection) {
         this.setState({selection});
-    }
-
-    /**
-     * Modifies the room name to follow our conventions:
-     * - Max length 80 characters
-     * - Cannot not include space or special characters, and we automatically apply an underscore for spaces
-     * - Must be lowercase
-     * @param {String} roomName
-     * @returns {String}
-     */
-    modifyRoomName(roomName) {
-        const modifiedRoomNameWithoutHash = roomName
-            .replace(/ /g, '_')
-            .replace(/[^a-zA-Z\d_]/g, '')
-            .substr(0, CONST.REPORT.MAX_ROOM_NAME_LENGTH)
-            .toLowerCase();
-
-        return `${CONST.POLICY.ROOM_PREFIX}${modifiedRoomNameWithoutHash}`;
     }
 
     render() {
