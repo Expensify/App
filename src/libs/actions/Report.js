@@ -1196,15 +1196,18 @@ function subscribeToNewActionEvent(reportID, callback) {
  * @param {Object} action
  */
 function viewNewReportAction(reportID, action) {
+    const report = allReports[reportID];
     const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
     const updatedReportObject = {};
 
     // When handling an action from the current user we can assume that their last read actionID has been updated in the server,
     // but not necessarily reflected locally so we will update the lastReadSequenceNumber to mark the report as read.
-    updatedReportObject.maxSequenceNumber = action.sequenceNumber;
     if (isFromCurrentUser) {
         updatedReportObject.lastVisitedTimestamp = Date.now();
-        updatedReportObject.lastReadSequenceNumber = action.sequenceNumber;
+    }
+
+    if (report.lastMessageTimestamp < action.timestamp) {
+        updatedReportObject.lastMessageTimestamp = action.timestamp;
     }
 
     if (reportID === newActionSubscriber.reportID) {
