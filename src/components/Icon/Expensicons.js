@@ -40,6 +40,7 @@ import Eye from '../../../assets/images/eye.svg';
 import EyeDisabled from '../../../assets/images/eye-disabled.svg';
 import Gallery from '../../../assets/images/gallery.svg';
 import Gear from '../../../assets/images/gear.svg';
+import Globe from '../../../assets/images/globe.svg';
 import Hashtag from '../../../assets/images/hashtag.svg';
 import History from '../../../assets/images/history.svg';
 import Hourglass from '../../../assets/images/hourglass.svg';
@@ -54,6 +55,7 @@ import Lock from '../../../assets/images/lock.svg';
 import Luggage from '../../../assets/images/luggage.svg';
 import MagnifyingGlass from '../../../assets/images/magnifying-glass.svg';
 import Mail from '../../../assets/images/mail.svg';
+import Megaphone from '../../../assets/images/megaphone.svg';
 import Menu from '../../../assets/images/menu.svg';
 import MoneyBag from '../../../assets/images/money-bag.svg';
 import MoneyCircle from '../../../assets/images/money-circle.svg';
@@ -139,6 +141,7 @@ export {
     FallbackWorkspaceAvatar,
     Gallery,
     Gear,
+    Globe,
     Hashtag,
     History,
     Hourglass,
@@ -154,6 +157,7 @@ export {
     MagnifyingGlass,
     Mail,
     Menu,
+    Megaphone,
     MoneyBag,
     MoneyCircle,
     Monitor,
