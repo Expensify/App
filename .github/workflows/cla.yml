@@ -13,6 +13,7 @@ jobs:
     # It does not run for pull requests created by OSBotify
     if: ${{ github.event.issue.pull_request || (github.event_name == 'pull_request_target' && github.event.pull_request.user.login != 'OSBotify') }}
     steps:
+        - uses: Expensify/App/.github/actions/composite/setupNode@main
         - uses: actions-ecosystem/action-regex-match@9c35fe9ac1840239939c59e5db8839422eed8a73
           id: sign
           with:
