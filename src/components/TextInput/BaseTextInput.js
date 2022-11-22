@@ -287,6 +287,8 @@ class BaseTextInput extends Component {
                                         keyboardType={getSecureEntryKeyboardType(this.props.keyboardType, this.props.secureTextEntry, this.state.passwordHidden)}
                                         value={this.state.value}
                                         selection={this.state.selection}
+                                        dataSet={{submitOnEnter: this.props.multiline && this.props.submitOnEnter}}
+
                                     />
                                     {this.props.secureTextEntry && (
                                         <Checkbox

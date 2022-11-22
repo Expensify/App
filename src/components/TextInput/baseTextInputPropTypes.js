@@ -70,6 +70,9 @@ const propTypes = {
 
     /** Whether we should wait before focusing the TextInput, useful when using transitions  */
     shouldDelayFocus: PropTypes.bool,
+
+    /** Indicate whether pressing Enter on multiline input is allowed to submit the form. */
+    submitOnEnter: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -101,6 +104,7 @@ const defaultProps = {
     prefixCharacter: '',
     onInputChange: () => {},
     shouldDelayFocus: false,
+    submitOnEnter: false,
 };
 
 export {propTypes, defaultProps};

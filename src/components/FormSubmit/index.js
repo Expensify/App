@@ -30,10 +30,8 @@ class FormSubmit extends React.Component {
             return;
         }
 
-        // We usually do not submit the form on TEXTAREA element, when ENTER is pressed.
-        // As there is a prop on react native `blurOnSubmit`, we indeed want to submit it here.
-        // Element dataset is used here to store `blurOnSubmit` prop.
-        if (tagName === 'TEXTAREA' && lodashGet(event, 'target.dataset.blurOnSubmit', 'false') === 'true') {
+        // Pressing Enter on TEXTAREA element adds a new line. When `dataset.submitOnEnter` prop is passed, call submit.
+        if (tagName === 'TEXTAREA' && lodashGet(event, 'target.dataset.submitOnEnter', 'false') === 'true') {
             this.props.onSubmit();
             return;
         }
