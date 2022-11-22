@@ -261,7 +261,7 @@ class WorkspaceMembersPage extends React.Component {
                     >
                         <CheckboxWithTooltip
                             style={[styles.peopleRowCell]}
-                            isChecked={_.contains(this.state.selectedEmployees, item.login)}
+                            isChecked={_.contains(this.state.selectedEmployees, item.login) && item.pendingDelete === false}
                             disabled={!canBeRemoved}
                             onPress={() => this.toggleUser(item.login)}
                             toggleTooltip={this.state.showTooltipForLogin === item.login}
@@ -305,9 +305,11 @@ class WorkspaceMembersPage extends React.Component {
                 removableMembers.push(email);
             }
             const details = lodashGet(this.props.personalDetails, email, {displayName: email, login: email, avatar: Expensicons.FallbackAvatar});
+            const pendingDelete = policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
             data.push({
                 ...policyMember,
                 ...details,
+                pendingDelete,
             });
         });
         data = _.sortBy(data, value => value.displayName.toLowerCase());
