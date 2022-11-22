@@ -36,22 +36,24 @@ Onyx.connect({
  * Note: this sorts the array in-place instead of returning a copy
  *
  * @param {Array} reportActions
+ * @param {Boolean} [inverted]
  * @returns {Array}
  */
-function sortReportActions(reportActions) {
+function sortReportActions(reportActions, inverted = false) {
     if (!_.isArray(reportActions)) {
         throw new Error(`ReportActionsUtils::sortReportActions requires an array, received ${typeof reportActions}`);
     }
+    const invertedMultiplier = inverted ? -1 : 1;
     reportActions.sort((first, second) => {
         if (first.created !== second.created) {
-            return first.created < second.created ? -1 : 1;
+            return (first.created < second.created ? -1 : 1) * invertedMultiplier;
         }
 
         if (first.actionName !== second.actionName) {
-            return CONST.REPORT_ACTION_TYPE_SORT_ORDER[first.actionName] - CONST.REPORT_ACTION_TYPE_SORT_ORDER[second.actionName];
+            return (CONST.REPORT_ACTION_TYPE_SORT_ORDER[first.actionName] - CONST.REPORT_ACTION_TYPE_SORT_ORDER[second.actionName]) * invertedMultiplier;
         }
 
-        return first.reportActionID < second.reportActionID ? -1 : 1;
+        return (first.reportActionID < second.reportActionID ? -1 : 1) * invertedMultiplier;
     });
     return reportActions;
 }
