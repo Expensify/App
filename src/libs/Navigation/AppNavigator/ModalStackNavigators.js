@@ -236,7 +236,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const SettingsTimezoneInitialPage = require('../../../pages/settings/Profile/TimezoneInitialPage').default;
             return SettingsTimezoneInitialPage;
         },
-        name: 'Settings_Timezone_Init',
+        name: 'Settings_Timezone',
     },
     {
         getComponent: () => {

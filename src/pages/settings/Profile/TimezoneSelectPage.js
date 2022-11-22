@@ -77,7 +77,7 @@ class TimezoneSelectPage extends Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('timezonePage.timezone')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE_INITIAL)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <OptionsSelector

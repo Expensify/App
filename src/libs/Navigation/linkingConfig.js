@@ -96,8 +96,8 @@ export default {
                         path: ROUTES.SETTINGS_DISPLAY_NAME,
                         exact: true,
                     },
-                    Settings_Timezone_Init: {
-                        path: ROUTES.SETTINGS_TIMEZONE_INITIAL,
+                    Settings_Timezone: {
+                        path: ROUTES.SETTINGS_TIMEZONE,
                         exact: true,
                     },
                     Settings_Timezone_Select: {

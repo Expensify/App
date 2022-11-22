@@ -23,7 +23,7 @@ export default {
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
     SETTINGS_DISPLAY_NAME: 'settings/profile/display-name',
-    SETTINGS_TIMEZONE_INITIAL: 'settings/profile/timezone',
+    SETTINGS_TIMEZONE: 'settings/profile/timezone',
     SETTINGS_TIMEZONE_SELECT: 'settings/profile/timezone/select',
     SETTINGS_PRONOUNS: 'settings/profile/pronouns',
     SETTINGS_PREFERENCES: 'settings/preferences',
