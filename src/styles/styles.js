@@ -2074,7 +2074,6 @@ const styles = {
 
     navigationScreenCardStyle: {
         backgroundColor: themeColors.appBG,
-        height: '100%',
     },
 
     navigationSceneFullScreenWrapper: {

@@ -75,7 +75,7 @@ const oldTheme = {
     iconReversed: colors.white,
     textSupporting: colors.gray4,
     text: colors.dark,
-    textError: colors.red,
+    textError: colors.oldRed,
     textBackground: colors.gray1,
     textReversed: colors.white,
     textMutedReversed: colors.gray3,
@@ -97,10 +97,10 @@ const oldTheme = {
 
     // Merging new Keys for Dark Mode merge. Delete after new branding is implemented.
     highlightBG: colors.gray1,
-    danger: colors.red,
-    dangerHover: colors.redHover,
-    dangerPressed: colors.redHover,
-    dangerDisabled: colors.redDisabled,
+    danger: colors.oldRed,
+    dangerHover: colors.oldRedHover,
+    dangerPressed: colors.oldRedHover,
+    dangerDisabled: colors.oldRedDisabled,
     warning: colors.yellow,
     success: colors.green,
     successHover: colors.greenHover,
