@@ -1,5 +1,6 @@
 import './splash.css';
 import newExpensifyLogo from 'logo?raw';
+import themeColors from '../../src/styles/themes/default';
 
 document.addEventListener('DOMContentLoaded', () => {
     const minMilisecondsToWait = 1.5 * 1000;
@@ -8,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const splash = document.getElementById('splash');
     const splashLogo = document.querySelector('.splash-logo');
     const root = document.getElementById('root');
+    splash.style.backgroundColor = themeColors.appBG;
 
     splashLogo.innerHTML = newExpensifyLogo;
 
