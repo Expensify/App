@@ -71,6 +71,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
             amount,
             currency,
         );
+        iouReport.hasOutstandingIOU = iouReport.total !== 0;
     } else {
         iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, preferredLocale);
     }
