@@ -12,7 +12,6 @@ import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
-import variables from '../../styles/variables';
 import ONYXKEYS from '../../ONYXKEYS';
 import MultipleAvatars from '../MultipleAvatars';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
@@ -153,7 +152,7 @@ const IOUPreview = (props) => {
                                         </Text>
                                         {!props.iouReport.hasOutstandingIOU && (
                                             <View style={styles.iouPreviewBoxCheckmark}>
-                                                <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} height={variables.iconSizeSmall} />
+                                                <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
                                             </View>
                                         )}
                                     </View>
