@@ -108,10 +108,6 @@ export default {
         flexGrow: 1,
     },
 
-    flexGrow2: {
-        flexGrow: 2,
-    },
-
     flexGrow4: {
         flexGrow: 4,
     },

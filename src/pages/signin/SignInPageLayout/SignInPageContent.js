@@ -1,5 +1,5 @@
 import React from 'react';
-import {TouchableWithoutFeedback, View, Keyboard} from 'react-native';
+import {ScrollView, View, KeyboardAvoidingView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import styles from '../../../styles/styles';
@@ -10,8 +10,10 @@ import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import SignInPageForm from '../../../components/SignInPageForm';
 import compose from '../../../libs/compose';
+import scrollViewContentContainerStyles from './signInPageStyles';
+import withKeyboardState from '../../../components/withKeyboardState';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import withKeyboardState, {withKeyboardStatePropTypes} from '../../../components/withKeyboardState';
+import * as StyleUtils from '../../../styles/StyleUtils';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -26,42 +28,47 @@ const propTypes = {
 
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
-    ...withKeyboardStatePropTypes,
 };
 
-const SignInPageContent = (props) => {
-    const dismissKeyboardWhenTappedOutsideOfInput = () => {
-        // This prop comes from with
-        if (!props.isShown) {
-            return;
-        }
-        Keyboard.dismiss();
-    };
-
-    return (
-        <TouchableWithoutFeedback onPress={dismissKeyboardWhenTappedOutsideOfInput}>
-            <View
-                style={[
-                    styles.flex1,
-                    styles.signInPageLeftContainer,
-
-                    // Restrict the width if the left container only for large screens. For smaller screens, the width needs to be fluid to span the entire width of the page.
-                    !props.isMediumScreenWidth && !props.isSmallScreenWidth && styles.signInPageWideLeftContainer,
-                ]}
+const SignInPageContent = props => (
+    <ScrollView
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        style={[
+            styles.h100,
+            !props.isSmallScreenWidth && styles.alignSelfCenter,
+            !props.isSmallScreenWidth && styles.signInPageWideLeftContainer,
+        ]}
+        contentContainerStyle={[
+            scrollViewContentContainerStyles,
+            styles.alignItemsCenter,
+            !props.isSmallScreenWidth && styles.ph6,
+        ]}
+    >
+        <View style={[styles.flex1, styles.flexRow]}>
+            <View style={[
+                styles.flex1,
+                styles.signInPageNarrowContentContainer,
+            ]}
             >
-                {/* This empty view creates margin on the top of the sign in form which will shrink and grow depending on if the keyboard is open or not */}
-                <View style={[styles.flexGrow1, styles.signInPageContentTopSpacer]} />
-
-                <View
-                    style={[
-                        styles.flexGrow2,
-                        styles.alignSelfCenter,
-                        styles.signInPageWideLeftContainer,
-                    ]}
+                <SignInPageForm style={[
+                    styles.flex1,
+                    styles.alignSelfStretch,
+                    props.isSmallScreenWidth ? styles.ph5 : styles.ph4,
+                ]}
                 >
-                    <SignInPageForm style={[
-                        styles.alignSelfStretch,
-                    ]}
+                    <KeyboardAvoidingView
+                        behavior="position"
+                        style={[
+                            StyleUtils.getModalPaddingStyles({
+                                shouldAddBottomSafeAreaPadding: true,
+                                modalContainerStylePaddingBottom: 20,
+                                safeAreaPaddingBottom: props.insets.bottom,
+                            }),
+                            props.isSmallScreenWidth ? styles.signInPageNarrowContentMargin : {},
+                            !props.isMediumScreenWidth || (props.isMediumScreenWidth && props.windowHeight < variables.minHeightToShowGraphics) ? styles.signInPageWideLeftContentMargin : {},
+                            styles.mb3,
+                        ]}
                     >
                         <View style={[
                             styles.componentHeightLarge,
@@ -79,15 +86,15 @@ const SignInPageContent = (props) => {
                             </Text>
                         )}
                         {props.children}
-                    </SignInPageForm>
-                </View>
+                    </KeyboardAvoidingView>
+                </SignInPageForm>
                 <View style={[styles.mb5, styles.alignSelfCenter, styles.ph5]}>
                     <TermsAndLicenses />
                 </View>
             </View>
-        </TouchableWithoutFeedback>
-    );
-};
+        </View>
+    </ScrollView>
+);
 
 SignInPageContent.propTypes = propTypes;
 SignInPageContent.displayName = 'SignInPageContent';
@@ -95,6 +102,8 @@ SignInPageContent.displayName = 'SignInPageContent';
 export default compose(
     withWindowDimensions,
     withLocalize,
-    withSafeAreaInsets,
+
+    // KeyboardState HOC is needed to trigger recalculation of the UI when keyboard opens or closes
     withKeyboardState,
+    withSafeAreaInsets,
 )(SignInPageContent);

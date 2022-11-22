@@ -894,6 +894,11 @@ const styles = {
         flex: 1,
     },
 
+    signInPageLogo: {
+        height: variables.componentSizeLarge,
+        marginBottom: 24,
+    },
+
     signInPageInner: {
         marginLeft: 'auto',
         marginRight: 'auto',
@@ -901,17 +906,48 @@ const styles = {
         width: '100%',
     },
 
-    signInPageContentTopSpacer: {
-        maxHeight: 132,
+    signInPageInnerNative: {
+        width: '100%',
     },
 
-    signInPageLeftContainer: {
-        paddingLeft: 40,
-        paddingRight: 40,
+    signInPageHeroHeading: {
+        fontFamily: fontFamily.GTA,
+        fontWeight: fontWeightBold,
+        fontSize: variables.fontSizeHero,
+        color: themeColors.appBG,
+        lineHeight: variables.lineHeightHero,
+    },
+
+    signInPageHeroDescription: {
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeNormal,
+        color: themeColors.appBG,
+    },
+
+    signInPageFormContainer: {
+        maxWidth: 295,
+        width: '100%',
+    },
+
+    signInPageNarrowContentContainer: {
+        maxWidth: 335,
+    },
+
+    signInPageNarrowContentMargin: {
+        marginTop: '40%',
     },
 
     signInPageWideLeftContainer: {
+        width: 375,
         maxWidth: 375,
+    },
+
+    signInPageWideLeftContentMargin: {
+        marginTop: '44.5%',
+    },
+
+    signInPageWideHeroContent: {
+        maxWidth: 400,
     },
 
     changeExpensifyLoginLinkContainer: {
