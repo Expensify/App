@@ -202,7 +202,7 @@ SidebarLinks.defaultProps = defaultProps;
  * @param {Object} [report]
  * @returns {Object|undefined}
  */
-const reportSelector = (report) => {
+const chatReportSelector = (report) => {
     if (ReportUtils.isIOUReport(report)) {
         return null;
     }
@@ -272,7 +272,7 @@ export default compose(
         // with 10,000 withOnyx() connections, it would have unknown performance implications.
         chatReports: {
             key: ONYXKEYS.COLLECTION.REPORT,
-            selector: reportSelector,
+            selector: chatReportSelector,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
