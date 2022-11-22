@@ -2150,7 +2150,7 @@ const styles = {
     },
 
     checkedContainer: {
-        backgroundColor: themeColors.success,
+        backgroundColor: themeColors.checkBox,
     },
 
     iouAmountText: {
