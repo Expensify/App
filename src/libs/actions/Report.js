@@ -789,16 +789,10 @@ function deleteReportComment(reportID, reportAction) {
     // If we are deleting the last visible message, let's find the previous visible one and update the lastMessageText in the LHN.
     // Similarly, if we are deleting the last read comment we will want to update the lastReadSequenceNumber and maxSequenceNumber to use the previous visible message.
     const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID, optimisticReportActions);
-    const lastReadSequenceNumber = ReportActionsUtils.getOptimisticLastReadSequenceNumberForDeletedAction(
-        reportID,
-        optimisticReportActions,
-        reportAction.sequenceNumber,
-        getLastReadSequenceNumber(reportID),
-    );
+    const lastMessageTimestamp = ReportActionsUtils.getLastMessageTimestamp(reportID, optimisticReportActions);
     const optimisticReport = {
         lastMessageText,
-        lastReadSequenceNumber,
-        maxSequenceNumber: lastReadSequenceNumber,
+        lastMessageTimestamp,
     };
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
