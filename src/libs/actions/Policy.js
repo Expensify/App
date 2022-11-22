@@ -801,7 +801,11 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '') 
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
-            value: {pendingAction: null},
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: null,
+                },
+            },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -815,7 +819,11 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '') 
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
-            value: {pendingAction: null},
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: null,
+                },
+            },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -829,7 +837,11 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '') 
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
-            value: {pendingAction: null},
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: null,
+                },
+            },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
