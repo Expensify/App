@@ -216,15 +216,19 @@ class ReportScreen extends React.Component {
 
         // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
+
+        const freeze = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
+        const animatePlaceholder = !this.props.isSmallScreenWidth || !this.props.isDrawerOpen;
+
         return (
             <Freeze
-                freeze={this.props.isSmallScreenWidth && this.props.isDrawerOpen}
+                freeze={freeze}
                 placeholder={(
                     <ScreenWrapper
                         style={screenWrapperStyle}
                     >
-                        <ReportHeaderSkeletonView />
-                        <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
+                        <ReportHeaderSkeletonView animate={animatePlaceholder} />
+                        <ReportActionsSkeletonView animate={animatePlaceholder} containerHeight={this.state.skeletonViewContainerHeight} />
                     </ScreenWrapper>
                 )}
             >
