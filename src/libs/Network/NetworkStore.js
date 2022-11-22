@@ -80,7 +80,7 @@ Onyx.connect({
             triggerReconnectCallback();
         }
 
-        offline = network.isOffline;
+        offline = network.isOffline || network.shouldForceOffline;
     },
 });
 
