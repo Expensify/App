@@ -156,8 +156,6 @@ class WorkspaceInvitePage extends React.Component {
         indexOffset += personalDetailsWithoutSelected.length;
 
         if (hasUnselectedUserToInvite) {
-            // The index offset here is always 0 because we only add a user to invite if there is no exact match above,
-            // i.e. the previous section was empty.
             sections.push(({
                 title: undefined,
                 data: [this.state.userToInvite],
