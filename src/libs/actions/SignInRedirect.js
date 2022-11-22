@@ -47,8 +47,8 @@ function clearStorageAndRedirect(errorMessage) {
                 Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
             }
 
-            // After sigining out set ourselves as offline if we were offline before logging out and we are not forcing it.
-            // If we are forcing offline, ignore it while signed out, otherwise it would require a refresh because there's no way to toggle the switch, to go back online, while signed out.
+            // After signing out, set ourselves as offline if we were offline before logging out and we are not forcing it.
+            // If we are forcing offline, ignore it while signed out, otherwise it would require a refresh because there's no way to toggle the switch to go back online while signed out.
             if (isOffline && !shouldForceOffline) {
                 Onyx.set(ONYXKEYS.NETWORK, {isOffline});
             }

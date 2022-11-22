@@ -75,7 +75,7 @@ function subscribeToNetInfo() {
     NetInfo.addEventListener((state) => {
         Log.info('[NetworkConnection] NetInfo state change', false, state);
         if (shouldForceOffline) {
-            Log.info('[NetworkConnection] Not setting offline status because shouldForceOffline', false, shouldForceOffline);
+            Log.info('[NetworkConnection] Not setting offline status because shouldForceOffline = true');
             return;
         }
         setOfflineStatus(state.isInternetReachable === false);
