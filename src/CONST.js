@@ -104,7 +104,7 @@ const CONST = {
         },
         MAX_LENGTH: {
             SSN: 4,
-            ZIP_CODE: 5,
+            ZIP_CODE: 10,
         },
         TYPE: {
             BUSINESS: 'BUSINESS',
