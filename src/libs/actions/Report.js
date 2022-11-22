@@ -384,7 +384,7 @@ function addActions(reportID, text = '', file) {
         lastMessageTimestamp: Date.now(),
         lastMessageText: ReportUtils.formatReportLastMessageText(lastAction.message[0].text),
         lastActorEmail: currentUserEmail,
-        lastReadSequenceNumber: newSequenceNumber,
+        lastReadTimestamp: Date.now(),
     };
 
     // Optimistically add the new actions to the store before waiting to save them to the server. We use the clientID
@@ -656,22 +656,21 @@ function readNewestAction(reportID) {
  * Sets the last read comment on a report
  *
  * @param {String} reportID
- * @param {Number} sequenceNumber
+ * @param {Number} reportActionTimestamp
  */
-function markCommentAsUnread(reportID, sequenceNumber) {
-    const newLastReadSequenceNumber = sequenceNumber - 1;
+function markCommentAsUnread(reportID, reportActionTimestamp) {
+    const lastVisitedTimestamp = reportActionTimestamp - 1;
     API.write('MarkAsUnread',
         {
             reportID,
-            sequenceNumber,
+            lastVisitedTimestamp,
         },
         {
             optimisticData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
-                    lastReadSequenceNumber: newLastReadSequenceNumber,
-                    lastVisitedTimestamp: Date.now(),
+                    lastVisitedTimestamp,
                 },
             }],
         });
