@@ -97,7 +97,6 @@ class ImageWithSizeCalculation extends PureComponent {
                         styles.w100,
                         styles.h100,
                     ]}
-                    fallback
                     source={{
                         uri: this.props.url,
                         headers,

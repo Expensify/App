@@ -115,6 +115,7 @@ class ImageView extends PureComponent {
     render() {
         // Default windowHeight accounts for the modal header height
         const windowHeight = this.props.windowHeight - variables.contentHeaderHeight;
+        const headers = this.props.isAuthTokenRequired ? chatAttachmentTokenHeaders() : undefined;
 
         // Zoom view should be loaded only after measuring actual image dimensions, otherwise it causes blurred images on Android
         return (
@@ -179,7 +180,7 @@ class ImageView extends PureComponent {
                         ]}
                         source={{
                             uri: this.props.url,
-                            headers: this.props.isAuthTokenRequired ? chatAttachmentTokenHeaders() : undefined,
+                            headers,
                         }}
                         resizeMode={FastImage.resizeMode.contain}
                         onLoadStart={this.imageLoadingStart}
