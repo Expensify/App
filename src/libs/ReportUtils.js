@@ -679,6 +679,8 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
             style: 'currency',
             currency,
         });
+
+    // stateNum 2: report is settled (submitted)
     return {
         cachedTotal: formattedTotal,
         chatReportID,
