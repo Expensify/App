@@ -85,6 +85,7 @@ class NewChatPage extends Component {
     getSections(maxParticipantsReached) {
         const sections = [];
         let indexOffset = 0;
+
         if (this.props.isGroupChat) {
             sections.push({
                 title: undefined,
