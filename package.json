@@ -9,7 +9,7 @@
   "scripts": {
     "postinstall": "npx patch-package && cd desktop && npm install",
     "clean": "npx react-native clean-project-auto",
-    "android": "scripts/set-pusher-suffix.sh && npx react-native run-android --port=8083",
+    "android": "scripts/set-pusher-suffix.sh && npx react-native run-android --active-arch-only --port=8083",
     "ios": "scripts/set-pusher-suffix.sh && npx react-native run-ios --port=8082",
     "ipad": "npx react-native run-ios --port=8082 --simulator=\"iPad Pro (12.9-inch) (4th generation)\"",
     "ipad-sm": "npx react-native run-ios --port=8082 --simulator=\"iPad Pro (9.7-inch)\"",
