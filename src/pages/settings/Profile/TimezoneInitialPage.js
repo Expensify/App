@@ -29,8 +29,8 @@ const TimezoneInitialPage = (props) => {
     const timezone = lodashGet(props.currentUserPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
 
     /**
-     * Updates setting for timezone updating automatically.
-     * Note: If we are updating automatically, we'll immediately caltulate user timezone.
+     * Updates setting for automatic timezone selection.
+     * Note: If we are updating automatically, we'll immediately calculate the user's timezone.```
      *
      * @param {Boolean} isAutomatic
      */
