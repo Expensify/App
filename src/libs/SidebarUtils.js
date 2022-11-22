@@ -92,11 +92,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
     const isInDefaultMode = !isInGSDMode;
 
     // Filter out all the reports that shouldn't be displayed
-<<<<<<< HEAD
     const reportsToDisplay = _.filter(chatReports, report => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies));
-=======
-    const reportsToDisplay = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies));
->>>>>>> 02fa245cb9ce9a1aabf4277984357ef9fbb954ec
 
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     _.each(reportsToDisplay, (report) => {
