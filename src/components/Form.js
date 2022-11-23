@@ -265,8 +265,8 @@ class Form extends React.Component {
                                 const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
                                 this.inputRefs[focusKey].focus();
                                 this.inputRefs[focusKey].measure((fx, fy, width, height, px, py) => {
-                                    this.form.scrollTo({y: py-this.inputPosition, animated: false});
-                                })
+                                    this.form.scrollTo({y: py - this.inputPosition, animated: false});
+                                });
                             }}
                             containerStyles={[styles.mh0, styles.mt5]}
                             enabledWhenOffline={this.props.enabledWhenOffline}
