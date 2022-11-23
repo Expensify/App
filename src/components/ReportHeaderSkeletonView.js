@@ -2,6 +2,7 @@ import React from 'react';
 import {Pressable, View} from 'react-native';
 import {Rect, Circle} from 'react-native-svg';
 import SkeletonViewContentLoader from 'react-content-loader/native';
+import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -11,6 +12,11 @@ import themeColors from '../styles/themes/default';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
+    animate: PropTypes.bool,
+};
+
+const defaultProps = {
+    animate: true,
 };
 
 const ReportHeaderSkeletonView = props => (
@@ -23,8 +29,9 @@ const ReportHeaderSkeletonView = props => (
                 <Icon src={Expensicons.BackArrow} />
             </Pressable>
             <SkeletonViewContentLoader
-                height={variables.contentHeaderHeight}
+                animate={props.animate}
                 width={styles.w100.width}
+                height={variables.contentHeaderHeight}
                 backgroundColor={themeColors.highlightBG}
                 foregroundColor={themeColors.border}
             >
@@ -37,5 +44,6 @@ const ReportHeaderSkeletonView = props => (
 );
 
 ReportHeaderSkeletonView.propTypes = propTypes;
+ReportHeaderSkeletonView.defaultProps = defaultProps;
 ReportHeaderSkeletonView.displayName = 'ReportHeaderSkeletonView';
 export default withWindowDimensions(ReportHeaderSkeletonView);
