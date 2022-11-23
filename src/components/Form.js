@@ -79,7 +79,7 @@ class Form extends React.Component {
 
         this.inputRefs = {};
         this.touchedInputs = {};
-        this.inputPosition = 0;
+        this.viewPosition = 0;
 
         this.setTouchedInput = this.setTouchedInput.bind(this);
         this.validate = this.validate.bind(this);
@@ -250,7 +250,7 @@ class Form extends React.Component {
                     onLayout={(event) => {
                         // Store the parent component position to be used for scrolling. The +1 is to avoid covering
                         // the upper border of the element we scroll to
-                        this.inputPosition = event.nativeEvent.layout.y + 1;
+                        this.viewPosition = event.nativeEvent.layout.y + 1;
                     }}
                 >
                     <View style={[this.props.style]}>
