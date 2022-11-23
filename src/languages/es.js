@@ -363,7 +363,7 @@ export default {
         },
         security: 'Seguridad',
         signOut: 'Desconectar',
-        signOutConfirmationText: '',
+        signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',
         versionLetter: 'v',
         readTheTermsAndPrivacyPolicy: {
             phrase1: 'Leer los',
