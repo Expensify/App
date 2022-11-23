@@ -6,11 +6,12 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import HttpsError from './Errors/HttpsError';
 import getOperatingSystem from './getOperatingSystem';
+import shouldUseStagingServer from './shouldUseStagingServer';
 
-let shouldUseStagingServer = false;
+let stagingServerToggleState = false;
 Onyx.connect({
     key: ONYXKEYS.USER,
-    callback: val => shouldUseStagingServer = lodashGet(val, 'shouldUseStagingServer', true),
+    callback: val => stagingServerToggleState = lodashGet(val, 'shouldUseStagingServer', true),
 });
 
 let shouldFailAllRequests = false;
@@ -101,10 +102,7 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
 
     let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.URL_API_ROOT;
 
-    // If we are in native mobile apps, we dont have access to up-to-date Config so we need to only rely on the toggle switch
-    const nativeStagingSwitcher = (platform === CONST.OS.ANDROID || platform === CONST.OS.IOS) && shouldUseStagingServer;
-    const webStagingSwitcher = CONFIG.IS_IN_STAGING && shouldUseStagingServer;
-    if (nativeStagingSwitcher || webStagingSwitcher) {
+    if (shouldUseStagingServer(stagingServerToggleState)) {
         apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.STAGING_SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.STAGING_EXPENSIFY_URL;
     }
 
