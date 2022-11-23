@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
@@ -15,8 +14,6 @@ import Button from '../../components/Button';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import MenuItem from '../../components/MenuItem';
 import getBankIcon from '../../components/Icon/BankIcons';
-import confettiPop from '../../../assets/images/confetti-pop.gif';
-import Icon from '../../components/Icon';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import userPropTypes from '../settings/userPropTypes';
 import Section from '../../components/Section';
@@ -35,11 +32,6 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const defaultProps = {
-    reimbursementAccount: {},
-    user: {},
-};
-
 const EnableStep = (props) => {
     const isUsingExpensifyCard = props.user.isUsingExpensifyCard;
     const reimbursementAccount = props.reimbursementAccount.achData || {};
@@ -50,22 +42,7 @@ const EnableStep = (props) => {
         }`
         : '';
     const bankName = reimbursementAccount.addressName;
-    const menuItems = [{
-        title: props.translate('workspace.bankAccount.disconnectBankAccount'),
-        icon: Expensicons.Close,
-        onPress: BankAccounts.requestResetFreePlanBankAccount,
-    }];
-    if (!isUsingExpensifyCard) {
-        menuItems.unshift({
-            title: props.translate('workspace.bankAccount.addWorkEmail'),
-            icon: Expensicons.Mail,
-            onPress: () => {
-                Link.openOldDotLink(CONST.ADD_SECONDARY_LOGIN_URL);
-                User.subscribeToExpensifyCardUpdates();
-            },
-            shouldShowRightIcon: true,
-        });
-    }
+
     return (
         <View style={[styles.flex1, styles.justifyContentBetween]}>
             <HeaderWithCloseButton
@@ -130,7 +107,6 @@ const EnableStep = (props) => {
     );
 };
 
-EnableStep.defaultProps = defaultProps;
 EnableStep.displayName = 'EnableStep';
 EnableStep.propTypes = propTypes;
 
