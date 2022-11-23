@@ -365,9 +365,9 @@ const styles = {
     buttonSmall: {
         borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeSmall,
-        paddingTop: 6,
+        paddingTop: 10,
         paddingHorizontal: 14,
-        paddingBottom: 6,
+        paddingBottom: 10,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
@@ -375,9 +375,9 @@ const styles = {
         borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeNormal,
         paddingTop: 6,
-        paddingRight: 12,
+        paddingRight: 16,
         paddingBottom: 6,
-        paddingLeft: 12,
+        paddingLeft: 16,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
@@ -385,9 +385,9 @@ const styles = {
         borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeLarge,
         paddingTop: 8,
-        paddingRight: 14,
+        paddingRight: 18,
         paddingBottom: 8,
-        paddingLeft: 14,
+        paddingLeft: 18,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
