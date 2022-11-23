@@ -339,12 +339,12 @@ const styles = {
     },
 
     borderRadiusNormal: {
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
     },
 
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeLarge,
         justifyContent: 'center',
         ...spacing.ph3,
@@ -363,32 +363,31 @@ const styles = {
     },
 
     buttonSmall: {
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeSmall,
-        paddingTop: 6,
-        paddingRight: 10,
-        paddingBottom: 6,
-        paddingLeft: 10,
+        paddingTop: 10,
+        paddingHorizontal: 14,
+        paddingBottom: 10,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
     buttonMedium: {
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeNormal,
         paddingTop: 6,
-        paddingRight: 12,
+        paddingRight: 16,
         paddingBottom: 6,
-        paddingLeft: 12,
+        paddingLeft: 16,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
     buttonLarge: {
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeLarge,
         paddingTop: 8,
-        paddingRight: 14,
+        paddingRight: 18,
         paddingBottom: 8,
-        paddingLeft: 14,
+        paddingLeft: 18,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
@@ -612,7 +611,7 @@ const styles = {
 
     border: {
         borderWidth: 1,
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
         borderColor: themeColors.border,
     },
 
@@ -2685,6 +2684,7 @@ const styles = {
     errorPageContainer: {
         backgroundColor: themeColors.componentBG,
     },
+
     transferBalancePayment: {
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
