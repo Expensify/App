@@ -247,6 +247,9 @@ class Form extends React.Component {
                     contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
                     ref={el => this.form = el}
+                    onLayout={(event) => {
+                        this.inputPosition = event.nativeEvent.layout.y + 1;
+                    }}
                 >
                     <View style={[this.props.style]}>
                         {this.childrenWrapperWithProps(this.props.children)}
@@ -262,7 +265,7 @@ class Form extends React.Component {
                                 const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
                                 this.inputRefs[focusKey].focus();
                                 this.inputRefs[focusKey].measure((fx, fy, width, height, px, py) => {
-                                    this.form.scrollTo({y: py, animated: false});
+                                    this.form.scrollTo({y: py-this.inputPosition, animated: false});
                                 })
                             }}
                             containerStyles={[styles.mh0, styles.mt5]}
