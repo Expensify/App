@@ -12,7 +12,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import compose from '../../libs/compose';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 import TextInput from '../../components/TextInput';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as LoginUtils from '../../libs/LoginUtils';
@@ -24,6 +23,7 @@ import networkPropTypes from '../../components/networkPropTypes';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import * as CloseAccount from '../../libs/actions/CloseAccount';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -177,7 +177,7 @@ class LoginForm extends React.Component {
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
                         autoCorrect={false}
-                        keyboardType={getEmailKeyboardType()}
+                        keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
                     />
                 </View>
                 {!_.isEmpty(this.props.account.success) && (
@@ -217,7 +217,7 @@ LoginForm.defaultProps = defaultProps;
 export default compose(
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
-        closeAccount: {key: ONYXKEYS.CLOSE_ACCOUNT},
+        closeAccount: {key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM},
     }),
     withWindowDimensions,
     withLocalize,

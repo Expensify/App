@@ -13,7 +13,6 @@ import HapticFeedback from '../libs/HapticFeedback';
 import withNavigationFallback from './withNavigationFallback';
 import compose from '../libs/compose';
 import * as Expensicons from './Icon/Expensicons';
-import colors from '../styles/colors';
 import withNavigationFocus from './withNavigationFocus';
 
 const propTypes = {
@@ -116,7 +115,7 @@ const defaultProps = {
     shouldShowRightIcon: false,
     icon: null,
     iconRight: Expensicons.ArrowRight,
-    iconFill: colors.white,
+    iconFill: themeColors.textLight,
     iconStyles: [],
     isLoading: false,
     isDisabled: false,
@@ -286,7 +285,7 @@ class Button extends Component {
                             {this.renderContent()}
                             {this.props.isLoading && (
                                 <ActivityIndicator
-                                    color={(this.props.success || this.props.danger) ? themeColors.textReversed : themeColors.text}
+                                    color={(this.props.success || this.props.danger) ? themeColors.textLight : themeColors.text}
                                     style={[styles.pAbsolute, styles.l0, styles.r0]}
                                 />
                             )}
