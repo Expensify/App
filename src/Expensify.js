@@ -99,6 +99,12 @@ class Expensify extends PureComponent {
             isSplashShown: true,
         };
 
+        // Force offline mode on staging or dev if needed
+        if (_.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.DEV], this.props.environment)) {
+            // network.isOffline is always initialized to false, so set its value based on shouldForceOffline
+            Network.setIsOffline(this.props.network.shouldForceOffline);
+        }
+
         // Used for the offline indicator appearing when someone is offline
         NetworkConnection.subscribeToNetInfo();
     }
@@ -116,11 +122,6 @@ class Expensify extends PureComponent {
                 // In case of a crash that led to disconnection, we want to remove all the push notifications.
                 if (!this.isAuthenticated()) {
                     PushNotification.clearNotifications();
-                }
-
-                // Force offline mode on staging or dev if needed
-                if (_.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.DEV], this.props.environment)) {
-                    Network.setIsOffline(this.props.network.shouldForceOffline);
                 }
 
                 this.setState({isOnyxMigrated: true});
