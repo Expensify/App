@@ -309,7 +309,6 @@ class WorkspaceMembersPage extends React.Component {
             data.push({
                 ...policyMember,
                 ...details,
-                pendingDelete,
             });
         });
         data = _.sortBy(data, value => value.displayName.toLowerCase());
