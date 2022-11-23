@@ -108,6 +108,7 @@ export default {
         maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
         youAppearToBeOffline: 'You appear to be offline.',
         thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
+        zipCodeExample: 'e.g. 12345, 12345-1234, 12345 1234',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',

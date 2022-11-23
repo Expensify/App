@@ -164,6 +164,7 @@ class DebitCardPage extends Component {
                                 label={this.props.translate('common.zip')}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
+                                hint={this.props.translate('common.zipCodeExample')}
                             />
                         </View>
                         <View style={[styles.flex1]}>
