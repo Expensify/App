@@ -192,12 +192,12 @@ const IOUPreview = (props) => {
                                     && !props.shouldHidePayButton
                                     && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
                                     <TouchableOpacity
-                                        style={[styles.buttonSmall, styles.buttonSuccess, styles.mt4]}
+                                        style={[styles.buttonMedium, styles.buttonSuccess, styles.mt4]}
                                         onPress={props.onPayButtonPressed}
                                     >
                                         <Text
                                             style={[
-                                                styles.buttonSmallText,
+                                                styles.buttonMediumText,
                                                 styles.buttonSuccessText,
                                             ]}
                                         >
