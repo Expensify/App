@@ -256,7 +256,7 @@ class WorkspaceMembersPage extends React.Component {
                 <Hoverable onHoverIn={() => this.willTooltipShowForLogin(item.login, true)} onHoverOut={() => this.setState({showTooltipForLogin: ''})}>
                     <TouchableOpacity
                         style={[styles.peopleRow, !item.errors && styles.peopleRowBorderBottom, !canBeRemoved && styles.cursorDisabled]}
-                        onPress={() => item.pendingDelete === false && this.toggleUser(item.login)}
+                        onPress={() => this.toggleUser(item.login, item.pendingAction)}
                         activeOpacity={0.7}
                     >
                         <CheckboxWithTooltip
