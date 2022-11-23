@@ -152,9 +152,11 @@ class WorkspaceMembersPage extends React.Component {
      * Toggle user from the selectedEmployees list
      *
      * @param {String} login
+     * @param {String} pendingAction
+     *
      */
-    toggleUser(login) {
-        if (this.willTooltipShowForLogin(login)) {
+    toggleUser(login, pendingAction) {
+        if (this.willTooltipShowForLogin(login) || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
 
@@ -250,7 +252,7 @@ class WorkspaceMembersPage extends React.Component {
     renderItem({
         item,
     }) {
-        const canBeRemoved = this.props.policy.owner !== item.login && this.props.session.email !== item.login;
+        const canBeRemoved = this.props.policy.owner !== item.login && this.props.session.email !== item.login && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         return (
             <OfflineWithFeedback errorRowStyles={[styles.peopleRowBorderBottom]} onClose={() => this.dismissError(item)} pendingAction={item.pendingAction} errors={item.errors}>
                 <Hoverable onHoverIn={() => this.willTooltipShowForLogin(item.login, true)} onHoverOut={() => this.setState({showTooltipForLogin: ''})}>
@@ -313,6 +315,7 @@ class WorkspaceMembersPage extends React.Component {
         data = _.sortBy(data, value => value.displayName.toLowerCase());
         const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyName = lodashGet(this.props.policy, 'name');
+
         return (
             <ScreenWrapper style={[styles.defaultModalContainer]}>
                 <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)}>
