@@ -79,6 +79,7 @@ class Form extends React.Component {
 
         this.inputRefs = {};
         this.touchedInputs = {};
+        this.inputPositions = {};
 
         this.setTouchedInput = this.setTouchedInput.bind(this);
         this.validate = this.validate.bind(this);
@@ -217,6 +218,9 @@ class Form extends React.Component {
                     this.setTouchedInput(inputID);
                     this.validate(this.state.inputValues);
                 },
+                onLayout: (event) => {
+                    this.inputPositions[inputID] = event.nativeEvent.layout.y;
+                },
                 onInputChange: (value, key) => {
                     const inputKey = key || inputID;
                     this.setState(prevState => ({
@@ -245,6 +249,7 @@ class Form extends React.Component {
                     style={[styles.w100, styles.flex1]}
                     contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
+                    ref={el => this.form = el}
                 >
                     <View style={[this.props.style]}>
                         {this.childrenWrapperWithProps(this.props.children)}
@@ -259,6 +264,7 @@ class Form extends React.Component {
                                 const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
                                 const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
                                 this.inputRefs[focusKey].focus();
+                                this.form.scrollTo({y: this.inputPositions[focusKey], animated: true});
                             }}
                             containerStyles={[styles.mh0, styles.mt5]}
                             enabledWhenOffline={this.props.enabledWhenOffline}
