@@ -51,36 +51,6 @@ function cleanLocalReimbursementData(bankAccounts) {
     }
 }
 
-/**
- * Calls the API to get the user's bankAccountList, cardList, wallet, and payPalMe
- *
- * @returns {Promise}
- */
-function getPaymentMethods() {
-    Onyx.set(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, true);
-    return DeprecatedAPI.Get({
-        returnValueList: 'bankAccountList, fundList, userWallet, nameValuePairs',
-        name: 'paypalMeAddress',
-        includeDeleted: false,
-        includeNotIssued: false,
-        excludeNotActivated: true,
-    })
-        .then((response) => {
-            // Convert bank accounts/cards from an array of objects, to a map with the bankAccountID as the key
-            const bankAccounts = _.object(_.map(lodashGet(response, 'bankAccountList', []), bankAccount => [bankAccount.bankAccountID, bankAccount]));
-            const debitCards = _.object(_.map(lodashGet(response, 'fundList', []), fund => [fund.fundID, fund]));
-            cleanLocalReimbursementData(bankAccounts);
-            Onyx.multiSet({
-                [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: false,
-                [ONYXKEYS.USER_WALLET]: lodashGet(response, 'userWallet', {}),
-                [ONYXKEYS.BANK_ACCOUNT_LIST]: bankAccounts,
-                [ONYXKEYS.CARD_LIST]: debitCards,
-                [ONYXKEYS.NVP_PAYPAL_ME_ADDRESS]:
-                    lodashGet(response, ['nameValuePairs', CONST.NVP.PAYPAL_ME_ADDRESS], ''),
-            });
-        });
-}
-
 function openPaymentsPage() {
     const onyxData = {
         optimisticData: [
@@ -379,7 +349,6 @@ function deletePaymentCard(fundID) {
 export {
     deletePayPalMe,
     deletePaymentCard,
-    getPaymentMethods,
     addPaymentCard,
     openPaymentsPage,
     makeDefaultPaymentMethod,
