@@ -22,9 +22,12 @@ let currentIsOffline;
 let currentShouldForceOffline;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
-    callback: (val) => {
-        currentIsOffline = val.isOffline;
-        currentShouldForceOffline = Boolean(val.shouldForceOffline);
+    callback: (network) => {
+        if (!network) {
+            return;
+        }
+        currentIsOffline = network.isOffline;
+        currentShouldForceOffline = Boolean(network.shouldForceOffline);
     },
 });
 

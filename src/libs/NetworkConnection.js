@@ -11,8 +11,12 @@ import ONYXKEYS from '../ONYXKEYS';
 let shouldForceOffline;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
-    waitForCollectionCallback: true,
-    callback: val => shouldForceOffline = Boolean(val.shouldForceOffline),
+    callback: (network) => {
+        if (!network) {
+            return;
+        }
+        shouldForceOffline = Boolean(network.shouldForceOffline);
+    },
 });
 
 let isOffline = false;
