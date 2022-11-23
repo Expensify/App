@@ -9,6 +9,7 @@ import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as Expensicons from './Icon/Expensicons';
 import getAvatarDefaultSource from '../libs/getAvatarDefaultSource';
+import styles from '../styles/styles';
 
 const propTypes = {
     /** Source for the avatar. Can be a URL or an icon. */
