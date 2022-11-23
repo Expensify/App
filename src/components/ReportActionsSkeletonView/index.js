@@ -38,5 +38,4 @@ const ReportActionsSkeletonView = (props) => {
 ReportActionsSkeletonView.displayName = 'ReportActionsSkeletonView';
 ReportActionsSkeletonView.propTypes = propTypes;
 ReportActionsSkeletonView.defaultProps = defaultProps;
-
 export default ReportActionsSkeletonView;
