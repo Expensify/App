@@ -13,12 +13,15 @@ const propTypes = {
 
     onDragOver: DragAndDropPropTypes.onDragOver,
 
+    shouldAcceptDrop: PropTypes.func,
+
     /** Rendered child component */
     children: PropTypes.node.isRequired,
 };
 
 const defaultProps = {
     onDragOver: () => {},
+    shouldAcceptDrop: () => true,
 };
 
 export default class DragAndDrop extends React.Component {
@@ -134,7 +137,8 @@ export default class DragAndDrop extends React.Component {
      */
     dropZoneDragListener(event) {
         event.preventDefault();
-        if (this.dropZone.contains(event.target)) {
+
+        if (this.dropZone.contains(event.target) && this.props.shouldAcceptDrop(event)) {
             this.dropZoneDragHandler(event);
         } else {
             // eslint-disable-next-line no-param-reassign
