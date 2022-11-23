@@ -256,22 +256,22 @@ class WorkspaceMembersPage extends React.Component {
                 <Hoverable onHoverIn={() => this.willTooltipShowForLogin(item.login, true)} onHoverOut={() => this.setState({showTooltipForLogin: ''})}>
                     <TouchableOpacity
                         style={[styles.peopleRow, !item.errors && styles.peopleRowBorderBottom, !canBeRemoved && styles.cursorDisabled]}
-                        onPress={() => this.toggleUser(item.login)}
+                        onPress={() => item.pendingDelete === false && this.toggleUser(item.login)}
                         activeOpacity={0.7}
                     >
                         <CheckboxWithTooltip
                             style={[styles.peopleRowCell]}
                             isChecked={_.contains(this.state.selectedEmployees, item.login) && item.pendingDelete === false}
-                            disabled={!canBeRemoved}
-                            onPress={() => this.toggleUser(item.login)}
+                            disabled={!canBeRemoved || item.pendingDelete === true}
+                            onPress={() => item.pendingDelete === false && this.toggleUser(item.login)}
                             toggleTooltip={this.state.showTooltipForLogin === item.login}
                             text={this.props.translate('workspace.people.error.cannotRemove')}
                         />
                         <View style={styles.flex1}>
                             <OptionRow
-                                onSelectRow={() => this.toggleUser(item.login)}
+                                onSelectRow={() => item.pendingDelete === false && this.toggleUser(item.login)}
                                 forceTextUnreadStyle
-                                isDisabled={!canBeRemoved}
+                                isDisabled={!canBeRemoved || item.pendingDelete === true}
                                 option={{
                                     text: Str.removeSMSDomain(item.displayName),
                                     alternateText: Str.removeSMSDomain(item.login),
@@ -315,6 +315,8 @@ class WorkspaceMembersPage extends React.Component {
         data = _.sortBy(data, value => value.displayName.toLowerCase());
         const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyName = lodashGet(this.props.policy, 'name');
+
+        console.log(this.state.selectedEmployees);
 
         return (
             <ScreenWrapper style={[styles.defaultModalContainer]}>
