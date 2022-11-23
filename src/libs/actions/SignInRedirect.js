@@ -24,7 +24,7 @@ Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (val) => {
         currentIsOffline = val.isOffline;
-        currentShouldForceOffline = val.shouldForceOffline || false;
+        currentShouldForceOffline = Boolean(val.shouldForceOffline);
     },
 });
 

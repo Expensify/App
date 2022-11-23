@@ -20,7 +20,7 @@ Onyx.connect({
         if (!network) {
             return;
         }
-        shouldFailAllRequests = _.isBoolean(network.shouldFailAllRequests) ? network.shouldFailAllRequests : false;
+        shouldFailAllRequests = Boolean(network.shouldFailAllRequests);
         shouldForceOffline = Boolean(network.shouldForceOffline);
     },
 });
