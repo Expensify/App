@@ -58,8 +58,9 @@ class Avatar extends PureComponent {
             ...this.props.imageStyles,
         ];
         const iconStyle = [
-            ...imageStyle,
-            {backgroundColor: ''},
+            StyleUtils.getAvatarStyle(this.props.size),
+            styles.bgTransparent,
+            ...this.props.imageStyles,
         ];
         const iconSize = StyleUtils.getAvatarSize(this.props.size);
 
