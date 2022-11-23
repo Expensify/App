@@ -261,7 +261,7 @@ class WorkspaceMembersPage extends React.Component {
                     >
                         <CheckboxWithTooltip
                             style={[styles.peopleRowCell]}
-                            isChecked={_.contains(this.state.selectedEmployees, item.login) && item.pendingDelete === false}
+                            isChecked={_.contains(this.state.selectedEmployees, item.login)}
                             disabled={!canBeRemoved || item.pendingDelete === true}
                             onPress={() => item.pendingDelete === false && this.toggleUser(item.login)}
                             toggleTooltip={this.state.showTooltipForLogin === item.login}
