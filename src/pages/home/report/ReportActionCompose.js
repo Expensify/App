@@ -600,7 +600,7 @@ class ReportActionCompose extends React.Component {
                                                         underlayColor={themeColors.componentBG}
                                                         disabled={isBlockedFromConcierge}
                                                     >
-                                                        <Icon src={Expensicons.Plus} />
+                                                        <Icon src={Expensicons.Plus} fill={themeColors.textLight} />
                                                     </TouchableOpacity>
                                                 </Tooltip>
                                             </View>
@@ -690,10 +690,7 @@ class ReportActionCompose extends React.Component {
                     <View style={[styles.justifyContentEnd]}>
                         <Tooltip text={this.props.translate('common.send')}>
                             <TouchableOpacity
-                                style={[
-                                    styles.chatItemSubmitButton,
-                                    (this.state.isCommentEmpty || hasExceededMaxCommentLength) ? styles.buttonDisable : styles.buttonSuccess,
-                                ]}
+                                style={styles.chatItemSubmitButton}
                                 onPress={this.submitForm}
                                 underlayColor={themeColors.componentBG}
 
