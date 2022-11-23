@@ -315,9 +315,6 @@ class WorkspaceMembersPage extends React.Component {
         data = _.sortBy(data, value => value.displayName.toLowerCase());
         const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyName = lodashGet(this.props.policy, 'name');
-
-        console.log(this.state.selectedEmployees);
-
         return (
             <ScreenWrapper style={[styles.defaultModalContainer]}>
                 <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)}>
