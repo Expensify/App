@@ -271,7 +271,7 @@ class WorkspaceMembersPage extends React.Component {
                             <OptionRow
                                 onSelectRow={() => item.pendingDelete === false && this.toggleUser(item.login)}
                                 forceTextUnreadStyle
-                                isDisabled={!canBeRemoved || item.pendingDelete === true}
+                                isDisabled={!canBeRemoved}
                                 option={{
                                     text: Str.removeSMSDomain(item.displayName),
                                     alternateText: Str.removeSMSDomain(item.login),
