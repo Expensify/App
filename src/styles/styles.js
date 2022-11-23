@@ -365,9 +365,9 @@ const styles = {
     buttonSmall: {
         borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeSmall,
-        paddingTop: 10,
+        paddingTop: 4,
         paddingHorizontal: 14,
-        paddingBottom: 10,
+        paddingBottom: 4,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
