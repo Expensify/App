@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import NetInfo from '@react-native-community/netinfo';
 import ONYXKEYS from '../../ONYXKEYS';
 
 /**
@@ -13,7 +14,14 @@ function setIsOffline(isOffline) {
  * @param {Boolean} shouldForceOffline
  */
 function setShouldForceOffline(shouldForceOffline) {
-    Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline, isOffline: shouldForceOffline});
+    if (shouldForceOffline) {
+        Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline, isOffline: shouldForceOffline});
+    } else {
+        Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline});
+
+        // If we are no longer forcing offline, refresh the NetInfo to trigger a state change which will set isOffline appropriately
+        NetInfo.refresh();
+    }
 }
 
 /**
