@@ -7,7 +7,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import onfidoPropTypes from './onfidoPropTypes';
 import CONST from '../../CONST';
 import variables from '../../styles/variables';
-import colors from '../../styles/colors';
+import themeColors from '../../styles/themes/default';
 import fontWeightBold from '../../styles/fontWeight/bold';
 import fontFamily from '../../styles/fontFamily';
 import Log from '../../libs/Log';
@@ -30,29 +30,29 @@ class Onfido extends React.Component {
                 fontWeightTitle: fontWeightBold,
                 fontWeightSubtitle: 400,
                 fontSizeSubtitle: `${variables.fontSizeNormal}px`,
-                colorContentTitle: colors.dark,
-                colorContentSubtitle: colors.dark,
-                colorContentBody: colors.dark,
-                borderRadiusButton: `${variables.componentBorderRadius}px`,
-                colorBackgroundSurfaceModal: colors.white,
-                colorBorderDocTypeButton: colors.gray2,
-                colorBorderDocTypeButtonHover: colors.blue,
-                colorBackgroundButtonPrimary: colors.green,
-                colorBackgroundButtonPrimaryHover: colors.greenHover,
-                colorBackgroundButtonPrimaryActive: colors.greenHover,
-                colorBorderButtonPrimary: colors.green,
-                colorContentButtonSecondaryText: colors.dark,
-                colorBackgroundButtonSecondary: colors.gray2,
-                colorBackgroundButtonSecondaryHover: colors.gray3,
-                colorBackgroundButtonSecondaryActive: colors.gray3,
-                colorBorderButtonSecondary: colors.gray2,
-                colorBackgroundIcon: colors.white,
-                colorContentLinkTextHover: colors.white,
-                colorBorderLinkUnderline: colors.blue,
-                colorBackgroundLinkHover: colors.blue,
-                colorBackgroundLinkActive: colors.blue,
-                authAccentColor: colors.blue,
-                colorBackgroundInfoPill: colors.blue,
+                colorContentTitle: themeColors.text,
+                colorContentSubtitle: themeColors.text,
+                colorContentBody: themeColors.text,
+                borderRadiusButton: `${variables.buttonBorderRadius}px`,
+                colorBackgroundSurfaceModal: themeColors.appBG,
+                colorBorderDocTypeButton: themeColors.border,
+                colorBorderDocTypeButtonHover: themeColors.link,
+                colorBackgroundButtonPrimary: themeColors.success,
+                colorBackgroundButtonPrimaryHover: themeColors.successHover,
+                colorBackgroundButtonPrimaryActive: themeColors.successHover,
+                colorBorderButtonPrimary: themeColors.success,
+                colorContentButtonSecondaryText: themeColors.text,
+                colorBackgroundButtonSecondary: themeColors.border,
+                colorBackgroundButtonSecondaryHover: themeColors.icon,
+                colorBackgroundButtonSecondaryActive: themeColors.icon,
+                colorBorderButtonSecondary: themeColors.border,
+                colorBackgroundIcon: themeColors.appBG,
+                colorContentLinkTextHover: themeColors.appBG,
+                colorBorderLinkUnderline: themeColors.link,
+                colorBackgroundLinkHover: themeColors.link,
+                colorBackgroundLinkActive: themeColors.link,
+                authAccentColor: themeColors.link,
+                colorBackgroundInfoPill: themeColors.link,
             },
             steps: [
                 {

@@ -153,13 +153,9 @@ class ReportScreen extends React.Component {
     isReportReadyForDisplay() {
         const reportIDFromPath = getReportID(this.props.route);
 
-        // We need to wait for the initial app data to load as it tells us which reports are unread. Waiting will allow the new marker to be set
-        // correctly when the report mounts. If we don't do this, the report may initialize in the "read" state and the marker won't be set at all.
-        const isLoadingInitialAppData = this.props.isLoadingInitialAppData;
-
         // This is necessary so that when we are retrieving the next report data from Onyx the ReportActionsView will remount completely
         const isTransitioning = this.props.report && this.props.report.reportID !== reportIDFromPath;
-        return reportIDFromPath && this.props.report.reportID && !isTransitioning && !isLoadingInitialAppData;
+        return reportIDFromPath && this.props.report.reportID && !isTransitioning;
     }
 
     fetchReportIfNeeded() {
@@ -220,15 +216,23 @@ class ReportScreen extends React.Component {
 
         // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
+
+        // When the ReportScreen is not open/in the viewport, we want to "freeze" it for performance reasons
+        const freeze = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
+
+        // the moment the ReportScreen becomes unfrozen we want to start the animation of the placeholder skeleton content
+        // (which is shown, until all the actual views of the ReportScreen have been rendered)
+        const animatePlaceholder = !freeze;
+
         return (
             <Freeze
-                freeze={this.props.isSmallScreenWidth && this.props.isDrawerOpen}
+                freeze={freeze}
                 placeholder={(
                     <ScreenWrapper
                         style={screenWrapperStyle}
                     >
-                        <ReportHeaderSkeletonView />
-                        <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
+                        <ReportHeaderSkeletonView animate={animatePlaceholder} />
+                        <ReportActionsSkeletonView animate={animatePlaceholder} containerHeight={this.state.skeletonViewContainerHeight} />
                     </ScreenWrapper>
                 )}
             >
@@ -283,15 +287,26 @@ class ReportScreen extends React.Component {
                                 this.setState({skeletonViewContainerHeight});
                             }}
                         >
-                            {this.isReportReadyForDisplay() && (
-                                <ReportActionsView
-                                    reportActions={this.props.reportActions}
-                                    report={this.props.report}
-                                    session={this.props.session}
-                                    isComposerFullSize={this.props.isComposerFullSize}
-                                    isDrawerOpen={this.props.isDrawerOpen}
-                                    parentViewHeight={this.state.skeletonViewContainerHeight}
-                                />
+                            {(this.isReportReadyForDisplay() && !isLoadingInitialReportActions) && (
+                                <>
+                                    <ReportActionsView
+                                        reportActions={this.props.reportActions}
+                                        report={this.props.report}
+                                        session={this.props.session}
+                                        isComposerFullSize={this.props.isComposerFullSize}
+                                        isDrawerOpen={this.props.isDrawerOpen}
+                                        parentViewHeight={this.state.skeletonViewContainerHeight}
+                                    />
+                                    <ReportFooter
+                                        errors={addWorkspaceRoomOrChatErrors}
+                                        pendingAction={addWorkspaceRoomOrChatPendingAction}
+                                        isOffline={this.props.network.isOffline}
+                                        reportActions={this.props.reportActions}
+                                        report={this.props.report}
+                                        isComposerFullSize={this.props.isComposerFullSize}
+                                        onSubmitComment={this.onSubmitComment}
+                                    />
+                                </>
                             )}
 
                             {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
@@ -299,17 +314,6 @@ class ReportScreen extends React.Component {
                             {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions) && (
                                 <ReportActionsSkeletonView
                                     containerHeight={this.state.skeletonViewContainerHeight}
-                                />
-                            )}
-                            {this.isReportReadyForDisplay() && !isLoadingInitialReportActions && (
-                                <ReportFooter
-                                    errors={addWorkspaceRoomOrChatErrors}
-                                    pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                    isOffline={this.props.network.isOffline}
-                                    reportActions={this.props.reportActions}
-                                    report={this.props.report}
-                                    isComposerFullSize={this.props.isComposerFullSize}
-                                    onSubmitComment={this.onSubmitComment}
                                 />
                             )}
                         </View>
@@ -356,9 +360,6 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        isLoadingInitialAppData: {
-            key: ONYXKEYS.IS_LOADING_INITIAL_APP_DATA,
         },
     }),
 )(ReportScreen);
