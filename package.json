@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.2.29-7",
+  "version": "1.2.30-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -85,7 +85,7 @@
     "react-collapse": "^5.1.0",
     "react-content-loader": "^6.1.0",
     "react-dom": "18.1.0",
-    "react-native": "npm:@expensify/react-native@0.70.4-alpha.1",
+    "react-native": "npm:@expensify/react-native@0.70.4-alpha.2",
     "react-native-blob-util": "^0.16.2",
     "react-native-collapsible": "^1.6.0",
     "react-native-config": "^1.4.5",
