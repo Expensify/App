@@ -1,52 +1,40 @@
-import React from 'react';
-import {withOnyx} from 'react-native-onyx';
-import compose from '../../../../libs/compose';
-import withWindowDimensions from '../../../../components/withWindowDimensions';
-import withLocalize from '../../../../components/withLocalize';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import {sidebarPropTypes, sidebarDefaultProps} from './sidebarPropTypes';
+import React, {useRef} from 'react';
+import sidebarPropTypes from './sidebarPropTypes';
 import BaseSidebarScreen from './BaseSidebarScreen';
+import FloatingActionButtonAndPopover from './FloatingActionButtonAndPopover';
 
 const SidebarScreen = (props) => {
-    let baseSidebarScreen = null;
+    const popoverModal = useRef(null);
 
     /**
      * Method create event listener
      */
     const createDragoverListener = () => {
-        document.addEventListener('dragover', baseSidebarScreen.hideCreateMenu);
+        document.addEventListener('dragover', popoverModal.current.hideCreateMenu);
     };
 
     /**
      * Method remove event listener.
      */
     const removeDragoverListener = () => {
-        document.removeEventListener('dragover', baseSidebarScreen.hideCreateMenu);
+        document.removeEventListener('dragover', popoverModal.current.hideCreateMenu);
     };
+
     return (
         <BaseSidebarScreen
-            ref={el => baseSidebarScreen = el}
-            onShowCreateMenu={createDragoverListener}
-            onHideCreateMenu={removeDragoverListener}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-        />
+        >
+            <FloatingActionButtonAndPopover
+                ref={popoverModal}
+                onShowCreateMenu={createDragoverListener}
+                onHideCreateMenu={removeDragoverListener}
+            />
+        </BaseSidebarScreen>
     );
 };
 
 SidebarScreen.propTypes = sidebarPropTypes;
-SidebarScreen.defaultProps = sidebarDefaultProps;
 SidebarScreen.displayName = 'SidebarScreen';
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-    withOnyx({
-        allPolicies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-    }),
-)(SidebarScreen);
+export default SidebarScreen;
