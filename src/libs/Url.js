@@ -1,3 +1,5 @@
+import {URL_WEBSITE_REGEX} from 'expensify-common/lib/Url';
+
 /**
  * Add / to the end of any URL if not present
  * @param {String} url
@@ -16,19 +18,23 @@ function addTrailingForwardSlash(url) {
  * @returns {Object}
  */
 function getURLObject(href) {
-    const urlRegex = new RegExp([
-        '^(https?:)//', // protocol
-        '(([^:/?#]*)(?::([0-9]+))?)', // host (hostname and port)
-        '([^]*)', // pathname
-    ].join(''));
-    const match = href.match(urlRegex) || [];
+    const urlRegex = new RegExp(URL_WEBSITE_REGEX, 'gi');
+    const match = urlRegex.exec(href);
+    if (!match) {
+        return {
+            href: undefined,
+            protocol: undefined,
+            hostname: undefined,
+            path: undefined,
+        };
+    }
+    const baseUrl = match[0];
+    const protocol = match[1];
     return {
-        href: match[0],
-        protocol: match[1],
-        host: match[2],
-        hostname: match[3],
-        port: match[4],
-        path: match[5],
+        href,
+        protocol,
+        hostname: baseUrl.replace(protocol, ''),
+        path: href.startsWith(baseUrl) ? href.replace(baseUrl, '') : '',
     };
 }
 
@@ -41,9 +47,6 @@ function getURLObject(href) {
 function hasSameOrigin(url1, url2) {
     const host1 = getURLObject(url1).hostname;
     const host2 = getURLObject(url2).hostname;
-    if (host1 === host2) {
-        return true;
-    }
     if (!host1 || !host2) {
         return false;
     }
