@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import * as Report from '../../libs/actions/Report';
@@ -188,28 +189,30 @@ class ValidationStep extends React.Component {
                     <View style={[styles.flex1]}>
                         <Section
                             title={this.props.translate('workspace.bankAccount.letsFinishInChat')}
-                            icon={Illustrations.ConciergeBlue}
+                            icon={Illustrations.ConciergeBubble}
                         >
                             <Text>
                                 {this.props.translate('validationStep.letsChatText')}
                             </Text>
+                            <Button
+                                text={this.props.translate('validationStep.letsChatCTA')}
+                                onPress={Report.navigateToConciergeChat}
+                                icon={Expensicons.ChatBubble}
+                                style={[styles.mt4]}
+                                iconStyles={[styles.buttonCTAIcon]}
+                                shouldShowRightIcon
+                                large
+                                success
+                            />
+                            <MenuItem
+                                title={this.props.translate('workspace.bankAccount.noLetsStartOver')}
+                                icon={Expensicons.RotateLeft}
+                                onPress={BankAccounts.requestResetFreePlanBankAccount}
+                                shouldShowRightIcon
+                                iconFill={themeColors.success}
+                                wrapperStyle={[styles.cardMenuItem, styles.mv3]}
+                            />
                         </Section>
-                        <Button
-                            text={this.props.translate('validationStep.letsChatCTA')}
-                            onPress={Report.navigateToConciergeChat}
-                            icon={Expensicons.ChatBubble}
-                            style={[styles.mt4, styles.buttonCTA]}
-                            iconStyles={[styles.buttonCTAIcon]}
-                            shouldShowRightIcon
-                            large
-                            success
-                        />
-                        <MenuItem
-                            title={this.props.translate('workspace.bankAccount.noLetsStartOver')}
-                            icon={Expensicons.RotateLeft}
-                            onPress={BankAccounts.requestResetFreePlanBankAccount}
-                            shouldShowRightIcon
-                        />
                     </View>
                 )}
             </View>
