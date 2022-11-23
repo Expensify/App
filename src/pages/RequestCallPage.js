@@ -265,10 +265,10 @@ class RequestCallPage extends Component {
                         >
                             <Section
                                 title={this.props.translate('requestCallPage.subtitle')}
-                                icon={Illustrations.ConciergeExclamation}
-                                containerStyles={[styles.p0]}
+                                icon={Illustrations.ConciergeBubble}
+                                containerStyles={[styles.callRequestSection]}
                             >
-                                <Text>
+                                <Text style={[styles.mv3]}>
                                     {this.props.translate('requestCallPage.description')}
                                 </Text>
                             </Section>

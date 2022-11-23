@@ -2784,6 +2784,30 @@ const styles = {
         fontSize: variables.fontSizeSmall,
         ...spacing.ph2,
     },
+
+    cardSection: {
+        backgroundColor: themeColors.cardBG,
+        borderRadius: variables.componentBorderRadiusCard,
+        marginBottom: 20,
+        marginHorizontal: 16,
+        padding: 20,
+        width: 'auto',
+        textAlign: 'left',
+    },
+
+    cardMenuItem: {
+        paddingHorizontal: 0,
+        borderRadius: variables.componentBorderRadiusNormal,
+        paddingVertical: 12,
+    },
+
+    callRequestSection: {
+        backgroundColor: themeColors.appBG,
+        paddingHorizontal: 0,
+        paddingBottom: 0,
+        marginHorizontal: 0,
+        marginBottom: 0,
+    },
 };
 
 export default styles;
