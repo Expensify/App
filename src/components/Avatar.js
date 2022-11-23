@@ -57,14 +57,17 @@ class Avatar extends PureComponent {
             StyleUtils.getAvatarStyle(this.props.size),
             ...this.props.imageStyles,
         ];
-
+        const iconStyle = [
+            ...imageStyle,
+            {backgroundColor: ''},
+        ];
         const iconSize = StyleUtils.getAvatarSize(this.props.size);
 
         return (
             <View pointerEvents="none" style={this.props.containerStyles}>
                 {_.isFunction(this.props.source) || this.state.imageError
                     ? (
-                        <View style={[...imageStyle, {backgroundColor: ''}]}>
+                        <View style={iconStyle}>
                             <Icon
                                 src={this.state.imageError ? this.props.fallbackIcon : this.props.source}
                                 height={iconSize}
