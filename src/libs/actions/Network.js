@@ -19,8 +19,9 @@ function setShouldForceOffline(shouldForceOffline) {
     } else {
         Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline});
 
-        // If we are no longer forcing offline, refresh the NetInfo to trigger a state change which will set isOffline appropriately
-        NetInfo.refresh();
+        // If we are no longer forcing offline fetch the NetInfo to set isOffline appropriately
+        NetInfo.fetch()
+            .then(state => setIsOffline(state.isInternetReachable === false));
     }
 }
 
