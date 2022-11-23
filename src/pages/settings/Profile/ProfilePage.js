@@ -112,6 +112,8 @@ class ProfilePage extends Component {
         this.setState({hasSelfSelectedPronouns});
     }
 
+
+
     /**
      * Update the timezone picker's value to guessed timezone
      * @param {Boolean} isAutomaticTimezone
