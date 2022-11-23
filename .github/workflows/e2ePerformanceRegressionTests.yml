@@ -7,10 +7,14 @@ on:
 jobs:
   e2e-tests:
     if: ${{ github.event.label.name == 'e2e' }}
-    name: "Run e2e performance regression tests"
+    name: 'Run e2e performance regression tests'
     # Although the tests will run on an android emulator, using macOS as its more performant
     runs-on: macos-12
     steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        with:
+          fetch-depth: 0
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
@@ -43,7 +47,7 @@ jobs:
           disable-animations: false
           script: echo "Generated AVD snapshot for caching."
 
-#     Note: if the android build fails the logs can be incomplete. It can help to run the build once manually to get a full log
+      #     Note: if the android build fails the logs can be incomplete. It can help to run the build once manually to get a full log
       - name: Preheat build system
         env:
           JAVA_HOME: ${{ env.JAVA_HOME_11_X64 }}
@@ -76,4 +80,3 @@ jobs:
           name: test-failure-logs
           path: e2e/.results
           retention-days: 5
-
