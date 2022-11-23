@@ -49,6 +49,7 @@ const darkTheme = {
     modalBackdrop: colors.greenIcons,
     modalBackground: colors.greenBorders,
     cardBG: colors.greenHighlightBackground,
+    cardBorder: colors.greenHighlightBackground,
     spinner: colors.greenSupportingText,
     unreadIndicator: colors.green,
     placeholderText: colors.greenIcons,
@@ -96,6 +97,7 @@ const oldTheme = {
     heroCard: colors.blue,
     uploadPreviewActivityIndicator: colors.gray1,
     cardBG: colors.gray1,
+    cardBorder: colors.gray1,
     checkBox: colors.blue,
 
     // Merging new Keys for Dark Mode merge. Delete after new branding is implemented.

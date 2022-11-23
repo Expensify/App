@@ -56,7 +56,7 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
             for (let i = 0; i < combinedComments.length; i++) {
                 // Skip all other comments if we already found the reviewer checklist
                 if (foundReviewerChecklist) {
-                    return;
+                    break;
                 }
 
                 const whitespace = /([\n\r])/gm;
