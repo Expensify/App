@@ -62,6 +62,8 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
 }
 
 getNumberOfItemsFromAuthorChecklist()
-    .then(checkIssueForCompletedChecklist, (err) => {
+    .then(checkIssueForCompletedChecklist)
+    .catch((err) => {
         console.error(err);
+        core.setFailed(err);
     });

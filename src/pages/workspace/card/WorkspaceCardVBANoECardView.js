@@ -1,6 +1,8 @@
 import React from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
+import Button from '../../../components/Button';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -21,26 +23,30 @@ const WorkspaceCardVBANoECardView = props => (
     <>
         <Section
             title={props.translate('workspace.card.header')}
-            icon={Illustrations.JewelBoxBlue}
-            menuItems={[
-                {
-                    title: props.translate('workspace.card.addWorkEmail'),
-                    onPress: () => {
-                        Link.openOldDotLink(CONST.ADD_SECONDARY_LOGIN_URL);
-                        User.subscribeToExpensifyCardUpdates();
-                    },
-                    icon: Expensicons.Mail,
-                    shouldShowRightIcon: true,
-                },
-            ]}
+            icon={Illustrations.CreditCardsNew}
         >
-            <UnorderedList
-                items={[
-                    props.translate('workspace.card.benefit1'),
-                    props.translate('workspace.card.benefit2'),
-                    props.translate('workspace.card.benefit3'),
-                    props.translate('workspace.card.benefit4'),
-                ]}
+            <View style={[styles.mv3]}>
+                <UnorderedList
+                    items={[
+                        props.translate('workspace.card.benefit1'),
+                        props.translate('workspace.card.benefit2'),
+                        props.translate('workspace.card.benefit3'),
+                        props.translate('workspace.card.benefit4'),
+                    ]}
+                />
+            </View>
+            <Button
+                text={props.translate('workspace.card.addWorkEmail')}
+                onPress={() => {
+                    Link.openOldDotLink(CONST.ADD_SECONDARY_LOGIN_URL);
+                    User.subscribeToExpensifyCardUpdates();
+                }}
+                icon={Expensicons.Mail}
+                style={[styles.mt4]}
+                iconStyles={[styles.buttonCTAIcon]}
+                shouldShowRightIcon
+                large
+                success
             />
         </Section>
         {props.user.isCheckingDomain && (
