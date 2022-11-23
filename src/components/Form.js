@@ -248,6 +248,8 @@ class Form extends React.Component {
                     keyboardShouldPersistTaps="handled"
                     ref={el => this.form = el}
                     onLayout={(event) => {
+                        // Store the parent component position to be used for scrolling. The +1 is to avoid covering
+                        // the upper border of the element we scroll to
                         this.inputPosition = event.nativeEvent.layout.y + 1;
                     }}
                 >
