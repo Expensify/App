@@ -39,4 +39,7 @@ export default {
     gray2: '#ECECEC',
     gray3: '#C6C9CA',
     gray4: '#7D8B8F',
+    oldRed: '#fc3826',
+    oldRedHover: '#e13826',
+    oldRedDisabled: '#fea29a',
 };

@@ -3,6 +3,8 @@
 ## Important tip for creating GitHub Workflows
 All inputs and outputs to GitHub Actions and any data passed between jobs or workflows is JSON-encoded (AKA, strings). Keep this in mind whenever writing GitHub workflows – you may need to JSON-decode variables to access them accurately. Here's an example of a common way to misuse GitHub Actions data:
 
+
+
 ```yaml
 name: CI
 on: pull_request
