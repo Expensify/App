@@ -142,7 +142,7 @@ const showKeyboardShortcutsModal = (browserWindow) => {
 };
 
 // Defines the system-level menu item to manually apply an update
-// This menu item should become visible after an update is download and ready to be applied
+// This menu item should become visible after an update is downloaded and ready to be applied
 const updateAppMenuItem = new MenuItem({
     label: 'Update New Expensify',
     visible: false,
