@@ -263,7 +263,7 @@ class WorkspaceMembersPage extends React.Component {
                             style={[styles.peopleRowCell]}
                             isChecked={_.contains(this.state.selectedEmployees, item.login)}
                             disabled={!canBeRemoved}
-                            onPress={() => item.pendingDelete === false && this.toggleUser(item.login)}
+                            onPress={() => this.toggleUser(item.login, item.pendingAction)}
                             toggleTooltip={this.state.showTooltipForLogin === item.login}
                             text={this.props.translate('workspace.people.error.cannotRemove')}
                         />
