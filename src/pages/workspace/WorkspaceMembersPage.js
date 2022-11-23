@@ -269,7 +269,7 @@ class WorkspaceMembersPage extends React.Component {
                         />
                         <View style={styles.flex1}>
                             <OptionRow
-                                onSelectRow={() => item.pendingDelete === false && this.toggleUser(item.login)}
+                                onSelectRow={() => this.toggleUser(item.login, item.pendingAction)}
                                 forceTextUnreadStyle
                                 isDisabled={!canBeRemoved}
                                 option={{
