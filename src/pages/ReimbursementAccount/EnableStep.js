@@ -14,6 +14,8 @@ import MenuItem from '../../components/MenuItem';
 import getBankIcon from '../../components/Icon/BankIcons';
 import confettiPop from '../../../assets/images/confetti-pop.gif';
 import Icon from '../../components/Icon';
+import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import userPropTypes from '../settings/userPropTypes';
 import Section from '../../components/Section';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
@@ -21,7 +23,18 @@ import * as Link from '../../libs/actions/Link';
 import * as User from '../../libs/actions/User';
 
 const propTypes = {
+    /** Bank account currently in setup */
+    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+
+    /* Onyx Props */
+    user: userPropTypes.isRequired,
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    reimbursementAccount: {},
+    user: {},
 };
 
 const EnableStep = (props) => {
@@ -93,6 +106,7 @@ const EnableStep = (props) => {
     );
 };
 
+EnableStep.defaultProps = defaultProps;
 EnableStep.displayName = 'EnableStep';
 EnableStep.propTypes = propTypes;
 
