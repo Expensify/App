@@ -805,6 +805,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '') 
                 pendingFields: {
                     addWorkspaceRoom: null,
                 },
+                pendingAction: null,
             },
         },
         {
@@ -823,6 +824,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '') 
                 pendingFields: {
                     addWorkspaceRoom: null,
                 },
+                pendingAction: null,
             },
         },
         {
@@ -841,6 +843,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '') 
                 pendingFields: {
                     addWorkspaceRoom: null,
                 },
+                pendingAction: null,
             },
         },
         {
