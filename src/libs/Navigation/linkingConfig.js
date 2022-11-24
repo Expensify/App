@@ -231,6 +231,7 @@ export default {
                     WalletStatement_Root: ROUTES.WALLET_STATEMENT_WITH_DATE,
                 },
             },
+            [SCREENS.NOT_FOUND]: '*',
         },
     },
 };

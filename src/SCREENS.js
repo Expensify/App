@@ -6,5 +6,6 @@ export default {
     HOME: 'Home',
     LOADING: 'Loading',
     REPORT: 'Report',
+    NOT_FOUND: 'NotFound',
     TRANSITION_FROM_OLD_DOT: 'TransitionFromOldDot',
 };
