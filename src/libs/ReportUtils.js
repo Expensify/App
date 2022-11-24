@@ -76,6 +76,15 @@ function getReportParticipantsTitle(logins) {
 }
 
 /**
+ * Attempts to find a report in onyx with the provided list of participants
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isIOUReport(report) {
+    return report && _.has(report, 'total');
+}
+
+/**
  * Check whether a report action is Attachment or not.
  * Ignore messages containing [Attachment] as the main content. Attachments are actions with only text as [Attachment].
  *
@@ -95,7 +104,7 @@ function isReportMessageAttachment({text, html}) {
 function sortReportsByLastVisited(reports) {
     return _.chain(reports)
         .toArray()
-        .filter(report => report && report.reportID)
+        .filter(report => report && report.reportID && !isIOUReport(report))
         .sortBy('lastVisitedTimestamp')
         .value();
 }
@@ -229,15 +238,6 @@ function hasExpensifyGuidesEmails(emails) {
 }
 
 /**
- * Whether the provided report is an archived room
- * @param {Object} report
- * @returns {Boolean}
- */
-function isChatReport(report) {
-    return report.chatType !== undefined;
-}
-
-/**
  * Given a collection of reports returns the most recently accessed one
  *
  * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
@@ -247,9 +247,6 @@ function isChatReport(report) {
  */
 function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
     let sortedReports = sortReportsByLastVisited(reports);
-
-    // We should filter out other report types, e.g. IOU since we don't want to display them in the ReportScreen
-    sortedReports = _.filter(sortedReports, report => isChatReport(report));
 
     if (ignoreDefaultRooms) {
         sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report)
