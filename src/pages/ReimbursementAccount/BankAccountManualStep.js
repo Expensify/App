@@ -122,7 +122,7 @@ class BankAccountManualStep extends React.Component {
                                 <TextLink
                                     href="https://use.expensify.com/terms"
 
-                                    // to not trigger input blur event. Because form is validating on input blur event link is moving down before click event.
+                                    // to call the onPress in the TextLink before the input blur is fired and shift the link element
                                     onMouseDown={e => e.preventDefault()}
                                 >
                                     {`Expensify ${this.props.translate('common.termsOfService')}`}
