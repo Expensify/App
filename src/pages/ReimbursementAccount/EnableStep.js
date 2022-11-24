@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
@@ -95,7 +95,7 @@ class EnableStep extends React.Component {
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                <View style={[styles.flex1]}>
+                <ScrollView style={[styles.flex1]}>
                     <Section
                         title={!isUsingExpensifyCard ? this.props.translate('workspace.bankAccount.oneMoreThing') : this.props.translate('workspace.bankAccount.allSet')}
                         icon={!isUsingExpensifyCard ? Illustrations.ConciergeNew : Illustrations.ThumbsUpStars}
@@ -144,7 +144,7 @@ class EnableStep extends React.Component {
                             {this.props.translate('workspace.card.checkingDomain')}
                         </Text>
                     )}
-                </View>
+                </ScrollView>
             </View>
         );
     }
