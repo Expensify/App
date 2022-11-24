@@ -151,7 +151,15 @@ function getOrderedReportIDs(reportIDFromRoute) {
 
     // Sort each group of reports accordingly
     pinnedReports = _.sortBy(pinnedReports, report => report.displayName.toLowerCase());
-    outstandingIOUReports = _.sortBy(outstandingIOUReports, 'iouReportAmount').reverse();
+    outstandingIOUReports = outstandingIOUReports.sort((a, b) => {
+        if (a.iouReportAmount > b.iouReportAmount) {
+            return -1;
+        }
+        if (a.iouReportAmount < b.iouReportAmount) {
+            return 1;
+        }
+        return a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase());
+    });
     draftReports = _.sortBy(draftReports, report => report.displayName.toLowerCase());
     nonArchivedReports = _.sortBy(nonArchivedReports, report => (isInDefaultMode ? report.lastMessageTimestamp : report.displayName.toLowerCase()));
     archivedReports = _.sortBy(archivedReports, report => (isInDefaultMode ? report.lastMessageTimestamp : report.displayName.toLowerCase()));
