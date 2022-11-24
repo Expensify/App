@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
+import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
@@ -16,7 +17,7 @@ const propTypes = {
 const WorkspaceTravelVBAView = props => (
     <Section
         title={props.translate('workspace.travel.packYourBags')}
-        icon={Illustrations.RocketOrange}
+        icon={Illustrations.Luggage}
         menuItems={[
             {
                 title: props.translate('workspace.common.issueAndManageCards'),
@@ -24,6 +25,8 @@ const WorkspaceTravelVBAView = props => (
                 icon: Expensicons.ExpensifyCard,
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
+                iconFill: themeColors.success,
+                wrapperStyle: [styles.cardMenuItem],
             },
             {
                 title: props.translate('workspace.travel.bookTravelWithConcierge'),
@@ -32,6 +35,8 @@ const WorkspaceTravelVBAView = props => (
                 },
                 icon: Expensicons.Concierge,
                 shouldShowRightIcon: true,
+                iconFill: themeColors.success,
+                wrapperStyle: [styles.cardMenuItem],
             },
             {
                 title: props.translate('requestorStep.learnMore'),
@@ -39,10 +44,12 @@ const WorkspaceTravelVBAView = props => (
                 icon: Expensicons.Info,
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
+                iconFill: themeColors.success,
+                wrapperStyle: [styles.cardMenuItem],
             },
         ]}
     >
-        <View style={[styles.mv4]}>
+        <View style={[styles.mv3]}>
             <Text>{props.translate('workspace.travel.VBACopy')}</Text>
         </View>
     </Section>

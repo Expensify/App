@@ -95,7 +95,7 @@ class DetailsPage extends React.PureComponent {
         // If we have a reportID param this means that we
         // arrived here via the ParticipantsPage and should be allowed to navigate back to it
         const shouldShowBackButton = Boolean(this.props.route.params.reportID);
-        const timezone = details.timezone ? DateUtils.getLocalMomentFromTimestamp(this.props.preferredLocale, null, details.timezone.selected) : null;
+        const timezone = details.timezone ? DateUtils.getLocalMomentFromDatetime(this.props.preferredLocale, null, details.timezone.selected) : null;
         const GMTTime = timezone ? `${timezone.toString().split(/[+-]/)[0].slice(-3)} ${timezone.zoneAbbr()}` : '';
         const currentTime = (timezone && Number.isNaN(Number(timezone.zoneAbbr()))) ? timezone.zoneAbbr() : GMTTime;
         const shouldShowLocalTime = !ReportUtils.hasExpensifyEmails([details.login]);
@@ -155,10 +155,7 @@ class DetailsPage extends React.PureComponent {
                                                 ? 'common.phoneNumber'
                                                 : 'common.email')}
                                         </Text>
-                                        <CommunicationsLink
-                                            type={isSMSLogin ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL}
-                                            value={isSMSLogin ? getPhoneNumber(details) : details.login}
-                                        >
+                                        <CommunicationsLink value={isSMSLogin ? getPhoneNumber(details) : details.login}>
                                             <Tooltip text={isSMSLogin ? getPhoneNumber(details) : details.login}>
                                                 <Text numberOfLines={1}>
                                                     {isSMSLogin

@@ -8,6 +8,7 @@ import TextInput from '../../../components/TextInput';
 import Picker from '../../../components/Picker';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
+import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
@@ -217,7 +218,7 @@ class WorkspaceReimburseView extends React.Component {
             <>
                 <Section
                     title={this.props.translate('workspace.reimburse.captureReceipts')}
-                    icon={Illustrations.ReceiptYellow}
+                    icon={Illustrations.MoneyReceipts}
                     menuItems={[
                         {
                             title: this.props.translate('workspace.reimburse.viewAllReceipts'),
@@ -225,10 +226,12 @@ class WorkspaceReimburseView extends React.Component {
                             icon: Expensicons.Receipt,
                             shouldShowRightIcon: true,
                             iconRight: Expensicons.NewWindow,
+                            iconFill: themeColors.success,
+                            wrapperStyle: [styles.cardMenuItem],
                         },
                     ]}
                 >
-                    <View style={[styles.mv4, styles.flexRow, styles.flexWrap]}>
+                    <View style={[styles.mv3, styles.flexRow, styles.flexWrap]}>
                         <Text>
                             {this.props.translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
                             <CopyTextToClipboard
@@ -242,9 +245,9 @@ class WorkspaceReimburseView extends React.Component {
 
                 <Section
                     title={this.props.translate('workspace.reimburse.trackDistance')}
-                    icon={Illustrations.GpsTrackOrange}
+                    icon={Illustrations.TrackShoe}
                 >
-                    <View style={[styles.mv4]}>
+                    <View style={[styles.mv3]}>
                         <Text>{this.props.translate('workspace.reimburse.trackDistanceCopy')}</Text>
                     </View>
                     <OfflineWithFeedback
@@ -253,7 +256,7 @@ class WorkspaceReimburseView extends React.Component {
                             ...lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'errors'], {}),
                         }}
                         pendingAction={lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'pendingAction'])
-                                || lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'pendingAction'])}
+                            || lodashGet(this.props, ['policy', 'customUnits', this.state.unitID, 'rates', this.state.unitRateID, 'pendingAction'])}
                         onClose={() => Policy.clearCustomUnitErrors(this.props.policy.id, this.state.unitID, this.state.unitRateID)}
                     >
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mv2]}>
@@ -284,7 +287,7 @@ class WorkspaceReimburseView extends React.Component {
                 {hasVBA ? (
                     <Section
                         title={this.props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
-                        icon={Illustrations.BankUserGreen}
+                        icon={Illustrations.TreasureChest}
                         menuItems={[
                             {
                                 title: this.props.translate('workspace.reimburse.reimburseReceipts'),
@@ -292,19 +295,21 @@ class WorkspaceReimburseView extends React.Component {
                                 icon: Expensicons.Bank,
                                 shouldShowRightIcon: true,
                                 iconRight: Expensicons.NewWindow,
+                                iconFill: themeColors.success,
+                                wrapperStyle: [styles.cardMenuItem],
                             },
                         ]}
                     >
-                        <View style={[styles.mv4]}>
+                        <View style={[styles.mv3]}>
                             <Text>{this.props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
                         </View>
                     </Section>
                 ) : (
                     <Section
                         title={this.props.translate('workspace.reimburse.unlockNextDayReimbursements')}
-                        icon={Illustrations.JewelBoxGreen}
+                        icon={Illustrations.OpenSafe}
                     >
-                        <View style={[styles.mv4]}>
+                        <View style={[styles.mv3]}>
                             <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
                         </View>
                         <Button

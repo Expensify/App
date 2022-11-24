@@ -141,8 +141,8 @@ class ReportSettingsPage extends Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('common.settings')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack()}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
+                    onBackButtonPress={Navigation.goBack}
+                    onCloseButtonPress={Navigation.dismissModal}
                 />
                 <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                     <View>
@@ -150,6 +150,10 @@ class ReportSettingsPage extends Component {
                             <Picker
                                 label={this.props.translate('notificationPreferences.label')}
                                 onInputChange={(notificationPreference) => {
+                                    if (this.props.report.notificationPreference === notificationPreference) {
+                                        return;
+                                    }
+
                                     Report.updateNotificationPreference(
                                         this.props.report.reportID,
                                         this.props.report.notificationPreference,

@@ -90,17 +90,6 @@ function getNavigationDrawerType(isSmallScreenWidth) {
     return isSmallScreenWidth ? 'slide' : 'permanent';
 }
 
-function getNavigationModalCardStyle(isSmallScreenWidth) {
-    return {
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-        backgroundColor: 'transparent',
-        height: '100%',
-    };
-}
-
 /**
  * @param {Boolean} isZoomed
  * @param {Boolean} isDragging
@@ -553,7 +542,6 @@ export {
     getSafeAreaMargins,
     getNavigationDrawerStyle,
     getNavigationDrawerType,
-    getNavigationModalCardStyle,
     getZoomCursorStyle,
     getZoomSizingStyle,
     getAutoGrowTextInputStyle,

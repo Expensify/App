@@ -26,8 +26,8 @@ const includeModules = [
 
 const envToLogoSuffixMap = {
     production: '',
-    staging: 'stg',
-    dev: 'dev',
+    staging: '-stg',
+    dev: '-dev',
 };
 
 function mapEnvToLogoSuffix(envFile) {
@@ -195,7 +195,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
     },
     resolve: {
         alias: {
-            logo$: path.resolve(__dirname, `../../assets/images/new-expensify-${mapEnvToLogoSuffix(envFile)}.svg`),
+            logo$: path.resolve(__dirname, `../../assets/images/new-expensify${mapEnvToLogoSuffix(envFile)}.svg`),
             'react-native-config': 'react-web-config',
             'react-native$': '@expensify/react-native-web',
             'react-native-web': '@expensify/react-native-web',
