@@ -8,8 +8,6 @@
         <item name="android:textColor">@color/dark</item>
         <item name="android:colorEdgeEffect">@color/gray4</item>
         <item name="colorAccent">@color/accent</item>
-        <item name="android:statusBarColor">@color/white</item>
-        <item name="android:windowLightStatusBar" tools:ignore="NewApi">true</item>
         <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
     </style>
 
