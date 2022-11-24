@@ -1,5 +1,5 @@
 import React, {PureComponent} from 'react';
-import {View} from 'react-native';
+import {Image, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import stylePropTypes from '../styles/stylePropTypes';
@@ -9,7 +9,11 @@ import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as Expensicons from './Icon/Expensicons';
 import getAvatarDefaultSource from '../libs/getAvatarDefaultSource';
+<<<<<<< HEAD
 import FastImage from './FastImage';
+=======
+import styles from '../styles/styles';
+>>>>>>> 01abc6fe7a (Merge pull request #13010 from margelo/@thomas/revert-fast-image)
 
 const propTypes = {
     /** Source for the avatar. Can be a URL or an icon. */
@@ -73,7 +77,7 @@ class Avatar extends PureComponent {
                         />
                     )
                     : (
-                        <FastImage
+                        <Image
                             source={{uri: this.props.source}}
                             defaultSource={getAvatarDefaultSource(this.props.source)}
                             style={imageStyle}
