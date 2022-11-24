@@ -5,7 +5,6 @@ import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import HttpsError from './Errors/HttpsError';
-import getOperatingSystem from './getOperatingSystem';
 import shouldUseStagingServer from './shouldUseStagingServer';
 
 let stagingServerToggleState = false;
@@ -22,8 +21,6 @@ Onyx.connect({
 
 // We use the AbortController API to terminate pending request in `cancelPendingRequests`
 let cancellationController = new AbortController();
-
-const platform = getOperatingSystem();
 
 /**
  * Send an HTTP request, and attempt to resolve the json response.
