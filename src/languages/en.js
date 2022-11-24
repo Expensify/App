@@ -108,6 +108,7 @@ export default {
         maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
         youAppearToBeOffline: 'You appear to be offline.',
         thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
+        zipCodeExample: 'e.g. 12345, 12345-1234, 12345 1234',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -376,12 +377,9 @@ export default {
         enterMessageHere: 'Enter message here',
         closeAccountWarning: 'Closing your account cannot be undone.',
         closeAccountPermanentlyDeleteData: 'This will permanently delete all of your unsubmitted expense data. Type your phone number or email address to confirm.',
-        closeAccountActionRequired: 'Looks like you need to complete some actions before closing your account. Check out the guide',
-        closeAccountTryAgainAfter: 'and try again after.',
         enterDefaultContact: 'Enter your default contact method',
         defaultContact: 'Default contact method:',
-        okayGotIt: 'Okay, Got it',
-        closeAccountError: 'Unable to close account',
+        enterYourDefaultContactMethod: 'Please enter your default contact method to close your account.',
     },
     passwordPage: {
         changePassword: 'Change password',

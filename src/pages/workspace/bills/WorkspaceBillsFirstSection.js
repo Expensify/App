@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
+import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
@@ -38,7 +39,7 @@ const WorkspaceBillsFirstSection = (props) => {
     return (
         <Section
             title={props.translate('workspace.bills.manageYourBills')}
-            icon={Illustrations.InvoiceOrange}
+            icon={Illustrations.PinkBill}
             menuItems={[
                 {
                     title: props.translate('workspace.bills.viewAllBills'),
@@ -48,10 +49,13 @@ const WorkspaceBillsFirstSection = (props) => {
                     icon: Expensicons.Bill,
                     shouldShowRightIcon: true,
                     iconRight: Expensicons.NewWindow,
+                    iconFill: themeColors.success,
+                    wrapperStyle: [styles.cardMenuItem],
                 },
             ]}
+            containerStyles={[styles.cardSection]}
         >
-            <View style={[styles.mv4]}>
+            <View style={[styles.mv3]}>
                 <Text>
                     {props.translate('workspace.bills.askYourVendorsBeforeEmail')}
                     {props.user.isFromPublicDomain ? (
