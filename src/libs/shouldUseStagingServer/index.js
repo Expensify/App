@@ -6,7 +6,7 @@ import CONFIG from '../../CONFIG';
  * @param {Boolean} stagingServerToggleState
  * @returns {Boolean}
  */
-function shouldUseStagingServer(stagingServerToggleState){
+function shouldUseStagingServer(stagingServerToggleState) {
     return CONFIG.IS_IN_STAGING && stagingServerToggleState;
 }
 
