@@ -288,7 +288,6 @@ export default {
     },
     profilePage: {
         profile: 'Profile',
-        tellUsAboutYourself: 'Tell us about yourself, we would love to get to know you!',
         john: 'John',
         doe: 'Doe',
         preferredPronouns: 'Preferred pronouns',

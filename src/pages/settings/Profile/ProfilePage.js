@@ -253,10 +253,6 @@ class ProfilePage extends Component {
                     submitButtonText={this.props.translate('common.save')}
                     enabledWhenOffline
                 >
-                    
-                    <Text style={[styles.mt6, styles.mb6]}>
-                        {this.props.translate('profilePage.tellUsAboutYourself')}
-                    </Text>
 
                     <View style={[styles.flexRow, styles.mt4, styles.mb4]}>
                         <View style={styles.flex1}>
