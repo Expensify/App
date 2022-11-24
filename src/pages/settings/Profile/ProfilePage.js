@@ -28,6 +28,8 @@ import * as ValidationUtils from '../../../libs/ValidationUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import Form from '../../../components/Form';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import MenuItem from '../../../components/MenuItem';
+import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
 
 const propTypes = {
     /* Onyx Props */
@@ -228,15 +230,7 @@ class ProfilePage extends Component {
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                <Form
-                    style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM}
-                    validate={this.validate}
-                    onSubmit={this.updatePersonalDetails}
-                    submitButtonText={this.props.translate('common.save')}
-                    enabledWhenOffline
-                >
-                    <OfflineWithFeedback
+                <OfflineWithFeedback
                         pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
                         errors={lodashGet(this.props.currentUserPersonalDetails, 'errorFields.avatar', null)}
                         errorRowStyles={[styles.mt6]}
@@ -251,6 +245,15 @@ class ProfilePage extends Component {
                             size={CONST.AVATAR_SIZE.LARGE}
                         />
                     </OfflineWithFeedback>
+                <Form
+                    style={[styles.flexGrow1, styles.ph5]}
+                    formID={ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM}
+                    validate={this.validate}
+                    onSubmit={this.updatePersonalDetails}
+                    submitButtonText={this.props.translate('common.save')}
+                    enabledWhenOffline
+                >
+                    
                     <Text style={[styles.mt6, styles.mb6]}>
                         {this.props.translate('profilePage.tellUsAboutYourself')}
                     </Text>
