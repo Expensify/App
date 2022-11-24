@@ -22,6 +22,8 @@ const propTypes = {
 
     /** Overwrites the default link behavior with a custom callback */
     onPress: PropTypes.func,
+
+    /** Callback that is called when mousedown is triggered */
     onMouseDown: PropTypes.func,
 };
 
