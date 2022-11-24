@@ -167,7 +167,6 @@ export default {
         sendAttachment: 'Enviar adjunto',
         addAttachment: 'Agregar archivo adjunto',
         writeSomething: 'Escribe algo...',
-        sayHello: 'Di hola!',
         conciergePlaceholderOptions: [
             '¡Pide ayuda!',
             '¡Pregúntame lo que sea!',
