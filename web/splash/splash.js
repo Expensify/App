@@ -2,10 +2,15 @@ import './splash.css';
 import newExpensifyLogo from 'logo?raw';
 import themeColors from '../../src/styles/themes/default';
 
+let areFontsReady = false;
+document.fonts.ready.then(() => {
+    areFontsReady = true;
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     const minMilisecondsToWait = 1.5 * 1000;
     let passedMiliseconds = 0;
-    let rootMounted = false;
+    let isRootMounted = false;
     const splash = document.getElementById('splash');
     const splashLogo = document.querySelector('.splash-logo');
     const root = document.getElementById('root');
@@ -15,8 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const intervalId = setInterval(() => {
         passedMiliseconds += 250;
-        rootMounted = root.children.length > 0;
-        if (passedMiliseconds >= minMilisecondsToWait && rootMounted) {
+        isRootMounted = root.children.length > 0;
+        if (passedMiliseconds >= minMilisecondsToWait && isRootMounted && areFontsReady) {
             splash.parentNode.removeChild(splash);
             clearInterval(intervalId);
         }
