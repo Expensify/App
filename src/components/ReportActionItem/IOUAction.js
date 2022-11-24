@@ -32,6 +32,10 @@ const propTypes = {
         /** The participants of this report */
         participants: PropTypes.arrayOf(PropTypes.string),
     }),
+
+    /** Whether the IOU is hovered so we can modify its style */
+    isHovered: PropTypes.bool,
+
 };
 
 const defaultProps = {
@@ -40,6 +44,7 @@ const defaultProps = {
     chatReport: {
         participants: [],
     },
+    isHovered: false,
 };
 
 const IOUAction = (props) => {
@@ -50,7 +55,7 @@ const IOUAction = (props) => {
         <>
             <IOUQuote
                 action={props.action}
-                shouldShowViewDetailsLink={Boolean(props.action.originalMessage.IOUReportID)}
+                shouldAllowViewDetails={Boolean(props.action.originalMessage.IOUReportID)}
                 onViewDetailsPressed={launchDetailsModal}
             />
             {((props.isMostRecentIOUReportAction && Boolean(props.action.originalMessage.IOUReportID))
@@ -64,7 +69,13 @@ const IOUAction = (props) => {
                         checkIfContextMenuActive={props.checkIfContextMenuActive}
                         onPayButtonPressed={launchDetailsModal}
                         onPreviewPressed={launchDetailsModal}
-                        containerStyles={[styles.cursorPointer]}
+                        containerStyles={[
+                            styles.cursorPointer,
+                            props.isHovered
+                                ? styles.iouPreviewBoxHover
+                                : undefined,
+                        ]}
+                        isHovered={props.isHovered}
                     />
             )}
         </>

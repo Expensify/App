@@ -104,7 +104,11 @@ const CONST = {
         },
         MAX_LENGTH: {
             SSN: 4,
-            ZIP_CODE: 5,
+            ZIP_CODE: 10,
+        },
+        TYPE: {
+            BUSINESS: 'BUSINESS',
+            PERSONAL: 'PERSONAL',
         },
     },
     INCORPORATION_TYPES: {
@@ -856,6 +860,8 @@ const CONST = {
     },
 
     TFA_CODE_LENGTH: 6,
+
+    CHAT_ATTACHMENT_TOKEN_KEY: 'X-Chat-Attachment-Token',
 };
 
 export default CONST;

@@ -15,6 +15,21 @@ const propTypes = {
     /** Callback fired when a field changes. Passes args as {[fieldName]: val} */
     onFieldChange: PropTypes.func,
 
+    /** Default values */
+    defaultValues: PropTypes.shape({
+        /** Address street field */
+        street: PropTypes.string,
+
+        /** Address city field */
+        city: PropTypes.string,
+
+        /** Address state field */
+        state: PropTypes.string,
+
+        /** Address zip code field */
+        zipCode: PropTypes.string,
+    }),
+
     /** Form values */
     values: PropTypes.shape({
         /** Address street field */
@@ -55,6 +70,12 @@ const defaultProps = {
         state: undefined,
         zipCode: undefined,
     },
+    defaultValues: {
+        street: undefined,
+        city: undefined,
+        state: undefined,
+        zipCode: undefined,
+    },
     errors: {},
     inputKeys: {
         street: '',
@@ -75,6 +96,7 @@ const AddressForm = props => (
                 label={props.translate(props.streetTranslationKey)}
                 containerStyles={[styles.mt4]}
                 value={props.values.street}
+                defaultValue={props.defaultValues.street}
                 onInputChange={props.onFieldChange}
                 errorText={props.errors.street ? props.translate('bankAccount.error.addressStreet') : ''}
                 hint={props.translate('common.noPO')}
@@ -88,6 +110,7 @@ const AddressForm = props => (
                     shouldSaveDraft={props.shouldSaveDraft}
                     label={props.translate('common.city')}
                     value={props.values.city}
+                    defaultValue={props.defaultValues.city}
                     onChangeText={value => props.onFieldChange({city: value})}
                     errorText={props.errors.city ? props.translate('bankAccount.error.addressCity') : ''}
                 />
@@ -97,6 +120,7 @@ const AddressForm = props => (
                     inputID={props.inputKeys.state}
                     shouldSaveDraft={props.shouldSaveDraft}
                     value={props.values.state}
+                    defaultValue={props.defaultValues.state}
                     onInputChange={value => props.onFieldChange({state: value})}
                     errorText={props.errors.state ? props.translate('bankAccount.error.addressState') : ''}
                 />
@@ -109,9 +133,11 @@ const AddressForm = props => (
             containerStyles={[styles.mt4]}
             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
             value={props.values.zipCode}
+            defaultValue={props.defaultValues.zipCode}
             onChangeText={value => props.onFieldChange({zipCode: value})}
             errorText={props.errors.zipCode ? props.translate('bankAccount.error.zipCode') : ''}
             maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
+            hint={props.translate('common.zipCodeExample')}
         />
     </>
 );

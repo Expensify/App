@@ -79,6 +79,9 @@ const propTypes = {
         hasOutstandingIOU: PropTypes.bool,
     }),
 
+    /** True if the IOU Preview card is hovered */
+    isHovered: PropTypes.bool,
+
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(PropTypes.shape({
 
@@ -113,6 +116,7 @@ const defaultProps = {
     containerStyles: [],
     walletTerms: {},
     pendingAction: null,
+    isHovered: false,
 };
 
 const IOUPreview = (props) => {
@@ -199,7 +203,12 @@ const IOUPreview = (props) => {
                                     <View style={styles.iouPreviewBoxAvatar}>
                                         <MultipleAvatars
                                             icons={[managerAvatar, ownerAvatar]}
-                                            secondAvatarStyle={[styles.secondAvatarInline]}
+                                            secondAvatarStyle={[
+                                                styles.secondAvatarInline,
+                                                props.isHovered
+                                                    ? styles.iouPreviewBoxAvatarHover
+                                                    : undefined,
+                                            ]}
                                             avatarTooltips={avatarTooltip}
                                         />
                                     </View>
@@ -223,13 +232,13 @@ const IOUPreview = (props) => {
                                     && !props.shouldHidePayButton
                                     && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
                                     <TouchableOpacity
-                                        style={[styles.buttonSmall, styles.buttonSuccess, styles.mt4]}
+                                        style={[styles.buttonMedium, styles.buttonSuccess, styles.mt4]}
                                         onPress={props.onPayButtonPressed}
                                         onLongPress={showContextMenu}
                                     >
                                         <Text
                                             style={[
-                                                styles.buttonSmallText,
+                                                styles.buttonMediumText,
                                                 styles.buttonSuccessText,
                                             ]}
                                         >

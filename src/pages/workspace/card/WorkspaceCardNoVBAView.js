@@ -21,7 +21,7 @@ const propTypes = {
 const WorkspaceCardNoVBAView = props => (
     <Section
         title={props.translate('workspace.card.header')}
-        icon={Illustrations.JewelBoxBlue}
+        icon={Illustrations.CreditCardsNew}
     >
         <View style={[styles.mv4]}>
             <Text>{props.translate('workspace.card.noVBACopy')}</Text>
