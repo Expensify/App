@@ -1,9 +1,10 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, Image} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -11,14 +12,13 @@ import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
+import Button from '../../components/Button';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import MenuItem from '../../components/MenuItem';
 import getBankIcon from '../../components/Icon/BankIcons';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
-import confettiPop from '../../../assets/images/confetti-pop.gif';
-import Icon from '../../components/Icon';
 import Section from '../../components/Section';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
@@ -84,22 +84,6 @@ class EnableStep extends React.Component {
             }`
             : '';
         const bankName = account.addressName;
-        const menuItems = [{
-            title: this.props.translate('workspace.bankAccount.disconnectBankAccount'),
-            icon: Expensicons.Close,
-            onPress: BankAccounts.requestResetFreePlanBankAccount,
-        }];
-        if (!isUsingExpensifyCard) {
-            menuItems.unshift({
-                title: this.props.translate('workspace.bankAccount.addWorkEmail'),
-                icon: Expensicons.Mail,
-                onPress: () => {
-                    Link.openOldDotLink(CONST.ADD_SECONDARY_LOGIN_URL);
-                    User.subscribeToExpensifyCardUpdates();
-                },
-                shouldShowRightIcon: true,
-            });
-        }
 
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
@@ -114,9 +98,7 @@ class EnableStep extends React.Component {
                 <View style={[styles.flex1]}>
                     <Section
                         title={!isUsingExpensifyCard ? this.props.translate('workspace.bankAccount.oneMoreThing') : this.props.translate('workspace.bankAccount.allSet')}
-                        // eslint-disable-next-line max-len
-                        IconComponent={() => (!isUsingExpensifyCard ? <Icon src={Illustrations.ConciergeBlue} width={80} height={80} /> : <Image source={confettiPop} style={styles.confettiIcon} />)}
-                        menuItems={menuItems}
+                        icon={!isUsingExpensifyCard ? Illustrations.ConciergeNew : Illustrations.ThumbsUpStars}
                     >
                         <MenuItem
                             title={bankName}
@@ -126,16 +108,39 @@ class EnableStep extends React.Component {
                             iconHeight={iconSize}
                             disabled
                             interactive={false}
-                            wrapperStyle={[styles.ph0, styles.mb3]}
+                            wrapperStyle={[styles.cardMenuItem, styles.mv3]}
+                            iconFill={themeColors.success}
                         />
-                        <Text>
+                        <Text style={[styles.mv3]}>
                             {!isUsingExpensifyCard
                                 ? this.props.translate('workspace.bankAccount.accountDescriptionNoCards')
                                 : this.props.translate('workspace.bankAccount.accountDescriptionWithCards')}
                         </Text>
+                        {!isUsingExpensifyCard && (
+                            <Button
+                                text={this.props.translate('workspace.bankAccount.addWorkEmail')}
+                                onPress={() => {
+                                    Link.openOldDotLink(CONST.ADD_SECONDARY_LOGIN_URL);
+                                    User.subscribeToExpensifyCardUpdates();
+                                }}
+                                icon={Expensicons.Mail}
+                                style={[styles.mt4]}
+                                iconStyles={[styles.buttonCTAIcon]}
+                                shouldShowRightIcon
+                                large
+                                success
+                            />
+                        )}
+                        <MenuItem
+                            title={this.props.translate('workspace.bankAccount.disconnectBankAccount')}
+                            icon={Expensicons.Close}
+                            onPress={BankAccounts.requestResetFreePlanBankAccount}
+                            iconFill={themeColors.success}
+                            wrapperStyle={[styles.cardMenuItem, styles.mv3]}
+                        />
                     </Section>
                     {this.props.user.isCheckingDomain && (
-                        <Text style={[styles.formError, styles.m5]}>
+                        <Text style={[styles.formError, styles.mh5]}>
                             {this.props.translate('workspace.card.checkingDomain')}
                         </Text>
                     )}
