@@ -8,6 +8,7 @@ const CopyPlugin = require('copy-webpack-plugin');
 const dotenv = require('dotenv');
 const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 const HtmlInlineScriptPlugin = require('html-inline-script-webpack-plugin');
+const FontPreloadPlugin = require('webpack-font-preload-plugin');
 const CustomVersionFilePlugin = require('./CustomVersionFilePlugin');
 
 const includeModules = [
@@ -79,6 +80,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         new HtmlInlineScriptPlugin({
             scriptMatchPattern: [/splash.+[.]js$/],
         }),
+        new FontPreloadPlugin(),
         new ProvidePlugin({
             process: 'process/browser',
         }),
