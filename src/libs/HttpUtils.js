@@ -9,7 +9,7 @@ import HttpsError from './Errors/HttpsError';
 let shouldUseStagingServer = false;
 Onyx.connect({
     key: ONYXKEYS.USER,
-    callback: val => shouldUseStagingServer = lodashGet(val, 'shouldUseStagingServer', true),
+    callback: val => shouldUseStagingServer = lodashGet(val, 'shouldUseStagingServer', false),
 });
 
 let shouldFailAllRequests = false;

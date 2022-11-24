@@ -42,7 +42,7 @@ const TestToolMenu = props => (
         This enables QA and internal testers to take advantage of sandbox environments for 3rd party services like Plaid and Onfido. */}
         <TestToolRow title="Use Staging Server">
             <Switch
-                isOn={lodashGet(props, 'user.shouldUseStagingServer', true)}
+                isOn={lodashGet(props, 'user.shouldUseStagingServer', false)}
                 onToggle={() => User.setShouldUseStagingServer(!lodashGet(props, 'user.shouldUseStagingServer', true))}
             />
         </TestToolRow>
