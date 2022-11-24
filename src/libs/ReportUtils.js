@@ -229,6 +229,15 @@ function hasExpensifyGuidesEmails(emails) {
 }
 
 /**
+ * Whether the provided report is an archived room
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isChatReport(report) {
+    return report.chatType !== undefined;
+}
+
+/**
  * Given a collection of reports returns the most recently accessed one
  *
  * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
@@ -238,7 +247,9 @@ function hasExpensifyGuidesEmails(emails) {
  */
 function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
     let sortedReports = sortReportsByLastVisited(reports);
-    sortedReports = _.filter(sortedReports, report => report.chatType !== undefined);
+
+    // We should filter out other report types, e.g. IOU since we don't want to display them in the ReportScreen
+    sortedReports = _.filter(sortedReports, report => isChatReport(report));
 
     if (ignoreDefaultRooms) {
         sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report)
