@@ -9,11 +9,6 @@ import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as Expensicons from './Icon/Expensicons';
 import getAvatarDefaultSource from '../libs/getAvatarDefaultSource';
-<<<<<<< HEAD
-import FastImage from './FastImage';
-=======
-import styles from '../styles/styles';
->>>>>>> 01abc6fe7a (Merge pull request #13010 from margelo/@thomas/revert-fast-image)
 
 const propTypes = {
     /** Source for the avatar. Can be a URL or an icon. */
