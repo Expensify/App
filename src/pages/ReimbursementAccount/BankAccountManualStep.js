@@ -1,6 +1,7 @@
 import React from 'react';
 import {Image, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import CONST from '../../CONST';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
@@ -20,6 +21,7 @@ import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils
 import shouldDelayFocus from '../../libs/shouldDelayFocus';
 
 const propTypes = {
+    onBack: PropTypes.func,
     ...withLocalizePropTypes,
 };
 
@@ -74,7 +76,7 @@ class BankAccountManualStep extends React.Component {
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
-                    onBackButtonPress={() => BankAccounts.setBankAccountSubStep(null)}
+                    onBackButtonPress={this.props.onBack}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 <Form

@@ -38,6 +38,10 @@ const propTypes = {
     /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
     plaidLinkOAuthToken: PropTypes.string,
 
+    /** Once the user has selected a sub step, clicking on back button should redirect to the continue button screen. */
+    /** As such, we need to expose this handler */
+    onSubStepBack: PropTypes.func, 
+
     /** The bank account currently in setup */
     /* eslint-disable-next-line react/no-unused-prop-types */
     reimbursementAccount: reimbursementAccountPropTypes,
@@ -57,6 +61,7 @@ const defaultProps = {
     plaidData: {
         isPlaidDisabled: false,
     },
+    onSubStepBack: () => {},
     reimbursementAccount: {},
     user: {},
 };
@@ -71,11 +76,11 @@ const BankAccountStep = (props) => {
     const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}`;
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
-        return <BankAccountManualStep />;
+        return <BankAccountManualStep onBack={props.onSubStepBack} />;
     }
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
-        return <BankAccountPlaidStep />;
+        return <BankAccountPlaidStep onBack={props.onSubStepBack}/>;
     }
 
     return (
