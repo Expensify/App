@@ -259,7 +259,7 @@ class Form extends React.Component {
                                 const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
                                 const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
                                 const focusInput = this.inputRefs[focusKey];
-                                if (focusInput.focus && typeof(focusInput.focus === 'function')) {
+                                if (focusInput.focus && typeof(focusInput.focus) === 'function') {
                                     focusInput.focus();
                                 }
                             }}
