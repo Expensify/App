@@ -226,7 +226,6 @@ class IOUParticipantsSplit extends Component {
                         shouldShowConfirmButton
                         confirmButtonText={this.props.translate('common.next')}
                         onConfirmSelection={this.finalizeParticipants}
-                        shouldDelayFocus
                     />
                 </View>
             </>
