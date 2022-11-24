@@ -261,27 +261,6 @@ class ProfilePage extends Component {
                     submitButtonText={this.props.translate('common.save')}
                     enabledWhenOffline
                 >
-
-                    <View style={[styles.flexRow, styles.mt4, styles.mb4]}>
-                        <View style={styles.flex1}>
-                            <TextInput
-                                inputID="firstName"
-                                name="fname"
-                                label={this.props.translate('common.firstName')}
-                                defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
-                                placeholder={this.props.translate('profilePage.john')}
-                            />
-                        </View>
-                        <View style={[styles.flex1, styles.ml2]}>
-                            <TextInput
-                                inputID="lastName"
-                                name="lname"
-                                label={this.props.translate('common.lastName')}
-                                defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
-                                placeholder={this.props.translate('profilePage.doe')}
-                            />
-                        </View>
-                    </View>
                     <View style={styles.mb6}>
                         <Picker
                             inputID="pronouns"
