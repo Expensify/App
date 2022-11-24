@@ -238,6 +238,7 @@ function hasExpensifyGuidesEmails(emails) {
  */
 function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
     let sortedReports = sortReportsByLastVisited(reports);
+    sortedReports = _.filter(sortedReports, report => report.chatType !== undefined);
 
     if (ignoreDefaultRooms) {
         sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report)
