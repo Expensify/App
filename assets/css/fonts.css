@@ -2,91 +2,91 @@
     font-family: GTAmericaExp-Regular;
     font-weight: 100;
     font-style: normal;
-    src: url("../fonts/GT-America-Exp-Standard-Light.woff2") format("woff2"), url("../fonts/GT-America-Exp-Standard-Light.woff") format("woff"), url("../fonts/GT-America-Exp-Standard-Light.eot") format("embedded-opentype");
+    src: url("../fonts/GT-America-Exp-Standard-Light.woff2") format("woff2"), url("../fonts/GT-America-Exp-Standard-Light.woff") format("woff");
 }
 
 @font-face {
     font-family: GTAmericaExp-Regular;
     font-weight: 200;
     font-style: normal;
-    src: url("../fonts/GT-America-Exp-Standard-Thin.woff2") format("woff2"), url("../fonts/GT-America-Exp-Standard-Thin.woff") format("woff"), url("../fonts/GT-America-Exp-Standard-Thin.eot") format("embedded-opentype");
+    src: url("../fonts/GT-America-Exp-Standard-Thin.woff2") format("woff2"), url("../fonts/GT-America-Exp-Standard-Thin.woff") format("woff");
 }
 
 @font-face {
     font-family: GTAmericaExp-Regular;
     font-weight: 400;
     font-style: normal;
-    src: url("../fonts/GT-America-Exp-Standard-Regular.woff2") format("woff2"), url("../fonts/GT-America-Exp-Standard-Regular.woff") format("woff"), url("../fonts/GT-America-Exp-Standard-Regular.eot") format("embedded-opentype");
+    src: url("../fonts/GT-America-Exp-Standard-Regular.woff2") format("woff2"), url("../fonts/GT-America-Exp-Standard-Regular.woff") format("woff");
 }
 
 @font-face {
     font-family: GTAmericaExp-Regular;
     font-weight: 500;
     font-style: normal;
-    src: url("../fonts/GT-America-Exp-Standard-Medium.woff2") format("woff2"), url("../fonts/GT-America-Exp-Standard-Medium.woff") format("woff"), url("../fonts/GT-America-Exp-Standard-Medium.eot") format("embedded-opentype");
+    src: url("../fonts/GT-America-Exp-Standard-Medium.woff2") format("woff2"), url("../fonts/GT-America-Exp-Standard-Medium.woff") format("woff");
 }
 
 @font-face {
     font-family: GTAmericaExp-Regular;
     font-weight: 600;
     font-style: normal;
-    src: url("../fonts/GT-America-Exp-Standard-Medium.woff2") format("woff2"), url("../fonts/GT-America-Exp-Standard-Medium.woff") format("woff"), url("../fonts/GT-America-Exp-Standard-Medium.eot") format("embedded-opentype");
+    src: url("../fonts/GT-America-Exp-Standard-Medium.woff2") format("woff2"), url("../fonts/GT-America-Exp-Standard-Medium.woff") format("woff");
 }
 
 @font-face {
     font-family: GTAmericaExp-Regular;
     font-weight: 700;
     font-style: normal;
-    src: url("../fonts/GT-America-Exp-Standard-Bold.woff2") format("woff2"), url("../fonts/GT-America-Exp-Standard-Bold.woff") format("woff"), url("../fonts/GT-America-Exp-Standard-Bold.eot") format("embedded-opentype");
+    src: url("../fonts/GT-America-Exp-Standard-Bold.woff2") format("woff2"), url("../fonts/GT-America-Exp-Standard-Bold.woff") format("woff");
 }
 
 @font-face {
     font-family: GTAmericaExp-RgIt;
     font-weight: 400;
     font-style: italic;
-    src: url("../fonts/GT-America-Exp-Standard-Regular-Italic.woff2") format("woff2"), url("../fonts/GT-America-Exp-Standard-Regular-Italic.woff") format("woff"), url("../fonts/GT-America-Exp-Standard-Regular-Italic.eot") format("embedded-opentype");
+    src: url("../fonts/GT-America-Exp-Standard-Regular-Italic.woff2") format("woff2"), url("../fonts/GT-America-Exp-Standard-Regular-Italic.woff") format("woff");
 }
 
 @font-face {
     font-family: GTAmericaExp-MdIt;
     font-weight: 500;
     font-style: italic;
-    src: url("../fonts/GT-America-Exp-Standard-Medium-Italic.woff2") format("woff2"), url("../fonts/GT-America-Exp-Standard-Medium-Italic.woff") format("woff"), url("../fonts/GT-America-Exp-Standard-Medium-Italic.eot") format("embedded-opentype");
+    src: url("../fonts/GT-America-Exp-Standard-Medium-Italic.woff2") format("woff2"), url("../fonts/GT-America-Exp-Standard-Medium-Italic.woff") format("woff");
 }
 
 @font-face {
     font-family: GTAmericaExp-BdIt;
     font-weight: 700;
     font-style: italic;
-    src: url("../fonts/GT-America-Exp-Standard-Bold-Italic.woff2") format("woff2"), url("../fonts/GT-America-Exp-Standard-Bold-Italic.woff") format("woff"), url("../fonts/GT-America-Exp-Standard-Bold-Italic.eot") format("embedded-opentype");
+    src: url("../fonts/GT-America-Exp-Standard-Bold-Italic.woff2") format("woff2"), url("../fonts/GT-America-Exp-Standard-Bold-Italic.woff") format("woff");
 }
 
 @font-face {
     font-family: GTAmericaExpMono-Rg;
     font-weight: 400;
     font-style: normal;
-    src: url('../fonts/GT-America-Exp-Mono-Regular.woff2') format('woff2'), url('../fonts/GT-America-Exp-Mono-Regular.woff') format('woff'), url('../fonts/GT-America-Exp-Mono-Regular.eot') format('embedded-opentype');
+    src: url('../fonts/GT-America-Exp-Mono-Regular.woff2') format('woff2'), url('../fonts/GT-America-Exp-Mono-Regular.woff') format('woff');
 }
 
 @font-face {
     font-family: GTAmericaExpMono-RgIt;
     font-weight: 400;
     font-style: italic;
-    src: url('../fonts/GT-America-Exp-Mono-Regular-Italic.woff2') format('woff2'), url('../fonts/GT-America-Exp-Mono-Regular-Italic.woff') format('woff'), url('../fonts/GT-America-Exp-Mono-Regular-Italic.eot') format('embedded-opentype');
+    src: url('../fonts/GT-America-Exp-Mono-Regular-Italic.woff2') format('woff2'), url('../fonts/GT-America-Exp-Mono-Regular-Italic.woff') format('woff');
 }
 
 @font-face {
     font-family: GTAmericaExpMono-Bd;
     font-weight: 700;
     font-style: normal;
-    src: url('../fonts/GT-America-Exp-Mono-Bold.woff2') format('woff2'), url('../fonts/GT-America-Exp-Mono-Bold.woff') format('woff'), url('../fonts/GT-America-Exp-Mono-Bold.eot') format('embedded-opentype');
+    src: url('../fonts/GT-America-Exp-Mono-Bold.woff2') format('woff2'), url('../fonts/GT-America-Exp-Mono-Bold.woff') format('woff');
 }
 
 @font-face {
     font-family: GTAmericaExpMono-BdIt;
     font-weight: 700;
     font-style: italic;
-    src: url('../fonts/GT-America-Exp-Mono-Bold-Italic.woff2') format('woff2'), url('../fonts/GT-America-Exp-Mono-Bold-Italic.woff') format('woff'), url('../fonts/GT-America-Exp-Mono-Bold-Italic.eot') format('embedded-opentype');
+    src: url('../fonts/GT-America-Exp-Mono-Bold-Italic.woff2') format('woff2'), url('../fonts/GT-America-Exp-Mono-Bold-Italic.woff') format('woff');
 }
 
 * {
