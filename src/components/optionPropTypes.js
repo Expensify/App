@@ -39,6 +39,15 @@ export default PropTypes.shape({
     // Whether the option has an outstanding IOU
     hasOutstandingIOU: PropTypes.bool,
 
+    // Custom icon to render on the right side of the option
+    customIcon: PropTypes.shape({
+        // The icon source
+        src: PropTypes.func,
+
+        // The color of the icon
+        color: PropTypes.string,
+    }),
+
     // List of participants of the report
     participantsList: PropTypes.arrayOf(participantPropTypes),
 

@@ -108,7 +108,7 @@ class ReportActionsList extends React.Component {
      * @return {String}
      */
     keyExtractor(item) {
-        return `${item.action.clientID}${item.action.reportActionID}`;
+        return item.action.reportActionID;
     }
 
     /**
@@ -157,7 +157,6 @@ class ReportActionsList extends React.Component {
                     ref={ReportScrollManager.flatListRef}
                     data={this.props.sortedReportActions}
                     renderItem={this.renderItem}
-                    CellRendererComponent={this.renderCell}
                     contentContainerStyle={[
                         styles.chatContentScrollView,
                         shouldShowReportRecipientLocalTime && styles.pt0,

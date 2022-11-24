@@ -32,9 +32,6 @@ const propTypes = {
     /** Toggles the navigation menu open and closed */
     onLinkClick: PropTypes.func.isRequired,
 
-    /** Navigates to settings and hides sidebar */
-    onAvatarClick: PropTypes.func.isRequired,
-
     /** Safe area insets required for mobile devices margins */
     insets: safeAreaInsetPropTypes.isRequired,
 
@@ -45,7 +42,7 @@ const propTypes = {
 
     /** All report actions for all reports */
     // eslint-disable-next-line react/no-unused-prop-types
-    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+    reportActions: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes))),
 
     /** List of users' personal details */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -83,8 +80,43 @@ const defaultProps = {
 };
 
 class SidebarLinks extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.showSearchPage = this.showSearchPage.bind(this);
+        this.showSettingsPage = this.showSettingsPage.bind(this);
+        this.showReportPage = this.showReportPage.bind(this);
+    }
+
     showSearchPage() {
+        if (this.props.isCreateMenuOpen) {
+            // Prevent opening Search page when click Search icon quickly after clicking FAB icon
+            return;
+        }
         Navigation.navigate(ROUTES.SEARCH);
+    }
+
+    showSettingsPage() {
+        if (this.props.isCreateMenuOpen) {
+            // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS);
+    }
+
+    /**
+     * Show Report page with selected report id
+     *
+     * @param {Object} option
+     * @param {String} option.reportID
+     */
+    showReportPage(option) {
+        if (this.props.isCreateMenuOpen) {
+            // Prevent opening Report page when click LHN row quickly after clicking FAB icon
+            return;
+        }
+        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+        this.props.onLinkClick();
     }
 
     render() {
@@ -129,7 +161,7 @@ class SidebarLinks extends React.Component {
                     <TouchableOpacity
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
                         accessibilityRole="button"
-                        onPress={this.props.onAvatarClick}
+                        onPress={this.showSettingsPage}
                     >
                         <AvatarWithIndicator
                             source={this.props.currentUserPersonalDetails.avatar}
@@ -147,10 +179,7 @@ class SidebarLinks extends React.Component {
                         focusedIndex={_.findIndex(optionListItems, (
                             option => option.toString() === this.props.reportIDFromRoute
                         ))}
-                        onSelectRow={(option) => {
-                            Navigation.navigate(ROUTES.getReportRoute(option.reportID));
-                            this.props.onLinkClick();
-                        }}
+                        onSelectRow={this.showReportPage}
                         shouldDisableFocusOptions={this.props.isSmallScreenWidth}
                         optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
                         onLayout={() => {
