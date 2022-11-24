@@ -162,7 +162,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             // Load font assets,
             {
                 test: /\.(woff|woff2)$/i,
-                type: 'asset/resource',
+                type: 'asset',
             },
 
             // Load svg images
