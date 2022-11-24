@@ -169,10 +169,11 @@ jobs:
           content_ios="${content_ios//$'\r'/'%0D'}"
           echo "ios_paths=$content_ios" >> "$GITHUB_OUTPUT"
 
-      - name: Comment PR
-        uses: thollander/actions-comment-pull-request@8732291afbb10a0a98adbb80269d2aa5a732182c
-        with:
-          message: |
-            | android :robot:  | iOS :apple: | 
-            | ------------- | ------------- |
-            | ${{fromJson(steps.set_var.outputs.android_paths).html_path}}  | ${{fromJson(steps.set_var.outputs.ios_paths).html_path}}  |
+      - name: Publish links to apps for download
+        run: |
+          gh pr comment --body \
+          "| android :robot:  | iOS :apple: | 
+          | ------------- | ------------- |
+          | ${{fromJson(steps.set_var.outputs.android_paths).html_path}}  | ${{fromJson(steps.set_var.outputs.ios_paths).html_path}}  |"
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
