@@ -9,6 +9,7 @@ import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as Expensicons from './Icon/Expensicons';
 import getAvatarDefaultSource from '../libs/getAvatarDefaultSource';
+import styles from '../styles/styles';
 import FastImage from './FastImage';
 
 const propTypes = {
@@ -59,18 +60,25 @@ class Avatar extends PureComponent {
             ...this.props.imageStyles,
         ];
 
+        const iconStyle = [
+            StyleUtils.getAvatarStyle(this.props.size),
+            styles.bgTransparent,
+            ...this.props.imageStyles,
+        ];
         const iconSize = StyleUtils.getAvatarSize(this.props.size);
 
         return (
             <View pointerEvents="none" style={this.props.containerStyles}>
                 {_.isFunction(this.props.source) || this.state.imageError
                     ? (
-                        <Icon
-                            src={this.state.imageError ? this.props.fallbackIcon : this.props.source}
-                            height={iconSize}
-                            width={iconSize}
-                            fill={this.state.imageError ? themeColors.offline : this.props.fill}
-                        />
+                        <View style={iconStyle}>
+                            <Icon
+                                src={this.state.imageError ? this.props.fallbackIcon : this.props.source}
+                                height={iconSize}
+                                width={iconSize}
+                                fill={this.state.imageError ? themeColors.offline : this.props.fill}
+                            />
+                        </View>
                     )
                     : (
                         <FastImage
