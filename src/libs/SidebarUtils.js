@@ -161,7 +161,13 @@ function getOrderedReportIDs(reportIDFromRoute) {
         return a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase());
     });
     draftReports = _.sortBy(draftReports, report => report.displayName.toLowerCase());
-    nonArchivedReports = _.sortBy(nonArchivedReports, report => (isInDefaultMode ? report.lastMessageTimestamp : report.displayName.toLowerCase()));
+    nonArchivedReports = nonArchivedReports.sort((a, b) => {
+        if (isInDefaultMode && (a.lastMessageTimestamp || b.lastMessageTimestamp) && a.lastMessageTimestamp !== b.lastMessageTimestamp) {
+            return a.lastMessageTimestamp > b.lastMessageTimestamp ? -1 : 1;
+        }
+
+        return a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase());
+    });
     archivedReports = _.sortBy(archivedReports, report => (isInDefaultMode ? report.lastMessageTimestamp : report.displayName.toLowerCase()));
 
     // For archived and non-archived reports, ensure that most recent reports are at the top by reversing the order of the arrays because underscore will only sort them in ascending order
