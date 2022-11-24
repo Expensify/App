@@ -158,16 +158,16 @@ jobs:
       - name: Read JSONs with paths
         id: set_var
         run: |
-          content_android=`cat ./android/android_paths.json`
+          content_android="$(cat ./android/android_paths.json)"
           content_android="${content_android//'%'/'%25'}"
           content_android="${content_android//$'\n'/'%0A'}"
           content_android="${content_android//$'\r'/'%0D'}"
-          echo "::set-output name=android_paths::$content_android"
-          content_ios=`cat ./ios/ios_paths.json`
+          echo "android_paths=$content_android" >> $GITHUB_OUTPUT
+          content_ios="$(cat ./ios/ios_paths.json)"
           content_ios="${content_ios//'%'/'%25'}"
           content_ios="${content_ios//$'\n'/'%0A'}"
           content_ios="${content_ios//$'\r'/'%0D'}"
-          echo "::set-output name=ios_paths::$content_ios"
+          echo "ios_paths=$content_ios" >> $GITHUB_OUTPUT
 
       - name: Comment PR
         uses: thollander/actions-comment-pull-request@8732291afbb10a0a98adbb80269d2aa5a732182c
