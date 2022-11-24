@@ -1,0 +1,85 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/fonts/native/ExpensifyMono-Bold.otf",
+      "sha1": "6b83b1c1c0c8650f6258fd05771b4e25696c4046"
+    },
+    {
+      "path": "assets/fonts/native/ExpensifyMono-Regular.otf",
+      "sha1": "c0522536213e24609badc298ed82a6c47cdb5b20"
+    },
+    {
+      "path": "assets/fonts/native/ExpensifyNeue-Bold.otf",
+      "sha1": "c61cccfb6091f06381fa5b514272eab7105246d8"
+    },
+    {
+      "path": "assets/fonts/native/ExpensifyNeue-BoldItalic.otf",
+      "sha1": "039065b262036e708ebb5f64b236ef08cc4e8f4e"
+    },
+    {
+      "path": "assets/fonts/native/ExpensifyNeue-Italic.otf",
+      "sha1": "7ddd0652175a9f27380fc63eec4395d65ed189eb"
+    },
+    {
+      "path": "assets/fonts/native/ExpensifyNeue-Regular.otf",
+      "sha1": "57b2cdd2f4adea3fad34464248502cd4edcaadd7"
+    },
+    {
+      "path": "assets/fonts/native/ExpensifyNewKansas-Medium.otf",
+      "sha1": "b07181fac8d0602d4b18c339bdbef9589c67c9f9"
+    },
+    {
+      "path": "assets/fonts/native/ExpensifyNewKansas-MediumItalic.otf",
+      "sha1": "00636ab2038c9690a123985b70a944c42cf65b8a"
+    },
+    {
+      "path": "assets/fonts/native/GTAmericaExp-BdIt.otf",
+      "sha1": "789fb6789be3c7c10847809d6ab92c9ec5814b52"
+    },
+    {
+      "path": "assets/fonts/native/GTAmericaExp-Bold.otf",
+      "sha1": "7bc66257cb966655f2cc9687982a5efd32226f2a"
+    },
+    {
+      "path": "assets/fonts/native/GTAmericaExp-Light.otf",
+      "sha1": "570aedfe3724e91d12015e626058d7edcf9ea609"
+    },
+    {
+      "path": "assets/fonts/native/GTAmericaExp-MdIt.otf",
+      "sha1": "964d6792031780e4f4479103cb2fa0bec0b9e0ab"
+    },
+    {
+      "path": "assets/fonts/native/GTAmericaExp-Medium.otf",
+      "sha1": "15bbfe2135d29a3a7d5f87226c0915eb68f80df6"
+    },
+    {
+      "path": "assets/fonts/native/GTAmericaExp-Regular.otf",
+      "sha1": "6c6a5de36498ebeea10fadd2d9fae239556d6daf"
+    },
+    {
+      "path": "assets/fonts/native/GTAmericaExp-RgIt.otf",
+      "sha1": "20593984539648039affd2eca5411eef29f6e4cd"
+    },
+    {
+      "path": "assets/fonts/native/GTAmericaExp-Thin.otf",
+      "sha1": "7dc44c89f0f9d0eb58028d7c6ab0d77c1cd20490"
+    },
+    {
+      "path": "assets/fonts/native/GTAmericaExpMono-Bd.otf",
+      "sha1": "4fa357282c2f6962208e7d628efb0c02ed495474"
+    },
+    {
+      "path": "assets/fonts/native/GTAmericaExpMono-BdIt.otf",
+      "sha1": "d6c4f41e769bcf01ce21fc1310a46ec78c73d62d"
+    },
+    {
+      "path": "assets/fonts/native/GTAmericaExpMono-Rg.otf",
+      "sha1": "3cf0388dca6779e846c066df02660d8dd07b95df"
+    },
+    {
+      "path": "assets/fonts/native/GTAmericaExpMono-RgIt.otf",
+      "sha1": "19c185e2823ccd0cf39ca5916b0004effb2ea7c0"
+    }
+  ]
+}
