@@ -10,7 +10,7 @@ import shouldUseStagingServer from './shouldUseStagingServer';
 let stagingServerToggleState = false;
 Onyx.connect({
     key: ONYXKEYS.USER,
-    callback: val => stagingServerToggleState = lodashGet(val, 'shouldUseStagingServer', true),
+    callback: val => stagingServerToggleState = lodashGet(val, 'shouldUseStagingServer', false),
 });
 
 let shouldFailAllRequests = false;
