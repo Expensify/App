@@ -125,7 +125,6 @@ class SidebarLinks extends React.Component {
             return null;
         }
         const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
-        console.log('over here 1' + optionListItems);
         return (
             <View
                 accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
