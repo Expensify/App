@@ -7,7 +7,7 @@ ShowContextMenuContext.displayName = 'ShowContextMenuContext';
 
 /**
  * Show the report action context menu.
- * 
+ *
  * @param {Object} [event] - A press event
  * @param {Element} anchor - Context menu anchor
  * @param {String} reportID - Active Report Id
