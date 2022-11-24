@@ -20,6 +20,12 @@ const propTypes = {
     /** Is this IOUACTION the most recent? */
     isMostRecentIOUReportAction: PropTypes.bool.isRequired,
 
+    /** Popover context menu anchor, used for showing context menu */
+    contextMenuAnchor: PropTypes.shape({current: PropTypes.elementType}),
+
+    /** Callback for updating context menu active state, used for showing context menu */
+    checkIfContextMenuActive: PropTypes.func,
+
     /* Onyx Props */
     /** chatReport associated with iouReport */
     chatReport: PropTypes.shape({
@@ -29,6 +35,8 @@ const propTypes = {
 };
 
 const defaultProps = {
+    contextMenuAnchor: undefined,
+    checkIfContextMenuActive: () => {},
     chatReport: {
         participants: [],
     },
@@ -51,6 +59,9 @@ const IOUAction = (props) => {
                         pendingAction={lodashGet(props.action, 'pendingAction', null)}
                         iouReportID={props.action.originalMessage.IOUReportID.toString()}
                         chatReportID={props.chatReportID}
+                        action={props.action}
+                        contextMenuAnchor={props.contextMenuAnchor}
+                        checkIfContextMenuActive={props.checkIfContextMenuActive}
                         onPayButtonPressed={launchDetailsModal}
                         onPreviewPressed={launchDetailsModal}
                         containerStyles={[styles.cursorPointer]}
