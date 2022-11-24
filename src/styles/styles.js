@@ -339,12 +339,12 @@ const styles = {
     },
 
     borderRadiusNormal: {
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
     },
 
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeLarge,
         justifyContent: 'center',
         ...spacing.ph3,
@@ -363,32 +363,31 @@ const styles = {
     },
 
     buttonSmall: {
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeSmall,
-        paddingTop: 6,
-        paddingRight: 10,
-        paddingBottom: 6,
-        paddingLeft: 10,
+        paddingTop: 4,
+        paddingHorizontal: 14,
+        paddingBottom: 4,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
     buttonMedium: {
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeNormal,
-        paddingTop: 6,
-        paddingRight: 12,
-        paddingBottom: 6,
-        paddingLeft: 12,
+        paddingTop: 12,
+        paddingRight: 16,
+        paddingBottom: 12,
+        paddingLeft: 16,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
     buttonLarge: {
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeLarge,
         paddingTop: 8,
-        paddingRight: 14,
+        paddingRight: 18,
         paddingBottom: 8,
-        paddingLeft: 14,
+        paddingLeft: 18,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
@@ -612,7 +611,7 @@ const styles = {
 
     border: {
         borderWidth: 1,
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
         borderColor: themeColors.border,
     },
 
@@ -1658,7 +1657,7 @@ const styles = {
         right: -25,
         borderWidth: 3,
         borderRadius: 18,
-        borderColor: themeColors.componentBG,
+        borderColor: themeColors.cardBorder,
     },
 
     avatarLarge: {
@@ -2074,7 +2073,6 @@ const styles = {
 
     navigationScreenCardStyle: {
         backgroundColor: themeColors.appBG,
-        height: '100%',
     },
 
     navigationSceneFullScreenWrapper: {
@@ -2171,14 +2169,16 @@ const styles = {
     }, 0),
 
     iouPreviewBox: {
-        backgroundColor: themeColors.componentBG,
-        borderColor: themeColors.border,
-        borderWidth: 1,
+        backgroundColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusCard,
         padding: 20,
         marginTop: 16,
         maxWidth: variables.sideBarWidth,
         width: '100%',
+    },
+
+    iouPreviewBoxHover: {
+        backgroundColor: themeColors.border,
     },
 
     iouPreviewBoxLoading: {
@@ -2192,6 +2192,10 @@ const styles = {
     iouPreviewBoxAvatar: {
         marginRight: -10,
         marginBottom: -10,
+    },
+
+    iouPreviewBoxAvatarHover: {
+        borderColor: themeColors.border,
     },
 
     iouPreviewBoxCheckmark: {
@@ -2325,6 +2329,10 @@ const styles = {
         borderLeftWidth: 4,
         paddingLeft: 12,
         marginVertical: 4,
+    },
+
+    cursorDefault: {
+        cursor: 'default',
     },
 
     cursorDisabled: {
@@ -2633,6 +2641,11 @@ const styles = {
         transform: [{scale: 0}],
     },
 
+    invert: {
+        // It's important to invert the Y AND X axis to prevent a react native issue that can lead to ANRs on android 13
+        transform: [{scaleX: -1}, {scaleY: -1}],
+    },
+
     keyboardShortcutModalContainer: {
         maxHeight: '100%',
         flex: '0 0 auto',
@@ -2681,6 +2694,7 @@ const styles = {
     errorPageContainer: {
         backgroundColor: themeColors.componentBG,
     },
+
     transferBalancePayment: {
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
@@ -2769,6 +2783,30 @@ const styles = {
         flexShrink: 1,
         fontSize: variables.fontSizeSmall,
         ...spacing.ph2,
+    },
+
+    cardSection: {
+        backgroundColor: themeColors.cardBG,
+        borderRadius: variables.componentBorderRadiusCard,
+        marginBottom: 20,
+        marginHorizontal: 16,
+        padding: 20,
+        width: 'auto',
+        textAlign: 'left',
+    },
+
+    cardMenuItem: {
+        paddingHorizontal: 0,
+        borderRadius: variables.componentBorderRadiusNormal,
+        paddingVertical: 12,
+    },
+
+    callRequestSection: {
+        backgroundColor: themeColors.appBG,
+        paddingHorizontal: 0,
+        paddingBottom: 0,
+        marginHorizontal: 0,
+        marginBottom: 0,
     },
 };
 

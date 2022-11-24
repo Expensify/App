@@ -126,6 +126,7 @@ class IOUCurrencySelection extends Component {
                     onChangeText={this.changeSearchValue}
                     placeholderText={this.props.translate('common.search')}
                     headerMessage={headerMessage}
+                    shouldDelayFocus
                 />
             </ScreenWrapper>
         );
