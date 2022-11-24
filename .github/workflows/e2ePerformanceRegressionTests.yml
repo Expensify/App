@@ -48,7 +48,7 @@ jobs:
           disable-animations: false
           script: echo "Generated AVD snapshot for caching."
 
-      #     Note: if the android build fails the logs can be incomplete. It can help to run the build once manually to get a full log
+      # Note: if the android build fails the logs can be incomplete. It can help to run the build once manually to get a full log
       - name: Preheat build system
         env:
           JAVA_HOME: ${{ env.JAVA_HOME_11_X64 }}
