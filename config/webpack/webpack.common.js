@@ -80,7 +80,9 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         new HtmlInlineScriptPlugin({
             scriptMatchPattern: [/splash.+[.]js$/],
         }),
-        new FontPreloadPlugin(),
+        new FontPreloadPlugin({
+            extensions: ['woff2'],
+        }),
         new ProvidePlugin({
             process: 'process/browser',
         }),
