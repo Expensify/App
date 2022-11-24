@@ -78,6 +78,9 @@ const propTypes = {
 
     /** Callback to execute when the SectionList lays out */
     onLayout: PropTypes.func,
+
+    /** Whether to show a line separating options in list */
+    shouldHaveOptionSeparator: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -100,6 +103,7 @@ const defaultProps = {
     optionMode: undefined,
     isDisabled: false,
     onLayout: undefined,
+    shouldHaveOptionSeparator: false,
 };
 
 export {propTypes, defaultProps};

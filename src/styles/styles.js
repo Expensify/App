@@ -3,7 +3,6 @@ import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
 import fontWeightBold from './fontWeight/bold';
 import variables from './variables';
-import colors from './colors';
 import spacing from './utilities/spacing';
 import sizing from './utilities/sizing';
 import flex from './utilities/flex';
@@ -11,7 +10,6 @@ import display from './utilities/display';
 import overflow from './utilities/overflow';
 import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
-import textInputAlignSelf from './utilities/textInputAlignSelf';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
@@ -20,9 +18,10 @@ import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyl
 import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
 import overflowXHidden from './overflowXHidden';
+import CONST from '../CONST';
 
 const picker = {
-    backgroundColor: 'transparent',
+    backgroundColor: themeColors.transparent,
     color: themeColors.text,
     fontFamily: fontFamily.GTA,
     fontSize: variables.fontSizeNormal,
@@ -30,10 +29,8 @@ const picker = {
     paddingHorizontal: 11,
     paddingBottom: 8,
     paddingTop: 23,
-    height: 52,
-    borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: themeColors.border,
+    height: 50,
+    borderWidth: 0,
     borderRadius: variables.componentBorderRadiusNormal,
     textAlign: 'left',
 };
@@ -128,6 +125,10 @@ const webViewStyles = {
             marginTop: 0,
             marginBottom: 0,
         },
+        h1: {
+            fontSize: variables.fontSizeLarge,
+            marginBottom: 8,
+        },
     },
 
     baseFontStyle: {
@@ -149,6 +150,7 @@ const styles = {
     ...wordBreak,
     ...whiteSpace,
     ...writingDirection,
+    ...themeColors,
 
     rateCol: {
         margin: 0,
@@ -285,11 +287,11 @@ const styles = {
     },
 
     textWhite: {
-        color: colors.white,
+        color: themeColors.textLight,
     },
 
     textBlue: {
-        color: colors.blue,
+        color: themeColors.link,
     },
 
     textUppercase: {
@@ -321,7 +323,7 @@ const styles = {
     },
 
     bgDark: {
-        backgroundColor: colors.dark,
+        backgroundColor: themeColors.inverse,
     },
 
     opacity0: {
@@ -333,23 +335,23 @@ const styles = {
     },
 
     textDanger: {
-        color: colors.red,
+        color: themeColors.danger,
     },
 
     borderRadiusNormal: {
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
     },
 
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeLarge,
         justifyContent: 'center',
         ...spacing.ph3,
     },
 
     buttonText: {
-        color: themeColors.heading,
+        color: themeColors.text,
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
@@ -361,32 +363,31 @@ const styles = {
     },
 
     buttonSmall: {
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeSmall,
-        paddingTop: 6,
-        paddingRight: 10,
-        paddingBottom: 6,
-        paddingLeft: 10,
+        paddingTop: 10,
+        paddingHorizontal: 14,
+        paddingBottom: 10,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
     buttonMedium: {
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeNormal,
-        paddingTop: 6,
-        paddingRight: 12,
-        paddingBottom: 6,
-        paddingLeft: 12,
+        paddingTop: 12,
+        paddingRight: 16,
+        paddingBottom: 12,
+        paddingLeft: 16,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
     buttonLarge: {
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeLarge,
         paddingTop: 8,
-        paddingRight: 14,
+        paddingRight: 18,
         paddingBottom: 8,
-        paddingLeft: 14,
+        paddingLeft: 18,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
@@ -412,7 +413,7 @@ const styles = {
     },
 
     buttonSuccess: {
-        backgroundColor: themeColors.buttonSuccessBG,
+        backgroundColor: themeColors.success,
         borderWidth: 0,
     },
 
@@ -421,32 +422,32 @@ const styles = {
     },
 
     buttonSuccessHovered: {
-        backgroundColor: themeColors.buttonSuccessHoveredBG,
+        backgroundColor: themeColors.successHover,
         borderWidth: 0,
     },
 
     buttonDanger: {
-        backgroundColor: themeColors.buttonDangerBG,
+        backgroundColor: themeColors.danger,
         borderWidth: 0,
     },
 
     buttonDangerDisabled: {
-        backgroundColor: themeColors.buttonDangerDisabledBG,
+        backgroundColor: themeColors.dangerDisabled,
     },
 
     buttonDangerHovered: {
-        backgroundColor: themeColors.buttonDangerPressedBG,
+        backgroundColor: themeColors.dangerHover,
         borderWidth: 0,
     },
 
     buttonDisable: {
-        backgroundColor: themeColors.buttonDisabledBG,
+        backgroundColor: themeColors.buttonDefaultBG,
         borderWidth: 0,
     },
 
     buttonDropdown: {
         borderLeftWidth: 1,
-        borderColor: themeColors.textReversed,
+        borderColor: themeColors.textLight,
     },
 
     noRightBorderRadius: {
@@ -478,11 +479,11 @@ const styles = {
     },
 
     buttonSuccessText: {
-        color: themeColors.textReversed,
+        color: themeColors.textLight,
     },
 
     buttonDangerText: {
-        color: themeColors.textReversed,
+        color: themeColors.textLight,
     },
 
     hoveredComponentBG: {
@@ -530,11 +531,9 @@ const styles = {
             paddingTop: 6,
             paddingBottom: 6,
             borderRadius: variables.componentBorderRadius,
-            borderWidth: 1,
-            borderColor: themeColors.border,
-            borderStyle: 'solid',
+            borderWidth: 0,
             color: themeColors.text,
-            height: variables.componentSizeSmall,
+            height: 26,
             opacity: 1,
             backgroundColor: 'transparent',
         },
@@ -545,13 +544,11 @@ const styles = {
             paddingRight: 25,
             paddingTop: 6,
             paddingBottom: 6,
-            borderWidth: 1,
-            borderColor: themeColors.border,
-            borderStyle: 'solid',
+            borderWidth: 0,
             borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
             appearance: 'none',
-            height: variables.componentSizeSmall,
+            height: 26,
             opacity: 1,
             cursor: 'pointer',
             backgroundColor: 'transparent',
@@ -563,17 +560,15 @@ const styles = {
             paddingRight: 25,
             paddingTop: 6,
             paddingBottom: 6,
-            borderWidth: 1,
-            borderColor: themeColors.border,
-            borderStyle: 'solid',
+            borderWidth: 0,
             borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
-            height: variables.componentSizeSmall,
+            height: 26,
             opacity: 1,
         },
         iconContainer: {
-            top: 8,
-            right: 9,
+            top: 7,
+            right: 8,
             ...pointerEventsNone,
         },
         icon: {
@@ -583,7 +578,7 @@ const styles = {
     },
 
     badge: {
-        backgroundColor: themeColors.badgeDefaultBG,
+        backgroundColor: themeColors.border,
         borderRadius: 14,
         height: variables.iconSizeNormal,
         flexDirection: 'row',
@@ -592,19 +587,19 @@ const styles = {
     },
 
     badgeSuccess: {
-        backgroundColor: themeColors.badgeSuccessBG,
+        backgroundColor: themeColors.success,
     },
 
     badgeSuccessPressed: {
-        backgroundColor: themeColors.badgeSuccessPressedBG,
+        backgroundColor: themeColors.successHover,
     },
 
     badgeDanger: {
-        backgroundColor: themeColors.badgeDangerBG,
+        backgroundColor: themeColors.danger,
     },
 
     badgeDangerPressed: {
-        backgroundColor: themeColors.badgeDangerPressedBG,
+        backgroundColor: themeColors.dangerPressed,
     },
 
     badgeText: {
@@ -616,7 +611,7 @@ const styles = {
 
     border: {
         borderWidth: 1,
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
         borderColor: themeColors.border,
     },
 
@@ -625,7 +620,7 @@ const styles = {
     },
 
     borderColorDanger: {
-        borderColor: themeColors.badgeDangerBG,
+        borderColor: themeColors.danger,
     },
 
     headerText: {
@@ -799,43 +794,41 @@ const styles = {
     },
 
     pickerContainer: {
-        borderWidth: 0,
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderColor: themeColors.border,
         borderRadius: variables.componentBorderRadiusNormal,
         justifyContent: 'center',
         backgroundColor: themeColors.componentBG,
     },
     pickerLabel: {
         position: 'absolute',
-        left: 12,
-        top: 7,
+        left: 11,
+        top: 6,
     },
-    picker: (disabled = false, error = false, focused = false) => ({
+    picker: (disabled = false) => ({
         iconContainer: {
-            top: 16,
-            right: 11,
+            top: 15,
+            right: 10,
             zIndex: -1,
         },
         inputWeb: {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
             ...picker,
-            ...(focused && {borderColor: themeColors.borderFocus}),
-            ...(error && {borderColor: themeColors.badgeDangerBG}),
         },
         inputNative: {
             ...picker,
-            ...(focused && {borderColor: themeColors.borderFocus}),
-            ...(error && {borderColor: themeColors.badgeDangerBG}),
         },
     }),
 
     disabledText: {
-        color: colors.gray3,
+        color: themeColors.icon,
     },
 
     inputDisabled: {
-        backgroundColor: colors.gray1,
-        color: colors.gray3,
+        backgroundColor: themeColors.highlightBG,
+        color: themeColors.icon,
     },
 
     textInputReversed: addOutlineWidth({
@@ -851,7 +844,7 @@ const styles = {
     noOutline: addOutlineWidth({}, 0),
 
     errorOutline: {
-        borderColor: colors.red,
+        borderColor: themeColors.danger,
     },
 
     textLabelSupporting: {
@@ -888,7 +881,7 @@ const styles = {
     },
 
     formSuccess: {
-        color: themeColors.textSuccess,
+        color: themeColors.success,
         fontSize: variables.fontSizeLabel,
         lineHeight: 18,
         marginBottom: 4,
@@ -920,14 +913,14 @@ const styles = {
         fontFamily: fontFamily.GTA,
         fontWeight: fontWeightBold,
         fontSize: variables.fontSizeHero,
-        color: colors.white,
+        color: themeColors.appBG,
         lineHeight: variables.lineHeightHero,
     },
 
     signInPageHeroDescription: {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
-        color: colors.white,
+        color: themeColors.appBG,
     },
 
     signInPageFormContainer: {
@@ -985,7 +978,7 @@ const styles = {
 
     statusIndicator: {
         borderColor: themeColors.sidebar,
-        backgroundColor: themeColors.buttonDangerBG,
+        backgroundColor: themeColors.danger,
         borderRadius: 6,
         borderWidth: 2,
         position: 'absolute',
@@ -998,7 +991,7 @@ const styles = {
 
     statusIndicatorLarge: {
         borderColor: themeColors.componentBG,
-        backgroundColor: themeColors.buttonDangerBG,
+        backgroundColor: themeColors.danger,
         borderRadius: 8,
         borderWidth: 2,
         position: 'absolute',
@@ -1010,7 +1003,7 @@ const styles = {
     },
 
     statusIndicatorOnline: {
-        backgroundColor: themeColors.online,
+        backgroundColor: themeColors.success,
     },
 
     avatarWithIndicator: {
@@ -1028,7 +1021,7 @@ const styles = {
     },
 
     floatingActionButton: {
-        backgroundColor: themeColors.buttonSuccessBG,
+        backgroundColor: themeColors.success,
         position: 'absolute',
         height: variables.componentSizeLarge,
         width: variables.componentSizeLarge,
@@ -1236,6 +1229,12 @@ const styles = {
     appContent: {
         backgroundColor: themeColors.appBG,
         overflow: 'hidden',
+
+        // Starting version 6.3.2 @react-navigation/drawer adds "user-select: none;" to its container.
+        // We add user-select-auto to the inner component to prevent incorrect triple-click text selection.
+        // For further explanation see - https://github.com/Expensify/App/pull/12730/files#r1022883823
+        userSelect: 'auto',
+        WebkitUserSelect: 'auto',
     },
 
     appContentHeader: {
@@ -1340,7 +1339,7 @@ const styles = {
     },
 
     chatItemMessageLink: {
-        color: colors.blue,
+        color: themeColors.link,
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
         lineHeight: 20,
@@ -1388,6 +1387,8 @@ const styles = {
         flexBasis: '100%',
     },
 
+    // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
+    // Make sure you run the following tests against any changes: #12669
     textInputCompose: addOutlineWidth({
         backgroundColor: themeColors.componentBG,
         borderColor: themeColors.border,
@@ -1404,8 +1405,9 @@ const styles = {
         // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
         paddingHorizontal: 8,
-        paddingVertical: 0,
-        ...textInputAlignSelf.center,
+        paddingTop: 0,
+        paddingBottom: 0,
+        alignSelf: 'center',
         textAlignVertical: 'center',
     }, 0),
 
@@ -1420,8 +1422,9 @@ const styles = {
         marginVertical: 6,
     },
 
+    // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
     textInputComposeSpacing: {
-        paddingVertical: 6,
+        paddingVertical: 5,
         ...flex.flexRow,
         flex: 1,
     },
@@ -1475,12 +1478,16 @@ const styles = {
         fontSize: variables.emojiSize,
         ...spacing.pv0,
         ...spacing.ph0,
+        lineHeight: variables.emojiLineHeight,
     },
 
     emojiItem: {
         width: '12.5%',
         textAlign: 'center',
         borderRadius: 8,
+        paddingTop: 2,
+        paddingBottom: 2,
+        height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
     },
 
     emojiItemHighlighted: {
@@ -1578,7 +1585,7 @@ const styles = {
     horizontalStackedAvatar: {
         height: 28,
         width: 28,
-        backgroundColor: colors.white,
+        backgroundColor: themeColors.appBG,
         borderRadius: 33,
         paddingTop: 2,
     },
@@ -1650,7 +1657,7 @@ const styles = {
         right: -25,
         borderWidth: 3,
         borderRadius: 18,
-        borderColor: themeColors.componentBG,
+        borderColor: themeColors.cardBorder,
     },
 
     avatarLarge: {
@@ -1671,7 +1678,7 @@ const styles = {
     },
 
     avatarInnerText: {
-        color: themeColors.textReversed,
+        color: themeColors.textLight,
         fontSize: variables.fontSizeSmall,
         lineHeight: undefined,
         marginLeft: -3,
@@ -1679,7 +1686,7 @@ const styles = {
     },
 
     avatarInnerTextSmall: {
-        color: themeColors.textReversed,
+        color: themeColors.textLight,
         fontSize: variables.fontSizeExtraSmall,
         lineHeight: undefined,
         marginLeft: -2,
@@ -1744,7 +1751,7 @@ const styles = {
         width: 28,
         borderWidth: 2,
         borderStyle: 'solid',
-        borderColor: colors.white,
+        borderColor: themeColors.appBG,
         backgroundColor: themeColors.opaqueAvatar,
         borderRadius: 24,
         zIndex: 6,
@@ -1886,7 +1893,7 @@ const styles = {
     },
 
     notFoundTextHeader: {
-        color: colors.blue,
+        color: themeColors.link,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: 150,
@@ -1900,7 +1907,7 @@ const styles = {
     },
 
     notFoundButtonText: {
-        color: colors.blue,
+        color: themeColors.link,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: 15,
@@ -1912,7 +1919,7 @@ const styles = {
 
     defaultModalContainer: {
         backgroundColor: themeColors.componentBG,
-        borderColor: colors.transparent,
+        borderColor: themeColors.transparent,
     },
 
     reportActionContextMenuMiniButton: {
@@ -1989,12 +1996,12 @@ const styles = {
         right: 0,
         bottom: 0,
         left: 0,
-        backgroundColor: colors.dark,
+        backgroundColor: themeColors.inverse,
         opacity: 0.5,
     },
 
     avatarInnerTextChat: {
-        color: themeColors.textReversed,
+        color: themeColors.textLight,
         fontSize: variables.fontSizeNormal,
         left: 1,
         textAlign: 'center',
@@ -2066,7 +2073,6 @@ const styles = {
 
     navigationScreenCardStyle: {
         backgroundColor: themeColors.appBG,
-        height: '100%',
     },
 
     navigationSceneFullScreenWrapper: {
@@ -2104,11 +2110,11 @@ const styles = {
         justifyContent: 'center',
         borderRadius: 20,
         padding: 15,
-        backgroundColor: colors.green,
+        backgroundColor: themeColors.success,
     },
 
     switchInactive: {
-        backgroundColor: colors.gray2,
+        backgroundColor: themeColors.border,
     },
 
     switchThumb: {
@@ -2117,7 +2123,7 @@ const styles = {
         borderRadius: 11,
         position: 'absolute',
         left: 4,
-        backgroundColor: colors.white,
+        backgroundColor: themeColors.appBG,
     },
 
     radioButtonContainer: {
@@ -2143,7 +2149,7 @@ const styles = {
     },
 
     checkedContainer: {
-        backgroundColor: colors.blue,
+        backgroundColor: themeColors.link,
     },
 
     iouAmountText: {
@@ -2163,14 +2169,16 @@ const styles = {
     }, 0),
 
     iouPreviewBox: {
-        backgroundColor: themeColors.componentBG,
-        borderColor: themeColors.border,
-        borderWidth: 1,
+        backgroundColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusCard,
         padding: 20,
         marginTop: 16,
         maxWidth: variables.sideBarWidth,
         width: '100%',
+    },
+
+    iouPreviewBoxHover: {
+        backgroundColor: themeColors.border,
     },
 
     iouPreviewBoxLoading: {
@@ -2184,6 +2192,10 @@ const styles = {
     iouPreviewBoxAvatar: {
         marginRight: -10,
         marginBottom: -10,
+    },
+
+    iouPreviewBoxAvatarHover: {
+        borderColor: themeColors.border,
     },
 
     iouPreviewBoxCheckmark: {
@@ -2241,7 +2253,7 @@ const styles = {
     },
 
     navigatorFullScreenLoading: {
-        backgroundColor: colors.gray1,
+        backgroundColor: themeColors.highlightBG,
         opacity: 1,
     },
 
@@ -2294,12 +2306,12 @@ const styles = {
     }),
 
     growlNotificationBox: {
-        backgroundColor: colors.dark,
+        backgroundColor: themeColors.inverse,
         borderRadius: variables.componentBorderRadiusNormal,
         alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        shadowColor: '#000',
+        shadowColor: themeColors.shadow,
         ...spacing.p5,
     },
 
@@ -2317,6 +2329,10 @@ const styles = {
         borderLeftWidth: 4,
         paddingLeft: 12,
         marginVertical: 4,
+    },
+
+    cursorDefault: {
+        cursor: 'default',
     },
 
     cursorDisabled: {
@@ -2625,6 +2641,11 @@ const styles = {
         transform: [{scale: 0}],
     },
 
+    invert: {
+        // It's important to invert the Y AND X axis to prevent a react native issue that can lead to ANRs on android 13
+        transform: [{scaleX: -1}, {scaleY: -1}],
+    },
+
     keyboardShortcutModalContainer: {
         maxHeight: '100%',
         flex: '0 0 auto',
@@ -2666,13 +2687,14 @@ const styles = {
     },
 
     iPhoneXSafeArea: {
-        backgroundColor: colors.black,
+        backgroundColor: themeColors.inverse,
         flex: 1,
     },
 
     errorPageContainer: {
         backgroundColor: themeColors.componentBG,
     },
+
     transferBalancePayment: {
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
@@ -2701,7 +2723,7 @@ const styles = {
     },
 
     sliderKnob: {
-        backgroundColor: themeColors.badgeSuccessBG,
+        backgroundColor: themeColors.success,
         position: 'absolute',
         height: variables.sliderKnobSize,
         width: variables.sliderKnobSize,
@@ -2724,6 +2746,7 @@ const styles = {
 
     userSelectText: {
         userSelect: 'text',
+        WebkitUserSelect: 'text',
     },
 
     userSelectNone: {
@@ -2753,13 +2776,37 @@ const styles = {
 
     textPill: {
         ellipsizeMode: 'end',
-        backgroundColor: colors.gray2,
+        backgroundColor: themeColors.border,
         borderRadius: 10,
         overflow: 'hidden',
         paddingVertical: 2,
         flexShrink: 1,
         fontSize: variables.fontSizeSmall,
         ...spacing.ph2,
+    },
+
+    cardSection: {
+        backgroundColor: themeColors.cardBG,
+        borderRadius: variables.componentBorderRadiusCard,
+        marginBottom: 20,
+        marginHorizontal: 16,
+        padding: 20,
+        width: 'auto',
+        textAlign: 'left',
+    },
+
+    cardMenuItem: {
+        paddingHorizontal: 0,
+        borderRadius: variables.componentBorderRadiusNormal,
+        paddingVertical: 12,
+    },
+
+    callRequestSection: {
+        backgroundColor: themeColors.appBG,
+        paddingHorizontal: 0,
+        paddingBottom: 0,
+        marginHorizontal: 0,
+        marginBottom: 0,
     },
 };
 

@@ -26,7 +26,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    href: '',
+    href: undefined,
     style: [],
     onPress: undefined,
     onMouseDown: undefined,
