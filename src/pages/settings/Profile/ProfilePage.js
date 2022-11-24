@@ -1,8 +1,8 @@
 import lodashGet from 'lodash/get';
-import React, {Component} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import React, { Component } from 'react';
+import { withOnyx } from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import { View } from 'react-native';
 import Str from 'expensify-common/lib/str';
 import moment from 'moment-timezone';
 import _ from 'underscore';
@@ -16,14 +16,14 @@ import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import LoginField from './LoginField';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, { withLocalizePropTypes } from '../../../components/withLocalize';
 import * as Localize from '../../../libs/Localize';
 import compose from '../../../libs/compose';
 import TextInput from '../../../components/TextInput';
 import Picker from '../../../components/Picker';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, { withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps } from '../../../components/withCurrentUserPersonalDetails';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import Form from '../../../components/Form';
@@ -68,7 +68,7 @@ class ProfilePage extends Component {
         super(props);
 
         this.defaultAvatar = ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login);
-        this.avatar = {uri: lodashGet(this.props.currentUserPersonalDetails, 'avatar') || this.defaultAvatar};
+        this.avatar = { uri: lodashGet(this.props.currentUserPersonalDetails, 'avatar') || this.defaultAvatar };
         this.pronouns = props.currentUserPersonalDetails.pronouns;
         this.state = {
             logins: this.getLogins(),
@@ -89,7 +89,7 @@ class ProfilePage extends Component {
 
         // Recalculate logins if loginList has changed
         if (_.keys(this.props.loginList).length !== _.keys(prevProps.loginList).length) {
-            stateToUpdate = {...stateToUpdate, logins: this.getLogins()};
+            stateToUpdate = { ...stateToUpdate, logins: this.getLogins() };
         }
 
         if (_.isEmpty(stateToUpdate)) {
@@ -111,7 +111,7 @@ class ProfilePage extends Component {
             return;
         }
 
-        this.setState({hasSelfSelectedPronouns});
+        this.setState({ hasSelfSelectedPronouns });
     }
 
     /**
@@ -120,7 +120,7 @@ class ProfilePage extends Component {
      */
     setAutomaticTimezone(isAutomaticTimezone) {
         if (!isAutomaticTimezone) {
-            this.setState({isAutomaticTimezone});
+            this.setState({ isAutomaticTimezone });
             return;
         }
 
@@ -200,15 +200,15 @@ class ProfilePage extends Component {
         );
 
         if (hasFirstNameError) {
-            errors.firstName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
+            errors.firstName = Localize.translateLocal('personalDetails.error.characterLimit', { limit: CONST.FORM_CHARACTER_LIMIT });
         }
 
         if (hasLastNameError) {
-            errors.lastName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
+            errors.lastName = Localize.translateLocal('personalDetails.error.characterLimit', { limit: CONST.FORM_CHARACTER_LIMIT });
         }
 
         if (hasPronounError) {
-            errors.pronouns = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
+            errors.pronouns = Localize.translateLocal('personalDetails.error.characterLimit', { limit: CONST.FORM_CHARACTER_LIMIT });
         }
 
         return errors;
@@ -231,20 +231,28 @@ class ProfilePage extends Component {
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <OfflineWithFeedback
-                        pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
-                        errors={lodashGet(this.props.currentUserPersonalDetails, 'errorFields.avatar', null)}
-                        errorRowStyles={[styles.mt6]}
-                        onClose={PersonalDetails.clearAvatarErrors}
-                    >
-                        <AvatarWithImagePicker
-                            isUsingDefaultAvatar={lodashGet(currentUserDetails, 'avatar', '').includes('/images/avatars/avatar')}
-                            avatarURL={currentUserDetails.avatar}
-                            onImageSelected={PersonalDetails.updateAvatar}
-                            onImageRemoved={PersonalDetails.deleteAvatar}
-                            anchorPosition={styles.createMenuPositionProfile}
-                            size={CONST.AVATAR_SIZE.LARGE}
-                        />
-                    </OfflineWithFeedback>
+                    pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
+                    errors={lodashGet(this.props.currentUserPersonalDetails, 'errorFields.avatar', null)}
+                    errorRowStyles={[styles.mt6]}
+                    onClose={PersonalDetails.clearAvatarErrors}
+                >
+                    <AvatarWithImagePicker
+                        isUsingDefaultAvatar={lodashGet(currentUserDetails, 'avatar', '').includes('/images/avatars/avatar')}
+                        avatarURL={currentUserDetails.avatar}
+                        onImageSelected={PersonalDetails.updateAvatar}
+                        onImageRemoved={PersonalDetails.deleteAvatar}
+                        anchorPosition={styles.createMenuPositionProfile}
+                        size={CONST.AVATAR_SIZE.LARGE}
+                    />
+                </OfflineWithFeedback>
+                <View style={[styles.mt4, styles.mb4]}>
+                    <MenuItemWithTopDescription
+                        title={lodashGet(currentUserDetails, 'firstName', '') + ' ' + lodashGet(currentUserDetails, 'lastName', '')}
+                        shouldShowRightIcon
+                        shouldShowBasicTitle
+                        description={this.props.translate('profilePage.displayName')}
+                    />
+                </View>
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM}
@@ -315,7 +323,7 @@ class ProfilePage extends Component {
                             items={timezones}
                             isDisabled={this.state.isAutomaticTimezone}
                             value={this.state.selectedTimezone}
-                            onValueChange={selectedTimezone => this.setState({selectedTimezone})}
+                            onValueChange={selectedTimezone => this.setState({ selectedTimezone })}
                         />
                     </View>
                     <CheckboxWithLabel

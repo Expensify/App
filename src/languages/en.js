@@ -288,6 +288,7 @@ export default {
     },
     profilePage: {
         profile: 'Profile',
+        displayName: 'Display name',
         john: 'John',
         doe: 'Doe',
         preferredPronouns: 'Preferred pronouns',
