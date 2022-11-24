@@ -163,7 +163,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
     draftReports = _.sortBy(draftReports, report => report.displayName.toLowerCase());
     nonArchivedReports = nonArchivedReports.sort((a, b) => {
         if (isInDefaultMode && (a.lastMessageTimestamp || b.lastMessageTimestamp) && a.lastMessageTimestamp !== b.lastMessageTimestamp) {
-            return a.lastMessageTimestamp > b.lastMessageTimestamp ? -1 : 1;
+            return a.lastMessageTimestamp > b.lastMessageTimestamp ? 1 : -1;
         }
 
         return a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase());
