@@ -217,19 +217,19 @@ class ReportScreen extends React.Component {
         // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
         return (
-            <Freeze
-                freeze={this.props.isSmallScreenWidth && this.props.isDrawerOpen}
-                placeholder={(
-                    <ScreenWrapper
-                        style={screenWrapperStyle}
-                    >
-                        <ReportHeaderSkeletonView />
-                        <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
-                    </ScreenWrapper>
-                )}
+            <ScreenWrapper
+                style={screenWrapperStyle}
             >
-                <ScreenWrapper
-                    style={screenWrapperStyle}
+                <Freeze
+                    freeze={this.props.isSmallScreenWidth && this.props.isDrawerOpen}
+                    placeholder={(
+                        <ScreenWrapper
+                            style={screenWrapperStyle}
+                        >
+                            <ReportHeaderSkeletonView />
+                            <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
+                        </ScreenWrapper>
+                    )}
                 >
                     <FullPageNotFoundView
                         shouldShow={!this.props.report.reportID}
@@ -274,7 +274,6 @@ class ReportScreen extends React.Component {
                                 if (skeletonViewContainerHeight === 0) {
                                     return;
                                 }
-
                                 reportActionsListViewHeight = skeletonViewContainerHeight;
                                 this.setState({skeletonViewContainerHeight});
                             }}
@@ -310,8 +309,8 @@ class ReportScreen extends React.Component {
                             )}
                         </View>
                     </FullPageNotFoundView>
-                </ScreenWrapper>
-            </Freeze>
+                </Freeze>
+            </ScreenWrapper>
         );
     }
 }
