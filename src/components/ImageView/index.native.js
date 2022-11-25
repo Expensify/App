@@ -1,33 +1,25 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {
-    View, PanResponder, InteractionManager,
+    View, InteractionManager, PanResponder,
 } from 'react-native';
+import Image from '@pieter-pot/react-native-fast-image';
 import ImageZoom from 'react-native-image-pan-zoom';
+import ImageSize from 'react-native-image-size';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import FastImage from '../FastImage';
-import chatAttachmentTokenHeaders from '../../libs/chatAttachmentTokenHeaders';
 
 /**
  * On the native layer, we use a image library to handle zoom functionality
  */
 const propTypes = {
-
-    /** Do the urls require an authToken? */
-    isAuthTokenRequired: PropTypes.bool,
-
     /** URL to full-sized image */
     url: PropTypes.string.isRequired,
 
     ...windowDimensionsPropTypes,
-};
-
-const defaultProps = {
-    isAuthTokenRequired: false,
 };
 
 class ImageView extends PureComponent {
@@ -36,11 +28,8 @@ class ImageView extends PureComponent {
 
         this.state = {
             isLoading: false,
-
-            // Default to large image width and height to prevent
-            // small, blurry image being present by react-native-image-pan-zoom
-            imageWidth: props.windowWidth,
-            imageHeight: props.windowHeight,
+            imageWidth: undefined,
+            imageHeight: undefined,
             interactionPromise: undefined,
             containerHeight: undefined,
         };
@@ -58,7 +47,12 @@ class ImageView extends PureComponent {
         });
 
         this.imageLoadingStart = this.imageLoadingStart.bind(this);
-        this.imageLoad = this.imageLoad.bind(this);
+        this.imageLoadingEnd = this.imageLoadingEnd.bind(this);
+    }
+
+    componentDidMount() {
+        // Wait till animations are over to prevent stutter in navigation animation
+        this.state.interactionPromise = InteractionManager.runAfterInteractions(() => this.calculateImageSize());
     }
 
     componentWillUnmount() {
@@ -66,6 +60,32 @@ class ImageView extends PureComponent {
             return;
         }
         this.state.interactionPromise.cancel();
+    }
+
+    calculateImageSize() {
+        if (!this.props.url) {
+            return;
+        }
+        ImageSize.getSize(this.props.url).then(({width, height}) => {
+            let imageWidth = width;
+            let imageHeight = height;
+            const containerWidth = Math.round(this.props.windowWidth);
+            const containerHeight = Math.round(this.state.containerHeight);
+
+            const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
+
+            if (imageHeight > imageWidth) {
+                imageHeight *= aspectRatio;
+            } else {
+                imageWidth *= aspectRatio;
+            }
+
+            // Resize the image to max dimensions possible on the Native platforms to prevent crashes on Android. To keep the same behavior, apply to IOS as well.
+            const maxDimensionsScale = 11;
+            imageHeight = Math.min(imageHeight, (this.props.windowHeight * maxDimensionsScale));
+            imageWidth = Math.min(imageWidth, (this.props.windowWidth * maxDimensionsScale));
+            this.setState({imageHeight, imageWidth});
+        });
     }
 
     /**
@@ -84,38 +104,43 @@ class ImageView extends PureComponent {
         return false;
     }
 
-    imageLoad({nativeEvent}) {
-        // Wait till animations are over to prevent stutter in navigation animation
-        this.state.interactionPromise = InteractionManager.runAfterInteractions(() => {
-            let imageWidth = nativeEvent.width;
-            let imageHeight = nativeEvent.height;
-            const containerWidth = Math.round(this.props.windowWidth);
-            const containerHeight = Math.round(this.state.containerHeight);
-
-            const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
-
-            if (imageHeight > imageWidth) {
-                imageHeight *= aspectRatio;
-            } else {
-                imageWidth *= aspectRatio;
-            }
-
-            // Resize the image to max dimensions possible on the Native platforms to prevent crashes on Android. To keep the same behavior, apply to IOS as well.
-            const maxDimensionsScale = 11;
-            imageHeight = Math.min(imageHeight, (this.props.windowHeight * maxDimensionsScale));
-            imageWidth = Math.min(imageWidth, (this.props.windowWidth * maxDimensionsScale));
-            this.setState({imageHeight, imageWidth, isLoading: false});
-        });
-    }
-
     imageLoadingStart() {
         this.setState({isLoading: true});
+    }
+
+    imageLoadingEnd() {
+        this.setState({isLoading: false});
     }
 
     render() {
         // Default windowHeight accounts for the modal header height
         const windowHeight = this.props.windowHeight - variables.contentHeaderHeight;
-        const headers = this.props.isAuthTokenRequired ? chatAttachmentTokenHeaders() : undefined;
+
+        // Display thumbnail until Image size calculation is complete
+        if (!this.state.imageWidth || !this.state.imageHeight) {
+            return (
+                <View
+                    style={[
+                        styles.w100,
+                        styles.h100,
+                        styles.alignItemsCenter,
+                        styles.justifyContentCenter,
+                        styles.overflowHidden,
+                        styles.errorOutline,
+                    ]}
+                    onLayout={(event) => {
+                        const layout = event.nativeEvent.layout;
+                        this.setState({
+                            containerHeight: layout.height,
+                        });
+                    }}
+                >
+                    <FullscreenLoadingIndicator
+                        style={[styles.opacity1, styles.bgTransparent]}
+                    />
+                </View>
+            );
+        }
 
         // Zoom view should be loaded only after measuring actual image dimensions, otherwise it causes blurred images on Android
         return (
@@ -127,12 +152,6 @@ class ImageView extends PureComponent {
                     styles.justifyContentCenter,
                     styles.overflowHidden,
                 ]}
-                onLayout={(event) => {
-                    const layout = event.nativeEvent.layout;
-                    this.setState({
-                        containerHeight: layout.height,
-                    });
-                }}
             >
                 <ImageZoom
                     ref={el => this.zoom = el}
@@ -167,24 +186,16 @@ class ImageView extends PureComponent {
                         this.imageZoomScale = scale;
                     }}
                 >
-                    <FastImage
+                    <Image
                         style={[
                             styles.w100,
                             styles.h100,
                             this.props.style,
-
-                            // Hide image while loading so ImageZoom can get the image
-                            // size before presenting - preventing visual glitches or shift
-                            // due to ImageZoom
-                            this.state.isLoading ? styles.opacity0 : styles.opacity1,
                         ]}
-                        source={{
-                            uri: this.props.url,
-                            headers,
-                        }}
-                        resizeMode={FastImage.resizeMode.contain}
+                        source={{uri: this.props.url}}
+                        resizeMode="contain"
                         onLoadStart={this.imageLoadingStart}
-                        onLoad={this.imageLoad}
+                        onLoadEnd={this.imageLoadingEnd}
                     />
                     {/**
                      Create an invisible view on top of the image so we can capture and set the amount of touches before
@@ -212,6 +223,5 @@ class ImageView extends PureComponent {
 }
 
 ImageView.propTypes = propTypes;
-ImageView.defaultProps = defaultProps;
 
 export default withWindowDimensions(ImageView);

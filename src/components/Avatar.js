@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View} from 'react-native';
+import {View, Image} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -13,7 +13,6 @@ import getAvatarDefaultSource from '../libs/getAvatarDefaultSource';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
 import styles from '../styles/styles';
-import FastImage from './FastImage';
 
 const propTypes = {
     /** Source for the avatar. Can be a URL or an icon. */
@@ -121,7 +120,7 @@ class Avatar extends Component {
                         </View>
                     )
                     : (
-                        <FastImage
+                        <Image
                             source={{uri: this.props.source}}
                             defaultSource={getAvatarDefaultSource(this.props.source)}
                             style={imageStyle}
