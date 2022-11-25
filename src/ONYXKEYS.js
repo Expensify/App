@@ -177,4 +177,7 @@ export default {
 
     // Whether we should show the compose input or not
     SHOULD_SHOW_COMPOSE_INPUT: 'shouldShowComposeInput',
+
+    // Holds ids of unread reports
+    UNREAD_REPORTS: 'unreadReports',
 };
