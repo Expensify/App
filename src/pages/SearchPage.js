@@ -87,20 +87,24 @@ class SearchPage extends Component {
      */
     getSections() {
         const sections = [];
+        let indexOffset = 0;
+
         if (this.state.recentReports.length > 0) {
             sections.push(({
                 data: this.state.recentReports,
                 shouldShow: true,
-                indexOffset: 0,
+                indexOffset,
             }));
+            indexOffset += this.state.recentReports.length;
         }
 
         if (this.state.personalDetails.length > 0) {
             sections.push(({
                 data: this.state.personalDetails,
                 shouldShow: true,
-                indexOffset: this.state.recentReports.length,
+                indexOffset,
             }));
+            indexOffset += this.state.recentReports.length;
         }
 
         if (this.state.userToInvite) {
@@ -108,7 +112,7 @@ class SearchPage extends Component {
                 undefined,
                 data: [this.state.userToInvite],
                 shouldShow: true,
-                indexOffset: 0,
+                indexOffset,
             }));
         }
 
@@ -180,7 +184,6 @@ class SearchPage extends Component {
                                 hideAdditionalOptionStates
                                 showTitleTooltip
                                 shouldShowOptions={didScreenTransitionEnd}
-                                shouldDelayFocus
                             />
                         </View>
                     </>
