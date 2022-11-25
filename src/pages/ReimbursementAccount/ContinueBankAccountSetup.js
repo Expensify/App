@@ -15,6 +15,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import MenuItem from '../../components/MenuItem';
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Section from '../../components/Section';
 import Text from '../../components/Text';
@@ -47,28 +48,30 @@ const ContinueBankAccountSetup = props => (
             <ScrollView style={styles.flex1}>
                 <Section
                     title={props.translate('workspace.bankAccount.almostDone')}
-                    icon={Illustrations.BankArrowPink}
+                    icon={Illustrations.BankArrow}
                 >
                     <Text>
                         {props.translate('workspace.bankAccount.youreAlmostDone')}
                     </Text>
+                    <Button
+                        text={props.translate('workspace.bankAccount.continueWithSetup')}
+                        onPress={props.continue}
+                        icon={Expensicons.Bank}
+                        style={[styles.mv4]}
+                        iconStyles={[styles.buttonCTAIcon]}
+                        shouldShowRightIcon
+                        large
+                        success
+                    />
+                    <MenuItem
+                        title={props.translate('workspace.bankAccount.startOver')}
+                        icon={Expensicons.RotateLeft}
+                        onPress={BankAccounts.requestResetFreePlanBankAccount}
+                        shouldShowRightIcon
+                        iconFill={themeColors.success}
+                        wrapperStyle={[styles.cardMenuItem]}
+                    />
                 </Section>
-                <Button
-                    text={props.translate('workspace.bankAccount.continueWithSetup')}
-                    onPress={props.continue}
-                    icon={Expensicons.Bank}
-                    style={[styles.mt2, styles.buttonCTA]}
-                    iconStyles={[styles.buttonCTAIcon]}
-                    shouldShowRightIcon
-                    large
-                    success
-                />
-                <MenuItem
-                    title={props.translate('workspace.bankAccount.startOver')}
-                    icon={Expensicons.RotateLeft}
-                    onPress={BankAccounts.requestResetFreePlanBankAccount}
-                    shouldShowRightIcon
-                />
             </ScrollView>
             <WorkspaceResetBankAccountModal />
         </FullPageNotFoundView>

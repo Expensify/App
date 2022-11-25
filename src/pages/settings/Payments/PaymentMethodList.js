@@ -65,6 +65,9 @@ const propTypes = {
     /** ID of selected payment method */
     selectedMethodID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
+    /** Content for the FlatList header component */
+    listHeaderComponent: PropTypes.func,
+
     ...withLocalizePropTypes,
 };
 
@@ -82,6 +85,7 @@ const defaultProps = {
     actionPaymentMethodType: '',
     activePaymentMethodID: '',
     selectedMethodID: '',
+    listHeaderComponent: null,
 };
 
 class PaymentMethodList extends Component {
@@ -226,6 +230,7 @@ class PaymentMethodList extends Component {
                         renderItem={this.renderItem}
                         keyExtractor={item => item.key}
                         ListEmptyComponent={this.renderListEmptyComponent()}
+                        ListHeaderComponent={this.props.listHeaderComponent}
                     />
                 )}
                 {this.props.shouldShowAddPaymentMethodButton && (
