@@ -79,7 +79,7 @@ class Form extends React.Component {
 
         this.inputRefs = {};
         this.touchedInputs = {};
-        this.viewPosition = 0;
+        this.childPosition = {};
 
         this.setTouchedInput = this.setTouchedInput.bind(this);
         this.validate = this.validate.bind(this);
@@ -239,7 +239,18 @@ class Form extends React.Component {
         });
     }
 
+    setPosition(element, position) {
+        if (!element.props.inputID && element.props.children) {
+            _.forEach(element.props.children, (child) => {
+                this.setPosition(child, position);
+            });
+        } else {
+            this.childPosition[element.props.inputID] = position;
+        }
+    }
+
     render() {
+        const children = this.childrenWrapperWithProps(this.props.children);
         return (
             <>
                 <ScrollView
@@ -254,7 +265,15 @@ class Form extends React.Component {
                     }}
                 >
                     <View style={[this.props.style]}>
-                        {this.childrenWrapperWithProps(this.props.children)}
+                        {_.map(children, child => (
+                            <View
+                                onLayout={(event) => {
+                                    this.setPosition(child, event.nativeEvent.layout.y);
+                                }}
+                            >
+                                {child}
+                            </View>
+                        ))}
                         {this.props.isSubmitButtonVisible && (
                         <FormAlertWithSubmitButton
                             buttonText={this.props.submitButtonText}
@@ -265,10 +284,8 @@ class Form extends React.Component {
                             onFixTheErrorsLinkPressed={() => {
                                 const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
                                 const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
-                                this.inputRefs[focusKey].measure((fx, fy, width, height, px, py) => {
-                                    this.form.scrollTo({y: py - this.viewPosition, animated: false});
-                                    this.inputRefs[focusKey].focus();
-                                });
+                                this.form.scrollTo({y: this.childPosition[focusKey], animated: false});
+                                this.inputRefs[focusKey].focus();
                             }}
                             containerStyles={[styles.mh0, styles.mt5]}
                             enabledWhenOffline={this.props.enabledWhenOffline}
