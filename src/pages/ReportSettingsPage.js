@@ -102,6 +102,11 @@ class ReportSettingsPage extends Component {
             return false;
         }
 
+        // Show error if the room name already exists
+        if (ValidationUtils.isExistingRoomName(this.state.newRoomName, this.props.reports, this.props.report.policyID)) {
+            errors.newRoomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
+        }
+
         // We error if the user doesn't enter a room name or left blank
         if (!this.state.newRoomName || this.state.newRoomName === CONST.POLICY.ROOM_PREFIX) {
             errors.newRoomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
@@ -252,6 +257,9 @@ export default compose(
     withOnyx({
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
         },
     }),
 )(ReportSettingsPage);
