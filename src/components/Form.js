@@ -250,7 +250,6 @@ class Form extends React.Component {
     }
 
     render() {
-        const children = this.childrenWrapperWithProps(this.props.children);
         return (
             <>
                 <ScrollView
@@ -260,7 +259,7 @@ class Form extends React.Component {
                     ref={el => this.form = el}
                 >
                     <View style={[this.props.style]}>
-                        {_.map(children, child => (
+                        {_.map(this.childrenWrapperWithProps(this.props.children), child => (
                             <View
                                 onLayout={(event) => {
                                     this.setPosition(child, event.nativeEvent.layout.y);
