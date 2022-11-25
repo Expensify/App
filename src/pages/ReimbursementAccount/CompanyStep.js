@@ -26,22 +26,13 @@ import AddressForm from './AddressForm';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import Form from '../../components/Form';
-import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 
 const propTypes = {
     /** The bank account currently in setup */
     /* eslint-disable-next-line react/no-unused-prop-types */
-    reimbursementAccount: reimbursementAccountPropTypes,
-
-    /** The draft values of the bank account being setup */
-    /* eslint-disable-next-line react/no-unused-prop-types */
-    reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
+    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
 
     ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    reimbursementAccount: {},
 };
 
 class CompanyStep extends React.Component {
@@ -239,7 +230,7 @@ class CompanyStep extends React.Component {
                     </View>
                     <CheckboxWithLabel
                         inputID="hasNoConnectionToCannabis"
-                        defaultValue={!!ReimbursementAccountUtils.getDefaultStateForField(this.props, 'hasNoConnectionToCannabis')}
+                        defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'hasNoConnectionToCannabis', false)}
                         LabelComponent={() => (
                             <>
                                 <Text>{`${this.props.translate('companyStep.confirmCompanyIsNot')} `}</Text>
@@ -261,7 +252,6 @@ class CompanyStep extends React.Component {
 }
 
 CompanyStep.propTypes = propTypes;
-CompanyStep.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -269,9 +259,6 @@ export default compose(
         // Needed to retrieve errorFields
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        reimbursementAccountDraft: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
         },
         session: {
             key: ONYXKEYS.SESSION,
