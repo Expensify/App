@@ -62,6 +62,18 @@ Onyx.connect({
     },
 });
 
+// Connect to unreadReports and update the unread indicator
+Onyx.connect({
+    key: ONYXKEYS.UNREAD_REPORTS,
+    callback: (unreadReports, key) => {
+        if (!key) {
+            return;
+        }
+        const unreadReportsCount = _.keys(unreadReports || {}).length;
+        UnreadIndicatorUpdater.throttledUpdatePageTitleAndUnreadCount(unreadReportsCount);
+    },
+});
+
 const RootStack = createCustomModalStackNavigator();
 
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
