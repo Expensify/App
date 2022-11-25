@@ -108,6 +108,7 @@ export default {
         maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
         youAppearToBeOffline: 'Parece que estás desconectado.',
         thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
+        areYouSure: '¿Estás seguro?',
         zipCodeExample: 'p. ej. 12345, 12345-1234, 12345 1234',
     },
     attachmentPicker: {
@@ -363,6 +364,7 @@ export default {
         },
         security: 'Seguridad',
         signOut: 'Desconectar',
+        signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',
         versionLetter: 'v',
         readTheTermsAndPrivacyPolicy: {
             phrase1: 'Leer los',

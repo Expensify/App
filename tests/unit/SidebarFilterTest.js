@@ -4,6 +4,7 @@ import lodashGet from 'lodash/get';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
+import DateUtils from '../../src/libs/DateUtils';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');
@@ -599,7 +600,7 @@ describe('Sidebar', () => {
                 // Given an archived report with no comments
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
-                    lastMessageTimestamp: 0,
+                    lastActionCreated: '2022-11-22 03:48:27.267',
                     statusNum: CONST.REPORT.STATUS.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 };
@@ -628,7 +629,9 @@ describe('Sidebar', () => {
                     })
 
                     // When the report has comments
-                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {lastMessageTimestamp: Date.now()}))
+                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {
+                        lastActionCreated: DateUtils.getDBTime(),
+                    }))
 
                     // Then the report is rendered in the LHN
                     .then(() => {
@@ -779,7 +782,7 @@ describe('Sidebar', () => {
                 // Given an archived report with no comments
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
-                    lastMessageTimestamp: 0,
+                    lastActionCreated: '2022-11-22 03:48:27.267',
                     statusNum: CONST.REPORT.STATUS.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 };
@@ -808,7 +811,9 @@ describe('Sidebar', () => {
                     })
 
                     // When the report has comments
-                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {lastMessageTimestamp: Date.now()}))
+                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {
+                        lastActionCreated: DateUtils.getDBTime(),
+                    }))
 
                     // Then the report is not rendered in the LHN
                     .then(() => {
