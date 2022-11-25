@@ -10,8 +10,6 @@ import Log from '../../Log';
 import PushNotification from '../../Notification/PushNotification';
 import Timing from '../Timing';
 import CONST from '../../../CONST';
-import Navigation from '../../Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 import * as Localize from '../../Localize';
 import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
 import Timers from '../../Timers';
