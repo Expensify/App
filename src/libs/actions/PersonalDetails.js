@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import lodashMerge from 'lodash/merge';
 import Onyx from 'react-native-onyx';
@@ -8,7 +7,6 @@ import CONST from '../../CONST';
 import * as API from '../API';
 import * as DeprecatedAPI from '../deprecatedAPI';
 import NameValuePair from './NameValuePair';
-import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../ReportUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
@@ -26,21 +24,6 @@ Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
     callback: val => personalDetails = val,
 });
-
-/**
- * Returns the URL for a user's avatar thumbnail and handles someone not having any avatar at all
- *
- * @param {Object} personalDetail
- * @param {String} login
- * @returns {String}
- */
-function getAvatarThumbnail(personalDetail, login) {
-    if (personalDetail && personalDetail.avatarThumbnail) {
-        return personalDetail.avatarThumbnail;
-    }
-
-    return ReportUtils.getDefaultAvatar(login);
-}
 
 /**
  * Returns the displayName for a user
