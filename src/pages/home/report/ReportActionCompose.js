@@ -350,7 +350,7 @@ class ReportActionCompose extends React.PureComponent {
     focusInputAndSetSelection() {
         // We first need to focus the input, and then set the selection, as otherwise
         // the focus might causes the selection to be set to the end of the text input
-        this.textInput.focus();
+        this.focus(true);
 
         if (!this.nextSelectionAfterEmojiInsertion) {
             return;
