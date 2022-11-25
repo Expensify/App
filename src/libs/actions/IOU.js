@@ -731,8 +731,9 @@ function payIOUReport({
  * @param {String} paymentMethodType
  * @param {String} managerEmail - Email of the person sending the money
  * @param {Object} recipient - The user receiving the money
+ * @returns {Object}
  */
-function sendMoney(report, amount, currency, comment, paymentMethodType, managerEmail, recipient) {
+function getSendMoneyParams(report, amount, currency, comment, paymentMethodType, managerEmail, recipient) {
     const newIOUReportDetails = JSON.stringify({
         amount,
         currency,
@@ -843,44 +844,20 @@ function sendMoney(report, amount, currency, comment, paymentMethodType, manager
         optimisticData[2].onyxMethod = CONST.ONYX.METHOD.SET;
     }
 
-    API.write('SendMoney', {
-        iouReportID: optimisticIOUReport.reportID,
-        chatReportID: chatReport.reportID,
-        paidReportActionID: optimisticPaidReportAction.reportActionID,
-        paymentMethodType,
-        transactionID: optimisticPaidReportAction.originalMessage.IOUTransactionID,
-        clientID: optimisticPaidReportAction.sequenceNumber,
-        newIOUReportDetails,
-    }, {optimisticData, successData, failureData});
-
-    Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
-}
-
-/**
- * @param {Object} report
- * @param {Number} amount
- * @param {String} currency
- * @param {String} comment
- * @param {String} managerEmail - Email of the person sending the money
- * @param {Object} recipient - The user receiving the money
- */
-function sendMoneyElsewhere(report, amount, currency, comment, managerEmail, recipient) {
-    const paymentMethodType = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
-    sendMoney(report, amount, currency, comment, paymentMethodType, managerEmail, recipient);
-}
-
-/**
- * @param {Object} report
- * @param {Number} amount
- * @param {String} currency
- * @param {String} comment
- * @param {String} managerEmail - Email of the person sending the money
- * @param {Object} recipient - The user receiving the money
- */
-function sendMoneyViaPaypal(report, amount, currency, comment, managerEmail, recipient) {
-    const paymentMethodType = CONST.IOU.PAYMENT_TYPE.PAYPAL_ME;
-    sendMoney(report, amount, currency, comment, paymentMethodType, managerEmail, recipient);
-    asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(amount, recipient.payPalMeAddress, currency));
+    return {
+        params: {
+            iouReportID: optimisticIOUReport.reportID,
+            chatReportID: chatReport.reportID,
+            paidReportActionID: optimisticPaidReportAction.reportActionID,
+            paymentMethodType,
+            transactionID: optimisticPaidReportAction.originalMessage.IOUTransactionID,
+            clientID: optimisticPaidReportAction.sequenceNumber,
+            newIOUReportDetails,
+        },
+        optimisticData,
+        successData,
+        failureData,
+    };
 }
 
 /**
@@ -888,8 +865,9 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerEmail, rec
  * @param {Object} iouReport
  * @param {Object} recipient
  * @param {String} paymentMethodType
+ * @returns {Object}
  */
-function payMoneyRequest(chatReport, iouReport, recipient, paymentMethodType) {
+function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMethodType) {
     const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
 
     const optimisticPaidReportAction = ReportUtils.buildOptimisticIOUReportAction(
@@ -962,12 +940,55 @@ function payMoneyRequest(chatReport, iouReport, recipient, paymentMethodType) {
         },
     ];
 
-    API.write('PayMoneyRequest', {
-        iouReportID: iouReport.reportID,
-        paidReportActionID: optimisticPaidReportAction.reportActionID,
-        paymentMethodType,
-        clientID: optimisticPaidReportAction.sequenceNumber,
-    }, {optimisticData, successData, failureData});
+    return {
+        params: {
+            iouReportID: iouReport.reportID,
+            paidReportActionID: optimisticPaidReportAction.reportActionID,
+            paymentMethodType,
+            clientID: optimisticPaidReportAction.sequenceNumber,
+        },
+        optimisticData,
+        successData,
+        failureData,
+    };
+}
+
+/**
+ * @param {Object} report
+ * @param {Number} amount
+ * @param {String} currency
+ * @param {String} comment
+ * @param {String} managerEmail - Email of the person sending the money
+ * @param {Object} recipient - The user receiving the money
+ */
+function sendMoneyElsewhere(report, amount, currency, comment, managerEmail, recipient) {
+    const {
+        params, optimisticData, successData, failureData,
+    } = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.ELSEWHERE, managerEmail, recipient);
+
+    API.write('SendMoneyElsewhere', params, {optimisticData, successData, failureData});
+
+    Navigation.navigate(ROUTES.getReportRoute(params.chatReportID));
+}
+
+/**
+ * @param {Object} report
+ * @param {Number} amount
+ * @param {String} currency
+ * @param {String} comment
+ * @param {String} managerEmail - Email of the person sending the money
+ * @param {Object} recipient - The user receiving the money
+ */
+function sendMoneyViaPaypal(report, amount, currency, comment, managerEmail, recipient) {
+    const {
+        params, optimisticData, successData, failureData,
+    } = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.PAYPAL_ME, managerEmail, recipient);
+
+    API.write('SendMoneyViaPaypal', params, {optimisticData, successData, failureData});
+
+    Navigation.navigate(ROUTES.getReportRoute(params.chatReportID));
+
+    asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(amount, recipient.payPalMeAddress, currency));
 }
 
 /**
@@ -976,7 +997,15 @@ function payMoneyRequest(chatReport, iouReport, recipient, paymentMethodType) {
  * @param {Object} recipient
  */
 function payMoneyRequestElsewhere(chatReport, iouReport, recipient) {
-    payMoneyRequest(chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+    const {
+        params, optimisticData, successData, failureData,
+    } = getPayMoneyRequestParams(
+        chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+    );
+
+    API.write('PayMoneyRequestElsewhere', params, {optimisticData, successData, failureData});
+
+    Navigation.navigate(ROUTES.getReportRoute(params.chatReportID));
 }
 
 /**
@@ -985,10 +1014,15 @@ function payMoneyRequestElsewhere(chatReport, iouReport, recipient) {
  * @param {Object} recipient
  */
 function payMoneyRequestViaPaypal(chatReport, iouReport, recipient) {
-    payMoneyRequest(chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.PAYPAL_ME);
-    asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(
-        iouReport.total, recipient.payPalMeAddress, iouReport.currency,
-    ));
+    const {
+        params, optimisticData, successData, failureData,
+    } = getPayMoneyRequestParams(
+        chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.PAYPAL_ME,
+    );
+
+    API.write('PayMoneyRequestViaPaypal', params, {optimisticData, successData, failureData});
+
+    Navigation.navigate(ROUTES.getReportRoute(params.chatReportID));
 }
 
 export {
