@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import requireParameters from './requireParameters';
 import * as Request from './Request';
 import * as Network from './Network';
@@ -149,63 +148,6 @@ function User_SecondaryLogin_Send(parameters) {
 }
 
 /**
- * @param {*} parameters
- * @returns {Promise}
- */
-function BankAccount_SetupWithdrawal(parameters) {
-    const commandName = 'BankAccount_SetupWithdrawal';
-    let allowedParameters = [
-        'currentStep', 'policyID', 'bankAccountID', 'useOnfido', 'errorAttemptsCount', 'enableCardAfterVerified',
-
-        // data from bankAccount step:
-        'setupType', 'routingNumber', 'accountNumber', 'addressName', 'plaidAccountID', 'mask', 'ownershipType', 'isSavings',
-        'acceptTerms', 'bankName', 'plaidAccessToken', 'alternateRoutingNumber',
-
-        // data from company step:
-        'companyName', 'companyTaxID', 'addressStreet', 'addressCity', 'addressState', 'addressZipCode',
-        'hasNoConnectionToCannabis', 'incorporationType', 'incorporationState', 'incorporationDate', 'industryCode',
-        'website', 'companyPhone', 'ficticiousBusinessName',
-
-        // data from requestor step:
-        'firstName', 'lastName', 'dob', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressState',
-        'requestorAddressZipCode', 'isOnfidoSetupComplete', 'onfidoData', 'isControllingOfficer', 'ssnLast4',
-
-        // data from ACHContract step (which became the "Beneficial Owners" step, but the key is still ACHContract as
-        // it's used in several logic:
-        'ownsMoreThan25Percent', 'beneficialOwners', 'acceptTermsAndConditions', 'certifyTrueInformation',
-    ];
-
-    if (!parameters.useOnfido) {
-        allowedParameters = allowedParameters.concat(['passport', 'answers']);
-    }
-
-    // Only keep allowed parameters in the additionalData object
-    const additionalData = _.pick(parameters, allowedParameters);
-
-    requireParameters(['currentStep'], parameters, commandName);
-    return Network.post(
-        commandName, {additionalData: JSON.stringify(additionalData)},
-        CONST.NETWORK.METHOD.POST,
-        true,
-    );
-}
-
-/**
- * Transfer Wallet balance and takes either the bankAccoundID or fundID
- * @param {Object} parameters
- * @param {String} [parameters.bankAccountID]
- * @param {String} [parameters.fundID]
- * @returns {Promise}
- */
-function TransferWalletBalance(parameters) {
-    const commandName = 'TransferWalletBalance';
-    if (!parameters.bankAccountID && !parameters.fundID) {
-        throw new Error('Must pass either bankAccountID or fundID to TransferWalletBalance');
-    }
-    return Network.post(commandName, parameters);
-}
-
-/**
  * Fetches the filename of the user's statement
  * @param {Object} parameters
  * @param {String} [parameters.period]
@@ -217,7 +159,6 @@ function GetStatementPDF(parameters) {
 }
 
 export {
-    BankAccount_SetupWithdrawal,
     CreateLogin,
     DeleteLogin,
     Get,
@@ -228,5 +169,4 @@ export {
     ResendValidateCode,
     SetNameValuePair,
     User_SecondaryLogin_Send,
-    TransferWalletBalance,
 };
