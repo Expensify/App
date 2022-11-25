@@ -689,6 +689,8 @@ const CONST = {
         },
         ROLE: {
             ADMIN: 'admin',
+            AUDITOR: 'auditor',
+            USER: 'user',
         },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
@@ -860,8 +862,6 @@ const CONST = {
     },
 
     TFA_CODE_LENGTH: 6,
-
-    CHAT_ATTACHMENT_TOKEN_KEY: 'X-Chat-Attachment-Token',
 };
 
 export default CONST;
