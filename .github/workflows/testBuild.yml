@@ -148,7 +148,7 @@ jobs:
 
   postGithubComment:
     runs-on: ubuntu-latest
-    name: An example job to comment a PR
+    name: Post a GitHub comment with app download links for testing
     needs: [android, ios]
     steps:
       - name: Checkout
@@ -175,7 +175,8 @@ jobs:
       - name: Publish links to apps for download
         run: |
           gh pr comment --body \
-          "| android :robot:  | iOS :apple: | 
+          "Use the links below to test this build in android and iOS. Happy testing!
+          | android :robot:  | iOS :apple: | 
           | ------------- | ------------- |
           | ${{fromJson(steps.set_var.outputs.android_paths).html_path}}  | ${{fromJson(steps.set_var.outputs.ios_paths).html_path}}  |"
         env:
