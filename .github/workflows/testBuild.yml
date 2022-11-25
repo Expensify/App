@@ -2,8 +2,8 @@ name: Build and deploy apps for testing
 
 on:
   workflow_dispatch:
-  # pull_request_target:
-  #   types: [opened, synchronize]
+  pull_request_target:
+    types: [opened, synchronize]
 
 env:
   DEVELOPER_DIR: /Applications/Xcode_14.0.1.app/Contents/Developer
@@ -11,8 +11,6 @@ env:
 jobs:
   validateActor:
     runs-on: ubuntu-latest
-    permissions:
-      pull_request: write
     outputs:
       IS_TEAM_MEMBER: ${{ fromJSON(steps.isUserDeployer.outputs.isTeamMember) }}
     steps:
@@ -28,8 +26,6 @@ jobs:
     needs: validateActor
     if: ${{ fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) }}
     runs-on: ubuntu-latest
-    permissions:
-      pull_request: write
     steps:
       # This action checks-out the repository, so the workflow can access it.
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
@@ -73,8 +69,6 @@ jobs:
     needs: validateActor
     if: ${{ fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) }}
     runs-on: macos-12
-    permissions:
-      pull_request: write
     steps:
       # This action checks-out the repository, so the workflow can access it.
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
@@ -156,8 +150,6 @@ jobs:
     runs-on: ubuntu-latest
     name: An example job to comment a PR
     needs: [android, ios]
-    permissions:
-      pull_request: write
     steps:
       - name: Checkout
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
