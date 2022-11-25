@@ -146,6 +146,7 @@ const mainWindow = (() => {
                 webPreferences: {
                     preload: `${__dirname}/contextBridge.js`,
                     contextIsolation: true,
+                    sandbox: false,
                 },
                 titleBarStyle: 'hidden',
             });
