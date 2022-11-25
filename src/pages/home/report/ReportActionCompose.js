@@ -129,13 +129,20 @@ class ReportActionCompose extends React.PureComponent {
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
         this.getIOUOptions = this.getIOUOptions.bind(this);
         this.addAttachment = this.addAttachment.bind(this);
+        this.focusInputAndSetSelection = this.focusInputAndSetSelection.bind(this);
 
         this.comment = props.comment;
         this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+
+        // This variable will be kept up to date by the text input's onSelectionChange callback
         this.selection = {
             start: props.comment.length,
             end: props.comment.length,
         };
+
+        // This variable will be set when we insert an emoji using the picker. It will be used
+        // to set the selection caret behing the inserted emoji.
+        this.nextSelectionAfterEmojiInsertion = null;
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -331,8 +338,29 @@ class ReportActionCompose extends React.PureComponent {
             textInput: this.textInput,
             selection: this.selection,
         });
-        this.selection = newSelection;
+        this.nextSelectionAfterEmojiInsertion = newSelection;
         this.updateComment(newText, true);
+    }
+
+    /**
+     * This will be called when the emoji picker modal closes.
+     * Once thats closed we want to focus the text input again and
+     * set the selection to the new position if an emoji was added.
+     */
+    focusInputAndSetSelection() {
+        // We first need to focus the input, and then set the selection, as otherwise
+        // the focus might causes the selection to be set to the end of the text input
+        this.textInput.focus();
+
+        if (!this.nextSelectionAfterEmojiInsertion) {
+            return;
+        }
+
+        requestAnimationFrame(() => {
+            this.selection = this.nextSelectionAfterEmojiInsertion;
+            this.textInput.setSelection(this.selection.start, this.selection.end);
+            this.nextSelectionAfterEmojiInsertion = null;
+        });
     }
 
     /**
@@ -684,7 +712,7 @@ class ReportActionCompose extends React.PureComponent {
                     {canUseTouchScreen() && this.props.isMediumScreenWidth ? null : (
                         <EmojiPickerButton
                             isDisabled={isBlockedFromConcierge}
-                            onModalHide={() => this.focus(true)}
+                            onModalHide={this.focusInputAndSetSelection}
                             onEmojiSelected={this.addEmojiToTextBox}
                         />
                     )}

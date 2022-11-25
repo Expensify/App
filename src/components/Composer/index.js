@@ -121,7 +121,7 @@ class Composer extends React.Component {
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
-        this.setTextAndSelection = this.setTextAndSelection.bind(this);
+        this.setText = this.setText.bind(this);
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
     }
 
@@ -137,7 +137,8 @@ class Composer extends React.Component {
         }
 
         if (this.textInput) {
-            this.textInput.setTextAndSelection = this.setTextAndSelection;
+            this.textInput.setText = this.setText;
+            this.textInput.setSelection = this.setSelection;
 
             // There is no onPaste or onDrag for TextInput in react-native so we will add event
             // listeners here and unbind when the component unmounts
@@ -183,20 +184,16 @@ class Composer extends React.Component {
         this.textInput.removeEventListener('wheel', this.handleWheel);
     }
 
-    /**
-     * Imperatively set the text and the selection of the text input.
-     *
-     * @param {String} text
-     * @param {Number} start selection start index
-     * @param {Number} end   selection end index
-     */
-    setTextAndSelection(text, start, end) {
+    setText(text, start, end) {
         this.textInput.value = text;
-        this.textInput.setSelectionRange(start, end);
 
         // Immediately update number of lines (otherwise we'd wait
         // for "onChange" callback which gets called "too late"):
         this.updateNumberOfLines();
+    }
+
+    setSelection(start, end) {
+        this.textInput.setSelectionRange(start, end);
     }
 
     /**

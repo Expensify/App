@@ -63,7 +63,7 @@ class Composer extends React.Component {
         super(props);
 
         this.onChangeText = this.onChangeText.bind(this);
-        this.setTextAndSelection = this.setTextAndSelection.bind(this);
+        this.setText = this.setText.bind(this);
 
         this.state = {
             propStyles: StyleSheet.flatten(this.props.style),
@@ -81,7 +81,7 @@ class Composer extends React.Component {
         }
 
         // We want this to be an available method on the ref for parent components
-        this.textInput.setTextAndSelection = this.setTextAndSelection;
+        this.textInput.setText = this.setText;
 
         this.props.forwardedRef(this.textInput);
     }
@@ -107,17 +107,8 @@ class Composer extends React.Component {
         this.props.onChangeText(text);
     }
 
-    /**
-     * Imperatively set the text and the selection of the text input.
-     *
-     * @param {String} text
-     * @param {Number} start selection start index
-     * @param {Number} end   selection end index
-     */
-    setTextAndSelection(text, start, end) {
-        this.setState({value: text}, () => {
-            this.textInput.setSelection(start, end);
-        });
+    setText(text) {
+        this.setState({value: text});
     }
 
     render() {

@@ -30,7 +30,7 @@ function baseAddEmojiToComposer({
         end: newSelectionStart,
     };
 
-    textInput.setTextAndSelection(newText, newSelection.start, newSelection.end);
+    textInput.setText(newText);
 
     return {
         newText,
