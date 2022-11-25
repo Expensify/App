@@ -78,17 +78,6 @@ function Get(parameters, shouldUseSecure = false) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.debtorEmail
- * @returns {Promise}
- */
-function GetIOUReport(parameters) {
-    const commandName = 'GetIOUReport';
-    requireParameters(['debtorEmail'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.name
  * @param {Number} parameters.value
  * @returns {Promise}
@@ -298,7 +287,6 @@ export {
     DeleteLogin,
     Get,
     GetStatementPDF,
-    GetIOUReport,
     Graphite_Timer,
     PayIOU,
     PayWithWallet,
