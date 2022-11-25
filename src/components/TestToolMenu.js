@@ -50,7 +50,7 @@ const TestToolMenu = props => (
         {/* When toggled the app will be forced offline. */}
         <TestToolRow title="Force offline">
             <Switch
-                isOn={props.network.shouldForceOffline}
+                isOn={Boolean(props.network.shouldForceOffline)}
                 onToggle={() => Network.setShouldForceOffline(!props.network.shouldForceOffline)}
             />
         </TestToolRow>
@@ -58,7 +58,7 @@ const TestToolMenu = props => (
         {/* When toggled all network requests will fail. */}
         <TestToolRow title="Simulate failing network requests">
             <Switch
-                isOn={props.network.shouldFailAllRequests || false}
+                isOn={Boolean(props.network.shouldFailAllRequests)}
                 onToggle={() => Network.setShouldFailAllRequests(!props.network.shouldFailAllRequests)}
             />
         </TestToolRow>
