@@ -26,19 +26,6 @@ Request.use(Middleware.SaveResponseInOnyx);
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.email
- * @returns {Promise}
- */
-function User_SignUp(parameters) {
-    const commandName = 'User_SignUp';
-    requireParameters([
-        'email',
-    ], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.authToken
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
@@ -320,7 +307,6 @@ export {
     ResendValidateCode,
     SetNameValuePair,
     SetPassword,
-    User_SignUp,
     User_SecondaryLogin_Send,
     ValidateEmail,
     Wallet_Activate,
