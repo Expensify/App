@@ -138,19 +138,6 @@ function SetNameValuePair(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.password
- * @param {String} parameters.validateCode
- * @param {Number} parameters.accountID
- * @returns {Promise}
- */
-function SetPassword(parameters) {
-    const commandName = 'SetPassword';
-    requireParameters(['accountID', 'password', 'validateCode'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.email
  * @param {String} parameters.password
  * @returns {Promise}
@@ -158,18 +145,6 @@ function SetPassword(parameters) {
 function User_SecondaryLogin_Send(parameters) {
     const commandName = 'User_SecondaryLogin_Send';
     requireParameters(['email', 'password'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {Number} parameters.accountID
- * @param {String} parameters.validateCode
- * @returns {Promise}
- */
-function ValidateEmail(parameters) {
-    const commandName = 'ValidateEmail';
-    requireParameters(['accountID', 'validateCode'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -267,9 +242,7 @@ export {
     PersonalDetails_Update,
     ResendValidateCode,
     SetNameValuePair,
-    SetPassword,
     User_SecondaryLogin_Send,
-    ValidateEmail,
     Wallet_Activate,
     TransferWalletBalance,
 };

@@ -445,32 +445,6 @@ function updatePasswordAndSignin(accountID, validateCode, password) {
     }, {optimisticData, successData, failureData});
 }
 
-/**
- * @param {Number} accountID
- * @param {String} validateCode
- * @param {String} login
- * @param {String} authToken
- */
-function validateEmail(accountID, validateCode) {
-    Onyx.merge(ONYXKEYS.SESSION, {errors: null});
-    DeprecatedAPI.ValidateEmail({
-        accountID,
-        validateCode,
-    })
-        .then((responseValidate) => {
-            if (responseValidate.jsonCode === 200) {
-                Onyx.merge(ONYXKEYS.CREDENTIALS, {login: responseValidate.email, authToken: responseValidate.authToken});
-                return;
-            }
-            if (responseValidate.jsonCode === 666) {
-                Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true});
-            }
-            if (responseValidate.jsonCode === 401) {
-                Onyx.merge(ONYXKEYS.SESSION, {errors: {[DateUtils.getMicroseconds()]: Localize.translate('setPasswordPage.setPasswordLinkInvalid')}});
-            }
-        });
-}
-
 // It's necessary to throttle requests to reauthenticate since calling this multiple times will cause Pusher to
 // reconnect each time when we only need to reconnect once. This way, if an authToken is expired and we try to
 // subscribe to a bunch of channels at once we will only reauthenticate and force reconnect Pusher once.
@@ -542,7 +516,6 @@ export {
     clearSignInData,
     cleanupSession,
     clearAccountMessages,
-    validateEmail,
     authenticatePusher,
     reauthenticatePusher,
     invalidateCredentials,
