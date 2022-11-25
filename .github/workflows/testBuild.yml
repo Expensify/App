@@ -57,7 +57,7 @@ jobs:
           S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           S3_BUCKET: ad-hoc-expensify-cash
           S3_REGION: us-east-1
-          PULL_REQUEST_NAME: ${{ github.event.pull_request.title }}
+          PULL_REQUEST_NUMBER: ${{ github.event.number }}
 
       - uses: actions/upload-artifact@v3
         with:
@@ -106,7 +106,7 @@ jobs:
           S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           S3_BUCKET: ad-hoc-expensify-cash
           S3_REGION: us-east-1
-          PULL_REQUEST_NAME: ${{ github.event.pull_request.title }}
+          PULL_REQUEST_NUMBER: ${{ github.event.number }}
 
       - uses: actions/upload-artifact@v3
         with:
@@ -142,9 +142,9 @@ jobs:
   #       continue-on-error: true
 
   #     - name: Deploy to S3 for internal testing
-  #       run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://ad-hoc-expensify-cash/web/"$PULL_REQUEST_NAME"
+  #       run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://ad-hoc-expensify-cash/web/"$PULL_REQUEST_NUMBER"
   #       env:
-  #         PULL_REQUEST_NAME: ${{ github.event.pull_request.title }}
+  #         PULL_REQUEST_NUMBER: ${{ github.event.number }}
 
   postGithubComment:
     runs-on: ubuntu-latest
