@@ -10,7 +10,6 @@ import * as Localize from './Localize';
 import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
 import Navigation from './Navigation/Navigation';
-import * as LoginUtils from './LoginUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -27,9 +26,7 @@ Onyx.connect({
 let loginList;
 Onyx.connect({
     key: ONYXKEYS.LOGIN_LIST,
-    callback: (val) => {
-        loginList = LoginUtils.convertLoginListToObject(val);
-    },
+    callback: val => loginList = _.isEmpty(val) ? {} : val,
 });
 
 let countryCodeByIP;
