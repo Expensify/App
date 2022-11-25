@@ -769,6 +769,14 @@ function broadcastUserIsTyping(reportID) {
     Pusher.sendEvent(privateReportChannelName, 'client-userIsTyping', typingStatus);
 }
 
+// Connect to unreadReports and init pushedToUnread
+// We will use it check if report is pushed to unreadReports
+let pushedToUnread = {};
+Onyx.connect({
+    key: ONYXKEYS.UNREAD_REPORTS,
+    callback: unreadReports => pushedToUnread = unreadReports || {},
+});
+
 /**
  * When a report changes in Onyx, this fetches the report from the API if the report doesn't have a name
  * and it keeps track of the max sequence number on the report actions.
@@ -782,6 +790,15 @@ function handleReportChanged(report) {
 
     if (report && report.reportID) {
         allReports[report.reportID] = report;
+
+        // Check if the report is unread and if it is pushed to unreadReports
+        // Push it to unreadReports if it is unread and not already there
+        // This is to make sure that we don't push the same report to unreadReports multiple times
+        // Remove read reports from unreadReports if they are there
+        if ((!pushedToUnread[report.reportID] && ReportUtils.isUnread(report))
+            || (pushedToUnread[report.reportID] && !ReportUtils.isUnread(report))) {
+            Onyx.merge(ONYXKEYS.UNREAD_REPORTS, {[report.reportID]: ReportUtils.isUnread(report) || null});
+        }
 
         if (ReportUtils.isConciergeChatReport(report)) {
             conciergeChatReportID = report.reportID;
