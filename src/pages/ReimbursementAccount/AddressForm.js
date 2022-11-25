@@ -15,6 +15,21 @@ const propTypes = {
     /** Callback fired when a field changes. Passes args as {[fieldName]: val} */
     onFieldChange: PropTypes.func,
 
+    /** Default values */
+    defaultValues: PropTypes.shape({
+        /** Address street field */
+        street: PropTypes.string,
+
+        /** Address city field */
+        city: PropTypes.string,
+
+        /** Address state field */
+        state: PropTypes.string,
+
+        /** Address zip code field */
+        zipCode: PropTypes.string,
+    }),
+
     /** Form values */
     values: PropTypes.shape({
         /** Address street field */
@@ -137,6 +152,7 @@ const AddressForm = props => (
             onChangeText={value => props.onFieldChange({zipCode: value})}
             errorText={props.errors.zipCode ? props.translate('bankAccount.error.zipCode') : ''}
             maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
+            hint={props.translate('common.zipCodeExample')}
         />
     </>
 );

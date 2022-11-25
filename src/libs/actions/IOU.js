@@ -70,6 +70,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
             iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`],
             recipientEmail,
             amount,
+            currency,
         );
     } else {
         iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, preferredLocale);
@@ -112,7 +113,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
             },
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: originalIOUStatus ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReport.reportID}`,
             value: iouReport,
         },
@@ -341,6 +342,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 existingIOUReport,
                 currentUserEmail,
                 splitAmount,
+                currency,
             );
             oneOnOneChatReport.hasOutstandingIOU = oneOnOneIOUReport.total !== 0;
         } else {
@@ -569,7 +571,7 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
     );
 
     const currentUserEmail = optimisticReportAction.actorEmail;
-    const updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, type);
+    const updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, moneyRequestAction.originalMessage.currency, type);
 
     chatReport.maxSequenceNumber = newSequenceNumber;
     chatReport.lastReadSequenceNumber = newSequenceNumber;

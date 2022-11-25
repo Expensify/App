@@ -9,6 +9,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import MenuItem from '../../components/MenuItem';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
 import TextLink from '../../components/TextLink';
 import Icon from '../../components/Icon';
 import colors from '../../styles/colors';
@@ -98,56 +99,59 @@ const BankAccountStep = (props) => {
             />
             <ScrollView style={[styles.flex1]}>
                 <Section
-                    icon={Illustrations.BankMouseGreen}
+                    icon={Illustrations.MoneyWings}
                     title={props.translate('workspace.bankAccount.streamlinePayments')}
-                />
-                <Text style={[styles.mh5, styles.mb1]}>
-                    {props.translate('bankAccount.toGetStarted')}
-                </Text>
-                {plaidDesktopMessage && (
-                    <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
-                        <TextLink href={bankAccountRoute}>
-                            {props.translate(plaidDesktopMessage)}
-                        </TextLink>
+                >
+                    <View style={[styles.mv3]}>
+                        <Text>{props.translate('bankAccount.toGetStarted')}</Text>
                     </View>
-                )}
-                <Button
-                    icon={Expensicons.Bank}
-                    text={props.translate('bankAccount.connectOnlineWithPlaid')}
-                    onPress={() => {
-                        BankAccounts.clearPlaid();
-                        BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
-                    }}
-                    disabled={props.plaidData.isPlaidDisabled || !props.user.validated}
-                    style={[styles.mt5, styles.buttonCTA]}
-                    iconStyles={[styles.buttonCTAIcon]}
-                    shouldShowRightIcon
-                    success
-                    large
-                />
-                {props.error && (
-                    <Text style={[styles.formError, styles.mh5]}>
-                        {props.error}
-                    </Text>
-                )}
-                <MenuItem
-                    icon={Expensicons.Connect}
-                    title={props.translate('bankAccount.connectManually')}
-                    disabled={!props.user.validated}
-                    onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
-                    shouldShowRightIcon
-                />
+                    {plaidDesktopMessage && (
+                        <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>
+                            <TextLink href={bankAccountRoute}>
+                                {props.translate(plaidDesktopMessage)}
+                            </TextLink>
+                        </View>
+                    )}
+                    <Button
+                        icon={Expensicons.Bank}
+                        text={props.translate('bankAccount.connectOnlineWithPlaid')}
+                        onPress={() => {
+                            BankAccounts.clearPlaid();
+                            BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
+                        }}
+                        disabled={props.plaidData.isPlaidDisabled || !props.user.validated}
+                        style={[styles.mt4]}
+                        iconStyles={[styles.buttonCTAIcon]}
+                        shouldShowRightIcon
+                        success
+                        large
+                    />
+                    {props.error && (
+                        <Text style={[styles.formError, styles.mh5]}>
+                            {props.error}
+                        </Text>
+                    )}
+                    <View style={[styles.mv3]}>
+                        <MenuItem
+                            icon={Expensicons.Connect}
+                            title={props.translate('bankAccount.connectManually')}
+                            disabled={!props.user.validated}
+                            onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
+                            shouldShowRightIcon
+                            iconFill={themeColors.success}
+                            wrapperStyle={[styles.cardMenuItem]}
+                        />
+                    </View>
+                </Section>
                 {!props.user.validated && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
-                        <Text style={[styles.mutedTextLabel, styles.mr4]}>
-                            <Icon src={Expensicons.Exclamation} fill={colors.red} />
-                        </Text>
-                        <Text style={styles.mutedTextLabel}>
+                        <Icon src={Expensicons.Exclamation} fill={colors.red} />
+                        <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>
                             {props.translate('bankAccount.validateAccountError')}
                         </Text>
                     </View>
                 )}
-                <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
+                <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
                     <TextLink href="https://use.expensify.com/privacy">
                         {props.translate('common.privacy')}
                     </TextLink>
