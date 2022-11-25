@@ -149,21 +149,6 @@ function User_SecondaryLogin_Send(parameters) {
 }
 
 /**
- * @param {Object} parameters
- * @param {String} parameters.currentStep
- * @param {String} [parameters.onfidoData] - JSON string
- * @param {String} [parameters.personalDetails] - JSON string
- * @param {String} [parameters.idologyAnswers] - JSON string
- * @param {Boolean} [parameters.hasAcceptedTerms]
- * @returns {Promise}
- */
-function Wallet_Activate(parameters) {
-    const commandName = 'Wallet_Activate';
-    requireParameters(['currentStep'], parameters, commandName);
-    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
-}
-
-/**
  * @param {*} parameters
  * @returns {Promise}
  */
@@ -243,6 +228,5 @@ export {
     ResendValidateCode,
     SetNameValuePair,
     User_SecondaryLogin_Send,
-    Wallet_Activate,
     TransferWalletBalance,
 };
