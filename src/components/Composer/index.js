@@ -184,7 +184,7 @@ class Composer extends React.Component {
         this.textInput.removeEventListener('wheel', this.handleWheel);
     }
 
-    setText(text, start, end) {
+    setText(text) {
         this.textInput.value = text;
 
         // Immediately update number of lines (otherwise we'd wait
