@@ -27,6 +27,7 @@ import walletTermsPropTypes from '../../pages/EnablePayments/walletTermsPropType
 
 const propTypes = {
     /** Additional logic for displaying the pay button */
+    // test
     shouldHidePayButton: PropTypes.bool,
 
     /** Callback for the Pay/Settle button */
