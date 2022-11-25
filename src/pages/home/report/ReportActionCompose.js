@@ -48,7 +48,6 @@ import withNavigationFocus from '../../../components/withNavigationFocus';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import reportPropTypes from '../../reportPropTypes';
 import addEmojiToComposer from '../../../libs/addEmojiToComposer';
-import getOperatingSystem from '../../../libs/getOperatingSystem';
 
 const propTypes = {
     /** Beta features list */
@@ -339,6 +338,7 @@ class ReportActionCompose extends React.PureComponent {
             textInput: this.textInput,
             selection: this.selection,
         });
+        this.selection = newSelection;
         this.nextSelectionAfterEmojiInsertion = newSelection;
         this.updateComment(newText, true);
     }
@@ -349,12 +349,9 @@ class ReportActionCompose extends React.PureComponent {
      * set the selection to the new position if an emoji was added.
      */
     focusInputAndSetSelection() {
-        // Only on android we need to delay the focus call to make sure the gets keyboard open
-        const isAndroid = getOperatingSystem() === CONST.OS.ANDROID;
-
         // We first need to focus the input, and then set the selection, as otherwise
         // the focus might causes the selection to be set to the end of the text input
-        this.focus(isAndroid, () => {
+        this.focus(false, () => {
             if (!this.nextSelectionAfterEmojiInsertion) {
                 return;
             }
