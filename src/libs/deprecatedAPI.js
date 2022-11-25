@@ -78,19 +78,6 @@ function Get(parameters, shouldUseSecure = false) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.name
- * @param {Number} parameters.value
- * @returns {Promise}
- */
-function Graphite_Timer(parameters) {
-    const commandName = 'Graphite_Timer';
-    requireParameters(['name', 'value'],
-        parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {Number} parameters.reportID
  * @param {String} parameters.paymentMethodType
  * @param {Object} [parameters.newIOUReportDetails]
@@ -111,18 +98,6 @@ function PayIOU(parameters) {
 function PayWithWallet(parameters) {
     const commandName = 'PayWithWallet';
     requireParameters(['reportID'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.emailList
- * @returns {Promise}
- */
-function PersonalDetails_GetForEmails(parameters) {
-    const commandName = 'PersonalDetails_GetForEmails';
-    requireParameters(['emailList'],
-        parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -287,10 +262,8 @@ export {
     DeleteLogin,
     Get,
     GetStatementPDF,
-    Graphite_Timer,
     PayIOU,
     PayWithWallet,
-    PersonalDetails_GetForEmails,
     PersonalDetails_Update,
     ResendValidateCode,
     SetNameValuePair,
