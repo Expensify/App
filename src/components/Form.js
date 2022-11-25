@@ -109,6 +109,16 @@ class Form extends React.Component {
         return _.first(_.keys(hasStateErrors ? this.state.erorrs : this.props.formState.errorFields));
     }
 
+    setPosition(element, position) {
+        if (!element.props.inputID && element.props.children) {
+            _.forEach(element.props.children, (child) => {
+                this.setPosition(child, position);
+            });
+        } else {
+            this.childPosition[element.props.inputID] = position;
+        }
+    }
+
     submit() {
         // Return early if the form is already submitting to avoid duplicate submission
         if (this.props.formState.isLoading) {
@@ -237,16 +247,6 @@ class Form extends React.Component {
                 },
             });
         });
-    }
-
-    setPosition(element, position) {
-        if (!element.props.inputID && element.props.children) {
-            _.forEach(element.props.children, (child) => {
-                this.setPosition(child, position);
-            });
-        } else {
-            this.childPosition[element.props.inputID] = position;
-        }
     }
 
     render() {
