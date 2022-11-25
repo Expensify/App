@@ -1,4 +1,4 @@
-package com.expensify.chat;
+package com.expensify.chat.customairshipextender;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -26,6 +26,8 @@ import com.urbanairship.reactnative.ReactNotificationProvider;
 import com.urbanairship.util.ImageUtils;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -126,7 +128,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         String avatar = reportAction.get("avatar").getString();
         String accountID = Integer.toString(reportAction.get("actorAccountID").getInt(-1));
         String message = reportAction.get("message").getList().get(0).getMap().get("text").getString();
-        long time = reportAction.get("timestamp").getLong(0);
+        long time = Timestamp.valueOf(reportAction.get("created").getString(Instant.now().toString())).getTime();
         String roomName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
         String conversationTitle = "Chat with " + name;
         if (!roomName.isEmpty()) {

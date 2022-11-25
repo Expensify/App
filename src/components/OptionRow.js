@@ -16,7 +16,7 @@ import MultipleAvatars from './MultipleAvatars';
 import Hoverable from './Hoverable';
 import DisplayNames from './DisplayNames';
 import IOUBadge from './IOUBadge';
-import colors from '../styles/colors';
+import themeColors from '../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Text from './Text';
 import SelectCircle from './SelectCircle';
@@ -81,7 +81,7 @@ const propTypes = {
 const defaultProps = {
     accessibilityHint: '',
     alternateTextAccessibilityLabel: '',
-    backgroundColor: colors.white,
+    backgroundColor: themeColors.appBG,
     hoverStyle: styles.sidebarLinkHover,
     hideAdditionalOptionStates: false,
     showSelectedState: false,
@@ -238,7 +238,7 @@ const OptionRow = (props) => {
                                 <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                     <Icon
                                         src={Expensicons.DotIndicator}
-                                        fill={colors.red}
+                                        fill={themeColors.danger}
                                         height={variables.iconSizeSmall}
                                         width={variables.iconSizeSmall}
                                     />

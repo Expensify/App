@@ -76,6 +76,7 @@ class ReportActionItem extends Component {
         };
         this.checkIfContextMenuActive = this.checkIfContextMenuActive.bind(this);
         this.showPopover = this.showPopover.bind(this);
+        this.renderItemContent = this.renderItemContent.bind(this);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -95,6 +96,10 @@ class ReportActionItem extends Component {
 
         // Only focus the input when user edits a message, skip it for existing drafts being edited of the report.
         this.textInput.focus();
+    }
+
+    checkIfContextMenuActive() {
+        this.setState({isContextMenuActive: ReportActionContextMenu.isActiveReportAction(this.props.action.reportActionID)});
     }
 
     /**
@@ -121,18 +126,12 @@ class ReportActionItem extends Component {
         );
     }
 
-    checkIfContextMenuActive() {
-        this.setState({isContextMenuActive: ReportActionContextMenu.isActiveReportAction(this.props.action.reportActionID)});
-    }
-
-    render() {
-        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-            return <ReportActionItemCreated reportID={this.props.report.reportID} />;
-        }
-        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
-            return <RenameAction action={this.props.action} />;
-        }
-
+    /**
+     * Get the content of ReportActionItem
+     * @param {Boolean} hovered whether the ReportActionItem is hovered
+     * @returns {Object} child component(s)
+     */
+    renderItemContent(hovered = false) {
         let children;
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
             children = (
@@ -140,6 +139,7 @@ class ReportActionItem extends Component {
                     chatReportID={this.props.report.reportID}
                     action={this.props.action}
                     isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
+                    isHovered={hovered}
                 />
             );
         } else {
@@ -160,6 +160,16 @@ class ReportActionItem extends Component {
                         }
                     />
                 );
+        }
+        return children;
+    }
+
+    render() {
+        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+            return <ReportActionItemCreated reportID={this.props.report.reportID} />;
+        }
+        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+            return <RenameAction action={this.props.action} />;
         }
         return (
             <PressableWithSecondaryInteraction
@@ -198,12 +208,12 @@ class ReportActionItem extends Component {
                                     {!this.props.displayAsGroup
                                         ? (
                                             <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>
-                                                {children}
+                                                {this.renderItemContent(hovered || this.state.isContextMenuActive)}
                                             </ReportActionItemSingle>
                                         )
                                         : (
                                             <ReportActionItemGrouped>
-                                                {children}
+                                                {this.renderItemContent(hovered || this.state.isContextMenuActive)}
                                             </ReportActionItemGrouped>
                                         )}
                                 </OfflineWithFeedback>
@@ -219,6 +229,7 @@ class ReportActionItem extends Component {
                                     && !this.props.draftMessage
                                 }
                                 draftMessage={this.props.draftMessage}
+                                isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
                             />
                         </View>
                     )}

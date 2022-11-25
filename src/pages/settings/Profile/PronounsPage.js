@@ -36,7 +36,7 @@ const PronounsPage = (props) => {
 
             // Add green checkmark icon & bold the timezone text
             customIcon: fullPronounKey === currentPronouns
-                ? {src: Expensicons.Checkmark, color: themeColors.textSuccess}
+                ? {src: Expensicons.Checkmark, color: themeColors.success}
                 : null,
             isUnread: fullPronounKey === currentPronouns,
         };
