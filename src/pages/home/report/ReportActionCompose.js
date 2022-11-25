@@ -48,6 +48,7 @@ import withNavigationFocus from '../../../components/withNavigationFocus';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import reportPropTypes from '../../reportPropTypes';
 import addEmojiToComposer from '../../../libs/addEmojiToComposer';
+import getOperatingSystem from '../../../libs/getOperatingSystem';
 
 const propTypes = {
     /** Beta features list */
@@ -348,27 +349,31 @@ class ReportActionCompose extends React.PureComponent {
      * set the selection to the new position if an emoji was added.
      */
     focusInputAndSetSelection() {
+        // Only on android we need to delay the focus call to make sure the gets keyboard open
+        const isAndroid = getOperatingSystem() === CONST.OS.ANDROID;
+
         // We first need to focus the input, and then set the selection, as otherwise
         // the focus might causes the selection to be set to the end of the text input
-        this.focus(true);
+        this.focus(isAndroid, () => {
+            if (!this.nextSelectionAfterEmojiInsertion) {
+                return;
+            }
 
-        if (!this.nextSelectionAfterEmojiInsertion) {
-            return;
-        }
-
-        requestAnimationFrame(() => {
-            this.selection = this.nextSelectionAfterEmojiInsertion;
-            this.textInput.setSelection(this.selection.start, this.selection.end);
-            this.nextSelectionAfterEmojiInsertion = null;
+            requestAnimationFrame(() => {
+                this.selection = this.nextSelectionAfterEmojiInsertion;
+                this.textInput.setSelection(this.selection.start, this.selection.end);
+                this.nextSelectionAfterEmojiInsertion = null;
+            });
         });
     }
 
     /**
      * Focus the composer text input
      * @param {Boolean} [shouldelay=false] Impose delay before focusing the composer
+     * @param {Function} [onDone] Callback to be called after the composer is focused
      * @memberof ReportActionCompose
      */
-    focus(shouldelay = false) {
+    focus(shouldelay = false, onDone = () => {}) {
         // There could be other animations running while we trigger manual focus.
         // This prevents focus from making those animations janky.
         InteractionManager.runAfterInteractions(() => {
@@ -376,14 +381,19 @@ class ReportActionCompose extends React.PureComponent {
                 return;
             }
 
-            if (!shouldelay) {
+            const focusAndCallback = () => {
                 this.textInput.focus();
+                onDone();
+            };
+
+            if (!shouldelay) {
+                focusAndCallback();
             } else {
                 // Keyboard is not opened after Emoji Picker is closed
                 // SetTimeout is used as a workaround
                 // https://github.com/react-native-modal/react-native-modal/issues/114
                 // We carefully choose a delay. 100ms is found enough for keyboard to open.
-                setTimeout(() => this.textInput.focus(), 100);
+                setTimeout(focusAndCallback, 100);
             }
         });
     }
