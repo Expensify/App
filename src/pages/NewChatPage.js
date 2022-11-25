@@ -84,13 +84,16 @@ class NewChatPage extends Component {
      */
     getSections(maxParticipantsReached) {
         const sections = [];
+        let indexOffset = 0;
+
         if (this.props.isGroupChat) {
             sections.push({
                 title: undefined,
                 data: this.state.selectedOptions,
                 shouldShow: !_.isEmpty(this.state.selectedOptions),
-                indexOffset: 0,
+                indexOffset,
             });
+            indexOffset += this.state.selectedOptions.length;
 
             if (maxParticipantsReached) {
                 return sections;
@@ -107,22 +110,24 @@ class NewChatPage extends Component {
             title: this.props.translate('common.recents'),
             data: recentReportsWithoutSelected,
             shouldShow: !_.isEmpty(recentReportsWithoutSelected),
-            indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
+            indexOffset,
         });
+        indexOffset += recentReportsWithoutSelected.length;
 
         sections.push({
             title: this.props.translate('common.contacts'),
             data: personalDetailsWithoutSelected,
             shouldShow: !_.isEmpty(personalDetailsWithoutSelected),
-            indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
+            indexOffset,
         });
+        indexOffset += personalDetailsWithoutSelected.length;
 
         if (hasUnselectedUserToInvite) {
             sections.push(({
                 title: undefined,
                 data: [this.state.userToInvite],
                 shouldShow: true,
-                indexOffset: 0,
+                indexOffset,
             }));
         }
 
