@@ -25,18 +25,6 @@ Request.use(Middleware.Retry);
 Request.use(Middleware.SaveResponseInOnyx);
 
 /**
- * @param {{password: String, oldPassword: String}} parameters
- * @param {String} parameters.authToken
- * @param {String} parameters.password
- * @returns {Promise}
- */
-function ChangePassword(parameters) {
-    const commandName = 'ChangePassword';
-    requireParameters(['password'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
  * @param {Object} parameters
  * @param {String} parameters.email
  * @returns {Promise}
@@ -319,7 +307,6 @@ function GetStatementPDF(parameters) {
 
 export {
     BankAccount_SetupWithdrawal,
-    ChangePassword,
     CreateLogin,
     DeleteLogin,
     Get,

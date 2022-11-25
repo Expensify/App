@@ -390,40 +390,6 @@ function clearAccountMessages() {
 }
 
 /**
- * Calls change password and signs if successful. Otherwise, we request a new magic link
- * if we know the account email. Otherwise or finally we redirect to the root of the nav.
- * @param {String} authToken
- * @param {String} password
- */
-function changePasswordAndSignIn(authToken, password) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {validateSessionExpired: false});
-    DeprecatedAPI.ChangePassword({
-        authToken,
-        password,
-    })
-        .then((responsePassword) => {
-            if (responsePassword.jsonCode === 200) {
-                signIn(password);
-                return;
-            }
-            if (responsePassword.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED && !credentials.login) {
-                // authToken has expired, and we don't have the email set to request a new magic link.
-                // send user to login page to enter email.
-                Navigation.navigate(ROUTES.HOME);
-                return;
-            }
-            if (responsePassword.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
-                // authToken has expired, and we have the account email, so we request a new magic link.
-                Onyx.merge(ONYXKEYS.ACCOUNT, {errors: null});
-                resetPassword();
-                Navigation.navigate(ROUTES.HOME);
-                return;
-            }
-            Onyx.merge(ONYXKEYS.SESSION, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('setPasswordPage.passwordNotSet')}});
-        });
-}
-
-/**
  * Updates a password and authenticates them
  * @param {Number} accountID
  * @param {String} validateCode
@@ -581,7 +547,6 @@ export {
     validateEmail,
     authenticatePusher,
     reauthenticatePusher,
-    changePasswordAndSignIn,
     invalidateCredentials,
     invalidateAuthToken,
 };
