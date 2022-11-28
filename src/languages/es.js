@@ -108,6 +108,8 @@ export default {
         maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
         youAppearToBeOffline: 'Parece que estás desconectado.',
         thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
+        areYouSure: '¿Estás seguro?',
+        zipCodeExample: 'p. ej. 12345, 12345-1234, 12345 1234',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -167,7 +169,6 @@ export default {
         sendAttachment: 'Enviar adjunto',
         addAttachment: 'Agregar archivo adjunto',
         writeSomething: 'Escribe algo...',
-        sayHello: 'Di hola!',
         conciergePlaceholderOptions: [
             '¡Pide ayuda!',
             '¡Pregúntame lo que sea!',
@@ -362,6 +363,7 @@ export default {
         },
         security: 'Seguridad',
         signOut: 'Desconectar',
+        signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',
         versionLetter: 'v',
         readTheTermsAndPrivacyPolicy: {
             phrase1: 'Leer los',
