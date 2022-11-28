@@ -90,8 +90,7 @@ function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs,
  * @returns {Object}
  */
 function getSimplifiedReportObject(report) {
-    const createTimestamp = lodashGet(report, 'lastActionCreated', 0);
-    const lastMessageTimestamp = moment.utc(createTimestamp).unix();
+    const lastActionCreated = lodashGet(report, 'lastActionCreated', 0);
     const lastActionMessage = lodashGet(report, ['lastActionMessage', 'html'], '');
     const isLastMessageAttachment = new RegExp(`<img|a\\s[^>]*${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}\\s*=\\s*"[^"]*"[^>]*>`, 'gi').test(lastActionMessage);
     const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
@@ -135,7 +134,7 @@ function getSimplifiedReportObject(report) {
             'timestamp',
         ], 0),
         lastReadSequenceNumber,
-        lastMessageTimestamp,
+        lastActionCreated,
         lastMessageText: isLastMessageAttachment ? '[Attachment]' : lastMessageText,
         lastActorEmail,
         notificationPreference,
@@ -414,7 +413,7 @@ function addActions(reportID, text = '', file) {
     // Update the report in Onyx to have the new sequence number
     const optimisticReport = {
         maxSequenceNumber: newSequenceNumber,
-        lastMessageTimestamp: Date.now(),
+        lastActionCreated: DateUtils.getDBTime(),
         lastMessageText: ReportUtils.formatReportLastMessageText(lastAction.message[0].text),
         lastActorEmail: currentUserEmail,
         lastReadSequenceNumber: newSequenceNumber,

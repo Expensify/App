@@ -466,7 +466,7 @@ function getOptions(reports, personalDetails, {
             return -Infinity;
         }
 
-        return report.lastMessageTimestamp;
+        return report.lastActionCreated;
     });
     orderedReports.reverse();
 
