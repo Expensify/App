@@ -69,17 +69,14 @@ class ProfilePage extends Component {
 
         this.defaultAvatar = ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login);
         this.avatar = { uri: lodashGet(this.props.currentUserPersonalDetails, 'avatar') || this.defaultAvatar };
-        this.pronouns = props.currentUserPersonalDetails.pronouns;
         this.state = {
             logins: this.getLogins(),
             selectedTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
             isAutomaticTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
-            hasSelfSelectedPronouns: !_.isEmpty(props.currentUserPersonalDetails.pronouns) && !props.currentUserPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
         };
 
         this.getLogins = this.getLogins.bind(this);
         this.validate = this.validate.bind(this);
-        this.setPronouns = this.setPronouns.bind(this);
         this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
     }
 
@@ -97,20 +94,6 @@ class ProfilePage extends Component {
 
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState(stateToUpdate);
-    }
-
-    /**
-     * @param {String} pronouns
-     */
-    setPronouns(pronouns) {
-        const hasSelfSelectedPronouns = pronouns === CONST.PRONOUNS.SELF_SELECT;
-        this.pronouns = hasSelfSelectedPronouns ? '' : pronouns;
-
-        if (this.state.hasSelfSelectedPronouns === hasSelfSelectedPronouns) {
-            return;
-        }
-
-        this.setState({ hasSelfSelectedPronouns });
     }
 
     getPronouns() {
@@ -200,12 +183,7 @@ class ProfilePage extends Component {
     }
 
     render() {
-        const pronounsList = _.map(this.props.translate('pronouns'), (value, key) => ({
-            label: value,
-            value: `${CONST.PRONOUNS.PREFIX}${key}`,
-        }));
         const currentUserDetails = this.props.currentUserPersonalDetails || {};
-        const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.pronouns;
         const profileSettingsOptions = [
             {
                 description: this.props.translate('displayNamePage.headerTitle'),
