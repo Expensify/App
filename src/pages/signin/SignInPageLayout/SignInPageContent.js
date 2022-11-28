@@ -1,5 +1,5 @@
 import React from 'react';
-import {ScrollView, View, KeyboardAvoidingView} from 'react-native';
+import {View, TouchableWithoutFeedback, Keyboard} from 'react-native';
 import PropTypes from 'prop-types';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import styles from '../../../styles/styles';
@@ -10,10 +10,8 @@ import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import SignInPageForm from '../../../components/SignInPageForm';
 import compose from '../../../libs/compose';
-import scrollViewContentContainerStyles from './signInPageStyles';
 import withKeyboardState from '../../../components/withKeyboardState';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import * as StyleUtils from '../../../styles/StyleUtils';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -53,7 +51,13 @@ const SignInPageContent = (props) => {
                 {/* This empty view creates margin on the top of the sign in form which will shrink and grow depending on if the keyboard is open or not */}
                 <View style={[styles.flexGrow1, styles.signInPageContentTopSpacer]} />
 
-                <View style={[styles.flexGrow2, styles.alignSelfCenter, styles.signInPageWideLeftContainer]}>
+                <View
+                    style={[
+                        styles.flexGrow2,
+                        styles.alignSelfCenter,
+                        styles.signInPageWideLeftContainer,
+                    ]}
+                >
                     <SignInPageForm style={[
                         styles.alignSelfStretch,
                     ]}
@@ -76,13 +80,13 @@ const SignInPageContent = (props) => {
                         {props.children}
                     </SignInPageForm>
                 </View>
-                <View style={[styles.mb5, styles.alignSelfCenter, styles.ph5, styles.signInPageWideLeftContainer]}>
+                <View style={[styles.mb5, styles.alignSelfCenter, styles.signInPageWideLeftContainer]}>
                     <TermsAndLicenses />
                 </View>
             </View>
-        </View>
-    </ScrollView>
-);
+        </TouchableWithoutFeedback>
+    );
+};
 
 SignInPageContent.propTypes = propTypes;
 SignInPageContent.displayName = 'SignInPageContent';
