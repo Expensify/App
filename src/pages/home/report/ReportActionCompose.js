@@ -163,7 +163,7 @@ class ReportActionCompose extends React.PureComponent {
                 return;
             }
 
-            this.focus(false);
+            this.textInput.focus();
         });
         this.setMaxLines();
         this.updateComment(this.comment);
@@ -180,7 +180,7 @@ class ReportActionCompose extends React.PureComponent {
         // open creates a jarring and broken UX.
         if (this.shouldFocusInputOnScreenFocus && this.props.isFocused
             && prevProps.modal.isVisible && !this.props.modal.isVisible) {
-            this.focus();
+            this.textInput.focus();
         }
 
         if (this.props.isComposerFullSize !== prevProps.isComposerFullSize) {
