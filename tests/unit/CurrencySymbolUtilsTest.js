@@ -7,7 +7,7 @@ import * as CurrencySymbolUtils from '../../src/libs/CurrencySymbolUtils';
 // - click on the OpenApp request and in the preview tab locate the key `currencyList`
 // - copy the value and format it to valid json using some external tool
 // - update currencyList.json
-import currencyList from './currencyList.json';
+import currencyList from '../../currencyList.json';
 
 const currencyCodeList = _.keys(currencyList);
 const AVAILABLE_LOCALES = ['en', 'es'];

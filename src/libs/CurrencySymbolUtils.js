@@ -1,4 +1,5 @@
-import _ from 'underscore';
+import lodashGet from 'lodash/get';
+import currencyList from '../../currencyList.json';
 import * as NumberFormatUtils from './NumberFormatUtils';
 
 /**
@@ -8,11 +9,7 @@ import * as NumberFormatUtils from './NumberFormatUtils';
  * @returns {String}
  */
 function getLocalizedCurrencySymbol(preferredLocale, currencyCode) {
-    const parts = NumberFormatUtils.formatToParts(preferredLocale, 0, {
-        style: 'currency',
-        currency: currencyCode,
-    });
-    return _.find(parts, part => part.type === 'currency').value;
+    return lodashGet(currencyList, `[${currencyCode}].symbol`, currencyCode);
 }
 
 /**
