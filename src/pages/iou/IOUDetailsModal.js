@@ -99,7 +99,7 @@ class IOUDetailsModal extends Component {
      * @param {String} paymentMethodType
      */
     performIOUPayment(paymentMethodType) {
-        // If it's paying with the wallet lets call the correct service for this
+        // In case user's paying with the wallet
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
             IOU.payMoneyRequestWithWallet(
                 this.props.route.params.chatReportID,
