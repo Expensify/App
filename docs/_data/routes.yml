@@ -9,15 +9,17 @@ hubs:
     title: Send money
     description: With only a couple of clicks, send money to your friends or coworkers.
     icon: /assets/images/send.svg
-    articles:
-      - href: Request-and-Send-Money
-        title: Request and Send Money
     sections:
       - href: workspaces
         title: Workspaces
         articles:
           - href: The-Free-Plan
             title: The Free Plan
+      - href: paying-friends
+        title: Paying Friends
+        articles:
+          - href: Request-and-Send-Money
+            title: Request and Send Money
       - href: chat
         title: Chat
         articles:

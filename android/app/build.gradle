@@ -156,8 +156,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1001022600
-        versionName "1.2.26-0"
+        versionCode 1001023201
+        versionName "1.2.32-1"
         buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
 
         if (isNewArchitectureEnabled()) {
@@ -254,6 +254,11 @@ android {
         }
         // We need a custom build type, so we can allow http clear text traffic in a release build:
         e2eRelease {
+            initWith release
+            matchingFallbacks = ['release']
+            signingConfig signingConfigs.debug
+        }
+        internalRelease {
             initWith release
             matchingFallbacks = ['release']
             signingConfig signingConfigs.debug
