@@ -365,18 +365,18 @@ const styles = {
     buttonSmall: {
         borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeSmall,
-        paddingTop: 10,
+        paddingTop: 4,
         paddingHorizontal: 14,
-        paddingBottom: 10,
+        paddingBottom: 4,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
     buttonMedium: {
         borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeNormal,
-        paddingTop: 6,
+        paddingTop: 12,
         paddingRight: 16,
-        paddingBottom: 6,
+        paddingBottom: 12,
         paddingLeft: 16,
         backgroundColor: themeColors.buttonDefaultBG,
     },
@@ -1657,7 +1657,7 @@ const styles = {
         right: -25,
         borderWidth: 3,
         borderRadius: 18,
-        borderColor: themeColors.componentBG,
+        borderColor: themeColors.cardBorder,
     },
 
     avatarLarge: {
@@ -2073,6 +2073,7 @@ const styles = {
 
     navigationScreenCardStyle: {
         backgroundColor: themeColors.appBG,
+        height: '100%',
     },
 
     navigationSceneFullScreenWrapper: {
@@ -2149,7 +2150,7 @@ const styles = {
     },
 
     checkedContainer: {
-        backgroundColor: themeColors.link,
+        backgroundColor: themeColors.checkBox,
     },
 
     iouAmountText: {
@@ -2169,14 +2170,16 @@ const styles = {
     }, 0),
 
     iouPreviewBox: {
-        backgroundColor: themeColors.componentBG,
-        borderColor: themeColors.border,
-        borderWidth: 1,
+        backgroundColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusCard,
         padding: 20,
         marginTop: 16,
         maxWidth: variables.sideBarWidth,
         width: '100%',
+    },
+
+    iouPreviewBoxHover: {
+        backgroundColor: themeColors.border,
     },
 
     iouPreviewBoxLoading: {
@@ -2190,6 +2193,10 @@ const styles = {
     iouPreviewBoxAvatar: {
         marginRight: -10,
         marginBottom: -10,
+    },
+
+    iouPreviewBoxAvatarHover: {
+        borderColor: themeColors.border,
     },
 
     iouPreviewBoxCheckmark: {
@@ -2323,6 +2330,10 @@ const styles = {
         borderLeftWidth: 4,
         paddingLeft: 12,
         marginVertical: 4,
+    },
+
+    cursorDefault: {
+        cursor: 'default',
     },
 
     cursorDisabled: {
@@ -2773,6 +2784,30 @@ const styles = {
         flexShrink: 1,
         fontSize: variables.fontSizeSmall,
         ...spacing.ph2,
+    },
+
+    cardSection: {
+        backgroundColor: themeColors.cardBG,
+        borderRadius: variables.componentBorderRadiusCard,
+        marginBottom: 20,
+        marginHorizontal: 16,
+        padding: 20,
+        width: 'auto',
+        textAlign: 'left',
+    },
+
+    cardMenuItem: {
+        paddingHorizontal: 0,
+        borderRadius: variables.componentBorderRadiusNormal,
+        paddingVertical: 12,
+    },
+
+    callRequestSection: {
+        backgroundColor: themeColors.appBG,
+        paddingHorizontal: 0,
+        paddingBottom: 0,
+        marginHorizontal: 0,
+        marginBottom: 0,
     },
 };
 
