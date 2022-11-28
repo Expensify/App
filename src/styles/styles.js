@@ -365,9 +365,9 @@ const styles = {
     buttonSmall: {
         borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeSmall,
-        paddingTop: 10,
+        paddingTop: 4,
         paddingHorizontal: 14,
-        paddingBottom: 10,
+        paddingBottom: 4,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
@@ -2074,6 +2074,7 @@ const styles = {
 
     navigationScreenCardStyle: {
         backgroundColor: themeColors.appBG,
+        height: '100%',
     },
 
     navigationSceneFullScreenWrapper: {
@@ -2150,7 +2151,7 @@ const styles = {
     },
 
     checkedContainer: {
-        backgroundColor: themeColors.link,
+        backgroundColor: themeColors.checkBox,
     },
 
     iouAmountText: {
@@ -2784,6 +2785,30 @@ const styles = {
         flexShrink: 1,
         fontSize: variables.fontSizeSmall,
         ...spacing.ph2,
+    },
+
+    cardSection: {
+        backgroundColor: themeColors.cardBG,
+        borderRadius: variables.componentBorderRadiusCard,
+        marginBottom: 20,
+        marginHorizontal: 16,
+        padding: 20,
+        width: 'auto',
+        textAlign: 'left',
+    },
+
+    cardMenuItem: {
+        paddingHorizontal: 0,
+        borderRadius: variables.componentBorderRadiusNormal,
+        paddingVertical: 12,
+    },
+
+    callRequestSection: {
+        backgroundColor: themeColors.appBG,
+        paddingHorizontal: 0,
+        paddingBottom: 0,
+        marginHorizontal: 0,
+        marginBottom: 0,
     },
 };
 

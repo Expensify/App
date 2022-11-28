@@ -55,6 +55,7 @@ const darkTheme = {
     placeholderText: colors.greenIcons,
     heroCard: colors.blue,
     uploadPreviewActivityIndicator: colors.greenHighlightBackground,
+    checkBox: colors.green,
 };
 
 const oldTheme = {
@@ -96,6 +97,7 @@ const oldTheme = {
     uploadPreviewActivityIndicator: colors.gray1,
     cardBG: colors.gray1,
     cardBorder: colors.gray1,
+    checkBox: colors.blue,
 
     // Merging new Keys for Dark Mode merge. Delete after new branding is implemented.
     highlightBG: colors.gray1,
@@ -113,4 +115,4 @@ const oldTheme = {
     textDark: colors.dark,
 };
 
-export default oldTheme;
+export default darkTheme;
