@@ -290,7 +290,7 @@ class ReportActionsView extends React.Component {
     }
 
     scrollToUnreadMsgAndMarkReportAsRead() {
-        ReportScrollManager.scrollToIndex({animated: true, index: this.props.report.maxSequenceNumber - this.state.newMarkerSequenceNumber}, false);
+        ReportScrollManager.scrollToIndex({animated: true, index: Math.max(this.props.report.maxSequenceNumber - this.state.newMarkerSequenceNumber, 0)}, false);
         Report.readNewestAction(this.props.report.reportID);
     }
 
