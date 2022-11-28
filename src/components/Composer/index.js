@@ -124,6 +124,7 @@ class Composer extends React.Component {
         this.setText = this.setText.bind(this);
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
         this.focus = this.focus.bind(this);
+        this.setSelection = this.setSelection.bind(this);
     }
 
     componentDidMount() {
@@ -188,7 +189,6 @@ class Composer extends React.Component {
     }
 
     setText(text) {
-        this.textInput.preventDefault();
         this.textInput.value = text;
 
         // Immediately update number of lines (otherwise we'd wait
@@ -368,11 +368,13 @@ class Composer extends React.Component {
         });
     }
 
-    focus(onDone) {
+    focus(onDone, delay) {
         setTimeout(() => {
             this.textInput.focusInput();
-            onDone();
-        }, 500);
+            if (onDone) {
+                onDone();
+            }
+        }, delay ? 100 : 0);
     }
 
     render() {
