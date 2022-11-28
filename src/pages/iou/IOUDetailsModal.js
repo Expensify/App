@@ -109,9 +109,7 @@ class IOUDetailsModal extends Component {
                 this.props.iouReport.ownerEmail,
                 this.props.iouReport.managerEmail,
             );
-
-            // Not sure if we should navigate to the chat report here as well, but I think we should
-            Navigation.navigate(ROUTES.REPORT);
+            Navigation.navigate(ROUTES.getReportRoute(this.props.route.params.chatReportID));
             return;
         }
 
