@@ -79,7 +79,6 @@ class ProfilePage extends Component {
 
         this.getLogins = this.getLogins.bind(this);
         this.validate = this.validate.bind(this);
-        this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
         this.setPronouns = this.setPronouns.bind(this);
         this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
     }
@@ -160,28 +159,6 @@ class ProfilePage extends Component {
     }
 
     /**
-     * Submit form to update personal details
-     * @param {Object} values
-     * @param {String} values.firstName
-     * @param {String} values.lastName
-     * @param {String} values.pronouns
-     * @param {Boolean} values.isAutomaticTimezone
-     * @param {String} values.timezone
-     * @param {String} values.selfSelectedPronoun
-     */
-    updatePersonalDetails(values) {
-        PersonalDetails.updateProfile(
-            values.firstName.trim(),
-            values.lastName.trim(),
-            (this.state.hasSelfSelectedPronouns) ? values.selfSelectedPronoun.trim() : values.pronouns.trim(),
-            {
-                automatic: values.isAutomaticTimezone,
-                selected: values.timezone,
-            },
-        );
-    }
-
-    /**
      * @param {Object} values - An object containing the value of each inputID
      * @param {String} values.firstName
      * @param {String} values.lastName
@@ -227,11 +204,11 @@ class ProfilePage extends Component {
                 title: `${lodashGet(currentUserDetails, 'firstName', '')} ${lodashGet(currentUserDetails, 'lastName', '')}`,
                 pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
             },
-            {
-                description: this.props.translate('pronounsPage.pronouns'),
-                title: lodashGet(currentUserDetails, 'pronouns', ''),
-                pageRoute: ROUTES.SETTINGS_PRONOUNS,
-            },
+            // {
+            //     description: this.props.translate('pronounsPage.pronouns'),
+            //     title: personalDetails.pronouns,
+            //     pageRoute: ROUTES.SETTINGS_PRONOUNS,
+            // },
             // {
             //     description: this.props.translate(timezonePage.timezone),
             //     title: personalDetails.timezone,
@@ -276,7 +253,6 @@ class ProfilePage extends Component {
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM}
                     validate={this.validate}
-                    onSubmit={this.updatePersonalDetails}
                     submitButtonText={this.props.translate('common.save')}
                     enabledWhenOffline
                 >
