@@ -41,7 +41,7 @@ class TimezoneSelectPage extends Component {
 
                 // Add green checkmark icon & bold the timezone text
                 customIcon: timezone === this.currentSelectedTimezone
-                    ? {src: Expensicons.Checkmark, color: themeColors.textSuccess}
+                    ? {src: Expensicons.Checkmark, color: themeColors.success}
                     : null,
                 isUnread: timezone === this.currentSelectedTimezone,
             }))
