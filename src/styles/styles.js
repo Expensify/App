@@ -905,7 +905,7 @@ const styles = {
         minHeight: 24,
     },
 
-    signInPageWideLeftContainer: {
+    signInPageLeftContainerLargeScreen: {
         maxWidth: 375,
     },
 

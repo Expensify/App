@@ -38,7 +38,7 @@ class WindowDimensionsProvider extends React.Component {
         const isSmallScreenWidth = initialDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
         const isMediumScreenWidth = initialDimensions.width > variables.mobileResponsiveWidthBreakpoint
           && initialDimensions.width <= variables.tabletResponsiveWidthBreakpoint;
-        const isLargeScreenWidth = !isMediumScreenWidth && !isMediumScreenWidth;
+        const isLargeScreenWidth = !isSmallScreenWidth && !isMediumScreenWidth;
 
         this.dimensionsEventListener = null;
 
