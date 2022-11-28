@@ -346,6 +346,7 @@ class EmojiPickerMenu extends Component {
         if (offsetAtEmojiBottom - this.currentScrollOffset >= CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT) {
             targetOffset = offsetAtEmojiBottom - CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT;
         } else if (offsetAtEmojiTop - CONST.EMOJI_PICKER_HEADER_HEIGHT <= this.currentScrollOffset) {
+            // There is always a sticky header on the top, subtract the EMOJI_PICKER_HEADER_HEIGHT from offsetAtEmojiTop to get the correct scroll position.
             targetOffset = offsetAtEmojiTop - CONST.EMOJI_PICKER_HEADER_HEIGHT;
         }
         if (targetOffset !== this.currentScrollOffset) {

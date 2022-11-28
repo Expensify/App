@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import moment from 'moment';
 import {
     beforeEach, beforeAll, afterEach, jest, describe, it, expect,
 } from '@jest/globals';
@@ -17,6 +16,7 @@ import Log from '../../src/libs/Log';
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 import * as User from '../../src/libs/actions/User';
 import * as ReportUtils from '../../src/libs/ReportUtils';
+import DateUtils from '../../src/libs/DateUtils';
 
 describe('actions/Report', () => {
     beforeAll(() => {
@@ -111,7 +111,7 @@ describe('actions/Report', () => {
                             reportID: REPORT_ID,
                             maxSequenceNumber: 1,
                             notificationPreference: 'always',
-                            lastMessageTimestamp: 0,
+                            lastActionCreated: '2022-11-22 03:48:27.267',
                             lastMessageText: 'Testing a comment',
                             lastActorEmail: TEST_USER_LOGIN,
                         },
@@ -240,7 +240,7 @@ describe('actions/Report', () => {
                             reportID: REPORT_ID,
                             maxSequenceNumber: 1,
                             notificationPreference: 'always',
-                            lastMessageTimestamp: 0,
+                            lastActionCreated: '2022-11-22 03:48:27.267',
                             lastMessageText: 'Comment 1',
                             lastActorEmail: USER_2_LOGIN,
                             lastReadSequenceNumber: 0,
@@ -260,7 +260,7 @@ describe('actions/Report', () => {
                                 person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
                                 sequenceNumber: 1,
                                 shouldShow: true,
-                                timestamp: moment().unix(),
+                                created: DateUtils.getDBTime(),
                             },
                         },
                     },
@@ -325,7 +325,7 @@ describe('actions/Report', () => {
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
                     person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
                     shouldShow: true,
-                    timestamp: moment().unix(),
+                    created: DateUtils.getDBTime(),
                     reportActionID: 'derp',
                 };
 
@@ -338,7 +338,7 @@ describe('actions/Report', () => {
                             reportID: REPORT_ID,
                             maxSequenceNumber: 4,
                             notificationPreference: 'always',
-                            lastMessageTimestamp: 0,
+                            lastActionCreated: '2022-11-22 03:48:27.267',
                             lastMessageText: 'Current User Comment 3',
                             lastActorEmail: 'test@test.com',
                             lastReadSequenceNumber: 4,

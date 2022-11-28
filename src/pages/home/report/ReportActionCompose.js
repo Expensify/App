@@ -253,10 +253,6 @@ class ReportActionCompose extends React.Component {
             return this.props.translate('reportActionCompose.conciergePlaceholderOptions')[this.state.conciergePlaceholderRandomIndex];
         }
 
-        if (this.isEmptyChat()) {
-            return this.props.translate('reportActionCompose.sayHello');
-        }
-
         return this.props.translate('reportActionCompose.writeSomething');
     }
 
@@ -383,9 +379,19 @@ class ReportActionCompose extends React.Component {
      */
     updateComment(comment, shouldDebounceSaveComment) {
         const newComment = EmojiUtils.replaceEmojis(comment);
-        this.setState({
-            isCommentEmpty: !!newComment.match(/^(\s|`)*$/),
-            value: newComment,
+        this.setState((prevState) => {
+            const newState = {
+                isCommentEmpty: !!newComment.match(/^(\s|`)*$/),
+                value: newComment,
+            };
+            if (comment !== newComment) {
+                const remainder = prevState.value.slice(prevState.selection.end).length;
+                newState.selection = {
+                    start: newComment.length - remainder,
+                    end: newComment.length - remainder,
+                };
+            }
+            return newState;
         });
 
         // Indicate that draft has been created.
@@ -425,8 +431,8 @@ class ReportActionCompose extends React.Component {
             this.submitForm();
         }
 
-        // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty
-        if (e.key === 'ArrowUp' && this.textInput.selectionStart === 0 && this.state.isCommentEmpty) {
+        // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
+        if (e.key === 'ArrowUp' && this.textInput.selectionStart === 0 && this.state.isCommentEmpty && !ReportUtils.chatIncludesChronos(this.props.report)) {
             e.preventDefault();
 
             const reportActionKey = _.find(
@@ -578,8 +584,12 @@ class ReportActionCompose extends React.Component {
                                                 )}
                                                 <Tooltip text={this.props.translate('reportActionCompose.addAction')}>
                                                     <TouchableOpacity
+                                                        ref={el => this.actionButton = el}
                                                         onPress={(e) => {
                                                             e.preventDefault();
+
+                                                            // Drop focus to avoid blue focus ring.
+                                                            this.actionButton.blur();
                                                             this.setMenuVisibility(true);
                                                         }}
                                                         style={styles.chatItemAttachButton}

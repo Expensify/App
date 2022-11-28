@@ -14,7 +14,6 @@ import {
 } from 'react-native-reanimated';
 import CONST from '../../CONST';
 import compose from '../../libs/compose';
-import colors from '../../styles/colors';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import Button from '../Button';
@@ -317,7 +316,7 @@ const AvatarCropModal = (props) => {
                                 rotation={rotation}
                             />
                             <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthAndHeightStyle(imageContainerSize)]}>
-                                <Icon src={Expensicons.Zoom} fill={colors.gray3} />
+                                <Icon src={Expensicons.Zoom} fill={themeColors.icons} />
                                 <Pressable
                                     style={[styles.mh5, styles.flex1]}
                                     onLayout={initializeSliderContainer}
@@ -328,7 +327,7 @@ const AvatarCropModal = (props) => {
                                 <Button
                                     medium
                                     icon={Expensicons.Rotate}
-                                    iconFill={colors.black}
+                                    iconFill={themeColors.inverse}
                                     iconStyles={[styles.mr0]}
                                     style={[styles.imageCropRotateButton]}
                                     onPress={rotateImage}

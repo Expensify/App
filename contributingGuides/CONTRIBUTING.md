@@ -15,6 +15,9 @@ You can create as many accounts as needed in order to test your changes directly
 ##### Generating Multiple Test Accounts
 You can generate multiple test accounts by using a `+` postfix, for example if your email is test@test.com, you can create multiple New Expensify accounts connected to the same email address by using test+123@test.com, test+456@test.com, etc.
 
+##### High Traffic Accounts
+All internal engineers, contributors, and C+ members are **required** to test with a "high traffic" account against the staging or production web servers. Ask in [#expensify-open-source](https://expensify.slack.com/archives/C01GTK53T8Q) if someone can turn your account into a High Traffic account. These accounts more closely mirror the accounts used in production by real people. Internal team members can follow [this Stack Overflow](https://stackoverflow.com/c/expensify/questions/14504) to upgrade an account.
+
 #### Working on beta features
 Some features are locked behind beta flags while development is ongoing. As a contributor you can work on these beta features locally by overriding the [`Permissions.canUseAllBetas` function](https://github.com/Expensify/App/blob/5e268df7f2989ed04bc64c0c86ed77faf134554d/src/libs/Permissions.js#L10-L12) to return `true`.
 
@@ -66,6 +69,7 @@ This is the most common scenario for contributors. The Expensify team posts new 
 It’s possible that you found a new bug or new feature that we haven’t posted as a job to the [GitHub repository](https://github.com/Expensify/App/issues?q=is%3Aissue). This is an opportunity to propose a job, and (optionally) a solution for that job. If it's a valid job proposal that we choose to implement by deploying it to production — either internally or via an external contributor — then we will compensate you $250 for identifying and proposing the bug or feature. If the bug or feature is fixed by a PR that is not associated with your proposal, then you will not be eligible for the corresponding compensation unless you can find the PR that fixed it and prove your proposal came first.
 - Note: If you get assigned the job you proposed **and** you complete the job, this $250 for identifying the improvement is *in addition to* the reward you will be paid for completing the job.
 - Note about proposed bugs or features: Expensify has the right not to pay the $250 reward if the suggested bug or feature is already planned. Currently, Expensify plans to implement all features of the old Expensify app in New Expensify.
+- Note: whilst you may optionally propose a solution for that job on Slack, solutions are ultimately reviewed in GitHub. The onus is on you to propose the solution on GitHub, and/or ensure the issue creator will include a link to your proposal.
 
 Please follow these steps to propose a job:
 
