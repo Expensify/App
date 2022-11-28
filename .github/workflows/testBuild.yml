@@ -1,0 +1,183 @@
+name: Build and deploy apps for testing
+
+on:
+  workflow_dispatch:
+  pull_request_target:
+    types: [opened, synchronize]
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_14.0.1.app/Contents/Developer
+
+jobs:
+  validateActor:
+    runs-on: ubuntu-latest
+    outputs:
+      IS_TEAM_MEMBER: ${{ fromJSON(steps.isUserDeployer.outputs.isTeamMember) }}
+    steps:
+      - id: isUserDeployer
+        uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          username: ${{ github.actor }}
+          team: mobile-deployers
+
+  android:
+    name: Build and deploy Android
+    needs: validateActor
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) }}
+    runs-on: ubuntu-latest
+    steps:
+      # This action checks-out the repository, so the workflow can access it.
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: Expensify/App/.github/actions/composite/setupNode@main
+
+      - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
+        with:
+          ruby-version: '2.7'
+          bundler-cache: true
+
+      - name: Decrypt keystore
+        run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output my-upload-key.keystore my-upload-key.keystore.gpg
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+      - name: Decrypt json key
+        run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+      - name: Run Fastlane beta test
+        id: runFastlaneBetaTest
+        run: bundle exec fastlane android build_test
+        env:
+          S3_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          S3_BUCKET: ad-hoc-expensify-cash
+          S3_REGION: us-east-1
+          PULL_REQUEST_NUMBER: ${{ github.event.number }}
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: android
+          path: ./android_paths.json
+
+  iOS:
+    name: Build and deploy iOS
+    needs: validateActor
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) }}
+    runs-on: macos-12
+    steps:
+      # This action checks-out the repository, so the workflow can access it.
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: Expensify/App/.github/actions/composite/setupNode@main
+
+      - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
+        with:
+          ruby-version: '2.7'
+          bundler-cache: true
+
+      - name: Install cocoapods
+        uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          command: cd ios && pod install
+
+      - name: Decrypt profile
+        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output chat_expensify_adhoc.mobileprovision chat_expensify_adhoc.mobileprovision.gpg
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+      - name: Decrypt certificate
+        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output Certificates.p12 Certificates.p12.gpg
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+      - name: Run Fastlane
+        run: bundle exec fastlane ios build_test
+        env:
+          S3_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          S3_BUCKET: ad-hoc-expensify-cash
+          S3_REGION: us-east-1
+          PULL_REQUEST_NUMBER: ${{ github.event.number }}
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: ios
+          path: ./ios_paths.json
+
+  # web:
+  #   name: Build and deploy Web
+  #   needs: validateActor
+  #   if: ${{ fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) }}
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+  #       with:
+  #         fetch-depth: 0
+  #         ref: ${{ github.event.pull_request.head.sha }}
+
+  #     - uses: Expensify/App/.github/actions/composite/setupNode@main
+
+  #     - name: Configure AWS Credentials
+  #       # Version: 1.5.5
+  #       uses: aws-actions/configure-aws-credentials@e97d7fbc8e0e5af69631c13daa0f4b5a8d88165b
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: us-east-1
+
+  #     - name: Build web for staging
+  #       run: npm run build-staging
+
+  #     - name: Build docs
+  #       run: npm run storybook-build
+  #       continue-on-error: true
+
+  #     - name: Deploy to S3 for internal testing
+  #       run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://ad-hoc-expensify-cash/web/"$PULL_REQUEST_NUMBER"
+  #       env:
+  #         PULL_REQUEST_NUMBER: ${{ github.event.number }}
+
+  postGithubComment:
+    runs-on: ubuntu-latest
+    name: Post a GitHub comment with app download links for testing
+    needs: [android, ios]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - uses: actions/download-artifact@v3
+
+      - name: Read JSONs with paths
+        id: set_var
+        run: |
+          content_android="$(cat ./android/android_paths.json)"
+          content_android="${content_android//'%'/'%25'}"
+          content_android="${content_android//$'\n'/'%0A'}"
+          content_android="${content_android//$'\r'/'%0D'}"
+          echo "android_paths=$content_android" >> "$GITHUB_OUTPUT"
+          content_ios="$(cat ./ios/ios_paths.json)"
+          content_ios="${content_ios//'%'/'%25'}"
+          content_ios="${content_ios//$'\n'/'%0A'}"
+          content_ios="${content_ios//$'\r'/'%0D'}"
+          echo "ios_paths=$content_ios" >> "$GITHUB_OUTPUT"
+
+      - name: Publish links to apps for download
+        run: |
+          gh pr comment --body \
+          "Use the links below to test this build in android and iOS. Happy testing!
+          | android :robot:  | iOS :apple: | 
+          | ------------- | ------------- |
+          | ${{fromJson(steps.set_var.outputs.android_paths).html_path}}  | ${{fromJson(steps.set_var.outputs.ios_paths).html_path}}  |"
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}

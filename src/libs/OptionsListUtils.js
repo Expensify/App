@@ -464,10 +464,10 @@ function getOptions(reports, personalDetails, {
     // - All archived reports should remain at the bottom
     const orderedReports = _.sortBy(filteredReports, (report) => {
         if (ReportUtils.isArchivedRoom(report)) {
-            return -Infinity;
+            return CONST.DATE.UNIX_EPOCH;
         }
 
-        return report.lastMessageTimestamp;
+        return report.lastActionCreated;
     });
     orderedReports.reverse();
 
