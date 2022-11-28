@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.2.31-8",
+  "version": "1.2.32-1",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -22,6 +22,7 @@
     "desktop": "scripts/set-pusher-suffix.sh && node desktop/start.js",
     "desktop-build": "scripts/build-desktop.sh production",
     "desktop-build-staging": "scripts/build-desktop.sh staging",
+    "desktop-build-internal": "scripts/build-desktop.sh internal",
     "ios-build": "fastlane ios build",
     "android-build": "fastlane android build",
     "android-build-e2e": "bundle exec fastlane android build_e2e",

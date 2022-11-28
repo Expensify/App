@@ -213,7 +213,7 @@ const reportSelector = report => report && ({
     maxSequenceNumber: report.maxSequenceNumber,
     lastReadSequenceNumber: report.lastReadSequenceNumber,
     lastMessageText: report.lastMessageText,
-    lastMessageTimestamp: report.lastMessageTimestamp,
+    lastActionCreated: report.lastActionCreated,
     iouReportID: report.iouReportID,
     hasOutstandingIOU: report.hasOutstandingIOU,
     statusNum: report.statusNum,
