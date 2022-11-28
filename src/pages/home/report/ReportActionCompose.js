@@ -280,18 +280,22 @@ class ReportActionCompose extends React.Component {
             }];
         }
 
-        iouOptions.push({
-            icon: Expensicons.MoneyCircle,
-            text: this.props.translate('iou.requestMoney'),
-            onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
-        });
-        if (Permissions.canUseIOUSend(this.props.betas)) {
+        // We do not allow requesting or sending money for a chat room (i.e. default or policy created room) as those are only enabled for DMs and policy expense chats
+        if (!ReportUtils.isChatRoom(this.props.report)) {
             iouOptions.push({
-                icon: Expensicons.Send,
-                text: this.props.translate('iou.sendMoney'),
-                onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
+                icon: Expensicons.MoneyCircle,
+                text: this.props.translate('iou.requestMoney'),
+                onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
             });
+            if (Permissions.canUseIOUSend(this.props.betas)) {
+                iouOptions.push({
+                    icon: Expensicons.Send,
+                    text: this.props.translate('iou.sendMoney'),
+                    onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
+                });
+            }
         }
+
         return iouOptions;
     }
 
