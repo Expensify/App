@@ -221,6 +221,23 @@ class ProfilePage extends Component {
         }));
         const currentUserDetails = this.props.currentUserPersonalDetails || {};
         const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.pronouns;
+        const profileSettingsOptions = [
+            {
+                description: this.props.translate('displayNamePage.headerTitle'),
+                title: `${lodashGet(currentUserDetails, 'firstName', '')} ${lodashGet(currentUserDetails, 'lastName', '')}`,
+                pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
+            },
+            // {
+            //     description: this.props.translate('pronounsPage.pronouns'),
+            //     title: personalDetails.pronouns,
+            //     pageRoute: ROUTES.SETTINGS_PRONOUNS,
+            // },
+            // {
+            //     description: this.props.translate(timezonePage.timezone),
+            //     title: personalDetails.timezone,
+            //     pageRoute: ROUTES.SETTINGS_TIMEZONE,
+            // },
+        ];
 
         return (
             <ScreenWrapper>
@@ -245,14 +262,16 @@ class ProfilePage extends Component {
                         size={CONST.AVATAR_SIZE.LARGE}
                     />
                 </OfflineWithFeedback>
-                <View style={[styles.mt4, styles.mb4]}>
-                    <MenuItemWithTopDescription
-                        title={lodashGet(currentUserDetails, 'firstName', '') + ' ' + lodashGet(currentUserDetails, 'lastName', '')}
-                        shouldShowRightIcon
-                        shouldShowBasicTitle
-                        description={this.props.translate('profilePage.displayName')}
-                    />
-                </View>
+                {_.map(profileSettingsOptions, detail => (
+                    <View style={[styles.mt4, styles.mb4]}>
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon
+                            title={detail.title}
+                            description={detail.description}
+                            onPress={() => Navigation.navigate(detail.pageRoute)}
+                        />
+                    </View>)
+                )}
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM}
