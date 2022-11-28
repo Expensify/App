@@ -58,7 +58,6 @@ const darkTheme = {
     checkBox: colors.green,
 };
 
-// DEPRECATED THEME, Delete after successful rebranding.
 const oldTheme = {
     shadow: colors.black,
     link: colors.blue,
