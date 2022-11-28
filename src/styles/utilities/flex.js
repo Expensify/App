@@ -36,10 +36,6 @@ export default {
         flexDirection: 'column',
     },
 
-    flexColumnReverse: {
-        flexDirection: 'column-reverse',
-    },
-
     justifyContentCenter: {
         justifyContent: 'center',
     },
