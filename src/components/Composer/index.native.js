@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet} from 'react-native';
+import {InteractionManager, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import RNTextInput from '../RNTextInput';
@@ -64,6 +64,7 @@ class Composer extends React.Component {
 
         this.onChangeText = this.onChangeText.bind(this);
         this.setText = this.setText.bind(this);
+        this.focus = this.focus.bind(this);
 
         this.state = {
             propStyles: StyleSheet.flatten(this.props.style),
@@ -82,6 +83,8 @@ class Composer extends React.Component {
 
         // We want this to be an available method on the ref for parent components
         this.textInput.setText = this.setText;
+        this.textInput.focusInput = this.textInput.focus;
+        this.textInput.focus = this.focus;
 
         this.props.forwardedRef(this.textInput);
     }
@@ -109,6 +112,17 @@ class Composer extends React.Component {
 
     setText(text) {
         this.setState({value: text});
+    }
+
+    focus(onDone) {
+        // There could be other animations running while we trigger manual focus.
+        // This prevents focus from making those animations janky.
+        InteractionManager.runAfterInteractions(() => {
+            this.textInput.focusInput();
+            if (onDone) {
+                onDone();
+            }
+        });
     }
 
     render() {

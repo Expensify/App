@@ -1,10 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {
-    View,
-    TouchableOpacity,
-    InteractionManager,
-} from 'react-native';
+import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -122,7 +118,6 @@ class ReportActionCompose extends React.PureComponent {
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
         this.setIsFullComposerAvailable = this.setIsFullComposerAvailable.bind(this);
-        this.focus = this.focus.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.setTextInputRef = this.setTextInputRef.bind(this);
@@ -341,54 +336,28 @@ class ReportActionCompose extends React.PureComponent {
 
     /**
      * This will be called when the emoji picker modal closes.
-     * Once thats closed we want to focus the text input again and
+     * Once that's closed we want to focus the text input again and
      * set the selection to the new position if an emoji was added.
      */
     focusInputAndSetSelection() {
         // We first need to focus the input, and then set the selection, as otherwise
-        // the focus might causes the selection to be set to the end of the text input
-        this.focus(false, () => {
-            if (!this.nextSelectionAfterEmojiInsertion) {
-                return;
-            }
+        // the focus might cause the selection to be set to the end of the text input
+        this.textInput.focus(
+            () => {
+                if (!this.nextSelectionAfterEmojiInsertion) {
+                    return;
+                }
 
-            requestAnimationFrame(() => {
-                this.selection = this.nextSelectionAfterEmojiInsertion;
-                this.textInput.setSelection(this.selection.start, this.selection.end);
-                this.nextSelectionAfterEmojiInsertion = null;
-            });
-        });
-    }
+                requestAnimationFrame(() => {
+                    this.selection = this.nextSelectionAfterEmojiInsertion;
+                    this.textInput.setSelection(this.selection.start, this.selection.end);
+                    this.nextSelectionAfterEmojiInsertion = null;
+                });
+            },
 
-    /**
-     * Focus the composer text input
-     * @param {Boolean} [shouldelay=false] Impose delay before focusing the composer
-     * @param {Function} [onDone] Callback to be called after the composer is focused
-     * @memberof ReportActionCompose
-     */
-    focus(shouldelay = false, onDone = () => {}) {
-        // There could be other animations running while we trigger manual focus.
-        // This prevents focus from making those animations janky.
-        InteractionManager.runAfterInteractions(() => {
-            if (!this.textInput) {
-                return;
-            }
-
-            const focusAndCallback = () => {
-                this.textInput.focus();
-                onDone();
-            };
-
-            if (!shouldelay) {
-                focusAndCallback();
-            } else {
-                // Keyboard is not opened after Emoji Picker is closed
-                // SetTimeout is used as a workaround
-                // https://github.com/react-native-modal/react-native-modal/issues/114
-                // We carefully choose a delay. 100ms is found enough for keyboard to open.
-                setTimeout(focusAndCallback, 100);
-            }
-        });
+            // run the focus with a delay. Note: Its platform dependent whether there should be a delay or not.
+            true,
+        );
     }
 
     /**

@@ -123,6 +123,7 @@ class Composer extends React.Component {
         this.handleWheel = this.handleWheel.bind(this);
         this.setText = this.setText.bind(this);
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
+        this.focus = this.focus.bind(this);
     }
 
     componentDidMount() {
@@ -139,6 +140,8 @@ class Composer extends React.Component {
         if (this.textInput) {
             this.textInput.setText = this.setText;
             this.textInput.setSelection = this.setSelection;
+            this.textInput.focusInput = this.textInput.focus;
+            this.textInput.focus = this.focus;
 
             // There is no onPaste or onDrag for TextInput in react-native so we will add event
             // listeners here and unbind when the component unmounts
@@ -185,6 +188,7 @@ class Composer extends React.Component {
     }
 
     setText(text) {
+        this.textInput.preventDefault();
         this.textInput.value = text;
 
         // Immediately update number of lines (otherwise we'd wait
@@ -362,6 +366,13 @@ class Composer extends React.Component {
             updateIsFullComposerAvailable(this.props, numberOfLines);
             this.setState({numberOfLines});
         });
+    }
+
+    focus(onDone) {
+        setTimeout(() => {
+            this.textInput.focusInput();
+            onDone();
+        }, 500);
     }
 
     render() {
