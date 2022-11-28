@@ -820,6 +820,9 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
                 [optimisticPaidReportAction.sequenceNumber]: {
                     ...optimisticPaidReportAction,
                     pendingAction: null,
+                    errors: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                    },
                 },
             },
         },
@@ -935,6 +938,9 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 [optimisticPaidReportAction.sequenceNumber]: {
                     ...optimisticPaidReportAction,
                     pendingAction: null,
+                    errors: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                    },
                 },
             },
         },
