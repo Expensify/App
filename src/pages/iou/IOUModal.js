@@ -286,11 +286,12 @@ class IOUModal extends Component {
         const amount = Math.round(this.state.amount * 100);
         const currency = this.props.iou.selectedCurrencyCode;
         const comment = this.state.comment;
+        const chatReportID = lodashGet(this.props, 'route.params.reportID', '');
 
         // If it's paying with the wallet lets call the correct service for this
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
             IOU.sendMoneyWithWallet(
-                lodashGet(this.props, 'route.params.reportID', ''),
+                chatReportID,
                 amount,
                 currency,
                 comment,
@@ -298,7 +299,7 @@ class IOUModal extends Component {
             );
 
             // Exit to the report as the API pusher response will be handled elsewhere
-            Navigation.navigate(ROUTES.REPORT);
+            Navigation.navigate(ROUTES.getReportRoute(chatReportID));
             return;
         }
 
@@ -312,7 +313,7 @@ class IOUModal extends Component {
         });
 
         IOU.payIOUReport({
-            chatReportID: lodashGet(this.props, 'route.params.reportID', ''),
+            chatReportID,
             reportID: '0',
             paymentMethodType,
             amount,
