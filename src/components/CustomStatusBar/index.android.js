@@ -1,6 +1,6 @@
 import React from 'react';
-import themeColors from '../../styles/themes/default';
 import {StatusBar} from 'react-native';
+import themeColors from '../../styles/themes/default';
 
 /**
  * Only the Android platform supports "setBackgroundColor"
