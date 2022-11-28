@@ -258,6 +258,11 @@ android {
             matchingFallbacks = ['release']
             signingConfig signingConfigs.debug
         }
+        internalRelease {
+            initWith release
+            matchingFallbacks = ['release']
+            signingConfig signingConfigs.debug
+        }
     }
 
     // applicationVariants are e.g. debug, release
