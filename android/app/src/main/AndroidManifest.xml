@@ -78,6 +78,6 @@
       </activity>
 
       <meta-data android:name="com.urbanairship.reactnative.AIRSHIP_EXTENDER"
-          android:value="com.expensify.chat.CustomAirshipExtender" />
+          android:value="com.expensify.chat.customairshipextender.CustomAirshipExtender" />
     </application>
 </manifest>

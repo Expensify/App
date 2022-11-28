@@ -10,7 +10,6 @@ import * as Localize from './Localize';
 import Permissions from './Permissions';
 import * as CollectionUtils from './CollectionUtils';
 import Navigation from './Navigation/Navigation';
-import * as LoginUtils from './LoginUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -27,9 +26,7 @@ Onyx.connect({
 let loginList;
 Onyx.connect({
     key: ONYXKEYS.LOGIN_LIST,
-    callback: (val) => {
-        loginList = LoginUtils.convertLoginListToObject(val);
-    },
+    callback: val => loginList = _.isEmpty(val) ? {} : val,
 });
 
 let countryCodeByIP;
@@ -362,13 +359,8 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         result.alternateText = Str.removeSMSDomain(personalDetail.login);
     }
 
-    if (result.hasOutstandingIOU) {
-        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`] || null;
-        if (iouReport) {
-            result.isIOUReportOwner = iouReport.ownerEmail === currentUserLogin;
-            result.iouReportAmount = iouReport.total;
-        }
-    }
+    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, currentUserLogin, iouReports);
+    result.iouReportAmount = ReportUtils.getIOUTotal(result, iouReports);
 
     if (!hasMultipleParticipants) {
         result.login = personalDetail.login;
@@ -477,10 +469,10 @@ function getOptions(reports, personalDetails, {
     // - All archived reports should remain at the bottom
     const orderedReports = _.sortBy(filteredReports, (report) => {
         if (ReportUtils.isArchivedRoom(report)) {
-            return -Infinity;
+            return CONST.DATE.UNIX_EPOCH;
         }
 
-        return report.lastMessageTimestamp;
+        return report.lastActionCreated;
     });
     orderedReports.reverse();
 

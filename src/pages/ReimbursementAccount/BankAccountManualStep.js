@@ -17,6 +17,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import exampleCheckImage from './exampleCheckImage';
 import Form from '../../components/Form';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
+import shouldDelayFocus from '../../libs/shouldDelayFocus';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -92,6 +93,8 @@ class BankAccountManualStep extends React.Component {
                         source={exampleCheckImage(this.props.preferredLocale)}
                     />
                     <TextInput
+                        autoFocus
+                        shouldDelayFocus={shouldDelayFocus}
                         inputID="routingNumber"
                         label={this.props.translate('bankAccount.routingNumber')}
                         defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'routingNumber', '')}
@@ -116,7 +119,12 @@ class BankAccountManualStep extends React.Component {
                                 <Text>
                                     {this.props.translate('common.iAcceptThe')}
                                 </Text>
-                                <TextLink href="https://use.expensify.com/terms">
+                                <TextLink
+                                    href="https://use.expensify.com/terms"
+
+                                    // to call the onPress in the TextLink before the input blur is fired and shift the link element
+                                    onMouseDown={e => e.preventDefault()}
+                                >
                                     {`Expensify ${this.props.translate('common.termsOfService')}`}
                                 </TextLink>
                             </View>
