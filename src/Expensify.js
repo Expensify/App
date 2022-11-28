@@ -20,14 +20,9 @@ import Log from './libs/Log';
 import ConfirmModal from './components/ConfirmModal';
 import compose from './libs/compose';
 import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
-import withEnvironment, {environmentPropTypes} from './components/withEnvironment';
-import {withNetwork} from './components/OnyxProvider';
-import networkPropTypes from './components/networkPropTypes';
 import * as User from './libs/actions/User';
 import NetworkConnection from './libs/NetworkConnection';
 import Navigation from './libs/Navigation/Navigation';
-import * as Network from './libs/actions/Network';
-import CONST from './CONST';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -67,11 +62,7 @@ const propTypes = {
         roomName: PropTypes.string,
     }),
 
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
     ...withLocalizePropTypes,
-    ...environmentPropTypes,
 };
 
 const defaultProps = {
@@ -98,12 +89,6 @@ class Expensify extends PureComponent {
             isOnyxMigrated: false,
             isSplashShown: true,
         };
-
-        // Force offline mode on staging or dev if needed
-        if (_.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.DEV], this.props.environment)) {
-            // network.isOffline is always initialized to false, so set its value based on shouldForceOffline
-            Network.setIsOffline(this.props.network.shouldForceOffline);
-        }
 
         // Used for the offline indicator appearing when someone is offline
         NetworkConnection.subscribeToNetInfo();
@@ -233,8 +218,6 @@ Expensify.propTypes = propTypes;
 Expensify.defaultProps = defaultProps;
 export default compose(
     withLocalize,
-    withEnvironment,
-    withNetwork(),
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
