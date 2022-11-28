@@ -8,17 +8,6 @@ import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 
-let shouldForceOffline;
-Onyx.connect({
-    key: ONYXKEYS.NETWORK,
-    callback: (network) => {
-        if (!network) {
-            return;
-        }
-        shouldForceOffline = Boolean(network.shouldForceOffline);
-    },
-});
-
 let isOffline = false;
 let hasPendingNetworkCheck = false;
 
@@ -51,6 +40,25 @@ function setOfflineStatus(isCurrentlyOffline) {
 
     isOffline = isCurrentlyOffline;
 }
+
+// Update the offline status in response to changes in shouldForceOffline
+let shouldForceOffline;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (network) => {
+        if (!network) {
+            return;
+        }
+        shouldForceOffline = Boolean(network.shouldForceOffline);
+        if (shouldForceOffline) {
+            setOfflineStatus(true);
+        } else {
+            // If we are no longer forcing offline fetch the NetInfo to set isOffline appropriately
+            NetInfo.fetch()
+                .then(state => setOfflineStatus(state.isInternetReachable === false));
+        }
+    },
+});
 
 /**
  * Set up the event listener for NetInfo to tell whether the user has
