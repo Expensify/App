@@ -113,6 +113,14 @@ class ProfilePage extends Component {
         this.setState({ hasSelfSelectedPronouns });
     }
 
+    getPronouns() {
+        var pronounsKey = lodashGet(this.props.currentUserPersonalDetails, 'pronouns', '');
+        if(pronounsKey.startsWith(CONST.PRONOUNS.PREFIX)) {
+            pronounsKey = pronounsKey.slice(CONST.PRONOUNS.PREFIX.length);
+        }
+        return lodashGet(this.props.translate('pronouns'), pronounsKey, this.props.translate('profilePage.selectYourPronouns'));
+    }
+
     /**
      * Update the timezone picker's value to guessed timezone
      * @param {Boolean} isAutomaticTimezone
@@ -204,11 +212,11 @@ class ProfilePage extends Component {
                 title: `${lodashGet(currentUserDetails, 'firstName', '')} ${lodashGet(currentUserDetails, 'lastName', '')}`,
                 pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
             },
-            // {
-            //     description: this.props.translate('pronounsPage.pronouns'),
-            //     title: personalDetails.pronouns,
-            //     pageRoute: ROUTES.SETTINGS_PRONOUNS,
-            // },
+            {
+                description: this.props.translate('pronounsPage.pronouns'),
+                title: this.getPronouns(),
+                pageRoute: ROUTES.SETTINGS_PRONOUNS,
+            },
             // {
             //     description: this.props.translate(timezonePage.timezone),
             //     title: personalDetails.timezone,
