@@ -113,7 +113,7 @@ describe('EmojiTest', () => {
             emoji: '😄',
             text: 'add emoji here',
             textInput: {
-                setTextAndSelection: jest.fn(),
+                setText: jest.fn(),
             },
             selection: {
                 start: 4,
