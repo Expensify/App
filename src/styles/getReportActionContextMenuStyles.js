@@ -10,7 +10,7 @@ const miniWrapperStyle = [
     styles.flexRow,
     defaultWrapperStyle,
     {
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
         borderWidth: 1,
         borderColor: themeColors.border,
     },

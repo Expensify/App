@@ -79,7 +79,7 @@ class FloatingMessageCounter extends PureComponent {
                             onPress={this.props.onClick}
                             ContentComponent={() => (
                                 <View style={[styles.flexRow]}>
-                                    <Icon small src={Expensicons.DownArrow} fill={themeColors.textReversed} />
+                                    <Icon small src={Expensicons.DownArrow} fill={themeColors.textLight} />
                                     <Text
                                         selectable={false}
                                         style={[

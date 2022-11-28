@@ -64,27 +64,30 @@ class IOUParticipantsRequest extends Component {
      */
     getSections() {
         const sections = [];
+        let indexOffset = 0;
 
         sections.push({
             title: this.props.translate('common.recents'),
             data: this.state.recentReports,
             shouldShow: !_.isEmpty(this.state.recentReports),
-            indexOffset: 0,
+            indexOffset,
         });
+        indexOffset += this.state.recentReports.length;
 
         sections.push({
             title: this.props.translate('common.contacts'),
             data: this.state.personalDetails,
             shouldShow: !_.isEmpty(this.state.personalDetails),
-            indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
+            indexOffset,
         });
+        indexOffset += this.state.personalDetails.length;
 
         if (this.state.userToInvite && !OptionsListUtils.isCurrentUser(this.state.userToInvite)) {
             sections.push({
                 undefined,
                 data: [this.state.userToInvite],
                 shouldShow: true,
-                indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
+                indexOffset,
             });
         }
 
@@ -136,7 +139,6 @@ class IOUParticipantsRequest extends Component {
                 headerMessage={headerMessage}
                 hideAdditionalOptionStates
                 forceTextUnreadStyle
-                shouldDelayFocus
             />
         );
     }

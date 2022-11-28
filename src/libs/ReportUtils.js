@@ -76,6 +76,15 @@ function getReportParticipantsTitle(logins) {
 }
 
 /**
+ * Attempts to find a report in onyx with the provided list of participants
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isIOUReport(report) {
+    return report && _.has(report, 'total');
+}
+
+/**
  * Check whether a report action is Attachment or not.
  * Ignore messages containing [Attachment] as the main content. Attachments are actions with only text as [Attachment].
  *
@@ -95,7 +104,7 @@ function isReportMessageAttachment({text, html}) {
 function sortReportsByLastVisited(reports) {
     return _.chain(reports)
         .toArray()
-        .filter(report => report && report.reportID)
+        .filter(report => report && report.reportID && !isIOUReport(report))
         .sortBy('lastVisitedTimestamp')
         .value();
 }
@@ -274,7 +283,7 @@ function getPolicyName(report, policies) {
 
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
     if (!policy) {
-        return Localize.translateLocal('workspace.common.unavailable');
+        return report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
     }
 
     return policy.name
@@ -643,7 +652,7 @@ function buildOptimisticReportAction(sequenceNumber, text, file) {
             sequenceNumber,
             clientID: NumberUtils.generateReportActionClientID(),
             avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
-            created: DateUtils.currentDBTime(),
+            created: DateUtils.getDBTime(),
             message: [
                 {
                     type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
@@ -795,7 +804,7 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, 
         reportActionID: NumberUtils.rand64(),
         sequenceNumber,
         shouldShow: true,
-        created: DateUtils.currentDBTime(),
+        created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 }
@@ -834,7 +843,7 @@ function buildOptimisticChatReport(
         lastMessageHtml: '',
         lastMessageText: null,
         lastReadSequenceNumber: 0,
-        lastMessageTimestamp: 0,
+        lastActionCreated: '',
         lastVisitedTimestamp: 0,
         maxSequenceNumber: 0,
         notificationPreference,
@@ -883,7 +892,7 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
             automatic: false,
             sequenceNumber: 0,
             avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
-            created: DateUtils.currentDBTime(),
+            created: DateUtils.getDBTime(),
             shouldShow: true,
         },
     };

@@ -1,5 +1,5 @@
 import React from 'react';
-import {TouchableWithoutFeedback, View, Keyboard} from 'react-native';
+import {ScrollView, View, KeyboardAvoidingView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import styles from '../../../styles/styles';
@@ -10,8 +10,10 @@ import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import SignInPageForm from '../../../components/SignInPageForm';
 import compose from '../../../libs/compose';
+import scrollViewContentContainerStyles from './signInPageStyles';
+import withKeyboardState from '../../../components/withKeyboardState';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import withKeyboardState, {withKeyboardStatePropTypes} from '../../../components/withKeyboardState';
+import * as StyleUtils from '../../../styles/StyleUtils';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -26,7 +28,6 @@ const propTypes = {
 
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
-    ...withKeyboardStatePropTypes,
 };
 
 const SignInPageContent = (props) => {
@@ -79,9 +80,9 @@ const SignInPageContent = (props) => {
                     <TermsAndLicenses />
                 </View>
             </View>
-        </TouchableWithoutFeedback>
-    );
-};
+        </View>
+    </ScrollView>
+);
 
 SignInPageContent.propTypes = propTypes;
 SignInPageContent.displayName = 'SignInPageContent';
@@ -89,6 +90,8 @@ SignInPageContent.displayName = 'SignInPageContent';
 export default compose(
     withWindowDimensions,
     withLocalize,
-    withSafeAreaInsets,
+
+    // KeyboardState HOC is needed to trigger recalculation of the UI when keyboard opens or closes
     withKeyboardState,
+    withSafeAreaInsets,
 )(SignInPageContent);

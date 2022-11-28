@@ -28,15 +28,10 @@ export default (
         cardStyle.transform = [{translateX}];
     }
 
-    let containerStyle;
-    if (!isSmallScreenWidth) {
-        containerStyle = {
-            overflow: 'hidden',
-        };
-    }
-
     return ({
-        containerStyle,
+        containerStyle: {
+            overflow: 'hidden',
+        },
         cardStyle,
         overlayStyle: {
             opacity: progress.interpolate({
