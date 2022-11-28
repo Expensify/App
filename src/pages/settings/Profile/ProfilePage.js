@@ -264,28 +264,6 @@ class ProfilePage extends Component {
                     submitButtonText={this.props.translate('common.save')}
                     enabledWhenOffline
                 >
-                    <View style={styles.mb6}>
-                        <Picker
-                            inputID="pronouns"
-                            label={this.props.translate('profilePage.preferredPronouns')}
-                            items={pronounsList}
-                            placeholder={{
-                                value: '',
-                                label: this.props.translate('profilePage.selectYourPronouns'),
-                            }}
-                            defaultValue={pronounsPickerValue}
-                            onValueChange={this.setPronouns}
-                        />
-                        {this.state.hasSelfSelectedPronouns && (
-                            <View style={styles.mt2}>
-                                <TextInput
-                                    inputID="selfSelectedPronoun"
-                                    defaultValue={this.pronouns}
-                                    placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
-                                />
-                            </View>
-                        )}
-                    </View>
                     <LoginField
                         label={this.props.translate('profilePage.emailAddress')}
                         type="email"
