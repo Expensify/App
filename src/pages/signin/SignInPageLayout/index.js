@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import SignInPageContent from './SignInPageContent';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import styles from '../../../styles/styles';
-import variables from '../../../styles/variables';
 import SignInPageGraphics from './SignInPageGraphics';
 
 const propTypes = {

@@ -45,7 +45,7 @@ const SignInPageContent = (props) => {
                     styles.signInPageLeftContainer,
 
                     // Restrict the width of the left container only for large screens. For smaller screens, the width needs to be fluid to span the entire width of the page.
-                    props.isLargeScreenWidth && styles.signInPageLeftContainerLargeScreen,
+                    !props.isSmallScreenWidth && styles.signInPageLeftContainerMediumScreen,
                 ]}
             >
                 {/* This empty view creates margin on the top of the sign in form which will shrink and grow depending on if the keyboard is open or not */}
@@ -55,7 +55,7 @@ const SignInPageContent = (props) => {
                     style={[
                         styles.flexGrow2,
                         styles.alignSelfCenter,
-                        styles.signInPageLeftContainerLargeScreen,
+                        styles.signInPageLeftContainerMediumScreen,
                     ]}
                 >
                     <SignInPageForm style={[styles.alignSelfStretch]}>
