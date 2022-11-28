@@ -114,15 +114,17 @@ class Composer extends React.Component {
         this.setState({value: text});
     }
 
-    focus(onDone) {
-        // There could be other animations running while we trigger manual focus.
-        // This prevents focus from making those animations janky.
-        InteractionManager.runAfterInteractions(() => {
-            this.textInput.focusInput();
-            if (onDone) {
-                onDone();
-            }
-        });
+    focus(onDone, delay) {
+        setTimeout(() => {
+            // There could be other animations running while we trigger manual focus.
+            // This prevents focus from making those animations janky.
+            InteractionManager.runAfterInteractions(() => {
+                this.textInput.focusInput();
+                if (onDone) {
+                    onDone();
+                }
+            });
+        }, delay ? 100 : 0);
     }
 
     render() {
