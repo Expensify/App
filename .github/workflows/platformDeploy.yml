@@ -31,6 +31,11 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: ubuntu-latest
     steps:
+      # This action checks-out the repository, so the workflow can access it.
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        with:
+          fetch-depth: 0
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
@@ -100,6 +105,11 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: macos-12
     steps:
+      # This action checks-out the repository, so the workflow can access it.
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        with:
+          fetch-depth: 0
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Decrypt Developer ID Certificate
@@ -135,6 +145,11 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: macos-12
     steps:
+      # This action checks-out the repository, so the workflow can access it.
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        with:
+          fetch-depth: 0
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
@@ -219,6 +234,11 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: ubuntu-latest
     steps:
+      # This action checks-out the repository, so the workflow can access it.
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        with:
+          fetch-depth: 0
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Setup Cloudflare CLI
@@ -340,6 +360,11 @@ jobs:
     if: ${{ always() }}
     needs: [android, desktop, iOS, web]
     steps:
+      # This action checks-out the repository, so the workflow can access it.
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        with:
+          fetch-depth: 0
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Set version
