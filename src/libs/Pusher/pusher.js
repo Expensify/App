@@ -5,14 +5,14 @@ import Pusher from './library';
 import TYPE from './EventType';
 import Log from '../Log';
 
-let isOffline = false;
+let shouldForceOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
             return;
         }
-        isOffline = Boolean(network.shouldForceOffline) || network.isOffline;
+        shouldForceOffline = Boolean(network.shouldForceOffline);
     },
 });
 
@@ -125,8 +125,8 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
 
     const chunkedDataEvents = {};
     const callback = (eventData) => {
-        if (isOffline) {
-            Log.info('[Pusher] Ignoring Push event because isOffline = true');
+        if (shouldForceOffline) {
+            Log.info('[Pusher] Ignoring a Push event because shouldForceOffline = true');
             return;
         }
 
