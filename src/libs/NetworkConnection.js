@@ -42,14 +42,18 @@ function setOfflineStatus(isCurrentlyOffline) {
 }
 
 // Update the offline status in response to changes in shouldForceOffline
-let shouldForceOffline;
+let shouldForceOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
             return;
         }
-        shouldForceOffline = Boolean(network.shouldForceOffline);
+        const currentShouldForceOffline = Boolean(network.shouldForceOffline);
+        if (currentShouldForceOffline === shouldForceOffline) {
+            return;
+        }
+        shouldForceOffline = currentShouldForceOffline;
         if (shouldForceOffline) {
             setOfflineStatus(true);
         } else {
