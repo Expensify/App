@@ -596,7 +596,7 @@ class ReportActionCompose extends React.Component {
                                                         underlayColor={themeColors.componentBG}
                                                         disabled={isBlockedFromConcierge}
                                                     >
-                                                        <Icon src={Expensicons.Plus} fill={themeColors.textLight} />
+                                                        <Icon src={Expensicons.Plus} />
                                                     </TouchableOpacity>
                                                 </Tooltip>
                                             </View>
@@ -686,7 +686,9 @@ class ReportActionCompose extends React.Component {
                     <View style={[styles.justifyContentEnd]}>
                         <Tooltip text={this.props.translate('common.send')}>
                             <TouchableOpacity
-                                style={styles.chatItemSubmitButton}
+                                style={[styles.chatItemSubmitButton,
+                                    (this.state.isCommentEmpty || hasExceededMaxCommentLength) ? undefined : styles.buttonSuccess,
+                                ]}
                                 onPress={this.submitForm}
                                 underlayColor={themeColors.componentBG}
 
@@ -698,7 +700,7 @@ class ReportActionCompose extends React.Component {
                                     top: 3, right: 3, bottom: 3, left: 3,
                                 }}
                             >
-                                <Icon src={Expensicons.Send} fill={(this.state.isCommentEmpty || hasExceededMaxCommentLength) ? themeColors.icon : themeColors.success} />
+                                <Icon src={Expensicons.Send} fill={(this.state.isCommentEmpty || hasExceededMaxCommentLength) ? themeColors.icon : themeColors.textLight} />
                             </TouchableOpacity>
                         </Tooltip>
                     </View>

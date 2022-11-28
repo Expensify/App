@@ -1431,7 +1431,8 @@ const styles = {
 
     chatItemSubmitButton: {
         alignSelf: 'flex-end',
-        borderRadius: 6,
+        borderRadius: variables.componentBorderRadiusRounded,
+        backgroundColor: themeColors.transparent,
         height: 32,
         padding: 6,
         margin: 4,
@@ -1514,8 +1515,8 @@ const styles = {
     chatItemAttachButton: {
         alignItems: 'center',
         alignSelf: 'flex-end',
-        borderRadius: variables.componentBorderRadiusRounded,
-        backgroundColor: themeColors.success,
+        borderRightColor: themeColors.border,
+        borderRightWidth: 1,
         height: 32,
         width: 32,
         marginBottom: 4,
