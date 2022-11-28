@@ -47,10 +47,6 @@ function sortReportActions(reportActions, shouldInvertSortingOrder = false) {
             return (first.created < second.created ? -1 : 1) * invertedMultiplier;
         }
 
-        if (first.actionName !== second.actionName) {
-            return (CONST.REPORT_ACTION_TYPE_SORT_ORDER[first.actionName] - CONST.REPORT_ACTION_TYPE_SORT_ORDER[second.actionName]) * invertedMultiplier;
-        }
-
         return (first.reportActionID < second.reportActionID ? -1 : 1) * invertedMultiplier;
     });
     return reportActions;
