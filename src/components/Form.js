@@ -217,9 +217,8 @@ class Form extends React.Component {
                 ref: node => this.inputRefs[inputID] = node,
                 value: this.state.inputValues[inputID],
                 errorText: this.state.errors[inputID] || fieldErrorMessage,
-                onBlur: () => {
+                onFocus: () => {
                     this.setTouchedInput(inputID);
-                    this.validate(this.state.inputValues);
                 },
                 onInputChange: (value, key) => {
                     const inputKey = key || inputID;
