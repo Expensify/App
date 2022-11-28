@@ -40,6 +40,7 @@ const CONST = {
     },
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
+        UNIX_EPOCH: '1970-01-01 00:00:00.000',
     },
     SMS: {
         DOMAIN: '@expensify.sms',

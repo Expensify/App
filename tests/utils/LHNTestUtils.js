@@ -5,6 +5,7 @@ import OnyxProvider from '../../src/components/OnyxProvider';
 import {LocaleContextProvider} from '../../src/components/withLocalize';
 import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
 import CONST from '../../src/CONST';
+import DateUtils from '../../src/libs/DateUtils';
 
 const TEST_MAX_SEQUENCE_NUMBER = 10;
 
@@ -78,7 +79,7 @@ function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], mi
         reportName: 'Report',
         maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
-        lastMessageTimestamp: Date.now() - millisecondsInThePast,
+        lastActionCreated: DateUtils.getDBTime(Date.now() - millisecondsInThePast),
         participants,
     };
 }

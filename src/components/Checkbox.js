@@ -2,6 +2,7 @@ import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 import stylePropTypes from '../styles/stylePropTypes';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -112,7 +113,7 @@ class Checkbox extends React.Component {
                                 this.state.isFocused && styles.borderColorFocus,
                             ]}
                         >
-                            <Icon src={Expensicons.Checkmark} fill="white" height={14} width={14} />
+                            {this.props.isChecked && <Icon src={Expensicons.Checkmark} fill={themeColors.textLight} height={14} width={14} />}
                         </View>
                     )}
             </Pressable>
