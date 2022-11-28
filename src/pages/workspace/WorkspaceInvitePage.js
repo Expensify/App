@@ -133,12 +133,15 @@ class WorkspaceInvitePage extends React.Component {
      */
     getSections() {
         const sections = [];
+        let indexOffset = 0;
+
         sections.push({
             title: undefined,
             data: this.state.selectedOptions,
             shouldShow: true,
-            indexOffset: 0,
+            indexOffset,
         });
+        indexOffset += this.state.selectedOptions.length;
 
         // Filtering out selected users from the search results
         const filterText = _.reduce(this.state.selectedOptions, (str, {login}) => `${str} ${login}`, '');
@@ -149,15 +152,16 @@ class WorkspaceInvitePage extends React.Component {
             title: this.props.translate('common.contacts'),
             data: personalDetailsWithoutSelected,
             shouldShow: !_.isEmpty(personalDetailsWithoutSelected),
-            indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
+            indexOffset,
         });
+        indexOffset += personalDetailsWithoutSelected.length;
 
         if (hasUnselectedUserToInvite) {
             sections.push(({
                 title: undefined,
                 data: [this.state.userToInvite],
                 shouldShow: true,
-                indexOffset: 0,
+                indexOffset,
             }));
         }
 

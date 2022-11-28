@@ -31,23 +31,15 @@ import networkPropTypes from '../components/networkPropTypes';
 import RequestCallConfirmationScreen from './RequestCallConfirmationScreen';
 import Form from '../components/Form';
 
-const loginPropTypes = PropTypes.shape({
-    /** Phone/Emails associated with user */
-    partnerUserID: PropTypes.string,
-});
-
 const propTypes = {
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 
     /** Login list for the user that is signed in */
-    loginList: PropTypes.oneOfType([
-        PropTypes.objectOf(loginPropTypes),
-
-        // TODO: remove this once this closes:
-        // https://github.com/Expensify/App/issues/10960
-        PropTypes.arrayOf(loginPropTypes),
-    ]),
+    loginList: PropTypes.shape({
+        /** Phone/Emails associated with user */
+        partnerUserID: PropTypes.string,
+    }),
 
     /** The policies which the user has access to */
     policies: PropTypes.shape({
@@ -162,14 +154,13 @@ class RequestCallPage extends Component {
     }
 
     /**
-     * Gets the user's phone number from their secondary login.
-     * Returns null if it doesn't exist.
+     * Gets the user's phone number from their secondary logins.
+     * Returns empty string if it doesn't exist.
      *
-     * @param {Array|Object} loginList
-     * @returns {String|null}
+     * @returns {String}
      */
-    getPhoneNumber(loginList) {
-        const secondaryLogin = _.find(_.values(LoginUtils.convertLoginListToObject(loginList)), login => Str.isSMSLogin(login.partnerUserID));
+    getPhoneNumber() {
+        const secondaryLogin = _.find(_.values(this.props.loginList), login => Str.isSMSLogin(login.partnerUserID));
         return secondaryLogin ? Str.removeSMSDomain(secondaryLogin.partnerUserID) : '';
     }
 
@@ -274,10 +265,10 @@ class RequestCallPage extends Component {
                         >
                             <Section
                                 title={this.props.translate('requestCallPage.subtitle')}
-                                icon={Illustrations.ConciergeExclamation}
-                                containerStyles={[styles.p0]}
+                                icon={Illustrations.ConciergeBubble}
+                                containerStyles={[styles.callRequestSection]}
                             >
-                                <Text>
+                                <Text style={[styles.mv3]}>
                                     {this.props.translate('requestCallPage.description')}
                                 </Text>
                             </Section>
@@ -299,7 +290,7 @@ class RequestCallPage extends Component {
                             />
                             <TextInput
                                 inputID="phoneNumber"
-                                defaultValue={this.getPhoneNumber(this.props.loginList)}
+                                defaultValue={this.getPhoneNumber()}
                                 label={this.props.translate('common.phoneNumber')}
                                 name="phone"
                                 keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}

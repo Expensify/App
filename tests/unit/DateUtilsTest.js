@@ -33,7 +33,7 @@ describe('DateUtils', () => {
         expect(DateUtils.datetimeToCalendarTime(LOCALE, yesterday)).toBe('Yesterday at 7:43 AM');
 
         const date = moment.utc('2022-11-05').set({hour: 10, minute: 17});
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, date)).toBe('Nov 5 at 10:17 AM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, date)).toBe('Nov 5, 2022 at 10:17 AM');
     });
 
     it('should return the date in calendar time when calling datetimeToRelative', () => {
@@ -47,8 +47,28 @@ describe('DateUtils', () => {
         expect(DateUtils.datetimeToRelative(LOCALE, anHourAgo)).toBe('an hour ago');
     });
 
-    it('should return the date in the format expected by the database when calling currentDBTime', () => {
-        const currentDBTime = DateUtils.currentDBTime();
-        expect(currentDBTime).toBe(moment(currentDBTime).format('YYYY-MM-DD HH:mm:ss.SSS'));
+    describe('getDBTime', () => {
+        it('should return the date in the format expected by the database', () => {
+            const getDBTime = DateUtils.getDBTime();
+            expect(getDBTime).toBe(moment(getDBTime).format('YYYY-MM-DD HH:mm:ss.SSS'));
+        });
+
+        it('should represent the correct moment in utc when used with a standard datetime string', () => {
+            const timestamp = 'Mon Nov 21 2022 19:04:14 GMT-0800 (Pacific Standard Time)';
+            const getDBTime = DateUtils.getDBTime(timestamp);
+            expect(getDBTime).toBe('2022-11-22 03:04:14.000');
+        });
+
+        it('should represent the correct moment in time when used with an ISO string', () => {
+            const timestamp = '2022-11-22T03:08:04.326Z';
+            const getDBTime = DateUtils.getDBTime(timestamp);
+            expect(getDBTime).toBe('2022-11-22 03:08:04.326');
+        });
+
+        it('should represent the correct moment in time when used with a unix timestamp', () => {
+            const timestamp = 1669086850792;
+            const getDBTime = DateUtils.getDBTime(timestamp);
+            expect(getDBTime).toBe('2022-11-22 03:14:10.792');
+        });
     });
 });
