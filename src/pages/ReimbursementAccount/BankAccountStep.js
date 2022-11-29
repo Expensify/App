@@ -40,7 +40,7 @@ const propTypes = {
 
     /** Once the user has selected a sub step, clicking on back button should redirect to the continue button screen. */
     /** As such, we need to expose this handler */
-    onSubStepBack: PropTypes.func, 
+    onSubStepBack: PropTypes.func,
 
     /** The bank account currently in setup */
     /* eslint-disable-next-line react/no-unused-prop-types */
@@ -80,7 +80,7 @@ const BankAccountStep = (props) => {
     }
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
-        return <BankAccountPlaidStep onBack={props.onSubStepBack}/>;
+        return <BankAccountPlaidStep onBack={props.onSubStepBack} />;
     }
 
     return (

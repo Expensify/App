@@ -31,6 +31,7 @@ const propTypes = {
 const defaultProps = {
     receivedRedirectURI: null,
     plaidLinkOAuthToken: '',
+    onBack: () => {},
 };
 
 class BankAccountPlaidStep extends React.Component {

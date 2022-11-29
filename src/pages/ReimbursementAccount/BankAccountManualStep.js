@@ -25,6 +25,10 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
+const defaultProps = {
+    onBack: () => {},
+};
+
 class BankAccountManualStep extends React.Component {
     constructor(props) {
         super(props);
@@ -135,6 +139,7 @@ class BankAccountManualStep extends React.Component {
 }
 
 BankAccountManualStep.propTypes = propTypes;
+BankAccountManualStep.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
