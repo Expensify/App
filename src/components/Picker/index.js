@@ -141,7 +141,6 @@ class Picker extends PureComponent {
 
     render() {
         const hasError = !_.isEmpty(this.props.errorText);
-        console.log('over here', _.isEmpty(this.props.placeholder))
         return (
             <>
                 <View
