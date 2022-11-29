@@ -9,6 +9,7 @@
     position: absolute;
     right: 12px;
     top: 13px;
+    /* color-scheme: dark; */
 }
 .expensify-datepicker::-webkit-date-and-time-value {
     text-align: left;
