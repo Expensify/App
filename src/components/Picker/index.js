@@ -141,6 +141,7 @@ class Picker extends PureComponent {
 
     render() {
         const hasError = !_.isEmpty(this.props.errorText);
+        console.log('over here', _.isEmpty(this.props.placeholder))
         return (
             <>
                 <View
@@ -160,7 +161,7 @@ class Picker extends PureComponent {
                         items={_.map(this.props.items, item => ({...item, color: styles.textDark}))}
                         style={this.props.size === 'normal' ? pickerStyles(this.props.isDisabled) : styles.pickerSmall}
                         useNativeAndroidPickerStyle={false}
-                        placeholder={{...this.props.placeholder, color: styles.textDark}}
+                        placeholder={_.isEmpty(this.props.placeholder) ? {} : {...this.props.placeholder, color: styles.textDark}}
                         value={this.props.value}
                         Icon={() => this.props.icon(this.props.size)}
                         disabled={this.props.isDisabled}
