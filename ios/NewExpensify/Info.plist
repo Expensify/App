@@ -75,14 +75,14 @@
 	<string>Your photos are used to create chat attachments.</string>
 	<key>UIAppFonts</key>
 	<array>
-		<string>Expensify-New-Kansas-MediumItalic.otf</string>
-		<string>Expensify-New-Kansas-Meduim.otf</string>
-		<string>Expensify-Neue-Regular.otf</string>
-		<string>Expensify-Neue-Italic.otf</string>
-		<string>Expensify-Neue-BoldItalic.otf</string>
-		<string>Expensify-Neue-Bold.otf</string>
-		<string>Expensify-Mono-Regular.otf</string>
-		<string>Expensify-Mono-Bold.otf</string>
+		<string>ExpensifyNewKansas-MediumItalic.otf</string>
+		<string>ExpensifyNewKansas-Meduim.otf</string>
+		<string>ExpensifyNeue-Regular.otf</string>
+		<string>ExpensifyNeue-Italic.otf</string>
+		<string>ExpensifyNeue-BoldItalic.otf</string>
+		<string>ExpensifyNeue-Bold.otf</string>
+		<string>ExpensifyMono-Regular.otf</string>
+		<string>ExpensifyMono-Bold.otf</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>
