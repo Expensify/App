@@ -295,7 +295,7 @@ class IOUModal extends Component {
                 amount,
                 currency,
                 comment,
-                this.state.participants[0].login,
+                this.state.participants,
             );
 
             // Exit to the report as the API pusher response will be handled elsewhere
