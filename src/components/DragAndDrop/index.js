@@ -28,9 +28,6 @@ export default class DragAndDrop extends React.Component {
     constructor(props) {
         super(props);
 
-        this.dropZone = document.getElementById(props.dropZoneId);
-        this.dropZoneRect = this.calculateDropZoneClientReact();
-
         this.throttledDragOverHandler = _.throttle(this.dragOverHandler.bind(this), 100);
         this.throttledDragNDropWindowResizeListener = _.throttle(this.dragNDropWindowResizeListener.bind(this), 100);
         this.dropZoneDragHandler = this.dropZoneDragHandler.bind(this);
@@ -44,6 +41,8 @@ export default class DragAndDrop extends React.Component {
     }
 
     componentDidMount() {
+        this.dropZone = document.getElementById(this.props.dropZoneId);
+        this.dropZoneRect = this.calculateDropZoneClientReact();
         document.addEventListener('dragover', this.dropZoneDragListener);
         document.addEventListener('dragenter', this.dropZoneDragListener);
         document.addEventListener('dragleave', this.dropZoneDragListener);
