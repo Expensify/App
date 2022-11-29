@@ -419,14 +419,13 @@ function addActions(reportID, text = '', file) {
         lastReadSequenceNumber: newSequenceNumber,
     };
 
-    // Optimistically add the new actions to the store before waiting to save them to the server. We use the clientID
-    // so that we can later unset these messages via the server by sending {[clientID]: null}
+    // Optimistically add the new actions to the store before waiting to save them to the server
     const optimisticReportActions = {};
     if (text) {
-        optimisticReportActions[reportCommentAction.clientID] = reportCommentAction;
+        optimisticReportActions[reportCommentAction.reportActionID] = reportCommentAction;
     }
     if (file) {
-        optimisticReportActions[attachmentAction.clientID] = attachmentAction;
+        optimisticReportActions[attachmentAction.reportActionID] = attachmentAction;
     }
 
     const parameters = {
@@ -434,8 +433,6 @@ function addActions(reportID, text = '', file) {
         reportActionID: file ? attachmentAction.reportActionID : reportCommentAction.reportActionID,
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
-        clientID: lastAction.clientID,
-        commentClientID: lodashGet(reportCommentAction, 'clientID', ''),
         file,
     };
 
