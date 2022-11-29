@@ -293,6 +293,88 @@ class AdditionalDetailsStep extends React.Component {
                             {this.props.translate('additionalDetailsStep.helpLink')}
                         </TextLink>
                     </View>
+                    <Form
+                        formID={ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_FORM}
+                        validate={this.validate}
+                        onSubmit={this.activateWallet}
+                        submitButtonText={this.props.translate('common.saveAndContinue')}
+                        style={[styles.flexGrow1]}
+                    >
+                        <View style={[styles.mh5, styles.mb5]}>
+                            <View style={styles.mt4}>
+                                <TextInput
+                                    containerStyles={[styles.mt4]}
+                                    label={this.props.translate(this.fieldNameTranslationKeys.legalFirstName)}
+                                    onChangeText={val => this.clearErrorAndSetValue('legalFirstName', val)}
+                                    defaultValue={this.getFirstName()}
+                                    errorText={this.getErrorText('legalFirstName')}
+                                />
+                                <TextInput
+                                    containerStyles={[styles.mt4]}
+                                    label={this.props.translate(this.fieldNameTranslationKeys.legalLastName)}
+                                    onChangeText={val => this.clearErrorAndSetValue('legalLastName', val)}
+                                    defaultValue={this.getLastName()}
+                                    errorText={this.getErrorText('legalLastName')}
+                                />
+                                <AddressForm
+                                    translate={this.props.translate}
+                                    streetTranslationKey={this.fieldNameTranslationKeys.addressStreet}
+                                    values={{
+                                        street: this.props.walletAdditionalDetailsDraft.addressStreet,
+                                        state: this.props.walletAdditionalDetailsDraft.addressState,
+                                        city: this.props.walletAdditionalDetailsDraft.addressCity,
+                                        zipCode: this.props.walletAdditionalDetailsDraft.addressZip,
+                                    }}
+                                    errors={{
+                                        street: this.getErrors().addressStreet,
+                                        state: this.getErrors().addressState,
+                                        city: this.getErrors().addressCity,
+                                        zipCode: this.getErrors().addressZip,
+                                    }}
+                                    onFieldChange={(values) => {
+                                        const renamedFields = {
+                                            street: 'addressStreet',
+                                            state: 'addressState',
+                                            city: 'addressCity',
+                                            zipCode: 'addressZip',
+                                        };
+                                        _.each(values, (value, inputKey) => {
+                                            const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
+                                            this.clearErrorAndSetValue(renamedInputKey, value);
+                                        });
+                                    }}
+                                />
+                            </View>
+                            <TextInput
+                                containerStyles={[styles.mt4]}
+                                keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                                label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
+                                onChangeText={val => this.clearErrorAndSetValue('phoneNumber', val)}
+                                value={this.props.walletAdditionalDetailsDraft.phoneNumber || ''}
+                                placeholder={this.props.translate('common.phoneNumberPlaceholder')}
+                                errorText={this.getErrorText('phoneNumber')}
+                            />
+                            <DatePicker
+                                containerStyles={[styles.mt4]}
+                                label={this.props.translate(this.fieldNameTranslationKeys.dob)}
+                                onInputChange={val => this.clearDateErrorsAndSetValue(val)}
+                                defaultValue={this.props.walletAdditionalDetailsDraft.dob || ''}
+                                placeholder={this.props.translate('common.dob')}
+                                errorText={this.getErrorText('dob') || this.getErrorText('age')}
+                                maximumDate={new Date()}
+                            />
+                            <TextInput
+                                containerStyles={[styles.mt4]}
+                                label={this.props.translate(this.fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
+                                onChangeText={val => this.clearSSNErrorAndSetValue(val)}
+                                value={this.props.walletAdditionalDetailsDraft.ssn || ''}
+                                errorText={this.getErrorText('ssnFull9') || this.getErrorText('ssn')}
+                                maxLength={shouldAskForFullSSN ? 9 : 4}
+                                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                            />
+                        </View>
+                        <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
+                    </Form>
                     <FormScrollView ref={el => this.form = el}>
                         <View style={[styles.mh5, styles.mb5]}>
                             <View style={styles.mt4}>
