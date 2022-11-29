@@ -76,6 +76,15 @@ function getReportParticipantsTitle(logins) {
 }
 
 /**
+ * Attempts to find a report in onyx with the provided list of participants
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isIOUReport(report) {
+    return report && _.has(report, 'total');
+}
+
+/**
  * Check whether a report action is Attachment or not.
  * Ignore messages containing [Attachment] as the main content. Attachments are actions with only text as [Attachment].
  *
@@ -95,7 +104,7 @@ function isReportMessageAttachment({text, html}) {
 function sortReportsByLastVisited(reports) {
     return _.chain(reports)
         .toArray()
-        .filter(report => report && report.reportID)
+        .filter(report => report && report.reportID && !isIOUReport(report))
         .sortBy('lastVisitedTimestamp')
         .value();
 }
