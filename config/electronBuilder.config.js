@@ -1,11 +1,20 @@
 const {version} = require('../package.json');
 
 const isPublishing = process.argv.includes('--publish');
+const pullRequestNumber = process.env.PULL_REQUEST_NUMBER;
 
 const s3Bucket = {
     production: 'expensify-cash',
     staging: 'staging-expensify-cash',
     internal: 'ad-hoc-expensify-cash',
+};
+
+const s3Path = {
+    production: '/',
+    staging: '/',
+    internal: process.env.PULL_REQUEST_NUMBER
+        ? `/desktop/${pullRequestNumber}/`
+        : '/',
 };
 
 const macIcon = {
@@ -50,6 +59,7 @@ module.exports = {
                 ? s3Bucket[process.env.ELECTRON_ENV]
                 : 'ad-hoc-expensify-cash',
             channel: 'latest',
+            path: isCorrectElectronEnv ? s3Path[process.env.ELECTRON_ENV] : '/',
         },
     ],
     afterSign: isPublishing ? './desktop/notarize.js' : undefined,
