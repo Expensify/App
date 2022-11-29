@@ -29,9 +29,8 @@ Onyx.connect({
 });
 
 /**
- * Sort an array of reportActions by their created timestamp,
- * using actionName as a secondary sorting parameter,
- * finally falling back on reportActionID in case multiple reportActions of the same actionName are created in the same millisecond.
+ * Sort an array of reportActions by their created timestamp first, and reportActionID second
+ * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
  *
  * @param {Array} reportActions
  * @param {Boolean} [shouldInvertSortingOrder]
@@ -39,7 +38,7 @@ Onyx.connect({
  */
 function sortReportActions(reportActions, shouldInvertSortingOrder = false) {
     if (!_.isArray(reportActions)) {
-        throw new Error(`ReportActionsUtils::sortReportActions requires an array, received ${typeof reportActions}`);
+        throw new Error(`ReportActionsUtils.sortReportActions requires an array, received ${typeof reportActions}`);
     }
     const invertedMultiplier = shouldInvertSortingOrder ? -1 : 1;
     reportActions.sort((first, second) => {
@@ -74,8 +73,8 @@ function getMostRecentIOUReportActionID(reportActions) {
         return null;
     }
 
-    sortReportActions(iouActions);
-    return _.last(iouActions).reportActionID;
+    const sortedReportActions = sortReportActions(iouActions);
+    return _.last(sortedReportActions).reportActionID;
 }
 
 /**
