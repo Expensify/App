@@ -518,7 +518,7 @@ class GithubUtils {
                 console.log('Found the following Internal QA PRs:', internalQAPRMap);
 
                 const noQAPRs = _.pluck(
-                    _.filter(data, PR => (PR.title || '').toUpperCase().startsWith('[NO QA]')),
+                    _.filter(data, PR => /\[No\s?QA]/i.test(PR.title)),
                     'html_url',
                 );
                 console.log('Found the following NO QA PRs:', noQAPRs);
@@ -613,6 +613,44 @@ class GithubUtils {
         })
             .then(prList => _.filter(prList, pr => _.contains(pullRequestNumbers, pr.number)))
             .catch(err => console.error('Failed to get PR list', err));
+    }
+
+    /**
+     * @param {Number} pullRequestNumber
+     * @returns {Promise}
+     */
+    static getPullRequestBody(pullRequestNumber) {
+        return this.octokit.pulls.get({
+            owner: GITHUB_OWNER,
+            repo: APP_REPO,
+            pull_number: pullRequestNumber,
+        }).then(({data: pullRequestComment}) => pullRequestComment.body);
+    }
+
+    /**
+     * @param {Number} pullRequestNumber
+     * @returns {Promise}
+     */
+    static getAllReviewComments(pullRequestNumber) {
+        return this.paginate(this.octokit.pulls.listReviews, {
+            owner: GITHUB_OWNER,
+            repo: APP_REPO,
+            pull_number: pullRequestNumber,
+            per_page: 100,
+        }, response => _.map(response.data, review => review.body));
+    }
+
+    /**
+     * @param {Number} issueNumber
+     * @returns {Promise}
+     */
+    static getAllComments(issueNumber) {
+        return this.paginate(this.octokit.issues.listComments, {
+            owner: GITHUB_OWNER,
+            repo: APP_REPO,
+            issue_number: issueNumber,
+            per_page: 100,
+        }, response => _.map(response.data, comment => comment.body));
     }
 
     /**

@@ -36,10 +36,15 @@ function calculateAmount(participants, total, isDefaultUser = false) {
  * @param {Object} iouReport
  * @param {String} actorEmail
  * @param {Number} amount
+ * @param {String} currency
  * @param {String} type
  * @returns {Object}
  */
-function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, type = CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
+function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
+    if (currency !== iouReport.currency) {
+        return iouReport;
+    }
+
     const iouReportUpdate = {...iouReport};
 
     if (actorEmail === iouReport.ownerEmail) {

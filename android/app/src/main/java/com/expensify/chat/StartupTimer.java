@@ -1,4 +1,5 @@
 package com.expensify.chat;
+
 import android.util.Log;
 
 import com.facebook.react.bridge.ReactApplicationContext;

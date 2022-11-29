@@ -31,7 +31,6 @@ const EmojiPickerMenuItem = props => (
         style={({
             pressed,
         }) => ([
-            styles.pv1,
             StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
             props.isHighlighted ? styles.emojiItemHighlighted : {},
             styles.emojiItem,

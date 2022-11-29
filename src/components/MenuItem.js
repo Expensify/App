@@ -56,7 +56,7 @@ const MenuItem = (props) => {
         styles.popoverMenuText,
         styles.ml3,
         (props.shouldShowBasicTitle ? undefined : styles.textStrong),
-        (props.interactive && props.disabled ? styles.disabledText : undefined),
+        (props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined),
     ], props.style);
     const descriptionTextStyle = StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml3, styles.breakAll, styles.lh16], props.style);
 
@@ -96,6 +96,7 @@ const MenuItem = (props) => {
                                     height={props.iconHeight}
                                     fill={props.iconFill || StyleUtils.getIconFillColor(
                                         getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive),
+                                        true,
                                     )}
                                 />
                             </View>

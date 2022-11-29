@@ -1,9 +1,13 @@
-import lodashGet from 'lodash/get';
+import get from 'lodash/get';
 import {Platform} from 'react-native';
 import Config from 'react-native-config';
 import getPlatform from './libs/getPlatform/index';
 import * as Url from './libs/Url';
 import CONST from './CONST';
+
+// react-native-config doesn't trim whitespace on iOS for some reason so we
+// add a trim() call to lodashGet here to prevent headaches
+const lodashGet = (config, key, defaultValue) => get(config, key, defaultValue).trim();
 
 // Set default values to contributor friendly values to make development work out of the box without an .env file
 const ENVIRONMENT = lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV);
@@ -72,4 +76,5 @@ export default {
     ONYX_METRICS: lodashGet(Config, 'ONYX_METRICS', 'false') === 'true',
     DEV_PORT: process.env.PORT || 8080,
     E2E_TESTING: lodashGet(Config, 'E2E_TESTING', 'false') === 'true',
+    SEND_CRASH_REPORTS: lodashGet(Config, 'SEND_CRASH_REPORTS', 'false') === 'true',
 };
