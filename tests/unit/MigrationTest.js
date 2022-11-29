@@ -6,6 +6,7 @@ import Log from '../../src/libs/Log';
 import getPlatform from '../../src/libs/getPlatform';
 import AddLastActionCreated from '../../src/libs/migrations/AddLastActionCreated';
 import MoveToIndexedDB from '../../src/libs/migrations/MoveToIndexedDB';
+import KeyReportActionsByReportActionID from '../../src/libs/migrations/KeyReportActionsByReportActionID';
 import ONYXKEYS from '../../src/ONYXKEYS';
 
 jest.mock('../../src/libs/getPlatform');
@@ -145,6 +146,90 @@ describe('Migrations', () => {
                         callback: (allReports) => {
                             Onyx.disconnect(connectionID);
                             expect(allReports).toBeEmpty();
+                        },
+                    });
+                });
+        });
+    });
+
+    describe('KeyReportActionsByReportActionID', () => {
+        it('Should migrate reportActions to be keyed by reportActionID instead of sequenceNumber', () => {
+            Onyx.set(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+                reportActions_1: {
+                    1: {
+                        reportActionID: 1000,
+                        sequenceNumber: 1,
+                    },
+                    2: {
+                        reportActionID: 2000,
+                        sequenceNumber: 2,
+                    },
+                },
+                reportActions_2: {
+                    1: {
+                        reportActionID: 3000,
+                        sequenceNumber: 1,
+                    },
+                    2: {
+                        reportActionID: 4000,
+                        sequenceNumber: 2,
+                    },
+                },
+            })
+                .then(KeyReportActionsByReportActionID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Re-keying reportActions by reportActionID for 2 reports');
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                        waitForCollectionCallbacks: true,
+                        callback: (allReportActions) => {
+                            Onyx.disconnect(connectionID);
+                            expect(_.keys(allReportActions).length).toBe(2);
+                            _.each(allReportActions, (reportActionsForReport) => {
+                                _.each(reportActionsForReport, (reportAction, key) => {
+                                    expect(key).toBe(reportAction.reportActionID);
+                                });
+                            });
+                        },
+                    });
+                });
+        });
+
+        it('Should return early if the migration has already happened', () => {
+            Onyx.set(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+                reportActions_1: {
+                    1000: {
+                        reportActionID: 1000,
+                        sequenceNumber: 1,
+                    },
+                    2000: {
+                        reportActionID: 2000,
+                        sequenceNumber: 2,
+                    },
+                },
+                reportActions_2: {
+                    3000: {
+                        reportActionID: 3000,
+                    },
+                    4000: {
+                        reportActionID: 4000,
+                    },
+                },
+            })
+                .then(KeyReportActionsByReportActionID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID');
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                        waitForCollectionCallbacks: true,
+                        callback: (allReportActions) => {
+                            Onyx.disconnect(connectionID);
+                            expect(_.keys(allReportActions).length).toBe(2);
+                            _.each(allReportActions, (reportActionsForReport) => {
+                                _.each(reportActionsForReport, (reportAction, key) => {
+                                    expect(key).toBe(reportAction.reportActionID);
+                                });
+                            });
                         },
                     });
                 });

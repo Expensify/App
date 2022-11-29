@@ -31,18 +31,15 @@ export default function () {
                             return;
                         }
 
-                        // Remove the sequenceNumber key from the reportActions object
-                        newReportActionsForReport[reportActionKey] = null;
-
                         // Move it to be keyed by reportActionID instead
                         newReportActionsForReport[reportAction.reportActionID] = reportAction;
                     }
                     newReportActions[onyxKey] = newReportActionsForReport;
                 }
 
-                Log.info(`[Migrate Onyx] Re-keying reportActions by reportActionID for ${_.keys(newReportActions).length} reports.`);
+                Log.info(`[Migrate Onyx] Re-keying reportActions by reportActionID for ${_.keys(newReportActions).length} reports`);
                 // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, newReportActions);
+                Onyx.set(ONYXKEYS.COLLECTION.REPORT_ACTIONS, newReportActions);
             },
         });
 
