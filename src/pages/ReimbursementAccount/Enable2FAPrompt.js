@@ -9,6 +9,7 @@ import Section from '../../components/Section';
 import * as Link from '../../libs/actions/Link';
 import CONFIG from '../../CONFIG';
 import ROUTES from '../../ROUTES';
+import themeColors from '../../styles/themes/default';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -26,10 +27,12 @@ const Enable2FAPrompt = props => (
                 icon: Expensicons.Shield,
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
+                iconFill: themeColors.success,
+                wrapperStyle: [styles.cardMenuItem],
             },
         ]}
     >
-        <View style={[styles.mv4]}>
+        <View style={[styles.mv3]}>
             <Text>
                 {props.translate('validationStep.enable2FAText')}
             </Text>
