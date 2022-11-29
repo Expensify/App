@@ -4,13 +4,13 @@
 <dict>
 	<key>detectProvisioningMode</key>
 	<true/>
-	<key>developmentAppKey</key>
+	<key>appKey</key>
 	<string>uulSSfTDQJ2r0PMpjRrhmQ</string>
-	<key>developmentAppSecret</key>
+	<key>appSecret</key>
 	<string>D4Bhf0HrQEehrPua74Tyiw</string>
-	<key>productionAppKey</key>
+	<key>appKey</key>
 	<string>55vypj0ARc6cN09MX7ogtQ</string>
-	<key>productionAppSecret</key>
+	<key>appSecret</key>
 	<string>EsSaqbdLSvmyC6kSBFJCtQ</string>
 </dict>
 </plist>

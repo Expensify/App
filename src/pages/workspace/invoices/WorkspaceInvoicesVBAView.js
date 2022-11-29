@@ -29,7 +29,7 @@ const WorkspaceInvoicesVBAView = props => (
                 {
                     title: props.translate('workspace.invoices.viewUnpaidInvoices'),
                     onPress: () => Link.openOldDotLink(`reports?policyID=${props.policyID}&from=all&type=invoice&showStates=Processing&isAdvancedFilterMode=true`),
-                    icon: Expensicons.CircleHourglass,
+                    icon: Expensicons.Hourglass,
                     shouldShowRightIcon: true,
                     iconRight: Expensicons.NewWindow,
                     iconFill: themeColors.success,
