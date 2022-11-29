@@ -803,10 +803,10 @@ Onyx.connect({
  * Deletes a comment from the report, basically sets it as empty string
  *
  * @param {String} reportID
- * @param {Object} reportAction
+ * @param {String} reportAction
  */
 function deleteReportComment(reportID, reportAction) {
-    const sequenceNumber = reportAction.sequenceNumber;
+    const reportActionID = reportAction.reportActionID;
     const deletedMessage = [{
         type: 'COMMENT',
         html: '',
@@ -814,7 +814,7 @@ function deleteReportComment(reportID, reportAction) {
         isEdited: true,
     }];
     const optimisticReportActions = {
-        [sequenceNumber]: {
+        [reportActionID]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             previousMessage: reportAction.message,
             message: deletedMessage,
@@ -843,7 +843,7 @@ function deleteReportComment(reportID, reportAction) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [sequenceNumber]: {
+                [reportActionID]: {
                     message: reportAction.message,
                     pendingAction: null,
                     previousMessage: null,
@@ -857,7 +857,7 @@ function deleteReportComment(reportID, reportAction) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [sequenceNumber]: {
+                [reportActionID]: {
                     pendingAction: null,
                     previousMessage: null,
                 },
@@ -880,7 +880,6 @@ function deleteReportComment(reportID, reportAction) {
 
     const parameters = {
         reportID,
-        sequenceNumber,
         reportActionID: reportAction.reportActionID,
     };
     API.write('DeleteComment', parameters, {optimisticData, successData, failureData});
