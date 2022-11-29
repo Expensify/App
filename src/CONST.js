@@ -40,6 +40,7 @@ const CONST = {
     },
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
+        UNIX_EPOCH: '1970-01-01 00:00:00.000',
     },
     SMS: {
         DOMAIN: '@expensify.sms',
@@ -230,6 +231,7 @@ const CONST = {
     DEEPLINK_BASE_URL: 'new-expensify://',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
+    CONCIERGE_ICON_URL: `${CLOUDFRONT_URL}/images/icons/concierge_2022.png`,
     UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
     GITHUB_URL: 'https://github.com/Expensify/App',
     TERMS_URL: `${USE_EXPENSIFY_URL}/terms`,
@@ -691,6 +693,8 @@ const CONST = {
         },
         ROLE: {
             ADMIN: 'admin',
+            AUDITOR: 'auditor',
+            USER: 'user',
         },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
@@ -862,8 +866,6 @@ const CONST = {
     },
 
     TFA_CODE_LENGTH: 6,
-
-    CHAT_ATTACHMENT_TOKEN_KEY: 'X-Chat-Attachment-Token',
 };
 
 export default CONST;

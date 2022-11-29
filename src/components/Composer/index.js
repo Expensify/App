@@ -225,6 +225,12 @@ class Composer extends React.Component {
 
             // If HTML has img tag, then fetch images from it.
             if (embeddedImages.length > 0 && embeddedImages[0].src) {
+                // If HTML has emoji, then treat this as plain text.
+                if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
+                    const plainText = event.clipboardData.getData('text/plain');
+                    this.paste(Str.htmlDecode(plainText));
+                    return;
+                }
                 fetch(embeddedImages[0].src)
                     .then((response) => {
                         if (!response.ok) { throw Error(response.statusText); }

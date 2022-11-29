@@ -4,6 +4,7 @@ import lodashGet from 'lodash/get';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import CONST from '../../src/CONST';
+import DateUtils from '../../src/libs/DateUtils';
 
 // Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');
@@ -17,7 +18,6 @@ const ONYXKEYS = {
     COLLECTION: {
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
-        REPORT_IOUS: 'reportIOUs_',
     },
     NETWORK: 'network',
 };
@@ -180,8 +180,10 @@ describe('Sidebar', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
                 }))
 
-                // When a new comment is added to report 1 (eg. it's lastMessageTimestamp is updated)
-                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`, {lastMessageTimestamp: Date.now()}))
+                // When a new comment is added to report 1 (eg. it's lastActionCreated is updated)
+                .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`, {
+                    lastActionCreated: DateUtils.getDBTime(),
+                }))
 
                 // Then the order of the reports should be 1 > 3 > 2
                 //                                         ^--- (1 goes to the front and pushes other two down)
@@ -346,7 +348,7 @@ describe('Sidebar', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
-                    [`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReport.reportID}`]: iouReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
                 }))
 
                 // Then the reports are ordered by Pinned > IOU > Draft

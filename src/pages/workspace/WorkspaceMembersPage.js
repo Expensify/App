@@ -152,9 +152,11 @@ class WorkspaceMembersPage extends React.Component {
      * Toggle user from the selectedEmployees list
      *
      * @param {String} login
+     * @param {String} pendingAction
+     *
      */
-    toggleUser(login) {
-        if (this.willTooltipShowForLogin(login)) {
+    toggleUser(login, pendingAction) {
+        if (this.willTooltipShowForLogin(login) || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
 
@@ -250,26 +252,26 @@ class WorkspaceMembersPage extends React.Component {
     renderItem({
         item,
     }) {
-        const canBeRemoved = this.props.policy.owner !== item.login && this.props.session.email !== item.login;
+        const canBeRemoved = this.props.policy.owner !== item.login && this.props.session.email !== item.login && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         return (
             <OfflineWithFeedback errorRowStyles={[styles.peopleRowBorderBottom]} onClose={() => this.dismissError(item)} pendingAction={item.pendingAction} errors={item.errors}>
                 <Hoverable onHoverIn={() => this.willTooltipShowForLogin(item.login, true)} onHoverOut={() => this.setState({showTooltipForLogin: ''})}>
                     <TouchableOpacity
                         style={[styles.peopleRow, !item.errors && styles.peopleRowBorderBottom, !canBeRemoved && styles.cursorDisabled]}
-                        onPress={() => this.toggleUser(item.login)}
+                        onPress={() => this.toggleUser(item.login, item.pendingAction)}
                         activeOpacity={0.7}
                     >
                         <CheckboxWithTooltip
                             style={[styles.peopleRowCell]}
                             isChecked={_.contains(this.state.selectedEmployees, item.login)}
                             disabled={!canBeRemoved}
-                            onPress={() => this.toggleUser(item.login)}
+                            onPress={() => this.toggleUser(item.login, item.pendingAction)}
                             toggleTooltip={this.state.showTooltipForLogin === item.login}
                             text={this.props.translate('workspace.people.error.cannotRemove')}
                         />
                         <View style={styles.flex1}>
                             <OptionRow
-                                onSelectRow={() => this.toggleUser(item.login)}
+                                onSelectRow={() => this.toggleUser(item.login, item.pendingAction)}
                                 forceTextUnreadStyle
                                 isDisabled={!canBeRemoved}
                                 option={{
@@ -301,8 +303,7 @@ class WorkspaceMembersPage extends React.Component {
         const removableMembers = [];
         let data = [];
         _.each(policyMemberList, (policyMember, email) => {
-            if (policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) { return; }
-            if (email !== this.props.session.email && email !== this.props.policy.owner) {
+            if (email !== this.props.session.email && email !== this.props.policy.owner && policyMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 removableMembers.push(email);
             }
             const details = lodashGet(this.props.personalDetails, email, {displayName: email, login: email, avatar: Expensicons.FallbackAvatar});
