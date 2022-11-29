@@ -96,16 +96,16 @@ function isReportMessageAttachment({text, html}) {
 }
 
 /**
- * Given a collection of reports returns them sorted by last visited
+ * Given a collection of reports returns them sorted by last read
  *
  * @param {Object} reports
  * @returns {Array}
  */
-function sortReportsByLastVisited(reports) {
+function sortReportsByLastRead(reports) {
     return _.chain(reports)
         .toArray()
         .filter(report => report && report.reportID && !isIOUReport(report))
-        .sortBy('lastVisitedTimestamp')
+        .sortBy('lastReadTimestamp')
         .value();
 }
 
@@ -240,13 +240,13 @@ function hasExpensifyGuidesEmails(emails) {
 /**
  * Given a collection of reports returns the most recently accessed one
  *
- * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
+ * @param {Record<String, {lastReadTimestamp, reportID}>|Array<{lastReadTimestamp, reportID}>} reports
  * @param {Boolean} [ignoreDefaultRooms]
  * @param {Object} policies
  * @returns {Object}
  */
 function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
-    let sortedReports = sortReportsByLastVisited(reports);
+    let sortedReports = sortReportsByLastRead(reports);
 
     if (ignoreDefaultRooms) {
         sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report)
@@ -844,7 +844,7 @@ function buildOptimisticChatReport(
         lastMessageText: null,
         lastReadSequenceNumber: 0,
         lastActionCreated: '',
-        lastVisitedTimestamp: 0,
+        lastReadTimestamp: 0,
         maxSequenceNumber: 0,
         notificationPreference,
         oldPolicyName,
@@ -1135,7 +1135,7 @@ export {
     findLastAccessedReport,
     canEditReportAction,
     canDeleteReportAction,
-    sortReportsByLastVisited,
+    sortReportsByLastRead,
     isDefaultRoom,
     isAdminRoom,
     isAnnounceRoom,
