@@ -223,12 +223,10 @@ class ReportScreen extends React.Component {
                 <Freeze
                     freeze={this.props.isSmallScreenWidth && this.props.isDrawerOpen}
                     placeholder={(
-                        <ScreenWrapper
-                            style={screenWrapperStyle}
-                        >
+                        <>
                             <ReportHeaderSkeletonView />
                             <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
-                        </ScreenWrapper>
+                        </>
                     )}
                 >
                     <FullPageNotFoundView
