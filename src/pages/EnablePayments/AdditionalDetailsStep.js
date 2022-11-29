@@ -24,6 +24,7 @@ import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as LoginUtils from '../../libs/LoginUtils';
 import AddressForm from '../ReimbursementAccount/AddressForm';
 import DatePicker from '../../components/DatePicker';
+import Form from '../../components/Form';
 import FormHelper from '../../libs/FormHelper';
 import walletAdditionalDetailsDraftPropTypes from './walletAdditionalDetailsDraftPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
