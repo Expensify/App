@@ -15,28 +15,16 @@
 		0F5BE0CE252686330097D869 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0F5BE0CD252686320097D869 /* GoogleService-Info.plist */; };
 		0F5E5350263B73FD004CA14F /* EnvironmentChecker.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F5E534F263B73FD004CA14F /* EnvironmentChecker.m */; };
 		0F5E5351263B73FD004CA14F /* EnvironmentChecker.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F5E534F263B73FD004CA14F /* EnvironmentChecker.m */; };
-		12DD1878FCB9487C9F031C86 /* GTAmericaExpMono-Rg.otf in Resources */ = {isa = PBXBuildFile; fileRef = 8437A5A38F2047E0BCCD7C2F /* GTAmericaExpMono-Rg.otf */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		18D050E0262400AF000D658B /* BridgingFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18D050DF262400AF000D658B /* BridgingFile.swift */; };
-		1E76D5212522316A005A268F /* GTAmericaExp-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = A5AAD008CBD84A6CAEB9AC97 /* GTAmericaExp-Bold.otf */; };
-		1E76D5222522316A005A268F /* GTAmericaExp-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = 67D5C3A6A7FA417C8A853FC1 /* GTAmericaExp-Light.otf */; };
-		1E76D5232522316A005A268F /* GTAmericaExp-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = AE65058949E14DA5A2D5435D /* GTAmericaExp-Medium.otf */; };
-		1E76D5242522316A005A268F /* GTAmericaExp-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 8C7003903C1E4957824899BB /* GTAmericaExp-Regular.otf */; };
-		1E76D5252522316A005A268F /* GTAmericaExp-Thin.otf in Resources */ = {isa = PBXBuildFile; fileRef = A292718541C841859D97DF2F /* GTAmericaExp-Thin.otf */; };
 		374FB8D728A133FE000D84EF /* OriginImageRequestHandler.mm in Sources */ = {isa = PBXBuildFile; fileRef = 374FB8D628A133FE000D84EF /* OriginImageRequestHandler.mm */; };
-		425866037F4C482AAB46CB8B /* GTAmericaExp-BdIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = A8D6F2F722FD4E66A38EBBB6 /* GTAmericaExp-BdIt.otf */; };
-		52477A09739546F4814EA25F /* GTAmericaExpMono-Bd.otf in Resources */ = {isa = PBXBuildFile; fileRef = 0DE5D096095C41EE96746C9E /* GTAmericaExpMono-Bd.otf */; };
 		5E2EE3856BE7BC98F354B110 /* libPods-NewExpensify.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3EDF186626B8D2CBA203E08D /* libPods-NewExpensify.a */; };
-		6856B78873B64C44A92E51DB /* GTAmericaExp-MdIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = DB5A1365442D4419AF6F08E5 /* GTAmericaExp-MdIt.otf */; };
 		7041848526A8E47D00E09F4D /* RCTStartupTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7041848426A8E47D00E09F4D /* RCTStartupTimer.m */; };
 		7041848626A8E47D00E09F4D /* RCTStartupTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7041848426A8E47D00E09F4D /* RCTStartupTimer.m */; };
 		70CF6E82262E297300711ADC /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 70CF6E81262E297300711ADC /* BootSplash.storyboard */; };
-		8821A238A081483FA947BC4E /* GTAmericaExp-RgIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 918D7FEFF96242E6B5F5E14D /* GTAmericaExp-RgIt.otf */; };
-		DB77016704074197AB6633BB /* GTAmericaExpMono-RgIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 5150E5D0D7F74DBA8D7C1914 /* GTAmericaExpMono-RgIt.otf */; };
 		DD79042B2792E76D004484B4 /* RCTBootSplash.m in Sources */ = {isa = PBXBuildFile; fileRef = DD79042A2792E76D004484B4 /* RCTBootSplash.m */; };
 		E3B48DC1ED4CC64F660388A8 /* libPods-NewExpensify-NewExpensifyTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A2695CF895D81C31AFB4A074 /* libPods-NewExpensify-NewExpensifyTests.a */; };
 		E9DF872D2525201700607FDC /* AirshipConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = E9DF872C2525201700607FDC /* AirshipConfig.plist */; };
-		ED814D34526B415CAFA0451E /* GTAmericaExpMono-BdIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 3981452A2C7340EBBA2B9BD1 /* GTAmericaExpMono-BdIt.otf */; };
 		F0C450EA2705020500FD2970 /* colors.json in Resources */ = {isa = PBXBuildFile; fileRef = F0C450E92705020500FD2970 /* colors.json */; };
 /* End PBXBuildFile section */
 
@@ -60,7 +48,6 @@
 		02BB59C8C4E7D63E4192F2FA /* Pods-NewExpensify-NewExpensifyTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.debug.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.debug.xcconfig"; sourceTree = "<group>"; };
 		0CDA8E33287DD650004ECBEC /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = NewExpensify/AppDelegate.mm; sourceTree = "<group>"; };
 		0CDA8E36287DD6A0004ECBEC /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = NewExpensify/Images.xcassets; sourceTree = "<group>"; };
-		0DE5D096095C41EE96746C9E /* GTAmericaExpMono-Bd.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExpMono-Bd.otf"; path = "../assets/fonts/GTAmericaExpMono-Bd.otf"; sourceTree = "<group>"; };
 		0F5BE0CD252686320097D869 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		0F5E534E263B73D5004CA14F /* EnvironmentChecker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EnvironmentChecker.h; sourceTree = "<group>"; };
 		0F5E534F263B73FD004CA14F /* EnvironmentChecker.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EnvironmentChecker.m; sourceTree = "<group>"; };
@@ -71,9 +58,7 @@
 		18D050DF262400AF000D658B /* BridgingFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgingFile.swift; sourceTree = "<group>"; };
 		374FB8D528A133A7000D84EF /* OriginImageRequestHandler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = OriginImageRequestHandler.h; path = NewExpensify/OriginImageRequestHandler.h; sourceTree = "<group>"; };
 		374FB8D628A133FE000D84EF /* OriginImageRequestHandler.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = OriginImageRequestHandler.mm; path = NewExpensify/OriginImageRequestHandler.mm; sourceTree = "<group>"; };
-		3981452A2C7340EBBA2B9BD1 /* GTAmericaExpMono-BdIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExpMono-BdIt.otf"; path = "../assets/fonts/GTAmericaExpMono-BdIt.otf"; sourceTree = "<group>"; };
 		3EDF186626B8D2CBA203E08D /* libPods-NewExpensify.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NewExpensify.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		5150E5D0D7F74DBA8D7C1914 /* GTAmericaExpMono-RgIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExpMono-RgIt.otf"; path = "../assets/fonts/GTAmericaExpMono-RgIt.otf"; sourceTree = "<group>"; };
 		5935414E2915C8CF001E81A5 /* Expensify-Neue-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Expensify-Neue-Regular.otf"; sourceTree = "<group>"; };
 		5935414F2915C8CF001E81A5 /* Expensify-Neue-BoldItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Expensify-Neue-BoldItalic.otf"; sourceTree = "<group>"; };
 		593541502915C8CF001E81A5 /* Expensify-Neue-Italic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Expensify-Neue-Italic.otf"; sourceTree = "<group>"; };
@@ -82,20 +67,11 @@
 		593541532915C8DF001E81A5 /* Expensify-Mono-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Expensify-Mono-Regular.otf"; sourceTree = "<group>"; };
 		593541542915C8ED001E81A5 /* Expensify-NewKansas-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Expensify-NewKansas-Medium.otf"; sourceTree = "<group>"; };
 		593541552915C8ED001E81A5 /* Expensify-NewKansas-MediumItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Expensify-NewKansas-MediumItalic.otf"; sourceTree = "<group>"; };
-		67D5C3A6A7FA417C8A853FC1 /* GTAmericaExp-Light.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Light.otf"; path = "../assets/fonts/GTAmericaExp-Light.otf"; sourceTree = "<group>"; };
 		7041848326A8E40900E09F4D /* RCTStartupTimer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTStartupTimer.h; path = NewExpensify/RCTStartupTimer.h; sourceTree = "<group>"; };
 		7041848426A8E47D00E09F4D /* RCTStartupTimer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = RCTStartupTimer.m; path = NewExpensify/RCTStartupTimer.m; sourceTree = "<group>"; };
 		70CF6E81262E297300711ADC /* BootSplash.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = BootSplash.storyboard; path = NewExpensify/BootSplash.storyboard; sourceTree = "<group>"; };
-		8437A5A38F2047E0BCCD7C2F /* GTAmericaExpMono-Rg.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExpMono-Rg.otf"; path = "../assets/fonts/GTAmericaExpMono-Rg.otf"; sourceTree = "<group>"; };
-		8C7003903C1E4957824899BB /* GTAmericaExp-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Regular.otf"; path = "../assets/fonts/GTAmericaExp-Regular.otf"; sourceTree = "<group>"; };
-		918D7FEFF96242E6B5F5E14D /* GTAmericaExp-RgIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-RgIt.otf"; path = "../assets/fonts/GTAmericaExp-RgIt.otf"; sourceTree = "<group>"; };
 		A2695CF895D81C31AFB4A074 /* libPods-NewExpensify-NewExpensifyTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NewExpensify-NewExpensifyTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		A292718541C841859D97DF2F /* GTAmericaExp-Thin.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Thin.otf"; path = "../assets/fonts/GTAmericaExp-Thin.otf"; sourceTree = "<group>"; };
-		A5AAD008CBD84A6CAEB9AC97 /* GTAmericaExp-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Bold.otf"; path = "../assets/fonts/GTAmericaExp-Bold.otf"; sourceTree = "<group>"; };
-		A8D6F2F722FD4E66A38EBBB6 /* GTAmericaExp-BdIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-BdIt.otf"; path = "../assets/fonts/GTAmericaExp-BdIt.otf"; sourceTree = "<group>"; };
-		AE65058949E14DA5A2D5435D /* GTAmericaExp-Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Medium.otf"; path = "../assets/fonts/GTAmericaExp-Medium.otf"; sourceTree = "<group>"; };
 		B66D52EC75F78B8A06F1E035 /* Pods-NewExpensify.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.debug.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.debug.xcconfig"; sourceTree = "<group>"; };
-		DB5A1365442D4419AF6F08E5 /* GTAmericaExp-MdIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-MdIt.otf"; path = "../assets/fonts/GTAmericaExp-MdIt.otf"; sourceTree = "<group>"; };
 		DD7904292792E76D004484B4 /* RCTBootSplash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RCTBootSplash.h; path = NewExpensify/RCTBootSplash.h; sourceTree = "<group>"; };
 		DD79042A2792E76D004484B4 /* RCTBootSplash.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RCTBootSplash.m; path = NewExpensify/RCTBootSplash.m; sourceTree = "<group>"; };
 		E9DF872C2525201700607FDC /* AirshipConfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = AirshipConfig.plist; sourceTree = "<group>"; };
@@ -213,7 +189,6 @@
 		A9EA265D209D4558995C9BD4 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				A5AAD008CBD84A6CAEB9AC97 /* GTAmericaExp-Bold.otf */,
 				593541512915C8CF001E81A5 /* Expensify-Neue-Bold.otf */,
 				593541522915C8DF001E81A5 /* Expensify-Mono-Bold.otf */,
 				593541532915C8DF001E81A5 /* Expensify-Mono-Regular.otf */,
@@ -222,17 +197,6 @@
 				5935414F2915C8CF001E81A5 /* Expensify-Neue-BoldItalic.otf */,
 				593541502915C8CF001E81A5 /* Expensify-Neue-Italic.otf */,
 				5935414E2915C8CF001E81A5 /* Expensify-Neue-Regular.otf */,
-				67D5C3A6A7FA417C8A853FC1 /* GTAmericaExp-Light.otf */,
-				AE65058949E14DA5A2D5435D /* GTAmericaExp-Medium.otf */,
-				8C7003903C1E4957824899BB /* GTAmericaExp-Regular.otf */,
-				A292718541C841859D97DF2F /* GTAmericaExp-Thin.otf */,
-				8437A5A38F2047E0BCCD7C2F /* GTAmericaExpMono-Rg.otf */,
-				A8D6F2F722FD4E66A38EBBB6 /* GTAmericaExp-BdIt.otf */,
-				DB5A1365442D4419AF6F08E5 /* GTAmericaExp-MdIt.otf */,
-				918D7FEFF96242E6B5F5E14D /* GTAmericaExp-RgIt.otf */,
-				0DE5D096095C41EE96746C9E /* GTAmericaExpMono-Bd.otf */,
-				3981452A2C7340EBBA2B9BD1 /* GTAmericaExpMono-BdIt.otf */,
-				5150E5D0D7F74DBA8D7C1914 /* GTAmericaExpMono-RgIt.otf */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -350,21 +314,9 @@
 			files = (
 				0F5BE0CE252686330097D869 /* GoogleService-Info.plist in Resources */,
 				E9DF872D2525201700607FDC /* AirshipConfig.plist in Resources */,
-				12DD1878FCB9487C9F031C86 /* GTAmericaExpMono-Rg.otf in Resources */,
-				1E76D5212522316A005A268F /* GTAmericaExp-Bold.otf in Resources */,
-				1E76D5222522316A005A268F /* GTAmericaExp-Light.otf in Resources */,
-				1E76D5232522316A005A268F /* GTAmericaExp-Medium.otf in Resources */,
-				1E76D5242522316A005A268F /* GTAmericaExp-Regular.otf in Resources */,
 				F0C450EA2705020500FD2970 /* colors.json in Resources */,
-				1E76D5252522316A005A268F /* GTAmericaExp-Thin.otf in Resources */,
-				425866037F4C482AAB46CB8B /* GTAmericaExp-BdIt.otf in Resources */,
-				6856B78873B64C44A92E51DB /* GTAmericaExp-MdIt.otf in Resources */,
 				0CDA8E37287DD6A0004ECBEC /* Images.xcassets in Resources */,
-				8821A238A081483FA947BC4E /* GTAmericaExp-RgIt.otf in Resources */,
 				70CF6E82262E297300711ADC /* BootSplash.storyboard in Resources */,
-				52477A09739546F4814EA25F /* GTAmericaExpMono-Bd.otf in Resources */,
-				ED814D34526B415CAFA0451E /* GTAmericaExpMono-BdIt.otf in Resources */,
-				DB77016704074197AB6633BB /* GTAmericaExpMono-RgIt.otf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
