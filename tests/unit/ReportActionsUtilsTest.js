@@ -1,7 +1,7 @@
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 
 describe('ReportActionsUtils', () => {
-    describe('sortReportActions', () => {
+    describe('getSortedReportActions', () => {
         const cases = [
             [
                 [
@@ -55,12 +55,12 @@ describe('ReportActionsUtils', () => {
         ];
 
         test.each(cases)('sorts by created, then actionName, then reportActionID', (input, expectedOutput) => {
-            const result = ReportActionsUtils.sortReportActions(input);
+            const result = ReportActionsUtils.getSortedReportActions(input);
             expect(result).toStrictEqual(expectedOutput);
         });
 
         test.each(cases)('in descending order', (input, expectedOutput) => {
-            const result = ReportActionsUtils.sortReportActions(input, true);
+            const result = ReportActionsUtils.getSortedReportActions(input, true);
             expect(result).toStrictEqual(expectedOutput.reverse());
         });
     });

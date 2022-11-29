@@ -36,9 +36,9 @@ Onyx.connect({
  * @param {Boolean} shouldSortInDescendingOrder
  * @returns {Array}
  */
-function sortReportActions(reportActions, shouldSortInDescendingOrder = false) {
+function getSortedReportActions(reportActions, shouldSortInDescendingOrder = false) {
     if (!_.isArray(reportActions)) {
-        throw new Error(`ReportActionsUtils.sortReportActions requires an array, received ${typeof reportActions}`);
+        throw new Error(`ReportActionsUtils.getSortedReportActions requires an array, received ${typeof reportActions}`);
     }
     const invertedMultiplier = shouldSortInDescendingOrder ? -1 : 1;
     reportActions.sort((first, second) => {
@@ -73,7 +73,7 @@ function getMostRecentIOUReportActionID(reportActions) {
         return null;
     }
 
-    const sortedReportActions = sortReportActions(iouActions);
+    const sortedReportActions = getSortedReportActions(iouActions);
     return _.last(sortedReportActions).reportActionID;
 }
 
@@ -120,7 +120,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
 function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
     const parser = new ExpensiMark();
     const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const sortedActions = sortReportActions(actions);
+    const sortedActions = getSortedReportActions(actions);
     const lastMessageIndex = _.findLastIndex(sortedActions, action => (
         !isDeletedAction(action)
     ));
@@ -148,7 +148,7 @@ function getOptimisticLastReadSequenceNumberForDeletedAction(reportID, actionsTo
 
     // Otherwise, we must find the first previous index of an action that is not deleted and less than the lastReadSequenceNumber
     const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const sortedActions = sortReportActions(actions);
+    const sortedActions = getSortedReportActions(actions);
     const lastMessageIndex = _.findLastIndex(sortedActions, action => (
         !isDeletedAction(action) && action.sequenceNumber <= lastReadSequenceNumber
     ));
@@ -162,7 +162,7 @@ function getOptimisticLastReadSequenceNumberForDeletedAction(reportID, actionsTo
 }
 
 export {
-    sortReportActions,
+    getSortedReportActions,
     getOptimisticLastReadSequenceNumberForDeletedAction,
     getLastVisibleMessageText,
     getMostRecentIOUReportActionID,
