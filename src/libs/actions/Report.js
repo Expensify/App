@@ -223,7 +223,7 @@ function fetchIOUReport(iouReportID, chatReportID) {
  * @param {Number} iouReportObject.reportID
  */
 function setLocalIOUReportData(iouReportObject) {
-    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
+    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReportObject.reportID}`;
     Onyx.merge(iouReportKey, iouReportObject);
 }
 
@@ -775,7 +775,7 @@ function broadcastUserIsTyping(reportID) {
  * @param {Object} report
  */
 function handleReportChanged(report) {
-    if (!report) {
+    if (!report || ReportUtils.isIOUReport(report)) {
         return;
     }
 
@@ -997,7 +997,7 @@ function syncChatAndIOUReports(chatReport, iouReport) {
     const simplifiedIouReport = {};
     const simplifiedReport = {};
     const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`;
-    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReport.reportID}`;
+    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`;
 
     // We don't want to sync an iou report that's already been reimbursed with its chat report.
     if (!iouReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED) {
@@ -1007,7 +1007,7 @@ function syncChatAndIOUReports(chatReport, iouReport) {
     simplifiedReport[chatReportKey].hasOutstandingIOU = iouReport.stateNum
         === CONST.REPORT.STATE_NUM.PROCESSING && iouReport.total !== 0;
     simplifiedIouReport[iouReportKey] = getSimplifiedIOUReport(iouReport, chatReport.reportID);
-    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, simplifiedIouReport);
+    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedIouReport);
     Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReport);
 }
 
