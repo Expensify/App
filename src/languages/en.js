@@ -108,6 +108,8 @@ export default {
         maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
         youAppearToBeOffline: 'You appear to be offline.',
         thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
+        areYouSure: 'Are you sure?',
+        zipCodeExample: 'e.g. 12345, 12345-1234, 12345 1234',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -167,7 +169,6 @@ export default {
         sendAttachment: 'Send attachment',
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
-        sayHello: 'Say hello!',
         conciergePlaceholderOptions: [
             'Ask for help!',
             'Ask me anything!',
@@ -362,6 +363,7 @@ export default {
         },
         security: 'Security',
         signOut: 'Sign out',
+        signOutConfirmationText: 'You\'ll lose any offline changes if you sign-out.',
         versionLetter: 'v',
         readTheTermsAndPrivacyPolicy: {
             phrase1: 'Read the',
@@ -595,6 +597,7 @@ export default {
             addressStreet: 'Please enter a valid street address that is not a PO Box',
             addressState: 'Please select a valid state',
             incorporationDate: 'Please enter a valid date',
+            incorporationDateFuture: 'Incorporation date cannot be in the future',
             incorporationState: 'Please enter a valid state',
             industryCode: 'Please enter a valid industry classification code. Must be 6 digits.',
             restrictedBusiness: 'Please confirm company is not on the list of restricted businesses',
@@ -816,7 +819,7 @@ export default {
             card: 'Issue cards',
             workspace: 'Workspace',
             edit: 'Edit workspace',
-            delete: 'Delete Workspace',
+            delete: 'Delete workspace',
             settings: 'General settings',
             reimburse: 'Reimburse expenses',
             bills: 'Pay bills',
