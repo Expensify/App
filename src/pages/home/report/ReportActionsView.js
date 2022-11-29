@@ -74,7 +74,7 @@ class ReportActionsView extends React.Component {
         };
 
         this.currentScrollOffset = 0;
-        this.sortedReportActions = ReportActionsUtils.getSortedReportActions(_.values(props.reportActions), true);
+        this.sortedReportActions = this.getSortedReportActionsForDisplay(props.reportActions);
         this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(props.reportActions);
         this.trackScroll = this.trackScroll.bind(this);
         this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
@@ -130,7 +130,7 @@ class ReportActionsView extends React.Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
-            this.sortedReportActions = ReportActionsUtils.getSortedReportActions(_.values(nextProps.reportActions), true);
+            this.sortedReportActions = this.getSortedReportActionsForDisplay(nextProps.reportActions);
             this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(nextProps.reportActions);
             return true;
         }
@@ -245,6 +245,20 @@ class ReportActionsView extends React.Component {
         }
 
         Report.unsubscribeFromReportChannel(this.props.report.reportID);
+    }
+
+    /**
+     * @param {Object} reportActions
+     * @returns {Array}
+     */
+    getSortedReportActionsForDisplay(reportActions) {
+        const sortedReportActions = ReportActionsUtils.getSortedReportActions(_.values(reportActions), true);
+        return _.filter(sortedReportActions, (reportAction) => {
+            // All actions are displayed except deleted, non-pending actions
+            const isDeletedAction = ReportActionsUtils.isDeletedAction(reportAction);
+            const isPendingAction = !_.isEmpty(reportAction.pendingAction);
+            return !(isDeletedAction && !isPendingAction);
+        });
     }
 
     /**
