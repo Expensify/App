@@ -282,8 +282,11 @@ class Form extends React.Component {
                             onFixTheErrorsLinkPressed={() => {
                                 const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
                                 const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
+                                const focusInput = this.inputRefs[focusKey];
                                 this.form.scrollTo({y: this.childPosition[focusKey], animated: false});
-                                this.inputRefs[focusKey].focus();
+                                if (focusInput.focus && typeof focusInput.focus === 'function') {
+                                    focusInput.focus();
+                                }
                             }}
                             containerStyles={[styles.mh0, styles.mt5]}
                             enabledWhenOffline={this.props.enabledWhenOffline}
