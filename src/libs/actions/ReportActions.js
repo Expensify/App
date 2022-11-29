@@ -13,11 +13,11 @@ function deleteOptimisticReportAction(reportID, reportActionID) {
 
 /**
  * @param {String} reportID
- * @param {String} sequenceNumber
+ * @param {String} reportActionID
  */
-function clearReportActionErrors(reportID, sequenceNumber) {
+function clearReportActionErrors(reportID, reportActionID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        [sequenceNumber]: {
+        [reportActionID]: {
             errors: null,
         },
     });
