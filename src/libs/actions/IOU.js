@@ -1021,9 +1021,7 @@ function payMoneyRequestElsewhere(chatReport, iouReport, recipient) {
 function payMoneyRequestViaPaypal(chatReport, iouReport, recipient) {
     const {
         params, optimisticData, successData, failureData,
-    } = getPayMoneyRequestParams(
-        chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.PAYPAL_ME,
-    );
+    } = getPayMoneyRequestParams(chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.PAYPAL_ME);
 
     API.write('PayMoneyRequestViaPaypal', params, {optimisticData, successData, failureData});
 
