@@ -43,7 +43,7 @@ for ((i=0; i < ${#WORKFLOWS[@]}; i++)); do
   WORKFLOW=${WORKFLOWS[$i]}
 
     # Skip linting e2e workflow due to bug here: https://github.com/SchemaStore/schemastore/issues/2579
-    if [[ "$WORKFLOW" == './workflows/e2ePerformanceRegressionTests.yml' ]]; then
+    if [[ "$WORKFLOW" == './workflows/preDeploy.yml' ]]; then
       continue
     fi
 

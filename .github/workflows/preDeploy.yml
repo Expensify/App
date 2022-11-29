@@ -307,13 +307,11 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Leave output of AWS Device Farm as a PR comment
-        uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
-        with:
-          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          number: ${{ steps.getMergedPullRequest.outputs.number }}
-          body: ${{ env.OUTPUT }}
+        run: |
+          gh pr comment ${{ steps.getMergedPullRequest.outputs.number }} -b ${{ env.OUTPUT }} 
 
       - name: Check if test failed, if so leave a deploy blocker label
         if: ${{ !contains(env.OUTPUT, 'There are no entries') }}
         run: |
           gh pr edit ${{ steps.getMergedPullRequest.outputs.number }} --add-label 'DeployBlockerCash'
+          gh pr comment ${{ steps.getMergedPullRequest.outputs.number }} -b "@Expensify/mobile-deployers 📣 Please look into this performance regression as it's a deploy blocker."
