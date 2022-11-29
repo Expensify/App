@@ -1,13 +1,4 @@
-import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-
-let isNetworkOffline = false;
-Onyx.connect({
-    key: ONYXKEYS.NETWORK,
-    callback: val => isNetworkOffline = lodashGet(val, 'isOffline', false),
-});
 
 /**
  * Calculates the amount per user given a list of participants
@@ -50,7 +41,7 @@ function calculateAmount(participants, total, isDefaultUser = false) {
  * @returns {Object}
  */
 function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
-    if (currency !== iouReport.currency && isNetworkOffline) {
+    if (currency !== iouReport.currency) {
         return iouReport;
     }
 

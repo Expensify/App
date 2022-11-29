@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
+import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
@@ -23,7 +24,7 @@ const WorkspaceInvoicesVBAView = props => (
 
         <Section
             title={props.translate('workspace.invoices.moneyBackInAFlash')}
-            icon={Illustrations.MoneyMousePink}
+            icon={Illustrations.MoneyBadge}
             menuItems={[
                 {
                     title: props.translate('workspace.invoices.viewUnpaidInvoices'),
@@ -31,10 +32,12 @@ const WorkspaceInvoicesVBAView = props => (
                     icon: Expensicons.CircleHourglass,
                     shouldShowRightIcon: true,
                     iconRight: Expensicons.NewWindow,
+                    iconFill: themeColors.success,
+                    wrapperStyle: [styles.cardMenuItem],
                 },
             ]}
         >
-            <View style={[styles.mv4]}>
+            <View style={[styles.mv3]}>
                 <Text>{props.translate('workspace.invoices.unlockVBACopy')}</Text>
             </View>
         </Section>

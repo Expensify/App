@@ -155,7 +155,11 @@ class Form extends React.Component {
         const errors = _.pick(validationErrors, (inputValue, inputID) => (
             Boolean(this.touchedInputs[inputID])
         ));
-        this.setState({errors});
+
+        if (!_.isEqual(errors, this.state.errors)) {
+            this.setState({errors});
+        }
+
         return errors;
     }
 
