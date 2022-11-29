@@ -59,7 +59,7 @@ describe('ReportActionsUtils', () => {
             expect(result).toStrictEqual(expectedOutput);
         });
 
-        test.each(cases)('inverted parameter', (input, expectedOutput) => {
+        test.each(cases)('in descending order', (input, expectedOutput) => {
             const result = ReportActionsUtils.sortReportActions(input, true);
             expect(result).toStrictEqual(expectedOutput.reverse());
         });

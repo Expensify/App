@@ -33,14 +33,14 @@ Onyx.connect({
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
  *
  * @param {Array} reportActions
- * @param {Boolean} [shouldInvertSortingOrder]
+ * @param {Boolean} shouldSortInDescendingOrder
  * @returns {Array}
  */
-function sortReportActions(reportActions, shouldInvertSortingOrder = false) {
+function sortReportActions(reportActions, shouldSortInDescendingOrder = false) {
     if (!_.isArray(reportActions)) {
         throw new Error(`ReportActionsUtils.sortReportActions requires an array, received ${typeof reportActions}`);
     }
-    const invertedMultiplier = shouldInvertSortingOrder ? -1 : 1;
+    const invertedMultiplier = shouldSortInDescendingOrder ? -1 : 1;
     reportActions.sort((first, second) => {
         if (first.created !== second.created) {
             return (first.created < second.created ? -1 : 1) * invertedMultiplier;
