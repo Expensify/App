@@ -1,0 +1,97 @@
+name: Run e2e performance regression tests
+
+on:
+  push:
+
+jobs:
+  e2e-tests:
+    name: "Run e2e performance regression tests"
+    runs-on: ubuntu-20.04-64core
+    steps:
+      - uses: Expensify/App/.github/actions/composite/setupNode@andrew-aws-df
+
+      - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
+        with:
+          ruby-version: '2.7'
+          bundler-cache: true
+
+      # Cache gradle to improve Android build time
+      - name: Gradle cache
+        uses: gradle/gradle-build-action@v2
+
+      - name: Make zip directory for everything to send to AWS Device Farm
+        run: mkdir zip
+
+      - name: Build "Compare" APK
+        run: npm run android-build-e2e
+
+      - name: Copy "Compare" APK
+        run: cp android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk zip/app-e2eRelease-compare.apk
+
+      # TODO: Uncomment before merge
+      #      - name: Checkout "Baseline"
+      #        run: git checkout main
+
+      # TODO: Delete before merge
+      - name: Checkout "Baseline"
+        run: git checkout andrew-baseline
+
+      - name: Build "Baseline" APK
+        run: npm run android-build-e2e
+
+      - name: Copy "Baseline" APK
+        run: cp android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk zip/app-e2eRelease-baseline.apk
+
+      - name: Checkout previous branch for source code to run on AWS Device farm
+        run: git checkout -
+
+      - name: Copy e2e code into zip folder
+        run: cp -r tests/e2e zip
+
+      - name: Zip everything in the zip directory up
+        run: zip -qr App.zip ./zip
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+
+      - name: Schedule AWS Device Farm test run
+        uses: realm/aws-devicefarm/test-application@master
+        with:
+          name: App E2E Performance Regression Tests
+          project_arn: ${{ secrets.AWS_PROJECT_ARN }}
+          device_pool_arn: ${{ secrets.AWS_DEVICE_POOL_ARN }}
+          app_file: zip/app-e2eRelease-baseline.apk
+          app_type: ANDROID_APP
+          test_type: APPIUM_NODE
+          test_package_file: App.zip
+          test_package_type: APPIUM_NODE_TEST_PACKAGE
+          test_spec_file: tests/e2e/TestSpec.yml
+          test_spec_type: APPIUM_NODE_TEST_SPEC
+          remote_src: false
+          file_artifacts: Customer Artifacts.zip
+          cleanup: true
+
+      - name: Unzip AWS Device Farm results
+        run: unzip Customer\ Artifacts.zip
+
+      - name: Set output of AWS Device Farm into GitHub ENV
+        run: |
+          { echo 'OUTPUT<<EOF'; cat ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md; echo 'EOF'; } >> "$GITHUB_ENV"
+
+      - name: Leave output of AWS Device Farm as a PR comment
+        run: |
+          gh pr comment -F ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md
+
+      - name: Test passed
+        if: ${{ contains(env.OUTPUT, 'There are no entries') }}
+        run: |
+          gh pr comment -b "Test passed"
+
+      - name: Test failed
+        if: ${{ !contains(env.OUTPUT, 'There are no entries') }}
+        run: |
+          gh pr comment -b "Test failed"

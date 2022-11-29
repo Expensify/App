@@ -308,7 +308,7 @@ jobs:
 
       - name: Leave output of AWS Device Farm as a PR comment
         run: |
-          gh pr comment ${{ steps.getMergedPullRequest.outputs.number }} -b ${{ env.OUTPUT }} 
+          gh pr comment ${{ steps.getMergedPullRequest.outputs.number }} -F ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md 
 
       - name: Check if test failed, if so leave a deploy blocker label
         if: ${{ !contains(env.OUTPUT, 'There are no entries') }}
