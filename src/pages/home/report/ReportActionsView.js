@@ -254,7 +254,12 @@ class ReportActionsView extends React.Component {
     getSortedReportActionsForDisplay(reportActions) {
         const sortedReportActions = ReportActionsUtils.getSortedReportActions(_.values(reportActions), true);
         return _.filter(sortedReportActions, (reportAction) => {
-            // All actions are displayed except deleted, non-pending actions
+            // First, filter out any unsupported reportAction types
+            if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName)) {
+                return false;
+            }
+
+            // Then all actions are displayed except deleted, non-pending actions
             const isDeletedAction = ReportActionsUtils.isDeletedAction(reportAction);
             const isPendingAction = !_.isEmpty(reportAction.pendingAction);
             return !(isDeletedAction && !isPendingAction);
