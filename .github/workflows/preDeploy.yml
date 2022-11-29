@@ -251,7 +251,7 @@ jobs:
         run: cp android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk zip/app-e2eRelease-compare.apk
 
       - name: Checkout "Baseline" commit (last release)
-        run: git checkout $(gh release list --limit 1 | awk '{ print $1 }')
+        run: git checkout "$(gh release list --limit 1 | awk '{ print $1 }')"
 
       - name: Build "Baseline" APK
         run: npm run android-build-e2e
