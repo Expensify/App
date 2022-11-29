@@ -803,7 +803,7 @@ Onyx.connect({
  * Deletes a comment from the report, basically sets it as empty string
  *
  * @param {String} reportID
- * @param {String} reportAction
+ * @param {Object} reportAction
  */
 function deleteReportComment(reportID, reportAction) {
     const reportActionID = reportAction.reportActionID;
@@ -911,9 +911,9 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     }
 
     // Optimistically update the reportAction with the new message
-    const sequenceNumber = originalReportAction.sequenceNumber;
+    const reportActionID = originalReportAction.reportActionID;
     const optimisticReportActions = {
-        [sequenceNumber]: {
+        [reportActionID]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             message: [{
                 isEdited: true,
@@ -937,7 +937,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [sequenceNumber]: {
+                [reportActionID]: {
                     ...originalReportAction,
                     pendingAction: null,
                 },
@@ -950,7 +950,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [sequenceNumber]: {
+                [reportActionID]: {
                     pendingAction: null,
                 },
             },
@@ -959,9 +959,8 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 
     const parameters = {
         reportID,
-        sequenceNumber,
         reportComment: htmlForNewComment,
-        reportActionID: originalReportAction.reportActionID,
+        reportActionID,
     };
     API.write('UpdateComment', parameters, {optimisticData, successData, failureData});
 }
