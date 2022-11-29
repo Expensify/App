@@ -8,7 +8,7 @@ jobs:
     name: "Run e2e performance regression tests"
     runs-on: ubuntu-20.04-64core
     steps:
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - uses: Expensify/App/.github/actions/composite/setupNode@andrew-aws-df
 
       - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
         with:
