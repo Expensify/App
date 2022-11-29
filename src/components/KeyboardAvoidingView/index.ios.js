@@ -1,5 +1,5 @@
 /*
- * This is a KeyboardAvoidingView only enabled for ios && disabled for all other platforms
+ * The KeyboardAvoidingView is only used on ios
  */
 import React from 'react';
 import {KeyboardAvoidingView as KeyboardAvoidingViewComponent} from 'react-native';
