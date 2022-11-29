@@ -731,7 +731,7 @@ function payIOUReport({
  * @param {Array} participants - Participants on the IOU
  */
 function sendMoneyWithWallet(chatReportID, amount, currency, comment, participants) {
-    const chatReport = _.empty(chatReportID) ? chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : ReportUtils.buildOptimisticChatReport(participants);
+    const chatReport = _.empty(chatReportID) ? ReportUtils.buildOptimisticChatReport(participants) : chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
     const ownerEmail = participants[0].login;
     const userEmail = participants[1].login;
     const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(
