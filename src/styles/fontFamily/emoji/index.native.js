@@ -1,3 +1,3 @@
-const emojiFont = 'Expensify-Neue-Regular';
+const emojiFont = 'ExpensifyNeue-Regular';
 
 export default emojiFont;
