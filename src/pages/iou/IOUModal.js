@@ -303,7 +303,6 @@ class IOUModal extends Component {
             return;
         }
 
-        // This should be default call while we are doing the refactor
         const newIOUReportDetails = JSON.stringify({
             amount,
             currency,
