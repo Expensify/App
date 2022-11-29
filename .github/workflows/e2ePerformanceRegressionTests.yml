@@ -83,18 +83,15 @@ jobs:
           { echo 'OUTPUT<<EOF'; cat ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md; echo 'EOF'; } >> "$GITHUB_ENV"
 
       - name: Leave output of AWS Device Farm as a PR comment
-        uses: mshick/add-pr-comment@v1
-        with:
-          message: ${{ env.OUTPUT }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          repo-token-user-login: 'github-actions[bot]'
+        run: |
+          gh pr comment -b ${{ env.OUTPUT }}
 
       - name: Test passed
-        if: ${{ !contains(env.OUTPUT, 'There are no entries') }}
-        run: |
-          echo "Test passed"
-
-      - name: Test failed
         if: ${{ contains(env.OUTPUT, 'There are no entries') }}
         run: |
-          echo "Test failed"
+          gh pr comment -b "Test passed"
+
+      - name: Test failed
+        if: ${{ !contains(env.OUTPUT, 'There are no entries') }}
+        run: |
+          gh pr comment -b "Test failed"
