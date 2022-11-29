@@ -308,10 +308,14 @@ jobs:
 
       - name: Leave output of AWS Device Farm as a PR comment
         run: |
-          gh pr comment ${{ steps.getMergedPullRequest.outputs.number }} -F ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md 
+          gh pr comment ${{ steps.getMergedPullRequest.outputs.number }} -F ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check if test failed, if so leave a deploy blocker label
         if: ${{ !contains(env.OUTPUT, 'There are no entries') }}
         run: |
           gh pr edit ${{ steps.getMergedPullRequest.outputs.number }} --add-label 'DeployBlockerCash'
           gh pr comment ${{ steps.getMergedPullRequest.outputs.number }} -b "@Expensify/mobile-deployers 📣 Please look into this performance regression as it's a deploy blocker."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

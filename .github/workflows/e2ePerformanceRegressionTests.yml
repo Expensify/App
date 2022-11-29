@@ -85,13 +85,19 @@ jobs:
       - name: Leave output of AWS Device Farm as a PR comment
         run: |
           gh pr comment -F ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Test passed
         if: ${{ contains(env.OUTPUT, 'There are no entries') }}
         run: |
           gh pr comment -b "Test passed"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Test failed
         if: ${{ !contains(env.OUTPUT, 'There are no entries') }}
         run: |
           gh pr comment -b "Test failed"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
