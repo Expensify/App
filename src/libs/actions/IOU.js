@@ -938,7 +938,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                     ...optimisticPaidReportAction,
                     pendingAction: null,
                     errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),
                     },
                 },
             },
