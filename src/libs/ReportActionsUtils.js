@@ -29,6 +29,16 @@ Onyx.connect({
 });
 
 /**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isDeletedAction(reportAction) {
+    // A deleted comment has either an empty array or an object with html field with empty string as value
+    const message = lodashGet(reportAction, 'message', []);
+    return message.length === 0 || lodashGet(message, [0, 'html']) === '';
+}
+
+/**
  * Sort an array of reportActions by their created timestamp first, and reportActionID second
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
  *
@@ -49,16 +59,6 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
         return (first.reportActionID < second.reportActionID ? -1 : 1) * invertedMultiplier;
     });
     return reportActions;
-}
-
-/**
- * @param {Object} reportAction
- * @returns {Boolean}
- */
-function isDeletedAction(reportAction) {
-    // A deleted comment has either an empty array or an object with html field with empty string as value
-    const message = lodashGet(reportAction, 'message', []);
-    return message.length === 0 || lodashGet(message, [0, 'html']) === '';
 }
 
 /**
