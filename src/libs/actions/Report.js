@@ -436,6 +436,7 @@ function addActions(reportID, text = '', file) {
         clientID: lastAction.clientID,
         commentClientID: lodashGet(reportCommentAction, 'clientID', ''),
         file,
+        shouldKeyReportActionsByID: true,
     };
 
     const optimisticData = [
