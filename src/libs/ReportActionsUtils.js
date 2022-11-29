@@ -62,6 +62,26 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
 }
 
 /**
+ * Filter out any reportActions which should not be displayed.
+ *
+ * @param {Array} reportActions
+ * @returns {Array}
+ */
+function filterReportActionsForDisplay(reportActions) {
+    return _.filter(reportActions, (reportAction) => {
+        // First, filter out any unsupported reportAction types
+        if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName)) {
+            return false;
+        }
+
+        // Then all actions are displayed except deleted, non-pending actions
+        const isDeleted = isDeletedAction(reportAction);
+        const isPending = !_.isEmpty(reportAction.pendingAction);
+        return !(isDeleted && !isPending);
+    });
+}
+
+/**
  * Finds most recent IOU report action number.
  *
  * @param {Array} reportActions
@@ -163,6 +183,7 @@ function getOptimisticLastReadSequenceNumberForDeletedAction(reportID, actionsTo
 
 export {
     getSortedReportActions,
+    filterReportActionsForDisplay,
     getOptimisticLastReadSequenceNumberForDeletedAction,
     getLastVisibleMessageText,
     getMostRecentIOUReportActionID,
