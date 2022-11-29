@@ -172,6 +172,7 @@ export default {
         CLOSE_ACCOUNT_FORM: 'closeAccount',
         PROFILE_SETTINGS_FORM: 'profileSettingsForm',
         DISPLAY_NAME_FORM: 'displayNameForm',
+        WALLET_ADDITIONAL_DETAILS_FORM: 'walletAdditionalDetailsForm',
     },
 
     // Whether we should show the compose input or not
