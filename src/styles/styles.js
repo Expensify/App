@@ -1334,6 +1334,7 @@ const styles = {
         marginTop: -2,
         marginBottom: -2,
         maxWidth: '100%',
+        cursor: 'text',
         ...whiteSpace.preWrap,
         ...wordBreak.breakWord,
     },
