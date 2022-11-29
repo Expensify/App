@@ -28,6 +28,10 @@ import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
+<<<<<<< HEAD
+=======
+import Form from '../../components/Form';
+>>>>>>> 11e383e756 (Merge pull request #13167 from Expensify/cmartins-fixBankAccount)
 
 const propTypes = {
     /** The bank account currently in setup */
