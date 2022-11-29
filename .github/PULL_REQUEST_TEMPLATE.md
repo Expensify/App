@@ -68,7 +68,6 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
     - [ ] I added steps to cover failure scenarios (i.e. verify an input displays the correct error message if the entered data is not correct)
     - [ ] I turned off my network connection and tested it while offline to ensure it matches the expected behavior (i.e. verify the default avatar icon is displayed if app is offline)
     - [ ] I tested this PR with a [High Traffic account](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#high-traffic-accounts) against the staging or production API to ensure there are no regressions (e.g. long loading states that impact usability).
-
 - [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I ran the tests on **all platforms** & verified they passed on:
     - [ ] iOS / native
@@ -91,6 +90,7 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
 - [ ] I tested other components that can be impacted by my changes (i.e. if the PR modifies a shared library or component like `Avatar`, I verified the components using `Avatar` are working as expected)
 - [ ] I verified all code is DRY (the PR doesn't include any logic written more than once, with the exception of tests)
 - [ ] I verified any variables that can be defined as constants (ie. in CONST.js or at the top of the file that uses the constant) are defined as such
+- [ ] I verified that if a function's arguments changed that all usages have also been updated correctly
 - [ ] If a new component is created I verified that:
     - [ ] A similar component doesn't exist in the codebase
     - [ ] All props are defined accurately and each prop has a `/** comment above it */`
@@ -146,6 +146,7 @@ The reviewer will copy/paste it into a new comment and complete it after the aut
 - [ ] I verified other components that can be impacted by these changes have been tested, and I retested again (i.e. if the PR modifies a shared library or component like `Avatar`, I verified the components using `Avatar` have been tested & I retested again)
 - [ ] I verified all code is DRY (the PR doesn't include any logic written more than once, with the exception of tests)
 - [ ] I verified any variables that can be defined as constants (ie. in CONST.js or at the top of the file that uses the constant) are defined as such
+- [ ] I verified that if a function's arguments changed that all usages have also been updated correctly
 - [ ] If a new component is created I verified that:
     - [ ] A similar component doesn't exist in the codebase
     - [ ] All props are defined accurately and each prop has a `/** comment above it */`
@@ -165,23 +166,45 @@ The reviewer will copy/paste it into a new comment and complete it after the aut
 
 </details>
 
-### Screenshots
-<!-- Add screenshots for all platforms tested. Pull requests won't be merged unless the screenshots show the app was tested on all platforms.-->
+### Screenshots/Videos
+<details>
+<summary>Web</summary>
 
-#### Web
-<!-- Insert screenshots of your changes on the web platform-->
+<!-- add screenshots or videos here -->
 
-#### Mobile Web - Chrome
-<!-- Insert screenshots of your changes on the web platform (from chrome mobile browser)-->
+</details>
 
-#### Mobile Web - Safari
-<!-- Insert screenshots of your changes on the web platform (from safari mobile browser)-->
+<details>
+<summary>Mobile Web - Chrome</summary>
 
-#### Desktop
-<!-- Insert screenshots of your changes on the desktop platform-->
+<!-- add screenshots or videos here -->
 
-#### iOS
-<!-- Insert screenshots of your changes on the iOS platform-->
+</details>
 
-#### Android
-<!-- Insert screenshots of your changes on the Android platform-->
+<details>
+<summary>Mobile Web - Safari</summary>
+
+<!-- add screenshots or videos here -->
+
+</details>
+
+<details>
+<summary>Desktop</summary>
+
+<!-- add screenshots or videos here -->
+
+</details>
+
+<details>
+<summary>iOS</summary>
+
+<!-- add screenshots or videos here -->
+
+</details>
+
+<details>
+<summary>Android</summary>
+
+<!-- add screenshots or videos here -->
+
+</details>
