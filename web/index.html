@@ -47,6 +47,20 @@
         ::-ms-reveal {
             display: none;
         }
+
+        /* At the time of writing this User Agent styles for autofill inputs in Chrome are not customizable. This hack exploits the fact that
+        these styles are applied with a transition. Chromium team has labeled this as a WontFix so it seems there's not much else we can do here. */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        textarea:-webkit-autofill,
+        textarea:-webkit-autofill:hover,
+        textarea:-webkit-autofill:focus,
+        select:-webkit-autofill,
+        select:-webkit-autofill:hover,
+        select:-webkit-autofill:focus {
+            -webkit-transition-delay: 99999s;
+        }
     </style>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <link rel="shortcut icon" id="favicon" href="/favicon.png">
