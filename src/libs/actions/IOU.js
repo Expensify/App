@@ -770,7 +770,16 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.chatReportID}`,
-            value: chatReport.chatReportID,
+            value: {
+                ...chatReport,
+                lastVisitedTimestamp: Date.now(),
+                lastReadSequenceNumber: newSequenceNumber,
+                maxSequenceNumber: newSequenceNumber,
+                lastMessageText: optimisticIOUReportAction.message[0].text,
+                lastMessageHtml: optimisticIOUReportAction.message[0].html,
+                hasOutstandingIOU: optimisticIOUReport.total !== 0,
+                iouReportID: optimisticIOUReport.reportID,
+            },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
