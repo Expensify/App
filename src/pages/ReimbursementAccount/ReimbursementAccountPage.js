@@ -11,6 +11,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import ReimbursementAccountLoadingIndicator from '../../components/ReimbursementAccountLoadingIndicator';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
+import BankAccount from '../../libs/models/BankAccount';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
@@ -18,10 +19,12 @@ import getPlaidOAuthReceivedRedirectURI from '../../libs/getPlaidOAuthReceivedRe
 import Text from '../../components/Text';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
+import * as store from '../../libs/actions/ReimbursementAccount/store';
 
 // Steps
 import BankAccountStep from './BankAccountStep';
 import CompanyStep from './CompanyStep';
+import ContinueBankAccountSetup from './ContinueBankAccountSetup';
 import RequestorStep from './RequestorStep';
 import ValidationStep from './ValidationStep';
 import ACHContractStep from './ACHContractStep';
@@ -72,6 +75,17 @@ const defaultProps = {
 };
 
 class ReimbursementAccountPage extends React.Component {
+    constructor(props) {
+        super(props);
+        this.continue = this.continue.bind(this);
+
+        const achData = lodashGet(this.props, 'reimbursementAccount.achData', {});
+        const hasInProgressVBBA = achData.bankAccountID && achData.state !== BankAccount.STATE.OPEN;
+        this.state = {
+            shouldShowContinueSetupButton: hasInProgressVBBA,
+        };
+    }
+
     componentDidMount() {
         this.fetchData();
     }
@@ -150,9 +164,16 @@ class ReimbursementAccountPage extends React.Component {
         // We can specify a step to navigate to by using route params when the component mounts.
         // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
         const stepToOpen = this.getStepToOpenFromRouteParams();
+        const reimbursementAccount = store.getReimbursementAccountInSetup();
+        const subStep = reimbursementAccount.subStep || '';
+        const localCurrentStep = reimbursementAccount.currentStep || '';
+        BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep);
+    }
 
-        // If we are trying to navigate to `/bank-account/new` and we already have a bank account then don't allow returning to `/new`
-        BankAccounts.fetchFreePlanVerifiedBankAccount(stepToOpen !== CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT ? stepToOpen : '');
+    continue() {
+        this.setState({
+            shouldShowContinueSetupButton: false,
+        });
     }
 
     render() {
@@ -172,6 +193,15 @@ class ReimbursementAccountPage extends React.Component {
             return (
                 <ReimbursementAccountLoadingIndicator
                     isSubmittingVerificationsData={isSubmittingVerificationsData}
+                />
+            );
+        }
+
+        const hasInProgressVBBA = achData.bankAccountID && achData.state !== BankAccount.STATE.OPEN;
+        if (hasInProgressVBBA && this.state.shouldShowContinueSetupButton) {
+            return (
+                <ContinueBankAccountSetup
+                    continue={this.continue}
                 />
             );
         }

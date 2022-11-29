@@ -16,9 +16,9 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           body: |
-            :warning: :warning: **Heads up! This pull request has the `CP Staging` label.** :warning: :warning:
-            Merging it will cause it to be immediately deployed to staging, _even if the [open `StagingDeployCash` deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) is locked._
-
+            :warning: :warning: **Heads up! This pull request has the `CP Staging` label** :warning: :warning:
+            If you applied the `CP Staging` label before the PR was merged, the PR will be be immediately deployed to staging even if the [open `StagingDeployCash` deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) is locked.
+            However if you applied the `CP Staging` after the PR was merged it's possible it won't be CP'ed automatically. If you need it to be CP'ed to staging, tag a member of @Expensify/mobile-deployers to CP it manually, otherwise you can wait for it to go out with the next deploy.
       - if: ${{ failure() }}
         uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
         with:
