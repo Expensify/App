@@ -157,10 +157,10 @@ class Picker extends PureComponent {
                     )}
                     <RNPickerSelect
                         onValueChange={this.onInputChange}
-                        items={this.props.items}
+                        items={_.map(this.props.items, item => ({...item, color: styles.textDark}))}
                         style={this.props.size === 'normal' ? pickerStyles(this.props.isDisabled) : styles.pickerSmall}
                         useNativeAndroidPickerStyle={false}
-                        placeholder={this.props.placeholder}
+                        placeholder={{...this.props.placeholder, color: styles.textDark}}
                         value={this.props.value}
                         Icon={() => this.props.icon(this.props.size)}
                         disabled={this.props.isDisabled}
