@@ -3,11 +3,11 @@ import ONYXKEYS from '../../ONYXKEYS';
 
 /**
  * @param {String} reportID
- * @param {String} sequenceNumber
+ * @param {String} reportActionID
  */
-function deleteOptimisticReportAction(reportID, sequenceNumber) {
+function deleteOptimisticReportAction(reportID, reportActionID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        [sequenceNumber]: null,
+        [reportActionID]: null,
     });
 }
 
