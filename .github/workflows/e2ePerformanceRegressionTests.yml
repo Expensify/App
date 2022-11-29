@@ -89,3 +89,12 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           repo-token-user-login: 'github-actions[bot]'
 
+      - name: Test passed
+        if: !contains(env.OUTPUT, 'There are no entries')
+        run: |
+          echo "Test passed"
+
+      - name: Test failed
+        if: contains(env.OUTPUT, 'There are no entries')
+        run: |
+          echo "Test failed"

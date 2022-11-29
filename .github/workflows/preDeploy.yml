@@ -222,3 +222,96 @@ jobs:
             3. Once your PR is deployed to _production_, we start a 7-day timer :alarm_clock:. After it has been on production for 7 days without causing any regressions, then we pay out the Upwork job. :moneybag:
 
             So it might take a while before you're paid for your work, but we typically post multiple new jobs every day, so there's plenty of opportunity. I hope you've had a positive experience contributing to this repo! :blush:
+
+  e2e-tests:
+    name: "Run e2e performance regression tests"
+    runs-on: ubuntu-20.04-64core
+    steps:
+      - uses: Expensify/App/.github/actions/composite/setupNode@andrew-aws-df
+
+      - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
+        with:
+          ruby-version: '2.7'
+          bundler-cache: true
+
+      - name: Get merged pull request
+        id: getMergedPullRequest
+        # TODO: Point back action actions-ecosystem after https://github.com/actions-ecosystem/action-get-merged-pull-request/pull/223 is merged
+        uses: roryabraham/action-get-merged-pull-request@7a7a194f6ff8f3eef58c822083695a97314ebec1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Cache gradle to improve Android build time
+      - name: Gradle cache
+        uses: gradle/gradle-build-action@v2
+
+      - name: Make zip directory for everything to send to AWS Device Farm
+        run: mkdir zip
+
+      - name: Checkout "Compare" commit
+        # TODO: Figure out previous PR last commit
+        run: git checkout ${{ inputs.compare-commit }}
+
+      - name: Build "Compare" APK
+        run: npm run android-build-e2e
+
+      - name: Copy "Compare" APK
+        run: cp android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk zip/app-e2eRelease-compare.apk
+
+      - name: Checkout "Baseline" commit
+        run: git checkout main
+
+      - name: Build "Baseline" APK
+        run: npm run android-build-e2e
+
+      - name: Copy "Baseline" APK
+        run: cp android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk zip/app-e2eRelease-baseline.apk
+
+      - name: Checkout previous branch for source code to run on AWS Device farm
+        run: git checkout -
+
+      - name: Copy e2e code into zip folder
+        run: cp -r tests/e2e zip
+
+      - name: Zip everything in the zip directory up
+        run: zip -qr App.zip ./zip
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+
+      - name: Schedule AWS Device Farm test run
+        uses: realm/aws-devicefarm/test-application@master
+        with:
+          name: App E2E Performance Regression Tests
+          project_arn: ${{ secrets.AWS_PROJECT_ARN }}
+          device_pool_arn: ${{ secrets.AWS_DEVICE_POOL_ARN }}
+          app_file: zip/app-e2eRelease-baseline.apk
+          app_type: ANDROID_APP
+          test_type: APPIUM_NODE
+          test_package_file: App.zip
+          test_package_type: APPIUM_NODE_TEST_PACKAGE
+          test_spec_file: tests/e2e/TestSpec.yml
+          test_spec_type: APPIUM_NODE_TEST_SPEC
+          remote_src: false
+          file_artifacts: Customer Artifacts.zip
+          cleanup: true
+
+      - name: Unzip AWS Device Farm results
+        run: unzip Customer\ Artifacts.zip
+
+      - name: Set output of AWS Device Farm into GitHub ENV
+        run: |
+          { echo 'OUTPUT<<EOF'; cat ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md; echo 'EOF'; } >> "$GITHUB_ENV"
+
+      - name: Leave output of AWS Device Farm as a PR comment
+        uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
+        with:
+          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          number: ${{ steps.getMergedPullRequest.outputs.number }}
+          body: ${{ env.OUTPUT }}
+
+      # TODO: Leave deploy blocker label if 'Significant Changes To Duration'
