@@ -29,19 +29,19 @@ const propTypes = {
         PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
     ]),
 
-    /** A function that is called when the box/label is pressed */
     onPress: (props, componentName) => {
-        if (!props.onPress && !props.onMouseDown) {
-            return new Error(`One of props 'onPress' or 'onMouseDown' was not specified in '${componentName}'.`);
+        if (props.onPress && props.onMouseDown) {
+            return;
         }
+        return new Error(`One of props 'onPress' or 'onMouseDown' was not specified in '${componentName}'.`);
     },
 
-    /** Callback that is called when mousedown is triggered. */
     onMouseDown: (props, componentName) => {
-        if (!props.onPress && !props.onMouseDown) {
-            return new Error(`One of props 'onMouseDown' or 'onPress' was not specified in '${componentName}'.`);
+        if (props.onPress && props.onMouseDown) {
+            return;
         }
-    }
+        return new Error(`One of props 'onMouseDown' or 'onPress' was not specified in '${componentName}'.`);
+    },
 };
 
 const defaultProps = {
@@ -52,6 +52,7 @@ const defaultProps = {
     forwardedRef: undefined,
     children: null,
     onMouseDown: undefined,
+    onPress: undefined,
 };
 
 class BaseCheckbox extends React.Component {
@@ -80,7 +81,11 @@ class BaseCheckbox extends React.Component {
             return;
         }
 
-        this.props.onPress ? this.props.onPress(event) : this.props.onMouseDown(event);
+        if (this.props.onPress) {
+            this.props.onPress(event);
+        } else {
+            this.props.onMouseDown(event);
+        }
     }
 
     firePressHandlerOnClick(event) {
@@ -90,7 +95,9 @@ class BaseCheckbox extends React.Component {
             return;
         }
 
-        this.props.onPress && this.props.onPress(event);
+        if (this.props.onPress) {
+            this.props.onPress(event);
+        }
     }
 
     render() {
