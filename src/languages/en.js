@@ -819,7 +819,7 @@ export default {
             card: 'Issue cards',
             workspace: 'Workspace',
             edit: 'Edit workspace',
-            delete: 'Delete Workspace',
+            delete: 'Delete workspace',
             settings: 'General settings',
             reimburse: 'Reimburse expenses',
             bills: 'Pay bills',
