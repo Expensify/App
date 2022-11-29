@@ -279,10 +279,8 @@ class ReportActionCompose extends React.Component {
                 text: this.props.translate('iou.splitBill'),
                 onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(this.props.reportID)),
             });
-        }
-
-        // We only allow requesting or sending money in non "chat rooms" (i.e. default or policy created room). These features only work for DMs and policy expense chats.
-        if (!ReportUtils.isChatRoom(this.props.report)) {
+        } else if (!ReportUtils.isChatRoom(this.props.report)) {
+            // We only allow requesting or sending money in non "chat rooms" (i.e. default or policy created room). These features only work for DMs and policy expense chats.
             iouOptions.push({
                 icon: Expensicons.MoneyCircle,
                 text: this.props.translate('iou.requestMoney'),
