@@ -272,7 +272,7 @@ class ReportActionCompose extends React.Component {
             return [];
         }
 
-        // We always allow bill splitting for any chat type as long as there are multiple participants
+        // We always allow bill splitting for any chat type as long as there are multiple participants.
         if (hasMultipleParticipants) {
             iouOptions.push({
                 icon: Expensicons.Receipt,
@@ -280,7 +280,9 @@ class ReportActionCompose extends React.Component {
                 onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(this.props.reportID)),
             });
         } else if (!ReportUtils.isChatRoom(this.props.report)) {
-            // We only allow requesting or sending money in non "chat rooms" (i.e. default or policy created room). These features only work for DMs and policy expense chats.
+            // If we don't have multiple participants then we only allow requesting or sending money in non "chat rooms"
+            // (i.e. default rooms like #announce or user created rooms). These features only work for DMs and policy expense chats,
+            // but we only show these options in lieu of a Split Bill option).
             iouOptions.push({
                 icon: Expensicons.MoneyCircle,
                 text: this.props.translate('iou.requestMoney'),
