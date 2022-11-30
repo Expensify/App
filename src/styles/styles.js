@@ -365,9 +365,9 @@ const styles = {
     buttonSmall: {
         borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeSmall,
-        paddingTop: 10,
+        paddingTop: 4,
         paddingHorizontal: 14,
-        paddingBottom: 10,
+        paddingBottom: 4,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
@@ -1334,6 +1334,7 @@ const styles = {
         marginTop: -2,
         marginBottom: -2,
         maxWidth: '100%',
+        cursor: 'auto',
         ...whiteSpace.preWrap,
         ...wordBreak.breakWord,
     },
@@ -2073,6 +2074,7 @@ const styles = {
 
     navigationScreenCardStyle: {
         backgroundColor: themeColors.appBG,
+        height: '100%',
     },
 
     navigationSceneFullScreenWrapper: {
@@ -2149,7 +2151,7 @@ const styles = {
     },
 
     checkedContainer: {
-        backgroundColor: themeColors.link,
+        backgroundColor: themeColors.checkBox,
     },
 
     iouAmountText: {
