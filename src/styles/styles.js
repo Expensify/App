@@ -1514,7 +1514,7 @@ const styles = {
 
     chatItemAttachButton: {
         alignItems: 'center',
-        alignSelf: 'flex-start',
+        alignSelf: 'flex-end',
         borderRightColor: themeColors.border,
         borderRightWidth: 1,
         height: 32,
