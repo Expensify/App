@@ -255,7 +255,7 @@ describe('ReportUtils', () => {
                 iouReportID: '1',
             };
             const iouReports = {
-                reportIOUs_1: {
+                report_1: {
                     reportID: '1',
                 },
             };
@@ -267,7 +267,7 @@ describe('ReportUtils', () => {
                 iouReportID: '1',
             };
             const iouReports = {
-                reportIOUs_1: {
+                report_1: {
                     reportID: '1',
                     ownerEmail: 'a@a.com',
                 },
@@ -281,7 +281,7 @@ describe('ReportUtils', () => {
                 hasOutstandingIOU: true,
             };
             const iouReports = {
-                reportIOUs_1: {
+                report_1: {
                     reportID: '1',
                     ownerEmail: 'a@a.com',
                 },
@@ -295,7 +295,7 @@ describe('ReportUtils', () => {
                 hasOutstandingIOU: false,
             };
             const iouReports = {
-                reportIOUs_1: {
+                report_1: {
                     reportID: '1',
                     ownerEmail: 'a@a.com',
                 },

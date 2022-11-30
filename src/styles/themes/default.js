@@ -8,6 +8,7 @@ const darkTheme = {
     border: colors.greenBorders,
     borderFocus: colors.green,
     icon: colors.greenIcons,
+    iconMenu: colors.green,
     iconHovered: colors.white,
     iconSuccessFill: colors.green,
     iconReversed: colors.greenAppBackground,
@@ -55,6 +56,7 @@ const darkTheme = {
     placeholderText: colors.greenIcons,
     heroCard: colors.blue,
     uploadPreviewActivityIndicator: colors.greenHighlightBackground,
+    checkBox: colors.green,
 };
 
 const oldTheme = {
@@ -71,6 +73,7 @@ const oldTheme = {
     border: colors.gray2,
     borderFocus: colors.blue,
     icon: colors.gray3,
+    iconMenu: colors.gray3,
     iconHovered: colors.dark,
     iconSuccessFill: colors.green,
     iconReversed: colors.white,
@@ -96,6 +99,7 @@ const oldTheme = {
     uploadPreviewActivityIndicator: colors.gray1,
     cardBG: colors.gray1,
     cardBorder: colors.gray1,
+    checkBox: colors.blue,
 
     // Merging new Keys for Dark Mode merge. Delete after new branding is implemented.
     highlightBG: colors.gray1,
@@ -113,4 +117,4 @@ const oldTheme = {
     textDark: colors.dark,
 };
 
-export default oldTheme;
+export default darkTheme;

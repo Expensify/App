@@ -96,6 +96,7 @@ const MenuItem = (props) => {
                                     height={props.iconHeight}
                                     fill={props.iconFill || StyleUtils.getIconFillColor(
                                         getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive),
+                                        true,
                                     )}
                                 />
                             </View>
