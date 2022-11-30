@@ -114,7 +114,7 @@ class Picker extends PureComponent {
         // Windows will reuse the text color of the select for each one of the options
         // so we might need to color accordingly so it doesn't blend with the background.
         if (getOperatingSystem() === CONST.OS.WINDOWS) {
-            this.placeholder = {
+            this.placeholder = _.isEmpty(this.placeholder) ? {} : {
                 ...this.placeholder,
                 color: '#002140',
             };
