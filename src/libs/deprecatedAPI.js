@@ -152,18 +152,6 @@ function PayWithWallet(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.emailList
- * @returns {Promise}
- */
-function PersonalDetails_GetForEmails(parameters) {
-    const commandName = 'PersonalDetails_GetForEmails';
-    requireParameters(['emailList'],
-        parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {Object} parameters.details
  * @returns {Promise}
  */
@@ -328,7 +316,6 @@ export {
     Graphite_Timer,
     PayIOU,
     PayWithWallet,
-    PersonalDetails_GetForEmails,
     PersonalDetails_Update,
     ResendValidateCode,
     SetNameValuePair,

@@ -156,69 +156,6 @@ function extractFirstAndLastNameFromAvailableDetails({
 }
 
 /**
- * Get personal details from report participants.
- *
- * @param {Object} reports
- */
-function getFromReportParticipants(reports) {
-    const participantEmails = _.chain(reports)
-        .pluck('participants')
-        .flatten()
-        .unique()
-        .value();
-
-    if (participantEmails.length === 0) {
-        return;
-    }
-
-    DeprecatedAPI.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
-        .then((data) => {
-            const existingDetails = _.pick(data, participantEmails);
-
-            // Fallback to add logins that don't appear in the response
-            const details = _.chain(participantEmails)
-                .filter(login => !data[login])
-                .reduce((previousDetails, login) => ({
-                    ...previousDetails,
-                    [login]: {}, // Simply just need the key to exist
-                }), existingDetails)
-                .value();
-
-            const formattedPersonalDetails = formatPersonalDetails(details);
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formattedPersonalDetails);
-
-            // The personalDetails of the participants contain their avatar images. Here we'll go over each
-            // report and based on the participants we'll link up their avatars to report icons. This will
-            // skip over default rooms which aren't named by participants.
-            const reportsToUpdate = {};
-            _.each(reports, (report) => {
-                if (report.participants.length <= 0 && !ReportUtils.isChatRoom(report) && !ReportUtils.isPolicyExpenseChat(report)) {
-                    return;
-                }
-
-                const reportName = (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report))
-                    ? report.reportName
-                    : _.chain(report.participants)
-                        .filter(participant => participant !== currentUserEmail)
-                        .map(participant => lodashGet(
-                            formattedPersonalDetails,
-                            [participant, 'displayName'],
-                            participant,
-                        ))
-                        .value()
-                        .join(', ');
-
-                reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {reportName};
-            });
-
-            // We use mergeCollection such that it updates ONYXKEYS.COLLECTION.REPORT in one go.
-            // Any withOnyx subscribers to this key will also receive the complete updated props just once
-            // than updating props for each report and re-rendering had merge been used.
-            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportsToUpdate);
-        });
-}
-
-/**
  * Merges partial details object into the local store.
  *
  * @param {Object} details
@@ -422,7 +359,6 @@ function clearAvatarErrors() {
 
 export {
     formatPersonalDetails,
-    getFromReportParticipants,
     getDisplayName,
     setPersonalDetails,
     updateAvatar,
