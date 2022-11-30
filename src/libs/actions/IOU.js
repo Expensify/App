@@ -769,7 +769,7 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.chatReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
                 ...chatReport,
                 lastVisitedTimestamp: Date.now(),
@@ -790,7 +790,7 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
     const successData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
                     pendingAction: null,
@@ -801,7 +801,7 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
     const failureData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.chatReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
                     optimisticIOUReportAction,
