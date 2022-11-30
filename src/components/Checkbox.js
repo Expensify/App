@@ -82,10 +82,9 @@ class Checkbox extends React.Component {
             return;
         }
 
+        // Make sure checkbox get unfocused when it's unselected
         if (this.state.isFocused && this.props.isChecked) {
-            this.setState({
-                isFocused: false,
-            });
+            this.onBlur();
         }
 
         this.props.onPress();
@@ -101,7 +100,6 @@ class Checkbox extends React.Component {
                 onBlur={this.onBlur}
                 ref={this.props.forwardedRef}
                 onPressOut={this.onBlur}
-                onPressIn={this.onFocus}
                 style={this.props.style}
                 onKeyDown={this.handleSpaceKey}
                 accessibilityRole="checkbox"
@@ -118,7 +116,6 @@ class Checkbox extends React.Component {
                                 this.props.isChecked && styles.checkedContainer,
                                 this.props.hasError && styles.borderColorDanger,
                                 this.props.disabled && styles.cursorDisabled,
-                                this.state.isFocused && styles.borderColorFocus,
                                 (this.state.isFocused || this.props.isChecked) && styles.borderColorFocus,
                             ]}
                         >
