@@ -82,6 +82,12 @@ class Checkbox extends React.Component {
             return;
         }
 
+        if (this.state.isFocused && this.props.isChecked) {
+            this.setState({
+                isFocused: false,
+            });
+        }
+
         this.props.onPress();
     }
 
@@ -95,6 +101,7 @@ class Checkbox extends React.Component {
                 onBlur={this.onBlur}
                 ref={this.props.forwardedRef}
                 onPressOut={this.onBlur}
+                onPressIn={this.onFocus}
                 style={this.props.style}
                 onKeyDown={this.handleSpaceKey}
                 accessibilityRole="checkbox"
