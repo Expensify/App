@@ -305,14 +305,12 @@ class AdditionalDetailsStep extends React.Component {
                                 <TextInput
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.legalFirstName)}
-                                    onChangeText={val => this.clearErrorAndSetValue('legalFirstName', val)}
                                     defaultValue={this.getFirstName()}
                                     errorText={this.getErrorText('legalFirstName')}
                                 />
                                 <TextInput
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.legalLastName)}
-                                    onChangeText={val => this.clearErrorAndSetValue('legalLastName', val)}
                                     defaultValue={this.getLastName()}
                                     errorText={this.getErrorText('legalLastName')}
                                 />
