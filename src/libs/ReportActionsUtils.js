@@ -69,15 +69,15 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
  */
 function filterReportActionsForDisplay(reportActions) {
     return _.filter(reportActions, (reportAction) => {
-        // First, filter out any unsupported reportAction types
+        // Filter out any unsupported reportAction types
         if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName)) {
             return false;
         }
 
-        // Then all actions are displayed except deleted, non-pending actions
+        // All other actions are displayed except deleted, non-pending actions
         const isDeleted = isDeletedAction(reportAction);
         const isPending = !_.isEmpty(reportAction.pendingAction);
-        return !(isDeleted && !isPending);
+        return !isDeleted || isPending;
     });
 }
 
