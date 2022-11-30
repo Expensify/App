@@ -1532,7 +1532,7 @@ const styles = {
         marginBottom: 6,
         marginTop: 6,
         justifyContent: 'center',
-        width: 39,
+        width: 32,
     },
 
     chatItemAttachmentPlaceholder: {
