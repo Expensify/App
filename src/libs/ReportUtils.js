@@ -283,7 +283,7 @@ function getPolicyName(report, policies) {
 
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
     if (!policy) {
-        return Localize.translateLocal('workspace.common.unavailable');
+        return report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
     }
 
     return policy.name

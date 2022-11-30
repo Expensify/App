@@ -112,6 +112,11 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
                 avatar: ReportUtils.getDefaultAvatar(login),
             };
         }
+
+        if (login === CONST.EMAIL.CONCIERGE) {
+            personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
+        }
+
         personalDetailsForLogins[login] = personalDetail;
     });
     return personalDetailsForLogins;

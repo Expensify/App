@@ -37,13 +37,13 @@ platform :android do
   end
 
   desc "Build app for testing"
-  lane :build_test do
+  lane :build_internal do
     ENV["ENVFILE"]=".env.staging"
 
     gradle(
         project_dir: './android',
         task: 'assemble',
-        build_type: 'Release',
+        build_type: 'InternalRelease',
     )
 
     aws_s3(
@@ -115,7 +115,7 @@ platform :ios do
   end
 
   desc "Build app for testing"
-  lane :build_test do
+  lane :build_internal do
     require 'securerandom'
     ENV["ENVFILE"]=".env.staging"
 
@@ -137,7 +137,7 @@ platform :ios do
     )
 
     install_provisioning_profile(
-        path: "./ios/chat_expensify_adhoc.mobileprovision.gpg"
+        path: "./ios/chat_expensify_adhoc.mobileprovision"
     )
 
     build_app(

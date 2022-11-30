@@ -169,7 +169,6 @@ export default {
         sendAttachment: 'Send attachment',
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
-        sayHello: 'Say hello!',
         conciergePlaceholderOptions: [
             'Ask for help!',
             'Ask me anything!',
