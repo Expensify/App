@@ -1010,7 +1010,7 @@ function payMoneyRequestElsewhere(chatReport, iouReport, recipient) {
 
     API.write('PayMoneyRequestElsewhere', params, {optimisticData, successData, failureData});
 
-    Navigation.navigate(ROUTES.getReportRoute(params.chatReportID));
+    Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
 }
 
 /**
