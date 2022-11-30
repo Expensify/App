@@ -37,7 +37,7 @@ const propTypes = {
     ]),
 /** A function that is called when the box/label is pressed */
     onPress: requiredPropsCheck,
-
+/** Callback that is called when mousedown is triggered. */
     onMouseDown: requiredPropsCheck,
 };
 
