@@ -120,6 +120,8 @@ class AdditionalDetailsStep extends React.Component {
             errorPath: 'walletAdditionalDetails.errorFields',
             setErrors: Wallet.setAdditionalDetailsErrors,
         });
+
+        this.validate = this.validate.bind(this);
     }
 
     getFirstName() {
