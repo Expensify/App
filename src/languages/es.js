@@ -1067,4 +1067,12 @@ export default {
             message: 'Expensify no tiene acceso para guardar archivos. Para habilitar la descarga de archivos, entra en Settings y habilita el accesso',
         },
     },
+    testTool: {
+        useStaging: 'Usar servidor staging',
+        simulateFailingNetwork: 'Simular conexiones fallidas de red',
+        authenticationStatus: 'Estado de autenticación',
+        deviceCredentials: 'Credenciales del dispositivo',
+        invalidate: 'Invalidar',
+        destroy: 'Destruir',
+    },
 };

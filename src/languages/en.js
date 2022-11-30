@@ -1066,7 +1066,7 @@ export default {
         },
     },
     testTool: {
-        useStaging: 'Use Staging Server',
+        useStaging: 'Use staging server',
         simulateFailingNetwork: 'Simulate failing network requests',
         authenticationStatus: 'Authentication status',
         deviceCredentials: 'Device credentials',
