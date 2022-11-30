@@ -1,4 +1,4 @@
-const OUTPUT_DIR = process.env.WORKING_DIRECTORY || './results';
+const OUTPUT_DIR = process.env.WORKING_DIRECTORY || './tests/e2e/results';
 
 /**
  * @typedef TestConfig
