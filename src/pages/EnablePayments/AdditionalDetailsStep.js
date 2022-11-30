@@ -300,25 +300,12 @@ class AdditionalDetailsStep extends React.Component {
                                         city: this.getErrors().addressCity,
                                         zipCode: this.getErrors().addressZip,
                                     }}
-                                    onFieldChange={(values) => {
-                                        const renamedFields = {
-                                            street: 'addressStreet',
-                                            state: 'addressState',
-                                            city: 'addressCity',
-                                            zipCode: 'addressZip',
-                                        };
-                                        _.each(values, (value, inputKey) => {
-                                            const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
-                                            this.clearErrorAndSetValue(renamedInputKey, value);
-                                        });
-                                    }}
                                 />
                             </View>
                             <TextInput
                                 containerStyles={[styles.mt4]}
                                 keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                                 label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
-                                onChangeText={val => this.clearErrorAndSetValue('phoneNumber', val)}
                                 value={this.props.walletAdditionalDetailsDraft.phoneNumber || ''}
                                 placeholder={this.props.translate('common.phoneNumberPlaceholder')}
                                 errorText={this.getErrorText('phoneNumber')}
@@ -326,7 +313,6 @@ class AdditionalDetailsStep extends React.Component {
                             <DatePicker
                                 containerStyles={[styles.mt4]}
                                 label={this.props.translate(this.fieldNameTranslationKeys.dob)}
-                                onInputChange={val => this.clearDateErrorsAndSetValue(val)}
                                 defaultValue={this.props.walletAdditionalDetailsDraft.dob || ''}
                                 placeholder={this.props.translate('common.dob')}
                                 errorText={this.getErrorText('dob') || this.getErrorText('age')}
@@ -335,7 +321,6 @@ class AdditionalDetailsStep extends React.Component {
                             <TextInput
                                 containerStyles={[styles.mt4]}
                                 label={this.props.translate(this.fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
-                                onChangeText={val => this.clearSSNErrorAndSetValue(val)}
                                 value={this.props.walletAdditionalDetailsDraft.ssn || ''}
                                 errorText={this.getErrorText('ssnFull9') || this.getErrorText('ssn')}
                                 maxLength={shouldAskForFullSSN ? 9 : 4}
