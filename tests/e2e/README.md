@@ -17,6 +17,15 @@ To run the e2e tests:
 
 Ideally you want to run these tests on your branch before you want to merge your new feature to `main`.
 
+## Available CLI options
+
+The tests can be run with the following CLI options:
+
+- `--config`: Extend/Overwrite the default config with your values, e.g. `--config config.local.js`
+- `--includes`: Expects a string/regexp to filter the tests to run, e.g. `--includes "login|signup"`
+- `--skipInstallDeps`: Skips the `npm install` step, useful during development
+- `--skipBuild`: Skips to build the android app, useful during development
+
 ## Performance regression testing
 
 The output of the tests is a set of performance metrics (see video above).
