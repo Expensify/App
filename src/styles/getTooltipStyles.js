@@ -116,7 +116,7 @@ export default function getTooltipStyles(
         tooltipWrapperStyle: {
             position: 'fixed',
             backgroundColor: themeColors.heading,
-            borderRadius: variables.buttonBorderRadius,
+            borderRadius: variables.componentBorderRadiusNormal,
             ...tooltipVerticalPadding,
             ...spacing.ph2,
             zIndex: variables.tooltipzIndex,
