@@ -38,7 +38,7 @@ const propTypes = {
     /* Onyx Props */
     /** List of reports */
     // eslint-disable-next-line react/no-unused-prop-types
-    reports: PropTypes.objectOf(reportPropTypes),
+    chatReports: PropTypes.objectOf(reportPropTypes),
 
     /** All report actions for all reports */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -69,7 +69,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    reports: {},
+    chatReports: {},
     reportActions: {},
     personalDetails: {},
     currentUserPersonalDetails: {
@@ -202,25 +202,30 @@ SidebarLinks.defaultProps = defaultProps;
  * @param {Object} [report]
  * @returns {Object|undefined}
  */
-const reportSelector = report => report && ({
-    reportID: report.reportID,
-    participants: report.participants,
-    hasDraft: report.hasDraft,
-    isPinned: report.isPinned,
-    errorFields: {
-        addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
-    },
-    maxSequenceNumber: report.maxSequenceNumber,
-    lastReadSequenceNumber: report.lastReadSequenceNumber,
-    lastMessageText: report.lastMessageText,
-    lastActionCreated: report.lastActionCreated,
-    iouReportID: report.iouReportID,
-    hasOutstandingIOU: report.hasOutstandingIOU,
-    statusNum: report.statusNum,
-    stateNum: report.stateNum,
-    chatType: report.chatType,
-    policyID: report.policyID,
-});
+const chatReportSelector = (report) => {
+    if (ReportUtils.isIOUReport(report)) {
+        return null;
+    }
+    return report && ({
+        reportID: report.reportID,
+        participants: report.participants,
+        hasDraft: report.hasDraft,
+        isPinned: report.isPinned,
+        errorFields: {
+            addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
+        },
+        maxSequenceNumber: report.maxSequenceNumber,
+        lastReadSequenceNumber: report.lastReadSequenceNumber,
+        lastMessageText: report.lastMessageText,
+        lastActionCreated: report.lastActionCreated,
+        iouReportID: report.iouReportID,
+        hasOutstandingIOU: report.hasOutstandingIOU,
+        statusNum: report.statusNum,
+        stateNum: report.stateNum,
+        chatType: report.chatType,
+        policyID: report.policyID,
+    });
+};
 
 /**
  * @param {Object} [personalDetails]
@@ -265,9 +270,9 @@ export default compose(
         // for that key, then there would be no re-render and the options wouldn't reflect the new data because SidebarUtils.getOrderedReportIDs() wouldn't be triggered.
         // This could be changed if each OptionRowLHN used withOnyx() to connect to the Onyx keys, but if you had 10,000 reports
         // with 10,000 withOnyx() connections, it would have unknown performance implications.
-        reports: {
+        chatReports: {
             key: ONYXKEYS.COLLECTION.REPORT,
-            selector: reportSelector,
+            selector: chatReportSelector,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
