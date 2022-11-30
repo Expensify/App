@@ -116,7 +116,6 @@ class WorkspacesListPage extends Component {
     getWorkspaces() {
         return _.chain(this.props.policies)
             .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
-            .filter(policy => policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .map(policy => ({
                 title: policy.name,
                 icon: policy.avatar ? policy.avatar : Expensicons.Building,
