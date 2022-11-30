@@ -249,7 +249,7 @@ function getOptionData(reportID) {
     }
 
     const lastActorDetails = personalDetailMap[report.lastActorEmail] || null;
-    let lastMessageText = hasMultipleParticipants && lastActorDetails
+    let lastMessageText = hasMultipleParticipants && lastActorDetails && (lastActorDetails.login !== currentUserLogin.email)
         ? `${lastActorDetails.displayName}: `
         : '';
     lastMessageText += report ? lastMessageTextFromReport : '';
