@@ -17,7 +17,7 @@ const propTypes = {
 const Enable2FAPrompt = props => (
     <Section
         title={props.translate('validationStep.enable2FATitle')}
-        icon={Illustrations.UserVerifyBlue}
+        icon={Illustrations.ShieldYellow}
         menuItems={[
             {
                 title: props.translate('validationStep.secureYourAccount'),
