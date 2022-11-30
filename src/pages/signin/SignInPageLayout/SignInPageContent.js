@@ -71,7 +71,7 @@ const SignInPageContent = (props) => {
                         {props.children}
                     </SignInPageForm>
                 </View>
-                <View style={[styles.mb5, styles.alignSelfCenter, !props.isLargeScreenWidth && styles.signInPageWideLeftContainer]}>
+                <View style={[styles.mv5, styles.alignSelfCenter, !props.isLargeScreenWidth && styles.signInPageWideLeftContainer]}>
                     <TermsAndLicenses />
                 </View>
             </View>
