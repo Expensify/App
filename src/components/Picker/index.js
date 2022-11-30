@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import CONST from '../../CONST';
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -9,6 +10,7 @@ import FormHelpMessage from '../FormHelpMessage';
 import Text from '../Text';
 import styles from '../../styles/styles';
 import pickerStyles from './pickerStyles';
+import getOperatingSystem from '../../libs/getOperatingSystem';
 
 const propTypes = {
     /** Picker label */
@@ -102,10 +104,28 @@ class Picker extends PureComponent {
         };
 
         this.onInputChange = this.onInputChange.bind(this);
+        this.placeholder = this.props.placeholder;
+        this.items = this.props.items;
     }
 
     componentDidMount() {
         this.setDefaultValue();
+
+        // Windows will reuse the text color of the select for each one of the options
+        // so we might need to color accordingly so it does not blend with the background.
+        if (getOperatingSystem() === CONST.OS.WINDOWS) {
+            this.placeholder = {
+                ...this.placeholder,
+                color: '#002140',
+            };
+
+            this.items = this.items.map((item) => {
+                return {
+                    ...item,
+                    color: '#002140',
+                };
+            });
+        }
     }
 
     componentDidUpdate(prevProps) {
@@ -157,10 +177,10 @@ class Picker extends PureComponent {
                     )}
                     <RNPickerSelect
                         onValueChange={this.onInputChange}
-                        items={this.props.items}
+                        items={this.items}
                         style={this.props.size === 'normal' ? pickerStyles(this.props.isDisabled) : styles.pickerSmall}
                         useNativeAndroidPickerStyle={false}
-                        placeholder={this.props.placeholder}
+                        placeholder={this.placeholder}
                         value={this.props.value}
                         Icon={() => this.props.icon(this.props.size)}
                         disabled={this.props.isDisabled}
