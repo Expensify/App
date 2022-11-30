@@ -236,7 +236,7 @@ class ReportScreen extends React.Component {
                             <ReportActionsSkeletonView animate={animatePlaceholder} containerHeight={this.state.skeletonViewContainerHeight} />
                             <ReportFooter
                                 isComposerFullSize={false}
-                                isOffline={false}
+                                isOffline={this.props.network.isOffline}
                                 onSubmitComment={() => {}}
                                 report={{reportID: '0'}}
                                 reportActions={{}}
@@ -297,33 +297,43 @@ class ReportScreen extends React.Component {
                             }}
                         >
                             {(this.isReportReadyForDisplay() && !isLoadingInitialReportActions) && (
-                                <ReportActionsView
-                                    reportActions={this.props.reportActions}
-                                    report={this.props.report}
-                                    session={this.props.session}
-                                    isComposerFullSize={this.props.isComposerFullSize}
-                                    isDrawerOpen={this.props.isDrawerOpen}
-                                    parentViewHeight={this.state.skeletonViewContainerHeight}
-                                />
+                                <>
+                                    <ReportActionsView
+                                        reportActions={this.props.reportActions}
+                                        report={this.props.report}
+                                        session={this.props.session}
+                                        isComposerFullSize={this.props.isComposerFullSize}
+                                        isDrawerOpen={this.props.isDrawerOpen}
+                                        parentViewHeight={this.state.skeletonViewContainerHeight}
+                                    />
+                                    <ReportFooter
+                                        errors={addWorkspaceRoomOrChatErrors}
+                                        pendingAction={addWorkspaceRoomOrChatPendingAction}
+                                        isOffline={this.props.network.isOffline}
+                                        reportActions={this.props.reportActions}
+                                        report={this.props.report}
+                                        isComposerFullSize={this.props.isComposerFullSize}
+                                        onSubmitComment={this.onSubmitComment}
+                                    />
+                                </>
                             )}
 
                             {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
                             we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
                             {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions) && (
-                                <ReportActionsSkeletonView
-                                    containerHeight={this.state.skeletonViewContainerHeight}
-                                />
+                                <>
+                                    <ReportActionsSkeletonView
+                                        containerHeight={this.state.skeletonViewContainerHeight}
+                                    />
+                                    <ReportFooter
+                                        isComposerFullSize={false}
+                                        isOffline={this.props.network.isOffline}
+                                        onSubmitComment={() => {}}
+                                        report={{reportID: '0'}}
+                                        reportActions={{}}
+                                    />
+                                </>
                             )}
-
-                            <ReportFooter
-                                errors={addWorkspaceRoomOrChatErrors}
-                                pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                isOffline={this.props.network.isOffline}
-                                reportActions={this.props.reportActions}
-                                report={this.props.report}
-                                isComposerFullSize={this.props.isComposerFullSize}
-                                onSubmitComment={this.onSubmitComment}
-                            />
                         </View>
                     </FullPageNotFoundView>
                 </ScreenWrapper>
