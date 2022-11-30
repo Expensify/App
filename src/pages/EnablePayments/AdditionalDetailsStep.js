@@ -88,6 +88,8 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
+const INPUT_IDS = {LEGAL_FIRST_NAME: 'legalFirstName'};
+
 class AdditionalDetailsStep extends React.Component {
     constructor(props) {
         super(props);
@@ -274,10 +276,12 @@ class AdditionalDetailsStep extends React.Component {
                         <View style={[styles.mh5, styles.mb5]}>
                             <View style={styles.mt4}>
                                 <TextInput
+                                    inputID={INPUT_IDS.LEGAL_FIRST_NAME}
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.legalFirstName)}
                                     defaultValue={this.getFirstName()}
                                     errorText={this.getErrorText('legalFirstName')}
+                                    shouldSaveDraft
                                 />
                                 <TextInput
                                     containerStyles={[styles.mt4]}
