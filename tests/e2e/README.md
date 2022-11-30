@@ -26,6 +26,12 @@ The tests can be run with the following CLI options:
 - `--skipInstallDeps`: Skips the `npm install` step, useful during development
 - `--skipBuild`: Skips to build the android app, useful during development
 
+## Available environment variables
+
+The tests can be run with the following environment variables:
+
+- `baseline`: Change the baseline to run the tests again (default is `main`).
+
 ## Performance regression testing
 
 The output of the tests is a set of performance metrics (see video above).
