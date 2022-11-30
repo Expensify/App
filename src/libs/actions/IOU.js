@@ -875,8 +875,6 @@ function payMoneyRequestWithWallet(chatReportID, iouReportID, amount, currency, 
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
                     optimisticIOUReportAction,
-
-                    // Set pendingAction state for pattern B
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             },
