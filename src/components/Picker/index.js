@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import CONST from '../../CONST';
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -8,6 +7,7 @@ import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import FormHelpMessage from '../FormHelpMessage';
 import Text from '../Text';
+import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import pickerStyles from './pickerStyles';
 import getOperatingSystem from '../../libs/getOperatingSystem';
@@ -112,19 +112,19 @@ class Picker extends PureComponent {
         this.setDefaultValue();
 
         // Windows will reuse the text color of the select for each one of the options
-        // so we might need to color accordingly so it does not blend with the background.
+        // so we might need to color accordingly so it doesn't blend with the background.
         if (getOperatingSystem() === CONST.OS.WINDOWS) {
             this.placeholder = {
                 ...this.placeholder,
                 color: '#002140',
             };
 
-            this.items = this.items.map((item) => {
-                return {
+            this.items = _.map(this.items, item => (
+                {
                     ...item,
                     color: '#002140',
-                };
-            });
+                }
+            ));
         }
     }
 
