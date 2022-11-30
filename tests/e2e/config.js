@@ -22,6 +22,11 @@ const TEST_NAMES = {
 module.exports = {
     APP_PACKAGE: 'com.expensify.chat',
 
+    APP_PATHS: {
+        baseline: './app-e2eRelease-baseline.apk',
+        compare: './app-e2eRelease-compare.apk',
+    },
+
     // The port of the testing server that communicates with the app
     SERVER_PORT: 4723,
 

@@ -20,6 +20,7 @@ const installApp = require('./utils/installApp');
 const math = require('./measure/math');
 const writeTestStats = require('./measure/writeTestStats');
 const withFailTimeout = require('./utils/withFailTimeout');
+const reversePort = require('./utils/androidReversePort');
 
 const args = process.argv.slice(2);
 
@@ -69,9 +70,11 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
         await execAsync('npm run android-build-e2e');
     }
 
-    // Install app
-    let progressLog = Logger.progressInfo('Installing app');
-    await installApp('android', baselineOrCompare);
+    // Install app and reverse port
+    let progressLog = Logger.progressInfo('Installing app and reversing port');
+    const appPath = baselineOrCompare === 'baseline' ? config.APP_PATHS.baseline : config.APP_PATHS.compare;
+    await installApp('android', appPath);
+    await reversePort();
     progressLog.done();
 
     // Start the HTTP server
