@@ -13,4 +13,14 @@ const fontFamily = {
     EMOJI_TEXT_FONT: emojiFont,
 };
 
+const newKansas = {
+    NEW_KANSAS_MEDIUM: 'ExpensifyNewKansas-Meduim',
+    NEW_KANSAS_MEDIUM_ITALIC: 'ExpensifyNewKansas-MediumItalic',
+};
+
 export default fontFamily;
+
+export {
+    fontFamily,
+    newKansas,
+};

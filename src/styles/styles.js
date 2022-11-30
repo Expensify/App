@@ -2832,6 +2832,25 @@ const styles = {
         paddingLeft: 18,
         paddingRight: 18,
     },
+
+    deeplinkWrapperContainer: {
+        padding: 20,
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: themeColors.appBG,
+    },
+
+    deeplinkWrapperInfoSection: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    deeplinkWrapperFooter: {
+        paddingTop: 80,
+        paddingBottom: 45,
+    },
 };
 
 export default styles;

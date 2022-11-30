@@ -14,6 +14,7 @@ import styles from '../../styles/styles';
 import ErrorBodyText from './ErrorBodyText';
 import TextLink from '../../components/TextLink';
 import CONST from '../../CONST';
+import colors from '../../styles/colors';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -71,7 +72,7 @@ const GenericErrorPage = props => (
         </View>
         <View styles={styles.alignSelfEnd}>
             <View style={[styles.flex1, styles.flexRow, styles.justifyContentCenter]}>
-                <LogoWordmark height={30} width={80} />
+                <LogoWordmark height={30} width={80} fill={colors.white} />
             </View>
         </View>
     </View>

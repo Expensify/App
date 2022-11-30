@@ -4,15 +4,23 @@ import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import deeplinkRoutes from './deeplinkRoutes';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import Button from '../Button';
+import TextLink from '../TextLink';
+import * as Illustrations from '../Icon/Illustrations';
+import LogoWordmark from '../../../assets/images/expensify-wordmark.svg';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Text from '../Text';
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
+import * as FontFamily from '../../styles/fontFamily';
+import Icon from '../Icon';
+import colors from '../../styles/colors';
 
 const propTypes = {
     /** Children to render. */
     children: PropTypes.node.isRequired,
+
+    ...withLocalizePropTypes,
 };
 
 class DeeplinkWrapper extends PureComponent {
@@ -65,9 +73,22 @@ class DeeplinkWrapper extends PureComponent {
         window.location = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}${pathname}`;
     }
 
+    isiOSWeb() {
+        return [
+            'iPad Simulator',
+            'iPhone Simulator',
+            'iPod Simulator',
+            'iPad',
+            'iPhone',
+            'iPod',
+        ].includes(navigator.platform)
+        || (navigator.userAgent.includes('Mac') && 'ontouchend' in document)
+    }
+
     isMacOSWeb() {
         if (
-            typeof navigator === 'object'
+            !this.isiOSWeb()
+            && typeof navigator === 'object'
             && typeof navigator.userAgent === 'string'
             && /Mac/i.test(navigator.userAgent)
             && !/Electron/i.test(navigator.userAgent)
@@ -88,19 +109,37 @@ class DeeplinkWrapper extends PureComponent {
             && this.state.appInstallationCheckStatus === 'installed'
         ) {
             return (
-                <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-                    <Text>It looks like you have the desktop app installed. How do you wish to proceed?</Text>
-
-                    <Button
-                        text="Open in App"
-                        style={{marginTop: 20}}
-                        onPress={this.openRouteInDesktopApp}
-                    />
-                    <Button
-                        style={{marginTop: 20}}
-                        text="Continue in Browser"
-                        onPress={() => this.setState({deeplinkMatch: false})}
-                    />
+                <View style={styles.deeplinkWrapperContainer}>
+                    <View style={styles.deeplinkWrapperInfoSection}>
+                        <View style={styles.mb2}>
+                            <Icon
+                                width={200}
+                                height={164}
+                                src={Illustrations.RocketBlue}
+                            />
+                        </View>
+                        <Text style={[styles.textXXLarge, {fontFamily: FontFamily.newKansas.NEW_KANSAS_MEDIUM}]}>
+                            {this.props.translate('deeplinkWrapper.launching')}
+                        </Text>
+                        <View style={styles.mt2}>
+                            <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
+                                {this.props.translate('deeplinkWrapper.redirectedToDesktopApp')}
+                                {'\n'}
+                                {this.props.translate('deeplinkWrapper.youCanAlso')}
+                                {' '}
+                                <TextLink onPress={() => this.setState({deeplinkMatch: false})}>
+                                    {this.props.translate('deeplinkWrapper.openLinkInBrowser')}
+                                </TextLink>
+                            </Text>
+                        </View>
+                    </View>
+                    <View style={styles.deeplinkWrapperFooter}>
+                        <LogoWordmark
+                            width={154}
+                            height={34}
+                            fill={colors.green}
+                        />
+                    </View>
                 </View>
             );
         }
@@ -110,4 +149,4 @@ class DeeplinkWrapper extends PureComponent {
 }
 
 DeeplinkWrapper.propTypes = propTypes;
-export default DeeplinkWrapper;
+export default withLocalize(DeeplinkWrapper);

@@ -7,6 +7,7 @@ import TextLink from '../../components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import LogoWordmark from '../../../assets/images/expensify-wordmark.svg';
 import LocalePicker from '../../components/LocalePicker';
+import colors from '../../styles/colors';
 
 const TermsAndLicenses = props => (
     <>
@@ -31,7 +32,7 @@ const TermsAndLicenses = props => (
             .
         </Text>
         <View style={[styles.mt4, styles.alignItemsCenter, styles.mb2, styles.flexRow, styles.justifyContentBetween]}>
-            <LogoWordmark height={30} width={80} />
+            <LogoWordmark height={30} width={80} fill={colors.white} />
             <LocalePicker size="small" />
         </View>
     </>
