@@ -55,12 +55,11 @@ Onyx.connect({
 
 const iouReports = {};
 Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_IOUS,
+    key: ONYXKEYS.COLLECTION.REPORT,
     callback: (iouReport, key) => {
-        if (!iouReport || !key || !iouReport.ownerEmail) {
+        if (!iouReport || !key || !iouReport.ownerEmail || !ReportUtils.isIOUReport(iouReport)) {
             return;
         }
-
         iouReports[key] = iouReport;
     },
 });
@@ -112,6 +111,11 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
                 avatar: ReportUtils.getDefaultAvatar(login),
             };
         }
+
+        if (login === CONST.EMAIL.CONCIERGE) {
+            personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
+        }
+
         personalDetailsForLogins[login] = personalDetail;
     });
     return personalDetailsForLogins;

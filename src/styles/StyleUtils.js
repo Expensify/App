@@ -263,9 +263,10 @@ function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT
  * Generate fill color of an icon based on its state.
  *
  * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
+ * @param {Boolean} isMenuIcon - whether this icon is apart of a list
  * @returns {Object}
  */
-function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
+function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT, isMenuIcon = false) {
     switch (buttonState) {
         case CONST.BUTTON_STATES.ACTIVE:
         case CONST.BUTTON_STATES.PRESSED:
@@ -275,6 +276,9 @@ function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
         case CONST.BUTTON_STATES.DEFAULT:
         case CONST.BUTTON_STATES.DISABLED:
         default:
+            if (isMenuIcon) {
+                return themeColors.iconMenu;
+            }
             return themeColors.icon;
     }
 }
