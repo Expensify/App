@@ -9,14 +9,7 @@
 /* eslint-disable @lwc/lwc/no-async-await,no-restricted-syntax,no-await-in-loop */
 const fs = require('fs');
 const _ = require('underscore');
-const {
-    DEFAULT_BASELINE_BRANCH,
-    OUTPUT_DIR,
-    LOG_FILE,
-    RUNS,
-    WARM_UP_RUNS,
-    TESTS_CONFIG,
-} = require('./config');
+const defaultConfig = require('./config');
 const compare = require('./compare/compare');
 const Logger = require('./utils/logger');
 const execAsync = require('./utils/execAsync');
@@ -30,12 +23,22 @@ const withFailTimeout = require('./utils/withFailTimeout');
 
 const args = process.argv.slice(2);
 
-const baselineBranch = process.env.baseline || DEFAULT_BASELINE_BRANCH;
+let config = defaultConfig;
+if (args.includes('--config')) {
+    let configPath = args[args.indexOf('--config') + 1];
+    if (!configPath.startsWith('.')) {
+        configPath = `./${configPath}`;
+    }
+    const customConfig = require(configPath);
+    config = _.extend(defaultConfig, customConfig);
+}
+
+const baselineBranch = process.env.baseline || config.DEFAULT_BASELINE_BRANCH;
 
 // Clear all files from previous jobs
 try {
-    fs.rmSync(OUTPUT_DIR, {recursive: true, force: true});
-    fs.mkdirSync(OUTPUT_DIR);
+    fs.rmSync(config.OUTPUT_DIR, {recursive: true, force: true});
+    fs.mkdirSync(config.OUTPUT_DIR);
 } catch (error) {
     // Do nothing
     console.error(error);
@@ -92,14 +95,14 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
     });
 
     // Run the tests
-    const numOfTests = _.values(TESTS_CONFIG).length;
+    const numOfTests = _.values(config.TESTS_CONFIG).length;
     for (let testIndex = 0; testIndex < numOfTests; testIndex++) {
-        const config = _.values(TESTS_CONFIG)[testIndex];
-        server.setTestConfig(config);
+        const testConfig = _.values(config.TESTS_CONFIG)[testIndex];
+        server.setTestConfig(testConfig);
 
-        const warmupLogs = Logger.progressInfo(`Running test '${config.name}'`);
-        for (let warmUpRuns = 0; warmUpRuns < WARM_UP_RUNS; warmUpRuns++) {
-            const progressText = `(${testIndex + 1}/${numOfTests}) Warmup for test '${config.name}' (iteration ${warmUpRuns + 1}/${WARM_UP_RUNS})`;
+        const warmupLogs = Logger.progressInfo(`Running test '${testConfig.name}'`);
+        for (let warmUpRuns = 0; warmUpRuns < config.WARM_UP_RUNS; warmUpRuns++) {
+            const progressText = `(${testIndex + 1}/${numOfTests}) Warmup for test '${testConfig.name}' (iteration ${warmUpRuns + 1}/${config.WARM_UP_RUNS})`;
             warmupLogs.updateText(progressText);
 
             await restartApp();
@@ -116,8 +119,8 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
 
         // We run each test multiple time to average out the results
         const testLog = Logger.progressInfo('');
-        for (let i = 0; i < RUNS; i++) {
-            const progressText = `(${testIndex + 1}/${numOfTests}) Running test '${config.name}' (iteration ${i + 1}/${RUNS})`;
+        for (let i = 0; i < config.RUNS; i++) {
+            const progressText = `(${testIndex + 1}/${numOfTests}) Running test '${testConfig.name}' (iteration ${i + 1}/${config.RUNS})`;
             testLog.updateText(progressText);
 
             await restartApp();
@@ -142,7 +145,7 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
 
     // Calculate statistics and write them to our work file
     progressLog = Logger.progressInfo('Calculating statics and writing results');
-    const outputFileName = `${OUTPUT_DIR}/${baselineOrCompare}.json`;
+    const outputFileName = `${config.OUTPUT_DIR}/${baselineOrCompare}.json`;
     for (const testName of _.keys(durationsByTestName)) {
         const stats = math.getStats(durationsByTestName[testName]);
         await writeTestStats(
@@ -175,12 +178,12 @@ const runTests = async () => {
         Logger.info('\n\nE2E test suite failed due to error:', e, '\nPrinting full logs:\n\n');
 
         // Write logcat, meminfo, emulator info to file as well:
-        require('node:child_process').execSync(`adb logcat -d > ${OUTPUT_DIR}/logcat.txt`);
-        require('node:child_process').execSync(`adb shell "cat /proc/meminfo" > ${OUTPUT_DIR}/meminfo.txt`);
-        require('node:child_process').execSync(`cat ~/.android/avd/${process.env.AVD_NAME || 'test'}.avd/config.ini > ${OUTPUT_DIR}/emulator-config.ini`);
-        require('node:child_process').execSync(`adb shell "getprop" > ${OUTPUT_DIR}/emulator-properties.txt`);
+        require('node:child_process').execSync(`adb logcat -d > ${config.OUTPUT_DIR}/logcat.txt`);
+        require('node:child_process').execSync(`adb shell "cat /proc/meminfo" > ${config.OUTPUT_DIR}/meminfo.txt`);
+        require('node:child_process').execSync(`cat ~/.android/avd/${process.env.AVD_NAME || 'test'}.avd/config.ini > ${config.OUTPUT_DIR}/emulator-config.ini`);
+        require('node:child_process').execSync(`adb shell "getprop" > ${config.OUTPUT_DIR}/emulator-properties.txt`);
 
-        require('node:child_process').execSync(`cat ${LOG_FILE}`);
+        require('node:child_process').execSync(`cat ${config.LOG_FILE}`);
         process.exit(1);
     }
 };

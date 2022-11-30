@@ -10,6 +10,15 @@ const TEST_NAMES = {
     AppStartTime: 'App start time',
 };
 
+/**
+ * Default config, used by CI by default.
+ * You can modify these values for your test run by creating a
+ * separate config file and pass it to the test runner like this:
+ *
+ * ```bash
+ * npm run test:e2e -- --config ./path/to/your/config.js
+ * ```
+ */
 module.exports = {
     APP_PACKAGE: 'com.expensify.chat',
 
@@ -20,9 +29,6 @@ module.exports = {
     RUNS: 30,
 
     DEFAULT_BASELINE_BRANCH: 'main',
-
-    // The amount of outliers to remove from a dataset before calculating the average
-    DROP_WORST: 8,
 
     // The amount of runs that should happen without counting test results
     WARM_UP_RUNS: 3,
