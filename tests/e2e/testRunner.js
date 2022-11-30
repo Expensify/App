@@ -53,11 +53,30 @@ const restartApp = async () => {
 };
 
 const runTestsOnBranch = async (branch, baselineOrCompare) => {
-    if (!args.includes('--skipInstallDeps') && !args.includes('--skipBuild')) {
-        // Switch branch and install dependencies
-        Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}'`);
-        await execAsync(`git checkout ${branch}`);
+    // There are three build modes:
+    // 1. full: rebuilds the full native app in (e2e) release mode
+    // 2. js-only: only rebuilds the js bundle, and then re-packages
+    //             the existing native app with the new package. If there
+    //             is no existing native app, it will fallback to mode "full"
+    // 3. skip: does not rebuild anything, and just runs the existing native app
+    let buildMode = 'full';
+    if (args.includes('--buildMode')) {
+        buildMode = args[args.indexOf('--buildMode') + 1];
     }
+    let appPath = baselineOrCompare === 'baseline' ? config.APP_PATHS.baseline : config.APP_PATHS.compare;
+
+    // check if using buildMode "js-only" or "none" is possible
+    if (buildMode !== 'full') {
+        const appExists = fs.existsSync(appPath);
+        if (!appExists) {
+            Logger.warn(`Build mode "${buildMode}" is not possible, because the app does not exist. Falling back to build mode "full".`);
+            buildMode = 'full';
+        }
+    }
+
+    // Switch branch
+    Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}'`);
+    await execAsync(`git checkout ${branch}`);
 
     if (!args.includes('--skipInstallDeps')) {
         Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}' - npm install`);
@@ -65,14 +84,26 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
     }
 
     // Build app
-    if (!args.includes('--skipBuild')) {
+    if (buildMode === 'full') {
         Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}' - building app`);
         await execAsync('npm run android-build-e2e');
+    } else if (buildMode === 'js-only') {
+        Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}' - building js bundle`);
+
+        // Build a new JS bundle
+        const tempDir = `${config.OUTPUT_DIR}/temp`;
+        const tempBundlePath = `${tempDir}/index.android.bundle`;
+        await execAsync(`rm -rf ${tempDir} && mkdir ${tempDir}`);
+        await execAsync(`npx react-native bundle --platform android --dev false --entry-file ${config.ENTRY_FILE} --bundle-output ${tempBundlePath}`);
+
+        // Repackage the existing native app with the new bundle
+        const tempApkPath = `${tempDir}/app-release.apk`;
+        await execAsync(`./scripts/android-repackage-app-bundle-and-sign.sh ${appPath} ${tempBundlePath} ${tempApkPath}`);
+        appPath = tempApkPath;
     }
 
     // Install app and reverse port
     let progressLog = Logger.progressInfo('Installing app and reversing port');
-    const appPath = baselineOrCompare === 'baseline' ? config.APP_PATHS.baseline : config.APP_PATHS.compare;
     await installApp('android', appPath);
     await reversePort();
     progressLog.done();

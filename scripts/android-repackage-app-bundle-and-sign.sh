@@ -18,6 +18,7 @@
 BUILD_TOOLS=$ANDROID_SDK_ROOT/build-tools/31.0.0
 APK=$1
 NEW_BUNDLE_FILE=$2
+OUTPUT_APK=$3
 
 ### Helper function to use echo but print text in bold
 function echo_bold() {
@@ -26,12 +27,8 @@ function echo_bold() {
 
 ### Validating inputs
 
-if [ -z "$APK" ]; then
-    echo "Usage: $0 <apk> <new-bundle-file>"
-    exit 1
-fi
-if [ -z "$NEW_BUNDLE_FILE" ]; then
-    echo "Usage: $0 <apk> <new-bundle-file>"
+if [ -z "$APK" ] || [ -z "$NEW_BUNDLE_FILE" ] || [ -z "$OUTPUT_APK" ]; then
+    echo "Usage: $0 <apk> <new-bundle-file> <output-apk>"
     exit 1
 fi
 APK=$(realpath $APK)
@@ -44,6 +41,7 @@ if [ ! -f "$NEW_BUNDLE_FILE" ]; then
     echo "Bundle file not found: $NEW_BUNDLE_FILE"
     exit 1
 fi
+OUTPUT_APK=$(realpath $OUTPUT_APK)
 # check if "apktool" command is available
 if ! command -v apktool &> /dev/null
 then
@@ -100,6 +98,8 @@ $BUILD_TOOLS/apksigner sign  --v4-signing-enabled true --ks $KEYSTORE --ks-pass 
 ### Copy back to original location
 
 echo_bold "Copying back to original location..."
-cp app-aligned.apk "$ORIGINAL_WD/app-repacked-signed.apk"
-echo "Done. Repacked app is at $ORIGINAL_WD/app-repacked-signed.apk"
+cp app-aligned.apk "$OUTPUT_APK"
+echo "Done. Repacked app is at $OUTPUT_APK"
+rm -rf "$TMP_DIR"
+cd "$ORIGINAL_WD"
 
