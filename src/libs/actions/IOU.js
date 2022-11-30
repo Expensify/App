@@ -1030,6 +1030,8 @@ function payMoneyRequestViaPaypal(chatReport, iouReport, recipient) {
     API.write('PayMoneyRequestViaPaypal', params, {optimisticData, successData, failureData});
 
     Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
+
+    asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(iouReport.total, recipient.payPalMeAddress, iouReport.currency));
 }
 
 export {
