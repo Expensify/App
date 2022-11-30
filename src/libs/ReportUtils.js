@@ -404,7 +404,7 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
  */
 function formatReportLastMessageText(lastMessageText) {
     return String(lastMessageText)
-        .replace(CONST.REGEX.CONSECUTIVE_SPACES, ' ')
+        .replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '')
         .substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
 }
 
