@@ -149,7 +149,7 @@ platform :ios do
             method: "ad-hoc",
             provisioningProfiles: {
               "com.chat.expensify.chat" => "chat_expensify_adhoc",
-            }
+            },
             manageAppVersionAndBuildNumber: false
         }
     )
