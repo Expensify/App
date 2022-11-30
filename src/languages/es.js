@@ -597,6 +597,7 @@ export default {
             addressStreet: 'Ingresa una calle de dirección válida que no sea un apartado postal',
             addressState: 'Por favor, selecciona un estado',
             incorporationDate: 'Ingresa una fecha válida',
+            incorporationDateFuture: 'La fecha de incorporación no puede ser futura',
             incorporationState: 'Ingresa un estado válido',
             industryCode: 'Ingresa un código de clasificación de industria válido',
             restrictedBusiness: 'Confirma que la empresa no está en la lista de negocios restringidos',
