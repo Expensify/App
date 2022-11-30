@@ -188,6 +188,11 @@ class Composer extends React.Component {
         this.textInput.removeEventListener('wheel', this.handleWheel);
     }
 
+    /**
+     * Updates the text of the input.
+     * Useful when e.g. adding emojis using an emoji picker.
+     * @param {String} text
+     */
     setText(text) {
         this.textInput.value = text;
 
@@ -196,6 +201,11 @@ class Composer extends React.Component {
         this.updateNumberOfLines();
     }
 
+    /**
+     * Sets the selection of the input.
+     * @param {Number} start
+     * @param {Number} end
+     */
     setSelection(start, end) {
         this.textInput.setSelectionRange(start, end);
     }
@@ -374,6 +384,13 @@ class Composer extends React.Component {
         });
     }
 
+    /**
+     * Wrapper around the text input's focus method
+     * with the possibility to add a delay and a callback
+     * that gets called once the input is focused.
+     * @param {Function} [onDone] Called once the input is focused
+     * @param {Boolean} [delay=false] Whether to delay the focus
+     */
     focus(onDone, delay) {
         setTimeout(() => {
             this.textInput.focusInput();

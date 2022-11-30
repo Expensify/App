@@ -110,10 +110,23 @@ class Composer extends React.Component {
         this.props.onChangeText(text);
     }
 
+    /**
+     * Sets the text of the input.
+     * @param {String} text
+     */
     setText(text) {
         this.setState({value: text});
     }
 
+    /**
+     * Wrapper around the text input's focus method
+     * with the possibility to add a delay and a callback.
+     * Note: it always uses the interaction manager to focus
+     * once any other interactions are done.
+     *
+     * @param {Function} [onDone] Called once the input is focused
+     * @param {Boolean} [delay=false] Whether to delay the focus
+     */
     focus(onDone, delay) {
         setTimeout(() => {
             // There could be other animations running while we trigger manual focus.

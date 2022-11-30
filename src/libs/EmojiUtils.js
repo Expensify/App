@@ -186,7 +186,12 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
 /**
  * Replace any emoji name in a text with the emoji icon
  * @param {String} text
- * @returns {{ newText: String, lastReplacedSelection: { start: Number, end: Number, newSelectionEnd: Number } }}
+ * @returns {Object} results
+ * @returns {String} results.newText
+ * @returns {Object} results.lastReplacedSelection
+ * @returns {Number} results.lastReplacedSelection.start
+ * @returns {Number} results.lastReplacedSelection.end
+ * @returns {Number} results.lastReplacedSelection.newSelectionEnd
  */
 function replaceEmojis(text) {
     let newText = text;
