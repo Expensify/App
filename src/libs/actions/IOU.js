@@ -1029,7 +1029,7 @@ function payMoneyRequestViaPaypal(chatReport, iouReport, recipient) {
 
     API.write('PayMoneyRequestViaPaypal', params, {optimisticData, successData, failureData});
 
-    Navigation.navigate(ROUTES.getReportRoute(params.chatReportID));
+    Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
 }
 
 export {
