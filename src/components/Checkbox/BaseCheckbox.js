@@ -7,12 +7,13 @@ import stylePropTypes from '../../styles/stylePropTypes';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 
+/* eslint-disable rulesdir/prefer-early-return */
 const requiredPropsCheck = (props, componentName) => {
     if (!props.onMouseDown && !props.onPress) {
-        return;
+        return new Error(`One of "onMouseDown" or "onPress" must be provided in ${componentName}`);
     }
-    return new Error(`One of "onMouseDown" or "onPress" must be provided in ${componentName}`);
 };
+/* eslint-enable */
 
 const propTypes = {
     /** Whether checkbox is checked */

@@ -3,9 +3,9 @@ import BaseCheckbox from './BaseCheckbox';
 
 const Checkbox = props => (
     <BaseCheckbox
-        onMouseDown={props.onMouseDown ? props.onMouseDown : props.onPress}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
+        onMouseDown={props.onMouseDown ? props.onMouseDown : props.onPress}
     />
 );
 
