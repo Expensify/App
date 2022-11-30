@@ -226,35 +226,6 @@ class AdditionalDetailsStep extends React.Component {
         Wallet.updatePersonalDetails(personalDetails);
     }
 
-    /**
-     * Clear both errors associated with dob, and set the new value.
-     *
-     * @param {String} value
-     */
-    clearDateErrorsAndSetValue(value) {
-        this.formHelper.clearErrors(this.props, ['dob', 'age']);
-        Wallet.updateAdditionalDetailsDraft({dob: moment(value).format(CONST.DATE.MOMENT_FORMAT_STRING)});
-    }
-
-    /**
-     * Clear ssn and ssnFull9 error and set the new value
-     *
-     * @param {String} value
-     */
-    clearSSNErrorAndSetValue(value) {
-        this.formHelper.clearErrors(this.props, ['ssn', 'ssnFull9']);
-        Wallet.updateAdditionalDetailsDraft({ssn: value});
-    }
-
-    /**
-     * @param {String} fieldName
-     * @param {String} value
-     */
-    clearErrorAndSetValue(fieldName, value) {
-        Wallet.updateAdditionalDetailsDraft({[fieldName]: value});
-        this.clearError(fieldName);
-    }
-
     render() {
         if (!_.isEmpty(this.props.walletAdditionalDetails.questions)) {
             return (

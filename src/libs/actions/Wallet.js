@@ -525,13 +525,6 @@ function openEnablePaymentsPage() {
 }
 
 /**
- * @param {Object} keyValuePair
- */
-function updateAdditionalDetailsDraft(keyValuePair) {
-    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS_DRAFT, keyValuePair);
-}
-
-/**
  * @param {String} currentStep
  */
 function updateCurrentStep(currentStep) {
@@ -580,7 +573,6 @@ export {
     openInitialSettingsPage,
     openEnablePaymentsPage,
     setAdditionalDetailsErrors,
-    updateAdditionalDetailsDraft,
     setAdditionalDetailsErrorMessage,
     setAdditionalDetailsQuestions,
     buildIdologyError,

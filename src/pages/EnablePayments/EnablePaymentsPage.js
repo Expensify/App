@@ -104,9 +104,6 @@ export default compose(
             // stored values here.
             initWithStoredValues: false,
         },
-        walletAdditionalDetailsDraft: {
-            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS_DRAFT,
-        },
     }),
     withNetwork(),
 )(EnablePaymentsPage);
