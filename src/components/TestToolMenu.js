@@ -13,9 +13,12 @@ import Button from './Button';
 import TestToolRow from './TestToolRow';
 import networkPropTypes from './networkPropTypes';
 import compose from '../libs/compose';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import {withNetwork} from './OnyxProvider';
 
 const propTypes = {
+    ...withLocalizePropTypes,
+
     /** User object in Onyx */
     user: PropTypes.shape({
         /** Whether we should use the staging version of the secure API server */
@@ -40,7 +43,7 @@ const TestToolMenu = props => (
 
         {/* Option to switch from using the staging secure endpoint or the production secure endpoint.
         This enables QA and internal testers to take advantage of sandbox environments for 3rd party services like Plaid and Onfido. */}
-        <TestToolRow title="Use Staging Server">
+        <TestToolRow title={props.translate('testTool.useStaging')}>
             <Switch
                 isOn={lodashGet(props, 'user.shouldUseStagingServer', true)}
                 onToggle={() => User.setShouldUseStagingServer(!lodashGet(props, 'user.shouldUseStagingServer', true))}
@@ -48,7 +51,7 @@ const TestToolMenu = props => (
         </TestToolRow>
 
         {/* When toggled all network requests will fail. */}
-        <TestToolRow title="Simulate failing network requests">
+        <TestToolRow title={props.translate('testTool.simulateFailingNetwork')}>
             <Switch
                 isOn={props.network.shouldFailAllRequests || false}
                 onToggle={() => Network.setShouldFailAllRequests(!props.network.shouldFailAllRequests)}
@@ -56,19 +59,19 @@ const TestToolMenu = props => (
         </TestToolRow>
 
         {/* Instantly invalidates a user's local authToken. Useful for testing flows related to reauthentication. */}
-        <TestToolRow title="Authentication status">
+        <TestToolRow title={props.translate('testTool.authenticationStatus')}>
             <Button
                 small
-                text="Invalidate"
+                title={props.translate('testTool.invalidate')}
                 onPress={() => Session.invalidateAuthToken()}
             />
         </TestToolRow>
 
         {/* Invalidate stored user auto-generated credentials. Useful for manually testing sign out logic. */}
-        <TestToolRow title="Device credentials">
+        <TestToolRow title={props.translate('testTool.deviceCredentials')}>
             <Button
                 small
-                text="Destroy"
+                title={props.translate('testTool.destroy')}
                 onPress={() => Session.invalidateCredentials()}
             />
         </TestToolRow>
@@ -80,6 +83,7 @@ TestToolMenu.defaultProps = defaultProps;
 TestToolMenu.displayName = 'TestToolMenu';
 
 export default compose(
+    withLocalize,
     withNetwork(),
     withOnyx({
         user: {
