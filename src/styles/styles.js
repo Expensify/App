@@ -1334,6 +1334,7 @@ const styles = {
         marginTop: -2,
         marginBottom: -2,
         maxWidth: '100%',
+        cursor: 'auto',
         ...whiteSpace.preWrap,
         ...wordBreak.breakWord,
     },
@@ -2150,7 +2151,7 @@ const styles = {
     },
 
     checkedContainer: {
-        backgroundColor: themeColors.link,
+        backgroundColor: themeColors.checkBox,
     },
 
     iouAmountText: {
