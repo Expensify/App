@@ -101,6 +101,18 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
     const numOfTests = _.values(config.TESTS_CONFIG).length;
     for (let testIndex = 0; testIndex < numOfTests; testIndex++) {
         const testConfig = _.values(config.TESTS_CONFIG)[testIndex];
+
+        // check if we want to skip the text
+        if (args.includes('--includes')) {
+            const includes = args[args.indexOf('--includes') + 1];
+
+            // assume that "includes" is a regexp
+            if (!testConfig.name.match(includes)) {
+                // eslint-disable-next-line no-continue
+                continue;
+            }
+        }
+
         server.setTestConfig(testConfig);
 
         const warmupLogs = Logger.progressInfo(`Running test '${testConfig.name}'`);
