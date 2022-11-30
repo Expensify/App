@@ -146,7 +146,7 @@ function getParticipantNames(personalDetailList) {
 }
 
 /**
- * A very optimized method to remove unique items from an array.
+ * A very optimized method to remove duplicates from an array.
  * Taken from https://stackoverflow.com/a/9229821/9114791
  *
  * @param {Array} items
@@ -186,7 +186,7 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
     if (!isChatRoomOrPolicyExpenseChat) {
         for (let i = 0; i < personalDetailList.length; i++) {
             const personalDetail = personalDetailList[i];
-            searchTerms = searchTerms.concat([personalDetail.displayName, personalDetail.login.replace(/\./g, '')]);
+            searchTerms = searchTerms.concat([personalDetail.displayName, personalDetail.login, personalDetail.login.replace(/\./g, '')]);
         }
     }
     if (report) {
@@ -381,16 +381,13 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
  * @returns {Boolean}
  */
 function isSearchStringMatch(searchValue, searchText, participantNames = new Set(), isChatRoom = false) {
-    const searchWords = _.map(
-        searchValue
-            .replace(/\./g, '')
-            .replace(/,/g, ' ')
-            .split(' '),
-        word => word.trim(),
-    );
-    return _.every(searchWords, (word) => {
+    const searchWords = _.compact(uniqFast([
+        searchValue,
+        ..._.map(searchValue.replace(/,/g, ' ').split(' '), word => word.trim()),
+    ]));
+    const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
+    return _.some(searchWords, (word) => {
         const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
-        const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
         return matchRegex.test(valueToSearch) || (!isChatRoom && participantNames.has(word));
     });
 }
