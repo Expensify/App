@@ -35,9 +35,11 @@ const propTypes = {
         PropTypes.func,
         PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
     ]),
-/** A function that is called when the box/label is pressed */
+
+    /** A function that is called when the box/label is pressed */
     onPress: requiredPropsCheck,
-/** Callback that is called when mousedown is triggered. */
+
+    /** Callback that is called when mousedown is triggered. */
     onMouseDown: requiredPropsCheck,
 };
 
