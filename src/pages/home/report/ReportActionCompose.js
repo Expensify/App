@@ -633,16 +633,6 @@ class ReportActionCompose extends React.Component {
                                         onDragLeave={() => {
                                             this.setState({isDraggingOver: false});
                                         }}
-                                        shouldAcceptDrop={(e) => {
-                                            if (e.dataTransfer.types) {
-                                                for (let i = 0; i < e.dataTransfer.types.length; i++) {
-                                                    if (e.dataTransfer.types[i] === 'Files') {
-                                                        return true;
-                                                    }
-                                                }
-                                            }
-                                            return false;
-                                        }}
                                         onDrop={(e) => {
                                             e.preventDefault();
 

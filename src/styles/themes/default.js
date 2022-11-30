@@ -56,6 +56,7 @@ const darkTheme = {
     placeholderText: colors.greenIcons,
     heroCard: colors.blue,
     uploadPreviewActivityIndicator: colors.greenHighlightBackground,
+    dropUIBG: 'rgba(11,27,52,0.6)',
     checkBox: colors.green,
 };
 
@@ -97,7 +98,7 @@ const oldTheme = {
     placeholderText: colors.gray3,
     heroCard: colors.blue,
     uploadPreviewActivityIndicator: colors.gray1,
-    dropUIBG: 'rgba(255, 255, 255, 0.96)',
+    dropUIBG: 'rgba(11,27,52,0.6)',
     cardBG: colors.gray1,
     cardBorder: colors.gray1,
     checkBox: colors.blue,

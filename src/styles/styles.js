@@ -2784,7 +2784,7 @@ const styles = {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: themeColors.dropUIBG,
+        backgroundColor: 'rgba(11,27,52,0.6)',
         zIndex: 2,
     },
 

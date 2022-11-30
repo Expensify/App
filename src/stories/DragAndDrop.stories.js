@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
-import {View} from 'react-native';
+import {View, Image} from 'react-native';
 import {PortalHost, PortalProvider} from '@gorhom/portal';
+import lodashGet from 'lodash/get';
 import Text from '../components/Text';
 import DragAndDrop from '../components/DragAndDrop';
 import DropZone from '../components/DragAndDrop/DropZone';
@@ -19,6 +20,8 @@ const story = {
 const Default = () => {
     const [draggingOver, setDraggingOver] = useState(false);
 
+    const [fileUrl, setFileUrl] = useState('');
+
     return (
         <PortalProvider>
             {/* DragAndDrop does not need to render drop area as children since it is connected to it via id, which gives us flexibility to bring DragAndDrop where your
@@ -32,17 +35,29 @@ const Default = () => {
                 onDragLeave={() => {
                     setDraggingOver(false);
                 }}
-                onDrop={() => {
+                onDrop={(e) => {
+                    const file = lodashGet(e, ['dataTransfer', 'files', 0]);
+                    if (file && file.type.includes('image')) {
+                        setFileUrl(URL.createObjectURL(file));
+                    }
                     setDraggingOver(false);
                 }}
             >
                 <View
                     style={[{
-                        width: 200, height: 200, backgroundColor: 'beige',
+                        width: 200, height: 200, backgroundColor: 'beige', borderColor: 'black', borderWidth: 1,
                     }, styles.alignItemsCenter, styles.justifyContentCenter]}
                     nativeID="dropId"
                 >
-                    <Text>Drop area</Text>
+                    { fileUrl ? (
+                        <Image
+                            source={{uri: fileUrl}}
+                            style={{
+                                width: 200,
+                                height: 200,
+                            }}
+                        />
+                    ) : <Text color="black">Drop a picture here!</Text>}
                     {/* Portals give us flexibility to render active drag overlay regardless of your react component structure */}
                     <PortalHost name="portalHost" />
                 </View>
@@ -51,11 +66,7 @@ const Default = () => {
                 <DropZone
                     dropZoneViewHolderName="portalHost"
                     dropZoneId="activeDropZoneId"
-                >
-                    <Text style={styles.h3}>
-                        Active drag overlay
-                    </Text>
-                </DropZone>
+                />
             )}
         </PortalProvider>
     );
