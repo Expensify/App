@@ -24,6 +24,7 @@ import MenuItem from '../components/MenuItem';
 import AttachmentModal from '../components/AttachmentModal';
 import PressableWithoutFocus from '../components/PressableWithoutFocus';
 import * as Report from '../libs/actions/Report';
+import OfflineWithFeedback from '../components/OfflineWithFeedback';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -134,12 +135,16 @@ class DetailsPage extends React.PureComponent {
                                             style={styles.noOutline}
                                             onPress={show}
                                         >
-                                            <Avatar
-                                                containerStyles={[styles.avatarLarge, styles.mb3]}
-                                                imageStyles={[styles.avatarLarge]}
-                                                source={details.avatar}
-                                                size={CONST.AVATAR_SIZE.LARGE}
-                                            />
+                                            <OfflineWithFeedback
+                                                pendingAction={lodashGet(details, 'pendingFields.avatar', null)}
+                                            >
+                                                <Avatar
+                                                    containerStyles={[styles.avatarLarge, styles.mb3]}
+                                                    imageStyles={[styles.avatarLarge]}
+                                                    source={details.avatar}
+                                                    size={CONST.AVATAR_SIZE.LARGE}
+                                                />
+                                            </OfflineWithFeedback>
                                         </PressableWithoutFocus>
                                     )}
                                 </AttachmentModal>
