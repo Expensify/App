@@ -206,12 +206,13 @@ class BaseOptionsSelector extends Component {
      */
     selectRow(option, ref) {
         if (this.props.shouldFocusOnSelectRow) {
-            // Input is permanently focused on native platforms, so we always highlight the text inside of it
-            setSelection(this.textInput, 0, this.props.value.length);
             if (this.relatedTarget && ref === this.relatedTarget) {
                 this.textInput.focus();
+                this.relatedTarget = null;
             }
-            this.relatedTarget = null;
+            if (this.textInput.isFocused()) {
+                setSelection(this.textInput, 0, this.props.value.length);
+            }
         }
         this.props.onSelectRow(option);
 
