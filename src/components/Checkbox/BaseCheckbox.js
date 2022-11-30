@@ -7,6 +7,13 @@ import stylePropTypes from '../../styles/stylePropTypes';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 
+const requiredPropsCheck = (props, componentName) => {
+    if (!props.onMouseDown && !props.onPress) {
+        return;
+    }
+    return new Error(`One of "onMouseDown" or "onPress" must be provided in ${componentName}`);
+};
+
 const propTypes = {
     /** Whether checkbox is checked */
     isChecked: PropTypes.bool,
@@ -29,19 +36,9 @@ const propTypes = {
         PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
     ]),
 
-    onPress: (props, componentName) => {
-        if (props.onPress && props.onMouseDown) {
-            return;
-        }
-        return new Error(`One of props 'onPress' or 'onMouseDown' was not specified in '${componentName}'.`);
-    },
+    onPress: requiredPropsCheck,
 
-    onMouseDown: (props, componentName) => {
-        if (props.onPress && props.onMouseDown) {
-            return;
-        }
-        return new Error(`One of props 'onMouseDown' or 'onPress' was not specified in '${componentName}'.`);
-    },
+    onMouseDown: requiredPropsCheck,
 };
 
 const defaultProps = {
