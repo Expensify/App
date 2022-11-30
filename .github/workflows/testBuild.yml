@@ -50,12 +50,10 @@ jobs:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Configure AWS Credentials
-        # Version: 1.5.5
-        uses: aws-actions/configure-aws-credentials@e97d7fbc8e0e5af69631c13daa0f4b5a8d88165b
+        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Run Fastlane beta test
         id: runFastlaneBetaTest
@@ -108,12 +106,10 @@ jobs:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Configure AWS Credentials
-        # Version: 1.5.5
-        uses: aws-actions/configure-aws-credentials@e97d7fbc8e0e5af69631c13daa0f4b5a8d88165b
+        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Run Fastlane
         run: bundle exec fastlane ios build_internal
@@ -148,12 +144,10 @@ jobs:
           DEVELOPER_ID_SECRET_PASSPHRASE: ${{ secrets.DEVELOPER_ID_SECRET_PASSPHRASE }}
 
       - name: Configure AWS Credentials
-        # Version: 1.5.5
-        uses: aws-actions/configure-aws-credentials@e97d7fbc8e0e5af69631c13daa0f4b5a8d88165b
+        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Build desktop app for testing
         run: npm run desktop-build-internal -- --publish always
