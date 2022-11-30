@@ -1275,6 +1275,10 @@ const styles = {
         paddingVertical: 16,
     },
 
+    chatContentRecipientLocalTime: {
+        paddingTop: 1,
+    },
+
     // Chat Item
     chatItem: {
         display: 'flex',

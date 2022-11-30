@@ -159,7 +159,10 @@ class ReportActionsList extends React.Component {
                     renderItem={this.renderItem}
                     contentContainerStyle={[
                         styles.chatContentScrollView,
-                        shouldShowReportRecipientLocalTime && styles.pt0,
+
+                        // We set padding-top > 0 so that when the keyboard is closed
+                        // and the scroll position is at the end, it will scroll to the end of the list
+                        shouldShowReportRecipientLocalTime && styles.chatContentRecipientLocalTime,
                     ]}
                     keyExtractor={this.keyExtractor}
                     initialRowHeight={32}
