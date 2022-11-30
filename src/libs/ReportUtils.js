@@ -689,7 +689,7 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
             currency,
         });
 
-    // stateNum 2: report is settled (submitted)
+    // If we're sending money, hasOutstandingIOU should be false
     return {
         cachedTotal: formattedTotal,
         chatReportID,
@@ -699,7 +699,9 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
         ownerEmail,
         reportID: generateReportID(),
         state: CONST.REPORT.STATE.SUBMITTED,
-        stateNum: isSendingMoney ? 2 : 1,
+        stateNum: isSendingMoney
+            ? CONST.REPORT.STATE_NUM.SUBMITTED
+            : CONST.REPORT.STATE_NUM.PROCESSING,
         total,
     };
 }
