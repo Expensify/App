@@ -170,51 +170,52 @@ class AdditionalDetailsStep extends React.Component {
         const errors = {};
 
         if (!this.getFirstName()) {
-            errors.legalFirstName = true;
+            errors[INPUT_IDS.LEGAL_FIRST_NAME] = 'Invalid First Name';
         }
 
-        if (!this.getLastName()) {
-            errors.legalLastName = true;
-        }
-
-        if (!ValidationUtils.isValidPastDate(this.props.walletAdditionalDetailsDraft.dob)) {
-            errors.dob = true;
-        }
-
-        if (!ValidationUtils.meetsAgeRequirements(this.props.walletAdditionalDetailsDraft.dob)) {
-            errors.age = true;
-        }
-
-        if (!ValidationUtils.isValidAddress(this.props.walletAdditionalDetailsDraft.addressStreet)) {
-            errors.addressStreet = true;
-        }
-
-        if (_.isEmpty(this.props.walletAdditionalDetailsDraft.addressCity)) {
-            errors.addressCity = true;
-        }
-
-        if (_.isEmpty(this.props.walletAdditionalDetailsDraft.addressState)) {
-            errors.addressState = true;
-        }
-
-        if (!ValidationUtils.isValidZipCode(this.props.walletAdditionalDetailsDraft.addressZip)) {
-            errors.addressZip = true;
-        }
-
-        if (!ValidationUtils.isValidUSPhone(this.props.walletAdditionalDetailsDraft.phoneNumber, true)) {
-            errors.phoneNumber = true;
-        }
-
-        if (this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN) {
-            if (!ValidationUtils.isValidSSNFullNine(this.props.walletAdditionalDetailsDraft.ssn)) {
-                errors.ssnFull9 = true;
-            }
-        } else if (!ValidationUtils.isValidSSNLastFour(this.props.walletAdditionalDetailsDraft.ssn)) {
-            errors.ssn = true;
-        }
-
-        Wallet.setAdditionalDetailsErrors(errors);
-        return _.size(errors) === 0;
+        // if (!this.getLastName()) {
+        //     errors.legalLastName = true;
+        // }
+        //
+        // if (!ValidationUtils.isValidPastDate(this.props.walletAdditionalDetailsDraft.dob)) {
+        //     errors.dob = true;
+        // }
+        //
+        // if (!ValidationUtils.meetsAgeRequirements(this.props.walletAdditionalDetailsDraft.dob)) {
+        //     errors.age = true;
+        // }
+        //
+        // if (!ValidationUtils.isValidAddress(this.props.walletAdditionalDetailsDraft.addressStreet)) {
+        //     errors.addressStreet = true;
+        // }
+        //
+        // if (_.isEmpty(this.props.walletAdditionalDetailsDraft.addressCity)) {
+        //     errors.addressCity = true;
+        // }
+        //
+        // if (_.isEmpty(this.props.walletAdditionalDetailsDraft.addressState)) {
+        //     errors.addressState = true;
+        // }
+        //
+        // if (!ValidationUtils.isValidZipCode(this.props.walletAdditionalDetailsDraft.addressZip)) {
+        //     errors.addressZip = true;
+        // }
+        //
+        // if (!ValidationUtils.isValidUSPhone(this.props.walletAdditionalDetailsDraft.phoneNumber, true)) {
+        //     errors.phoneNumber = true;
+        // }
+        //
+        // if (this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN) {
+        //     if (!ValidationUtils.isValidSSNFullNine(this.props.walletAdditionalDetailsDraft.ssn)) {
+        //         errors.ssnFull9 = true;
+        //     }
+        // } else if (!ValidationUtils.isValidSSNLastFour(this.props.walletAdditionalDetailsDraft.ssn)) {
+        //     errors.ssn = true;
+        // }
+        //
+        // Wallet.setAdditionalDetailsErrors(errors);
+        // return _.size(errors) === 0;
+        return errors;
     }
 
     activateWallet() {
@@ -348,7 +349,7 @@ export default compose(
     withCurrentUserPersonalDetails,
     withOnyx({
         walletAdditionalDetails: {
-            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS_FORM,
             initWithStoredValues: false,
         },
     }),
