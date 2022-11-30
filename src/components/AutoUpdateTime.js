@@ -1,20 +1,26 @@
 import {View} from 'react-native';
 import React, {PureComponent} from 'react';
 import moment from 'moment';
+import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import DateUtils from '../libs/DateUtils';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import personalDetailsPropType from '../pages/personalDetailsPropType';
 import Timers from '../libs/Timers';
 import Text from './Text';
 
 const propTypes = {
-    details: personalDetailsPropType,
+    timezone: PropTypes.shape({
+    // Value of selected timezone
+        selected: PropTypes.string,
+
+        // Whether timezone is automatically set
+        automatic: PropTypes.bool,
+    }),
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    details: {},
+    timezone: null,
 };
 
 class AutoUpdateTime extends PureComponent {
@@ -40,11 +46,11 @@ class AutoUpdateTime extends PureComponent {
 
     getCurrentUserLocalTime() {
         // if timezone isn't set, use local time instead.
-        return this.props.details.timezone
+        return this.props.timezone
             ? DateUtils.getLocalMomentFromDatetime(
                 this.props.preferredLocale,
                 null,
-                this.props.details.timezone.selected,
+                this.props.timezone.selected,
             )
             : moment();
     }

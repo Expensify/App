@@ -173,7 +173,7 @@ class DetailsPage extends React.PureComponent {
                                         </Text>
                                     </View>
                                 ) : null}
-                                {shouldShowLocalTime && <AutoUpdateTime details={details} />}
+                                {shouldShowLocalTime && <AutoUpdateTime timezone={details.timezone} />}
                             </View>
                             {details.login !== this.props.session.email && (
                                 <MenuItem
