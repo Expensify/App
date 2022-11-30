@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
-import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import Text from '../../../components/Text';
 import TermsAndLicenses from '../TermsAndLicenses';
