@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   pull_request_target:
     types: [opened, synchronize]
-    branches: ['**/ci-test/**']
+    branches: ['*ci-test/**']
 
 env:
   DEVELOPER_DIR: /Applications/Xcode_14.0.1.app/Contents/Developer
