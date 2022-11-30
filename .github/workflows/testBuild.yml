@@ -193,6 +193,8 @@ jobs:
           "Use the links below to test this build in android and iOS. Happy testing!
           | android :robot:  | iOS :apple: | 
           | ------------- | ------------- |
-          | ${{fromJson(steps.set_var.outputs.android_paths).html_path}}  | ${{fromJson(steps.set_var.outputs.ios_paths).html_path}}  |"
+          | ${{fromJson(steps.set_var.outputs.android_paths).html_path}}  | ${{fromJson(steps.set_var.outputs.ios_paths).html_path}}  |
+          | ------------- | ------------- |
+          | ![Android](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.android_paths).html_path}}) | ![iOS](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.ios_paths).html_path}}) |"
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
