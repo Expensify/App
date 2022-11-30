@@ -835,11 +835,8 @@ function sendMoneyWithWallet(chatReportID, amount, currency, comment, participan
         {
             params,
         },
-        {
-            optimisticData,
-            successData,
-            failureData,
-        });
+        { optimisticData, successData, failureData }
+    );
 }
 
 /**
@@ -929,11 +926,8 @@ function payMoneyRequestWithWallet(chatReportID, iouReportID, amount, currency, 
         {
             params,
         },
-        {
-            optimisticData,
-            successData,
-            failureData,
-        });
+        { optimisticData, successData, failureData }
+    );
 }
 
 export {
