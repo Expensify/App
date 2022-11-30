@@ -732,7 +732,10 @@ function payIOUReport({
  */
 function sendMoneyWithWallet(chatReportID, amount, currency, comment, participants) {
     const chatReport = _.empty(chatReportID) ? ReportUtils.buildOptimisticChatReport(participants) : chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
-    const ownerEmail = chatReport.ownerEmail === CONST.REPORT.OWNER_EMAIL_FAKE ? participants[0].login : chatReport.ownerEmail;
+
+    // If the ownerEmail of the chat is fake then this is a optimistic report, and the owner should be the first of the participants
+    // Otherwise just use the owner email from the chatReport as that should be who created the report
+    const ownerEmail = chatReport.ownerEmail === CONST.REPORT.OWNER_EMAIL_FAKE || _.isEmpty(chatReport.ownerEmail) ? participants[0].login : chatReport.ownerEmail;
     const userEmail = _.find(participants, participant => participant.login !== ownerEmail);
     const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(
         ownerEmail,
