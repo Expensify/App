@@ -201,8 +201,10 @@ class PopoverReportActionContextMenu extends React.Component {
      * After Popover hides, call the registered onPopoverHide & onPopoverHideActionCallback callback and reset it
      */
     runAndResetOnPopoverHide() {
-        this.onPopoverHide = this.runAndResetCallback(this.onPopoverHide);
-        this.onPopoverHideActionCallback = this.runAndResetCallback(this.onPopoverHideActionCallback);
+        this.setState({reportID: '0', reportAction: {}}, () => {
+            this.onPopoverHide = this.runAndResetCallback(this.onPopoverHide);
+            this.onPopoverHideActionCallback = this.runAndResetCallback(this.onPopoverHideActionCallback);
+        });
     }
 
     /**
@@ -212,24 +214,12 @@ class PopoverReportActionContextMenu extends React.Component {
     hideContextMenu(onHideActionCallback) {
         if (_.isFunction(onHideActionCallback)) {
             this.onPopoverHideActionCallback = onHideActionCallback;
-            if (!this.state.isDeleteCommentConfirmModalVisible) {
-                this.setState({
-                    reportID: '0',
-                    reportAction: {},
-                    selection: '',
-                    reportActionDraftMessage: '',
-                    isPopoverVisible: false,
-                });
-            }
-        } else {
-            this.setState({
-                reportID: '0',
-                reportAction: {},
-                selection: '',
-                reportActionDraftMessage: '',
-                isPopoverVisible: false,
-            });
         }
+        this.setState({
+            selection: '',
+            reportActionDraftMessage: '',
+            isPopoverVisible: false,
+        });
     }
 
     /**
