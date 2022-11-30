@@ -89,7 +89,7 @@ const ReportActionItemSingle = (props) => {
                         >
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment
-                                    key={`person-${props.action.sequenceNumber}-${index}`}
+                                    key={`person-${props.action.reportActionID}-${index}`}
                                     fragment={fragment}
                                     tooltipText={props.action.actorEmail}
                                     isAttachment={props.action.isAttachment}
@@ -98,7 +98,7 @@ const ReportActionItemSingle = (props) => {
                                 />
                             ))}
                         </Pressable>
-                        <ReportActionItemDate timestamp={props.action.timestamp} />
+                        <ReportActionItemDate created={props.action.created} />
                     </View>
                 ) : null}
                 {props.children}

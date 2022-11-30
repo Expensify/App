@@ -4,6 +4,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
+import moment from 'moment';
 import IdologyQuestions from './IdologyQuestions';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -231,7 +232,7 @@ class AdditionalDetailsStep extends React.Component {
      */
     clearDateErrorsAndSetValue(value) {
         this.formHelper.clearErrors(this.props, ['dob', 'age']);
-        Wallet.updateAdditionalDetailsDraft({dob: value});
+        Wallet.updateAdditionalDetailsDraft({dob: moment(value).format(CONST.DATE.MOMENT_FORMAT_STRING)});
     }
 
     /**

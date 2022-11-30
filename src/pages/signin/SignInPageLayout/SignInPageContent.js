@@ -3,8 +3,8 @@ import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import styles from '../../../styles/styles';
-import * as StyleUtils from '../../../styles/StyleUtils';
 import variables from '../../../styles/variables';
+import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import Text from '../../../components/Text';
 import TermsAndLicenses from '../TermsAndLicenses';
@@ -12,9 +12,9 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import SignInPageForm from '../../../components/SignInPageForm';
 import compose from '../../../libs/compose';
 import scrollViewContentContainerStyles from './signInPageStyles';
-import LoginKeyboardAvoidingView from './LoginKeyboardAvoidingView';
 import withKeyboardState from '../../../components/withKeyboardState';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import * as StyleUtils from '../../../styles/StyleUtils';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -58,17 +58,17 @@ const SignInPageContent = props => (
                     props.isSmallScreenWidth ? styles.ph5 : styles.ph4,
                 ]}
                 >
-                    <LoginKeyboardAvoidingView
+                    <KeyboardAvoidingView
                         behavior="position"
-                        contentContainerStyle={[
-                            props.isSmallScreenWidth ? styles.signInPageNarrowContentMargin : {},
-                            !props.isMediumScreenWidth || (props.isMediumScreenWidth && props.windowHeight < variables.minHeightToShowGraphics) ? styles.signInPageWideLeftContentMargin : {},
-                            styles.mb3,
+                        style={[
                             StyleUtils.getModalPaddingStyles({
                                 shouldAddBottomSafeAreaPadding: true,
                                 modalContainerStylePaddingBottom: 20,
                                 safeAreaPaddingBottom: props.insets.bottom,
                             }),
+                            props.isSmallScreenWidth ? styles.signInPageNarrowContentMargin : {},
+                            !props.isMediumScreenWidth || (props.isMediumScreenWidth && props.windowHeight < variables.minHeightToShowGraphics) ? styles.signInPageWideLeftContentMargin : {},
+                            styles.mb3,
                         ]}
                     >
                         <View style={[
@@ -87,7 +87,7 @@ const SignInPageContent = props => (
                             </Text>
                         )}
                         {props.children}
-                    </LoginKeyboardAvoidingView>
+                    </KeyboardAvoidingView>
                 </SignInPageForm>
                 <View style={[styles.mb5, styles.alignSelfCenter, styles.ph5]}>
                     <TermsAndLicenses />

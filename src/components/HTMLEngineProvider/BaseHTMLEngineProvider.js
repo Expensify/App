@@ -29,7 +29,7 @@ const customHTMLElementModels = {
     }),
     'muted-text': defaultHTMLElementModels.div.extend({
         tagName: 'muted-text',
-        mixedUAStyles: styles.mutedTextLabel,
+        mixedUAStyles: {...styles.formError, ...styles.mb0},
     }),
     comment: defaultHTMLElementModels.div.extend({
         tagName: 'comment',

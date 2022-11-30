@@ -102,7 +102,17 @@ class ReportActionItemMessageEdit extends React.Component {
      */
     updateDraft(draft) {
         const newDraft = EmojiUtils.replaceEmojis(draft);
-        this.setState({draft: newDraft});
+        this.setState((prevState) => {
+            const newState = {draft: newDraft};
+            if (draft !== newDraft) {
+                const remainder = prevState.draft.slice(prevState.selection.end).length;
+                newState.selection = {
+                    start: newDraft.length - remainder,
+                    end: newDraft.length - remainder,
+                };
+            }
+            return newState;
+        });
 
         // This component is rendered only when draft is set to a non-empty string. In order to prevent component
         // unmount when user deletes content of textarea, we set previous message instead of empty string.
@@ -167,12 +177,13 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
+        const emojiWithSpace = `${emoji} `;
         const newComment = this.state.draft.slice(0, this.state.selection.start)
-            + emoji + this.state.draft.slice(this.state.selection.end, this.state.draft.length);
+            + emojiWithSpace + this.state.draft.slice(this.state.selection.end, this.state.draft.length);
         this.setState(prevState => ({
             selection: {
-                start: prevState.selection.start + emoji.length,
-                end: prevState.selection.start + emoji.length,
+                start: prevState.selection.start + emojiWithSpace.length,
+                end: prevState.selection.start + emojiWithSpace.length,
             },
         }));
         this.updateDraft(newComment);

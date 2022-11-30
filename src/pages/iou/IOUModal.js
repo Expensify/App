@@ -115,6 +115,8 @@ class IOUModal extends Component {
         const participantsWithDetails = _.map(OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails), personalDetails => ({
             login: personalDetails.login,
             text: personalDetails.displayName,
+            firstName: lodashGet(personalDetails, 'firstName', ''),
+            lastName: lodashGet(personalDetails, 'lastName', ''),
             alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
             icons: [personalDetails.avatar],
             keyForList: personalDetails.login,
@@ -309,46 +311,84 @@ class IOUModal extends Component {
     }
 
     /**
-     * Create the IOU transaction
-     *
-     * @param {Array} [splits]
+     * @param {Array} selectedParticipants
      */
-    createTransaction(splits) {
+    createTransaction(selectedParticipants) {
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
 
-        // Only splits from a group DM has a reportID
-        // Check if reportID is a number
-        if (splits && CONST.REGEX.NUMBER.test(reportID)) {
-            IOU.createIOUSplitGroup({
-                comment: this.state.comment,
-
-                // should send in cents to API
-                amount: Math.round(this.state.amount * 100),
-                currency: this.props.iou.selectedCurrencyCode,
-                splits,
-                reportID,
-            });
+        // IOUs created from a group report will have a reportID param in the route.
+        // Since the user is already viewing the report, we don't need to navigate them to the report
+        if (this.props.hasMultipleParticipants && CONST.REGEX.NUMBER.test(reportID)) {
+            IOU.splitBill(
+                selectedParticipants,
+                this.props.currentUserPersonalDetails.login,
+                this.state.amount,
+                this.state.comment,
+                this.props.iou.selectedCurrencyCode,
+                this.props.preferredLocale,
+            );
             return;
         }
 
-        if (splits) {
-            IOU.createIOUSplit({
-                comment: this.state.comment,
-
-                // Send in cents to API.
-                amount: Math.round(this.state.amount * 100),
-                currency: this.props.iou.selectedCurrencyCode,
-                splits,
-            });
+        // If the IOU is created from the global create menu, we also navigate the user to the group report
+        if (this.props.hasMultipleParticipants) {
+            IOU.splitBillAndOpenReport(
+                selectedParticipants,
+                this.props.currentUserPersonalDetails.login,
+                this.state.amount,
+                this.state.comment,
+                this.props.iou.selectedCurrencyCode,
+                this.props.preferredLocale,
+            );
             return;
         }
-
         IOU.requestMoney(this.props.report,
             Math.round(this.state.amount * 100),
             this.props.iou.selectedCurrencyCode,
             this.props.currentUserPersonalDetails.login,
-            OptionsListUtils.addSMSDomainIfPhoneNumber(this.state.participants[0].login),
+            selectedParticipants[0],
             this.state.comment);
+    }
+
+    renderHeader() {
+        return (
+            <View style={[styles.headerBar]}>
+                <View style={[
+                    styles.dFlex,
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                    styles.flexGrow1,
+                    styles.justifyContentBetween,
+                    styles.overflowHidden,
+                ]}
+                >
+                    {this.state.currentStepIndex > 0
+                        && (
+                            <Tooltip text={this.props.translate('common.back')}>
+                                <TouchableOpacity
+                                    onPress={this.navigateToPreviousStep}
+                                    style={[styles.touchableButtonImage]}
+                                >
+                                    <Icon src={Expensicons.BackArrow} />
+                                </TouchableOpacity>
+                            </Tooltip>
+                        )}
+                    <Header title={this.getTitleForStep()} />
+                    <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
+                        <Tooltip text={this.props.translate('common.close')}>
+                            <TouchableOpacity
+                                onPress={() => Navigation.dismissModal()}
+                                style={[styles.touchableButtonImage, styles.mr0]}
+                                accessibilityRole="button"
+                                accessibilityLabel={this.props.translate('common.close')}
+                            >
+                                <Icon src={Expensicons.Close} />
+                            </TouchableOpacity>
+                        </Tooltip>
+                    </View>
+                </View>
+            </View>
+        );
     }
 
     render() {
@@ -358,42 +398,6 @@ class IOUModal extends Component {
             <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
                     <>
-                        <View style={[styles.headerBar]}>
-                            <View style={[
-                                styles.dFlex,
-                                styles.flexRow,
-                                styles.alignItemsCenter,
-                                styles.flexGrow1,
-                                styles.justifyContentBetween,
-                                styles.overflowHidden,
-                            ]}
-                            >
-                                {this.state.currentStepIndex > 0
-                                    && (
-                                        <Tooltip text={this.props.translate('common.back')}>
-                                            <TouchableOpacity
-                                                onPress={this.navigateToPreviousStep}
-                                                style={[styles.touchableButtonImage]}
-                                            >
-                                                <Icon src={Expensicons.BackArrow} />
-                                            </TouchableOpacity>
-                                        </Tooltip>
-                                    )}
-                                <Header title={this.getTitleForStep()} />
-                                <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
-                                    <Tooltip text={this.props.translate('common.close')}>
-                                        <TouchableOpacity
-                                            onPress={() => Navigation.dismissModal()}
-                                            style={[styles.touchableButtonImage, styles.mr0]}
-                                            accessibilityRole="button"
-                                            accessibilityLabel={this.props.translate('common.close')}
-                                        >
-                                            <Icon src={Expensicons.Close} />
-                                        </TouchableOpacity>
-                                    </Tooltip>
-                                </View>
-                            </View>
-                        </View>
                         <View style={[styles.pRelative, styles.flex1]}>
                             {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
                             {didScreenTransitionEnd && (
@@ -401,8 +405,9 @@ class IOUModal extends Component {
                                     {currentStep === Steps.IOUAmount && (
                                         <AnimatedStep
                                             direction={this.getDirection()}
-                                            style={[styles.flex1, styles.pageWrapper]}
+                                            style={[styles.flex1]}
                                         >
+                                            {this.renderHeader()}
                                             <IOUAmountPage
                                                 onStepComplete={(amount) => {
                                                     this.setState({amount});
@@ -421,6 +426,7 @@ class IOUModal extends Component {
                                             style={[styles.flex1]}
                                             direction={this.getDirection()}
                                         >
+                                            {this.renderHeader()}
                                             <IOUParticipantsPage
                                                 participants={this.state.participants}
                                                 hasMultipleParticipants={this.props.hasMultipleParticipants}
@@ -434,6 +440,7 @@ class IOUModal extends Component {
                                             style={[styles.flex1]}
                                             direction={this.getDirection()}
                                         >
+                                            {this.renderHeader()}
                                             <IOUConfirmPage
                                                 onConfirm={this.createTransaction}
                                                 onSendMoney={this.sendMoney}

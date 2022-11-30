@@ -33,27 +33,27 @@ Onyx.connect({
 });
 
 /**
- * Gets the user's stored time-zone NVP and returns a localized
- * Moment object for the given timestamp
+ * Gets the user's stored time zone NVP and returns a localized
+ * Moment object for the given ISO-formatted datetime string
  *
  * @param {String} locale
- * @param {Number} timestamp
+ * @param {String} datetime
  * @param {String} [currentSelectedTimezone]
  *
  * @returns  {Moment}
  *
  * @private
  */
-function getLocalMomentFromTimestamp(locale, timestamp, currentSelectedTimezone = timezone.selected) {
+function getLocalMomentFromDatetime(locale, datetime, currentSelectedTimezone = timezone.selected) {
     moment.locale(locale);
-    if (!timestamp) {
+    if (!datetime) {
         return moment.tz(currentSelectedTimezone);
     }
-    return moment.unix(timestamp).tz(currentSelectedTimezone);
+    return moment.utc(datetime).tz(currentSelectedTimezone);
 }
 
 /**
- * Formats a timestamp to local date and time string
+ * Formats an ISO-formatted datetime string to local date and time string
  *
  * e.g.
  *
@@ -61,13 +61,13 @@ function getLocalMomentFromTimestamp(locale, timestamp, currentSelectedTimezone 
  * Jan 20, 2019 at 5:30 PM    anything over 1 year ago
  *
  * @param {String} locale
- * @param {Number} timestamp
+ * @param {String} datetime
  * @param {Boolean} includeTimeZone
  *
  * @returns {String}
  */
-function timestampToDateTime(locale, timestamp, includeTimeZone = false) {
-    const date = getLocalMomentFromTimestamp(locale, timestamp);
+function datetimeToCalendarTime(locale, datetime, includeTimeZone = false) {
+    const date = getLocalMomentFromDatetime(locale, datetime);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
 
     const todayAt = Localize.translate(locale, 'common.todayAt');
@@ -86,7 +86,7 @@ function timestampToDateTime(locale, timestamp, includeTimeZone = false) {
 }
 
 /**
- * Converts a timestamp into a localized string representation
+ * Converts an ISO-formatted datetime string into a localized string representation
  * that's relative to current moment in time.
  *
  * e.g.
@@ -99,12 +99,12 @@ function timestampToDateTime(locale, timestamp, includeTimeZone = false) {
  * Jan 20, 2019         anything over 1 year
  *
  * @param {String} locale
- * @param {Number} timestamp
+ * @param {String} datetime
  *
  * @returns {String}
  */
-function timestampToRelative(locale, timestamp) {
-    const date = getLocalMomentFromTimestamp(locale, timestamp);
+function datetimeToRelative(locale, datetime) {
+    const date = getLocalMomentFromDatetime(locale, datetime);
 
     return moment(date).fromNow();
 }
@@ -162,17 +162,32 @@ function getMicroseconds() {
 }
 
 /**
+ * Returns the current time in milliseconds in the format expected by the database
+ *
+ * @param {String|Number} [timestamp]
+ *
+ * @returns {String}
+ */
+function getDBTime(timestamp = '') {
+    const datetime = timestamp ? new Date(timestamp) : new Date();
+    return datetime.toISOString()
+        .replace('T', ' ')
+        .replace('Z', '');
+}
+
+/**
  * @namespace DateUtils
  */
 const DateUtils = {
-    timestampToRelative,
-    timestampToDateTime,
+    datetimeToRelative,
+    datetimeToCalendarTime,
     startCurrentDateUpdater,
-    getLocalMomentFromTimestamp,
+    getLocalMomentFromDatetime,
     getCurrentTimezone,
     canUpdateTimezone,
     setTimezoneUpdated,
     getMicroseconds,
+    getDBTime,
 };
 
 export default DateUtils;
