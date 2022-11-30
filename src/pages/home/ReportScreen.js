@@ -225,19 +225,17 @@ class ReportScreen extends React.Component {
         const animatePlaceholder = !freeze;
 
         return (
-            <Freeze
-                freeze={freeze}
-                placeholder={(
-                    <ScreenWrapper
-                        style={screenWrapperStyle}
-                    >
-                        <ReportHeaderSkeletonView animate={animatePlaceholder} />
-                        <ReportActionsSkeletonView animate={animatePlaceholder} containerHeight={this.state.skeletonViewContainerHeight} />
-                    </ScreenWrapper>
-                )}
+            <ScreenWrapper
+                style={screenWrapperStyle}
             >
-                <ScreenWrapper
-                    style={screenWrapperStyle}
+                <Freeze
+                    freeze={freeze}
+                    placeholder={(
+                        <>
+                            <ReportHeaderSkeletonView animate={animatePlaceholder} />
+                            <ReportActionsSkeletonView animate={animatePlaceholder} containerHeight={this.state.skeletonViewContainerHeight} />
+                        </>
+                    )}
                 >
                     <FullPageNotFoundView
                         shouldShow={!this.props.report.reportID}
@@ -282,7 +280,6 @@ class ReportScreen extends React.Component {
                                 if (skeletonViewContainerHeight === 0) {
                                     return;
                                 }
-
                                 reportActionsListViewHeight = skeletonViewContainerHeight;
                                 this.setState({skeletonViewContainerHeight});
                             }}
@@ -318,8 +315,8 @@ class ReportScreen extends React.Component {
                             )}
                         </View>
                     </FullPageNotFoundView>
-                </ScreenWrapper>
-            </Freeze>
+                </Freeze>
+            </ScreenWrapper>
         );
     }
 }
