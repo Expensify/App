@@ -72,9 +72,7 @@ const INPUT_IDS = {
     LEGAL_LAST_NAME: 'legalLastName',
     PHONE_NUMBER: 'phoneNumber',
     DOB: 'dob',
-    AGE: 'age',
     SSN: 'ssn',
-    SSN_FULL_9: 'ssnFull9',
     ADDRESS: {
         street: 'addressStreet',
         city: 'addressCity',
@@ -88,6 +86,7 @@ class AdditionalDetailsStep extends React.Component {
         super(props);
 
         this.activateWallet = this.activateWallet.bind(this);
+        this.validate = this.validate.bind(this);
 
         this.errorTranslationKeys = {
             legalFirstName: 'bankAccount.error.firstName',
@@ -108,8 +107,6 @@ class AdditionalDetailsStep extends React.Component {
             ssn: 'common.ssnLast4',
             ssnFull9: 'common.ssnFull9',
         };
-
-        this.validate = this.validate.bind(this);
     }
 
     getFirstName() {
@@ -144,7 +141,7 @@ class AdditionalDetailsStep extends React.Component {
         }
 
         if (!ValidationUtils.meetsAgeRequirements(values[INPUT_IDS.DOB])) {
-            errors[INPUT_IDS.AGE] = this.props.translate(this.errorTranslationKeys.age);
+            errors[INPUT_IDS.DOB] = this.props.translate(this.errorTranslationKeys.age);
         }
 
         if (!ValidationUtils.isValidAddress(values[INPUT_IDS.ADDRESS.street])) {
@@ -169,7 +166,7 @@ class AdditionalDetailsStep extends React.Component {
 
         if (this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN) {
             if (!ValidationUtils.isValidSSNFullNine(values[INPUT_IDS.SSN])) {
-                errors[INPUT_IDS.SSN_FULL_9] = this.props.translate(this.errorTranslationKeys.ssnFull9);
+                errors[INPUT_IDS.SSN] = this.props.translate(this.errorTranslationKeys.ssnFull9);
             }
         } else if (!ValidationUtils.isValidSSNLastFour(values[INPUT_IDS.SSN])) {
             errors[INPUT_IDS.SSN] = this.props.translate(this.errorTranslationKeys.ssn);
