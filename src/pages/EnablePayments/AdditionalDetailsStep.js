@@ -182,6 +182,9 @@ class AdditionalDetailsStep extends React.Component {
         return errors;
     }
 
+    /**
+     * @param {Object} values The values object is passed from Form.js and contains info for each form element that has an inputID
+     */
     activateWallet(values) {
         if (!this.validate()) {
             return;
