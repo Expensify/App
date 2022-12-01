@@ -14,6 +14,10 @@ To run the e2e tests:
 2. Make sure Fastlane was initialized by running `bundle install`
 
 3. Run the tests with `npm run test:e2e`.
+  > 💡 Tip: To run the tests locally faster, and you are only making changes to JS, it's recommended to
+    build the app once with `npm run android-build-e2e` and from then on run the tests with
+    `npm run test:e2e -- --buildMode js-only`. This will only rebuild the JS code, and not the
+    whole native app!
 
 Ideally you want to run these tests on your branch before you want to merge your new feature to `main`.
 
