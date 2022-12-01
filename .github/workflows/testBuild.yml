@@ -197,3 +197,4 @@ jobs:
           | ![Android](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.android_paths).html_path}}) | ![iOS](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.ios_paths).html_path}}) | ![desktop](https://ad-hoc-expensify-cash.us-east-1.amazonaws.com/desktop/${{github.event.number}}/NewExpensify.dmg)"
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
