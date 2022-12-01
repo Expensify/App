@@ -911,11 +911,11 @@ const styles = {
     },
 
     signInPageLeftContainerWide: {
-        maxWidth: 375,
+        maxWidth: 360,
     },
 
     signInPageWelcomeFormContainer: {
-        maxWidth: 400,
+        maxWidth: 300,
     },
 
     signInPageWelcomeTextContainer: {
