@@ -301,6 +301,7 @@ class AdditionalDetailsStep extends React.Component {
                                     shouldSaveDraft
                                 />
                                 <AddressForm
+                                    inputKeys={INPUT_IDS.ADDRESS}
                                     translate={this.props.translate}
                                     streetTranslationKey={this.fieldNameTranslationKeys.addressStreet}
                                     defaultValues={{
@@ -309,12 +310,7 @@ class AdditionalDetailsStep extends React.Component {
                                         city: this.props.walletAdditionalDetailsDraft.addressCity,
                                         zipCode: this.props.walletAdditionalDetailsDraft.addressZip,
                                     }}
-                                    errors={{
-                                        street: this.getErrors().addressStreet,
-                                        state: this.getErrors().addressState,
-                                        city: this.getErrors().addressCity,
-                                        zipCode: this.getErrors().addressZip,
-                                    }}
+                                    shouldSaveDraft
                                 />
                             </View>
                             <TextInput
