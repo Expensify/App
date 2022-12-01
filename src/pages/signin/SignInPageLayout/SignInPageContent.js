@@ -1,9 +1,10 @@
 import React from 'react';
-import {ScrollView, View, KeyboardAvoidingView} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
+import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import Text from '../../../components/Text';
 import TermsAndLicenses from '../TermsAndLicenses';

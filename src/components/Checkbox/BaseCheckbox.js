@@ -1,18 +1,22 @@
 import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import stylePropTypes from '../styles/stylePropTypes';
-import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
+import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
+import stylePropTypes from '../../styles/stylePropTypes';
+import Icon from '../Icon';
+import * as Expensicons from '../Icon/Expensicons';
+
+// eslint-disable-next-line rulesdir/prefer-early-return
+const requiredPropsCheck = (props, componentName) => {
+    if (!props.onMouseDown && !props.onPress) {
+        return new Error(`One of "onMouseDown" or "onPress" must be provided in ${componentName}`);
+    }
+};
 
 const propTypes = {
     /** Whether checkbox is checked */
     isChecked: PropTypes.bool,
-
-    /** A function that is called when the box/label is pressed */
-    onPress: PropTypes.func.isRequired,
 
     /** Should the input be styled for errors  */
     hasError: PropTypes.bool,
@@ -26,14 +30,17 @@ const propTypes = {
     /** Additional styles to add to checkbox button */
     style: stylePropTypes,
 
-    /** Callback that is called when mousedown is triggered. */
-    onMouseDown: PropTypes.func,
-
     /** A ref to forward to the Pressable */
     forwardedRef: PropTypes.oneOfType([
         PropTypes.func,
         PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
     ]),
+
+    /** A function that is called when the box/label is pressed */
+    onPress: requiredPropsCheck,
+
+    /** Callback that is called when mousedown is triggered. */
+    onMouseDown: requiredPropsCheck,
 };
 
 const defaultProps = {
@@ -44,9 +51,10 @@ const defaultProps = {
     forwardedRef: undefined,
     children: null,
     onMouseDown: undefined,
+    onPress: undefined,
 };
 
-class Checkbox extends React.Component {
+class BaseCheckbox extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -72,7 +80,11 @@ class Checkbox extends React.Component {
             return;
         }
 
-        this.props.onPress();
+        if (this.props.onPress) {
+            this.props.onPress(event);
+        } else {
+            this.props.onMouseDown(event);
+        }
     }
 
     firePressHandlerOnClick(event) {
@@ -82,7 +94,9 @@ class Checkbox extends React.Component {
             return;
         }
 
-        this.props.onPress();
+        if (this.props.onPress) {
+            this.props.onPress(event);
+        }
     }
 
     render() {
@@ -121,7 +135,7 @@ class Checkbox extends React.Component {
     }
 }
 
-Checkbox.propTypes = propTypes;
-Checkbox.defaultProps = defaultProps;
+BaseCheckbox.propTypes = propTypes;
+BaseCheckbox.defaultProps = defaultProps;
 
-export default Checkbox;
+export default BaseCheckbox;

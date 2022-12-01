@@ -55,8 +55,7 @@ jobs:
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
-      # TODO: Point back at upstream when https://github.com/softprops/turnstyle/pull/46 is merged
-      - uses: roryabraham/turnstyle@d50d3ffc3f2c8d280dec4cd802c1c735fcda77c8
+      - uses: softprops/turnstyle@ca99add00ff0c9cbc697d22631d2992f377e5bd5
         with:
           poll-interval-seconds: 10
         env:
