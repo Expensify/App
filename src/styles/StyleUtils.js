@@ -229,7 +229,7 @@ function getBackgroundColorWithOpacityStyle(backgroundColor, opacity) {
     const result = hexadecimalToRGBComponents(backgroundColor);
     if (result !== null) {
         return {
-            backgroundColor: `rgba(${result[1]}, ${result[1]}, ${result[1]}, ${opacity})`,
+            backgroundColor: `rgba(${result[0]}, ${result[1]}, ${result[2]}, ${opacity})`,
         };
     }
     return {};
