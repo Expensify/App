@@ -2,7 +2,7 @@ import {PixelRatio} from 'react-native';
 
 /**
  * Calculate the fontSize, lineHeight and padding when the device font size is changed, In most cases users do not change their device font size so PixelRatio.getFontScale() = 1 and this
- * method always return defaultValue (first param). when device font size increases/decrease, PixelRatio.getFontScale() value increases/decrease as well. this means if you hava a text
+ * method always returns the defaultValue (first param). When the device font size increases/decreases, the PixelRatio.getFontScale() value increases/decreases as well. This means that if you have text
  * and the 'fontSize' of it is 19, then the device font size changed to the 5th level on ios slider now the actual fontSize = 19 * PixelRatio.getFontScale() = 19 * 1.11 = 21.09 since we are
  * disallowing font scaling we need to calculate it manually, so we are using this equation : PixelRatio.getFontScale() * defaultValue > maxValue ? maxValue : defaultValue * PixelRatio.
  * getFontScale() this equation means increases/decreases the fontSize when the device font size increases/decreases but do not increase it if the fontSize value exceed maxValue (second
