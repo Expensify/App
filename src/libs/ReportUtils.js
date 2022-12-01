@@ -413,10 +413,10 @@ function formatReportLastMessageText(lastMessageText) {
  * @returns {String}
  */
 function getDefaultAvatar(login = '') {
-    // There are 8 possible default avatars, so we choose which one this user has based
+    // There are 24 possible default avatars, so we choose which one this user has based
     // on a simple hash of their login
-    const loginHashBucket = (Math.abs(hashCode(login.toLowerCase())) % 8) + 1;
-    return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
+    const loginHashBucket = (Math.abs(hashCode(login.toLowerCase())) % 24) + 1;
+    return `${CONST.CLOUDFRONT_URL}/images/avatars/default-avatar_${loginHashBucket}.png`;
 }
 
 /**
