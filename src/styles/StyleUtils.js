@@ -481,26 +481,26 @@ function convertRGBAToRGB(foregroundRGB, backgroundRGB, opacity) {
 }
 
 /**
- * Denormalizes the three components of a color in RGB notation.
+ * Converts three unit values to the three components of a color in RGB notation.
  *
- * @param {number} red The first normalized component of a color in RGB notation.
- * @param {number} green The second normalized component of a color in RGB notation.
- * @param {number} blue The third normalized component of a color in RGB notation.
- * @returns {Array} An array with the three denormalized components of a color in RGB notation.
+ * @param {number} red A unit value representing the first component of a color in RGB notation.
+ * @param {number} green A unit value representing the second component of a color in RGB notation.
+ * @param {number} blue A unit value representing the third component of a color in RGB notation.
+ * @returns {Array} An array with the three components of a color in RGB notation.
  */
-function denormalizeRGB(red, green, blue) {
+function convertUnitValuesToRGB(red, green, blue) {
     return [Math.floor(red * 255), Math.floor(green * 255), Math.floor(blue * 255)];
 }
 
 /**
- * Normalizes the three components of a color in RGB notation.
+ * Converts the three components of a color in RGB notation to three unit values.
  *
- * @param {number} red The first denormalized component of a color in RGB notation.
- * @param {number} green The second denormalized component of a color in RGB notation.
- * @param {number} blue The third denormalized component of a color in RGB notation.
- * @returns {Array} An array with the three normalized components of a color in RGB notation.
+ * @param {number} red The first component of a color in RGB notation.
+ * @param {number} green The second component of a color in RGB notation.
+ * @param {number} blue The third component of a color in RGB notation.
+ * @returns {Array} An array with three unit values representing the components of a color in RGB notation.
  */
-function normalizeRGB(red, green, blue) {
+function convertRGBToUnitValues(red, green, blue) {
     return [red / 255, green / 255, blue / 255];
 }
 
@@ -515,8 +515,8 @@ function getThemeBackgroundColor() {
 
     const [backgroundRed, backgroundGreen, backgroundBlue] = hexadecimalToRGBComponents(themeColors.appBG);
     const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBComponents(themeColors.modalBackdrop);
-    const normalizedBackdropRGB = normalizeRGB(backdropRed, backdropGreen, backdropBlue);
-    const normalizedBackgroundRGB = normalizeRGB(
+    const normalizedBackdropRGB = convertRGBToUnitValues(backdropRed, backdropGreen, backdropBlue);
+    const normalizedBackgroundRGB = convertRGBToUnitValues(
         backgroundRed,
         backgroundGreen,
         backgroundBlue,
@@ -526,7 +526,7 @@ function getThemeBackgroundColor() {
         normalizedBackgroundRGB,
         backdropOpacity,
     );
-    const themeRGB = denormalizeRGB(...themeRGBNormalized);
+    const themeRGB = convertUnitValuesToRGB(...themeRGBNormalized);
 
     return `rgb(${themeRGB.join(', ')})`;
 }
