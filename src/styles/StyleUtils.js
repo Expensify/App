@@ -470,38 +470,38 @@ function getPaymentMethodMenuWidth(isSmallScreenWidth) {
  * @returns {Array} The RGB components of the RGBA color converted to RGB.
  */
 function convertRGBAToRGB(foregroundRGB, backgroundRGB, opacity) {
-    const [foregroundR, foregroundG, foregroundB] = foregroundRGB;
-    const [backgroundR, backgroundG, backgroundB] = backgroundRGB;
+    const [foregroundRed, foregroundGreen, foregroundBlue] = foregroundRGB;
+    const [backgroundRed, backgroundGreen, backgroundBlue] = backgroundRGB;
 
     return [
-        ((1 - opacity) * backgroundR) + (opacity * foregroundR),
-        ((1 - opacity) * backgroundG) + (opacity * foregroundG),
-        ((1 - opacity) * backgroundB) + (opacity * foregroundB),
+        ((1 - opacity) * backgroundRed) + (opacity * foregroundRed),
+        ((1 - opacity) * backgroundGreen) + (opacity * foregroundGreen),
+        ((1 - opacity) * backgroundBlue) + (opacity * foregroundBlue),
     ];
 }
 
 /**
  * Denormalizes the three components of a color in RGB notation.
  *
- * @param {number} r The first normalized component of a color in RGB notation.
- * @param {number} g The second normalized component of a color in RGB notation.
- * @param {number} b The third normalized component of a color in RGB notation.
+ * @param {number} red The first normalized component of a color in RGB notation.
+ * @param {number} green The second normalized component of a color in RGB notation.
+ * @param {number} blue The third normalized component of a color in RGB notation.
  * @returns {Array} An array with the three denormalized components of a color in RGB notation.
  */
-function denormalizeRGB(r, g, b) {
-    return [Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255)];
+function denormalizeRGB(red, green, blue) {
+    return [Math.floor(red * 255), Math.floor(green * 255), Math.floor(blue * 255)];
 }
 
 /**
  * Normalizes the three components of a color in RGB notation.
  *
- * @param {number} r The first denormalized component of a color in RGB notation.
- * @param {number} g The second denormalized component of a color in RGB notation.
- * @param {number} b The third denormalized component of a color in RGB notation.
+ * @param {number} red The first denormalized component of a color in RGB notation.
+ * @param {number} green The second denormalized component of a color in RGB notation.
+ * @param {number} blue The third denormalized component of a color in RGB notation.
  * @returns {Array} An array with the three normalized components of a color in RGB notation.
  */
-function normalizeRGB(r, g, b) {
-    return [r / 255, g / 255, b / 255];
+function normalizeRGB(red, green, blue) {
+    return [red / 255, green / 255, blue / 255];
 }
 
 /**
@@ -513,13 +513,13 @@ function normalizeRGB(r, g, b) {
 function getThemeBackgroundColor() {
     const backdropOpacity = variables.modalFullscreenBackdropOpacity;
 
-    const [backgroundR, backgroundG, backgroundB] = hexadecimalToRGBComponents(themeColors.appBG);
-    const [backdropR, backdropG, backdropB] = hexadecimalToRGBComponents(themeColors.modalBackdrop);
-    const normalizedBackdropRGB = normalizeRGB(backdropR, backdropG, backdropB);
+    const [backgroundRed, backgroundGreen, backgroundBlue] = hexadecimalToRGBComponents(themeColors.appBG);
+    const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBComponents(themeColors.modalBackdrop);
+    const normalizedBackdropRGB = normalizeRGB(backdropRed, backdropGreen, backdropBlue);
     const normalizedBackgroundRGB = normalizeRGB(
-        backgroundR,
-        backgroundG,
-        backgroundB,
+        backgroundRed,
+        backgroundGreen,
+        backgroundBlue,
     );
     const themeRGBNormalized = convertRGBAToRGB(
         normalizedBackdropRGB,
