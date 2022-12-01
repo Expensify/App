@@ -300,7 +300,7 @@ class AdditionalDetailsStep extends React.Component {
                                 <AddressForm
                                     translate={this.props.translate}
                                     streetTranslationKey={this.fieldNameTranslationKeys.addressStreet}
-                                    values={{
+                                    defaultValues={{
                                         street: this.props.walletAdditionalDetailsDraft.addressStreet,
                                         state: this.props.walletAdditionalDetailsDraft.addressState,
                                         city: this.props.walletAdditionalDetailsDraft.addressCity,
