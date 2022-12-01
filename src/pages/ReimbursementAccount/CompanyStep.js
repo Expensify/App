@@ -25,12 +25,17 @@ import Picker from '../../components/Picker';
 import AddressForm from './AddressForm';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import Form from '../../components/Form';
 
 const propTypes = {
     /** The bank account currently in setup */
     /* eslint-disable-next-line react/no-unused-prop-types */
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+
+    /** The draft values of the bank account being setup */
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -259,6 +264,9 @@ export default compose(
         // Needed to retrieve errorFields
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        reimbursementAccountDraft: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
         },
         session: {
             key: ONYXKEYS.SESSION,

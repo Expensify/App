@@ -334,6 +334,11 @@ export default {
         john: 'Juan',
         doe: 'Nadie',
     },
+    timezonePage: {
+        timezone: 'Zona horaria',
+        isShownOnProfile: 'Tu zona horaria se muestra en tu perfil.',
+        getLocationAutomatically: 'Detecta tu ubicación automáticamente.',
+    },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Agregar número de teléfono',
         addEmailAddress: 'Agregar dirección de email',
@@ -794,6 +799,9 @@ export default {
         letsChatCTA: 'Sí, vamos a chatear',
         letsChatText: 'Gracias. Necesitamos tu ayuda para verificar la información, pero podemos hacerlo rápidamente a través del chat. ¿Estás listo?',
         letsChatTitle: '¡Vamos a chatear!',
+        enable2FATitle: 'Evita fraudes, activa la autenticación de dos factores!',
+        enable2FAText: 'Tu seguridad es importante para nosotros, por favor configura ahora la autenticación de dos factores. Eso nos permitirá disputar las transacciones de la Tarjeta Expensify y reducirá tu riesgo de fraude.',
+        secureYourAccount: 'Asegura tu cuenta',
     },
     beneficialOwnersStep: {
         additionalInformation: 'Información adicional',
