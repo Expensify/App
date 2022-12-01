@@ -36,6 +36,7 @@ const propTypes = {
     /** Bank account currently in setup */
     reimbursementAccount: reimbursementAccountPropTypes,
 
+    /** User's account who is setting up bank account */
     account: PropTypes.shape({
 
         /** If user has Two factor authentication enabled */
