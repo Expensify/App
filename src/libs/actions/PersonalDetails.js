@@ -216,6 +216,56 @@ function updateDisplayName(firstName, lastName) {
 }
 
 /**
+ * Updates timezone's 'automatic' setting, and updates
+ * selected timezone if set to automatically update.
+ *
+ * @param {Object} timezone
+ * @param {Boolean} timezone.automatic
+ * @param {String} timezone.selected
+ */
+function updateAutomaticTimezone(timezone) {
+    API.write('UpdateAutomaticTimezone', {
+        timezone: JSON.stringify(timezone),
+    }, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    timezone,
+                },
+            },
+        }],
+    });
+}
+
+/**
+ * Updates user's 'selected' timezone, then navigates to the
+ * initial Timezone page.
+ *
+ * @param {String} selectedTimezone
+ */
+function updateSelectedTimezone(selectedTimezone) {
+    const timezone = {
+        selected: selectedTimezone,
+    };
+    API.write('UpdateSelectedTimezone', {
+        timezone: JSON.stringify(timezone),
+    }, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    timezone,
+                },
+            },
+        }],
+    });
+    Navigation.navigate(ROUTES.SETTINGS_TIMEZONE);
+}
+
+/**
  * Fetches the local currency based on location and sets currency code/symbol to Onyx
  */
 function openIOUModalPage() {
@@ -328,4 +378,6 @@ export {
     updateDisplayName,
     updatePronouns,
     clearAvatarErrors,
+    updateAutomaticTimezone,
+    updateSelectedTimezone,
 };
