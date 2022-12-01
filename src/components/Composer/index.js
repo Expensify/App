@@ -392,9 +392,14 @@ class Composer extends React.Component {
         const propStyles = StyleSheet.flatten(this.props.style);
         propStyles.outline = 'none';
         const propsWithoutStyles = _.omit(this.props, 'style');
+
+        // We're disabling autoCorrect for iOS Safari until Safari fixes this issue. See https://github.com/Expensify/App/issues/8592
+        const userAgent = navigator.userAgent;
+        const isMobileSafari = /iP(ad|od|hone)/i.test(userAgent) && /WebKit/i.test(userAgent) && !(/(CriOS|FxiOS|OPiOS|mercury)/i.test(userAgent));
         return (
             <RNTextInput
                 autoComplete="off"
+                autoCorrect={!isMobileSafari}
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
                 selection={this.state.selection}
