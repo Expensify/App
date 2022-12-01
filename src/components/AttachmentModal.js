@@ -277,8 +277,9 @@ class AttachmentModal extends PureComponent {
                     {this.props.onConfirm && (
                         <Animated.View style={StyleUtils.fade(this.state.confirmButtonFadeAnimation)}>
                             <Button
+                                key={this.props.isSmallScreenWidth}
                                 success
-                                style={[styles.buttonConfirm]}
+                                style={[styles.buttonConfirm, this.props.isSmallScreenWidth ? {} : styles.attachmentButtonBigScreen]}
                                 textStyles={[styles.buttonConfirmText]}
                                 text={this.props.translate('common.send')}
                                 onPress={this.submitAndClose}
