@@ -5,7 +5,13 @@ function getBrowser() {
 function isMobile() {
     return '';
 }
+
+function isMobileSafari() {
+    return '';
+}
+
 export {
     getBrowser,
     isMobile,
+    isMobileSafari,
 };
