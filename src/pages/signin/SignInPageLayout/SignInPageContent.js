@@ -43,34 +43,38 @@ const SignInPageContent = (props) => {
                 style={[
                     styles.flex1,
                     styles.signInPageLeftContainer,
-                    styles.signInPageLeftContainerMediumScreen,
+                    !props.isSmallScreenWidth && styles.signInPageLeftContainerWide,
                 ]}
             >
-                {/* This empty view creates margin on the top of the sign in form which will shrink and grow depending on if the keyboard is open or not */}
-                <View style={[styles.flexGrow1, styles.signInPageContentTopSpacer]} />
+                <View style={[styles.flex1, styles.alignSelfCenter, styles.signInPageWelcomeFormContainer]}>
+                    {/* This empty view creates margin on the top of the sign in form which will shrink and grow depending on if the keyboard is open or not */}
+                    <View style={[styles.flexGrow1, styles.signInPageContentTopSpacer]} />
 
-                <View style={[styles.flexGrow2]}>
-                    <SignInPageForm style={[styles.alignSelfStretch]}>
-                        <View style={[
-                            styles.componentHeightLarge,
-                            ...(props.isSmallScreenWidth ? [styles.mb2] : [styles.mt6, styles.mb5]),
-                        ]}
-                        >
-                            <ExpensifyCashLogo
-                                width={variables.componentSizeLarge}
-                                height={variables.componentSizeLarge}
-                            />
-                        </View>
-                        {props.shouldShowWelcomeText && (
-                            <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
-                                {props.welcomeText}
-                            </Text>
-                        )}
-                        {props.children}
-                    </SignInPageForm>
-                </View>
-                <View style={[styles.mv5, styles.alignSelfCenter, !props.isLargeScreenWidth && styles.signInPageWideLeftContainer]}>
-                    <TermsAndLicenses />
+                    <View style={[styles.flexGrow2]}>
+                        <SignInPageForm style={[styles.alignSelfStretch]}>
+                            <View style={[
+                                styles.componentHeightLarge,
+                                ...(props.isSmallScreenWidth ? [styles.mb2] : [styles.mt6, styles.mb5]),
+                            ]}
+                            >
+                                <ExpensifyCashLogo
+                                    width={variables.componentSizeLarge}
+                                    height={variables.componentSizeLarge}
+                                />
+                            </View>
+                            {props.shouldShowWelcomeText && (
+                                <View style={[styles.signInPageWelcomeTextContainer]}>
+                                    <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
+                                        {props.welcomeText}
+                                    </Text>
+                                </View>
+                            )}
+                            {props.children}
+                        </SignInPageForm>
+                    </View>
+                    <View style={[styles.mv5]}>
+                        <TermsAndLicenses />
+                    </View>
                 </View>
             </View>
         </TouchableWithoutFeedback>

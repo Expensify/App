@@ -905,15 +905,21 @@ const styles = {
         minHeight: 24,
     },
 
-    signInPageLeftContainerMediumScreen: {
-        maxWidth: 400,
-        marginLeft: 'auto',
-        marginRight: 'auto',
-    },
-
     signInPageLeftContainer: {
         paddingLeft: 40,
         paddingRight: 40,
+    },
+
+    signInPageLeftContainerWide: {
+        maxWidth: 375,
+    },
+
+    signInPageWelcomeFormContainer: {
+        maxWidth: 400,
+    },
+
+    signInPageWelcomeTextContainer: {
+        width: 300,
     },
 
     changeExpensifyLoginLinkContainer: {
