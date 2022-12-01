@@ -98,7 +98,7 @@ class IOUDetailsModal extends Component {
     /**
      * @param {String} paymentMethodType
      */
-    performIOUPayment(paymentMethodType) {
+    payMoneyRequest(paymentMethodType) {
         const recipient = {
             login: this.props.iouReport.ownerEmail,
             payPalMeAddress: this.props.iouReport.submitterPayPalMeAddress,
@@ -152,7 +152,7 @@ class IOUDetailsModal extends Component {
                             <FixedFooter>
                                 <SettlementButton
                                     isLoading={this.props.iou.loading}
-                                    onPress={paymentMethodType => this.performIOUPayment(paymentMethodType)}
+                                    onPress={paymentMethodType => this.payMoneyRequest(paymentMethodType)}
                                     shouldShowPaypal={Boolean(lodashGet(this.props, 'iouReport.submitterPayPalMeAddress'))}
                                     currency={lodashGet(this.props, 'iouReport.currency')}
                                     enablePaymentsRoute={ROUTES.IOU_DETAILS_ENABLE_PAYMENTS}
