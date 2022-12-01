@@ -3,7 +3,7 @@ import styles from '../../styles/styles';
 import updateIsFullComposerAvailable from './updateIsFullComposerAvailable';
 
 /**
- * Get the current number of lines in the composer
+ * Get the current number of lines in the composer.
  *
  * @param {Number} lineHeight
  * @param {Number} paddingTopAndBottom
