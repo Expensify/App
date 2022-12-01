@@ -24,6 +24,7 @@ import Form from '../../components/Form';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import OfflineIndicator from '../../components/OfflineIndicator';
+import * as FormActions from '../../libs/actions/FormActions';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -201,6 +202,12 @@ class AdditionalDetailsStep extends React.Component {
             dob: values[INPUT_IDS.DOB],
             ssn: values[INPUT_IDS.SSN],
         };
+
+        // Clear any errors that were sent by the server.
+        FormActions.setErrors(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, null);
+        FormActions.setErrorFields(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, null);
+
+        // Attempt to set the personal details
         Wallet.updatePersonalDetails(personalDetails);
     }
 
