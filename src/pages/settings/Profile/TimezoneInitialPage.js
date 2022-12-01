@@ -30,7 +30,7 @@ const TimezoneInitialPage = (props) => {
 
     /**
      * Updates setting for automatic timezone selection.
-     * Note: If we are updating automatically, we'll immediately calculate the user's timezone.```
+     * Note: If we are updating automatically, we'll immediately calculate the user's timezone.
      *
      * @param {Boolean} isAutomatic
      */
