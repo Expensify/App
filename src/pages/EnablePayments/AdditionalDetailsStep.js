@@ -345,7 +345,6 @@ class AdditionalDetailsStep extends React.Component {
                                 errorText={this.getErrorText('ssnFull9') || this.getErrorText('ssn')}
                                 maxLength={shouldAskForFullSSN ? 9 : 4}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                                shouldSaveDraft // I thought we weren't supposed to save drafts of SSNs or passwords...
                             />
                         </View>
                         <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
