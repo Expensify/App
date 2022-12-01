@@ -151,13 +151,6 @@ class AdditionalDetailsStep extends React.Component {
     }
 
     /**
-     * @returns {Object}
-     */
-    getErrors() {
-        return this.formHelper.getErrors(this.props);
-    }
-
-    /**
      * @param {Object} values The values object is passed from Form.js and contains info for each form element that has an inputID
      * @returns {Object}
      */
