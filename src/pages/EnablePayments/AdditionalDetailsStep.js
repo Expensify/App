@@ -139,13 +139,15 @@ class AdditionalDetailsStep extends React.Component {
     }
 
     getFirstName() {
-        const {firstName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
-        return this.props.walletAdditionalDetailsDraft.legalFirstName || firstName;
+        return PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails).firstName;
     }
 
     getLastName() {
-        const {lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
-        return this.props.walletAdditionalDetailsDraft.legalLastName || lastName;
+        return PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails).lastName;
+    }
+
+    getPhoneNumber() {
+        return this.props.currentUserPersonalDetails.phoneNumber;
     }
 
     /**
@@ -175,7 +177,8 @@ class AdditionalDetailsStep extends React.Component {
     }
 
     /**
-     * @returns {Boolean}
+     * @param {Object} values The values object is passed from Form.js and contains info for each form element that has an inputID
+     * @returns {Object}
      */
     validate(values) {
         const errors = {};
@@ -318,7 +321,7 @@ class AdditionalDetailsStep extends React.Component {
                                 containerStyles={[styles.mt4]}
                                 keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                                 label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
-                                defaultValue={this.props.walletAdditionalDetailsDraft.phoneNumber || ''}
+                                defaultValue={this.getPhoneNumber()}
                                 placeholder={this.props.translate('common.phoneNumberPlaceholder')}
                                 errorText={this.getErrorText('phoneNumber')}
                                 shouldSaveDraft
@@ -327,7 +330,6 @@ class AdditionalDetailsStep extends React.Component {
                                 inputID={INPUT_IDS.DOB}
                                 containerStyles={[styles.mt4]}
                                 label={this.props.translate(this.fieldNameTranslationKeys.dob)}
-                                defaultValue={this.props.walletAdditionalDetailsDraft.dob || ''}
                                 placeholder={this.props.translate('common.dob')}
                                 errorText={this.getErrorText('dob') || this.getErrorText('age')}
                                 maximumDate={new Date()}
@@ -337,7 +339,6 @@ class AdditionalDetailsStep extends React.Component {
                                 inputID={INPUT_IDS.SSN}
                                 containerStyles={[styles.mt4]}
                                 label={this.props.translate(this.fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
-                                defaultValue={this.props.walletAdditionalDetailsDraft.ssn || ''}
                                 errorText={this.getErrorText('ssnFull9') || this.getErrorText('ssn')}
                                 maxLength={shouldAskForFullSSN ? 9 : 4}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
