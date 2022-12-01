@@ -295,10 +295,12 @@ class AdditionalDetailsStep extends React.Component {
                                     shouldSaveDraft
                                 />
                                 <TextInput
+                                    inputID={INPUT_IDS.LEGAL_LAST_NAME}
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.legalLastName)}
                                     defaultValue={this.getLastName()}
                                     errorText={this.getErrorText('legalLastName')}
+                                    shouldSaveDraft
                                 />
                                 <AddressForm
                                     translate={this.props.translate}
@@ -318,28 +320,34 @@ class AdditionalDetailsStep extends React.Component {
                                 />
                             </View>
                             <TextInput
+                                inputID={INPUT_IDS.PHONE_NUMBER}
                                 containerStyles={[styles.mt4]}
                                 keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                                 label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
-                                value={this.props.walletAdditionalDetailsDraft.phoneNumber || ''}
+                                defaultValue={this.props.walletAdditionalDetailsDraft.phoneNumber || ''}
                                 placeholder={this.props.translate('common.phoneNumberPlaceholder')}
                                 errorText={this.getErrorText('phoneNumber')}
+                                shouldSaveDraft
                             />
                             <DatePicker
+                                inputID={INPUT_IDS.DOB}
                                 containerStyles={[styles.mt4]}
                                 label={this.props.translate(this.fieldNameTranslationKeys.dob)}
                                 defaultValue={this.props.walletAdditionalDetailsDraft.dob || ''}
                                 placeholder={this.props.translate('common.dob')}
                                 errorText={this.getErrorText('dob') || this.getErrorText('age')}
                                 maximumDate={new Date()}
+                                shouldSaveDraft
                             />
                             <TextInput
+                                inputID={INPUT_IDS.SSN}
                                 containerStyles={[styles.mt4]}
                                 label={this.props.translate(this.fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
-                                value={this.props.walletAdditionalDetailsDraft.ssn || ''}
+                                defaultValue={this.props.walletAdditionalDetailsDraft.ssn || ''}
                                 errorText={this.getErrorText('ssnFull9') || this.getErrorText('ssn')}
                                 maxLength={shouldAskForFullSSN ? 9 : 4}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                                shouldSaveDraft // I thought we weren't supposed to save drafts of SSNs or passwords...
                             />
                         </View>
                         <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
