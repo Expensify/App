@@ -78,7 +78,7 @@ class EnablePaymentsPage extends React.Component {
                     return (
                         <>
                             {(currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS || currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS_KBA)
-                                && <AdditionalDetailsStep walletAdditionalDetailsDraft={this.props.walletAdditionalDetailsDraft} />}
+                                && <AdditionalDetailsStep />}
                             {currentStep === CONST.WALLET.STEP.ONFIDO && this.props.walletAdditionalDetailsDraft
                             && <OnfidoStep walletAdditionalDetailsDraft={this.props.walletAdditionalDetailsDraft} />}
                             {currentStep === CONST.WALLET.STEP.TERMS && <TermsStep />}
