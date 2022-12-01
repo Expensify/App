@@ -415,6 +415,9 @@ function formatReportLastMessageText(lastMessageText) {
 function getDefaultAvatar(login = '') {
     // There are 24 possible default avatars, so we choose which one this user has based
     // on a simple hash of their login
+    if (login === CONST.EMAIL.CONCIERGE) {
+        return CONST.CONCIERGE_ICON_URL;
+    }
     const loginHashBucket = (Math.abs(hashCode(login.toLowerCase())) % 24) + 1;
     return `${CONST.CLOUDFRONT_URL}/images/avatars/default-avatar_${loginHashBucket}.png`;
 }
