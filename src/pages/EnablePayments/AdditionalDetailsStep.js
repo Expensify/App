@@ -25,7 +25,6 @@ import * as LoginUtils from '../../libs/LoginUtils';
 import AddressForm from '../ReimbursementAccount/AddressForm';
 import DatePicker from '../../components/DatePicker';
 import Form from '../../components/Form';
-import FormHelper from '../../libs/FormHelper';
 import walletAdditionalDetailsDraftPropTypes from './walletAdditionalDetailsDraftPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
@@ -129,11 +128,6 @@ class AdditionalDetailsStep extends React.Component {
             ssn: 'common.ssnLast4',
             ssnFull9: 'common.ssnFull9',
         };
-
-        this.formHelper = new FormHelper({
-            errorPath: 'walletAdditionalDetails.errorFields',
-            setErrors: Wallet.setAdditionalDetailsErrors,
-        });
 
         this.validate = this.validate.bind(this);
     }
