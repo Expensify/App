@@ -164,7 +164,7 @@ jobs:
   postGithubComment:
     runs-on: ubuntu-latest
     name: Post a GitHub comment with app download links for testing
-    needs: [android, ios]
+    needs: [android, ios, desktop]
     steps:
       - name: Checkout
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
@@ -190,11 +190,10 @@ jobs:
       - name: Publish links to apps for download
         run: |
           gh pr comment --body \
-          "Use the links below to test this build in android and iOS. Happy testing!
-          | android :robot:  | iOS :apple: | 
-          | ------------- | ------------- |
-          | ${{fromJson(steps.set_var.outputs.android_paths).html_path}}  | ${{fromJson(steps.set_var.outputs.ios_paths).html_path}}  |
-          | ------------- | ------------- |
-          | ![Android](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.android_paths).html_path}}) | ![iOS](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.ios_paths).html_path}}) |"
+          ":test_tube::test_tube: Use the links below to test this build in android and iOS. Happy testing! :test_tube::test_tube:
+          | android :robot:  | iOS :apple: | desktop :computer: |
+          | ------------- | ------------- | ------------- | 
+          | ${{fromJson(steps.set_var.outputs.android_paths).html_path}}  | ${{fromJson(steps.set_var.outputs.ios_paths).html_path}}  | https://ad-hoc-expensify-cash.us-east-1.amazonaws.com/desktop/${{github.event.number}}/NewExpensify.dmg
+          | ![Android](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.android_paths).html_path}}) | ![iOS](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.ios_paths).html_path}}) | ![desktop](https://ad-hoc-expensify-cash.us-east-1.amazonaws.com/desktop/${{github.event.number}}/NewExpensify.dmg)"
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
