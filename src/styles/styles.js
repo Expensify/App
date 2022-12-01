@@ -2784,7 +2784,7 @@ const styles = {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(11,27,52,0.6)',
+        backgroundColor: themeColors.dropUIBG,
         zIndex: 2,
     },
 
@@ -2807,7 +2807,7 @@ const styles = {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(255,255,255,0)',
+        backgroundColor: themeColors.dropTransparentOverlay,
         zIndex: 1000,
     },
 
