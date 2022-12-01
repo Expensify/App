@@ -1,5 +1,4 @@
 import React from 'react';
-import _ from 'underscore';
 import {propTypes as anchorForCommentsOnlyPropTypes, defaultProps} from './anchorForCommentsOnlyPropTypes';
 import BaseAnchorForCommentsOnly from './BaseAnchorForCommentsOnly';
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
@@ -13,10 +12,10 @@ const propTypes = {
 
 const AnchorForCommentsOnly = props => (
     <BaseAnchorForCommentsOnly
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
         onPressIn={() => props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
         onPressOut={() => ControlSelection.unblock()}
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...(_.omit(props, ['onPressIn', 'onPressOut']))}
     />
 );
 

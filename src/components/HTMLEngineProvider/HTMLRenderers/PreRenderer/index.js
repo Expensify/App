@@ -64,11 +64,11 @@ class PreRenderer extends React.Component {
     render() {
         return (
             <BasePreRenderer
-                onPressIn={() => this.props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
-                onPressOut={() => ControlSelection.unblock()}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
                 ref={el => this.ref = el}
+                onPressIn={() => this.props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
+                onPressOut={() => ControlSelection.unblock()}
             />
         );
     }
