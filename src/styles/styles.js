@@ -906,7 +906,9 @@ const styles = {
     },
 
     signInPageLeftContainerMediumScreen: {
-        maxWidth: 375,
+        maxWidth: 400,
+        marginLeft: 'auto',
+        marginRight: 'auto',
     },
 
     signInPageLeftContainer: {
