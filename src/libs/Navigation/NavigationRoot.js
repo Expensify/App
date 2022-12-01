@@ -6,7 +6,6 @@ import Navigation, {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
 import Log from '../Log';
@@ -16,7 +15,7 @@ const navigationTheme = {
     ...DefaultTheme,
     colors: {
         ...DefaultTheme.colors,
-        background: themeColors.highlightBG,
+        background: 'transparent',
     },
 };
 
