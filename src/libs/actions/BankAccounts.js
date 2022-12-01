@@ -23,7 +23,6 @@ export {
 } from './Plaid';
 export {
     openOnfidoFlow,
-    activateWallet,
     answerQuestionsForWallet,
     verifyIdentity,
     acceptWalletTerms,

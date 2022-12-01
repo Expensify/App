@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import requireParameters from './requireParameters';
 import * as Request from './Request';
 import * as Network from './Network';
@@ -23,31 +22,6 @@ Request.use(Middleware.Retry);
 
 // SaveResponseInOnyx - Merges either the successData or failureData into Onyx depending on if the call was successful or not
 Request.use(Middleware.SaveResponseInOnyx);
-
-/**
- * @param {{password: String, oldPassword: String}} parameters
- * @param {String} parameters.authToken
- * @param {String} parameters.password
- * @returns {Promise}
- */
-function ChangePassword(parameters) {
-    const commandName = 'ChangePassword';
-    requireParameters(['password'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.email
- * @returns {Promise}
- */
-function User_SignUp(parameters) {
-    const commandName = 'User_SignUp';
-    requireParameters([
-        'email',
-    ], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
 
 /**
  * @param {Object} parameters
@@ -103,42 +77,6 @@ function Get(parameters, shouldUseSecure = false) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.debtorEmail
- * @returns {Promise}
- */
-function GetIOUReport(parameters) {
-    const commandName = 'GetIOUReport';
-    requireParameters(['debtorEmail'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.name
- * @param {Number} parameters.value
- * @returns {Promise}
- */
-function Graphite_Timer(parameters) {
-    const commandName = 'Graphite_Timer';
-    requireParameters(['name', 'value'],
-        parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.emailList
- * @returns {Promise}
- */
-function PersonalDetails_GetForEmails(parameters) {
-    const commandName = 'PersonalDetails_GetForEmails';
-    requireParameters(['emailList'],
-        parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {Object} parameters.details
  * @returns {Promise}
  */
@@ -174,19 +112,6 @@ function SetNameValuePair(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.password
- * @param {String} parameters.validateCode
- * @param {Number} parameters.accountID
- * @returns {Promise}
- */
-function SetPassword(parameters) {
-    const commandName = 'SetPassword';
-    requireParameters(['accountID', 'password', 'validateCode'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.email
  * @param {String} parameters.password
  * @returns {Promise}
@@ -194,90 +119,6 @@ function SetPassword(parameters) {
 function User_SecondaryLogin_Send(parameters) {
     const commandName = 'User_SecondaryLogin_Send';
     requireParameters(['email', 'password'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {Number} parameters.accountID
- * @param {String} parameters.validateCode
- * @returns {Promise}
- */
-function ValidateEmail(parameters) {
-    const commandName = 'ValidateEmail';
-    requireParameters(['accountID', 'validateCode'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.currentStep
- * @param {String} [parameters.onfidoData] - JSON string
- * @param {String} [parameters.personalDetails] - JSON string
- * @param {String} [parameters.idologyAnswers] - JSON string
- * @param {Boolean} [parameters.hasAcceptedTerms]
- * @returns {Promise}
- */
-function Wallet_Activate(parameters) {
-    const commandName = 'Wallet_Activate';
-    requireParameters(['currentStep'], parameters, commandName);
-    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
-}
-
-/**
- * @param {*} parameters
- * @returns {Promise}
- */
-function BankAccount_SetupWithdrawal(parameters) {
-    const commandName = 'BankAccount_SetupWithdrawal';
-    let allowedParameters = [
-        'currentStep', 'policyID', 'bankAccountID', 'useOnfido', 'errorAttemptsCount', 'enableCardAfterVerified',
-
-        // data from bankAccount step:
-        'setupType', 'routingNumber', 'accountNumber', 'addressName', 'plaidAccountID', 'mask', 'ownershipType', 'isSavings',
-        'acceptTerms', 'bankName', 'plaidAccessToken', 'alternateRoutingNumber',
-
-        // data from company step:
-        'companyName', 'companyTaxID', 'addressStreet', 'addressCity', 'addressState', 'addressZipCode',
-        'hasNoConnectionToCannabis', 'incorporationType', 'incorporationState', 'incorporationDate', 'industryCode',
-        'website', 'companyPhone', 'ficticiousBusinessName',
-
-        // data from requestor step:
-        'firstName', 'lastName', 'dob', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressState',
-        'requestorAddressZipCode', 'isOnfidoSetupComplete', 'onfidoData', 'isControllingOfficer', 'ssnLast4',
-
-        // data from ACHContract step (which became the "Beneficial Owners" step, but the key is still ACHContract as
-        // it's used in several logic:
-        'ownsMoreThan25Percent', 'beneficialOwners', 'acceptTermsAndConditions', 'certifyTrueInformation',
-    ];
-
-    if (!parameters.useOnfido) {
-        allowedParameters = allowedParameters.concat(['passport', 'answers']);
-    }
-
-    // Only keep allowed parameters in the additionalData object
-    const additionalData = _.pick(parameters, allowedParameters);
-
-    requireParameters(['currentStep'], parameters, commandName);
-    return Network.post(
-        commandName, {additionalData: JSON.stringify(additionalData)},
-        CONST.NETWORK.METHOD.POST,
-        true,
-    );
-}
-
-/**
- * Transfer Wallet balance and takes either the bankAccoundID or fundID
- * @param {Object} parameters
- * @param {String} [parameters.bankAccountID]
- * @param {String} [parameters.fundID]
- * @returns {Promise}
- */
-function TransferWalletBalance(parameters) {
-    const commandName = 'TransferWalletBalance';
-    if (!parameters.bankAccountID && !parameters.fundID) {
-        throw new Error('Must pass either bankAccountID or fundID to TransferWalletBalance');
-    }
     return Network.post(commandName, parameters);
 }
 
@@ -293,22 +134,12 @@ function GetStatementPDF(parameters) {
 }
 
 export {
-    BankAccount_SetupWithdrawal,
-    ChangePassword,
     CreateLogin,
     DeleteLogin,
     Get,
     GetStatementPDF,
-    GetIOUReport,
-    Graphite_Timer,
-    PersonalDetails_GetForEmails,
     PersonalDetails_Update,
     ResendValidateCode,
     SetNameValuePair,
-    SetPassword,
-    User_SignUp,
     User_SecondaryLogin_Send,
-    ValidateEmail,
-    Wallet_Activate,
-    TransferWalletBalance,
 };
