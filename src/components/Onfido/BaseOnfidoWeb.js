@@ -2,6 +2,7 @@ import _ from 'underscore';
 import './index.css';
 import lodashGet from 'lodash/get';
 import React from 'react';
+import * as OnfidoSDK from 'onfido-sdk-ui';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import onfidoPropTypes from './onfidoPropTypes';
 import CONST from '../../CONST';
@@ -18,11 +19,6 @@ const propTypes = {
 
 class Onfido extends React.Component {
     componentDidMount() {
-        import(/* webpackChunkName: "onfido-sdk" */ 'onfido-sdk-ui')
-            .then(sdk => this.initOnfidoSdk(sdk));
-    }
-
-    initOnfidoSdk(OnfidoSDK) {
         this.onfidoOut = OnfidoSDK.init({
             token: this.props.sdkToken,
             containerId: CONST.ONFIDO.CONTAINER_ID,
