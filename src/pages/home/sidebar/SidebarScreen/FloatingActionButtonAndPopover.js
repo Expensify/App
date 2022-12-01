@@ -147,8 +147,7 @@ class FloatingActionButtonAndPopover extends React.Component {
      * - Selecting an item on CreateMenu or closing it by clicking outside of the modal component
      */
     hideCreateMenu() {
-        if (this.isScreenInactive()) {
-            // Prevent showing menu when click FAB icon quickly after opening other pages
+        if (!this.state.isCreateMenuActive) {
             return;
         }
         this.props.onHideCreateMenu();
