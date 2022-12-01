@@ -360,5 +360,8 @@ export default compose(
             key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS_FORM,
             initWithStoredValues: false,
         },
+        walletAdditionalDetailsDraft: {
+            key: 'walletAdditionalDetailsFormDraft',
+        },
     }),
 )(AdditionalDetailsStep);
