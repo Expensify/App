@@ -257,9 +257,6 @@ class AdditionalDetailsStep extends React.Component {
                 </ScreenWrapper>
             );
         }
-
-        const errorMessage = ErrorUtils.getLatestErrorMessage(this.props.walletAdditionalDetails) || '';
-        const isErrorVisible = _.size(this.getErrors()) > 0 || Boolean(errorMessage);
         const shouldAskForFullSSN = this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN;
 
         return (
