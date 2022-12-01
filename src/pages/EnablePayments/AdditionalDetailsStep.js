@@ -179,9 +179,6 @@ class AdditionalDetailsStep extends React.Component {
      * @param {Object} values The values object is passed from Form.js and contains info for each form element that has an inputID
      */
     activateWallet(values) {
-        if (!this.validate(values)) {
-            return;
-        }
         const personalDetails = {
             phoneNumber: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(values[INPUT_IDS.PHONE_NUMBER]),
             legalFirstName: values[INPUT_IDS.LEGAL_FIRST_NAME],
