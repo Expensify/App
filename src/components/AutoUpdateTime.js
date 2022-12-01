@@ -37,7 +37,7 @@ class AutoUpdateTime extends PureComponent {
             this.setState({
                 timezone: this.getCurrentUserLocalTime(),
             });
-        }, 1000));
+        }, 60000));
     }
 
     componentWillUnmount() {

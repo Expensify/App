@@ -95,7 +95,7 @@ class DetailsPage extends React.PureComponent {
         // If we have a reportID param this means that we
         // arrived here via the ParticipantsPage and should be allowed to navigate back to it
         const shouldShowBackButton = Boolean(this.props.route.params.reportID);
-        const shouldShowLocalTime = !ReportUtils.hasExpensifyEmails([details.login]);
+        const shouldShowLocalTime = !ReportUtils.hasExpensifyEmails([details.login]) && details.timezone;
         let pronouns = details.pronouns;
 
         if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
