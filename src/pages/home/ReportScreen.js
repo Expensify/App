@@ -215,7 +215,10 @@ class ReportScreen extends React.Component {
         const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}];
 
         // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
-        const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
+        const isLoadingInitialReportActions = (_.isEmpty(this.props.reportActions) && !this.props.network.isOffline) && this.props.report.isLoadingReportActions;
+
+        // Check if for the current chat report there are no report actions available while we are offline
+        const isChatReportEmptyWhileOffline = _.isEmpty(this.props.reportActions) && this.props.network.isOffline;
 
         // When the ReportScreen is not open/in the viewport, we want to "freeze" it for performance reasons
         const freeze = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
@@ -293,6 +296,7 @@ class ReportScreen extends React.Component {
                                         isComposerFullSize={this.props.isComposerFullSize}
                                         isDrawerOpen={this.props.isDrawerOpen}
                                         parentViewHeight={this.state.skeletonViewContainerHeight}
+                                        isChatReportEmptyWhileOffline={isChatReportEmptyWhileOffline}
                                     />
                                     <ReportFooter
                                         errors={addWorkspaceRoomOrChatErrors}
