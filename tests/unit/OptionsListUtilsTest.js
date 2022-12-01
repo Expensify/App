@@ -514,7 +514,7 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails.length).toBe(0);
         expect(results.userToInvite).not.toBe(null);
 
-        // When we add a search term for which exist options for it excluding its period
+        // When we add a search term with a period, with options for it that don't contain the period
         results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], 'peter.parker@expensify.com');
 
         // Then we should have no options at all but there should be a userToInvite
