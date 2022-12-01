@@ -9,7 +9,7 @@ import styles from '../../styles/styles';
 import variables from '../../styles/variables';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import FastImage from '../FastImage';
+import Image from '../Image';
 import chatAttachmentTokenHeaders from '../../libs/chatAttachmentTokenHeaders';
 
 /**
@@ -167,7 +167,7 @@ class ImageView extends PureComponent {
                         this.imageZoomScale = scale;
                     }}
                 >
-                    <FastImage
+                    <Image
                         style={[
                             styles.w100,
                             styles.h100,
@@ -178,11 +178,8 @@ class ImageView extends PureComponent {
                             // due to ImageZoom
                             this.state.isLoading ? styles.opacity0 : styles.opacity1,
                         ]}
-                        source={{
-                            uri: this.props.url,
-                            headers,
-                        }}
-                        resizeMode={FastImage.resizeMode.contain}
+                        source={{uri: this.props.url}}
+                        resizeMode={Image.resizeMode.contain}
                         onLoadStart={this.imageLoadingStart}
                         onLoad={this.imageLoad}
                     />

@@ -1,9 +1,64 @@
+import React from 'react';
 import RNFastImage from '@pieter-pot/react-native-fast-image';
+import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
+import CONST from '../../CONST';
+import ONYXKEYS from '../../ONYXKEYS';
+import {defaultProps, propTypes} from './imagePropTypes';
+import RESIZE_MODES from './resizeModes';
 
-// eslint-disable-next-line
-const Image = (props) => <RNFastImage {...props} />;
+class Image extends React.Component {
+    constructor(props) {
+        super(props);
 
-Image.displayName = 'FastImage';
-Image.propTypes = RNFastImage.propTypes;
-Image.resizeMode = RNFastImage.resizeMode;
-export default Image;
+        this.state = {
+            imageSource: undefined,
+        };
+    }
+
+    componentDidMount() {
+        this.configureImageSource();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.source === this.props.source) {
+            return;
+        }
+        this.configureImageSource();
+    }
+
+    configureImageSource() {
+        const source = this.props.source;
+        const isAuthTokenRequired = this.props.isAuthTokenRequired;
+        let imageSource = source;
+        if (typeof source !== 'number' && isAuthTokenRequired) {
+            const authToken = lodashGet(this.props, 'session.encryptedAuthToken', null);
+            imageSource = {
+                ...source,
+                headers: authToken ? {
+                    [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: authToken,
+                } : null,
+            };
+        }
+        this.setState({imageSource});
+    }
+
+    render() {
+        // eslint-disable-next-line
+        const { source, ...rest } = this.props;
+
+        // eslint-disable-next-line
+        return <RNFastImage {...rest} source={this.state.imageSource} />;
+    }
+}
+
+Image.propTypes = propTypes;
+Image.defaultProps = defaultProps;
+
+const ImageWithOnyx = withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(Image);
+ImageWithOnyx.resizeMode = RESIZE_MODES;
+export default ImageWithOnyx;

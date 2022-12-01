@@ -1,13 +1,10 @@
 import React from 'react';
 import {Image as RNImage} from 'react-native';
-import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
-
-const RESIZE_MODES = {
-    contain: 'contain',
-    cover: 'cover',
-    stretch: 'stretch',
-    center: 'center',
-};
+import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
+import ONYXKEYS from '../../ONYXKEYS';
+import {defaultProps, propTypes} from './imagePropTypes';
+import RESIZE_MODES from './resizeModes';
 
 class Image extends React.Component {
     constructor(props) {
@@ -31,18 +28,23 @@ class Image extends React.Component {
 
     configureImageSource() {
         const source = this.props.source;
+        const isAuthTokenRequired = this.props.isAuthTokenRequired;
         let imageSource = source;
-        if (typeof source !== 'number' && source.headers != null) {
-            imageSource = {uri: addEncryptedAuthTokenToURL(source.uri)};
+        if (typeof source !== 'number' && isAuthTokenRequired) {
+            const authToken = lodashGet(this.props, 'session.encryptedAuthToken', null);
+            imageSource = {uri: `${source.uri}?encryptedAuthToken=${encodeURIComponent(authToken)}`};
         }
         this.setState({imageSource});
+
+        // If an onLoad callback was specified then manually call it and pass
+        // the natural image dimensions to match the native API
         if (this.props.onLoad == null) {
             return;
         }
         const uri = typeof imageSource === 'number'
             ? Image.resolveAssetSource(imageSource).uri
             : imageSource.uri;
-        Image.getSize(uri, (width, height) => {
+        RNImage.getSize(uri, (width, height) => {
             this.props.onLoad({nativeEvent: {width, height}});
         });
     }
@@ -56,6 +58,13 @@ class Image extends React.Component {
     }
 }
 
-Image.propTypes = RNImage.propTypes;
-Image.resizeMode = RESIZE_MODES;
-export default Image;
+Image.propTypes = propTypes;
+Image.defaultProps = defaultProps;
+
+const ImageWithOnyx = withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(Image);
+ImageWithOnyx.resizeMode = RESIZE_MODES;
+export default ImageWithOnyx;
