@@ -188,6 +188,8 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
             const personalDetail = personalDetailList[i];
 
             // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
+            // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
+            // More info https://github.com/Expensify/App/issues/8007
             searchTerms = searchTerms.concat([personalDetail.displayName, personalDetail.login, personalDetail.login.replace(/\.(?=[^\s@]*@)/g, '')]);
         }
     }
