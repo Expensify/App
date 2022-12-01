@@ -158,13 +158,6 @@ class AdditionalDetailsStep extends React.Component {
     }
 
     /**
-     * @param {String} path
-     */
-    clearError(path) {
-        this.formHelper.clearError(this.props, path);
-    }
-
-    /**
      * @param {Object} values The values object is passed from Form.js and contains info for each form element that has an inputID
      * @returns {Object}
      */
