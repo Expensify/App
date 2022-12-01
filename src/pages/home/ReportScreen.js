@@ -225,28 +225,26 @@ class ReportScreen extends React.Component {
         const animatePlaceholder = !freeze;
 
         return (
-            <Freeze
-                freeze={freeze}
-                placeholder={(
-                    <ScreenWrapper
-                        style={screenWrapperStyle}
-                    >
-                        <ReportHeaderSkeletonView animate={animatePlaceholder} />
-                        <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
-                            <ReportActionsSkeletonView animate={animatePlaceholder} containerHeight={this.state.skeletonViewContainerHeight} />
-                            <ReportFooter
-                                isComposerFullSize={false}
-                                isOffline={this.props.network.isOffline}
-                                onSubmitComment={() => {}}
-                                report={{reportID: '0'}}
-                                reportActions={{}}
-                            />
-                        </View>
-                    </ScreenWrapper>
-                )}
+            <ScreenWrapper
+                style={screenWrapperStyle}
             >
-                <ScreenWrapper
-                    style={screenWrapperStyle}
+                <Freeze
+                    freeze={freeze}
+                    placeholder={(
+                        <>
+                            <ReportHeaderSkeletonView animate={animatePlaceholder} />
+                            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
+                                <ReportActionsSkeletonView animate={animatePlaceholder} containerHeight={this.state.skeletonViewContainerHeight} />
+                                <ReportFooter
+                                    isComposerFullSize={false}
+                                    isOffline={this.props.network.isOffline}
+                                    onSubmitComment={() => {}}
+                                    report={{reportID: '0'}}
+                                    reportActions={{}}
+                                />
+                            </View>
+                        </>
+                    )}
                 >
                     <FullPageNotFoundView
                         shouldShow={!this.props.report.reportID}
@@ -291,7 +289,6 @@ class ReportScreen extends React.Component {
                                 if (skeletonViewContainerHeight === 0) {
                                     return;
                                 }
-
                                 reportActionsListViewHeight = skeletonViewContainerHeight;
                                 this.setState({skeletonViewContainerHeight});
                             }}
@@ -336,8 +333,8 @@ class ReportScreen extends React.Component {
                             )}
                         </View>
                     </FullPageNotFoundView>
-                </ScreenWrapper>
-            </Freeze>
+                </Freeze>
+            </ScreenWrapper>
         );
     }
 }
