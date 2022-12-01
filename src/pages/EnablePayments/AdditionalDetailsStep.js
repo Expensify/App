@@ -158,18 +158,6 @@ class AdditionalDetailsStep extends React.Component {
     }
 
     /**
-     * @param {String} fieldName
-     * @returns {String}
-     */
-    getErrorText(fieldName) {
-        if (!this.getErrors()[fieldName]) {
-            return '';
-        }
-
-        return this.props.translate(this.errorTranslationKeys[fieldName]);
-    }
-
-    /**
      * @param {String} path
      */
     clearError(path) {
@@ -292,7 +280,6 @@ class AdditionalDetailsStep extends React.Component {
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.legalFirstName)}
                                     defaultValue={this.getFirstName()}
-                                    errorText={this.getErrorText('legalFirstName')}
                                     shouldSaveDraft
                                 />
                                 <TextInput
@@ -300,7 +287,6 @@ class AdditionalDetailsStep extends React.Component {
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.legalLastName)}
                                     defaultValue={this.getLastName()}
-                                    errorText={this.getErrorText('legalLastName')}
                                     shouldSaveDraft
                                 />
                                 <AddressForm
@@ -317,7 +303,6 @@ class AdditionalDetailsStep extends React.Component {
                                 label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
                                 defaultValue={this.getPhoneNumber()}
                                 placeholder={this.props.translate('common.phoneNumberPlaceholder')}
-                                errorText={this.getErrorText('phoneNumber')}
                                 shouldSaveDraft
                             />
                             <DatePicker
@@ -325,7 +310,6 @@ class AdditionalDetailsStep extends React.Component {
                                 containerStyles={[styles.mt4]}
                                 label={this.props.translate(this.fieldNameTranslationKeys.dob)}
                                 placeholder={this.props.translate('common.dob')}
-                                errorText={this.getErrorText('dob') || this.getErrorText('age')}
                                 maximumDate={new Date()}
                                 shouldSaveDraft
                             />
@@ -333,7 +317,6 @@ class AdditionalDetailsStep extends React.Component {
                                 inputID={INPUT_IDS.SSN}
                                 containerStyles={[styles.mt4]}
                                 label={this.props.translate(this.fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
-                                errorText={this.getErrorText('ssnFull9') || this.getErrorText('ssn')}
                                 maxLength={shouldAskForFullSSN ? 9 : 4}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             />
