@@ -1,10 +1,8 @@
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
-import moment from 'moment';
 import IdologyQuestions from './IdologyQuestions';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -17,8 +15,6 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import TextLink from '../../components/TextLink';
 import TextInput from '../../components/TextInput';
-import FormScrollView from '../../components/FormScrollView';
-import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import * as Wallet from '../../libs/actions/Wallet';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as LoginUtils from '../../libs/LoginUtils';
@@ -29,7 +25,6 @@ import walletAdditionalDetailsDraftPropTypes from './walletAdditionalDetailsDraf
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import OfflineIndicator from '../../components/OfflineIndicator';
-import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -72,17 +67,6 @@ const defaultProps = {
         questions: [],
         idNumber: '',
         errorCode: '',
-    },
-    walletAdditionalDetailsDraft: {
-        legalFirstName: '',
-        legalLastName: '',
-        addressStreet: '',
-        addressCity: '',
-        addressState: '',
-        addressZip: '',
-        phoneNumber: '',
-        dob: '',
-        ssn: '',
     },
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
