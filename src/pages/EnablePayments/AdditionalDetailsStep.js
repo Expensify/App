@@ -187,7 +187,7 @@ class AdditionalDetailsStep extends React.Component {
             errors[INPUT_IDS.LEGAL_FIRST_NAME] = this.props.translate(this.errorTranslationKeys.legalFirstName);
         }
 
-        if (!this.getLastName()) {
+        if (_.isEmpty(values[INPUT_IDS.LEGAL_LAST_NAME])) {
             errors[INPUT_IDS.LEGAL_LAST_NAME] = this.props.translate(this.errorTranslationKeys.legalLastName);
         }
 
