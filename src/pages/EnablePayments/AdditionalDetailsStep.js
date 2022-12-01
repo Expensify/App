@@ -301,7 +301,7 @@ export default compose(
     withCurrentUserPersonalDetails,
     withOnyx({
         walletAdditionalDetails: {
-            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS_FORM,
+            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
             initWithStoredValues: false,
         },
     }),
