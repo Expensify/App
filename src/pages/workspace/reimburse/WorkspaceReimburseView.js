@@ -19,7 +19,7 @@ import compose from '../../../libs/compose';
 import * as Policy from '../../../libs/actions/Policy';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
-import reimbursementAccountPropTypes from '../../ReimbursementAccount/reimbursementAccountPropTypes';
+import * as ReimbursementAccountProps from '../../ReimbursementAccount/reimbursementAccountPropTypes';
 import getPermittedDecimalSeparator from '../../../libs/getPermittedDecimalSeparator';
 import {withNetwork} from '../../../components/OnyxProvider';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
@@ -54,7 +54,7 @@ const propTypes = {
 
     /** From Onyx */
     /** Bank account attached to free plan */
-    reimbursementAccount: reimbursementAccountPropTypes,
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
@@ -63,7 +63,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    reimbursementAccount: {isLoading: true},
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
 };
 
 class WorkspaceReimburseView extends React.Component {

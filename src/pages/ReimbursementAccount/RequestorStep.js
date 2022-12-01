@@ -1,7 +1,5 @@
 import React from 'react';
-import lodashGet from 'lodash/get';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
@@ -15,56 +13,47 @@ import Text from '../../components/Text';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import IdentityForm from './IdentityForm';
 import * as ValidationUtils from '../../libs/ValidationUtils';
-import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import * as Link from '../../libs/actions/Link';
 import RequestorOnfidoStep from './RequestorOnfidoStep';
 import Form from '../../components/Form';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
+import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 
 const propTypes = {
     /** The bank account currently in setup */
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
 
-    /** The token required to initialize the Onfido SDK */
-    onfidoToken: PropTypes.string,
+    /** The draft values of the bank account being setup */
+    reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
 
+    /** If we should show Onfido flow */
+    shouldShowOnfido: PropTypes.bool.isRequired,
+
+    /** Goes to the previous step */
+    onBackButtonPress: PropTypes.func.isRequired,
     ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    onfidoToken: '',
 };
 
 class RequestorStep extends React.Component {
     constructor(props) {
         super(props);
 
-        this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
         this.validate = this.validate.bind(this);
         this.submit = this.submit.bind(this);
-        this.setOnfidoAsComplete = this.setOnfidoAsComplete.bind(this);
-
-        this.state = {
-            isOnfidoSetupComplete: lodashGet(props, ['achData', 'isOnfidoSetupComplete'], false),
-        };
+        this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
     }
 
     /**
-     * Update state to indicate that the user has completed the Onfido verification process
-     */
-    setOnfidoAsComplete() {
-        this.setState({isOnfidoSetupComplete: true});
-    }
-
-    /**
-     * Get default value from reimbursementAccount or achData
      * @param {String} fieldName
      * @param {*} defaultValue
-     * @returns {String}
+     *
+     * @returns {*}
      */
-    getDefaultStateForField(fieldName, defaultValue) {
-        return lodashGet(this.props, ['reimbursementAccount', 'achData', fieldName], defaultValue);
+    getDefaultStateForField(fieldName, defaultValue = '') {
+        return ReimbursementAccountUtils.getDefaultStateForField(this.props.reimbursementAccountDraft, this.props.reimbursementAccount, fieldName, defaultValue);
     }
 
     /**
@@ -132,29 +121,22 @@ class RequestorStep extends React.Component {
     }
 
     render() {
-        const achData = this.props.reimbursementAccount.achData;
-        const shouldShowOnfido = achData.useOnfido && this.props.onfidoToken && !this.state.isOnfidoSetupComplete;
-
         return (
-            <>
+            <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={this.props.translate('requestorStep.headerTitle')}
                     stepCounter={{step: 3, total: 5}}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
-                    onBackButtonPress={() => {
-                        if (shouldShowOnfido) {
-                            BankAccounts.clearOnfidoToken();
-                        } else {
-                            BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
-                        }
-                    }}
+                    onBackButtonPress={this.props.onBackButtonPress}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                {shouldShowOnfido ? (
+                {this.props.shouldShowOnfido ? (
                     <RequestorOnfidoStep
-                        onComplete={this.setOnfidoAsComplete}
+                        onComplete={() => BankAccounts.updateReimbursementAccountDraft({isOnfidoSetupComplete: true})}
+                        reimbursementAccount={this.props.reimbursementAccount}
+                        reimbursementAccountDraft={this.props.reimbursementAccountDraft}
                     />
                 ) : (
                     <Form
@@ -247,22 +229,11 @@ class RequestorStep extends React.Component {
                         </Text>
                     </Form>
                 )}
-            </>
+            </ScreenWrapper>
         );
     }
 }
 
 RequestorStep.propTypes = propTypes;
-RequestorStep.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        onfidoToken: {
-            key: ONYXKEYS.ONFIDO_TOKEN,
-        },
-    }),
-)(RequestorStep);
+export default withLocalize(RequestorStep);

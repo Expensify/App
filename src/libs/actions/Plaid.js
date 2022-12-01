@@ -13,7 +13,17 @@ function openPlaidBankLogin(allowDebit, bankAccountID) {
     const params = getPlaidLinkTokenParameters();
     params.allowDebit = allowDebit;
     params.bankAccountID = bankAccountID;
-    API.read('OpenPlaidBankLogin', params);
+    API.read('OpenPlaidBankLogin', params, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PLAID_DATA,
+            value: {
+                isLoading: true,
+                error: '',
+                bankAccounts: null,
+            },
+        }],
+    });
 }
 
 /**

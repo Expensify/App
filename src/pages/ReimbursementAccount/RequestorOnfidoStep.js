@@ -8,20 +8,18 @@ import * as BankAccounts from '../../libs/actions/BankAccounts';
 import Onfido from '../../components/Onfido';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import Growl from '../../libs/Growl';
-import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import CONST from '../../CONST';
 import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
+import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 
 const propTypes = {
     /** Bank account currently in setup */
-    /* eslint-disable-next-line react/no-unused-prop-types */
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
 
     /** The draft values of the bank account being setup */
-    /* eslint-disable-next-line react/no-unused-prop-types */
     reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
 
     /** The token required to initialize the Onfido SDK */
@@ -39,11 +37,22 @@ class RequestorOnfidoStep extends React.Component {
     constructor(props) {
         super(props);
         this.submit = this.submit.bind(this);
+        this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
+    }
+
+    /**
+     * @param {String} fieldName
+     * @param {*} defaultValue
+     *
+     * @returns {*}
+     */
+    getDefaultStateForField(fieldName, defaultValue = '') {
+        return ReimbursementAccountUtils.getDefaultStateForField(this.props.reimbursementAccountDraft, this.props.reimbursementAccount, fieldName, defaultValue);
     }
 
     submit(onfidoData) {
         BankAccounts.verifyIdentityForBankAccount(
-            ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
+            this.getDefaultStateForField('bankAccountID', 0),
             onfidoData,
         );
         this.props.onComplete();
@@ -81,14 +90,8 @@ RequestorOnfidoStep.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
         onfidoToken: {
             key: ONYXKEYS.ONFIDO_TOKEN,
-        },
-        reimbursementAccountDraft: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
         },
     }),
 )(RequestorOnfidoStep);

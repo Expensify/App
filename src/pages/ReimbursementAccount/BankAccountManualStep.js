@@ -1,6 +1,5 @@
 import React from 'react';
 import {Image, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import CONST from '../../CONST';
@@ -13,20 +12,26 @@ import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import * as ValidationUtils from '../../libs/ValidationUtils';
-import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import exampleCheckImage from './exampleCheckImage';
 import Form from '../../components/Form';
-import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import shouldDelayFocus from '../../libs/shouldDelayFocus';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
+import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
+import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 
 const propTypes = {
-    onBack: PropTypes.func,
-    ...withLocalizePropTypes,
-};
+    /** The bank account currently in setup */
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
 
-const defaultProps = {
-    onBack: () => {},
+    /** The draft values of the bank account being setup */
+    reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
+
+    /** Goes to the previous step */
+    onBackButtonPress: PropTypes.func.isRequired,
+
+    ...withLocalizePropTypes,
 };
 
 class BankAccountManualStep extends React.Component {
@@ -34,6 +39,17 @@ class BankAccountManualStep extends React.Component {
         super(props);
         this.submit = this.submit.bind(this);
         this.validate = this.validate.bind(this);
+        this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
+    }
+
+    /**
+     * @param {String} fieldName
+     * @param {*} defaultValue
+     *
+     * @returns {*}
+     */
+    getDefaultStateForField(fieldName, defaultValue = '') {
+        return ReimbursementAccountUtils.getDefaultStateForField(this.props.reimbursementAccountDraft, this.props.reimbursementAccount, fieldName, defaultValue);
     }
 
     /**
@@ -62,25 +78,25 @@ class BankAccountManualStep extends React.Component {
 
     submit(values) {
         BankAccounts.connectBankAccountManually(
-            ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID', 0),
+            this.getDefaultStateForField('bankAccountID', 0),
             values.accountNumber,
             values.routingNumber,
-            ReimbursementAccountUtils.getDefaultStateForField(this.props, 'plaidMask'),
+            this.getDefaultStateForField('plaidMask'),
         );
     }
 
     render() {
-        const shouldDisableInputs = Boolean(ReimbursementAccountUtils.getDefaultStateForField(this.props, 'bankAccountID'));
+        const shouldDisableInputs = Boolean(this.getDefaultStateForField('bankAccountID'));
 
         return (
-            <>
+            <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={this.props.translate('workspace.common.bankAccount')}
                     stepCounter={{step: 1, total: 5}}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
-                    onBackButtonPress={this.props.onBack}
+                    onBackButtonPress={this.props.onBackButtonPress}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 <Form
@@ -103,7 +119,7 @@ class BankAccountManualStep extends React.Component {
                         shouldDelayFocus={shouldDelayFocus}
                         inputID="routingNumber"
                         label={this.props.translate('bankAccount.routingNumber')}
-                        defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'routingNumber', '')}
+                        defaultValue={this.getDefaultStateForField('routingNumber', '')}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableInputs}
                         shouldSaveDraft
@@ -112,7 +128,7 @@ class BankAccountManualStep extends React.Component {
                         inputID="accountNumber"
                         containerStyles={[styles.mt4]}
                         label={this.props.translate('bankAccount.accountNumber')}
-                        defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'accountNumber', '')}
+                        defaultValue={this.getDefaultStateForField('accountNumber', '')}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableInputs}
                         shouldSaveDraft
@@ -135,25 +151,14 @@ class BankAccountManualStep extends React.Component {
                                 </TextLink>
                             </View>
                         )}
-                        defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'acceptTerms', false)}
+                        defaultValue={this.getDefaultStateForField('acceptTerms', false)}
+                        shouldSaveDraft
                     />
                 </Form>
-            </>
+            </ScreenWrapper>
         );
     }
 }
 
 BankAccountManualStep.propTypes = propTypes;
-BankAccountManualStep.defaultProps = defaultProps;
-export default compose(
-    withLocalize,
-    withOnyx({
-        // Needed to retrieve errorFields
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        reimbursementAccountDraft: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
-        },
-    }),
-)(BankAccountManualStep);
+export default withLocalize(BankAccountManualStep);

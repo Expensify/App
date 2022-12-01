@@ -10,11 +10,13 @@ import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from './ScreenWrapper';
 import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
+import compose from '../libs/compose';
+import {withNetwork} from './OnyxProvider';
 
 const propTypes = {
     /** Whether the user is submitting verifications data */
     isSubmittingVerificationsData: PropTypes.bool.isRequired,
-
+    onBackButtonPress: PropTypes.func.isRequired,
     ...withLocalizePropTypes,
 };
 
@@ -23,6 +25,8 @@ const ReimbursementAccountLoadingIndicator = props => (
         <HeaderWithCloseButton
             title={props.translate('reimbursementAccountLoadingAnimation.oneMoment')}
             onCloseButtonPress={Navigation.dismissModal}
+            shouldShowBackButton={props.network.isOffline}
+            onBackButtonPress={props.onBackButtonPress}
         />
         <FullPageOfflineBlockingView>
             {props.isSubmittingVerificationsData ? (
@@ -49,4 +53,8 @@ const ReimbursementAccountLoadingIndicator = props => (
 ReimbursementAccountLoadingIndicator.propTypes = propTypes;
 ReimbursementAccountLoadingIndicator.displayName = 'ReimbursementAccountLoadingIndicator';
 
-export default withLocalize(ReimbursementAccountLoadingIndicator);
+export default compose(
+    withLocalize,
+    withNetwork(),
+)(ReimbursementAccountLoadingIndicator);
+

@@ -4,6 +4,7 @@ import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
+import * as PlaidDataProps from '../../pages/ReimbursementAccount/plaidDataPropTypes';
 
 export {
     goToWithdrawalAccountSetupStep,
@@ -28,13 +29,14 @@ export {
     acceptWalletTerms,
 } from './Wallet';
 
-function clearPersonalBankAccount() {
-    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
+function clearPlaid() {
+    Onyx.set(ONYXKEYS.PLAID_DATA, PlaidDataProps.plaidDataDefaultProps);
+    Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
 }
 
-function clearPlaid() {
-    Onyx.set(ONYXKEYS.PLAID_DATA, {});
-    Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
+function clearPersonalBankAccount() {
+    clearPlaid();
+    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
 }
 
 function updatePlaidData(plaidData) {

@@ -20,9 +20,9 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import Section from '../../components/Section';
 import Text from '../../components/Text';
 import withPolicy from '../workspace/withPolicy';
-import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
 
 const propTypes = {
+    /** Callback to continue to the next step of the setup */
     continue: PropTypes.func.isRequired,
 
     /** Policy values needed in the component */
@@ -73,7 +73,6 @@ const ContinueBankAccountSetup = props => (
                     />
                 </Section>
             </ScrollView>
-            <WorkspaceResetBankAccountModal />
         </FullPageNotFoundView>
     </ScreenWrapper>
 );

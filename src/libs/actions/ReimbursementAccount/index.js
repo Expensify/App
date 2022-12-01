@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
 import resetFreePlanBankAccount from './resetFreePlanBankAccount';
 import deleteFromBankAccountList from './deleteFromBankAccountList';
+import * as PlaidDataProps from '../../../pages/ReimbursementAccount/plaidDataPropTypes';
 
 export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute} from './navigation';
 export {
@@ -18,6 +19,11 @@ export {
  */
 function setBankAccountSubStep(subStep) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
+    if (subStep === null) {
+        Onyx.set(ONYXKEYS.PLAID_DATA, PlaidDataProps.plaidDataDefaultProps);
+        Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
+        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, {plaidAccountID: null});
+    }
 }
 
 function hideBankAccountErrors() {

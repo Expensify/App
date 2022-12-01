@@ -1,14 +1,17 @@
 import PropTypes from 'prop-types';
 
-export default PropTypes.shape({
+const plaidDataPropTypes = PropTypes.shape({
     /** Whether we are fetching the bank accounts from the API */
     isLoading: PropTypes.bool,
 
     /** Error message */
     error: PropTypes.string,
 
-    /** Whether we should prevent the user from connecting with Plaid */
-    isPlaidDisabled: PropTypes.bool,
+    /** Name of the bank */
+    bankName: PropTypes.string,
+
+    /** Access token returned by Plaid once the user logged to their bank, that can be used along with internal credentials to query for Plaid Balance or Assets */
+    plaidAccessToken: PropTypes.string,
 
     /** List of plaid bank accounts */
     bankAccounts: PropTypes.arrayOf(PropTypes.shape({
@@ -34,3 +37,13 @@ export default PropTypes.shape({
         plaidAccessToken: PropTypes.string,
     })),
 });
+
+const plaidDataDefaultProps = {
+    bankName: '',
+    plaidAccessToken: '',
+    bankAccounts: [],
+    isLoading: false,
+    error: '',
+};
+
+export {plaidDataPropTypes, plaidDataDefaultProps};

@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
@@ -14,17 +14,18 @@ import Button from '../../components/Button';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import MenuItem from '../../components/MenuItem';
 import getBankIcon from '../../components/Icon/BankIcons';
-import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import userPropTypes from '../settings/userPropTypes';
 import Section from '../../components/Section';
 import * as Illustrations from '../../components/Icon/Illustrations';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
 import * as Link from '../../libs/actions/Link';
 import * as User from '../../libs/actions/User';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import * as BankAccounts from '../../libs/actions/ReimbursementAccount';
 
 const propTypes = {
     /** Bank account currently in setup */
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
 
     /* Onyx Props */
     user: userPropTypes.isRequired,
@@ -44,7 +45,7 @@ const EnableStep = (props) => {
     const bankName = reimbursementAccount.addressName;
 
     return (
-        <View style={[styles.flex1, styles.justifyContentBetween]}>
+        <ScreenWrapper style={[styles.flex1, styles.justifyContentBetween]}>
             <HeaderWithCloseButton
                 title={props.translate('workspace.common.bankAccount')}
                 onCloseButtonPress={Navigation.dismissModal}
@@ -103,7 +104,7 @@ const EnableStep = (props) => {
                     </Text>
                 )}
             </ScrollView>
-        </View>
+        </ScreenWrapper>
     );
 };
 
@@ -113,9 +114,6 @@ EnableStep.propTypes = propTypes;
 export default compose(
     withLocalize,
     withOnyx({
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
         user: {
             key: ONYXKEYS.USER,
         },

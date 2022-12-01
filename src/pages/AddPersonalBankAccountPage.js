@@ -22,9 +22,13 @@ import Button from '../components/Button';
 import FixedFooter from '../components/FixedFooter';
 import Form from '../components/Form';
 import ROUTES from '../ROUTES';
+import * as PlaidDataProps from './ReimbursementAccount/plaidDataPropTypes';
 
 const propTypes = {
     ...withLocalizePropTypes,
+
+    /** Contains plaid data */
+    plaidData: PlaidDataProps.plaidDataPropTypes(),
 
     /** The details about the Personal bank account we are adding saved in Onyx */
     personalBankAccount: PropTypes.shape({
@@ -43,6 +47,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    plaidData: PlaidDataProps.plaidDataDefaultProps,
     personalBankAccount: {
         error: '',
         shouldShowSuccess: false,
@@ -114,7 +119,10 @@ class AddPersonalBankAccountPage extends React.Component {
                         <FixedFooter>
                             <Button
                                 text={this.props.translate('common.continue')}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
+                                onPress={() => {
+                                    BankAccounts.clearPersonalBankAccount();
+                                    Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
+                                }}
                                 style={[styles.mt4]}
                                 iconStyles={[styles.mr5]}
                                 success
@@ -135,6 +143,7 @@ class AddPersonalBankAccountPage extends React.Component {
                                 onSelect={(selectedPlaidAccountID) => {
                                     this.setState({selectedPlaidAccountID});
                                 }}
+                                plaidData={this.props.plaidData}
                                 onExitPlaid={Navigation.goBack}
                                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                                 selectedPlaidAccountID={this.state.selectedPlaidAccountID}
