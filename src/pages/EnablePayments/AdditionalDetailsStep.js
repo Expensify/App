@@ -21,7 +21,6 @@ import * as LoginUtils from '../../libs/LoginUtils';
 import AddressForm from '../ReimbursementAccount/AddressForm';
 import DatePicker from '../../components/DatePicker';
 import Form from '../../components/Form';
-import walletAdditionalDetailsDraftPropTypes from './walletAdditionalDetailsDraftPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import OfflineIndicator from '../../components/OfflineIndicator';
@@ -54,9 +53,6 @@ const propTypes = {
         /** Error code to determine additional behavior */
         errorCode: PropTypes.string,
     }),
-
-    /** Stores the personal details typed by the user */
-    walletAdditionalDetailsDraft: walletAdditionalDetailsDraftPropTypes,
 };
 
 const defaultProps = {
