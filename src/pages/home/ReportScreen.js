@@ -241,6 +241,7 @@ class ReportScreen extends React.Component {
                                     onSubmitComment={() => {}}
                                     report={{reportID: '0'}}
                                     reportActions={{}}
+                                    shouldDisableCompose
                                 />
                             </View>
                         </>
@@ -328,6 +329,7 @@ class ReportScreen extends React.Component {
                                         onSubmitComment={() => {}}
                                         report={{reportID: '0'}}
                                         reportActions={{}}
+                                        shouldDisableCompose
                                     />
                                 </>
                             )}

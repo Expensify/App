@@ -42,6 +42,9 @@ const propTypes = {
     /** Whether the composer input should be shown */
     shouldShowComposeInput: PropTypes.bool,
 
+    /** Whether the compose input should be disabled */
+    shouldDisableCompose: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -49,6 +52,7 @@ const defaultProps = {
     shouldShowComposeInput: true,
     errors: {},
     pendingAction: null,
+    shouldDisableCompose: false,
 };
 
 class ReportFooter extends React.Component {
@@ -100,6 +104,7 @@ class ReportFooter extends React.Component {
                                     reportActions={this.props.reportActions}
                                     report={this.props.report}
                                     isComposerFullSize={this.props.isComposerFullSize}
+                                    disabled={this.props.shouldDisableCompose}
                                 />
                             </OfflineWithFeedback>
                         </SwipeableView>
