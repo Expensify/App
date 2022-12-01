@@ -167,6 +167,13 @@ class AdditionalDetailsStep extends React.Component {
         if (this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN) {
             if (!ValidationUtils.isValidSSNFullNine(values[INPUT_IDS.SSN])) {
                 errors[INPUT_IDS.SSN] = this.props.translate(this.errorTranslationKeys.ssnFull9);
+            } else {
+                const errorsObject = this.props.walletAdditionalDetails.errors;
+                if (!_.isEmpty(errorsObject)) {
+                    // Get the first element of the errors object.
+                    const elementKey = _.keys(errorsObject)[0];
+                    errors[INPUT_IDS.SSN] = this.props.walletAdditionalDetails.errors[elementKey];
+                }
             }
         } else if (!ValidationUtils.isValidSSNLastFour(values[INPUT_IDS.SSN])) {
             errors[INPUT_IDS.SSN] = this.props.translate(this.errorTranslationKeys.ssn);
