@@ -164,15 +164,19 @@ class AdditionalDetailsStep extends React.Component {
             errors[INPUT_IDS.PHONE_NUMBER] = this.props.translate(this.errorTranslationKeys.phoneNumber);
         }
 
+        // this.props.walletAdditionalDetails stores errors returned by the server. If the server returns an SSN error
+        // then the user needs to provide the full 9 digit SSN.
         if (this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN) {
             if (!ValidationUtils.isValidSSNFullNine(values[INPUT_IDS.SSN])) {
                 errors[INPUT_IDS.SSN] = this.props.translate(this.errorTranslationKeys.ssnFull9);
             } else {
                 const errorsObject = this.props.walletAdditionalDetails.errors;
                 if (!_.isEmpty(errorsObject)) {
-                    // Get the first element of the errors object.
                     const elementKey = _.keys(errorsObject)[0];
-                    errors[INPUT_IDS.SSN] = this.props.walletAdditionalDetails.errors[elementKey];
+                    if (this.props.walletAdditionalDetails.errors[elementKey] !== 'We\'re having trouble verifying your SSN. Please enter the full 9 digits of your SSN.') {
+                        // Get the first element of the errors object.
+                        errors[INPUT_IDS.SSN] = this.props.walletAdditionalDetails.errors[elementKey];
+                    }
                 }
             }
         } else if (!ValidationUtils.isValidSSNLastFour(values[INPUT_IDS.SSN])) {
