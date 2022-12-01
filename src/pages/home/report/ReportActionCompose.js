@@ -266,38 +266,37 @@ class ReportActionCompose extends React.Component {
         const participants = _.filter(reportParticipants, email => this.props.currentUserPersonalDetails.login !== email);
         const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
         const hasMultipleParticipants = participants.length > 1;
-        const iouOptions = [];
 
         if (hasExcludedIOUEmails || participants.length === 0 || !Permissions.canUseIOU(this.props.betas)) {
             return [];
         }
 
-        // We always allow bill splitting for any chat type as long as there are multiple participants.
-        if (hasMultipleParticipants) {
-            iouOptions.push({
-                icon: Expensicons.Receipt,
-                text: this.props.translate('iou.splitBill'),
-                onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(this.props.reportID)),
-            });
-        } else if (!ReportUtils.isChatRoom(this.props.report)) {
-            // If we don't have multiple participants then we only allow requesting or sending money in non "chat rooms"
-            // (i.e. default rooms like #announce or user created rooms). These features only work for DMs and policy expense chats,
-            // but we only show these options in lieu of a Split Bill option).
-            iouOptions.push({
+        // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
+        // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
+        // DM chats and workspace chats will have the Split Bill option only when there are at least 3 people in the chat.
+        if (ReportUtils.isChatRoom(this.props.report) || hasMultipleParticipants) {
+            return [
+                {
+                    icon: Expensicons.Receipt,
+                    text: this.props.translate('iou.splitBill'),
+                    onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(this.props.reportID)),
+                },
+            ];
+        }
+
+        // DM chats and workspace chats that only have 2 people will see the Send / Request money options.
+        return [
+            {
                 icon: Expensicons.MoneyCircle,
                 text: this.props.translate('iou.requestMoney'),
                 onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
-            });
-            if (Permissions.canUseIOUSend(this.props.betas)) {
-                iouOptions.push({
-                    icon: Expensicons.Send,
+            },
+            ...(Permissions.canUseIOUSend(this.props.betas) ?
+                [{icon: Expensicons.Send,
                     text: this.props.translate('iou.sendMoney'),
                     onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
-                });
-            }
-        }
-
-        return iouOptions;
+                }] : []),
+        ];
     }
 
     /**
