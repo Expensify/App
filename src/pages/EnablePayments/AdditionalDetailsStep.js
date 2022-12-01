@@ -182,15 +182,20 @@ class AdditionalDetailsStep extends React.Component {
         return errors;
     }
 
-    activateWallet() {
+    activateWallet(values) {
         if (!this.validate()) {
             return;
         }
         const personalDetails = {
-            ...this.props.walletAdditionalDetailsDraft,
-            phoneNumber: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(this.props.walletAdditionalDetailsDraft.phoneNumber),
-            legalFirstName: this.getFirstName(),
-            legalLastName: this.getLastName(),
+            phoneNumber: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(values[INPUT_IDS.PHONE_NUMBER]),
+            legalFirstName: values[INPUT_IDS.LEGAL_FIRST_NAME],
+            legalLastName: values[INPUT_IDS.LEGAL_LAST_NAME],
+            addressStreet: values[INPUT_IDS.ADDRESS.street],
+            addressCity: values[INPUT_IDS.ADDRESS.city],
+            addressState: values[INPUT_IDS.ADDRESS.state],
+            addressZip: values[INPUT_IDS.ADDRESS.zipCode],
+            dob: values[INPUT_IDS.DOB],
+            ssn: values[INPUT_IDS.SSN],
         };
         Wallet.updatePersonalDetails(personalDetails);
     }
