@@ -1,5 +1,5 @@
 import React from 'react';
-import {Image} from 'react-native';
+import {Image as RNImage} from 'react-native';
 import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
 
 const RESIZE_MODES = {
@@ -9,7 +9,7 @@ const RESIZE_MODES = {
     center: 'center',
 };
 
-class FastImage extends React.Component {
+class Image extends React.Component {
     constructor(props) {
         super(props);
 
@@ -52,10 +52,10 @@ class FastImage extends React.Component {
         const { source, onLoad, ...rest } = this.props;
 
         // eslint-disable-next-line
-        return <Image {...rest} source={this.state.imageSource} />;
+        return <RNImage {...rest} source={this.state.imageSource} />;
     }
 }
 
-FastImage.propTypes = Image.propTypes;
-FastImage.resizeMode = RESIZE_MODES;
-export default FastImage;
+Image.propTypes = RNImage.propTypes;
+Image.resizeMode = RESIZE_MODES;
+export default Image;

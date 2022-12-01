@@ -9,7 +9,7 @@ import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as Expensicons from './Icon/Expensicons';
 import getAvatarDefaultSource from '../libs/getAvatarDefaultSource';
-import FastImage from './FastImage';
+import Image from './Image';
 
 const propTypes = {
     /** Source for the avatar. Can be a URL or an icon. */
@@ -73,7 +73,7 @@ class Avatar extends PureComponent {
                         />
                     )
                     : (
-                        <FastImage
+                        <Image
                             source={{uri: this.props.source}}
                             defaultSource={getAvatarDefaultSource(this.props.source)}
                             style={imageStyle}

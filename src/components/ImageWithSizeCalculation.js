@@ -1,14 +1,11 @@
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import Log from '../libs/Log';
 import styles from '../styles/styles';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
-import ONYXKEYS from '../ONYXKEYS';
-import chatAttachmentTokenHeaders from '../libs/chatAttachmentTokenHeaders';
-import FastImage from './FastImage';
+import Image from './Image';
 
 const propTypes = {
     /** Url for image to display */
@@ -23,22 +20,12 @@ const propTypes = {
 
     /** Does the image require an authToken? */
     isAuthTokenRequired: PropTypes.bool,
-
-    /* Onyx props */
-    /** Session object */
-    session: PropTypes.shape({
-        /** An error message to display to the user */
-        encryptedAuthToken: PropTypes.string,
-    }),
 };
 
 const defaultProps = {
     style: {},
     onMeasure: () => {},
     isAuthTokenRequired: false,
-    session: {
-        encryptedAuthToken: false,
-    },
 };
 
 /**
@@ -83,7 +70,6 @@ class ImageWithSizeCalculation extends PureComponent {
     }
 
     render() {
-        const headers = this.props.isAuthTokenRequired ? chatAttachmentTokenHeaders() : undefined;
         return (
             <View
                 style={[
@@ -92,16 +78,14 @@ class ImageWithSizeCalculation extends PureComponent {
                     this.props.style,
                 ]}
             >
-                <FastImage
+                <Image
                     style={[
                         styles.w100,
                         styles.h100,
                     ]}
-                    source={{
-                        uri: this.props.url,
-                        headers,
-                    }}
-                    resizeMode={FastImage.resizeMode.contain}
+                    source={{uri: this.props.url}}
+                    isAuthTokenRequired={this.props.isAuthTokenRequired}
+                    resizeMode={Image.resizeMode.contain}
                     onLoadStart={this.imageLoadingStart}
                     onLoadEnd={this.imageLoadingEnd}
                     onError={this.onError}
@@ -119,6 +103,4 @@ class ImageWithSizeCalculation extends PureComponent {
 
 ImageWithSizeCalculation.propTypes = propTypes;
 ImageWithSizeCalculation.defaultProps = defaultProps;
-export default withOnyx({
-    session: {key: ONYXKEYS.SESSION},
-})(ImageWithSizeCalculation);
+export default ImageWithSizeCalculation;
