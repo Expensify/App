@@ -175,8 +175,12 @@ class AdditionalDetailsStep extends React.Component {
                 if (!_.isEmpty(errorsObject)) {
                     const elementKey = _.keys(errorsObject)[0];
                     if (this.props.walletAdditionalDetails.errors[elementKey] !== 'We\'re having trouble verifying your SSN. Please enter the full 9 digits of your SSN.') {
-                        // Get the first element of the errors object.
-                        errors[INPUT_IDS.SSN] = this.props.walletAdditionalDetails.errors[elementKey];
+                        if (typeof this.props.walletAdditionalDetails.errors[elementKey] === 'string') {
+                            // Get the first element of the errors object.
+                            errors[INPUT_IDS.SSN] = this.props.walletAdditionalDetails.errors[elementKey];
+                        } else {
+                            errors[INPUT_IDS.SSN] = 'There was an error';
+                        }
                     }
                 }
             }
