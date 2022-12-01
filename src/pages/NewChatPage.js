@@ -219,43 +219,42 @@ class NewChatPage extends Component {
                             onCloseButtonPress={() => Navigation.dismissModal(true)}
                         />
                         <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                            {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
-                            {didScreenTransitionEnd && (
-                                <OptionsSelector
-                                    canSelectMultipleOptions={this.props.isGroupChat}
-                                    sections={sections}
-                                    selectedOptions={this.state.selectedOptions}
-                                    value={this.state.searchValue}
-                                    onSelectRow={option => (this.props.isGroupChat ? this.toggleOption(option) : this.createChat(option))}
-                                    onChangeText={(searchValue = '') => {
-                                        const {
-                                            recentReports,
-                                            personalDetails,
-                                            userToInvite,
-                                        } = OptionsListUtils.getNewChatOptions(
-                                            this.props.reports,
-                                            this.props.personalDetails,
-                                            this.props.betas,
-                                            searchValue,
-                                            [],
-                                            this.props.isGroupChat ? this.excludedGroupEmails : [],
-                                        );
-                                        this.setState({
-                                            searchValue,
-                                            userToInvite,
-                                            recentReports,
-                                            personalDetails,
-                                        });
-                                    }}
-                                    headerMessage={headerMessage}
-                                    hideAdditionalOptionStates
-                                    forceTextUnreadStyle
-                                    shouldFocusOnSelectRow={this.props.isGroupChat}
-                                    shouldShowConfirmButton={this.props.isGroupChat}
-                                    confirmButtonText={this.props.translate('newChatPage.createGroup')}
-                                    onConfirmSelection={this.props.isGroupChat ? this.createGroup : () => {}}
-                                />
-                            )}
+                            <OptionsSelector
+                                autoFocus
+                                canSelectMultipleOptions={this.props.isGroupChat}
+                                sections={sections}
+                                selectedOptions={this.state.selectedOptions}
+                                value={this.state.searchValue}
+                                onSelectRow={option => (this.props.isGroupChat ? this.toggleOption(option) : this.createChat(option))}
+                                onChangeText={(searchValue = '') => {
+                                    const {
+                                        recentReports,
+                                        personalDetails,
+                                        userToInvite,
+                                    } = OptionsListUtils.getNewChatOptions(
+                                        this.props.reports,
+                                        this.props.personalDetails,
+                                        this.props.betas,
+                                        searchValue,
+                                        [],
+                                        this.props.isGroupChat ? this.excludedGroupEmails : [],
+                                    );
+                                    this.setState({
+                                        searchValue,
+                                        userToInvite,
+                                        recentReports,
+                                        personalDetails,
+                                    });
+                                }}
+                                headerMessage={headerMessage}
+                                hideAdditionalOptionStates
+                                forceTextUnreadStyle
+                                shouldFocusOnSelectRow={this.props.isGroupChat}
+                                shouldShowConfirmButton={this.props.isGroupChat}
+                                confirmButtonText={this.props.translate('newChatPage.createGroup')}
+                                onConfirmSelection={this.props.isGroupChat ? this.createGroup : () => {}}
+                                shouldShowOptions={didScreenTransitionEnd}
+                            />
                         </View>
                     </>
                 )}

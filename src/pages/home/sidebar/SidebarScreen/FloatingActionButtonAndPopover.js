@@ -169,6 +169,8 @@ class FloatingActionButtonAndPopover extends React.Component {
                     anchorPosition={styles.createMenuPositionSidebar}
                     onItemSelected={this.hideCreateMenu}
                     fromSidebarMediumScreen={!this.props.isSmallScreenWidth}
+                    hasBackdrop={true}
+                    coverScreen={false}
                     menuItems={[
                         {
                             icon: Expensicons.ChatBubble,

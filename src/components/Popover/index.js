@@ -31,6 +31,7 @@ const Popover = (props) => {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             fullscreen={props.isSmallScreenWidth ? true : props.fullscreen}
+            hasBackdrop={props.isSmallScreenWidth ? true : props.hasBackdrop}
             animationInTiming={props.disableAnimation && !props.isSmallScreenWidth ? 1 : props.animationInTiming}
             animationOutTiming={props.disableAnimation && !props.isSmallScreenWidth ? 1 : props.animationOutTiming}
         />

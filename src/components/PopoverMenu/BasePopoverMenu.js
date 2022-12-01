@@ -99,6 +99,8 @@ class BasePopoverMenu extends PureComponent {
                 animationInTiming={this.props.animationInTiming}
                 disableAnimation={this.props.disableAnimation}
                 fromSidebarMediumScreen={this.props.fromSidebarMediumScreen}
+                hasBackdrop={this.props.hasBackdrop}
+                coverScreen={this.props.coverScreen}
             >
                 <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
                     {!_.isEmpty(this.props.headerText) && (
