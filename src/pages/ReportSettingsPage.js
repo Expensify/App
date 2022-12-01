@@ -88,10 +88,10 @@ class ReportSettingsPage extends Component {
     }
 
     validateAndUpdatePolicyRoomName() {
-        Keyboard.dismiss();
         if (!this.validate()) {
             return;
         }
+        Keyboard.dismiss();
         Report.updatePolicyRoomName(this.props.report, this.state.newRoomName);
     }
 
