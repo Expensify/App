@@ -7,7 +7,7 @@ import stylePropTypes from '../../styles/stylePropTypes';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 
-/* eslint-disable rulesdir/prefer-early-return */
+// eslint-disable-next-line rulesdir/prefer-early-return
 const requiredPropsCheck = (props, componentName) => {
     if (!props.onMouseDown && !props.onPress) {
         return new Error(`One of "onMouseDown" or "onPress" must be provided in ${componentName}`);
