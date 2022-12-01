@@ -328,7 +328,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         }
 
         const lastActorDetails = personalDetailMap[report.lastActorEmail] || null;
-        let lastMessageText = hasMultipleParticipants && lastActorDetails
+        let lastMessageText = hasMultipleParticipants && lastActorDetails && (lastActorDetails.login !== currentUserLogin)
             ? `${lastActorDetails.displayName}: `
             : '';
         lastMessageText += report ? lastMessageTextFromReport : '';
