@@ -96,6 +96,12 @@ const INPUT_IDS = {
     AGE: 'age',
     SSN: 'ssn',
     SSN_FULL_9: 'ssnFull9',
+    ADDRESS: {
+        street: 'addressStreet',
+        city: 'addressCity',
+        state: 'addressState',
+        zipCode: 'addressZip',
+    },
 };
 
 class AdditionalDetailsStep extends React.Component {
