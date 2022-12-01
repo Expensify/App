@@ -177,10 +177,10 @@ class AdditionalDetailsStep extends React.Component {
     /**
      * @returns {Boolean}
      */
-    validate() {
+    validate(values) {
         const errors = {};
 
-        if (!this.getFirstName()) {
+        if (_.isEmpty(values[INPUT_IDS.LEGAL_FIRST_NAME])) {
             errors[INPUT_IDS.LEGAL_FIRST_NAME] = this.props.translate(this.errorTranslationKeys.legalFirstName);
         }
 
@@ -188,39 +188,39 @@ class AdditionalDetailsStep extends React.Component {
             errors[INPUT_IDS.LEGAL_LAST_NAME] = this.props.translate(this.errorTranslationKeys.legalLastName);
         }
 
-        if (!ValidationUtils.isValidPastDate(this.props.walletAdditionalDetailsDraft.dob)) {
+        if (!ValidationUtils.isValidPastDate(values[INPUT_IDS.DOB])) {
             errors[INPUT_IDS.DOB] = this.props.translate(this.errorTranslationKeys.dob);
         }
 
-        if (!ValidationUtils.meetsAgeRequirements(this.props.walletAdditionalDetailsDraft.dob)) {
+        if (!ValidationUtils.meetsAgeRequirements(values[INPUT_IDS.DOB])) {
             errors[INPUT_IDS.AGE] = this.props.translate(this.errorTranslationKeys.age);
         }
 
-        // if (!ValidationUtils.isValidAddress(this.props.walletAdditionalDetailsDraft.addressStreet)) {
-        //     errors.addressStreet = true;
-        // }
-        //
-        // if (_.isEmpty(this.props.walletAdditionalDetailsDraft.addressCity)) {
-        //     errors.addressCity = true;
-        // }
-        //
-        // if (_.isEmpty(this.props.walletAdditionalDetailsDraft.addressState)) {
-        //     errors.addressState = true;
-        // }
-        //
-        // if (!ValidationUtils.isValidZipCode(this.props.walletAdditionalDetailsDraft.addressZip)) {
-        //     errors.addressZip = true;
-        // }
+        if (!ValidationUtils.isValidAddress(values[INPUT_IDS.ADDRESS.street])) {
+            errors[INPUT_IDS.ADDRESS.street] = this.props.translate('bankAccount.error.addressStreet');
+        }
 
-        if (!ValidationUtils.isValidUSPhone(this.props.walletAdditionalDetailsDraft.phoneNumber, true)) {
+        if (_.isEmpty(values[INPUT_IDS.ADDRESS.city])) {
+            errors[INPUT_IDS.ADDRESS.city] = this.props.translate('bankAccount.error.addressCity');
+        }
+
+        if (_.isEmpty(values[INPUT_IDS.ADDRESS.state])) {
+            errors[INPUT_IDS.ADDRESS.state] = this.props.translate('bankAccount.error.addressState');
+        }
+
+        if (!ValidationUtils.isValidZipCode(values[INPUT_IDS.ADDRESS.addressZip])) {
+            errors[INPUT_IDS.ADDRESS.zipCode] = this.props.translate('bankAccount.error.zipCode');
+        }
+
+        if (!ValidationUtils.isValidUSPhone(values[INPUT_IDS.PHONE_NUMBER], true)) {
             errors[INPUT_IDS.PHONE_NUMBER] = this.props.translate(this.errorTranslationKeys.phoneNumber);
         }
 
         if (this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN) {
-            if (!ValidationUtils.isValidSSNFullNine(this.props.walletAdditionalDetailsDraft.ssn)) {
+            if (!ValidationUtils.isValidSSNFullNine(values[INPUT_IDS.SSN])) {
                 errors[INPUT_IDS.SSN_FULL_9] = this.props.translate(this.errorTranslationKeys.ssnFull9);
             }
-        } else if (!ValidationUtils.isValidSSNLastFour(this.props.walletAdditionalDetailsDraft.ssn)) {
+        } else if (!ValidationUtils.isValidSSNLastFour(values[INPUT_IDS.SSN])) {
             errors[INPUT_IDS.SSN] = this.props.translate(this.errorTranslationKeys.ssn);
         }
 
