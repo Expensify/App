@@ -13,6 +13,7 @@ import {withDrawerPropTypes} from '../../../components/withDrawerState';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
+import ReportActionItemCreated from './ReportActionItemCreated';
 import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
 import Performance from '../../../libs/Performance';
 import {withNetwork} from '../../../components/OnyxProvider';
@@ -46,6 +47,9 @@ const propTypes = {
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
+
+    /** Check if the chat report doesn't contain any report action while we are offline */
+    isChatReportEmptyWhileOffline: PropTypes.bool.isRequired,
 
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
@@ -338,6 +342,11 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
+        // If the `isChatReportEmptyWhileOffline` prop is true then let's render ReportActionItemCreated component
+        if (this.props.isChatReportEmptyWhileOffline) {
+            return <ReportActionItemCreated reportID={this.props.report.reportID} />;
+        }
+
         // Comments have not loaded at all yet do nothing
         if (!_.size(this.props.reportActions)) {
             return null;
