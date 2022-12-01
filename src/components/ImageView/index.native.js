@@ -74,11 +74,8 @@ class ImageView extends PureComponent {
 
             const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
 
-            if (imageHeight > imageWidth) {
-                imageHeight *= aspectRatio;
-            } else {
-                imageWidth *= aspectRatio;
-            }
+            imageHeight *= aspectRatio;
+            imageWidth *= aspectRatio;
 
             // Resize the image to max dimensions possible on the Native platforms to prevent crashes on Android. To keep the same behavior, apply to IOS as well.
             const maxDimensionsScale = 11;
