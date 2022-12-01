@@ -172,27 +172,24 @@ class AdditionalDetailsStep extends React.Component {
      * @returns {Boolean}
      */
     validate() {
-        // Reset server error messages when resubmitting form
-        Wallet.setAdditionalDetailsErrorMessage('');
-
         const errors = {};
 
         if (!this.getFirstName()) {
-            errors[INPUT_IDS.LEGAL_FIRST_NAME] = 'Invalid First Name';
+            errors[INPUT_IDS.LEGAL_FIRST_NAME] = this.props.translate(this.errorTranslationKeys.legalFirstName);
         }
 
-        // if (!this.getLastName()) {
-        //     errors.legalLastName = true;
-        // }
-        //
-        // if (!ValidationUtils.isValidPastDate(this.props.walletAdditionalDetailsDraft.dob)) {
-        //     errors.dob = true;
-        // }
-        //
-        // if (!ValidationUtils.meetsAgeRequirements(this.props.walletAdditionalDetailsDraft.dob)) {
-        //     errors.age = true;
-        // }
-        //
+        if (!this.getLastName()) {
+            errors[INPUT_IDS.LEGAL_LAST_NAME] = this.props.translate(this.errorTranslationKeys.legalLastName);
+        }
+
+        if (!ValidationUtils.isValidPastDate(this.props.walletAdditionalDetailsDraft.dob)) {
+            errors[INPUT_IDS.DOB] = this.props.translate(this.errorTranslationKeys.dob);
+        }
+
+        if (!ValidationUtils.meetsAgeRequirements(this.props.walletAdditionalDetailsDraft.dob)) {
+            errors[INPUT_IDS.AGE] = this.props.translate(this.errorTranslationKeys.age);
+        }
+
         // if (!ValidationUtils.isValidAddress(this.props.walletAdditionalDetailsDraft.addressStreet)) {
         //     errors.addressStreet = true;
         // }
@@ -208,21 +205,19 @@ class AdditionalDetailsStep extends React.Component {
         // if (!ValidationUtils.isValidZipCode(this.props.walletAdditionalDetailsDraft.addressZip)) {
         //     errors.addressZip = true;
         // }
-        //
-        // if (!ValidationUtils.isValidUSPhone(this.props.walletAdditionalDetailsDraft.phoneNumber, true)) {
-        //     errors.phoneNumber = true;
-        // }
-        //
-        // if (this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN) {
-        //     if (!ValidationUtils.isValidSSNFullNine(this.props.walletAdditionalDetailsDraft.ssn)) {
-        //         errors.ssnFull9 = true;
-        //     }
-        // } else if (!ValidationUtils.isValidSSNLastFour(this.props.walletAdditionalDetailsDraft.ssn)) {
-        //     errors.ssn = true;
-        // }
-        //
-        // Wallet.setAdditionalDetailsErrors(errors);
-        // return _.size(errors) === 0;
+
+        if (!ValidationUtils.isValidUSPhone(this.props.walletAdditionalDetailsDraft.phoneNumber, true)) {
+            errors[INPUT_IDS.PHONE_NUMBER] = this.props.translate(this.errorTranslationKeys.phoneNumber);
+        }
+
+        if (this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN) {
+            if (!ValidationUtils.isValidSSNFullNine(this.props.walletAdditionalDetailsDraft.ssn)) {
+                errors[INPUT_IDS.SSN_FULL_9] = this.props.translate(this.errorTranslationKeys.ssnFull9);
+            }
+        } else if (!ValidationUtils.isValidSSNLastFour(this.props.walletAdditionalDetailsDraft.ssn)) {
+            errors[INPUT_IDS.SSN] = this.props.translate(this.errorTranslationKeys.ssn);
+        }
+
         return errors;
     }
 
