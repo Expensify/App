@@ -22,8 +22,6 @@ import networkPropTypes from '../../components/networkPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
-    shouldSkipVBBACall: PropTypes.bool,
-
     /** Information about the network from Onyx */
     network: networkPropTypes.isRequired,
 
@@ -73,7 +71,6 @@ const defaultProps = {
     footer: null,
     guidesCallTaskID: '',
     shouldUseScrollView: false,
-    shouldSkipVBBACall: false,
 };
 
 class WorkspacePageWithSections extends React.Component {
@@ -90,10 +87,6 @@ class WorkspacePageWithSections extends React.Component {
     }
 
     fetchData() {
-        if (this.props.shouldSkipVBBACall) {
-            return;
-        }
-
         BankAccounts.openWorkspaceView();
     }
 
