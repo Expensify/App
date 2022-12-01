@@ -88,7 +88,15 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const INPUT_IDS = {LEGAL_FIRST_NAME: 'legalFirstName'};
+const INPUT_IDS = {
+    LEGAL_FIRST_NAME: 'legalFirstName',
+    LEGAL_LAST_NAME: 'legalLastName',
+    PHONE_NUMBER: 'phoneNumber',
+    DOB: 'dob',
+    AGE: 'age',
+    SSN: 'ssn',
+    SSN_FULL_9: 'ssnFull9',
+};
 
 class AdditionalDetailsStep extends React.Component {
     constructor(props) {
