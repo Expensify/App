@@ -206,9 +206,9 @@ function getBackgroundColorStyle(backgroundColor) {
  * Converts a color in hexadecimal notation into RGB notation.
  *
  * @param {String} hexadecimal A color in hexadecimal notation.
- * @returns {Array} `null` if the input color is not in hexadecimal notation. Otherwise, the input color as RGB value.
+ * @returns {Array} `null` if the input color is not in hexadecimal notation. Otherwise, the RGB components of the input color.
  */
-function hexadecimalToRGB(hexadecimal) {
+function hexadecimalToRGBComponents(hexadecimal) {
     const components = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexadecimal);
 
     if (components !== null) {
@@ -226,7 +226,7 @@ function hexadecimalToRGB(hexadecimal) {
  * @returns {Object}
  */
 function getBackgroundColorWithOpacityStyle(backgroundColor, opacity) {
-    const result = hexadecimalToRGB(backgroundColor);
+    const result = hexadecimalToRGBComponents(backgroundColor);
     if (result !== null) {
         return {
             backgroundColor: `rgba(${result[1]}, ${result[1]}, ${result[1]}, ${opacity})`,
@@ -462,14 +462,14 @@ function getPaymentMethodMenuWidth(isSmallScreenWidth) {
 }
 
 /**
- * Approximates a color in RGBA notation with an equivalent color in RGB notation.
+ * Converts a color in RGBA notation to an equivalent color in RGB notation.
  *
  * @param {Array} foregroundRGB The three components of the foreground color in RGB notation.
  * @param {Array} backgroundRGB The three components of the background color in RGB notation.
  * @param {number} opacity The desired opacity of the foreground color.
- * @returns {Array} A color in RGB notation that approximates the foreground color with the given opacity on top of the background color.
+ * @returns {Array} The RGB components of the RGBA color converted to RGB.
  */
-function approximateRGBAWithRGB(foregroundRGB, backgroundRGB, opacity) {
+function convertRGBAToRGB(foregroundRGB, backgroundRGB, opacity) {
     const [foregroundR, foregroundG, foregroundB] = foregroundRGB;
     const [backgroundR, backgroundG, backgroundB] = backgroundRGB;
 
@@ -505,30 +505,30 @@ function normalizeRGB(r, g, b) {
 }
 
 /**
- * Approximates the theme color for a modal based on the app's background color,
+ * Determines the theme color for a modal based on the app's background color,
  * the modal's backdrop, and the backdrop's opacity.
  *
  * @returns {String} The theme color as an RGB value.
  */
-function getThemeColor() {
+function getThemeBackgroundColor() {
     const backdropOpacity = variables.modalFullscreenBackdropOpacity;
 
-    const [backgroundR, backgroundG, backgroundB] = hexadecimalToRGB(themeColors.appBG);
-    const [backdropR, backdropG, backdropB] = hexadecimalToRGB(themeColors.modalBackdrop);
+    const [backgroundR, backgroundG, backgroundB] = hexadecimalToRGBComponents(themeColors.appBG);
+    const [backdropR, backdropG, backdropB] = hexadecimalToRGBComponents(themeColors.modalBackdrop);
     const normalizedBackdropRGB = normalizeRGB(backdropR, backdropG, backdropB);
     const normalizedBackgroundRGB = normalizeRGB(
         backgroundR,
         backgroundG,
         backgroundB,
     );
-    const approximatedThemeRGBNormalized = approximateRGBAWithRGB(
+    const themeRGBNormalized = convertRGBAToRGB(
         normalizedBackdropRGB,
         normalizedBackgroundRGB,
         backdropOpacity,
     );
-    const approximatedThemeRGB = denormalizeRGB(...approximatedThemeRGBNormalized);
+    const themeRGB = denormalizeRGB(...themeRGBNormalized);
 
-    return `rgb(${approximatedThemeRGB.join(', ')})`;
+    return `rgb(${themeRGB.join(', ')})`;
 }
 
 /**
@@ -648,7 +648,7 @@ export {
     getMiniReportActionContextMenuWrapperStyle,
     getKeyboardShortcutsModalWidth,
     getPaymentMethodMenuWidth,
-    getThemeColor,
+    getThemeBackgroundColor as getThemeColor,
     parseStyleAsArray,
     combineStyles,
     getPaddingLeft,

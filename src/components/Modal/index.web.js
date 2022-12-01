@@ -19,7 +19,7 @@ const Modal = props => (
         onModalShow={() => {
             if (props.fullscreen) {
                 // The color of the status bar should align with the modal's backdrop (refer to https://github.com/Expensify/App/issues/12156).
-                document.querySelector('meta[name=theme-color]').content = StyleUtils.getThemeColor();
+                document.querySelector('meta[name=theme-color]').content = StyleUtils.getThemeBackgroundColor();
             }
 
             props.onModalShow();
