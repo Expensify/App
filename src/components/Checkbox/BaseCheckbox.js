@@ -13,7 +13,6 @@ const requiredPropsCheck = (props, componentName) => {
         return new Error(`One of "onMouseDown" or "onPress" must be provided in ${componentName}`);
     }
 };
-/* eslint-enable */
 
 const propTypes = {
     /** Whether checkbox is checked */
