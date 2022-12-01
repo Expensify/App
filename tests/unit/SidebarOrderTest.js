@@ -18,7 +18,6 @@ const ONYXKEYS = {
     COLLECTION: {
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
-        REPORT_IOUS: 'reportIOUs_',
     },
     NETWORK: 'network',
 };
@@ -349,7 +348,7 @@ describe('Sidebar', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                     [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
-                    [`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReport.reportID}`]: iouReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
                 }))
 
                 // Then the reports are ordered by Pinned > IOU > Draft
