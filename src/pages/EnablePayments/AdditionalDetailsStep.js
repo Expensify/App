@@ -307,12 +307,6 @@ class AdditionalDetailsStep extends React.Component {
                                     inputKeys={INPUT_IDS.ADDRESS}
                                     translate={this.props.translate}
                                     streetTranslationKey={this.fieldNameTranslationKeys.addressStreet}
-                                    defaultValues={{
-                                        street: this.props.walletAdditionalDetailsDraft.addressStreet,
-                                        state: this.props.walletAdditionalDetailsDraft.addressState,
-                                        city: this.props.walletAdditionalDetailsDraft.addressCity,
-                                        zipCode: this.props.walletAdditionalDetailsDraft.addressZip,
-                                    }}
                                     shouldSaveDraft
                                 />
                             </View>
