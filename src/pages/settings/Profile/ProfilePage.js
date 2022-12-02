@@ -195,13 +195,13 @@ class ProfilePage extends Component {
                 title: this.getPronouns(),
                 pageRoute: ROUTES.SETTINGS_PRONOUNS,
             },
-            // {
-            //     description: this.props.translate(timezonePage.timezone),
-            //     title: personalDetails.timezone,
-            //     pageRoute: ROUTES.SETTINGS_TIMEZONE,
-            // },
+            {
+                description: this.props.translate('timezonePage.timezone'),
+                title: `${lodashGet(currentUserDetails, 'timezone.selected', '')}`,
+                pageRoute: ROUTES.SETTINGS_TIMEZONE,
+            },
         ];
-
+        console.log(lodashGet(currentUserDetails, 'timezone', ''));
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
