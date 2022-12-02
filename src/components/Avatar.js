@@ -56,9 +56,9 @@ class Avatar extends PureComponent {
     }
 
     componentDidUpdate(prevProps) {
+        const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
         if (
-            !this.state.imageError || !lodashGet(prevProps.network, 'isOffline')
-            || lodashGet(this.props.network, 'isOffline')
+            !this.state.imageError || !isReconnecting
         ) {
             return;
         }
