@@ -1,0 +1,21 @@
+name: 'Configure AWS Credentials'
+description: 'Configures AWS credentials for the workflow'
+
+inputs:
+  AWS_ACCESS_KEY_ID:
+    description: 'Access Key to AWS'
+    required: true
+  AWS_SECRET_ACCESS_KEY:
+    description: 'Secret Access Key to AWS'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Configure AWS Credentials
+      # Version: 1.5.5
+      uses: aws-actions/configure-aws-credentials@e97d7fbc8e0e5af69631c13daa0f4b5a8d88165b
+      with:
+        aws-access-key-id: ${{ inputs.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ inputs.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1

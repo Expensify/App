@@ -48,8 +48,7 @@
             display: none;
         }
 
-        /* At the time of writing this User Agent styles for autofill inputs in Chrome are not customizable. This hack exploits the fact that
-        these styles are applied with a transition. Chromium team has labeled this as a WontFix so it seems there's not much else we can do here. */
+        /* Customizes the background and text colors for autofill inputs in Chrome */
         input:-webkit-autofill,
         input:-webkit-autofill:hover,
         input:-webkit-autofill:focus,
@@ -59,7 +58,9 @@
         select:-webkit-autofill,
         select:-webkit-autofill:hover,
         select:-webkit-autofill:focus {
-            -webkit-transition-delay: 99999s;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: #ffffff;
+            caret-color: #ffffff;
         }
     </style>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
