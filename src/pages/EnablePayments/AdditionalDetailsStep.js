@@ -188,6 +188,10 @@ class AdditionalDetailsStep extends React.Component {
             errors[INPUT_IDS.SSN] = this.props.translate(this.errorTranslationKeys.ssn);
         }
 
+        // We need to make sure the draft values from the form are saved to the draft Wallet Additional Details Onyx
+        // object because the draft Wallet Additional Details Onyx object is populated by several forms in several steps.
+        FormActions.setDraftValues(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, this.props.walletAdditionalDetailsDraft);
+
         return errors;
     }
 
@@ -322,6 +326,9 @@ export default compose(
         walletAdditionalDetails: {
             key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
             initWithStoredValues: false,
+        },
+        walletAdditionalDetailsDraft: {
+            key: `${ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_FORM}Draft`,
         },
     }),
 )(AdditionalDetailsStep);
