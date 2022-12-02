@@ -144,7 +144,6 @@ const ReportActionItemFragment = (props) => {
             return (
                 <Tooltip text={props.tooltipText}>
                     <Text
-                        selectable
                         numberOfLines={props.isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessageHeaderSender]}
                     >
