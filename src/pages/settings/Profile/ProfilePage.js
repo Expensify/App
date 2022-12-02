@@ -254,22 +254,6 @@ class ProfilePage extends Component {
                         login={this.state.logins.phone}
                         defaultValue={this.state.logins.phone}
                     />
-                    <View style={styles.mb3}>
-                        <Picker
-                            inputID="timezone"
-                            label={this.props.translate('profilePage.timezone')}
-                            items={timezones}
-                            isDisabled={this.state.isAutomaticTimezone}
-                            value={this.state.selectedTimezone}
-                            onValueChange={selectedTimezone => this.setState({ selectedTimezone })}
-                        />
-                    </View>
-                    <CheckboxWithLabel
-                        inputID="isAutomaticTimezone"
-                        label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
-                        defaultValue={this.state.isAutomaticTimezone}
-                        onValueChange={this.setAutomaticTimezone}
-                    />
                 </Form>
             </ScreenWrapper>
         );
