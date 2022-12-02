@@ -3,11 +3,11 @@ function getBrowser() {
 }
 
 function isMobile() {
-    return '';
+    return false;
 }
 
 function isMobileSafari() {
-    return '';
+    return false;
 }
 
 export {
