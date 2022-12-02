@@ -181,6 +181,16 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 ],
             },
             {
+                test: /splash.css$/i,
+                use: [{
+                    loader: 'style-loader',
+                    options: {
+                        insert: 'head',
+                        injectType: 'singletonStyleTag',
+                    },
+                }],
+            },
+            {
                 test: /\.css$/i,
                 use: ['style-loader', 'css-loader'],
             },
