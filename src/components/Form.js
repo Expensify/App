@@ -85,11 +85,6 @@ class Form extends React.Component {
         this.submit = this.submit.bind(this);
     }
 
-    componentDidUpdate(prevProps) {
-        // Run the validate method when the component updates to display any possible server errors.
-        this.validate(this.state.inputValues);
-    }
-
     /**
      * @param {String} inputID - The inputID of the input being touched
      */

@@ -255,7 +255,7 @@ class AdditionalDetailsStep extends React.Component {
                         </TextLink>
                     </View>
                     <Form
-                        formID={ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_FORM}
+                        formID={ONYXKEYS.WALLET_ADDITIONAL_DETAILS}
                         validate={this.validate}
                         onSubmit={this.activateWallet}
                         submitButtonText={this.props.translate('common.saveAndContinue')}
@@ -326,9 +326,6 @@ export default compose(
         walletAdditionalDetails: {
             key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
             initWithStoredValues: false,
-        },
-        walletAdditionalDetailsDraft: {
-            key: `${ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_FORM}Draft`,
         },
     }),
 )(AdditionalDetailsStep);
