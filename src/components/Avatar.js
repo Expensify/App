@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {PureComponent} from 'react';
 import {View, Image} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -47,36 +47,12 @@ const defaultProps = {
     fallbackIcon: Expensicons.FallbackAvatar,
 };
 
-class Avatar extends Component {
+class Avatar extends PureComponent {
     constructor(props) {
         super(props);
         this.state = {
             imageError: false,
         };
-    }
-
-    shouldComponentUpdate(nextProps, nextState) {
-        if (
-            lodashGet(this.props.network, 'isOffline')
-                  && !lodashGet(nextProps.network, 'isOffline')
-        ) {
-            return true;
-        }
-        if (this.props.source !== nextProps.source) {
-            return true;
-        }
-        if (this.state.imageError !== nextState.imageError) {
-            return true;
-        }
-
-        if (this.props.fill !== nextProps.fill) {
-            return true;
-        }
-        if (this.props.size !== nextProps.size) {
-            return true;
-        }
-
-        return false;
     }
 
     componentDidUpdate(prevProps) {
