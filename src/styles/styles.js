@@ -473,6 +473,11 @@ const styles = {
         margin: 20,
     },
 
+    attachmentButtonBigScreen: {
+        minWidth: 300,
+        alignSelf: 'center',
+    },
+
     buttonConfirmText: {
         paddingLeft: 20,
         paddingRight: 20,
