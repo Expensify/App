@@ -156,7 +156,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
 
     // Now, let's add the data we need just when we are creating a new chat report
     if (isNewChat) {
-        const optimisticCreateAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
+        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
 
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
@@ -167,7 +167,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         };
         optimisticData[1].onyxMethod = CONST.ONYX.METHOD.SET;
         optimisticData[1].value = {
-            ...optimisticCreateAction,
+            ...optimisticCreatedAction,
             ...optimisticData[1].value,
         };
         optimisticData[2].onyxMethod = CONST.ONYX.METHOD.SET;
@@ -674,13 +674,13 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
     const newIOUReportDetails = JSON.stringify({
         amount,
         currency,
-        requestorEmail: recipient.login,
+        requestorEmail: OptionsListUtils.addSMSDomainIfPhoneNumber(recipient.login),
         comment,
         idempotencyKey: Str.guid(),
     });
 
     const recipientEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(recipient.login);
-    let chatReport = lodashGet(report, 'reportID', null) ? report : null;
+    let chatReport = report.reportID ? report : null;
     let isNewChat = false;
     if (!chatReport) {
         chatReport = ReportUtils.getChatByParticipants([recipientEmail]);
@@ -690,9 +690,11 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         isNewChat = true;
     }
     const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, managerEmail, amount, chatReport.reportID, currency, preferredLocale, true);
+
+    // This will be deprecated soon, in case the migration happens before this PR is merged we'll need to adjust the code here
     const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
 
-    const optimsticReportAction = ReportUtils.buildOptimisticIOUReportAction(
+    const optimsticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         newSequenceNumber,
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         amount,
@@ -714,8 +716,8 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
                 lastVisitedTimestamp: Date.now(),
                 lastReadSequenceNumber: newSequenceNumber,
                 maxSequenceNumber: newSequenceNumber,
-                lastMessageText: optimsticReportAction.message[0].text,
-                lastMessageHtml: optimsticReportAction.message[0].html,
+                lastMessageText: optimsticIOUReportAction.message[0].text,
+                lastMessageHtml: optimsticIOUReportAction.message[0].html,
                 iouReportID: optimisticIOUReport.reportID,
             },
         },
@@ -723,8 +725,8 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimsticReportAction.sequenceNumber]: {
-                    ...optimsticReportAction,
+                [optimsticIOUReportAction.sequenceNumber]: {
+                    ...optimsticIOUReportAction,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             },
@@ -741,7 +743,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimsticReportAction.sequenceNumber]: {
+                [optimsticIOUReportAction.sequenceNumber]: {
                     pendingAction: null,
                 },
             },
@@ -753,8 +755,8 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimsticReportAction.sequenceNumber]: {
-                    ...optimsticReportAction,
+                [optimsticIOUReportAction.sequenceNumber]: {
+                    ...optimsticIOUReportAction,
                     errors: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),
                     },
@@ -786,10 +788,10 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         params: {
             iouReportID: optimisticIOUReport.reportID,
             chatReportID: chatReport.reportID,
-            reportActionID: optimsticReportAction.reportActionID,
+            reportActionID: optimsticIOUReportAction.reportActionID,
             paymentMethodType,
-            transactionID: optimsticReportAction.originalMessage.IOUTransactionID,
-            clientID: optimsticReportAction.sequenceNumber,
+            transactionID: optimsticIOUReportAction.originalMessage.IOUTransactionID,
+            clientID: optimsticIOUReportAction.sequenceNumber,
             newIOUReportDetails,
         },
         optimisticData,
@@ -808,7 +810,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
 function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMethodType) {
     const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
 
-    const optimsticReportAction = ReportUtils.buildOptimisticIOUReportAction(
+    const optimsticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         newSequenceNumber,
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         iouReport.total,
@@ -820,7 +822,6 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         iouReport.reportID,
     );
 
-    // First, add data that will be used in all cases
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -830,8 +831,8 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 lastVisitedTimestamp: Date.now(),
                 lastReadSequenceNumber: newSequenceNumber,
                 maxSequenceNumber: newSequenceNumber,
-                lastMessageText: optimsticReportAction.message[0].text,
-                lastMessageHtml: optimsticReportAction.message[0].html,
+                lastMessageText: optimsticIOUReportAction.message[0].text,
+                lastMessageHtml: optimsticIOUReportAction.message[0].html,
                 hasOutstandingIOU: false,
                 iouReportID: iouReport.reportID,
             },
@@ -840,8 +841,8 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimsticReportAction.sequenceNumber]: {
-                    ...optimsticReportAction,
+                [optimsticIOUReportAction.sequenceNumber]: {
+                    ...optimsticIOUReportAction,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             },
@@ -862,7 +863,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimsticReportAction.sequenceNumber]: {
+                [optimsticIOUReportAction.sequenceNumber]: {
                     pendingAction: null,
                 },
             },
@@ -874,8 +875,9 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimsticReportAction.sequenceNumber]: {
-                    ...optimsticReportAction,
+                [optimsticIOUReportAction.sequenceNumber]: {
+                    hasOutstandingIOU: true,
+                    stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
                     pendingAction: null,
                     errors: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),
@@ -888,9 +890,9 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
     return {
         params: {
             iouReportID: iouReport.reportID,
-            reportActionID: optimsticReportAction.reportActionID,
+            reportActionID: optimsticIOUReportAction.reportActionID,
             paymentMethodType,
-            clientID: optimsticReportAction.sequenceNumber,
+            clientID: optimsticIOUReportAction.sequenceNumber,
         },
         optimisticData,
         successData,
@@ -944,9 +946,7 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerEmail, rec
 function payMoneyRequestElsewhere(chatReport, iouReport, recipient) {
     const {
         params, optimisticData, successData, failureData,
-    } = getPayMoneyRequestParams(
-        chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-    );
+    } = getPayMoneyRequestParams(chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
 
     API.write('PayMoneyRequestElsewhere', params, {optimisticData, successData, failureData});
 

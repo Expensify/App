@@ -689,12 +689,12 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
             currency,
         });
 
-    // If we're sending money, hasOutstandingIOU should be false
     return {
+        // If we're sending money, hasOutstandingIOU should be false
+        hasOutstandingIOU: !isSendingMoney,
         cachedTotal: formattedTotal,
         chatReportID,
         currency,
-        hasOutstandingIOU: !isSendingMoney,
         managerEmail: userEmail,
         ownerEmail,
         reportID: generateReportID(),
