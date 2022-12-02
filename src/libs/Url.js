@@ -39,25 +39,37 @@ function getURLObject(href) {
 }
 
 /**
+ * Determine if we should remove w3 from hostname
+ * @param {String} hostname
+ * @returns {Boolean}
+ */
+function shouldRemoveW3(hostname) {
+    const parts = hostname.split('.').reverse();
+    const subDomain = parts[2];
+    return subDomain === 'www';
+}
+
+/**
  * Determine if two urls have the same origin
+ * Just care about expensify url to avoid the second-level domain (www.example.co.uk)
  * @param {String} url1
  * @param {String} url2
  * @returns {Boolean}
  */
-function hasSameOrigin(url1, url2) {
+function hasSameExpensifyOrigin(url1, url2) {
     const host1 = getURLObject(url1).hostname;
     const host2 = getURLObject(url2).hostname;
     if (!host1 || !host2) {
         return false;
     }
-    const host1WithoutW3 = host1.startsWith('www.') ? host1.replace('www.', '') : host1;
-    const host2WithoutW3 = host2.startsWith('www.') ? host2.replace('www.', '') : host2;
+    const host1WithoutW3 = shouldRemoveW3(host1) ? host1.replace('www.', '') : host1;
+    const host2WithoutW3 = shouldRemoveW3(host2) ? host2.replace('www.', '') : host2;
     return host1WithoutW3 === host2WithoutW3;
 }
 
 export {
     // eslint-disable-next-line import/prefer-default-export
     addTrailingForwardSlash,
-    hasSameOrigin,
+    hasSameExpensifyOrigin,
     getURLObject,
 };
