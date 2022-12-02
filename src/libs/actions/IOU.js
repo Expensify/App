@@ -775,6 +775,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             value: {
                 ...chatReport,
                 lastVisitedTimestamp: Date.now(),
+                lastActionCreated: optimsticIOUReportAction.created,
                 lastReadSequenceNumber: newSequenceNumber,
                 maxSequenceNumber: newSequenceNumber,
                 lastMessageText: optimsticIOUReportAction.message[0].text,
@@ -889,6 +890,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             value: {
                 ...chatReport,
                 lastVisitedTimestamp: Date.now(),
+                lastActionCreated: optimsticIOUReportAction.created,
                 lastReadSequenceNumber: newSequenceNumber,
                 maxSequenceNumber: newSequenceNumber,
                 lastMessageText: optimsticIOUReportAction.message[0].text,
