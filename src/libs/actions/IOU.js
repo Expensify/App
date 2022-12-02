@@ -926,7 +926,7 @@ function payMoneyRequestWithWallet(chatReportID, iouReportID, amount, currency, 
 
     API.write('PayMoneyRequestWithWallet',
         {params},
-        {optimisticData,successData,failureData});
+        {optimisticData, successData, failureData});
 }
 
 export {
