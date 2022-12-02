@@ -648,7 +648,7 @@ export {
     getMiniReportActionContextMenuWrapperStyle,
     getKeyboardShortcutsModalWidth,
     getPaymentMethodMenuWidth,
-    getThemeBackgroundColor as getThemeColor,
+    getThemeBackgroundColor,
     parseStyleAsArray,
     combineStyles,
     getPaddingLeft,
