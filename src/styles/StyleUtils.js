@@ -206,16 +206,14 @@ function getBackgroundColorStyle(backgroundColor) {
  * Converts a color in hexadecimal notation into RGB notation.
  *
  * @param {String} hexadecimal A color in hexadecimal notation.
- * @returns {Array} `null` if the input color is not in hexadecimal notation. Otherwise, the RGB components of the input color.
+ * @returns {Array} `undefined` if the input color is not in hexadecimal notation. Otherwise, the RGB components of the input color.
  */
-function hexadecimalToRGBComponents(hexadecimal) {
+function hexadecimalToRGBArray(hexadecimal) {
     const components = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexadecimal);
 
-    if (components !== null) {
-        return _.map(components.slice(1), component => parseInt(component, 16));
-    }
+    if (components === null) { return undefined; }
 
-    return null;
+    return _.map(components.slice(1), component => parseInt(component, 16));
 }
 
 /**
@@ -226,8 +224,8 @@ function hexadecimalToRGBComponents(hexadecimal) {
  * @returns {Object}
  */
 function getBackgroundColorWithOpacityStyle(backgroundColor, opacity) {
-    const result = hexadecimalToRGBComponents(backgroundColor);
-    if (result !== null) {
+    const result = hexadecimalToRGBArray(backgroundColor);
+    if (result !== undefined) {
         return {
             backgroundColor: `rgba(${result[0]}, ${result[1]}, ${result[2]}, ${opacity})`,
         };
@@ -513,8 +511,8 @@ function convertRGBToUnitValues(red, green, blue) {
 function getThemeBackgroundColor() {
     const backdropOpacity = variables.modalFullscreenBackdropOpacity;
 
-    const [backgroundRed, backgroundGreen, backgroundBlue] = hexadecimalToRGBComponents(themeColors.appBG);
-    const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBComponents(themeColors.modalBackdrop);
+    const [backgroundRed, backgroundGreen, backgroundBlue] = hexadecimalToRGBArray(themeColors.appBG);
+    const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(themeColors.modalBackdrop);
     const normalizedBackdropRGB = convertRGBToUnitValues(backdropRed, backdropGreen, backdropBlue);
     const normalizedBackgroundRGB = convertRGBToUnitValues(
         backgroundRed,
