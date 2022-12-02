@@ -756,6 +756,7 @@ const CONST = {
         NON_NUMERIC: /\D/g,
         EMOJI_NAME: /:[\w+-]+:/g,
         EMOJI_SUGGESTIONS: /:[a-zA-Z]{1,20}(\s[a-zA-Z]{0,20})?$/,
+        AFTER_FIRST_LINE_BREAK: /\n.*/g,
     },
 
     PRONOUNS: {

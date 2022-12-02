@@ -403,7 +403,9 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
  * @returns {String}
  */
 function formatReportLastMessageText(lastMessageText) {
-    return String(lastMessageText).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
+    return String(lastMessageText)
+        .replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '')
+        .substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
 }
 
 /**
@@ -981,7 +983,7 @@ function hasOutstandingIOU(report, currentUserLogin, iouReports) {
         return false;
     }
 
-    const iouReport = iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
+    const iouReport = iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
     if (!iouReport || !iouReport.ownerEmail) {
         return false;
     }
@@ -1001,7 +1003,7 @@ function hasOutstandingIOU(report, currentUserLogin, iouReports) {
  */
 function getIOUTotal(report, iouReports = {}) {
     if (report.hasOutstandingIOU) {
-        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
+        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
         if (iouReport) {
             return iouReport.total;
         }
@@ -1018,7 +1020,7 @@ function getIOUTotal(report, iouReports = {}) {
  */
 function isIOUOwnedByCurrentUser(report, currentUserLogin, iouReports = {}) {
     if (report.hasOutstandingIOU) {
-        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
+        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
         if (iouReport) {
             return iouReport.ownerEmail === currentUserLogin;
         }
@@ -1047,7 +1049,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
-    if (!report || !report.reportID || !report.participants || _.isEmpty(report.participants)) {
+    if (!report || !report.reportID || !report.participants || _.isEmpty(report.participants) || isIOUReport(report)) {
         return false;
     }
 
@@ -1174,5 +1176,6 @@ export {
     getChatByParticipants,
     getIOUReportActionMessage,
     getDisplayNameForParticipant,
+    isIOUReport,
     chatIncludesChronos,
 };
