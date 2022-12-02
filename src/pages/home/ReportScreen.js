@@ -238,11 +238,8 @@ class ReportScreen extends React.Component {
                             <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
                                 <ReportActionsSkeletonView animate={animatePlaceholder} containerHeight={this.state.skeletonViewContainerHeight} />
                                 <ReportFooter
-                                    isComposerFullSize={false}
+                                    shouldDisableCompose
                                     isOffline={this.props.network.isOffline}
-                                    onSubmitComment={() => {}}
-                                    report={{reportID: '0'}}
-                                    reportActions={{}}
                                 />
                             </View>
                         </>
@@ -325,11 +322,8 @@ class ReportScreen extends React.Component {
                                         containerHeight={this.state.skeletonViewContainerHeight}
                                     />
                                     <ReportFooter
-                                        isComposerFullSize={false}
+                                        shouldDisableCompose
                                         isOffline={this.props.network.isOffline}
-                                        onSubmitComment={() => {}}
-                                        report={{reportID: '0'}}
-                                        reportActions={{}}
                                     />
                                 </>
                             )}
