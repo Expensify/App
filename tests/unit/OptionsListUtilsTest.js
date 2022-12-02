@@ -265,7 +265,7 @@ describe('OptionsListUtils', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {email: 'tonystark@expensify.com'},
-                [`${ONYXKEYS.COLLECTION.REPORT_IOUS}100`]: {
+                [`${ONYXKEYS.COLLECTION.REPORT}100`]: {
                     ownerEmail: 'mistersinister@marauders.com',
                     total: '1000',
                 },
@@ -514,11 +514,11 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails.length).toBe(0);
         expect(results.userToInvite).not.toBe(null);
 
-        // When we add a search term for which exist options for it excluding its period.
+        // When we add a search term with a period, with options for it that don't contain the period
         results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], 'peter.parker@expensify.com');
 
-        // Then we will have an options at all and there should be a userToInvite too.
-        expect(results.recentReports.length).toBe(1);
+        // Then we should have no options at all but there should be a userToInvite
+        expect(results.recentReports.length).toBe(0);
         expect(results.userToInvite).not.toBe(null);
 
         // When we add a search term for which no options exist and the searchValue itself
