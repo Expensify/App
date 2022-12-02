@@ -55,14 +55,6 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const timezones = _.chain(moment.tz.names())
-    .filter(timezone => !timezone.startsWith('Etc/GMT'))
-    .map(timezone => ({
-        value: timezone,
-        label: timezone,
-    }))
-    .value();
-
 class ProfilePage extends Component {
     constructor(props) {
         super(props);
@@ -71,13 +63,10 @@ class ProfilePage extends Component {
         this.avatar = { uri: lodashGet(this.props.currentUserPersonalDetails, 'avatar') || this.defaultAvatar };
         this.state = {
             logins: this.getLogins(),
-            selectedTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
-            isAutomaticTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
         };
 
         this.getLogins = this.getLogins.bind(this);
         this.validate = this.validate.bind(this);
-        this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
     }
 
     componentDidUpdate(prevProps) {
@@ -102,22 +91,6 @@ class ProfilePage extends Component {
             pronounsKey = pronounsKey.slice(CONST.PRONOUNS.PREFIX.length);
         }
         return lodashGet(this.props.translate('pronouns'), pronounsKey, this.props.translate('profilePage.selectYourPronouns'));
-    }
-
-    /**
-     * Update the timezone picker's value to guessed timezone
-     * @param {Boolean} isAutomaticTimezone
-     */
-    setAutomaticTimezone(isAutomaticTimezone) {
-        if (!isAutomaticTimezone) {
-            this.setState({ isAutomaticTimezone });
-            return;
-        }
-
-        this.setState({
-            selectedTimezone: moment.tz.guess(),
-            isAutomaticTimezone,
-        });
     }
 
     /**
