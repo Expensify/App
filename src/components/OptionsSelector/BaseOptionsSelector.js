@@ -265,6 +265,7 @@ class BaseOptionsSelector extends Component {
                 forceTextUnreadStyle={this.props.forceTextUnreadStyle}
                 showTitleTooltip={this.props.showTitleTooltip}
                 isDisabled={this.props.isDisabled}
+                shouldHaveOptionSeparator={this.props.shouldHaveOptionSeparator}
             />
         ) : <FullScreenLoadingIndicator />;
         return (
