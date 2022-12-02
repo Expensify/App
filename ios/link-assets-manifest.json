@@ -2,32 +2,12 @@
   "migIndex": 1,
   "data": [
     {
-      "path": "assets/fonts/native/ExpensifyMono-Black.otf",
-      "sha1": "417a785795f289fd2484618c1ec1cb0810f8a1a6"
-    },
-    {
       "path": "assets/fonts/native/ExpensifyMono-Bold.otf",
       "sha1": "6b83b1c1c0c8650f6258fd05771b4e25696c4046"
     },
     {
-      "path": "assets/fonts/native/ExpensifyMono-Light.otf",
-      "sha1": "b08f4a3f4b7dc2d18cbab88bdfe987cb14bc56ab"
-    },
-    {
       "path": "assets/fonts/native/ExpensifyMono-Regular.otf",
       "sha1": "c0522536213e24609badc298ed82a6c47cdb5b20"
-    },
-    {
-      "path": "assets/fonts/native/ExpensifyMono-SemiBold.otf",
-      "sha1": "f35f80fff8348ef4489c34b5e206280adf9efdc5"
-    },
-    {
-      "path": "assets/fonts/native/ExpensifyNeue-Black.otf",
-      "sha1": "83de5f48e449f9d7940bdda8f6d3f438e1c87e76"
-    },
-    {
-      "path": "assets/fonts/native/ExpensifyNeue-BlackItalic.otf",
-      "sha1": "7dbbec59c0ace1da7cf3d67f3fe9a695b6c7b3f8"
     },
     {
       "path": "assets/fonts/native/ExpensifyNeue-Bold.otf",
@@ -42,48 +22,8 @@
       "sha1": "7ddd0652175a9f27380fc63eec4395d65ed189eb"
     },
     {
-      "path": "assets/fonts/native/ExpensifyNeue-Light.otf",
-      "sha1": "eede429ffb926ffbf38fa8bba70a09eb5dd13dd5"
-    },
-    {
-      "path": "assets/fonts/native/ExpensifyNeue-LightItalic.otf",
-      "sha1": "e87456635a6fc4fdf5e559c9ebab10fc1603d4b4"
-    },
-    {
       "path": "assets/fonts/native/ExpensifyNeue-Regular.otf",
       "sha1": "57b2cdd2f4adea3fad34464248502cd4edcaadd7"
-    },
-    {
-      "path": "assets/fonts/native/ExpensifyNeue-SemiBold.otf",
-      "sha1": "9f2cda03dae3eb1524ddf1e2da98737315f9173f"
-    },
-    {
-      "path": "assets/fonts/native/ExpensifyNeue-SemiBoldItalic.otf",
-      "sha1": "b914b6fe4e2fb83b38c065345e2f74feeec0c8b0"
-    },
-    {
-      "path": "assets/fonts/native/ExpensifyNewKansas-Black.otf",
-      "sha1": "fdc3c7f44b26a03efed9f87a7d2dac151e9cf053"
-    },
-    {
-      "path": "assets/fonts/native/ExpensifyNewKansas-BlackItalic.otf",
-      "sha1": "fc94a53bfa0d720cf595f8ed6eccd6d497ee35dd"
-    },
-    {
-      "path": "assets/fonts/native/ExpensifyNewKansas-Bold.otf",
-      "sha1": "c968fea7d4e47fa80ebc2ac17b582e7ab704360f"
-    },
-    {
-      "path": "assets/fonts/native/ExpensifyNewKansas-BoldItalic.otf",
-      "sha1": "935964d1194e9c63dac0a7cdc9a5707c6e2bb8dc"
-    },
-    {
-      "path": "assets/fonts/native/ExpensifyNewKansas-Light.otf",
-      "sha1": "b06e7e82d974f85dc9c0f066eeed9edd0bda9933"
-    },
-    {
-      "path": "assets/fonts/native/ExpensifyNewKansas-LightItalic.otf",
-      "sha1": "7e786e4e852c93fd1f04349e9f9962fee68c17ef"
     },
     {
       "path": "assets/fonts/native/ExpensifyNewKansas-Medium.otf",
@@ -92,30 +32,6 @@
     {
       "path": "assets/fonts/native/ExpensifyNewKansas-MediumItalic.otf",
       "sha1": "00636ab2038c9690a123985b70a944c42cf65b8a"
-    },
-    {
-      "path": "assets/fonts/native/ExpensifyNewKansas-Regular.otf",
-      "sha1": "8222a92af39d1a54022d68264935df62034e7af1"
-    },
-    {
-      "path": "assets/fonts/native/ExpensifyNewKansas-RegularItalic.otf",
-      "sha1": "177c07e202fa4c3ffb1b162abd7243715f9eaeb6"
-    },
-    {
-      "path": "assets/fonts/native/ExpensifyNewKansas-SemiBold.otf",
-      "sha1": "07c301f2b9e3e69da7b2e1c65f5f85f182361303"
-    },
-    {
-      "path": "assets/fonts/native/ExpensifyNewKansas-SemiBoldItalic.otf",
-      "sha1": "168633aa5dad2769574c264008257c6fbf26f34a"
-    },
-    {
-      "path": "assets/fonts/native/ExpensifyNewKansas-Thin.otf",
-      "sha1": "085bf8dbc54f7572f66d084aa5772cf7574a0f9a"
-    },
-    {
-      "path": "assets/fonts/native/ExpensifyNewKansas-ThinItalic.otf",
-      "sha1": "dbce11b94860453ea1a77295db3045c639c5302a"
     }
   ]
 }
