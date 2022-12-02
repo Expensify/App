@@ -87,12 +87,11 @@ class ContextMenuItem extends Component {
                             }
                         >
                             {({hovered, pressed}) => (
-                                <View style={[StyleUtils.getWidthAndHeightStyle(16, 16), styles.alignItemsCenter, styles.justifyContentCenter]}>
-                                    <Icon
-                                        src={icon}
-                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.props.isDelayButtonStateComplete))}
-                                    />
-                                </View>
+                                <Icon
+                                    small
+                                    src={icon}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.props.isDelayButtonStateComplete))}
+                                />
                             )}
                         </Pressable>
                     </Tooltip>
