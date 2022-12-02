@@ -37,6 +37,9 @@ const propTypes = {
     /** Name of the image */
     imageName: PropTypes.string,
 
+    /** Type of the image file */
+    imageType: PropTypes.string,
+
     /** Callback to be called when user closes the modal */
     onClose: PropTypes.func,
 
@@ -53,6 +56,7 @@ const propTypes = {
 const defaultProps = {
     imageUri: '',
     imageName: '',
+    imageType: '',
     onClose: () => {},
     onSave: () => {},
 };
@@ -265,12 +269,16 @@ const AvatarCropModal = (props) => {
             height: size, width: size, originX, originY,
         };
 
-        cropOrRotateImage(props.imageUri, [{rotate: rotation.value % 360}, {crop}], {compress: 1, name: props.imageName})
+        cropOrRotateImage(
+            props.imageUri,
+            [{rotate: rotation.value % 360}, {crop}],
+            {compress: 1, name: props.imageName, type: props.imageType},
+        )
             .then((newImage) => {
                 props.onClose();
                 props.onSave(newImage);
             });
-    }, [props.imageUri, props.imageName, imageContainerSize]);
+    }, [props.imageUri, props.imageName, props.imageType, imageContainerSize]);
 
     /**
      * @param {Event} event

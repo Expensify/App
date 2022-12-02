@@ -1,9 +1,10 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
+import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -27,12 +28,20 @@ import Section from '../../components/Section';
 import CONST from '../../CONST';
 import Button from '../../components/Button';
 import MenuItem from '../../components/MenuItem';
+import Enable2FAPrompt from './Enable2FAPrompt';
 
 const propTypes = {
     ...withLocalizePropTypes,
 
     /** Bank account currently in setup */
     reimbursementAccount: reimbursementAccountPropTypes,
+
+    /** User's account who is setting up bank account */
+    account: PropTypes.shape({
+
+        /** If user has Two factor authentication enabled */
+        requiresTwoFactorAuth: PropTypes.bool,
+    }),
 };
 
 const defaultProps = {
@@ -40,6 +49,9 @@ const defaultProps = {
         errorFields: {},
         errors: {},
         maxAttemptsReached: false,
+    },
+    account: {
+        requiresTwoFactorAuth: false,
     },
 };
 
@@ -117,6 +129,7 @@ class ValidationStep extends React.Component {
 
         const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');
         const isVerifying = !maxAttemptsReached && state === BankAccount.STATE.VERIFYING;
+        const requiresTwoFactorAuth = lodashGet(this.props, 'account.requiresTwoFactorAuth');
 
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
@@ -160,7 +173,7 @@ class ValidationStep extends React.Component {
                                 {this.props.translate('validationStep.descriptionCTA')}
                             </Text>
                         </View>
-                        <View style={[styles.mv5, styles.flex1]}>
+                        <View style={[styles.mv5]}>
                             <TextInput
                                 inputID="amount1"
                                 shouldSaveDraft
@@ -183,10 +196,15 @@ class ValidationStep extends React.Component {
                                 keyboardType="decimal-pad"
                             />
                         </View>
+                        {!requiresTwoFactorAuth && (
+                            <View style={[styles.mln5, styles.mrn5]}>
+                                <Enable2FAPrompt />
+                            </View>
+                        )}
                     </Form>
                 )}
                 {isVerifying && (
-                    <View style={[styles.flex1]}>
+                    <ScrollView style={[styles.flex1]}>
                         <Section
                             title={this.props.translate('workspace.bankAccount.letsFinishInChat')}
                             icon={Illustrations.ConciergeBubble}
@@ -213,7 +231,10 @@ class ValidationStep extends React.Component {
                                 wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                             />
                         </Section>
-                    </View>
+                        {!requiresTwoFactorAuth && (
+                            <Enable2FAPrompt />
+                        )}
+                    </ScrollView>
                 )}
             </View>
         );
@@ -228,6 +249,9 @@ export default compose(
     withOnyx({
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        account: {
+            key: ONYXKEYS.ACCOUNT,
         },
     }),
 )(ValidationStep);
