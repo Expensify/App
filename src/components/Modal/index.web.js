@@ -6,7 +6,9 @@ import * as StyleUtils from '../../styles/StyleUtils';
 
 const Modal = (props) => {
     const setStatusBarColor = (color = '') => {
-        if (!props.fullscreen) { return; }
+        if (!props.fullscreen) {
+            return;
+        }
 
         // Change the color of the status bar to align with the modal's backdrop (refer to https://github.com/Expensify/App/issues/12156).
         document.querySelector('meta[name=theme-color]').content = color;
