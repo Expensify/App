@@ -22,6 +22,7 @@ import * as User from '../../actions/User';
 import * as Modal from '../../actions/Modal';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
+import NotFoundPage from '../../../pages/ErrorPage/NotFoundPage';
 
 // Modal Stack Navigators
 import * as ModalStackNavigators from './ModalStackNavigators';
@@ -312,6 +313,12 @@ class AuthScreens extends React.Component {
                     name="Wallet_Statement"
                     options={modalScreenOptions}
                     component={ModalStackNavigators.WalletStatementStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.NOT_FOUND}
+                    options={{headerShown: false}}
+                    component={NotFoundPage}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
