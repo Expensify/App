@@ -2,7 +2,6 @@ import React, {PureComponent} from 'react';
 import {View, Image} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import stylePropTypes from '../styles/stylePropTypes';
 import Icon from './Icon';
 import themeColors from '../styles/themes/default';
@@ -57,9 +56,7 @@ class Avatar extends PureComponent {
 
     componentDidUpdate(prevProps) {
         const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
-        if (
-            !this.state.imageError || !isReconnecting
-        ) {
+        if (!this.state.imageError || !isReconnecting) {
             return;
         }
         this.setState({imageError: false});
