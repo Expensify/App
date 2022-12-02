@@ -57,7 +57,8 @@ const propTypes = {
         phoneNumber: PropTypes.string,
     })).isRequired,
 
-    /** Is this IOU associated with existing report */
+    /** Is this IOU associated with existing report. This is true when the action is initiated from inside a group chat and it's false when the action is initiated from the
+     * floating-action-button */
     isIOUAttachedToExistingChatReport: PropTypes.bool.isRequired,
 
     ...windowDimensionsPropTypes,
