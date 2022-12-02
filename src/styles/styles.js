@@ -611,7 +611,7 @@ const styles = {
 
     border: {
         borderWidth: 1,
-        borderRadius: variables.buttonBorderRadius,
+        borderRadius: variables.componentBorderRadius,
         borderColor: themeColors.border,
     },
 
