@@ -275,7 +275,11 @@ class IOUConfirmationList extends Component {
         const shouldShowSettlementButton = this.props.iouType === CONST.IOU.IOU_TYPE.SEND;
         const shouldDisableButton = selectedParticipants.length === 0;
         const recipient = this.state.participants[0];
-        const canModifyParticipants = !this.props.isIOUAttachedToExistingChatReport && this.props.hasMultipleParticipants;
+
+        // The participants can only be modified when:
+        // 1. The action is initiated from directly within a group chat and not the floating-action-button (eg. this.props.isIOUAttachedToExistingChatReport === true)
+        // 2. There are multiple participants (eg. this.props.hasMultipleParticipants === true)
+        const canModifyParticipants = this.props.isIOUAttachedToExistingChatReport && this.props.hasMultipleParticipants;
 
         return (
             <OptionsSelector
