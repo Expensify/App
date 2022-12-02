@@ -30,13 +30,7 @@ const propTypes = {
     report: reportPropTypes.isRequired,
 
     /** Sorted actions prepared for display */
-    sortedReportActions: PropTypes.arrayOf(PropTypes.shape({
-        /** Index of the action in the array */
-        index: PropTypes.number,
-
-        /** The action itself */
-        action: PropTypes.shape(reportActionPropTypes),
-    })).isRequired,
+    sortedReportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)).isRequired,
 
     /** The ID of the most recent IOU report action connected with the shown report */
     mostRecentIOUReportActionID: PropTypes.string,
@@ -108,7 +102,7 @@ class ReportActionsList extends React.Component {
      * @return {String}
      */
     keyExtractor(item) {
-        return item.action.reportActionID;
+        return item.reportActionID;
     }
 
     /**
@@ -118,27 +112,26 @@ class ReportActionsList extends React.Component {
      * See: https://reactnative.dev/docs/optimizing-flatlist-configuration#avoid-anonymous-function-on-renderitem
      *
      * @param {Object} args
-     * @param {Object} args.item
      * @param {Number} args.index
      *
      * @returns {React.Component}
      */
     renderItem({
-        item,
+        item: reportAction,
         index,
     }) {
         // When the new indicator should not be displayed we explicitly set it to 0. The marker should never be shown above the
         // created action (which will have sequenceNumber of 0) so we use 0 to indicate "hidden".
         const shouldDisplayNewIndicator = this.props.newMarkerSequenceNumber > 0
-            && item.action.sequenceNumber === this.props.newMarkerSequenceNumber
-            && !ReportActionsUtils.isDeletedAction(item.action);
+            && reportAction.sequenceNumber === this.props.newMarkerSequenceNumber
+            && !ReportActionsUtils.isDeletedAction(reportAction);
         return (
             <ReportActionItem
                 report={this.props.report}
-                action={item.action}
+                action={reportAction}
                 displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.props.sortedReportActions, index)}
                 shouldDisplayNewIndicator={shouldDisplayNewIndicator}
-                isMostRecentIOUReportAction={item.action.reportActionID === this.props.mostRecentIOUReportActionID}
+                isMostRecentIOUReportAction={reportAction.reportActionID === this.props.mostRecentIOUReportActionID}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
             />

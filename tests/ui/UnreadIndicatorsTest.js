@@ -145,6 +145,18 @@ function signInAndGetAppWithUnreadChat() {
                     sequenceNumber: 0,
                     created: MOMENT_TEN_MINUTES_AGO.format(MOMENT_FORMAT),
                     reportActionID: NumberUtils.rand64(),
+                    message: [
+                        {
+                            style: 'strong',
+                            text: '__FAKE__',
+                            type: 'TEXT',
+                        },
+                        {
+                            style: 'normal',
+                            text: 'created this report',
+                            type: 'TEXT',
+                        },
+                    ],
                 },
                 1: TestHelper.buildTestReportComment(USER_B_EMAIL, 1, MOMENT_TEN_MINUTES_AGO.add(10, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
                 2: TestHelper.buildTestReportComment(USER_B_EMAIL, 2, MOMENT_TEN_MINUTES_AGO.add(20, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
