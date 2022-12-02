@@ -23,6 +23,7 @@ import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
 import * as User from './libs/actions/User';
 import NetworkConnection from './libs/NetworkConnection';
 import Navigation from './libs/Navigation/Navigation';
+import themeColors from './styles/themes/default';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -96,6 +97,9 @@ class Expensify extends PureComponent {
 
     componentDidMount() {
         setTimeout(() => this.reportBootSplashStatus(), 30 * 1000);
+
+        // set body tag color for web view
+        document.body.style.backgroundColor = themeColors.appBG;
 
         // This timer is set in the native layer when launching the app and we stop it here so we can measure how long
         // it took for the main app itself to load.
