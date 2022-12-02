@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {Pressable} from 'react-native';
+import {Pressable, View} from 'react-native';
 import MenuItem from './MenuItem';
 import Tooltip from './Tooltip';
 import Icon from './Icon';
@@ -87,10 +87,12 @@ class ContextMenuItem extends Component {
                             }
                         >
                             {({hovered, pressed}) => (
-                                <Icon
-                                    src={icon}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.props.isDelayButtonStateComplete))}
-                                />
+                                <View style={[StyleUtils.getWidthAndHeightStyle(16, 16), styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                    <Icon
+                                        src={icon}
+                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.props.isDelayButtonStateComplete))}
+                                    />
+                                </View>
                             )}
                         </Pressable>
                     </Tooltip>
