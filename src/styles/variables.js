@@ -81,4 +81,5 @@ export default {
     INACTIVE_LABEL_TRANSLATE_Y: getValueUsingPixelRatio(16, 21),
     sliderBarHeight: 8,
     sliderKnobSize: 26,
+    pickerOptionsTextColor: '#002140',
 };
