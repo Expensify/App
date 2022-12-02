@@ -18,6 +18,14 @@
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		18D050E0262400AF000D658B /* BridgingFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18D050DF262400AF000D658B /* BridgingFile.swift */; };
 		374FB8D728A133FE000D84EF /* OriginImageRequestHandler.mm in Sources */ = {isa = PBXBuildFile; fileRef = 374FB8D628A133FE000D84EF /* OriginImageRequestHandler.mm */; };
+		597489DE2936B81100AE6F8B /* ExpensifyNeue-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 593541512915C8CF001E81A5 /* ExpensifyNeue-Bold.otf */; };
+		597489DF2936B81400AE6F8B /* ExpensifyMono-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 593541522915C8DF001E81A5 /* ExpensifyMono-Bold.otf */; };
+		597489E02936B81600AE6F8B /* ExpensifyMono-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 593541532915C8DF001E81A5 /* ExpensifyMono-Regular.otf */; };
+		597489E12936B81900AE6F8B /* ExpensifyNewKansas-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 593541542915C8ED001E81A5 /* ExpensifyNewKansas-Medium.otf */; };
+		597489E22936B81C00AE6F8B /* ExpensifyNewKansas-MediumItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 593541552915C8ED001E81A5 /* ExpensifyNewKansas-MediumItalic.otf */; };
+		597489E32936B81E00AE6F8B /* ExpensifyNeue-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 5935414F2915C8CF001E81A5 /* ExpensifyNeue-BoldItalic.otf */; };
+		597489E42936B82000AE6F8B /* ExpensifyNeue-Italic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 593541502915C8CF001E81A5 /* ExpensifyNeue-Italic.otf */; };
+		597489E52936B82200AE6F8B /* ExpensifyNeue-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 5935414E2915C8CF001E81A5 /* ExpensifyNeue-Regular.otf */; };
 		5E2EE3856BE7BC98F354B110 /* libPods-NewExpensify.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3EDF186626B8D2CBA203E08D /* libPods-NewExpensify.a */; };
 		7041848526A8E47D00E09F4D /* RCTStartupTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7041848426A8E47D00E09F4D /* RCTStartupTimer.m */; };
 		7041848626A8E47D00E09F4D /* RCTStartupTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7041848426A8E47D00E09F4D /* RCTStartupTimer.m */; };
@@ -26,26 +34,6 @@
 		E3B48DC1ED4CC64F660388A8 /* libPods-NewExpensify-NewExpensifyTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A2695CF895D81C31AFB4A074 /* libPods-NewExpensify-NewExpensifyTests.a */; };
 		E9DF872D2525201700607FDC /* AirshipConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = E9DF872C2525201700607FDC /* AirshipConfig.plist */; };
 		F0C450EA2705020500FD2970 /* colors.json in Resources */ = {isa = PBXBuildFile; fileRef = F0C450E92705020500FD2970 /* colors.json */; };
-		A10DF92FD40240DCA5883F9C /* ExpensifyMono-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 662B5DFFA715433FA99D1DF8 /* ExpensifyMono-Bold.otf */; };
-		7F44781621E644C3A3A49BEE /* ExpensifyMono-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 6A095F347C834F80A8FD9CD9 /* ExpensifyMono-Regular.otf */; };
-		C4B39A2795AB465FBEEBBEF7 /* ExpensifyNeue-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 5F062F966C6B4349BC32EF8C /* ExpensifyNeue-Bold.otf */; };
-		501AC79535D94AE0AC921499 /* ExpensifyNeue-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4E2289C3B2AF457698CC71DF /* ExpensifyNeue-BoldItalic.otf */; };
-		9B49467736834D06AC147A0E /* ExpensifyNeue-Italic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 37D54BDF524C48AAA29AB8D3 /* ExpensifyNeue-Italic.otf */; };
-		482344DA3A5045378671AC04 /* ExpensifyNeue-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 23EDE937A031419FBC595547 /* ExpensifyNeue-Regular.otf */; };
-		3D2BCAF64E2F4B68ADEC57B6 /* ExpensifyNewKansas-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = E9814181E00345B9B6FCC3A6 /* ExpensifyNewKansas-Medium.otf */; };
-		53C3A35E816F440482A92918 /* ExpensifyNewKansas-MediumItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 24F4CEFA54E54F6597EDB7CE /* ExpensifyNewKansas-MediumItalic.otf */; };
-		8836C5E3A02D4E5A9CC70E0F /* GTAmericaExp-BdIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = E7E9F2D60EB841809D384D54 /* GTAmericaExp-BdIt.otf */; };
-		31CF116D3DFC44658927CAB7 /* GTAmericaExp-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = BE0E57E300CD4CC997A777B8 /* GTAmericaExp-Bold.otf */; };
-		FE41F869D70842868D3F0258 /* GTAmericaExp-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = 2A3AFA5618B747AFAC58704A /* GTAmericaExp-Light.otf */; };
-		982BE99A9ADB4958BC3ED18B /* GTAmericaExp-MdIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = CEB308E4B2B041AABDB11012 /* GTAmericaExp-MdIt.otf */; };
-		8791D23E7AD64838A72B7D66 /* GTAmericaExp-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9042E2095EBE464C9C88B961 /* GTAmericaExp-Medium.otf */; };
-		2C33229B2ECC47CFA1D649BC /* GTAmericaExp-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 43175D491A6D440E861C8EB1 /* GTAmericaExp-Regular.otf */; };
-		774D4B8031964F82A01F0C89 /* GTAmericaExp-RgIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 894D29880FE244BB90D2AD4C /* GTAmericaExp-RgIt.otf */; };
-		C8B3F1426F01434FBDE39199 /* GTAmericaExp-Thin.otf in Resources */ = {isa = PBXBuildFile; fileRef = 69173591E1314F1B9B826CF8 /* GTAmericaExp-Thin.otf */; };
-		2DD8D51217614BF5B9C10771 /* GTAmericaExpMono-Bd.otf in Resources */ = {isa = PBXBuildFile; fileRef = 0F998504C30C4E008D2A5047 /* GTAmericaExpMono-Bd.otf */; };
-		B01A9625134748F284245A01 /* GTAmericaExpMono-BdIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = F309E5611292427788311DD2 /* GTAmericaExpMono-BdIt.otf */; };
-		C2AE775BB30D4A8ABD16F92C /* GTAmericaExpMono-Rg.otf in Resources */ = {isa = PBXBuildFile; fileRef = D016399AD6714755A8125A9A /* GTAmericaExpMono-Rg.otf */; };
-		E6BD5062781240ECABFFBB8D /* GTAmericaExpMono-RgIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = B78A67B9ECF244C39DB32F41 /* GTAmericaExpMono-RgIt.otf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -79,6 +67,14 @@
 		374FB8D528A133A7000D84EF /* OriginImageRequestHandler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = OriginImageRequestHandler.h; path = NewExpensify/OriginImageRequestHandler.h; sourceTree = "<group>"; };
 		374FB8D628A133FE000D84EF /* OriginImageRequestHandler.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = OriginImageRequestHandler.mm; path = NewExpensify/OriginImageRequestHandler.mm; sourceTree = "<group>"; };
 		3EDF186626B8D2CBA203E08D /* libPods-NewExpensify.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NewExpensify.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5935414E2915C8CF001E81A5 /* ExpensifyNeue-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "ExpensifyNeue-Regular.otf"; path = "../assets/fonts/ExpensifyNeue-Regular.otf"; sourceTree = "<group>"; };
+		5935414F2915C8CF001E81A5 /* ExpensifyNeue-BoldItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "ExpensifyNeue-BoldItalic.otf"; path = "../assets/fonts/ExpensifyNeue-BoldItalic.otf"; sourceTree = "<group>"; };
+		593541502915C8CF001E81A5 /* ExpensifyNeue-Italic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "ExpensifyNeue-Italic.otf"; path = "../assets/fonts/ExpensifyNeue-Italic.otf"; sourceTree = "<group>"; };
+		593541512915C8CF001E81A5 /* ExpensifyNeue-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "ExpensifyNeue-Bold.otf"; path = "../assets/fonts/ExpensifyNeue-Bold.otf"; sourceTree = "<group>"; };
+		593541522915C8DF001E81A5 /* ExpensifyMono-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "ExpensifyMono-Bold.otf"; path = "../assets/fonts/ExpensifyMono-Bold.otf"; sourceTree = "<group>"; };
+		593541532915C8DF001E81A5 /* ExpensifyMono-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "ExpensifyMono-Regular.otf"; path = "../assets/fonts/ExpensifyMono-Regular.otf"; sourceTree = "<group>"; };
+		593541542915C8ED001E81A5 /* ExpensifyNewKansas-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "ExpensifyNewKansas-Medium.otf"; path = "../assets/fonts/ExpensifyNewKansas-Medium.otf"; sourceTree = "<group>"; };
+		593541552915C8ED001E81A5 /* ExpensifyNewKansas-MediumItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "ExpensifyNewKansas-MediumItalic.otf"; path = "../assets/fonts/ExpensifyNewKansas-MediumItalic.otf"; sourceTree = "<group>"; };
 		7041848326A8E40900E09F4D /* RCTStartupTimer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTStartupTimer.h; path = NewExpensify/RCTStartupTimer.h; sourceTree = "<group>"; };
 		7041848426A8E47D00E09F4D /* RCTStartupTimer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = RCTStartupTimer.m; path = NewExpensify/RCTStartupTimer.m; sourceTree = "<group>"; };
 		70CF6E81262E297300711ADC /* BootSplash.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = BootSplash.storyboard; path = NewExpensify/BootSplash.storyboard; sourceTree = "<group>"; };
@@ -90,26 +86,6 @@
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
 		F0C450E92705020500FD2970 /* colors.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = colors.json; path = ../colors.json; sourceTree = "<group>"; };
-		662B5DFFA715433FA99D1DF8 /* ExpensifyMono-Bold.otf */ = {isa = PBXFileReference; name = "ExpensifyMono-Bold.otf"; path = "../assets/fonts/native/ExpensifyMono-Bold.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		6A095F347C834F80A8FD9CD9 /* ExpensifyMono-Regular.otf */ = {isa = PBXFileReference; name = "ExpensifyMono-Regular.otf"; path = "../assets/fonts/native/ExpensifyMono-Regular.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		5F062F966C6B4349BC32EF8C /* ExpensifyNeue-Bold.otf */ = {isa = PBXFileReference; name = "ExpensifyNeue-Bold.otf"; path = "../assets/fonts/native/ExpensifyNeue-Bold.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		4E2289C3B2AF457698CC71DF /* ExpensifyNeue-BoldItalic.otf */ = {isa = PBXFileReference; name = "ExpensifyNeue-BoldItalic.otf"; path = "../assets/fonts/native/ExpensifyNeue-BoldItalic.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		37D54BDF524C48AAA29AB8D3 /* ExpensifyNeue-Italic.otf */ = {isa = PBXFileReference; name = "ExpensifyNeue-Italic.otf"; path = "../assets/fonts/native/ExpensifyNeue-Italic.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		23EDE937A031419FBC595547 /* ExpensifyNeue-Regular.otf */ = {isa = PBXFileReference; name = "ExpensifyNeue-Regular.otf"; path = "../assets/fonts/native/ExpensifyNeue-Regular.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		E9814181E00345B9B6FCC3A6 /* ExpensifyNewKansas-Medium.otf */ = {isa = PBXFileReference; name = "ExpensifyNewKansas-Medium.otf"; path = "../assets/fonts/native/ExpensifyNewKansas-Medium.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		24F4CEFA54E54F6597EDB7CE /* ExpensifyNewKansas-MediumItalic.otf */ = {isa = PBXFileReference; name = "ExpensifyNewKansas-MediumItalic.otf"; path = "../assets/fonts/native/ExpensifyNewKansas-MediumItalic.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		E7E9F2D60EB841809D384D54 /* GTAmericaExp-BdIt.otf */ = {isa = PBXFileReference; name = "GTAmericaExp-BdIt.otf"; path = "../assets/fonts/native/GTAmericaExp-BdIt.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		BE0E57E300CD4CC997A777B8 /* GTAmericaExp-Bold.otf */ = {isa = PBXFileReference; name = "GTAmericaExp-Bold.otf"; path = "../assets/fonts/native/GTAmericaExp-Bold.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		2A3AFA5618B747AFAC58704A /* GTAmericaExp-Light.otf */ = {isa = PBXFileReference; name = "GTAmericaExp-Light.otf"; path = "../assets/fonts/native/GTAmericaExp-Light.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		CEB308E4B2B041AABDB11012 /* GTAmericaExp-MdIt.otf */ = {isa = PBXFileReference; name = "GTAmericaExp-MdIt.otf"; path = "../assets/fonts/native/GTAmericaExp-MdIt.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		9042E2095EBE464C9C88B961 /* GTAmericaExp-Medium.otf */ = {isa = PBXFileReference; name = "GTAmericaExp-Medium.otf"; path = "../assets/fonts/native/GTAmericaExp-Medium.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		43175D491A6D440E861C8EB1 /* GTAmericaExp-Regular.otf */ = {isa = PBXFileReference; name = "GTAmericaExp-Regular.otf"; path = "../assets/fonts/native/GTAmericaExp-Regular.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		894D29880FE244BB90D2AD4C /* GTAmericaExp-RgIt.otf */ = {isa = PBXFileReference; name = "GTAmericaExp-RgIt.otf"; path = "../assets/fonts/native/GTAmericaExp-RgIt.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		69173591E1314F1B9B826CF8 /* GTAmericaExp-Thin.otf */ = {isa = PBXFileReference; name = "GTAmericaExp-Thin.otf"; path = "../assets/fonts/native/GTAmericaExp-Thin.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		0F998504C30C4E008D2A5047 /* GTAmericaExpMono-Bd.otf */ = {isa = PBXFileReference; name = "GTAmericaExpMono-Bd.otf"; path = "../assets/fonts/native/GTAmericaExpMono-Bd.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		F309E5611292427788311DD2 /* GTAmericaExpMono-BdIt.otf */ = {isa = PBXFileReference; name = "GTAmericaExpMono-BdIt.otf"; path = "../assets/fonts/native/GTAmericaExpMono-BdIt.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		D016399AD6714755A8125A9A /* GTAmericaExpMono-Rg.otf */ = {isa = PBXFileReference; name = "GTAmericaExpMono-Rg.otf"; path = "../assets/fonts/native/GTAmericaExpMono-Rg.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		B78A67B9ECF244C39DB32F41 /* GTAmericaExpMono-RgIt.otf */ = {isa = PBXFileReference; name = "GTAmericaExpMono-RgIt.otf"; path = "../assets/fonts/native/GTAmericaExpMono-RgIt.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -221,26 +197,14 @@
 		A9EA265D209D4558995C9BD4 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				662B5DFFA715433FA99D1DF8 /* ExpensifyMono-Bold.otf */,
-				6A095F347C834F80A8FD9CD9 /* ExpensifyMono-Regular.otf */,
-				5F062F966C6B4349BC32EF8C /* ExpensifyNeue-Bold.otf */,
-				4E2289C3B2AF457698CC71DF /* ExpensifyNeue-BoldItalic.otf */,
-				37D54BDF524C48AAA29AB8D3 /* ExpensifyNeue-Italic.otf */,
-				23EDE937A031419FBC595547 /* ExpensifyNeue-Regular.otf */,
-				E9814181E00345B9B6FCC3A6 /* ExpensifyNewKansas-Medium.otf */,
-				24F4CEFA54E54F6597EDB7CE /* ExpensifyNewKansas-MediumItalic.otf */,
-				E7E9F2D60EB841809D384D54 /* GTAmericaExp-BdIt.otf */,
-				BE0E57E300CD4CC997A777B8 /* GTAmericaExp-Bold.otf */,
-				2A3AFA5618B747AFAC58704A /* GTAmericaExp-Light.otf */,
-				CEB308E4B2B041AABDB11012 /* GTAmericaExp-MdIt.otf */,
-				9042E2095EBE464C9C88B961 /* GTAmericaExp-Medium.otf */,
-				43175D491A6D440E861C8EB1 /* GTAmericaExp-Regular.otf */,
-				894D29880FE244BB90D2AD4C /* GTAmericaExp-RgIt.otf */,
-				69173591E1314F1B9B826CF8 /* GTAmericaExp-Thin.otf */,
-				0F998504C30C4E008D2A5047 /* GTAmericaExpMono-Bd.otf */,
-				F309E5611292427788311DD2 /* GTAmericaExpMono-BdIt.otf */,
-				D016399AD6714755A8125A9A /* GTAmericaExpMono-Rg.otf */,
-				B78A67B9ECF244C39DB32F41 /* GTAmericaExpMono-RgIt.otf */,
+				593541512915C8CF001E81A5 /* ExpensifyNeue-Bold.otf */,
+				593541522915C8DF001E81A5 /* ExpensifyMono-Bold.otf */,
+				593541532915C8DF001E81A5 /* ExpensifyMono-Regular.otf */,
+				593541542915C8ED001E81A5 /* ExpensifyNewKansas-Medium.otf */,
+				593541552915C8ED001E81A5 /* ExpensifyNewKansas-MediumItalic.otf */,
+				5935414F2915C8CF001E81A5 /* ExpensifyNeue-BoldItalic.otf */,
+				593541502915C8CF001E81A5 /* ExpensifyNeue-Italic.otf */,
+				5935414E2915C8CF001E81A5 /* ExpensifyNeue-Regular.otf */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -356,31 +320,19 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				597489E52936B82200AE6F8B /* ExpensifyNeue-Regular.otf in Resources */,
+				597489E22936B81C00AE6F8B /* ExpensifyNewKansas-MediumItalic.otf in Resources */,
 				0F5BE0CE252686330097D869 /* GoogleService-Info.plist in Resources */,
+				597489E02936B81600AE6F8B /* ExpensifyMono-Regular.otf in Resources */,
 				E9DF872D2525201700607FDC /* AirshipConfig.plist in Resources */,
 				F0C450EA2705020500FD2970 /* colors.json in Resources */,
+				597489E32936B81E00AE6F8B /* ExpensifyNeue-BoldItalic.otf in Resources */,
+				597489DF2936B81400AE6F8B /* ExpensifyMono-Bold.otf in Resources */,
+				597489E12936B81900AE6F8B /* ExpensifyNewKansas-Medium.otf in Resources */,
+				597489E42936B82000AE6F8B /* ExpensifyNeue-Italic.otf in Resources */,
+				597489DE2936B81100AE6F8B /* ExpensifyNeue-Bold.otf in Resources */,
 				0CDA8E37287DD6A0004ECBEC /* Images.xcassets in Resources */,
 				70CF6E82262E297300711ADC /* BootSplash.storyboard in Resources */,
-				A10DF92FD40240DCA5883F9C /* ExpensifyMono-Bold.otf in Resources */,
-				7F44781621E644C3A3A49BEE /* ExpensifyMono-Regular.otf in Resources */,
-				C4B39A2795AB465FBEEBBEF7 /* ExpensifyNeue-Bold.otf in Resources */,
-				501AC79535D94AE0AC921499 /* ExpensifyNeue-BoldItalic.otf in Resources */,
-				9B49467736834D06AC147A0E /* ExpensifyNeue-Italic.otf in Resources */,
-				482344DA3A5045378671AC04 /* ExpensifyNeue-Regular.otf in Resources */,
-				3D2BCAF64E2F4B68ADEC57B6 /* ExpensifyNewKansas-Medium.otf in Resources */,
-				53C3A35E816F440482A92918 /* ExpensifyNewKansas-MediumItalic.otf in Resources */,
-				8836C5E3A02D4E5A9CC70E0F /* GTAmericaExp-BdIt.otf in Resources */,
-				31CF116D3DFC44658927CAB7 /* GTAmericaExp-Bold.otf in Resources */,
-				FE41F869D70842868D3F0258 /* GTAmericaExp-Light.otf in Resources */,
-				982BE99A9ADB4958BC3ED18B /* GTAmericaExp-MdIt.otf in Resources */,
-				8791D23E7AD64838A72B7D66 /* GTAmericaExp-Medium.otf in Resources */,
-				2C33229B2ECC47CFA1D649BC /* GTAmericaExp-Regular.otf in Resources */,
-				774D4B8031964F82A01F0C89 /* GTAmericaExp-RgIt.otf in Resources */,
-				C8B3F1426F01434FBDE39199 /* GTAmericaExp-Thin.otf in Resources */,
-				2DD8D51217614BF5B9C10771 /* GTAmericaExpMono-Bd.otf in Resources */,
-				B01A9625134748F284245A01 /* GTAmericaExpMono-BdIt.otf in Resources */,
-				C2AE775BB30D4A8ABD16F92C /* GTAmericaExpMono-Rg.otf in Resources */,
-				E6BD5062781240ECABFFBB8D /* GTAmericaExpMono-RgIt.otf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
