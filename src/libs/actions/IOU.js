@@ -718,7 +718,6 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
                 maxSequenceNumber: newSequenceNumber,
                 lastMessageText: optimsticIOUReportAction.message[0].text,
                 lastMessageHtml: optimsticIOUReportAction.message[0].html,
-                iouReportID: optimisticIOUReport.reportID,
             },
         },
         {
