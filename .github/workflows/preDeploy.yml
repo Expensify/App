@@ -239,7 +239,7 @@ jobs:
 
       # Cache gradle to improve Android build time
       - name: Gradle cache
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@3fbe033aaae657f011f88f29be9e65ed26bd29ef
 
       - name: Make zip directory for everything to send to AWS Device Farm
         run: mkdir zip
@@ -271,15 +271,15 @@ jobs:
       - name: Zip everything in the zip directory up
         run: zip -qr App.zip ./zip
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+      - name: Configure AWS Credentials
+        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-west-2
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-west-2
 
       - name: Schedule AWS Device Farm test run
-        uses: realm/aws-devicefarm/test-application@master
+        uses: realm/aws-devicefarm/test-application@7b9a91236c456c97e28d384c9e476035d5ea686b
         with:
           name: App E2E Performance Regression Tests
           project_arn: ${{ secrets.AWS_PROJECT_ARN }}
