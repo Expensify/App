@@ -4,8 +4,10 @@
 # config file to be parsed for the suffix (relative to current project root)
 CONFIG_FILE="../Web-Expensify/_config.local.php"
 
-# Export vars from the .env file
-export $(grep -v '^#' .env | xargs)
+if [ -f ".env" ]; then
+    # Export vars from the .env file to access the $EXPENSIFY_URL
+    export $(grep -v '^#' .env | xargs)
+fi
 
 # use the suffix only when the config file can be found
 if [ -f "$CONFIG_FILE" ]; then
