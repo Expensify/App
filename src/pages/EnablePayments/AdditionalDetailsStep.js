@@ -170,27 +170,10 @@ class AdditionalDetailsStep extends React.Component {
         if (this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN) {
             if (!ValidationUtils.isValidSSNFullNine(values[INPUT_IDS.SSN])) {
                 errors[INPUT_IDS.SSN] = this.props.translate(this.errorTranslationKeys.ssnFull9);
-            } else {
-                const errorsObject = this.props.walletAdditionalDetails.errors;
-                if (!_.isEmpty(errorsObject)) {
-                    const elementKey = _.keys(errorsObject)[0];
-                    if (this.props.walletAdditionalDetails.errors[elementKey] !== 'We\'re having trouble verifying your SSN. Please enter the full 9 digits of your SSN.') {
-                        if (typeof this.props.walletAdditionalDetails.errors[elementKey] === 'string') {
-                            // Get the first element of the errors object.
-                            errors[INPUT_IDS.SSN] = this.props.walletAdditionalDetails.errors[elementKey];
-                        } else {
-                            errors[INPUT_IDS.SSN] = 'There was an error';
-                        }
-                    }
-                }
             }
         } else if (!ValidationUtils.isValidSSNLastFour(values[INPUT_IDS.SSN])) {
             errors[INPUT_IDS.SSN] = this.props.translate(this.errorTranslationKeys.ssn);
         }
-
-        // We need to make sure the draft values from the form are saved to the draft Wallet Additional Details Onyx
-        // object because the draft Wallet Additional Details Onyx object is populated by several forms in several steps.
-        FormActions.setDraftValues(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, this.props.walletAdditionalDetailsDraft);
 
         return errors;
     }
@@ -210,10 +193,6 @@ class AdditionalDetailsStep extends React.Component {
             dob: values[INPUT_IDS.DOB],
             ssn: values[INPUT_IDS.SSN],
         };
-
-        // Clear any errors that were sent by the server.
-        FormActions.setErrors(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, null);
-        FormActions.setErrorFields(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, null);
 
         // Attempt to set the personal details
         Wallet.updatePersonalDetails(personalDetails);
