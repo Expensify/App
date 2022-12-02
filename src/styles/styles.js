@@ -1505,7 +1505,7 @@ const styles = {
         alignSelf: 'flex-end',
         borderRadius: variables.buttonBorderRadius,
         height: 32,
-        marginVertical: 3,
+        marginVertical: 4,
         paddingHorizontal: 6,
         justifyContent: 'center',
     },
