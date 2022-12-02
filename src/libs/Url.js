@@ -43,7 +43,7 @@ function getURLObject(href) {
  * @param {String} hostname
  * @returns {Boolean}
  */
-function shouldRemoveW3(hostname) {
+function shouldRemoveW3FromExpensifyUrl(hostname) {
     const parts = hostname.split('.').reverse();
     const subDomain = parts[2];
     return subDomain === 'www';
@@ -62,8 +62,8 @@ function hasSameExpensifyOrigin(url1, url2) {
     if (!host1 || !host2) {
         return false;
     }
-    const host1WithoutW3 = shouldRemoveW3(host1) ? host1.replace('www.', '') : host1;
-    const host2WithoutW3 = shouldRemoveW3(host2) ? host2.replace('www.', '') : host2;
+    const host1WithoutW3 = shouldRemoveW3FromExpensifyUrl(host1) ? host1.replace('www.', '') : host1;
+    const host2WithoutW3 = shouldRemoveW3FromExpensifyUrl(host2) ? host2.replace('www.', '') : host2;
     return host1WithoutW3 === host2WithoutW3;
 }
 
