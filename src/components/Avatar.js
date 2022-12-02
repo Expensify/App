@@ -1,5 +1,5 @@
 import React, {PureComponent} from 'react';
-import {View, Image} from 'react-native';
+import {Image, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import stylePropTypes from '../styles/stylePropTypes';
