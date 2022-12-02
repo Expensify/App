@@ -88,6 +88,9 @@ const propTypes = {
     /** Is the composer full size */
     isComposerFullSize: PropTypes.bool,
 
+    /** Whether user interactions should be disabled */
+    disabled: PropTypes.bool,
+
     // The NVP describing a user's block status
     blockedFromConcierge: PropTypes.shape({
         // The date that the user will be unblocked
