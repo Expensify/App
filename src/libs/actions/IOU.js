@@ -758,7 +758,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
                 [optimsticReportAction.sequenceNumber]: {
                     ...optimsticReportAction,
                     errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),
                     },
                 },
             },
