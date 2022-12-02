@@ -165,7 +165,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
 
             // Load font assets,
             {
-                test: /\.(woff|woff2)$/i,
+                test: /\.(woff|woff2|otf)$/i,
                 type: 'asset',
             },
 
