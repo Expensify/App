@@ -48,7 +48,7 @@ const darkTheme = {
     offline: colors.greenIcons,
     opaqueAvatar: 'rgba(198, 201, 202, 0.64)',
     modalBackdrop: colors.greenIcons,
-    modalBackground: colors.greenBorders,
+    modalBackground: colors.greenAppBackground,
     cardBG: colors.greenHighlightBackground,
     cardBorder: colors.greenHighlightBackground,
     spinner: colors.greenSupportingText,
