@@ -304,7 +304,6 @@ export default compose(
     withOnyx({
         walletAdditionalDetails: {
             key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-            initWithStoredValues: false,
         },
     }),
 )(AdditionalDetailsStep);
