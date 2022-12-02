@@ -54,7 +54,7 @@ const BaseHTMLEngineProvider = (props) => {
 
     // We need to pass multiple system-specific fonts for emojis but
     // we can't apply multiple fonts at once so we need to pass fallback fonts.
-    const fallbackFonts = {'GTAmericaExp-Regular': fontFamily.EMOJI_TEXT_FONT};
+    const fallbackFonts = {'ExpensifyNeue-Regular': fontFamily.EMOJI_TEXT_FONT};
 
     return (
         <TRenderEngineProvider

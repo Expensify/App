@@ -1,6 +1,7 @@
 const {version} = require('../package.json');
 
 const isPublishing = process.argv.includes('--publish');
+const pullRequestNumber = process.env.PULL_REQUEST_NUMBER;
 
 const s3Bucket = {
     production: 'expensify-cash',
@@ -8,15 +9,19 @@ const s3Bucket = {
     internal: 'ad-hoc-expensify-cash',
 };
 
+const s3Path = {
+    production: '/',
+    staging: '/',
+    internal: process.env.PULL_REQUEST_NUMBER
+        ? `/desktop/${pullRequestNumber}/`
+        : '/',
+};
+
 const macIcon = {
     production: './desktop/icon.png',
     staging: './desktop/icon-stg.png',
     internal: './desktop/icon-stg.png',
 };
-
-const isCorrectElectronEnv = ['production', 'staging', 'internal'].includes(
-    process.env.ELECTRON_ENV,
-);
 
 /**
  * The configuration for the production and staging Electron builds.
@@ -30,9 +35,7 @@ module.exports = {
     },
     mac: {
         category: 'public.app-category.finance',
-        icon: isCorrectElectronEnv
-            ? macIcon[process.env.ELECTRON_ENV]
-            : './desktop/icon-stg.png',
+        icon: macIcon[process.env.ELECTRON_ENV],
         hardenedRuntime: true,
         entitlements: 'desktop/entitlements.mac.plist',
         entitlementsInherit: 'desktop/entitlements.mac.plist',
@@ -46,10 +49,9 @@ module.exports = {
     publish: [
         {
             provider: 's3',
-            bucket: isCorrectElectronEnv
-                ? s3Bucket[process.env.ELECTRON_ENV]
-                : 'ad-hoc-expensify-cash',
+            bucket: s3Bucket[process.env.ELECTRON_ENV],
             channel: 'latest',
+            path: s3Path[process.env.ELECTRON_ENV],
         },
     ],
     afterSign: isPublishing ? './desktop/notarize.js' : undefined,

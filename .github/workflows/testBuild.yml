@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
   pull_request_target:
     types: [opened, synchronize]
+    branches: ['*ci-test/**']
 
 env:
   DEVELOPER_DIR: /Applications/Xcode_14.0.1.app/Contents/Developer
@@ -48,6 +49,12 @@ jobs:
         run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+      - name: Configure AWS Credentials
+        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
+        with:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Run Fastlane beta test
         id: runFastlaneBetaTest
@@ -99,6 +106,12 @@ jobs:
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
+      - name: Configure AWS Credentials
+        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
+        with:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
       - name: Run Fastlane
         run: bundle exec fastlane ios build_internal
         env:
@@ -131,6 +144,12 @@ jobs:
         env:
           DEVELOPER_ID_SECRET_PASSPHRASE: ${{ secrets.DEVELOPER_ID_SECRET_PASSPHRASE }}
 
+      - name: Configure AWS Credentials
+        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
+        with:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
       - name: Build desktop app for testing
         run: npm run desktop-build-internal -- --publish always
         env:
@@ -140,44 +159,12 @@ jobs:
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-  # web:
-  #   name: Build and deploy Web
-  #   needs: validateActor
-  #   if: ${{ fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) }}
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
-  #       with:
-  #         fetch-depth: 0
-  #         ref: ${{ github.event.pull_request.head.sha }}
-
-  #     - uses: Expensify/App/.github/actions/composite/setupNode@main
-
-  #     - name: Configure AWS Credentials
-  #       # Version: 1.5.5
-  #       uses: aws-actions/configure-aws-credentials@e97d7fbc8e0e5af69631c13daa0f4b5a8d88165b
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: us-east-1
-
-  #     - name: Build web for staging
-  #       run: npm run build-staging
-
-  #     - name: Build docs
-  #       run: npm run storybook-build
-  #       continue-on-error: true
-
-  #     - name: Deploy to S3 for internal testing
-  #       run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://ad-hoc-expensify-cash/web/"$PULL_REQUEST_NUMBER"
-  #       env:
-  #         PULL_REQUEST_NUMBER: ${{ github.event.number }}
+          PULL_REQUEST_NUMBER: ${{ github.event.number }}
 
   postGithubComment:
     runs-on: ubuntu-latest
     name: Post a GitHub comment with app download links for testing
-    needs: [android, ios]
+    needs: [android, ios, desktop]
     steps:
       - name: Checkout
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
@@ -203,9 +190,10 @@ jobs:
       - name: Publish links to apps for download
         run: |
           gh pr comment --body \
-          "Use the links below to test this build in android and iOS. Happy testing!
-          | android :robot:  | iOS :apple: | 
-          | ------------- | ------------- |
-          | ${{fromJson(steps.set_var.outputs.android_paths).html_path}}  | ${{fromJson(steps.set_var.outputs.ios_paths).html_path}}  |"
+          ":test_tube::test_tube: Use the links below to test this build in android and iOS. Happy testing! :test_tube::test_tube:
+          | android :robot:  | iOS :apple: | desktop :computer: |
+          | ------------- | ------------- | ------------- | 
+          | ${{fromJson(steps.set_var.outputs.android_paths).html_path}}  | ${{fromJson(steps.set_var.outputs.ios_paths).html_path}}  | https://ad-hoc-expensify-cash.us-east-1.amazonaws.com/desktop/${{github.event.number}}/NewExpensify.dmg
+          | ![Android](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.android_paths).html_path}}) | ![iOS](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.ios_paths).html_path}}) | ![desktop](https://ad-hoc-expensify-cash.us-east-1.amazonaws.com/desktop/${{github.event.number}}/NewExpensify.dmg)"
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
