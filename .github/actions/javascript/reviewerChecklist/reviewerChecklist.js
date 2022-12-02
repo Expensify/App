@@ -4,7 +4,7 @@ const https = require('https');
 const GitHubUtils = require('../../../libs/GithubUtils');
 
 const pathToReviewerChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/contributingGuides/REVIEWER_CHECKLIST.md';
-const reviewerChecklistContains = '## Reviewer Checklist';
+const reviewerChecklistContains = '# Reviewer Checklist';
 const issue = github.context.payload.issue ? github.context.payload.issue.number : github.context.payload.pull_request.number;
 const combinedComments = [];
 

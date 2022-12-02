@@ -14,7 +14,7 @@ const https = __nccwpck_require__(7211);
 const GitHubUtils = __nccwpck_require__(7999);
 
 const pathToReviewerChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/contributingGuides/REVIEWER_CHECKLIST.md';
-const reviewerChecklistStartsWith = '## Reviewer Checklist';
+const reviewerChecklistContains = '# Reviewer Checklist';
 const issue = github.context.payload.issue ? github.context.payload.issue.number : github.context.payload.pull_request.number;
 const combinedComments = [];
 
@@ -75,7 +75,7 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
                 console.log(`Comment ${i} starts with: ${comment.slice(0, 20)}...`);
 
                 // Found the reviewer checklist, so count how many completed checklist items there are
-                if (comment.startsWith(reviewerChecklistStartsWith)) {
+                if (comment.indexOf(reviewerChecklistContains) !== -1) {
                     console.log('Found the reviewer checklist!');
                     foundReviewerChecklist = true;
                     numberOfFinishedChecklistItems = (comment.match(/- \[x\]/gi) || []).length;
