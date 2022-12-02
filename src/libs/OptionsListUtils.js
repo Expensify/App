@@ -783,6 +783,10 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
  * @returns {Array}
  */
 function getCurrencyListForSections(currencyOptions, searchValue) {
+    if (!searchValue) {
+        return {currencyOptions};
+    }
+
     const filteredOptions = _.filter(currencyOptions, currencyOption => (
         isSearchStringMatch(searchValue, currencyOption.text)));
 
