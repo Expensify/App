@@ -275,7 +275,13 @@ class IOUConfirmationList extends Component {
         const shouldShowSettlementButton = this.props.iouType === CONST.IOU.IOU_TYPE.SEND;
         const shouldDisableButton = selectedParticipants.length === 0;
         const recipient = this.state.participants[0];
-        const canModifyParticipants = !this.props.isIOUAttachedToExistingChatReport && this.props.hasMultipleParticipants;
+
+        // The participants can only be modified when:
+        // 1. The action is initiated from directly within a group chat and not the floating-action-button (eg. this.props.isIOUAttachedToExistingChatReport === true). This is because when
+        // there is a group of people, say they are on a trip, and you have some shared expenses with some of the people, but not all of them (maybe someone skipped out on dinner). Then
+        // it's nice to be able to select/deselect people from the group chat bill split rather than forcing the user to create a new group, just for that expense.
+        // 2. There are multiple participants (eg. this.props.hasMultipleParticipants === true). This is because splitting a bill with one person isn't a thing :D
+        const canModifyParticipants = this.props.isIOUAttachedToExistingChatReport && this.props.hasMultipleParticipants;
 
         return (
             <OptionsSelector
