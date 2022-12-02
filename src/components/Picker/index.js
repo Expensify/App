@@ -187,6 +187,7 @@ class Picker extends PureComponent {
                         fixAndroidTouchableBug
                         onOpen={() => this.setState({isOpen: true})}
                         onClose={() => this.setState({isOpen: false})}
+                        textInputProps={{allowFontScaling: false}}
                         pickerProps={{
                             onFocus: () => this.setState({isOpen: true}),
                             onBlur: () => {
