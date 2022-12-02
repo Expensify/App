@@ -24,7 +24,6 @@ import Form from '../../components/Form';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import OfflineIndicator from '../../components/OfflineIndicator';
-import * as FormActions from '../../libs/actions/FormActions';
 
 const propTypes = {
     ...withLocalizePropTypes,
