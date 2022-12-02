@@ -291,11 +291,14 @@ class ReportActionCompose extends React.Component {
                 text: this.props.translate('iou.requestMoney'),
                 onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
             },
-            ...(Permissions.canUseIOUSend(this.props.betas) ?
-                [{icon: Expensicons.Send,
-                    text: this.props.translate('iou.sendMoney'),
-                    onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
-                }] : []),
+            ...(Permissions.canUseIOUSend(this.props.betas)
+                ? [
+                    {
+                        icon: Expensicons.Send,
+                        text: this.props.translate('iou.sendMoney'),
+                        onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
+                    }]
+                : []),
         ];
     }
 
