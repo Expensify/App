@@ -1503,9 +1503,10 @@ const styles = {
 
     chatItemEmojiButton: {
         alignSelf: 'flex-end',
-        borderRadius: 6,
+        borderRadius: variables.buttonBorderRadius,
         height: 32,
-        margin: 3,
+        marginVertical: 3,
+        paddingHorizontal: 6,
         justifyContent: 'center',
     },
 
