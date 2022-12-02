@@ -15,7 +15,7 @@ const navigationTheme = {
     ...DefaultTheme,
     colors: {
         ...DefaultTheme.colors,
-        background: 'transparent',
+        background: themeColors.appBG,
     },
 };
 
