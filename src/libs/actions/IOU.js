@@ -767,7 +767,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
 
     // Now, let's add the data we need just when we are creating a new chat report
     if (isNewChat) {
-        const optimisticCreateAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
+        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
 
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
@@ -778,7 +778,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         };
         optimisticData[1].onyxMethod = CONST.ONYX.METHOD.SET;
         optimisticData[1].value = {
-            ...optimisticCreateAction,
+            ...optimisticCreatedAction,
             ...optimisticData[1].value,
         };
         optimisticData[2].onyxMethod = CONST.ONYX.METHOD.SET;
