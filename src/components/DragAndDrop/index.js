@@ -11,8 +11,10 @@ const NONE_DROP_EFFECT = 'none';
 const propTypes = {
     ...DragAndDropPropTypes,
 
+    /** Callback to fire when a file has being dragged over the text input & report body. This prop is necessary to be inlined to satisfy the linter */
     onDragOver: DragAndDropPropTypes.onDragOver,
 
+    /** Guard for accepting drops in drop zone. Drag event is passed to this function as first parameter. This prop is necessary to be inlined to satisfy the linter */
     shouldAcceptDrop: PropTypes.func,
 
     /** Rendered child component */
