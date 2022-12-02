@@ -1370,7 +1370,7 @@ const styles = {
     chatItemComposeBox: {
         backgroundColor: themeColors.componentBG,
         borderWidth: 1,
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.componentBorderRadiusRounded,
         minHeight: variables.componentSizeNormal,
     },
 
@@ -1437,10 +1437,11 @@ const styles = {
 
     chatItemSubmitButton: {
         alignSelf: 'flex-end',
-        borderRadius: 6,
+        borderRadius: variables.componentBorderRadiusRounded,
+        backgroundColor: themeColors.transparent,
         height: 32,
         padding: 6,
-        margin: 3,
+        margin: 4,
         justifyContent: 'center',
     },
 
@@ -1522,11 +1523,12 @@ const styles = {
         alignSelf: 'flex-end',
         borderRightColor: themeColors.border,
         borderRightWidth: 1,
-        height: 26,
-        marginBottom: 6,
-        marginTop: 6,
+        height: 32,
+        width: 32,
+        marginBottom: 4,
+        marginTop: 4,
+        marginLeft: 4,
         justifyContent: 'center',
-        width: 39,
     },
 
     composerSizeButton: {
@@ -1536,7 +1538,7 @@ const styles = {
         marginBottom: 6,
         marginTop: 6,
         justifyContent: 'center',
-        width: 39,
+        width: 32,
     },
 
     chatItemAttachmentPlaceholder: {
