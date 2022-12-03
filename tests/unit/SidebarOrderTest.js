@@ -704,11 +704,11 @@ describe('Sidebar', () => {
                 lastActionCreated,
             };
             const report2 = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']),
                 lastActionCreated,
             };
             const report3 = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com']),
                 lastActionCreated,
             };
 
