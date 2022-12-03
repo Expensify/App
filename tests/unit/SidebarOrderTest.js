@@ -697,7 +697,7 @@ describe('Sidebar', () => {
         });
 
         it('orders nonArchived reports by displayName if created timestamps are the same', () => {
-            // Given three IOU reports containing the same IOU amounts
+            // Given three nonArchived reports created at the same time
             const lastActionCreated = DateUtils.getDBTime();
             const report1 = {
                 ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
@@ -724,7 +724,7 @@ describe('Sidebar', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
                 }))
 
-                // Then the reports are ordered alphabetically since their amounts are the same
+                // Then the reports are ordered alphabetically since their lastActionCreated are the same
                 .then(() => {
                     const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
                     expect(displayNames).toHaveLength(3);
