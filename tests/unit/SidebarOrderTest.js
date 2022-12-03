@@ -616,5 +616,84 @@ describe('Sidebar', () => {
                     expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Report (archived)');
                 });
         });
+
+        it('orders IOU reports by displayName if amounts are the same', () => {
+            // Given three IOU reports containing the same IOU amounts
+            const report1 = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                hasOutstandingIOU: true,
+
+                // This has to be added after the IOU report is generated
+                iouReportID: null,
+            };
+            const report2 = {
+                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']),
+                hasOutstandingIOU: true,
+
+                // This has to be added after the IOU report is generated
+                iouReportID: null,
+            };
+            const report3 = {
+                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com']),
+                hasOutstandingIOU: true,
+
+                // This has to be added after the IOU report is generated
+                iouReportID: null,
+            };
+            const iouReport1 = {
+                ...LHNTestUtils.getFakeReport(['email7@test.com', 'email8@test.com']),
+                ownerEmail: 'email2@test.com',
+                hasOutstandingIOU: true,
+                total: 10000,
+                currency: 'USD',
+                chatReportID: report3.reportID,
+            };
+            const iouReport2 = {
+                ...LHNTestUtils.getFakeReport(['email9@test.com', 'email10@test.com']),
+                ownerEmail: 'email2@test.com',
+                hasOutstandingIOU: true,
+                total: 10000,
+                currency: 'USD',
+                chatReportID: report3.reportID,
+            };
+            const iouReport3 = {
+                ...LHNTestUtils.getFakeReport(['email11@test.com', 'email12@test.com']),
+                ownerEmail: 'email2@test.com',
+                hasOutstandingIOU: true,
+                total: 10000,
+                currency: 'USD',
+                chatReportID: report3.reportID,
+            };
+
+            report1.iouReportID = iouReport1.reportID;
+            report2.iouReportID = iouReport2.reportID;
+            report3.iouReportID = iouReport3.reportID;
+
+            const currentlyLoggedInUserEmail = 'email13@test.com';
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks('0');
+            return waitForPromisesToResolve()
+
+                // When Onyx is updated with the data and the sidebar re-renders
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                    [ONYXKEYS.SESSION]: {email: currentlyLoggedInUserEmail},
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${iouReport1.reportID}`]: iouReport1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${iouReport2.reportID}`]: iouReport2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${iouReport3.reportID}`]: iouReport3,
+                }))
+
+                // Then the reports are ordered alphabetically since their amounts are the same
+                .then(() => {
+                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    expect(displayNames).toHaveLength(3);
+                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
+                    expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
+                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
+                });
+        });
     });
 });
