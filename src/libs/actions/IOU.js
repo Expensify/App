@@ -881,6 +881,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         paymentMethodType,
         '',
         iouReport.reportID,
+        true,
     );
 
     const optimisticData = [

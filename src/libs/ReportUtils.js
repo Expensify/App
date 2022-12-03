@@ -712,14 +712,31 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
  * @param {Array} participants - List of logins for the IOU participants, excluding the current user login
  * @param {String} comment - IOU comment
  * @param {String} currency - IOU currency
+ * @param {String} paymentType - IOU paymentMethodType. Can be oneOf(Elsewhere, Expensify, PayPal.me)
+ * @param {Boolean} isSettlingUp - Whether we are settling up an IOU
  * @returns {Array}
  */
-function getIOUReportActionMessage(type, total, participants, comment, currency) {
+function getIOUReportActionMessage(type, total, participants, comment, currency, paymentType = '', isSettlingUp = false) {
     const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
     const displayNames = _.map(participants, participant => getDisplayNameForParticipant(participant.login, true));
     const who = displayNames.length < 3
         ? displayNames.join(' and ')
         : `${displayNames.slice(0, -1).join(', ')}, and ${_.last(displayNames)}`;
+
+    let paymentMethodMessage;
+    switch (paymentType) {
+        case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
+            paymentMethodMessage = 'using wallet';
+            break;
+        case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
+            paymentMethodMessage = 'elsewhere';
+            break;
+        case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
+            paymentMethodMessage = 'using PayPal.me';
+            break;
+        default:
+            break;
+    }
 
     let iouMessage;
     switch (type) {
@@ -736,7 +753,9 @@ function getIOUReportActionMessage(type, total, participants, comment, currency)
             iouMessage = `Declined the ${amount} request${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
-            iouMessage = `Paid ${amount} to ${who}${comment && ` for ${comment}`}`;
+            iouMessage = isSettlingUp
+                ? `Settled up ${paymentMethodMessage}`
+                : `Sent ${amount}${comment && ` for ${comment}`} ${paymentMethodMessage}`;
             break;
         default:
             break;
@@ -762,10 +781,11 @@ function getIOUReportActionMessage(type, total, participants, comment, currency)
  * @param {String} paymentType - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
  * @param {String} iouTransactionID - Only required if the IOUReportAction type is oneOf(cancel, decline). Generates a randomID as default.
  * @param {String} iouReportID - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
+ * @param {String} isSettlingUp - Whether we are settling up an IOU.
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, comment, participants, paymentType = '', iouTransactionID = '', iouReportID = '') {
+function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, comment, participants, paymentType = '', iouTransactionID = '', iouReportID = '', isSettlingUp) {
     const IOUTransactionID = iouTransactionID || NumberUtils.rand64();
     const IOUReportID = iouReportID || generateReportID();
     const originalMessage = {
@@ -800,7 +820,7 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, 
         clientID: NumberUtils.generateReportActionClientID(),
         isAttachment: false,
         originalMessage,
-        message: getIOUReportActionMessage(type, amount, participants, comment, currency),
+        message: getIOUReportActionMessage(type, amount, participants, comment, currency, paymentType, isSettlingUp),
         person: [{
             style: 'strong',
             text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
