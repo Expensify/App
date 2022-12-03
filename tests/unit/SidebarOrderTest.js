@@ -695,5 +695,43 @@ describe('Sidebar', () => {
                     expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
                 });
         });
+
+        it('orders nonArchived reports by displayName if created timestamps are the same', () => {
+            // Given three IOU reports containing the same IOU amounts
+            const lastActionCreated = DateUtils.getDBTime();
+            const report1 = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                lastActionCreated,
+            };
+            const report2 = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                lastActionCreated,
+            };
+            const report3 = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                lastActionCreated,
+            };
+
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks('0');
+            return waitForPromisesToResolve()
+
+                // When Onyx is updated with the data and the sidebar re-renders
+                .then(() => Onyx.multiSet({
+                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
+                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
+                }))
+
+                // Then the reports are ordered alphabetically since their amounts are the same
+                .then(() => {
+                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
+                    expect(displayNames).toHaveLength(3);
+                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Five, Six');
+                    expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
+                    expect(lodashGet(displayNames, [2, 'props', 'children'])).toBe('Three, Four');
+                });
+        });
     });
 });
