@@ -907,8 +907,37 @@ function openWorkspaceReimburseView(policyID) {
         Log.warn('openWorkspaceReimburseView invalid params', {policyID});
         return;
     }
+    const onyxData = {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: true,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+    };
 
-    API.read('OpenWorkspaceReimburseView', {policyID});
+    API.read('OpenWorkspaceReimburseView', {policyID}, onyxData);
 }
 
 function openWorkspaceMembersPage(policyID, clientMemberEmails) {
