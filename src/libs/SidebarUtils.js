@@ -167,7 +167,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
     });
     archivedReports = _.sortBy(archivedReports, report => (isInDefaultMode ? report.lastActionCreated : report.displayName.toLowerCase()));
 
-    // For archived and non-archived reports, ensure that most recent reports are at the top by reversing the order of the arrays because underscore will only sort them in ascending order
+    // For archived reports ensure that most recent reports are at the top by reversing the order of the arrays because underscore will only sort them in ascending order
     if (isInDefaultMode) {
         archivedReports.reverse();
     }
