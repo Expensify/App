@@ -100,7 +100,7 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     componentDidMount() {
-        Policy.openWorkspaceReimburseView(this.props.policy.id);
+        this.fetchData();
     }
 
     componentDidUpdate(prevProps) {
@@ -125,7 +125,7 @@ class WorkspaceReimburseView extends React.Component {
             return;
         }
 
-        Policy.openWorkspaceReimburseView(this.props.policy.id);
+        this.fetchData();
     }
 
     getUnitRateValue(customUnitRate) {
@@ -183,6 +183,12 @@ class WorkspaceReimburseView extends React.Component {
             name: this.state.unitName,
             attributes: {unit: value},
         }, this.props.policy.lastModified);
+    }
+
+    fetchData() {
+        const subStep = this.props.reimbursementAccount.subStep || '';
+        const localCurrentStep = this.props.reimbursementAccount.currentStep || '';
+        Policy.openWorkspaceReimburseView(this.props.policy.id, subStep, localCurrentStep);
     }
 
     debounceUpdateOnCursorMove(event) {

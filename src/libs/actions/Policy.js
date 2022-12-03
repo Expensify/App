@@ -902,7 +902,13 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
         });
 }
 
-function openWorkspaceReimburseView(policyID) {
+/**
+ *
+ * @param {string} policyID
+ * @param {string} subStep The sub step in first step of adding withdrawal bank account
+ * @param {*} localCurrentStep The locally stored current step of adding a withdrawal bank account
+ */
+function openWorkspaceReimburseView(policyID, subStep, localCurrentStep) {
     if (!policyID) {
         Log.warn('openWorkspaceReimburseView invalid params', {policyID});
         return;
@@ -937,7 +943,7 @@ function openWorkspaceReimburseView(policyID) {
         ],
     };
 
-    API.read('OpenWorkspaceReimburseView', {policyID}, onyxData);
+    API.read('OpenWorkspaceReimburseView', {policyID, subStep, localCurrentStep}, onyxData);
 }
 
 function openWorkspaceMembersPage(policyID, clientMemberEmails) {
