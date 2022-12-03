@@ -46,7 +46,7 @@
     "@formatjs/intl-numberformat": "^6.2.5",
     "@formatjs/intl-pluralrules": "^4.0.13",
     "@oguzhnatly/react-native-image-manipulator": "github:Expensify/react-native-image-manipulator#c5f654fc9d0ad7cc5b89d50b34ecf8b0e3f4d050",
-    "@onfido/react-native-sdk": "6.0.0",
+    "@onfido/react-native-sdk": "7.0.1",
     "@pieter-pot/react-native-fast-image": "8.5.11",
     "@react-native-async-storage/async-storage": "^1.17.10",
     "@react-native-community/cameraroll": "git+https://github.com/react-native-cameraroll/react-native-cameraroll.git#3f0aed96db68e134f199171c7b06c1b4d6cb382b",
