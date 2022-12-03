@@ -17,6 +17,7 @@ import * as NumberUtils from '../../src/libs/NumberUtils';
 import LocalNotification from '../../src/libs/Notification/LocalNotification';
 import * as Report from '../../src/libs/actions/Report';
 import * as CollectionUtils from '../../src/libs/CollectionUtils';
+import DateUtils from '../../src/libs/DateUtils';
 
 jest.mock('../../src/libs/Notification/LocalNotification');
 
@@ -133,7 +134,7 @@ function signInAndGetAppWithUnreadChat() {
                 reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                 maxSequenceNumber: 9,
                 lastReadSequenceNumber: 1,
-                lastMessageTimestamp: MOMENT_TEN_MINUTES_AGO.utc().valueOf(),
+                lastActionCreated: DateUtils.getDBTime(MOMENT_TEN_MINUTES_AGO.utc().valueOf()),
                 lastMessageText: 'Test',
                 participants: [USER_B_EMAIL],
             });
@@ -144,6 +145,18 @@ function signInAndGetAppWithUnreadChat() {
                     sequenceNumber: 0,
                     created: MOMENT_TEN_MINUTES_AGO.format(MOMENT_FORMAT),
                     reportActionID: NumberUtils.rand64(),
+                    message: [
+                        {
+                            style: 'strong',
+                            text: '__FAKE__',
+                            type: 'TEXT',
+                        },
+                        {
+                            style: 'normal',
+                            text: 'created this report',
+                            type: 'TEXT',
+                        },
+                    ],
                 },
                 1: TestHelper.buildTestReportComment(USER_B_EMAIL, 1, MOMENT_TEN_MINUTES_AGO.add(10, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
                 2: TestHelper.buildTestReportComment(USER_B_EMAIL, 2, MOMENT_TEN_MINUTES_AGO.add(20, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
@@ -268,7 +281,7 @@ describe('Unread Indicators', () => {
                     reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                     maxSequenceNumber: 1,
                     lastReadSequenceNumber: 0,
-                    lastMessageTimestamp: NEW_REPORT_CREATED_MOMENT.utc().valueOf(),
+                    lastActionCreated: DateUtils.getDBTime(NEW_REPORT_CREATED_MOMENT.utc().valueOf()),
                     lastMessageText: 'Comment 1',
                     participants: [USER_C_EMAIL],
                 });
@@ -497,7 +510,7 @@ describe('Unread Indicators', () => {
                 delete lastReportAction[lastReportAction.clientID];
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                     lastMessageText: lastReportAction.message[0].text,
-                    lastMessageTimestamp: lastReportAction.timestamp,
+                    lastActionCreated: DateUtils.getDBTime(lastReportAction.timestamp),
                     lastActorEmail: lastReportAction.actorEmail,
                     maxSequenceNumber: lastReportAction.sequenceNumber,
                     reportID: REPORT_ID,

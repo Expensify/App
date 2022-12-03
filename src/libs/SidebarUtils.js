@@ -16,11 +16,20 @@ import * as CollectionUtils from './CollectionUtils';
 // Session also can remain stale because the only way for the current user to change is to sign out and sign in, which would clear out all the Onyx
 // data anyway and cause SidebarLinks to rerender.
 
-let reports;
+const chatReports = {};
+const iouReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: val => reports = val,
+    callback: (report, key) => {
+        if (!report) {
+            delete iouReports[key];
+            delete chatReports[key];
+        } else if (ReportUtils.isIOUReport(report)) {
+            iouReports[key] = report;
+        } else {
+            chatReports[key] = report;
+        }
+    },
 });
 
 let personalDetails;
@@ -62,18 +71,6 @@ Onyx.connect({
     callback: val => policies = val,
 });
 
-let iouReports = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_IOUS,
-    waitForCollectionCallback: true,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-        iouReports = val;
-    },
-});
-
 let currentUserLogin;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -95,7 +92,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
     const isInDefaultMode = !isInGSDMode;
 
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies));
+    const reportsToDisplay = _.filter(chatReports, report => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies));
 
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     _.each(reportsToDisplay, (report) => {
@@ -114,10 +111,10 @@ function getOrderedReportIDs(reportIDFromRoute) {
     // 2. Outstanding IOUs - Always sorted by iouReportAmount with the largest amounts at the top of the group
     // 3. Drafts - Always sorted by reportDisplayName
     // 4. Non-archived reports
-    //      - Sorted by lastMessageTimestamp in default (most recent) view mode
+    //      - Sorted by lastActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
     // 5. Archived reports
-    //      - Sorted by lastMessageTimestamp in default (most recent) view mode
+    //      - Sorted by lastActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
     let pinnedReports = [];
     let outstandingIOUReports = [];
@@ -162,13 +159,13 @@ function getOrderedReportIDs(reportIDFromRoute) {
     });
     draftReports = _.sortBy(draftReports, report => report.displayName.toLowerCase());
     nonArchivedReports = nonArchivedReports.sort((a, b) => {
-        if (isInDefaultMode && (a.lastMessageTimestamp || b.lastMessageTimestamp) && a.lastMessageTimestamp !== b.lastMessageTimestamp) {
-            return a.lastMessageTimestamp > b.lastMessageTimestamp ? -1 : 1;
+        if (isInDefaultMode && (a.lastActionCreated || b.lastActionCreated) && a.lastActionCreated !== b.lastActionCreated) {
+            return a.lastActionCreated > b.lastActionCreated ? -1 : 1;
         }
 
         return a.displayName.toLowerCase() > b.displayName.toLowerCase() ? 1 : -1;
     });
-    archivedReports = _.sortBy(archivedReports, report => (isInDefaultMode ? report.lastMessageTimestamp : report.displayName.toLowerCase()));
+    archivedReports = _.sortBy(archivedReports, report => (isInDefaultMode ? report.lastActionCreated : report.displayName.toLowerCase()));
 
     // For archived and non-archived reports, ensure that most recent reports are at the top by reversing the order of the arrays because underscore will only sort them in ascending order
     if (isInDefaultMode) {
@@ -192,7 +189,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
  * @returns {Object}
  */
 function getOptionData(reportID) {
-    const report = reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const report = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -265,7 +262,7 @@ function getOptionData(reportID) {
     }
 
     const lastActorDetails = personalDetailMap[report.lastActorEmail] || null;
-    let lastMessageText = hasMultipleParticipants && lastActorDetails
+    let lastMessageText = hasMultipleParticipants && lastActorDetails && (lastActorDetails.login !== currentUserLogin.email)
         ? `${lastActorDetails.displayName}: `
         : '';
     lastMessageText += report ? lastMessageTextFromReport : '';

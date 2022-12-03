@@ -108,6 +108,7 @@ export default {
         maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
         youAppearToBeOffline: 'You appear to be offline.',
         thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
+        areYouSure: 'Are you sure?',
         zipCodeExample: 'e.g. 12345, 12345-1234, 12345 1234',
     },
     attachmentPicker: {
@@ -168,7 +169,6 @@ export default {
         sendAttachment: 'Send attachment',
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
-        sayHello: 'Say hello!',
         conciergePlaceholderOptions: [
             'Ask for help!',
             'Ask me anything!',
@@ -333,6 +333,11 @@ export default {
         john: 'John',
         doe: 'Doe',
     },
+    timezonePage: {
+        timezone: 'Timezone',
+        isShownOnProfile: 'Your timezone is shown on your profile.',
+        getLocationAutomatically: 'Automatically determine your location.',
+    },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add phone number',
         addEmailAddress: 'Add email address',
@@ -363,6 +368,7 @@ export default {
         },
         security: 'Security',
         signOut: 'Sign out',
+        signOutConfirmationText: 'You\'ll lose any offline changes if you sign-out.',
         versionLetter: 'v',
         readTheTermsAndPrivacyPolicy: {
             phrase1: 'Read the',
@@ -596,6 +602,7 @@ export default {
             addressStreet: 'Please enter a valid street address that is not a PO Box',
             addressState: 'Please select a valid state',
             incorporationDate: 'Please enter a valid date',
+            incorporationDateFuture: 'Incorporation date cannot be in the future',
             incorporationState: 'Please enter a valid state',
             industryCode: 'Please enter a valid industry classification code. Must be 6 digits.',
             restrictedBusiness: 'Please confirm company is not on the list of restricted businesses',
@@ -789,6 +796,9 @@ export default {
         letsChatCTA: 'Yes, let\'s chat',
         letsChatText: 'Thanks for doing that. We need your help verifying a few pieces of information, but we can work this out quickly over chat. Ready?',
         letsChatTitle: 'Let\'s chat!',
+        enable2FATitle: 'Prevent fraud, enable two-factor authentication!',
+        enable2FAText: 'We take your security seriously, so please set up two-factor authentication for your account now. That will allow us to dispute Expensify Card digital transactions, and will reduce your risk for fraud.',
+        secureYourAccount: 'Secure your account',
     },
     beneficialOwnersStep: {
         additionalInformation: 'Additional information',
@@ -817,7 +827,7 @@ export default {
             card: 'Issue cards',
             workspace: 'Workspace',
             edit: 'Edit workspace',
-            delete: 'Delete Workspace',
+            delete: 'Delete workspace',
             settings: 'General settings',
             reimburse: 'Reimburse expenses',
             bills: 'Pay bills',
