@@ -90,8 +90,7 @@ function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs,
  * @returns {Object}
  */
 function getSimplifiedReportObject(report) {
-    const createTimestamp = lodashGet(report, 'lastActionCreated', 0);
-    const lastMessageTimestamp = moment.utc(createTimestamp).unix();
+    const lastActionCreated = lodashGet(report, 'lastActionCreated', 0);
     const lastActionMessage = lodashGet(report, ['lastActionMessage', 'html'], '');
     const isLastMessageAttachment = new RegExp(`<img|a\\s[^>]*${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}\\s*=\\s*"[^"]*"[^>]*>`, 'gi').test(lastActionMessage);
     const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
@@ -135,7 +134,7 @@ function getSimplifiedReportObject(report) {
             'timestamp',
         ], 0),
         lastReadSequenceNumber,
-        lastMessageTimestamp,
+        lastActionCreated,
         lastMessageText: isLastMessageAttachment ? '[Attachment]' : lastMessageText,
         lastActorEmail,
         notificationPreference,
@@ -224,7 +223,7 @@ function fetchIOUReport(iouReportID, chatReportID) {
  * @param {Number} iouReportObject.reportID
  */
 function setLocalIOUReportData(iouReportObject) {
-    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
+    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReportObject.reportID}`;
     Onyx.merge(iouReportKey, iouReportObject);
 }
 
@@ -414,7 +413,7 @@ function addActions(reportID, text = '', file) {
     // Update the report in Onyx to have the new sequence number
     const optimisticReport = {
         maxSequenceNumber: newSequenceNumber,
-        lastMessageTimestamp: Date.now(),
+        lastActionCreated: DateUtils.getDBTime(),
         lastMessageText: ReportUtils.formatReportLastMessageText(lastAction.message[0].text),
         lastActorEmail: currentUserEmail,
         lastReadSequenceNumber: newSequenceNumber,
@@ -510,7 +509,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
                 isLoadingMoreReportActions: false,
                 lastVisitedTimestamp: Date.now(),
                 lastReadSequenceNumber: getMaxSequenceNumber(reportID),
-                reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
+                reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
             },
         }],
         successData: [{
@@ -794,7 +793,7 @@ function broadcastUserIsTyping(reportID) {
  * @param {Object} report
  */
 function handleReportChanged(report) {
-    if (!report) {
+    if (!report || ReportUtils.isIOUReport(report)) {
         return;
     }
 
@@ -1016,7 +1015,7 @@ function syncChatAndIOUReports(chatReport, iouReport) {
     const simplifiedIouReport = {};
     const simplifiedReport = {};
     const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`;
-    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReport.reportID}`;
+    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`;
 
     // We don't want to sync an iou report that's already been reimbursed with its chat report.
     if (!iouReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED) {
@@ -1026,7 +1025,7 @@ function syncChatAndIOUReports(chatReport, iouReport) {
     simplifiedReport[chatReportKey].hasOutstandingIOU = iouReport.stateNum
         === CONST.REPORT.STATE_NUM.PROCESSING && iouReport.total !== 0;
     simplifiedIouReport[iouReportKey] = getSimplifiedIOUReport(iouReport, chatReport.reportID);
-    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, simplifiedIouReport);
+    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedIouReport);
     Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReport);
 }
 
@@ -1342,12 +1341,12 @@ Onyx.connect({
                 return;
             }
 
-            if (!action.timestamp) {
+            if (!action.created) {
                 return;
             }
 
             // If we are past the deadline to notify for this comment don't do it
-            if (moment.utc(action.timestamp * 1000).isBefore(moment.utc().subtract(10, 'seconds'))) {
+            if (moment.utc(moment(action.created).unix() * 1000).isBefore(moment.utc().subtract(10, 'seconds'))) {
                 handledReportActions[reportID] = handledReportActions[reportID] || {};
                 handledReportActions[reportID][action.sequenceNumber] = true;
                 return;

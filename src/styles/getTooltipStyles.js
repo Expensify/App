@@ -116,7 +116,7 @@ export default function getTooltipStyles(
         tooltipWrapperStyle: {
             position: 'fixed',
             backgroundColor: themeColors.heading,
-            borderRadius: variables.componentBorderRadiusSmall,
+            borderRadius: variables.buttonBorderRadius,
             ...tooltipVerticalPadding,
             ...spacing.ph2,
             zIndex: variables.tooltipzIndex,
@@ -154,7 +154,7 @@ export default function getTooltipStyles(
         },
         tooltipTextStyle: {
             color: themeColors.textReversed,
-            fontFamily: fontFamily.GTA,
+            fontFamily: fontFamily.EXP_NEUE,
             fontSize: tooltipFontSize,
             overflow: 'hidden',
         },

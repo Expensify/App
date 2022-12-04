@@ -8,6 +8,7 @@ const darkTheme = {
     border: colors.greenBorders,
     borderFocus: colors.green,
     icon: colors.greenIcons,
+    iconMenu: colors.green,
     iconHovered: colors.white,
     iconSuccessFill: colors.green,
     iconReversed: colors.greenAppBackground,
@@ -47,13 +48,15 @@ const darkTheme = {
     offline: colors.greenIcons,
     opaqueAvatar: 'rgba(198, 201, 202, 0.64)',
     modalBackdrop: colors.greenIcons,
-    modalBackground: colors.greenBorders,
+    modalBackground: colors.greenAppBackground,
     cardBG: colors.greenHighlightBackground,
+    cardBorder: colors.greenHighlightBackground,
     spinner: colors.greenSupportingText,
     unreadIndicator: colors.green,
     placeholderText: colors.greenIcons,
     heroCard: colors.blue,
     uploadPreviewActivityIndicator: colors.greenHighlightBackground,
+    checkBox: colors.green,
 };
 
 const oldTheme = {
@@ -70,12 +73,13 @@ const oldTheme = {
     border: colors.gray2,
     borderFocus: colors.blue,
     icon: colors.gray3,
+    iconMenu: colors.gray3,
     iconHovered: colors.dark,
     iconSuccessFill: colors.green,
     iconReversed: colors.white,
     textSupporting: colors.gray4,
     text: colors.dark,
-    textError: colors.red,
+    textError: colors.oldRed,
     textBackground: colors.gray1,
     textReversed: colors.white,
     textMutedReversed: colors.gray3,
@@ -94,13 +98,15 @@ const oldTheme = {
     heroCard: colors.blue,
     uploadPreviewActivityIndicator: colors.gray1,
     cardBG: colors.gray1,
+    cardBorder: colors.gray1,
+    checkBox: colors.blue,
 
     // Merging new Keys for Dark Mode merge. Delete after new branding is implemented.
     highlightBG: colors.gray1,
-    danger: colors.red,
-    dangerHover: colors.redHover,
-    dangerPressed: colors.redHover,
-    dangerDisabled: colors.redDisabled,
+    danger: colors.oldRed,
+    dangerHover: colors.oldRedHover,
+    dangerPressed: colors.oldRedHover,
+    dangerDisabled: colors.oldRedDisabled,
     warning: colors.yellow,
     success: colors.green,
     successHover: colors.greenHover,
@@ -111,4 +117,4 @@ const oldTheme = {
     textDark: colors.dark,
 };
 
-export default oldTheme;
+export default darkTheme;

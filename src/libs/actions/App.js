@@ -207,7 +207,7 @@ function setUpPoliciesAndNavigate(session) {
                         && Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
                         && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        Policy.createWorkspace(ownerEmail, makeMeAdmin, policyName);
+        Policy.createWorkspace(ownerEmail, makeMeAdmin, policyName, true);
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
