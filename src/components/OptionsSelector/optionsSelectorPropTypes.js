@@ -54,9 +54,6 @@ const propTypes = {
     /** Whether to disable interactivity of option rows */
     isDisabled: PropTypes.bool,
 
-    /** A flag to indicate whether to show additional optional states, such as pin and draft icons */
-    hideAdditionalOptionStates: PropTypes.bool,
-
     /** Force the text style to be the unread style on all rows */
     forceTextUnreadStyle: PropTypes.bool,
 
@@ -102,7 +99,6 @@ const defaultProps = {
     headerMessage: '',
     canSelectMultipleOptions: false,
     hideSectionHeaders: false,
-    hideAdditionalOptionStates: false,
     forceTextUnreadStyle: false,
     showTitleTooltip: false,
     shouldFocusOnSelectRow: false,

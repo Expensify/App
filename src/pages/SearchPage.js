@@ -180,7 +180,6 @@ class SearchPage extends Component {
                                 onChangeText={this.onChangeText}
                                 headerMessage={headerMessage}
                                 hideSectionHeaders
-                                hideAdditionalOptionStates
                                 showTitleTooltip
                                 shouldShowOptions={didScreenTransitionEnd}
                             />

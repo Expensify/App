@@ -224,7 +224,6 @@ class IOUParticipantsSplit extends Component {
                         onSelectRow={this.toggleOption}
                         onChangeText={this.updateOptionsWithSearchTerm}
                         headerMessage={headerMessage}
-                        hideAdditionalOptionStates
                         forceTextUnreadStyle
                         shouldShowConfirmButton
                         confirmButtonText={this.props.translate('common.next')}

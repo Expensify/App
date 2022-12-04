@@ -250,7 +250,6 @@ class NewChatPage extends Component {
                                     onSelectRow={option => (this.props.isGroupChat ? this.toggleOption(option) : this.createChat(option))}
                                     onChangeText={this.updateOptionsWithSearchTerm}
                                     headerMessage={headerMessage}
-                                    hideAdditionalOptionStates
                                     forceTextUnreadStyle
                                     shouldFocusOnSelectRow={this.props.isGroupChat}
                                     shouldShowConfirmButton={this.props.isGroupChat}

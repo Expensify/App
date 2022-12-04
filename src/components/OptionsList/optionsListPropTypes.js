@@ -46,9 +46,6 @@ const propTypes = {
     /** Whether to allow option focus or not */
     disableFocusOptions: PropTypes.bool,
 
-    /** A flag to indicate whether to show additional optional states, such as pin and draft icons */
-    hideAdditionalOptionStates: PropTypes.bool,
-
     /** Force the text style to be the unread style on all rows */
     forceTextUnreadStyle: PropTypes.bool,
 
@@ -90,7 +87,6 @@ const defaultProps = {
     canSelectMultipleOptions: false,
     hideSectionHeaders: false,
     disableFocusOptions: false,
-    hideAdditionalOptionStates: false,
     forceTextUnreadStyle: false,
     onSelectRow: () => {},
     headerMessage: '',

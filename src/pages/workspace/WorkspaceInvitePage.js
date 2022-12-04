@@ -304,7 +304,6 @@ class WorkspaceInvitePage extends React.Component {
                                         onConfirmSelection={this.inviteUser}
                                         headerMessage={headerMessage}
                                         hideSectionHeaders
-                                        hideAdditionalOptionStates
                                         forceTextUnreadStyle
                                         shouldFocusOnSelectRow
                                     />

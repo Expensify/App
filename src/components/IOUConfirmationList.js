@@ -290,7 +290,6 @@ class IOUConfirmationList extends Component {
                 canSelectMultipleOptions={canModifyParticipants}
                 disableArrowKeysActions={!canModifyParticipants}
                 isDisabled={!canModifyParticipants}
-                hideAdditionalOptionStates
                 forceTextUnreadStyle
                 autoFocus
                 shouldDelayFocus

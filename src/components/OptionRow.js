@@ -40,9 +40,6 @@ const propTypes = {
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow: PropTypes.func,
 
-    /** A flag to indicate whether to show additional optional states, such as pin and draft icons */
-    hideAdditionalOptionStates: PropTypes.bool,
-
     /** Whether we should show the selected state */
     showSelectedState: PropTypes.bool,
 
@@ -71,7 +68,6 @@ const propTypes = {
 
 const defaultProps = {
     hoverStyle: styles.sidebarLinkHover,
-    hideAdditionalOptionStates: false,
     showSelectedState: false,
     isSelected: false,
     forceTextUnreadStyle: false,
@@ -232,21 +228,19 @@ const OptionRow = (props) => {
                                 {props.showSelectedState && <SelectCircle isChecked={props.isSelected} />}
                             </View>
                         </View>
-                        {!props.hideAdditionalOptionStates && (
+                        {props.option.customIcon && (
                             <View
                                 style={[styles.flexRow, styles.alignItemsCenter]}
                                 accessible={false}
                             >
-                                {Boolean(props.option.customIcon) && (
-                                    <View>
-                                        <Icon
-                                            src={lodashGet(props.option, 'customIcon.src', '')}
-                                            height={16}
-                                            width={16}
-                                            fill={lodashGet(props.option, 'customIcon.color')}
-                                        />
-                                    </View>
-                                )}
+                                <View>
+                                    <Icon
+                                        src={lodashGet(props.option, 'customIcon.src', '')}
+                                        height={16}
+                                        width={16}
+                                        fill={lodashGet(props.option, 'customIcon.color')}
+                                    />
+                                </View>
                             </View>
                         )}
                     </TouchableOpacity>
