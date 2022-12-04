@@ -96,10 +96,10 @@ class AttachmentCarousel extends React.Component {
      */
     makeStateWithReports() {
         let page;
-        const actionsArr = ReportActionsUtils.getSortedReportActions(this.props.reportActions);
-        const attachments = _.reduce(actionsArr, (attachmentsAccumulator, {action: reportAction}) => {
-            if (reportAction.originalMessage && reportAction.originalMessage.html) {
-                const matchesIt = reportAction.originalMessage.html.matchAll(CONST.REGEX.ATTACHMENT_DATA);
+        const actionsArr = ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions), true);
+        const attachments = _.reduce(actionsArr, (attachmentsAccumulator, {originalMessage}) => {
+            if (originalMessage && originalMessage.html) {
+                const matchesIt = originalMessage.html.matchAll(CONST.REGEX.ATTACHMENT_DATA);
                 const matches = [...matchesIt];
                 if (matches.length === 2) {
                     const [src, name] = matches;
@@ -169,7 +169,7 @@ class AttachmentCarousel extends React.Component {
                             style={[styles.leftAttachmentArrow]}
                             icon={Expensicons.BackArrow}
                             iconFill={themeColors.text}
-                            iconStyles={[styles.mr0, {PointerEvent: 'auto'}]}
+                            iconStyles={[styles.mr0]}
                             onPress={() => this.cycleThroughAttachments(1)}
                             isDisabled={this.state.isBackDisabled}
                         />
@@ -178,7 +178,7 @@ class AttachmentCarousel extends React.Component {
                             style={[styles.rightAttachmentArrow]}
                             icon={Expensicons.ArrowRight}
                             iconFill={themeColors.text}
-                            iconStyles={[styles.mr0, {PointerEvent: 'auto'}]}
+                            iconStyles={[styles.mr0]}
                             onPress={() => this.cycleThroughAttachments(-1)}
                             isDisabled={this.state.isForwardDisabled}
                         />

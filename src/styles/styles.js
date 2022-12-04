@@ -2108,8 +2108,13 @@ const styles = {
     attachmentModalArrowsContainer: {
         display: 'flex',
         justifyContent: 'center',
+        cursor: 'unset',
         height: '100%',
         width: '100%',
+    },
+
+    attachmentContainer: {
+        height: '100%',
     },
 
     leftAttachmentArrow: {
