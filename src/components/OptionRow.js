@@ -295,71 +295,19 @@ OptionRow.defaultProps = defaultProps;
 OptionRow.displayName = 'OptionRow';
 
 // It it very important to use React.memo here so SectionList items will not unnecessarily re-render
-export default withLocalize(memo(OptionRow, (prevProps, nextProps) => {
-    if (prevProps.optionIsFocused !== nextProps.optionIsFocused) {
-        return false;
-    }
-
-    if (prevProps.isSelected !== nextProps.isSelected) {
-        return false;
-    }
-
-    if (prevProps.mode !== nextProps.mode) {
-        return false;
-    }
-
-    if (prevProps.option.isUnread !== nextProps.option.isUnread) {
-        return false;
-    }
-
-    if (prevProps.option.alternateText !== nextProps.option.alternateText) {
-        return false;
-    }
-
-    if (prevProps.option.descriptiveText !== nextProps.option.descriptiveText) {
-        return false;
-    }
-
-    if (prevProps.option.hasDraftComment !== nextProps.option.hasDraftComment) {
-        return false;
-    }
-
-    if (prevProps.option.isPinned !== nextProps.option.isPinned) {
-        return false;
-    }
-
-    if (prevProps.option.hasOutstandingIOU !== nextProps.option.hasOutstandingIOU) {
-        return false;
-    }
-
-    if (!_.isEqual(prevProps.option.icons, nextProps.option.icons)) {
-        return false;
-    }
-
-    // Re-render when the text changes
-    if (prevProps.option.text !== nextProps.option.text) {
-        return false;
-    }
-
-    if (prevProps.showSelectedState !== nextProps.showSelectedState) {
-        return false;
-    }
-
-    if (prevProps.isDisabled !== nextProps.isDisabled) {
-        return false;
-    }
-
-    if (prevProps.showTitleTooltip !== nextProps.showTitleTooltip) {
-        return false;
-    }
-
-    if (prevProps.backgroundColor !== nextProps.backgroundColor) {
-        return false;
-    }
-
-    if (prevProps.option.brickRoadIndicator !== nextProps.option.brickRoadIndicator) {
-        return false;
-    }
-
-    return true;
-}));
+export default withLocalize(memo(OptionRow, (prevProps, nextProps) => prevProps.optionIsFocused === nextProps.optionIsFocused
+    || prevProps.isSelected === nextProps.isSelected
+    || prevProps.mode === nextProps.mode
+    || prevProps.option.isUnread === nextProps.option.isUnread
+    || prevProps.option.alternateText === nextProps.option.alternateText
+    || prevProps.option.descriptiveText === nextProps.option.descriptiveText
+    || prevProps.option.hasDraftComment === nextProps.option.hasDraftComment
+    || prevProps.option.isPinned === nextProps.option.isPinned
+    || prevProps.option.hasOutstandingIOU === nextProps.option.hasOutstandingIOU
+    || _.isEqual(prevProps.option.icons, nextProps.option.icons)
+    || prevProps.option.text === nextProps.option.text
+    || prevProps.showSelectedState === nextProps.showSelectedState
+    || prevProps.isDisabled === nextProps.isDisabled
+    || prevProps.showTitleTooltip === nextProps.showTitleTooltip
+    || prevProps.backgroundColor === nextProps.backgroundColor
+    || prevProps.option.brickRoadIndicator === nextProps.option.brickRoadIndicator));
