@@ -24,7 +24,7 @@ const Modal = (props) => {
 
     return (
         <BaseModal
-                // eslint-disable-next-line react/jsx-props-no-spreading
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             onModalHide={hideModal}
             onModalShow={showModal}
