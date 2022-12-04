@@ -55,7 +55,7 @@ const propTypes = {
     isDisabled: PropTypes.bool,
 
     /** Force the text style to be the unread style on all rows */
-    forceTextUnreadStyle: PropTypes.bool,
+    boldStyle: PropTypes.bool,
 
     /** Whether to show the title tooltip */
     showTitleTooltip: PropTypes.bool,
@@ -99,7 +99,7 @@ const defaultProps = {
     headerMessage: '',
     canSelectMultipleOptions: false,
     hideSectionHeaders: false,
-    forceTextUnreadStyle: false,
+    boldStyle: false,
     showTitleTooltip: false,
     shouldFocusOnSelectRow: false,
     autoFocus: true,

@@ -47,7 +47,7 @@ const propTypes = {
     disableFocusOptions: PropTypes.bool,
 
     /** Force the text style to be the unread style on all rows */
-    forceTextUnreadStyle: PropTypes.bool,
+    boldStyle: PropTypes.bool,
 
     /** Callback to fire when a row is selected */
     onSelectRow: PropTypes.func,
@@ -87,7 +87,7 @@ const defaultProps = {
     canSelectMultipleOptions: false,
     hideSectionHeaders: false,
     disableFocusOptions: false,
-    forceTextUnreadStyle: false,
+    boldStyle: false,
     onSelectRow: () => {},
     headerMessage: '',
     innerRef: null,

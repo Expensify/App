@@ -139,7 +139,7 @@ class IOUParticipantsRequest extends Component {
                 onSelectRow={this.addSingleParticipant}
                 onChangeText={this.updateOptionsWithSearchTerm}
                 headerMessage={headerMessage}
-                forceTextUnreadStyle
+                boldStyle
             />
         );
     }

@@ -23,7 +23,7 @@ export default {
         optionIsFocused: false,
         showSelectedState: false,
         isSelected: false,
-        forceTextUnreadStyle: false,
+        boldStyle: false,
         showTitleTooltip: false,
         isDisabled: false,
         backgroundColor: 'white',

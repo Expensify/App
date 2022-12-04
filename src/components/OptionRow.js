@@ -47,7 +47,7 @@ const propTypes = {
     isSelected: PropTypes.bool,
 
     /** Force the text style to be the unread style */
-    forceTextUnreadStyle: PropTypes.bool,
+    boldStyle: PropTypes.bool,
 
     /** Whether to show the title tooltip */
     showTitleTooltip: PropTypes.bool,
@@ -70,7 +70,7 @@ const defaultProps = {
     hoverStyle: styles.sidebarLinkHover,
     showSelectedState: false,
     isSelected: false,
-    forceTextUnreadStyle: false,
+    boldStyle: false,
     showTitleTooltip: false,
     mode: 'default',
     onSelectRow: () => {},
@@ -85,8 +85,8 @@ const OptionRow = (props) => {
     const textStyle = props.optionIsFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
-    const textUnreadStyle = (props.forceTextUnreadStyle)
-        ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
+    const textUnreadStyle = (props.boldStyle)
+        ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = StyleUtils.combineStyles(props.mode === CONST.OPTION_MODE.COMPACT
         ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2]
         : [styles.optionDisplayName, ...textUnreadStyle], props.style);

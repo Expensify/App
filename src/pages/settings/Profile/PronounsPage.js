@@ -40,7 +40,7 @@ const PronounsPage = (props) => {
             customIcon: fullPronounKey === currentPronouns && greenCheckmark,
 
             // This property will make the currently selected value have bold text
-            forceTextUnreadStyle: fullPronounKey === currentPronouns,
+            boldStyle: fullPronounKey === currentPronouns,
         };
     });
 
