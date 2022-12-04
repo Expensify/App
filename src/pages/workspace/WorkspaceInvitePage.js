@@ -68,6 +68,8 @@ class WorkspaceInvitePage extends React.Component {
         this.clearErrors = this.clearErrors.bind(this);
         this.getExcludedUsers = this.getExcludedUsers.bind(this);
         this.toggleOption = this.toggleOption.bind(this);
+        this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
+
         const {
             personalDetails,
             userToInvite,
@@ -78,7 +80,7 @@ class WorkspaceInvitePage extends React.Component {
             this.getExcludedUsers(),
         );
         this.state = {
-            searchValue: '',
+            searchTerm: '',
             personalDetails,
             selectedOptions: [],
             userToInvite,
@@ -167,6 +169,23 @@ class WorkspaceInvitePage extends React.Component {
         return sections;
     }
 
+    updateOptionsWithSearchTerm(searchTerm = '') {
+        const {
+            personalDetails,
+            userToInvite,
+        } = OptionsListUtils.getMemberInviteOptions(
+            this.props.personalDetails,
+            this.props.betas,
+            searchTerm,
+            this.getExcludedUsers(),
+        );
+        this.setState({
+            searchTerm,
+            userToInvite,
+            personalDetails,
+        });
+    }
+
     clearErrors() {
         Policy.setWorkspaceErrors(this.props.route.params.policyID, {});
         Policy.hideWorkspaceAlertMessage(this.props.route.params.policyID);
@@ -200,7 +219,7 @@ class WorkspaceInvitePage extends React.Component {
             } = OptionsListUtils.getMemberInviteOptions(
                 this.props.personalDetails,
                 this.props.betas,
-                prevState.searchValue,
+                prevState.searchTerm,
                 this.getExcludedUsers(),
             );
 
@@ -208,7 +227,7 @@ class WorkspaceInvitePage extends React.Component {
                 selectedOptions: newSelectedOptions,
                 personalDetails,
                 userToInvite,
-                searchValue: prevState.searchValue,
+                searchTerm: prevState.searchTerm,
             };
         });
     }
@@ -245,7 +264,7 @@ class WorkspaceInvitePage extends React.Component {
         const headerMessage = OptionsListUtils.getHeaderMessage(
             this.state.personalDetails.length !== 0,
             Boolean(this.state.userToInvite),
-            this.state.searchValue,
+            this.state.searchTerm,
         );
         const policyName = lodashGet(this.props.policy, 'name');
 
@@ -274,24 +293,9 @@ class WorkspaceInvitePage extends React.Component {
                                     canSelectMultipleOptions
                                     sections={sections}
                                     selectedOptions={this.state.selectedOptions}
-                                    value={this.state.searchValue}
+                                    value={this.state.searchTerm}
                                     onSelectRow={this.toggleOption}
-                                    onChangeText={(searchValue = '') => {
-                                        const {
-                                            personalDetails,
-                                            userToInvite,
-                                        } = OptionsListUtils.getMemberInviteOptions(
-                                            this.props.personalDetails,
-                                            this.props.betas,
-                                            searchValue,
-                                            this.getExcludedUsers(),
-                                        );
-                                        this.setState({
-                                            searchValue,
-                                            userToInvite,
-                                            personalDetails,
-                                        });
-                                    }}
+                                    onChangeText={this.updateOptionsWithSearchTerm}
                                     onConfirmSelection={this.inviteUser}
                                     headerMessage={headerMessage}
                                     hideSectionHeaders
