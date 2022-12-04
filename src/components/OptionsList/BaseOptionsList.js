@@ -158,12 +158,9 @@ class BaseOptionsList extends Component {
     renderItem({item, index, section}) {
         return (
             <OptionRow
-                alternateTextAccessibilityLabel={this.props.optionRowAlternateTextAccessibilityLabel}
-                accessibilityHint={this.props.optionRowAccessibilityHint}
                 option={item}
                 mode={this.props.optionMode}
                 showTitleTooltip={this.props.showTitleTooltip}
-                backgroundColor={this.props.optionBackgroundColor}
                 hoverStyle={this.props.optionHoveredStyle}
                 optionIsFocused={!this.props.disableFocusOptions
                         && this.props.focusedIndex === (index + section.indexOffset)}

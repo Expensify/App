@@ -27,15 +27,6 @@ import * as ReportUtils from '../libs/ReportUtils';
 import variables from '../styles/variables';
 
 const propTypes = {
-    /** The accessibility hint for the entire option row. Primarily used for unit testing to identify the component */
-    accessibilityHint: PropTypes.string,
-
-    /** The accessibility hint for alternative text label. Primarily used for unit testing to identify the component */
-    alternateTextAccessibilityLabel: PropTypes.string,
-
-    /** Background Color of the Option Row */
-    backgroundColor: PropTypes.string,
-
     /** Style for hovered state */
     // eslint-disable-next-line react/forbid-prop-types
     hoverStyle: PropTypes.object,
@@ -79,9 +70,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    accessibilityHint: '',
-    alternateTextAccessibilityLabel: '',
-    backgroundColor: themeColors.appBG,
     hoverStyle: styles.sidebarLinkHover,
     hideAdditionalOptionStates: false,
     showSelectedState: false,
@@ -164,14 +152,13 @@ const OptionRow = (props) => {
                             styles.justifyContentBetween,
                             styles.sidebarLink,
                             styles.sidebarLinkInner,
-                            StyleUtils.getBackgroundColorStyle(props.backgroundColor),
                             props.optionIsFocused ? styles.sidebarLinkActive : null,
                             hovered && !props.optionIsFocused ? props.hoverStyle : null,
                             props.isDisabled && styles.cursorDisabled,
                             props.shouldHaveOptionSeparator && styles.borderTop,
                         ]}
                     >
-                        <View accessibilityHint={props.accessibilityHint} style={sidebarInnerRowStyle}>
+                        <View style={sidebarInnerRowStyle}>
                             <View
                                 style={[
                                     styles.flexRow,
@@ -194,7 +181,6 @@ const OptionRow = (props) => {
                                             icons={props.option.icons}
                                             size={props.mode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[
-                                                StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor),
                                                 props.optionIsFocused
                                                     ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor)
                                                     : undefined,
@@ -219,7 +205,6 @@ const OptionRow = (props) => {
                                     />
                                     {props.option.alternateText ? (
                                         <Text
-                                            accessibilityLabel={props.alternateTextAccessibilityLabel}
                                             style={alternateTextStyle}
                                             numberOfLines={1}
                                         >
@@ -309,5 +294,4 @@ export default withLocalize(memo(OptionRow, (prevProps, nextProps) => prevProps.
     || prevProps.showSelectedState === nextProps.showSelectedState
     || prevProps.isDisabled === nextProps.isDisabled
     || prevProps.showTitleTooltip === nextProps.showTitleTooltip
-    || prevProps.backgroundColor === nextProps.backgroundColor
     || prevProps.option.brickRoadIndicator === nextProps.option.brickRoadIndicator));

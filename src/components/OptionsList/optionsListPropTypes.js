@@ -6,9 +6,6 @@ import optionPropTypes from '../optionPropTypes';
 import CONST from '../../CONST';
 
 const propTypes = {
-    /** option Background Color */
-    optionBackgroundColor: PropTypes.string,
-
     /** option flexStyle for the options list container */
     listContainerStyles: PropTypes.arrayOf(PropTypes.object),
 
@@ -84,7 +81,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    optionBackgroundColor: undefined,
     optionHoveredStyle: undefined,
     contentContainerStyles: [],
     listContainerStyles: [styles.flex1],
