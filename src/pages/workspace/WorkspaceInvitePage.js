@@ -69,6 +69,7 @@ class WorkspaceInvitePage extends React.Component {
         this.getExcludedUsers = this.getExcludedUsers.bind(this);
         this.toggleOption = this.toggleOption.bind(this);
         this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
+        this.openPrivacyURL = this.openPrivacyURL.bind(this);
 
         const {
             personalDetails,
@@ -186,9 +187,17 @@ class WorkspaceInvitePage extends React.Component {
         });
     }
 
-    clearErrors() {
+    openPrivacyURL(e) {
+        e.preventDefault();
+        Link.openExternalLink(CONST.PRIVACY_URL);
+    }
+
+    clearErrors(closeModal = false) {
         Policy.setWorkspaceErrors(this.props.route.params.policyID, {});
         Policy.hideWorkspaceAlertMessage(this.props.route.params.policyID);
+        if (closeModal) {
+            Navigation.dismissModal();
+        }
     }
 
     /**
@@ -276,33 +285,31 @@ class WorkspaceInvitePage extends React.Component {
                             <HeaderWithCloseButton
                                 title={this.props.translate('workspace.invite.invitePeople')}
                                 subtitle={policyName}
-                                onCloseButtonPress={() => {
-                                    this.clearErrors();
-                                    Navigation.dismissModal();
-                                }}
+                                onCloseButtonPress={() => this.clearErrors(true)}
                                 shouldShowGetAssistanceButton
                                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                                 shouldShowBackButton
                                 onBackButtonPress={() => Navigation.goBack()}
                             />
                             <View style={[styles.flex1]}>
-                                {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
-                                {didScreenTransitionEnd && (
-                                <OptionsSelector
-                                    autoFocus={false}
-                                    canSelectMultipleOptions
-                                    sections={sections}
-                                    selectedOptions={this.state.selectedOptions}
-                                    value={this.state.searchTerm}
-                                    onSelectRow={this.toggleOption}
-                                    onChangeText={this.updateOptionsWithSearchTerm}
-                                    onConfirmSelection={this.inviteUser}
-                                    headerMessage={headerMessage}
-                                    hideSectionHeaders
-                                    hideAdditionalOptionStates
-                                    forceTextUnreadStyle
-                                    shouldFocusOnSelectRow
-                                />
+                                {didScreenTransitionEnd ? (
+                                    <OptionsSelector
+                                        autoFocus={false}
+                                        canSelectMultipleOptions
+                                        sections={sections}
+                                        selectedOptions={this.state.selectedOptions}
+                                        value={this.state.searchTerm}
+                                        onSelectRow={this.toggleOption}
+                                        onChangeText={this.updateOptionsWithSearchTerm}
+                                        onConfirmSelection={this.inviteUser}
+                                        headerMessage={headerMessage}
+                                        hideSectionHeaders
+                                        hideAdditionalOptionStates
+                                        forceTextUnreadStyle
+                                        shouldFocusOnSelectRow
+                                    />
+                                ) : (
+                                    <FullScreenLoadingIndicator />
                                 )}
                             </View>
                             <View style={[styles.flexShrink0]}>
@@ -324,16 +331,12 @@ class WorkspaceInvitePage extends React.Component {
                                     isAlertVisible={this.getShouldShowAlertPrompt()}
                                     buttonText={this.props.translate('common.invite')}
                                     onSubmit={this.inviteUser}
-                                    onFixTheErrorsLinkPressed={() => {}}
                                     message={this.props.policy.alertMessage}
                                     containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                                     enabledWhenOffline
                                 />
                                 <Pressable
-                                    onPress={(e) => {
-                                        e.preventDefault();
-                                        Link.openExternalLink(CONST.PRIVACY_URL);
-                                    }}
+                                    onPress={this.openPrivacyURL}
                                     accessibilityRole="link"
                                     href={CONST.PRIVACY_URL}
                                     style={[styles.mh5, styles.mv2, styles.alignSelfStart]}
