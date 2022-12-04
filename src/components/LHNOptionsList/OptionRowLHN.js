@@ -215,23 +215,21 @@ const OptionRowLHN = (props) => {
                             accessible={false}
                         >
                             {optionItem.hasDraftComment && (
-                            <View
-                                style={styles.ml2}
-                                accessibilityLabel={props.translate('sidebarScreen.draftedMessage')}
-                            >
-                                <Icon src={Expensicons.Pencil} height={16} width={16} />
-                            </View>
+                                <View
+                                    style={styles.ml2}
+                                    accessibilityLabel={props.translate('sidebarScreen.draftedMessage')}
+                                >
+                                    <Icon src={Expensicons.Pencil} height={16} width={16} />
+                                </View>
                             )}
-                            {optionItem.hasOutstandingIOU && (
-                            <IOUBadge iouReportID={optionItem.iouReportID} />
-                            )}
+                            {optionItem.hasOutstandingIOU && <IOUBadge iouReportID={optionItem.iouReportID} />}
                             {optionItem.isPinned && (
-                            <View
-                                style={styles.ml2}
-                                accessibilityLabel={props.translate('sidebarScreen.chatPinned')}
-                            >
-                                <Icon src={Expensicons.Pin} height={16} width={16} />
-                            </View>
+                                <View
+                                    style={styles.ml2}
+                                    accessibilityLabel={props.translate('sidebarScreen.chatPinned')}
+                                >
+                                    <Icon src={Expensicons.Pin} height={16} width={16} />
+                                </View>
                             )}
                         </View>
                     </TouchableOpacity>
