@@ -28,7 +28,6 @@ const propTypes = {
         text: PropTypes.string,
         keyForList: PropTypes.string,
         isPinned: PropTypes.bool,
-        isUnread: PropTypes.bool,
         reportID: PropTypes.string,
         phoneNumber: PropTypes.string,
         payPalMeAddress: PropTypes.string,

@@ -28,7 +28,6 @@ export default {
         isDisabled: false,
         backgroundColor: 'white',
         option: {
-            isUnread: false,
             text: 'Test Option',
             alternateText: 'Alternate text',
             icons: [Expensicons.ActiveRoomAvatar],

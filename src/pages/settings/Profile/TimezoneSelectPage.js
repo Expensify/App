@@ -45,7 +45,7 @@ class TimezoneSelectPage extends Component {
                 customIcon: timezone === this.currentSelectedTimezone && greenCheckmark,
 
                 // This property will make the currently selected value have bold text
-                isUnread: timezone === this.currentSelectedTimezone,
+                forceTextUnreadStyle: timezone === this.currentSelectedTimezone,
             }))
             .value();
 

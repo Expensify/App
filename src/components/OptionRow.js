@@ -85,7 +85,7 @@ const OptionRow = (props) => {
     const textStyle = props.optionIsFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
-    const textUnreadStyle = (props.option.isUnread || props.forceTextUnreadStyle)
+    const textUnreadStyle = (props.forceTextUnreadStyle)
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
     const displayNameStyle = StyleUtils.combineStyles(props.mode === CONST.OPTION_MODE.COMPACT
         ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2]
@@ -258,7 +258,6 @@ OptionRow.displayName = 'OptionRow';
 export default withLocalize(memo(OptionRow, (prevProps, nextProps) => prevProps.optionIsFocused === nextProps.optionIsFocused
     || prevProps.isSelected === nextProps.isSelected
     || prevProps.mode === nextProps.mode
-    || prevProps.option.isUnread === nextProps.option.isUnread
     || prevProps.option.alternateText === nextProps.option.alternateText
     || prevProps.option.descriptiveText === nextProps.option.descriptiveText
     || _.isEqual(prevProps.option.icons, nextProps.option.icons)

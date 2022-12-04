@@ -33,8 +33,6 @@ const propTypes = {
         searchText: PropTypes.string,
         text: PropTypes.string,
         keyForList: PropTypes.string,
-        isPinned: PropTypes.bool,
-        isUnread: PropTypes.bool,
         reportID: PropTypes.string,
     })),
 
