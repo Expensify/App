@@ -23,6 +23,7 @@ import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
 import * as User from './libs/actions/User';
 import NetworkConnection from './libs/NetworkConnection';
 import Navigation from './libs/Navigation/Navigation';
+import PerformanceProfiler from './libs/Performance/PerformanceProfiler';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -205,10 +206,12 @@ class Expensify extends PureComponent {
                     </>
                 )}
 
-                <NavigationRoot
-                    onReady={this.setNavigationReady}
-                    authenticated={this.isAuthenticated()}
-                />
+                <PerformanceProfiler>
+                    <NavigationRoot
+                        onReady={this.setNavigationReady}
+                        authenticated={this.isAuthenticated()}
+                    />
+                </PerformanceProfiler>
             </>
         );
     }
