@@ -15,6 +15,7 @@ import com.facebook.react.config.ReactFeatureFlags;
 import com.facebook.react.modules.i18nmanager.I18nUtil;
 import com.facebook.soloader.SoLoader;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import com.shopify.reactnativeperformance.ReactNativePerformance;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -63,6 +64,8 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
 
   @Override
   public void onCreate() {
+      // https://shopify.github.io/react-native-performance/docs/fundamentals/getting-started#android-native-initialization-
+      ReactNativePerformance.onAppStarted();
       super.onCreate();
       // If you opted-in for the New Architecture, we enable the TurboModule system
       ReactFeatureFlags.useTurboModules = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;

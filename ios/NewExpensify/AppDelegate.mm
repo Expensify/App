@@ -11,6 +11,7 @@
 
 #import "RCTBootSplash.h"
 #import "RCTStartupTimer.h"
+#import <ReactNativePerformance/ReactNativePerformance.h>
 
 #if RCT_NEW_ARCH_ENABLED
 #import <React/CoreModulesPlugins.h>
@@ -42,6 +43,8 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
 
 - (BOOL)application:(UIApplication *)application
     didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+  // https://shopify.github.io/react-native-performance/docs/fundamentals/getting-started#ios-native-initialization-
+  [ReactNativePerformance onAppStarted];
   // Configure firebase
   [FIRApp configure];
 
