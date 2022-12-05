@@ -110,6 +110,10 @@ class Form extends React.Component {
     }
 
     setPosition(element, position) {
+        if (!element.props) {
+            return;
+        }
+
         if (!element.props.inputID && element.props.children) {
             _.forEach(element.props.children, (child) => {
                 this.setPosition(child, position);
