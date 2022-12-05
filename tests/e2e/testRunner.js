@@ -24,11 +24,9 @@ const killApp = require('./utils/killApp');
 const launchApp = require('./utils/launchApp');
 const createServerInstance = require('./server');
 const installApp = require('./utils/installApp');
-const reversePort = require('./utils/androidReversePort');
 const math = require('./measure/math');
 const writeTestStats = require('./measure/writeTestStats');
 const withFailTimeout = require('./utils/withFailTimeout');
-const startRecordingVideo = require('./utils/startRecordingVideo');
 
 const args = process.argv.slice(2);
 
@@ -51,27 +49,26 @@ const restartApp = async () => {
 };
 
 const runTestsOnBranch = async (branch, baselineOrCompare) => {
-    // Switch branch and install dependencies
-    const progress = Logger.progressInfo(`Preparing ${baselineOrCompare} tests on branch '${branch}'`);
-    await execAsync(`git switch ${branch}`);
+    if (!args.includes('--skipInstallDeps') && !args.includes('--skipBuild')) {
+        // Switch branch and install dependencies
+        Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}'`);
+        await execAsync(`git checkout ${branch}`);
+    }
 
     if (!args.includes('--skipInstallDeps')) {
-        progress.updateText(`Preparing ${baselineOrCompare} tests on branch '${branch}' - npm install`);
+        Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}' - npm install`);
         await execAsync('npm i');
     }
 
     // Build app
     if (!args.includes('--skipBuild')) {
-        progress.updateText(`Preparing ${baselineOrCompare} tests on branch '${branch}' - building app`);
+        Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}' - building app`);
         await execAsync('npm run android-build-e2e');
     }
-    progress.done();
 
-    // Install app and reverse ports
+    // Install app
     let progressLog = Logger.progressInfo('Installing app');
-    await installApp('android');
-    Logger.log('Reversing port (for connecting to testing server) …');
-    await reversePort();
+    await installApp('android', baselineOrCompare);
     progressLog.done();
 
     // Start the HTTP server
@@ -123,8 +120,6 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
             const progressText = `(${testIndex + 1}/${numOfTests}) Running test '${config.name}' (iteration ${i + 1}/${RUNS})`;
             testLog.updateText(progressText);
 
-            const stopVideoRecording = startRecordingVideo();
-
             await restartApp();
 
             // Wait for a test to finish by waiting on its done call to the http server
@@ -136,10 +131,8 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
                         resolve();
                     });
                 }), progressText);
-                await stopVideoRecording(false);
             } catch (e) {
                 // When we fail due to a timeout it's interesting to take a screenshot of the emulator to see whats going on
-                await stopVideoRecording(true);
                 testLog.done();
                 throw e; // Rethrow to abort execution
             }
