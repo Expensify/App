@@ -41,7 +41,7 @@ class IOUCurrencySelection extends Component {
     constructor(props) {
         super(props);
 
-        const {currencyOptions} = this.getCurrencyOptions(this.props.currencyList);
+        const {currencyOptions} = OptionsListUtils.getCurrencyListForSections(this.getCurrencyOptions(this.props.currencyList), '');
 
         this.state = {
             searchValue: '',
@@ -90,10 +90,10 @@ class IOUCurrencySelection extends Component {
      * @return {void}
      */
     changeSearchValue(searchValue) {
-        const {currencyOptions} = searchValue ? OptionsListUtils.getCurrencyListForSections(
+        const {currencyOptions} = OptionsListUtils.getCurrencyListForSections(
             this.getCurrencyOptions(this.props.currencyList),
             searchValue,
-        ) : this.getCurrencyOptions(this.props.currencyList);
+        );
         this.setState({
             searchValue,
             currencyData: currencyOptions,
