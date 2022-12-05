@@ -66,7 +66,6 @@ export default {
     tooltipzIndex: 10050,
     gutterWidth: 16,
     popoverMenuShadow: '0px 4px 12px 0px rgba(0, 0, 0, 0.06)',
-    minHeightToShowGraphics: 854, // Login form layout breaks below this height due to insufficient space to show the form and graphics
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(54, 60),
