@@ -265,6 +265,7 @@ class Form extends React.Component {
                     <View style={[this.props.style]}>
                         {_.map(this.childrenWrapperWithProps(this.props.children), child => (
                             <View
+                                key={child.inputID}
                                 onLayout={(event) => {
                                     this.setPosition(child, event.nativeEvent.layout.y);
                                 }}
