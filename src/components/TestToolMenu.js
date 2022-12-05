@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
@@ -14,6 +15,8 @@ import TestToolRow from './TestToolRow';
 import networkPropTypes from './networkPropTypes';
 import compose from '../libs/compose';
 import {withNetwork} from './OnyxProvider';
+import getPlatform from '../libs/getPlatform';
+import CONST from '../CONST';
 
 const propTypes = {
     /** User object in Onyx */
@@ -42,7 +45,7 @@ const TestToolMenu = props => (
         This enables QA and internal testers to take advantage of sandbox environments for 3rd party services like Plaid and Onfido. */}
         <TestToolRow title="Use Staging Server">
             <Switch
-                isOn={lodashGet(props, 'user.shouldUseStagingServer', true)}
+                isOn={lodashGet(props, 'user.shouldUseStagingServer', _.contains([CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP], getPlatform()))}
                 onToggle={() => User.setShouldUseStagingServer(!lodashGet(props, 'user.shouldUseStagingServer', true))}
             />
         </TestToolRow>
