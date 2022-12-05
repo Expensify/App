@@ -65,7 +65,7 @@ const IOUAction = (props) => {
 
     const shouldShowIOUPreview = (
         props.isMostRecentIOUReportAction && Boolean(props.action.originalMessage.IOUReportID)
-    ) || props.action.originalMessage.type === 'pay';
+    ) || props.action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
 
     let shouldShowPendingConversionMessage = false;
     if (
@@ -86,21 +86,21 @@ const IOUAction = (props) => {
                 onViewDetailsPressed={launchDetailsModal}
             />
             {shouldShowIOUPreview && (
-            <IOUPreview
-                pendingAction={lodashGet(props.action, 'pendingAction', null)}
-                iouReportID={props.action.originalMessage.IOUReportID.toString()}
-                chatReportID={props.chatReportID}
-                shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
-                onPayButtonPressed={launchDetailsModal}
-                onPreviewPressed={launchDetailsModal}
-                containerStyles={[
-                    styles.cursorPointer,
-                    props.isHovered
-                        ? styles.iouPreviewBoxHover
-                        : undefined,
-                ]}
-                isHovered={props.isHovered}
-            />
+                <IOUPreview
+                    pendingAction={lodashGet(props.action, 'pendingAction', null)}
+                    iouReportID={props.action.originalMessage.IOUReportID.toString()}
+                    chatReportID={props.chatReportID}
+                    shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
+                    onPayButtonPressed={launchDetailsModal}
+                    onPreviewPressed={launchDetailsModal}
+                    containerStyles={[
+                        styles.cursorPointer,
+                        props.isHovered
+                            ? styles.iouPreviewBoxHover
+                            : undefined,
+                    ]}
+                    isHovered={props.isHovered}
+                />
             )}
         </>
     );
