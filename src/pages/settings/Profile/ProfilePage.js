@@ -53,7 +53,7 @@ class ProfilePage extends Component {
         super(props);
 
         this.defaultAvatar = ReportUtils.getDefaultAvatar(this.props.currentUserPersonalDetails.login);
-        this.avatar = { uri: lodashGet(this.props.currentUserPersonalDetails, 'avatar') || this.defaultAvatar };
+        this.avatar = {uri: lodashGet(this.props.currentUserPersonalDetails, 'avatar') || this.defaultAvatar};
         this.state = {
             logins: this.getLogins(),
         };
@@ -67,7 +67,7 @@ class ProfilePage extends Component {
 
         // Recalculate logins if loginList has changed
         if (_.keys(this.props.loginList).length !== _.keys(prevProps.loginList).length) {
-            stateToUpdate = { ...stateToUpdate, logins: this.getLogins() };
+            stateToUpdate = {...stateToUpdate, logins: this.getLogins()};
         }
 
         if (_.isEmpty(stateToUpdate)) {
@@ -79,7 +79,7 @@ class ProfilePage extends Component {
     }
 
     getPronouns() {
-        var pronounsKey = lodashGet(this.props.currentUserPersonalDetails, 'pronouns', '');
+        const pronounsKey = lodashGet(this.props.currentUserPersonalDetails, 'pronouns', '');
         if (pronounsKey.startsWith(CONST.PRONOUNS.PREFIX)) {
             pronounsKey = pronounsKey.slice(CONST.PRONOUNS.PREFIX.length);
         }
@@ -134,15 +134,15 @@ class ProfilePage extends Component {
         );
 
         if (hasFirstNameError) {
-            errors.firstName = Localize.translateLocal('personalDetails.error.characterLimit', { limit: CONST.FORM_CHARACTER_LIMIT });
+            errors.firstName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
         }
 
         if (hasLastNameError) {
-            errors.lastName = Localize.translateLocal('personalDetails.error.characterLimit', { limit: CONST.FORM_CHARACTER_LIMIT });
+            errors.lastName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
         }
 
         if (hasPronounError) {
-            errors.pronouns = Localize.translateLocal('personalDetails.error.characterLimit', { limit: CONST.FORM_CHARACTER_LIMIT });
+            errors.pronouns = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
         }
 
         return errors;
@@ -167,7 +167,6 @@ class ProfilePage extends Component {
                 pageRoute: ROUTES.SETTINGS_TIMEZONE,
             },
         ];
-        console.log(lodashGet(currentUserDetails, 'timezone', ''));
         return (
             <ScrollView>
                 <HeaderWithCloseButton
