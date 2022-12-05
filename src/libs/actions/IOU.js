@@ -580,12 +580,14 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction,
 
     const currentUserEmail = optimisticReportAction.actorEmail;
 
+    // Every money request in this IOU
     const allRequests = _.chain(IOUUtils.getIOUReportActions(
         reportActions,
         iouReport,
         CONST.IOU.REPORT_ACTION_TYPE.CREATE,
     )).map(action => action.originalMessage.IOUTransactionID).value();
 
+    // List of all of the cancelled (either online of offline) money requests
     const allCancelledRequests = _.chain(IOUUtils.getIOUReportActions(
         reportActions,
         iouReport,
