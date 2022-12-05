@@ -9,11 +9,11 @@ import shouldUseStagingServer from './shouldUseStagingServer';
 import getPlatform from './getPlatform';
 
 // Desktop and web use staging config too so we we should default to staging API endpoint if on those platforms
-const canDefaultToStaging = _.contains([CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP], getPlatform());
+const shouldDefaultToStaging = _.contains([CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP], getPlatform());
 let stagingServerToggleState = false;
 Onyx.connect({
     key: ONYXKEYS.USER,
-    callback: val => stagingServerToggleState = lodashGet(val, 'shouldUseStagingServer', canDefaultToStaging),
+    callback: val => stagingServerToggleState = lodashGet(val, 'shouldUseStagingServer', shouldDefaultToStaging),
 });
 
 let shouldFailAllRequests = false;
