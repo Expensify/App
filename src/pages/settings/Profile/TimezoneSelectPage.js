@@ -87,6 +87,7 @@ class TimezoneSelectPage extends Component {
                     onSelectRow={this.saveSelectedTimezone}
                     optionHoveredStyle={styles.hoveredComponentBG}
                     sections={[{data: this.state.timezoneOptions}]}
+                    placeholderText={''}
                     shouldHaveOptionSeparator
                 />
             </ScreenWrapper>
