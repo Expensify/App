@@ -557,6 +557,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
  * @param {String} iouReportID
  * @param {String} type - cancel|decline
  * @param {Object} moneyRequestAction - the create IOU reportAction we are cancelling
+ * @param {Array} reportActions - the chat report's reportActions
  */
 function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction, reportActions) {
     const chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];

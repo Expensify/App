@@ -21,9 +21,6 @@ const propTypes = {
     /** The associated chatReport */
     chatReportID: PropTypes.string.isRequired,
 
-    /** The associated chatReport */
-    iouReportID: PropTypes.string.isRequired,
-
     /** Is this IOUACTION the most recent? */
     isMostRecentIOUReportAction: PropTypes.bool.isRequired,
 
@@ -49,6 +46,9 @@ const propTypes = {
     /** Whether the IOU is hovered so we can modify its style */
     isHovered: PropTypes.bool,
 
+    network: {
+        isOffline: PropTypes.bool,
+    }.isRequired,
 };
 
 const defaultProps = {

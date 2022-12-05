@@ -64,6 +64,17 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = 
     return iouReportUpdate;
 }
 
+/**
+ * Returns the list of IOU actions
+ *
+ * @param {Array} reportIOUActions
+ * @param {Object} iouReport
+ * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
+ * @param {String} pendingAction
+ * @param {Boolean} filterRequestsInDifferentCurrency
+ *
+ * @returns {Array}
+ */
 function getIOUReportActions(reportIOUActions, iouReport, type, pendingAction = '', filterRequestsInDifferentCurrency = false) {
     return _.chain(reportIOUActions)
         .filter(action => action.originalMessage
@@ -74,6 +85,15 @@ function getIOUReportActions(reportIOUActions, iouReport, type, pendingAction = 
         .value();
 }
 
+/**
+ * Returns whether or not an IOU report contains money requests in a different currency
+ * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
+ *
+ * @param {Array} reportActions
+ * @param {Object} iouReport
+ *
+ * @returns {Boolean}
+ */
 function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
     // Pending money requests that are in a different currency
     const pendingRequestsInDifferentCurrency = _.chain(getIOUReportActions(
