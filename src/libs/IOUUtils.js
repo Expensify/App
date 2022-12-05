@@ -69,7 +69,7 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = 
  *
  * @param {Array} reportIOUActions
  * @param {Object} iouReport
- * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
+ * @param {String} type - iouReportAction type. Can be oneOf(create, decline, cancel, pay, split)
  * @param {String} pendingAction
  * @param {Boolean} filterRequestsInDifferentCurrency
  *

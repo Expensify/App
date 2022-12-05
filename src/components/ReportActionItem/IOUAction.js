@@ -30,13 +30,13 @@ const propTypes = {
         /** The participants of this report */
         participants: PropTypes.arrayOf(PropTypes.string),
 
-        /** Whether the chat report has an outstanding IOU * */
+        /** Whether the chat report has an outstanding IOU */
         hasOutstandingIOU: PropTypes.bool,
     }),
 
-    /** IOU Report data object */
+    /** IOU report data object */
     iouReport: PropTypes.shape({
-        /** The currency of the IOUReport */
+        /** The currency of the iouReport */
         currency: PropTypes.number,
     }).isRequired,
 
