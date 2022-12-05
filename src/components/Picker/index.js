@@ -106,11 +106,11 @@ class Picker extends PureComponent {
 
         // Windows will reuse the text color of the select for each one of the options
         // so we might need to color accordingly so it doesn't blend with the background.
-        this.placeholder = _.isEmpty(this.placeholder) ? {} : {
+        this.placeholder = _.isEmpty(this.props.placeholder) ? {} : {
             ...this.props.placeholder,
             color: variables.pickerOptionsTextColor,
         };
-        this.items = _.map(this.items, item => (
+        this.items = _.map(this.props.items, item => (
             {
                 ...item,
                 color: variables.pickerOptionsTextColor,
