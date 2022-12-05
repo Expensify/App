@@ -3,7 +3,6 @@ import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import focusApp from './focusApp';
 import * as AppUpdate from '../../actions/AppUpdate';
-import EXPENSIFY_ICON_URL from '../../../../assets/images/expensify-logo-round-clearspace.png';
 
 const DEFAULT_DELAY = 4000;
 
@@ -54,7 +53,6 @@ function push({
     delay = DEFAULT_DELAY,
     onClick = () => {},
     tag = '',
-    icon = EXPENSIFY_ICON_URL,
 }) {
     return new Promise((resolve) => {
         if (!title || !body) {
@@ -69,7 +67,6 @@ function push({
 
             const notification = new Notification(title, {
                 body,
-                icon,
                 tag,
             });
 
