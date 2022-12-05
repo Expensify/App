@@ -87,7 +87,7 @@ class ProfilePage extends Component {
 
     getPronouns() {
         var pronounsKey = lodashGet(this.props.currentUserPersonalDetails, 'pronouns', '');
-        if(pronounsKey.startsWith(CONST.PRONOUNS.PREFIX)) {
+        if (pronounsKey.startsWith(CONST.PRONOUNS.PREFIX)) {
             pronounsKey = pronounsKey.slice(CONST.PRONOUNS.PREFIX.length);
         }
         return lodashGet(this.props.translate('pronouns'), pronounsKey, this.props.translate('profilePage.selectYourPronouns'));
@@ -208,13 +208,7 @@ class ProfilePage extends Component {
                         />
                     ))}
                 </View>
-                <Form
-                    style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM}
-                    validate={this.validate}
-                    submitButtonText={this.props.translate('common.save')}
-                    enabledWhenOffline
-                >
+                <View style={[styles.ph5, styles.mh3]}>
                     <LoginField
                         label={this.props.translate('profilePage.emailAddress')}
                         type="email"
@@ -227,7 +221,7 @@ class ProfilePage extends Component {
                         login={this.state.logins.phone}
                         defaultValue={this.state.logins.phone}
                     />
-                </Form>
+                </View>
             </ScreenWrapper>
         );
     }
