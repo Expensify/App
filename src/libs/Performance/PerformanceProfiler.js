@@ -1,8 +1,8 @@
 import {PerformanceProfiler as RNPerformanceProfiler, LogLevel} from '@shopify/react-native-performance';
 import PropTypes from 'prop-types';
 
-const onReportPrepared = (report) => {
-    console.log(report);
+const onReportPrepared = () => {
+    // console.log(report);
 };
 
 const propTypes = {
@@ -11,7 +11,7 @@ const propTypes = {
 
 // TODO: does this implementation work on web as well?
 const PerformanceProfiler = props => (
-    <RNPerformanceProfiler onReportPrepared={onReportPrepared} renderTimeoutMillis={20_000} logLevel={LogLevel.Info}>
+    <RNPerformanceProfiler onReportPrepared={onReportPrepared} renderTimeoutMillis={20_000} logLevel={LogLevel.Debug}>
         {props.children}
     </RNPerformanceProfiler>
 );

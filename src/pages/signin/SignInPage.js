@@ -4,6 +4,9 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {
+    ReactNavigationPerformanceView,
+} from '@shopify/react-native-performance-navigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import updateUnread from '../../libs/UnreadIndicatorUpdater/updateUnread/index';
@@ -76,18 +79,20 @@ class SignInPage extends Component {
             : this.props.translate(`welcomeText.${showPasswordForm ? 'welcomeBack' : 'welcome'}`);
 
         return (
-            <SafeAreaView style={[styles.signInPage]}>
-                <SignInPageLayout
-                    welcomeText={welcomeText}
-                    shouldShowWelcomeText={showLoginForm || showPasswordForm || !shouldShowResendValidationLinkForm}
-                >
-                    {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
-                    so that password managers can access the values. Conditionally rendering these components will break this feature. */}
-                    <LoginForm isVisible={showLoginForm} blurOnSubmit={shouldShowResendValidationLinkForm} />
-                    <PasswordForm isVisible={showPasswordForm} />
-                    {shouldShowResendValidationLinkForm && <ResendValidationForm />}
-                </SignInPageLayout>
-            </SafeAreaView>
+            <ReactNavigationPerformanceView screenName="SignInPage" interactive>
+                <SafeAreaView style={[styles.signInPage]}>
+                    <SignInPageLayout
+                        welcomeText={welcomeText}
+                        shouldShowWelcomeText={showLoginForm || showPasswordForm || !shouldShowResendValidationLinkForm}
+                    >
+                        {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
+                        so that password managers can access the values. Conditionally rendering these components will break this feature. */}
+                        <LoginForm isVisible={showLoginForm} blurOnSubmit={shouldShowResendValidationLinkForm} />
+                        <PasswordForm isVisible={showPasswordForm} />
+                        {shouldShowResendValidationLinkForm && <ResendValidationForm />}
+                    </SignInPageLayout>
+                </SafeAreaView>
+            </ReactNavigationPerformanceView>
         );
     }
 }

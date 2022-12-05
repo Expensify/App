@@ -4,6 +4,9 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {Freeze} from 'react-freeze';
+import {
+    ReactNavigationPerformanceView,
+} from '@shopify/react-native-performance-navigation';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -120,75 +123,82 @@ class SidebarLinks extends React.Component {
     }
 
     render() {
+        let content = null;
+
         // Wait until the personalDetails are actually loaded before displaying the LHN
-        if (_.isEmpty(this.props.personalDetails)) {
-            return null;
-        }
-        const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
-        return (
-            <View
-                accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
-                accessibilityLabel="List of chats"
-                style={[styles.flex1, styles.h100]}
-            >
+        if (!_.isEmpty(this.props.personalDetails)) {
+            const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
+            content = (
                 <View
-                    style={[
-                        styles.flexRow,
-                        styles.ph5,
-                        styles.pv3,
-                        styles.justifyContentBetween,
-                        styles.alignItemsCenter,
-                    ]}
-                    nativeID="drag-area"
+                    accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
+                    accessibilityLabel="List of chats"
+                    style={[styles.flex1, styles.h100]}
                 >
-                    <Header
-                        textSize="large"
-                        title={this.props.translate('sidebarScreen.headerChat')}
-                        accessibilityLabel={this.props.translate('sidebarScreen.headerChat')}
-                        accessibilityRole="text"
-                        shouldShowEnvironmentBadge
-                    />
-                    <Tooltip text={this.props.translate('common.search')}>
-                        <TouchableOpacity
-                            accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
-                            accessibilityRole="button"
-                            style={[styles.flexRow, styles.ph5]}
-                            onPress={this.showSearchPage}
-                        >
-                            <Icon src={Expensicons.MagnifyingGlass} />
-                        </TouchableOpacity>
-                    </Tooltip>
-                    <TouchableOpacity
-                        accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
-                        accessibilityRole="button"
-                        onPress={this.showSettingsPage}
-                    >
-                        <AvatarWithIndicator
-                            source={this.props.currentUserPersonalDetails.avatar}
-                            tooltipText={this.props.translate('common.settings')}
-                        />
-                    </TouchableOpacity>
-                </View>
-                <Freeze freeze={this.props.isSmallScreenWidth && !this.props.isDrawerOpen && this.isSidebarLoaded}>
-                    <LHNOptionsList
-                        contentContainerStyles={[
-                            styles.sidebarListContainer,
-                            {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
+                    <View
+                        style={[
+                            styles.flexRow,
+                            styles.ph5,
+                            styles.pv3,
+                            styles.justifyContentBetween,
+                            styles.alignItemsCenter,
                         ]}
-                        data={optionListItems}
-                        focusedIndex={_.findIndex(optionListItems, (
-                            option => option.toString() === this.props.reportIDFromRoute
-                        ))}
-                        onSelectRow={this.showReportPage}
-                        shouldDisableFocusOptions={this.props.isSmallScreenWidth}
-                        optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
-                        onLayout={() => {
-                            App.setSidebarLoaded();
-                            this.isSidebarLoaded = true;
-                        }}
-                    />
-                </Freeze>
-            </View>
+                        nativeID="drag-area"
+                    >
+                        <Header
+                            textSize="large"
+                            title={this.props.translate('sidebarScreen.headerChat')}
+                            accessibilityLabel={this.props.translate('sidebarScreen.headerChat')}
+                            accessibilityRole="text"
+                            shouldShowEnvironmentBadge
+                        />
+                        <Tooltip text={this.props.translate('common.search')}>
+                            <TouchableOpacity
+                                accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
+                                accessibilityRole="button"
+                                style={[styles.flexRow, styles.ph5]}
+                                onPress={this.showSearchPage}
+                            >
+                                <Icon src={Expensicons.MagnifyingGlass} />
+                            </TouchableOpacity>
+                        </Tooltip>
+                        <TouchableOpacity
+                            accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
+                            accessibilityRole="button"
+                            onPress={this.showSettingsPage}
+                        >
+                            <AvatarWithIndicator
+                                source={this.props.currentUserPersonalDetails.avatar}
+                                tooltipText={this.props.translate('common.settings')}
+                            />
+                        </TouchableOpacity>
+                    </View>
+                    <Freeze freeze={this.props.isSmallScreenWidth && !this.props.isDrawerOpen && this.isSidebarLoaded}>
+                        <LHNOptionsList
+                            contentContainerStyles={[
+                                styles.sidebarListContainer,
+                                {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
+                            ]}
+                            data={optionListItems}
+                            focusedIndex={_.findIndex(optionListItems, (
+                                option => option.toString() === this.props.reportIDFromRoute
+                            ))}
+                            onSelectRow={this.showReportPage}
+                            shouldDisableFocusOptions={this.props.isSmallScreenWidth}
+                            optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
+                            onLayout={() => {
+                                App.setSidebarLoaded();
+                                this.isSidebarLoaded = true;
+                            }}
+                        />
+                    </Freeze>
+                </View>
+            );
+        }
+
+        return (
+            <ReactNavigationPerformanceView screenName="SidebarLinks" interactive={content != null}>
+                {content}
+            </ReactNavigationPerformanceView>
         );
     }
 }
