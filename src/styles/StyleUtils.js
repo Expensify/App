@@ -1,4 +1,4 @@
-import _, { isNull } from 'underscore';
+import _ from 'underscore';
 import CONST from '../CONST';
 import fontFamily from './fontFamily';
 import themeColors from './themes/default';
@@ -301,13 +301,9 @@ function getAnimatedFABStyle(rotate, backgroundColor) {
  * @returns {Object}
  */
 function getWidthAndHeightStyle(width, height = null) {
-    if(isNull(height)) {
-        height = width;
-    }
-
     return {
         width,
-        height,
+        height: height ?? width,
     };
 }
 
