@@ -22,7 +22,6 @@ class AutoUpdateTime extends PureComponent {
     constructor(props) {
         super(props);
         this.getCurrentUserLocalTime = this.getCurrentUserLocalTime.bind(this);
-        this.runTimeInterval = this.runTimeInterval.bind(this);
         this.updateCurrentTime = this.updateCurrentTime.bind(this);
         this.state = {
             timezone: this.getCurrentUserLocalTime(),
@@ -49,40 +48,30 @@ class AutoUpdateTime extends PureComponent {
         );
     }
 
-    /**
-     * Run the update time after {time} miliseconds.
-     * @param {*} time interval time in miliseconds.
-     */
-    runTimeInterval(time) {
+    updateCurrentTime() {
         if (this.timer) {
             clearInterval(this.timer);
             this.timer = null;
         }
+        const secondUntilNextMinute = (60 - this.state.timezone.seconds()) * 1000;
         this.timer = Timers.register(
             setInterval(() => {
                 this.setState({
                     timezone: this.getCurrentUserLocalTime(),
                 });
-            }, time),
+            }, secondUntilNextMinute),
         );
     }
 
-    updateCurrentTime() {
-        const timeoutTime = (60 - this.state.timezone.seconds()) * 1000;
-        this.runTimeInterval(timeoutTime);
-    }
-
     render() {
-        const GMTTime = this.state.timezone
-            ? `${this.state.timezone
-                .toString()
-                .split(/[+-]/)[0]
-                .slice(-3)} ${this.state.timezone.zoneAbbr()}`
-            : '';
-        const currentTime = this.state.timezone
-          && Number.isNaN(Number(this.state.timezone.zoneAbbr()))
+        const GMTTime = `${this.state.timezone
+            .toString()
+            .split(/[+-]/)[0]
+            .slice(-3)} ${this.state.timezone.zoneAbbr()}`;
+        const currentTime = Number.isNaN(Number(this.state.timezone.zoneAbbr()))
             ? this.state.timezone.zoneAbbr()
             : GMTTime;
+
         return (
             <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                 <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
