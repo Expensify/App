@@ -1,36 +1,28 @@
 import lodashGet from 'lodash/get';
-import React, { Component } from 'react';
-import { withOnyx } from 'react-native-onyx';
+import React, {Component} from 'react';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import { View } from 'react-native';
+import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
-import moment from 'moment-timezone';
 import _ from 'underscore';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
-import ScreenWrapper from '../../../components/ScreenWrapper';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
-import Text from '../../../components/Text';
 import LoginField from './LoginField';
 import withLocalize, { withLocalizePropTypes } from '../../../components/withLocalize';
 import * as Localize from '../../../libs/Localize';
 import compose from '../../../libs/compose';
-import TextInput from '../../../components/TextInput';
-import Picker from '../../../components/Picker';
-import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
 import withCurrentUserPersonalDetails, { withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps } from '../../../components/withCurrentUserPersonalDetails';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
-import Form from '../../../components/Form';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import MenuItem from '../../../components/MenuItem';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
-import { ScrollView } from 'react-native-gesture-handler';
+import {ScrollView} from 'react-native-gesture-handler';
 
 const propTypes = {
     /* Onyx Props */
