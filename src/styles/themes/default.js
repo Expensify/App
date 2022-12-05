@@ -59,6 +59,64 @@ const darkTheme = {
     checkBox: colors.green,
 };
 
+const lightTheme = {
+    // Figma keys
+    appBG: colors.lightAppBackground,
+    highlightBG: colors.lightHighlightBackground,
+    border: colors.lightBorders,
+    borderFocus: colors.green,
+    icon: colors.lightIcons,
+    iconMenu: colors.green,
+    iconHovered: colors.white,
+    iconSuccessFill: colors.green,
+    iconReversed: colors.lightAppBackground,
+    textSupporting: colors.lightSupportingText,
+    text: colors.lightText,
+    link: colors.blueLink,
+    linkHover: colors.blueLinkHover,
+    buttonDefaultBG: colors.lightDefaultButton,
+    buttonDisabledBG: colors.lightDefaultButtonDisabled,
+    buttonHoveredBG: colors.lightDefaultButtonHover,
+    buttonPressedBG: colors.lightDefaultButtonPressed,
+    danger: colors.red,
+    dangerHover: colors.redHover,
+    dangerPressed: colors.redHover,
+    dangerDisabled: colors.redDisabled,
+    warning: colors.yellow,
+    success: colors.green,
+    successHover: colors.lightHover,
+    successPressed: colors.lightPressed,
+    transparent: colors.transparent,
+
+    // Additional keys
+    inverse: colors.dark,
+    shadow: colors.black,
+    componentBG: colors.lightAppBackground,
+    hoverComponentBG: colors.lightHighlightBackground,
+    activeComponentBG: colors.lightBorders,
+    sidebar: colors.lightHighlightBackground,
+    sidebarHover: colors.lightAppBackground,
+    heading: colors.white,
+    textLight: colors.dark,
+    textDark: colors.lightAppBackground,
+    textReversed: colors.lightAppBackground,
+    textBackground: colors.lightHighlightBackground,
+    textMutedReversed: colors.lightIcons,
+    textError: colors.red,
+    offline: colors.lightIcons,
+    opaqueAvatar: 'rgba(198, 201, 202, 0.64)', // change
+    modalBackdrop: colors.lightIcons,
+    modalBackground: colors.lightAppBackground,
+    cardBG: colors.lightHighlightBackground,
+    cardBorder: colors.lightHighlightBackground,
+    spinner: colors.lightSupportingText,
+    unreadIndicator: colors.green,
+    placeholderText: colors.lightIcons,
+    heroCard: colors.blue,
+    uploadPreviewActivityIndicator: colors.lightHighlightBackground,
+    checkBox: colors.blue,
+};
+
 const oldTheme = {
     shadow: colors.black,
     link: colors.blue,
@@ -117,4 +175,4 @@ const oldTheme = {
     textDark: colors.dark,
 };
 
-export default darkTheme;
+export default lightTheme;
