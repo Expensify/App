@@ -3,6 +3,7 @@ import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import focusApp from './focusApp';
 import * as AppUpdate from '../../actions/AppUpdate';
+import EXPENSIFY_ICON_URL from '../../../../assets/images/expensify-logo-round-clearspace.png';
 
 const DEFAULT_DELAY = 4000;
 
@@ -40,7 +41,7 @@ function canUseBrowserNotifications() {
  * @param {Object} params
  * @param {String} params.title
  * @param {String} params.body
- * @param {String} [params.icon] Default to Expensify logo
+ * @param {String} [params.icon] Path to icon
  * @param {Number} [params.delay]
  * @param {Function} [params.onClick]
  * @param {String} [params.tag]
@@ -53,6 +54,7 @@ function push({
     delay = DEFAULT_DELAY,
     onClick = () => {},
     tag = '',
+    icon,
 }) {
     return new Promise((resolve) => {
         if (!title || !body) {
@@ -68,6 +70,7 @@ function push({
             const notification = new Notification(title, {
                 body,
                 tag,
+                icon,
             });
 
             // If we pass in a delay param greater than 0 the notification
@@ -100,8 +103,9 @@ export default {
      * @param {Object} params
      * @param {Object} params.reportAction
      * @param {Function} params.onClick
+     * @param {Boolean} usesIcon true if notification uses right circular icon
      */
-    pushReportCommentNotification({reportAction, onClick}) {
+    pushReportCommentNotification({reportAction, onClick}, usesIcon = false) {
         const {person, message} = reportAction;
         const plainTextPerson = Str.htmlDecode(_.map(person, f => f.text).join());
 
@@ -113,6 +117,7 @@ export default {
             body: plainTextMessage,
             delay: 0,
             onClick,
+            icon: usesIcon ? EXPENSIFY_ICON_URL : '',
         });
     },
 
