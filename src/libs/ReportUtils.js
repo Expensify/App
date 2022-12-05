@@ -867,7 +867,7 @@ function buildOptimisticChatReport(
 function buildOptimisticCreatedReportAction(ownerEmail) {
     const reportActionID = NumberUtils.rand64();
     return {
-        [reportActionID]: {
+        0: {
             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             actorAccountID: currentUserAccountID,
@@ -891,6 +891,7 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
                 },
             ],
             automatic: false,
+            sequenceNumber: 0,
             avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
             created: DateUtils.getDBTime(),
             reportActionID: reportActionID,
