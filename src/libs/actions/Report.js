@@ -24,6 +24,7 @@ import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
+import * as NumberUtils from "../NumberUtils";
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -529,6 +530,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
     };
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
+    let optimisticReportActionID = 0;
     if (!_.isEmpty(newReportObject)) {
         onyxData.optimisticData[0].value = {
             ...onyxData.optimisticData[0].value,
@@ -544,16 +546,23 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
         onyxData.optimisticData[0].onyxMethod = CONST.ONYX.METHOD.SET;
 
         // Also create a report action so that the page isn't endlessly loading
+        const optimisticReportAction = ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail);
+        optimisticReportActionID = NumberUtils.rand64();
+        // optimisticReportAction[optimisticReportActionID] = optimisticReportAction[0];
+        // delete optimisticReportAction[0];
+        // console.log('sending optimisticReportActionID', optimisticReportActionID);
+        optimisticReportAction[0].reportActionID = optimisticReportActionID;
         onyxData.optimisticData[1] = {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail),
+            value: optimisticReportAction,
         };
     }
     API.write('OpenReport',
         {
             reportID,
             emailList: participantList ? participantList.join(',') : '',
+            createdReportActionID: optimisticReportActionID,
         },
         onyxData);
 }
