@@ -64,29 +64,35 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = 
     return iouReportUpdate;
 }
 
-function getPendingIOUReportActionsInDifferentCurrency(reportIOUActions, iouReport, type) {
-    return _.chain(reportIOUActions)
+function getIOUReportActions(reportIOUActions, iouReport, type, pendingAction = '', filterRequestsInDifferentCurrency = false) {
+    const iouActions = _.chain(reportIOUActions)
         .filter(action => action.originalMessage
             && action.originalMessage.IOUReportID.toString() === iouReport.reportID.toString()
-            && action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
-            && action.originalMessage.currency !== iouReport.currency
             && action.originalMessage.type === type)
-        .map(action => action.originalMessage.IOUTransactionID)
+        .value();
+
+    return _.chain(iouActions)
+        .filter(action => (!_.isEmpty(pendingAction) ? action.pendingAction === pendingAction : true))
+        .filter(action => (filterRequestsInDifferentCurrency ? action.originalMessage.currency !== iouReport.currency : true))
         .value();
 }
 
 function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
-    const pendingRequestsInDifferentCurrency = getPendingIOUReportActionsInDifferentCurrency(
+    const pendingRequestsInDifferentCurrency = _.chain(getIOUReportActions(
         reportActions,
         iouReport,
         CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-    );
+        CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        true,
+    )).map(action => action.originalMessage.IOUTransactionID).value();
 
-    const pendingCancelledRequestsInDifferentCurrency = getPendingIOUReportActionsInDifferentCurrency(
+    const pendingCancelledRequestsInDifferentCurrency = _.chain(getIOUReportActions(
         reportActions,
         iouReport,
         CONST.IOU.REPORT_ACTION_TYPE.CANCEL,
-    );
+        CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        true,
+    )).map(action => action.originalMessage.IOUTransactionID).value();
 
     // If we have pending requests in a different currency and all of them have been cancelled,
     // Then the report is not pending any conversion from the backend
@@ -106,5 +112,6 @@ function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
 export {
     calculateAmount,
     updateIOUOwnerAndTotal,
+    getIOUReportActions,
     isIOUReportPendingCurrencyConversion,
 };
