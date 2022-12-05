@@ -15,7 +15,6 @@ import * as Expensicons from './Icon/Expensicons';
 import MultipleAvatars from './MultipleAvatars';
 import Hoverable from './Hoverable';
 import DisplayNames from './DisplayNames';
-import IOUBadge from './IOUBadge';
 import themeColors from '../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Text from './Text';
