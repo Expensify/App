@@ -65,6 +65,12 @@ Onyx.connect({
     callback: val => allReports = val,
 });
 
+let isNetworkOffline = false;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: val => isNetworkOffline = lodashGet(val, 'isOffline', false),
+});
+
 /**
  * Returns the concatenated title for the PrimaryLogins of a report
  *
@@ -739,6 +745,10 @@ function getIOUReportActionMessage(type, total, participants, comment, currency)
             break;
     }
 
+    // Update the iouMessage if the client is offline
+    if (isNetworkOffline && iouMessage in [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.CANCEL, CONST.IOU.REPORT_ACTION_TYPE.DECLINE]) {
+        iouMessage += '. The total will be updated when connection is restored.';
+    }
     return [{
         html: iouMessage,
         text: iouMessage,
