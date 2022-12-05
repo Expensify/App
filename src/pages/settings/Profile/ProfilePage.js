@@ -79,7 +79,7 @@ class ProfilePage extends Component {
     }
 
     getPronouns() {
-        const pronounsKey = lodashGet(this.props.currentUserPersonalDetails, 'pronouns', '');
+        let pronounsKey = lodashGet(this.props.currentUserPersonalDetails, 'pronouns', '');
         if (pronounsKey.startsWith(CONST.PRONOUNS.PREFIX)) {
             pronounsKey = pronounsKey.slice(CONST.PRONOUNS.PREFIX.length);
         }
