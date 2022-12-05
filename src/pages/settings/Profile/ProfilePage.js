@@ -1,28 +1,28 @@
-import lodashGet from 'lodash/get';
-import React, {Component} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {Component} from 'react';
+import {View} from 'react-native';
+import {ScrollView} from 'react-native-gesture-handler';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
-import Navigation from '../../../libs/Navigation/Navigation';
-import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
-import ROUTES from '../../../ROUTES';
-import ONYXKEYS from '../../../ONYXKEYS';
+import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import CONST from '../../../CONST';
+import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
+import compose from '../../../libs/compose';
+import * as Localize from '../../../libs/Localize';
+import Navigation from '../../../libs/Navigation/Navigation';
+import * as ReportUtils from '../../../libs/ReportUtils';
+import * as ValidationUtils from '../../../libs/ValidationUtils';
+import ONYXKEYS from '../../../ONYXKEYS';
+import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
 import LoginField from './LoginField';
-import withLocalize, { withLocalizePropTypes } from '../../../components/withLocalize';
-import * as Localize from '../../../libs/Localize';
-import compose from '../../../libs/compose';
-import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
-import withCurrentUserPersonalDetails, { withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps } from '../../../components/withCurrentUserPersonalDetails';
-import * as ValidationUtils from '../../../libs/ValidationUtils';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
-import {ScrollView} from 'react-native-gesture-handler';
 
 const propTypes = {
     /* Onyx Props */
