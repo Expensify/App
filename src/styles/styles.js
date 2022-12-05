@@ -385,7 +385,7 @@ const styles = {
         borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeLarge,
         paddingTop: 8,
-        paddingRight: 18,
+        paddingRight: 10,
         paddingBottom: 8,
         paddingLeft: 18,
         backgroundColor: themeColors.buttonDefaultBG,
@@ -2778,7 +2778,8 @@ const styles = {
     },
 
     cardMenuItem: {
-        paddingHorizontal: 8,
+        paddingLeft: 8,
+        paddingRight: 0,
         borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeLarge,
         alignItems: 'center',
@@ -2790,6 +2791,10 @@ const styles = {
         paddingBottom: 0,
         marginHorizontal: 0,
         marginBottom: 0,
+    },
+
+    saveButtonPadding: {
+        paddingRight: 18,
     },
 };
 
