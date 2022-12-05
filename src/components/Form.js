@@ -110,6 +110,7 @@ class Form extends React.Component {
     }
 
     setPosition(element, position) {
+        // Some elements might not have props defined, e.g. Text
         if (!element.props) {
             return;
         }
