@@ -65,7 +65,8 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = 
 }
 
 /**
- * Returns the list of IOU actions
+ * Returns the list of IOU actions depnding on the type and whehter or not they are pending.
+ * Used below so that we can decide if an IOU report is pending currency conversion.
  *
  * @param {Array} reportIOUActions
  * @param {Object} iouReport
