@@ -214,7 +214,7 @@ function setUpPoliciesAndNavigate(session) {
         // The drawer navigation is only created after we have fetched reports from the server.
         // Thus, if we use the standard navigation and try to navigate to a drawer route before
         // the reports have been fetched, we will fail to navigate.
-        Navigation.isDrawerReady()
+        Navigation.isNavigationReady()
             .then(() => {
                 Navigation.isDrawerReady()
                     .then(() => {
