@@ -3,10 +3,10 @@ import lodashTransform from 'lodash/transform';
 import React, {Profiler, forwardRef} from 'react';
 import {Alert, InteractionManager} from 'react-native';
 
-import * as Metrics from './Metrics';
-import getComponentDisplayName from './getComponentDisplayName';
-import CONST from '../CONST';
-import isE2ETestSession from './E2E/isE2ETestSession';
+import * as Metrics from '../Metrics';
+import getComponentDisplayName from '../getComponentDisplayName';
+import CONST from '../../CONST';
+import isE2ETestSession from '../E2E/isE2ETestSession';
 
 /** @type {import('react-native-performance').Performance} */
 let rnPerformance;
