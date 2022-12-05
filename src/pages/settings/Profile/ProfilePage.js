@@ -30,6 +30,7 @@ import Form from '../../../components/Form';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import MenuItem from '../../../components/MenuItem';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const propTypes = {
     /* Onyx Props */
@@ -176,7 +177,7 @@ class ProfilePage extends Component {
         ];
         console.log(lodashGet(currentUserDetails, 'timezone', ''));
         return (
-            <ScreenWrapper>
+            <ScrollView>
                 <HeaderWithCloseButton
                     title={this.props.translate('common.profile')}
                     shouldShowBackButton
@@ -208,21 +209,19 @@ class ProfilePage extends Component {
                         />
                     ))}
                 </View>
-                <View style={[styles.ph5, styles.mh3]}>
-                    <LoginField
-                        label={this.props.translate('profilePage.emailAddress')}
-                        type="email"
-                        login={this.state.logins.email}
-                        defaultValue={this.state.logins.email}
-                    />
-                    <LoginField
-                        label={this.props.translate('common.phoneNumber')}
-                        type="phone"
-                        login={this.state.logins.phone}
-                        defaultValue={this.state.logins.phone}
-                    />
-                </View>
-            </ScreenWrapper>
+                <LoginField
+                    label={this.props.translate('profilePage.emailAddress')}
+                    type="email"
+                    login={this.state.logins.email}
+                    defaultValue={this.state.logins.email}
+                />
+                <LoginField
+                    label={this.props.translate('common.phoneNumber')}
+                    type="phone"
+                    login={this.state.logins.phone}
+                    defaultValue={this.state.logins.phone}
+                />
+            </ScrollView>
         );
     }
 }
