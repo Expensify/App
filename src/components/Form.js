@@ -261,6 +261,7 @@ class Form extends React.Component {
                     contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
                     ref={el => this.form = el}
+                    accessibilityRole="form"
                 >
                     <View style={[this.props.style]}>
                         {_.map(this.childrenWrapperWithProps(this.props.children), child => (
