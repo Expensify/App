@@ -303,7 +303,7 @@ function getAnimatedFABStyle(rotate, backgroundColor) {
 function getWidthAndHeightStyle(width, height = null) {
     return {
         width,
-        height: height ?? width,
+        height: height != null ? height : width,
     };
 }
 
