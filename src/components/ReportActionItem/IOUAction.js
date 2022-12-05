@@ -4,13 +4,20 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
+import CONST from '../../CONST';
+import {withNetwork} from '../OnyxProvider';
+import compose from '../../libs/compose';
 import IOUQuote from './IOUQuote';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import IOUPreview from './IOUPreview';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
+<<<<<<< Updated upstream
 import CONST from '../../CONST';
+=======
+import * as IOUUtils from '../../libs/IOUUtils';
+>>>>>>> Stashed changes
 
 const propTypes = {
     /** All the data of the action */
@@ -18,6 +25,9 @@ const propTypes = {
 
     /** The associated chatReport */
     chatReportID: PropTypes.string.isRequired,
+
+    /** The associated chatReport */
+    iouReportID: PropTypes.string.isRequired,
 
     /** Is this IOUACTION the most recent? */
     isMostRecentIOUReportAction: PropTypes.bool.isRequired,
@@ -27,7 +37,19 @@ const propTypes = {
     chatReport: PropTypes.shape({
         /** The participants of this report */
         participants: PropTypes.arrayOf(PropTypes.string),
+
+        /** Whether the chat report has an outstanding IOU * */
+        hasOutstandingIOU: PropTypes.bool,
     }),
+
+    /** IOU Report data object */
+    iouReport: PropTypes.shape({
+        /** The currency of the IOUReport */
+        currency: PropTypes.number,
+    }).isRequired,
+
+    /** Array of report actions for this report */
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)).isRequired,
 
     /** Whether the IOU is hovered so we can modify its style */
     isHovered: PropTypes.bool,
@@ -46,6 +68,7 @@ const IOUAction = (props) => {
         Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
     };
 
+<<<<<<< Updated upstream
     const shouldShowIOUPreview = (props.isMostRecentIOUReportAction
         && Boolean(props.action.originalMessage.IOUReportID))
       || props.action.originalMessage.type === 'pay';
@@ -59,6 +82,21 @@ const IOUAction = (props) => {
             .value();
 
         hasRequestsInDifferentCurrency = pendingActionsWithDifferentCurrency.length > 0;
+=======
+    const shouldShowIOUPreview = (
+        props.isMostRecentIOUReportAction && Boolean(props.action.originalMessage.IOUReportID)
+    ) || props.action.originalMessage.type === 'pay';
+
+    let shouldShowPendingConversionMessage = false;
+    if (
+        props.iouReport
+        && props.chatReport.hasOutstandingIOU
+        && props.isMostRecentIOUReportAction
+        && props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
+        && props.network.isOffline
+    ) {
+        shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(props.reportActions, props.iouReport);
+>>>>>>> Stashed changes
     }
 
     return (
@@ -73,7 +111,11 @@ const IOUAction = (props) => {
                 pendingAction={lodashGet(props.action, 'pendingAction', null)}
                 iouReportID={props.action.originalMessage.IOUReportID.toString()}
                 chatReportID={props.chatReportID}
+<<<<<<< Updated upstream
                 hasRequestInDifferentCurrency={hasRequestsInDifferentCurrency}
+=======
+                shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
+>>>>>>> Stashed changes
                 onPayButtonPressed={launchDetailsModal}
                 onPreviewPressed={launchDetailsModal}
                 containerStyles={[
@@ -93,6 +135,7 @@ IOUAction.propTypes = propTypes;
 IOUAction.defaultProps = defaultProps;
 IOUAction.displayName = 'IOUAction';
 
+<<<<<<< Updated upstream
 export default withOnyx({
     chatReport: {
         key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
@@ -105,3 +148,20 @@ export default withOnyx({
         canEvict: false,
     },
 })(IOUAction);
+=======
+export default compose(
+    withOnyx({
+        chatReport: {
+            key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+        },
+        iouReport: {
+            key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+        },
+        reportActions: {
+            key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            canEvict: false,
+        },
+    }),
+    withNetwork(),
+)(IOUAction);
+>>>>>>> Stashed changes

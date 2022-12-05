@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import CONST from '../CONST';
 
 /**
@@ -63,7 +64,47 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = 
     return iouReportUpdate;
 }
 
+function getPendingIOUReportActionsInDifferentCurrency(reportIOUActions, iouReport, type) {
+    return _.chain(reportIOUActions)
+        .filter(action => action.originalMessage
+            && action.originalMessage.IOUReportID.toString() === iouReport.reportID.toString()
+            && action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
+            && action.originalMessage.currency !== iouReport.currency
+            && action.originalMessage.type === type)
+        .map(action => action.originalMessage.IOUTransactionID)
+        .value();
+}
+
+function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
+    const pendingRequestsInDifferentCurrency = getPendingIOUReportActionsInDifferentCurrency(
+        reportActions,
+        iouReport,
+        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+    );
+
+    const pendingCancelledRequestsInDifferentCurrency = getPendingIOUReportActionsInDifferentCurrency(
+        reportActions,
+        iouReport,
+        CONST.IOU.REPORT_ACTION_TYPE.CANCEL,
+    );
+
+    // If we have pending requests in a different currency and all of them have been cancelled,
+    // Then the report is not pending any conversion from the backend
+    // in this case areAllRequestInDifferentCurrencyCancelled should be true, and we should return false.
+    if (pendingRequestsInDifferentCurrency.length) {
+        const areAllRequestsInDifferentCurrencyCancelled = _.every(
+            pendingRequestsInDifferentCurrency,
+            requestTransactionID => _.contains(pendingCancelledRequestsInDifferentCurrency, requestTransactionID),
+        );
+        return !areAllRequestsInDifferentCurrencyCancelled;
+    }
+
+    // We have pending cancelled requests, this means we're waiting for conversion from the backend.
+    return pendingCancelledRequestsInDifferentCurrency.length !== 0;
+}
+
 export {
     calculateAmount,
     updateIOUOwnerAndTotal,
+    isIOUReportPendingCurrencyConversion,
 };

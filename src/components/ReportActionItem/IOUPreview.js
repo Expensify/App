@@ -133,7 +133,11 @@ const IOUPreview = (props) => {
             {style: 'currency', currency: props.iouReport.currency},
         ) : '';
     const avatarTooltip = [Str.removeSMSDomain(managerEmail), Str.removeSMSDomain(ownerEmail)];
+<<<<<<< Updated upstream
     const pendingConversionMessage = props.hasRequestInDifferentCurrency ? 'The total will be updated when connection is restored' : '';
+=======
+    const pendingConversionMessage = 'The total will be updated when connection is restored';
+>>>>>>> Stashed changes
     return (
         <TouchableWithoutFeedback onPress={props.onPreviewPressed}>
             <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
@@ -183,11 +187,26 @@ const IOUPreview = (props) => {
                                         </Text>
                                     )
                                     : (
+<<<<<<< Updated upstream
                                         <Text>
                                             {props.iouReport.hasOutstandingIOU
                                                 ? `${props.translate('iou.owesyou', {manager: managerName})} ${pendingConversionMessage}`
                                                 : props.translate('iou.paidyou', {manager: managerName})}
                                         </Text>
+=======
+                                        <>
+                                            <Text>
+                                                {props.iouReport.hasOutstandingIOU
+                                                    ? `${props.translate('iou.owesyou', {manager: managerName})}`
+                                                    : props.translate('iou.paidyou', {manager: managerName})}
+                                            </Text>
+                                            {props.shouldShowPendingConversionMessage && (
+                                            <Text>
+                                                {pendingConversionMessage}
+                                            </Text>
+                                            )}
+                                        </>
+>>>>>>> Stashed changes
                                     )}
                                 {(isCurrentUserManager
                                     && !props.shouldHidePayButton

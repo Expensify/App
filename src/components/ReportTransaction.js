@@ -50,6 +50,7 @@ class ReportTransaction extends Component {
             this.props.iouReportID,
             this.props.rejectButtonType,
             this.props.action,
+            this.props.reportActions,
         );
     }
 
