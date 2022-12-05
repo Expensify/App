@@ -88,10 +88,10 @@ class LoginField extends Component {
         }
 
         return (
-            <View style={styles.mb6}>
+            <View style={[styles.mb6, styles.ph8]}>
                 <Text style={[styles.formLabel, this.getLabelMargin()]}>{this.props.label}</Text>
                 {!this.props.login.partnerUserID ? (
-                    <View style={[styles.mln5, styles.mrn5]}>
+                    <View style={[styles.mln8, styles.mrn8]}>
                         <MenuItem
                             key={`common.add.${this.props.type}`}
                             title={`${this.props.translate('common.add')} ${this.props.label}`}
