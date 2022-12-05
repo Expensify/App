@@ -22,17 +22,19 @@ class AutoUpdateTime extends PureComponent {
     constructor(props) {
         super(props);
         this.getCurrentUserLocalTime = this.getCurrentUserLocalTime.bind(this);
+        this.runTimeInterval = this.runTimeInterval.bind(this);
+        this.updateCurrentTime = this.updateCurrentTime.bind(this);
         this.state = {
             timezone: this.getCurrentUserLocalTime(),
         };
     }
 
     componentDidMount() {
-        this.timer = Timers.register(setInterval(() => {
-            this.setState({
-                timezone: this.getCurrentUserLocalTime(),
-            });
-        }, 60000));
+        this.updateCurrentTime();
+    }
+
+    componentDidUpdate() {
+        this.updateCurrentTime();
     }
 
     componentWillUnmount() {
@@ -45,6 +47,29 @@ class AutoUpdateTime extends PureComponent {
             null,
             this.props.timezone.selected,
         );
+    }
+
+    /**
+     * Run the update time after {time} miliseconds.
+     * @param {*} time interval time in miliseconds.
+     */
+    runTimeInterval(time) {
+        if (this.timer) {
+            clearInterval(this.timer);
+            this.timer = null;
+        }
+        this.timer = Timers.register(
+            setInterval(() => {
+                this.setState({
+                    timezone: this.getCurrentUserLocalTime(),
+                });
+            }, time),
+        );
+    }
+
+    updateCurrentTime() {
+        const timeoutTime = (60 - this.state.timezone.seconds()) * 1000;
+        this.runTimeInterval(timeoutTime);
     }
 
     render() {
