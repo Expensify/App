@@ -4,8 +4,8 @@ export default PropTypes.shape({
     // The type of the action item fragment. Used to render a corresponding component
     type: PropTypes.string.isRequired,
 
-    // The text content of the fragment.
-    text: PropTypes.string.isRequired,
+    // The text content of the fragment, or a callback used to generate localized templated text
+    text: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
 
     // Used to apply additional styling. Style refers to a predetermined constant and not a class name. e.g. 'normal'
     // or 'strong'
