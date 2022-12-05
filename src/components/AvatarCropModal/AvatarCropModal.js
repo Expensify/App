@@ -315,7 +315,7 @@ const AvatarCropModal = (props) => {
                                 translateX={translateX}
                                 rotation={rotation}
                             />
-                            <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthAndHeightStyle(imageContainerSize)]}>
+                            <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, {width: imageContainerSize}]}>
                                 <Icon src={Expensicons.Zoom} fill={themeColors.icons} />
                                 <Pressable
                                     style={[styles.mh5, styles.flex1]}
