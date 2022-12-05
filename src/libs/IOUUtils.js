@@ -65,13 +65,10 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = 
 }
 
 function getIOUReportActions(reportIOUActions, iouReport, type, pendingAction = '', filterRequestsInDifferentCurrency = false) {
-    const iouActions = _.chain(reportIOUActions)
+    return _.chain(reportIOUActions)
         .filter(action => action.originalMessage
             && action.originalMessage.IOUReportID.toString() === iouReport.reportID.toString()
             && action.originalMessage.type === type)
-        .value();
-
-    return _.chain(iouActions)
         .filter(action => (!_.isEmpty(pendingAction) ? action.pendingAction === pendingAction : true))
         .filter(action => (filterRequestsInDifferentCurrency ? action.originalMessage.currency !== iouReport.currency : true))
         .value();
