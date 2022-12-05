@@ -8,6 +8,7 @@ import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import getButtonState from '../libs/getButtonState';
 import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from './withDelayToggleButtonState';
+import variables from '../styles/variables';
 
 const propTypes = {
     /** Icon Component */
@@ -87,11 +88,13 @@ class ContextMenuItem extends Component {
                             }
                         >
                             {({hovered, pressed}) => (
-                                <Icon
-                                    small
-                                    src={icon}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.props.isDelayButtonStateComplete))}
-                                />
+                                <View style={[StyleUtils.getWidthAndHeightStyle(variables.iconSizeNormal), styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                    <Icon
+                                        small
+                                        src={icon}
+                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.props.isDelayButtonStateComplete))}
+                                    />
+                                </View>
                             )}
                         </Pressable>
                     </Tooltip>
