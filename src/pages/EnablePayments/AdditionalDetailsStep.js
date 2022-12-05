@@ -24,6 +24,7 @@ import Form from '../../components/Form';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import OfflineIndicator from '../../components/OfflineIndicator';
+import moment from 'moment';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -189,7 +190,7 @@ class AdditionalDetailsStep extends React.Component {
             addressCity: values[INPUT_IDS.ADDRESS.city],
             addressState: values[INPUT_IDS.ADDRESS.state],
             addressZip: values[INPUT_IDS.ADDRESS.zipCode],
-            dob: values[INPUT_IDS.DOB],
+            dob: moment(values[INPUT_IDS.DOB]).format(CONST.DATE.MOMENT_FORMAT_STRING),
             ssn: values[INPUT_IDS.SSN],
         };
 
