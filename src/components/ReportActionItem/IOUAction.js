@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
@@ -13,11 +12,7 @@ import IOUPreview from './IOUPreview';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
-<<<<<<< Updated upstream
-import CONST from '../../CONST';
-=======
 import * as IOUUtils from '../../libs/IOUUtils';
->>>>>>> Stashed changes
 
 const propTypes = {
     /** All the data of the action */
@@ -68,21 +63,6 @@ const IOUAction = (props) => {
         Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
     };
 
-<<<<<<< Updated upstream
-    const shouldShowIOUPreview = (props.isMostRecentIOUReportAction
-        && Boolean(props.action.originalMessage.IOUReportID))
-      || props.action.originalMessage.type === 'pay';
-
-    let hasRequestsInDifferentCurrency = false;
-    if (props.chatReport.hasOutstandingIOU && shouldShowIOUPreview) {
-        const pendingActionsWithDifferentCurrency = _.chain(props.reportActions)
-            .filter(action => action.originalMessage)
-            .filter(action => action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE || action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CANCEL)
-            .filter(action => action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && action.originalMessage.currency !== props.iouReport.currency)
-            .value();
-
-        hasRequestsInDifferentCurrency = pendingActionsWithDifferentCurrency.length > 0;
-=======
     const shouldShowIOUPreview = (
         props.isMostRecentIOUReportAction && Boolean(props.action.originalMessage.IOUReportID)
     ) || props.action.originalMessage.type === 'pay';
@@ -96,7 +76,6 @@ const IOUAction = (props) => {
         && props.network.isOffline
     ) {
         shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(props.reportActions, props.iouReport);
->>>>>>> Stashed changes
     }
 
     return (
@@ -111,11 +90,7 @@ const IOUAction = (props) => {
                 pendingAction={lodashGet(props.action, 'pendingAction', null)}
                 iouReportID={props.action.originalMessage.IOUReportID.toString()}
                 chatReportID={props.chatReportID}
-<<<<<<< Updated upstream
-                hasRequestInDifferentCurrency={hasRequestsInDifferentCurrency}
-=======
                 shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
->>>>>>> Stashed changes
                 onPayButtonPressed={launchDetailsModal}
                 onPreviewPressed={launchDetailsModal}
                 containerStyles={[
@@ -135,20 +110,6 @@ IOUAction.propTypes = propTypes;
 IOUAction.defaultProps = defaultProps;
 IOUAction.displayName = 'IOUAction';
 
-<<<<<<< Updated upstream
-export default withOnyx({
-    chatReport: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
-    },
-    iouReport: {
-        key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
-    },
-    reportActions: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
-        canEvict: false,
-    },
-})(IOUAction);
-=======
 export default compose(
     withOnyx({
         chatReport: {
@@ -164,4 +125,3 @@ export default compose(
     }),
     withNetwork(),
 )(IOUAction);
->>>>>>> Stashed changes
