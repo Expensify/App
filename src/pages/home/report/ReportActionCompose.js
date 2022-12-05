@@ -355,7 +355,7 @@ class ReportActionCompose extends React.PureComponent {
                 });
             },
 
-            // run the focus with a delay. Note: Its platform dependent whether there should be a delay or not.
+            // Run the focus with a delay. Note: Its platform dependent whether there should be a delay or not.
             true,
         );
     }
