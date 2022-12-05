@@ -318,7 +318,7 @@ const CONST = {
         },
         RESERVED_ROOM_NAMES: ['#admins', '#announce'],
         MAX_PREVIEW_AVATARS: 4,
-        MAX_ROOM_NAME_LENGTH: 80,
+        MAX_ROOM_NAME_LENGTH: 79,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
         OWNER_EMAIL_FAKE: '__FAKE__',
         DEFAULT_REPORT_NAME: 'Chat Report',
