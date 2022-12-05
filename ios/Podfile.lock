@@ -561,6 +561,8 @@ PODS:
     - React-jsi (= 0.70.4-alpha.2)
     - React-logger (= 0.70.4-alpha.2)
     - React-perflogger (= 0.70.4-alpha.2)
+  - ReactNativePerformance (4.1.2):
+    - React-Core
   - RNCAsyncStorage (1.17.10):
     - React-Core
   - RNCClipboard (1.5.1):
@@ -718,6 +720,7 @@ DEPENDENCIES:
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - React-runtimeexecutor (from `../node_modules/react-native/ReactCommon/runtimeexecutor`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - "ReactNativePerformance (from `../node_modules/@shopify/react-native-performance`)"
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCClipboard (from `../node_modules/@react-native-community/clipboard`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
@@ -881,6 +884,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/runtimeexecutor"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  ReactNativePerformance:
+    :path: "../node_modules/@shopify/react-native-performance"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNCClipboard:
@@ -1001,6 +1006,7 @@ SPEC CHECKSUMS:
   React-RCTVibration: eb5fb0bb3d78e31dcaeae5f127c75a7caf4b6af9
   React-runtimeexecutor: a8cee6fe3fb7994f07b735c7024a08a4fa5f8446
   ReactCommon: 1ebf2df5c764ebb52048e7a1cf42c75a6246171a
+  ReactNativePerformance: ab7dee4c4862623d72c1530a9fc71b55458edf71
   RNCAsyncStorage: 0c357f3156fcb16c8589ede67cc036330b6698ca
   RNCClipboard: 41d8d918092ae8e676f18adada19104fa3e68495
   RNCPicker: 0b65be85fe7954fbb2062ef079e3d1cde252d888
