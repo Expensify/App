@@ -7,11 +7,9 @@ import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import FormHelpMessage from '../FormHelpMessage';
 import Text from '../Text';
-import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
 import pickerStyles from './pickerStyles';
-import getOperatingSystem from '../../libs/getOperatingSystem';
 
 const propTypes = {
     /** Picker label */
