@@ -55,8 +55,8 @@ const propTypes = {
         phoneNumber: PropTypes.string,
     })).isRequired,
 
-    /** Is this IOU associated with existing report */
-    isIOUAttachedToExistingChatReport: PropTypes.bool.isRequired,
+    /** Can the participants be modified or not */
+    canModifyParticipants: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
 
@@ -89,6 +89,7 @@ const defaultProps = {
     onUpdateComment: null,
     comment: '',
     iouType: CONST.IOU.IOU_TYPE.REQUEST,
+    canModifyParticipants: false,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -273,7 +274,7 @@ class IOUConfirmationList extends Component {
         const shouldShowSettlementButton = this.props.iouType === CONST.IOU.IOU_TYPE.SEND;
         const shouldDisableButton = selectedParticipants.length === 0;
         const recipient = this.state.participants[0];
-        const canModifyParticipants = !this.props.isIOUAttachedToExistingChatReport && this.props.hasMultipleParticipants;
+        const canModifyParticipants = this.props.canModifyParticipants && this.props.hasMultipleParticipants;
 
         return (
             <OptionsSelector
