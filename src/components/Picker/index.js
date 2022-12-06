@@ -110,12 +110,6 @@ class Picker extends PureComponent {
             ...this.props.placeholder,
             color: themeColors.pickerOptionsTextColor,
         };
-        this.items = _.map(this.props.items, item => (
-            {
-                ...item,
-                color: themeColors.pickerOptionsTextColor,
-            }
-        ));
     }
 
     componentDidMount() {
@@ -171,7 +165,9 @@ class Picker extends PureComponent {
                     )}
                     <RNPickerSelect
                         onValueChange={this.onInputChange}
-                        items={this.items}
+
+                        // We add a text color to prevent white text on white background dropdown items on Windows
+                        items={_.map(this.props.items, item => ({...item, color: themeColors.pickerOptionsTextColor}))}
                         style={this.props.size === 'normal' ? pickerStyles(this.props.isDisabled) : styles.pickerSmall}
                         useNativeAndroidPickerStyle={false}
                         placeholder={this.placeholder}
