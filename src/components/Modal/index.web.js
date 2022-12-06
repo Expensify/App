@@ -14,10 +14,12 @@ const Modal = (props) => {
         // Change the color of the status bar to align with the modal's backdrop (refer to https://github.com/Expensify/App/issues/12156).
         document.querySelector('meta[name=theme-color]').content = color;
     };
+
     const hideModal = () => {
         setStatusBarColor();
         props.onModalHide();
     };
+
     const showModal = () => {
         setStatusBarColor(StyleUtils.getThemeBackgroundColor());
         props.onModalShow();
