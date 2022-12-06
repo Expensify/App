@@ -3,9 +3,10 @@ import withWindowDimensions from '../withWindowDimensions';
 import BaseModal from './BaseModal';
 import {propTypes, defaultProps} from './modalPropTypes';
 import * as StyleUtils from '../../styles/StyleUtils';
+import themeColors from '../../styles/themes/default';
 
 const Modal = (props) => {
-    const setStatusBarColor = (color = '') => {
+    const setStatusBarColor = (color = themeColors.appBG) => {
         if (!props.fullscreen) {
             return;
         }
