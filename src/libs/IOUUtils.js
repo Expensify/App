@@ -103,7 +103,7 @@ function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
         CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         true,
-    )).value();
+    )).map(action => action.originalMessage.IOUTransactionID).value();
 
     // Pending cancelled money requests that are in a different currency
     const pendingCancelledRequestsInDifferentCurrency = _.chain(getIOUReportActions(
@@ -112,19 +112,21 @@ function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
         CONST.IOU.REPORT_ACTION_TYPE.CANCEL,
         CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         true,
-    )).value();
+    )).map(action => action.originalMessage.IOUTransactionID).value();
 
-    // If we have both pending money requests and cancelled request, let's count the total and see if it's even
-    // if it is then all of the requests have been cancelled and the report is not waiting for conversion in the backend
-    if (pendingRequestsInDifferentCurrency.length && pendingCancelledRequestsInDifferentCurrency.length) {
-        return (pendingRequestsInDifferentCurrency.length + pendingCancelledRequestsInDifferentCurrency.length) % 2 !== 0;
+    // Check if every request cancelled offline is included in the list of the pending money requests
+    // Meaning, if a request has been made while online, it has already been converted to the report's currency
+    // We want to check exclusively that requests made offline have been all cancelled
+    if (pendingRequestsInDifferentCurrency.length) {
+        const areAllRequestsInDifferentCurrencyCancelled = _.every(
+            pendingCancelledRequestsInDifferentCurrency,
+            requestTransactionID => _.contains(pendingRequestsInDifferentCurrency, requestTransactionID),
+        );
+        return !areAllRequestsInDifferentCurrencyCancelled;
     }
 
-    // This means that either we have either:
-    // pending money request: return true if the count is positive
-    // pending cancelled money requests: return true if the count is positive
-    // neither pending money requests or cancelled requests, return false
-    return pendingRequestsInDifferentCurrency.length || pendingCancelledRequestsInDifferentCurrency.length;
+    // We have pending cancelled requests, this means we're waiting for conversion from the backend.
+    return pendingCancelledRequestsInDifferentCurrency.length !== 0;
 }
 
 export {
