@@ -74,23 +74,16 @@ const IOUAction = (props) => {
         && props.chatReport.hasOutstandingIOU
         && props.isMostRecentIOUReportAction
         && props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
-        && props.network.isOffline
     ) {
-        shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(props.reportActions, props.iouReport);
-    }
-
-    let isConverting = false;
-    if (
-        props.iouReport
-        && props.chatReport.hasOutstandingIOU
-        && props.isMostRecentIOUReportAction
-        && !props.network.isOffline
-    ) {
-        // If we have pending IOU requests either created or cancelled, show a message
-        // that conversion is in progress
-        isConverting = _.chain(
-            IOUUtils.getIOUReportActions(props.reportActions, props.iouReport, '', '', true),
-        ).some(action => action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD).value();
+        if (props.network.isOffline) {
+            shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(props.reportActions, props.iouReport);
+        } else {
+            // Keep the pending message showing until all report actions in different currency are synced with the server
+            const hasPendingRequests = _.chain(
+                IOUUtils.getIOUReportActions(props.reportActions, props.iouReport, '', '', true),
+            ).some(action => action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD).value();
+            shouldShowPendingConversionMessage = hasPendingRequests;
+        }
     }
 
     return (
@@ -106,7 +99,6 @@ const IOUAction = (props) => {
                     iouReportID={props.action.originalMessage.IOUReportID.toString()}
                     chatReportID={props.chatReportID}
                     shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
-                    isConverting={isConverting}
                     onPayButtonPressed={launchDetailsModal}
                     onPreviewPressed={launchDetailsModal}
                     containerStyles={[
