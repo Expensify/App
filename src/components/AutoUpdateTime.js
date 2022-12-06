@@ -53,13 +53,13 @@ class AutoUpdateTime extends PureComponent {
             clearInterval(this.timer);
             this.timer = null;
         }
-        const secondUntilNextMinute = (60 - this.state.timezone.seconds()) * 1000;
+        const secondsUntilNextMinute = (60 - this.state.timezone.seconds()) * 1000;
         this.timer = Timers.register(
             setInterval(() => {
                 this.setState({
                     timezone: this.getCurrentUserLocalTime(),
                 });
-            }, secondUntilNextMinute),
+            }, secondsUntilNextMinute),
         );
     }
 
