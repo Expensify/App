@@ -28,7 +28,8 @@ import ImageCropView from './ImageCropView';
 import Slider from './Slider';
 import cropOrRotateImage from '../../libs/cropOrRotateImage';
 import HeaderGap from '../HeaderGap';
-
+import * as StyleUtils from '../../styles/StyleUtils';
+ 
 const propTypes = {
     /** Link to image for cropping */
     imageUri: PropTypes.string,
@@ -314,7 +315,7 @@ const AvatarCropModal = (props) => {
                                 translateX={translateX}
                                 rotation={rotation}
                             />
-                            <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, {width: imageContainerSize}]}>
+                            <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
                                 <Icon src={Expensicons.Zoom} fill={themeColors.icons} />
                                 <Pressable
                                     style={[styles.mh5, styles.flex1]}
