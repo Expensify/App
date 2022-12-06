@@ -64,13 +64,19 @@ class AutoUpdateTime extends PureComponent {
     }
 
     render() {
-        const GMTTime = `${this.state.timezone
-            .toString()
-            .split(/[+-]/)[0]
-            .slice(-3)} ${this.state.timezone.zoneAbbr()}`;
-        const currentTime = Number.isNaN(Number(this.state.timezone.zoneAbbr()))
-            ? this.state.timezone.zoneAbbr()
-            : GMTTime;
+        let currentTime;
+
+        // With non-GMT timezone, moment.zoneAbbr() will return the name of that timezone, so we can use it directly.
+        if (Number.isNaN(Number(this.state.timezone.zoneAbbr()))) {
+            currentTime = this.state.timezone.zoneAbbr();
+        } else {
+        // With GMT timezone, moment.zoneAbbr() will return a number, so we need to display it as GMT {abbreviations} format
+        // ie: GMT +07
+            currentTime = `${this.state.timezone
+                .toString()
+                .split(/[+-]/)[0]
+                .slice(-3)} ${this.state.timezone.zoneAbbr()}`;
+        }
 
         return (
             <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
