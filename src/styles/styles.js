@@ -796,29 +796,32 @@ const styles = {
     },
 
     pickerContainer: {
-        borderWidth: 1,
+        borderWidth: 0,
         borderStyle: 'solid',
         borderColor: themeColors.border,
-        borderRadius: variables.componentBorderRadiusNormal,
         justifyContent: 'center',
         backgroundColor: themeColors.componentBG,
     },
+
     pickerLabel: {
         position: 'absolute',
         left: 11,
         top: 6,
     },
+
     picker: (disabled = false) => ({
         iconContainer: {
             top: Math.round(variables.inputHeight * 0.5) - 11,
             right: 10,
             zIndex: -1,
         },
+
         inputWeb: {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
             ...picker,
         },
+
         inputNative: {
             ...picker,
         },
