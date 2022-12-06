@@ -214,6 +214,10 @@ class NewChatPage extends Component {
      * or navigates to the existing chat if one with those participants already exists.
      */
     createGroup() {
+        if (!this.props.isGroupChat) {
+            return;
+        }
+
         const userLogins = _.pluck(this.state.selectedOptions, 'login');
         if (userLogins.length < 1) {
             return;
@@ -254,7 +258,7 @@ class NewChatPage extends Component {
                                     shouldFocusOnSelectRow={this.props.isGroupChat}
                                     shouldShowConfirmButton={this.props.isGroupChat}
                                     confirmButtonText={this.props.translate('newChatPage.createGroup')}
-                                    onConfirmSelection={this.props.isGroupChat && this.createGroup}
+                                    onConfirmSelection={this.createGroup}
                                 />
                             ) : (
                                 <FullScreenLoadingIndicator />
