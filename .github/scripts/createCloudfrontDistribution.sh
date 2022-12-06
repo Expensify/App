@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-if [[ $(aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[?OriginPath=='/web/$1']].DomainName" --output text | head) ]]; then 
+if [[ $(aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[?OriginPath=='/web/$1']].Id" --output text) ]] && [[ $(aws cloudfront list-distributions --query "DistributionList.Items[0].Id") != null ]] ; then 
     echo "Distribution for PR #$1 already exists!"
     exit 0;
 else
