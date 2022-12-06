@@ -1566,7 +1566,6 @@ const styles = {
     horizontalStackedAvatar: {
         height: 28,
         width: 28,
-        backgroundColor: themeColors.appBG,
         borderRadius: 33,
         paddingTop: 2,
     },
