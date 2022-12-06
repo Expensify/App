@@ -87,7 +87,7 @@ class DetailsPage extends React.PureComponent {
             details = {
                 login,
                 displayName: ReportUtils.getDisplayNameForParticipant(login),
-                avatar: ReportUtils.getDefaultAvatar(),
+                avatar: ReportUtils.getDefaultAvatar(login),
             };
         }
         const isSMSLogin = Str.isSMSLogin(details.login);
