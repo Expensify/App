@@ -103,7 +103,7 @@ function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
         CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         true,
-    )).map(action => action.originalMessage.IOUTransactionID).value();
+    )).value();
 
     // Pending cancelled money requests that are in a different currency
     const pendingCancelledRequestsInDifferentCurrency = _.chain(getIOUReportActions(
@@ -112,21 +112,11 @@ function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
         CONST.IOU.REPORT_ACTION_TYPE.CANCEL,
         CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         true,
-    )).map(action => action.originalMessage.IOUTransactionID).value();
+    )).value();
 
-    // Check if every request cancelled offline is included in the list of the pending money requests
-    // Meaning, if a request has been made while online, it has already been converted to the report's currency
-    // We want to check exclusively that requests made offline have been all cancelled
-    if (pendingRequestsInDifferentCurrency.length) {
-        const areAllRequestsInDifferentCurrencyCancelled = _.every(
-            pendingCancelledRequestsInDifferentCurrency,
-            requestTransactionID => _.contains(pendingRequestsInDifferentCurrency, requestTransactionID),
-        );
-        return !areAllRequestsInDifferentCurrencyCancelled;
-    }
-
-    // We have pending cancelled requests, this means we're waiting for conversion from the backend.
-    return pendingCancelledRequestsInDifferentCurrency.length !== 0;
+    // If the count of the pending requests in different currency plus the count of cancelled ones is even,
+    // then all of the requests have been cancelled and the report is not waiting for conversion in the backend
+    return (pendingRequestsInDifferentCurrency.length + pendingCancelledRequestsInDifferentCurrency.length) % 2 !== 0;
 }
 
 export {

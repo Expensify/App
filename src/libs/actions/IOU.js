@@ -596,7 +596,7 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction,
     ))
         .map(action => action.originalMessage.IOUTransactionID)
 
-        // Include the curreny request being cancelled in the array
+        // Include the current request being cancelled in the array
         .concat([moneyRequestAction.originalMessage.IOUTransactionID])
         .value();
 
