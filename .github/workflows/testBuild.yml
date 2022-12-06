@@ -219,6 +219,14 @@ jobs:
           content_ios="${content_ios//$'\n'/'%0A'}"
           content_ios="${content_ios//$'\r'/'%0D'}"
           echo "ios_paths=$content_ios" >> "$GITHUB_OUTPUT"
+      
+      - name: Get CloudFront URL
+        id: get_cloudfront_url
+        run: |
+          cloudfront_url=$(echo $(aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[?OriginPath=='/web/$PULL_REQUEST_NUMBER']].DomainName" --output text))
+          echo "cloudfront_url=$cloudfront_url" >> "$GITHUB_OUTPUT"
+        env:
+          PULL_REQUEST_NUMBER: ${{github.event.number}}
 
       - name: Publish links to apps for download
         run: |
@@ -226,7 +234,7 @@ jobs:
           ":test_tube::test_tube: Use the links below to test this build in android and iOS. Happy testing! :test_tube::test_tube:
           | android :robot:  | iOS :apple: | desktop :computer: | :spider_web: |
           | ------------- | ------------- | ------------- | ------------- | 
-          | ${{fromJson(steps.set_var.outputs.android_paths).html_path}}  | ${{fromJson(steps.set_var.outputs.ios_paths).html_path}}  | https://ad-hoc-expensify-cash.us-east-1.amazonaws.com/desktop/${{github.event.number}}/NewExpensify.dmg | https://ad-hoc-expensify-cash.us-east-1.amazonaws.com/web/${{github.event.number}}/index.html |
-          | ![Android](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.android_paths).html_path}}) | ![iOS](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.ios_paths).html_path}}) | ![desktop](https://ad-hoc-expensify-cash.us-east-1.amazonaws.com/desktop/${{github.event.number}}/NewExpensify.dmg) | ![web](https://ad-hoc-expensify-cash.us-east-1.amazonaws.com/web/${{github.event.number}}/index.html) |"
+          | ${{fromJson(steps.set_var.outputs.android_paths).html_path}}  | ${{fromJson(steps.set_var.outputs.ios_paths).html_path}}  | https://ad-hoc-expensify-cash.us-east-1.amazonaws.com/desktop/${{github.event.number}}/NewExpensify.dmg | https://${{steps.get_cloudfront_url.outputs.cloudfront_url}} |
+          | ![Android](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.android_paths).html_path}}) | ![iOS](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.ios_paths).html_path}}) | ![desktop](https://ad-hoc-expensify-cash.us-east-1.amazonaws.com/desktop/${{github.event.number}}/NewExpensify.dmg) | ![web](https://${{steps.get_cloudfront_url.outputs.cloudfront_url}}) |"
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}

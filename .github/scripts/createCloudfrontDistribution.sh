@@ -4,7 +4,7 @@ set -e
 if [[ $(aws s3 ls s3://ad-hoc-expensify-cash/web/$1 | head) ]]; then 
     exit 0;
 else
-    echo $(aws cloudfront create-distribution --origin-domain-name ad-hoc-expensify-cash.s3.us-east-1.amazonaws.com) >> cloudfront.config.json
+    echo $(aws cloudfront create-distribution --origin-domain-name ad-hoc-expensify-cash.s3.us-east-1.amazonaws.com --default-root-object index.html) >> cloudfront.config.json
 
     CONFIG=$(cat "./cloudfront.config.json")
     DISTRIBUTION_ID=$(echo $CONFIG | jq -r .Distribution.Id) 
