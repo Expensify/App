@@ -115,7 +115,7 @@ function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
         true,
     )).map(action => action.originalMessage.IOUTransactionID).value();
 
-    const hasPendingRequests = pendingRequestsInDifferentCurrency.length || pendingCancelledRequestsInDifferentCurrency.length;
+    const hasPendingRequests = Boolean(pendingRequestsInDifferentCurrency.length || pendingCancelledRequestsInDifferentCurrency.length);
 
     // If we have pending money requests made offline, check if all of them have been cancelled offline
     // if yes, the IOU report is not pending currency conversion
