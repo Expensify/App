@@ -8,7 +8,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import FormHelpMessage from '../FormHelpMessage';
 import Text from '../Text';
 import styles from '../../styles/styles';
-import variables from '../../styles/variables';
+import themeColors from '../../styles/themes/default';
 import pickerStyles from './pickerStyles';
 
 const propTypes = {
@@ -108,12 +108,12 @@ class Picker extends PureComponent {
         // so we might need to color accordingly so it doesn't blend with the background.
         this.placeholder = _.isEmpty(this.props.placeholder) ? {} : {
             ...this.props.placeholder,
-            color: variables.pickerOptionsTextColor,
+            color: themeColors.pickerOptionsTextColor,
         };
         this.items = _.map(this.props.items, item => (
             {
                 ...item,
-                color: variables.pickerOptionsTextColor,
+                color: themeColors.pickerOptionsTextColor,
             }
         ));
     }

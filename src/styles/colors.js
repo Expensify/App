@@ -34,6 +34,9 @@ export default {
     greenDefaultButtonPressed: '#467164',
     greenDefaultButtonDisabled: '#8BA69E',
 
+    // Picker option text color, we set this to avoid white on white dropdowns in Windows
+    midnight: '#002140',
+
     // DEPRECATED COLORS. Do not reference these colors. Will be deleted in color switch PR.
     gray1: '#FAFAFA',
     gray2: '#ECECEC',

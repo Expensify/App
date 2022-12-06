@@ -57,6 +57,7 @@ const darkTheme = {
     heroCard: colors.blue,
     uploadPreviewActivityIndicator: colors.greenHighlightBackground,
     checkBox: colors.green,
+    pickerOptionsTextColor: colors.midnight,
 };
 
 const oldTheme = {
