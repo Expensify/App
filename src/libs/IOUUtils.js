@@ -104,7 +104,9 @@ function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
         CONST.IOU.REPORT_ACTION_TYPE.CREATE,
         CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         true,
-    )).map(action => action.originalMessage.IOUTransactionID).value();
+    )).map(action => action.originalMessage.IOUTransactionID)
+        .sort()
+        .value();
 
     // Pending cancelled money requests that are in a different currency
     const pendingCancelledRequestsInDifferentCurrency = _.chain(getIOUReportActions(
@@ -113,22 +115,16 @@ function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
         CONST.IOU.REPORT_ACTION_TYPE.CANCEL,
         CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         true,
-    )).map(action => action.originalMessage.IOUTransactionID).value();
+    )).map(action => action.originalMessage.IOUTransactionID)
+        .sort()
+        .value();
 
     const hasPendingRequests = Boolean(pendingRequestsInDifferentCurrency.length || pendingCancelledRequestsInDifferentCurrency.length);
 
     // If we have pending money requests made offline, check if all of them have been cancelled offline
-    // if yes, the IOU report is not pending currency conversion
-    // it's not enough to simply check if lengths of both arrays are equal, e.g. (2 pending request and 2 cancelled requests)
-    // as the cancelled requests might belong to money requests made online
-    if (hasPendingRequests && pendingRequestsInDifferentCurrency.length === pendingCancelledRequestsInDifferentCurrency.length) {
-        const areAllRequestsInDifferentCurrencyCancelled = _.every(
-            pendingRequestsInDifferentCurrency,
-            requestTransactionID => _.contains(pendingCancelledRequestsInDifferentCurrency, requestTransactionID),
-        );
-        if (areAllRequestsInDifferentCurrencyCancelled) {
-            return false;
-        }
+    // In order to do that, we can grab transactionIDs of all the requested and cancelled money requests and check if they're identical
+    if (hasPendingRequests && _.isEqual(pendingRequestsInDifferentCurrency, pendingCancelledRequestsInDifferentCurrency)) {
+        return false;
     }
 
     // Not all requests made offline have been cancelled, simply return if we have any pending created or cancelled requests
