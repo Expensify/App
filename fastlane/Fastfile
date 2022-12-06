@@ -140,10 +140,17 @@ platform :ios do
         path: "./ios/chat_expensify_adhoc.mobileprovision"
     )
 
+    update_project_provisioning(
+        xcodeproj: "NewExpensify.xcodeproj",
+        profile: "./ios/chat_expensify_adhoc.mobileprovision",
+        build_configuration: "Release",
+    )
+
     build_app(
         workspace: "./ios/NewExpensify.xcworkspace",
         skip_profile_detection: true,
         scheme: "NewExpensify",
+        xcargs: { :PROVISIONING_PROFILE_SPECIFIER => "match AdHoc com.chat.expensify.chat", },
         export_method: "ad-hoc",
         export_options: {
             method: "ad-hoc",
