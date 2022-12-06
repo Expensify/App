@@ -30,6 +30,7 @@ import reportActionPropTypes from '../report/reportActionPropTypes';
 import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
+import withStartProfiler, {withStartProfilerPropTypes} from '../../../libs/Performance/withStartProfiler';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -69,6 +70,7 @@ const propTypes = {
     priorityMode: PropTypes.string,
 
     ...withLocalizePropTypes,
+    ...withStartProfilerPropTypes,
 };
 
 const defaultProps = {
@@ -118,6 +120,9 @@ class SidebarLinks extends React.Component {
             // Prevent opening Report page when click LHN row quickly after clicking FAB icon
             return;
         }
+        this.props.startProfiler({
+            source: 'SidebarLinks',
+        });
         Navigation.navigate(ROUTES.getReportRoute(option.reportID));
         this.props.onLinkClick();
     }
@@ -274,6 +279,7 @@ export default compose(
     withLocalize,
     withCurrentUserPersonalDetails,
     withWindowDimensions,
+    withStartProfiler,
     withOnyx({
         // Note: It is very important that the keys subscribed to here are the same
         // keys that are subscribed to at the top of SidebarUtils.js. If there was a key missing from here and data was updated
