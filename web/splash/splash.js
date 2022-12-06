@@ -11,6 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const root = document.getElementById('root');
     splash.style.backgroundColor = themeColors.appBG;
 
+    // // set app background color
+    const body = document.getElementById('bg');
+    body.style.backgroundColor = themeColors.appBG;
+
     splashLogo.innerHTML = newExpensifyLogo;
 
     const intervalId = setInterval(() => {
