@@ -565,6 +565,9 @@ class ReportActionCompose extends React.Component {
                                                                 e.preventDefault();
                                                                 Report.setIsComposerFullSize(this.props.reportID, false);
                                                             }}
+
+                                                            // Keep focus on the composer when Collapse button is clicked.
+                                                            onMouseDown={e => e.preventDefault()}
                                                             style={styles.composerSizeButton}
                                                             underlayColor={themeColors.componentBG}
                                                             disabled={isBlockedFromConcierge}
@@ -581,6 +584,9 @@ class ReportActionCompose extends React.Component {
                                                                 e.preventDefault();
                                                                 Report.setIsComposerFullSize(this.props.reportID, true);
                                                             }}
+
+                                                            // Keep focus on the composer when Expand button is clicked.
+                                                            onMouseDown={e => e.preventDefault()}
                                                             style={styles.composerSizeButton}
                                                             underlayColor={themeColors.componentBG}
                                                             disabled={isBlockedFromConcierge}
