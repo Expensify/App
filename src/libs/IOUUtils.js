@@ -114,9 +114,17 @@ function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
         true,
     )).value();
 
-    // If the count of the pending requests in different currency plus the count of cancelled ones is even,
-    // then all of the requests have been cancelled and the report is not waiting for conversion in the backend
-    return (pendingRequestsInDifferentCurrency.length + pendingCancelledRequestsInDifferentCurrency.length) % 2 !== 0;
+    // If we have both pending money requests and cancelled request, let's count the total and see if it's even
+    // if it is then all of the requests have been cancelled and the report is not waiting for conversion in the backend
+    if (pendingRequestsInDifferentCurrency.length && pendingCancelledRequestsInDifferentCurrency.length) {
+        return (pendingRequestsInDifferentCurrency.length + pendingCancelledRequestsInDifferentCurrency.length) % 2 !== 0;
+    }
+
+    // This means that either we have either:
+    // pending money request: return true if the count is positive
+    // pending cancelled money requests: return true if the count is positive
+    // neither pending money requests or cancelled requests, return false
+    return pendingRequestsInDifferentCurrency.length || pendingCancelledRequestsInDifferentCurrency.length;
 }
 
 export {
