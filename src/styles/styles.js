@@ -2794,6 +2794,7 @@ const styles = {
     },
 
     saveButtonPadding: {
+        paddingLeft: 18,
         paddingRight: 18,
     },
 };
