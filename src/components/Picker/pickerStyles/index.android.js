@@ -5,7 +5,7 @@ const pickerStyles = isDisabled => ({
     ...styles.picker(isDisabled),
     inputAndroid: {
         ...styles.picker(isDisabled).inputNative,
-        paddingLeft: 12,
+        paddingLeft: 0,
     },
 });
 
