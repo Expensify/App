@@ -242,11 +242,11 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
  * @param {String} comment
  * @param {String} currency
  * @param {String} locale
- * @param {String} reportID
+ * @param {String} existingGroupChatReportID
  *
  * @return {Object}
  */
-function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale, reportID = '') {
+function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale, existingGroupChatReportID = '') {
     const currentUserEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantLogins = _.map(participants, participant => OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase());
     const existingGroupChatReport = ReportUtils.getChatByParticipants(participantLogins);
@@ -501,10 +501,10 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
  * @param {String} comment
  * @param {String} currency
  * @param {String} locale
- * @param {String} reportID
+ * @param {String} existingGroupChatReportID
  */
-function splitBill(participants, currentUserLogin, amount, comment, currency, locale, reportID = '') {
-    const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale, reportID);
+function splitBill(participants, currentUserLogin, amount, comment, currency, locale, existingGroupChatReportID = '') {
+    const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale, existingGroupChatReportID);
 
     API.write('SplitBill', {
         reportID: groupData.chatReportID,
