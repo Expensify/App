@@ -1563,13 +1563,6 @@ const styles = {
         borderRadius: 24,
     },
 
-    horizontalStackedAvatar: {
-        height: 28,
-        width: 28,
-        borderRadius: 33,
-        paddingTop: 2,
-    },
-
     singleSubscript: {
         height: variables.iconSizeNormal,
         width: variables.iconSizeNormal,

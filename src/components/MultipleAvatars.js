@@ -29,6 +29,12 @@ const propTypes = {
 
     /** Prop to identify if we should load avatars vertically instead of diagonally */
     shouldStackHorizontally: PropTypes.bool,
+
+    /** Whether the avatars are hovered */
+    isHovered: PropTypes.bool,
+
+    /** Whether the avatars are in an element being pressed */
+    isPressed: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -38,6 +44,8 @@ const defaultProps = {
     avatarTooltips: [],
     fallbackIcon: undefined,
     shouldStackHorizontally: false,
+    isHovered: false,
+    isPressed: false,
 };
 
 const MultipleAvatars = (props) => {
@@ -75,7 +83,7 @@ const MultipleAvatars = (props) => {
                         _.map([...props.icons].splice(0, 4).reverse(), (icon, index) => (
                             <View
                                 key={`stackedAvatars-${index}`}
-                                style={[styles.horizontalStackedAvatar, styles.alignItemsCenter, horizontalStyles[index]]}
+                                style={[StyleUtils.getHorizontalStackedAvatarStyle(props.isHovered, props.isPressed), styles.alignItemsCenter, horizontalStyles[index]]}
                             >
                                 <Avatar
                                     source={icon || props.fallbackIcon}
