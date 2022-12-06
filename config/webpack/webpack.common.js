@@ -217,6 +217,26 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             'process/browser': require.resolve('process/browser'),
         },
     },
+    optimization: {
+        runtimeChunk: 'single',
+        splitChunks: {
+            cacheGroups: {
+                // Extract all 3rd party dependencies (~75% of App) to separate js file
+                // This gives a more efficient caching - 3rd party deps don't change as often as main source
+                // When dependencies don't change webpack would produce the same js file (and content hash)
+                // After App update end users would download just the main source and resolve the rest from cache
+                // When dependencies do change cache is invalidated and users download everything - same as before
+                vendor: {
+                    test: /[\\/]node_modules[\\/]/,
+                    name: 'vendors',
+
+                    // Capture only the scripts needed for the initial load, so any async imports
+                    // would be grouped (and lazy loaded) separately
+                    chunks: 'initial',
+                },
+            },
+        },
+    },
 });
 
 module.exports = webpackConfig;
