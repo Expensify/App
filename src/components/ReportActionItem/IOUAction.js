@@ -86,11 +86,9 @@ const IOUAction = (props) => {
         && props.isMostRecentIOUReportAction
         && !props.network.isOffline
     ) {
-        const hasPendingRequestsInDifferentCurrency = _.chain(
+        isConverting = _.chain(
             IOUUtils.getIOUReportActions(props.reportActions, props.iouReport, '', '', true),
         ).some(action => action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD).value();
-
-        isConverting = !props.network.isOffline && hasPendingRequestsInDifferentCurrency;
     }
 
     return (
