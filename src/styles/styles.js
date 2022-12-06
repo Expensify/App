@@ -28,6 +28,7 @@ const picker = {
     lineHeight: variables.fontSizeNormalHeight,
     paddingBottom: 8,
     paddingTop: 23,
+    paddingLeft: 0,
     height: variables.inputHeight,
     borderWidth: 0,
 };
@@ -528,7 +529,7 @@ const styles = {
         inputIOS: {
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
-            paddingLeft: 9,
+            paddingLeft: 0,
             paddingRight: 25,
             paddingTop: 6,
             paddingBottom: 6,
@@ -542,7 +543,7 @@ const styles = {
         inputWeb: {
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
-            paddingLeft: 9,
+            paddingLeft: 0,
             paddingRight: 25,
             paddingTop: 6,
             paddingBottom: 6,
@@ -558,7 +559,7 @@ const styles = {
         inputAndroid: {
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
-            paddingLeft: 9,
+            paddingLeft: 0,
             paddingRight: 25,
             paddingTop: 6,
             paddingBottom: 6,
@@ -793,6 +794,7 @@ const styles = {
 
     pickerContainer: {
         borderBottomWidth: 2,
+        paddingLeft: 0,
         borderStyle: 'solid',
         borderColor: themeColors.border,
         justifyContent: 'center',
