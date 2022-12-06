@@ -41,7 +41,11 @@ function clearStorageAndRedirect(errorMessage) {
     const shouldForceOffline = currentShouldForceOffline;
 
     // Clearing storage discards the authToken. This causes a redirect to the SignIn screen
-    Onyx.clear()
+    Onyx.clear({
+        [ONYXKEYS.NETWORK]: {
+            isOffline: currentIsOffline,
+        },
+    })
         .then(() => {
             if (preferredLocale) {
                 Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
