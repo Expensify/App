@@ -29,7 +29,7 @@ import Slider from './Slider';
 import cropOrRotateImage from '../../libs/cropOrRotateImage';
 import HeaderGap from '../HeaderGap';
 import * as StyleUtils from '../../styles/StyleUtils';
- 
+
 const propTypes = {
     /** Link to image for cropping */
     imageUri: PropTypes.string,
