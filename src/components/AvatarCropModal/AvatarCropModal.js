@@ -292,7 +292,11 @@ const AvatarCropModal = (props) => {
         }
         const newScale = newScaleValue(locationX, sliderContainerSize);
         translateSlider.value = locationX;
+        const differential = newScale / scale.value;
         scale.value = newScale;
+        const newX = translateX.value * differential;
+        const newY = translateY.value * differential;
+        updateImageOffset(newX, newY);
     };
 
     return (
