@@ -223,7 +223,7 @@ jobs:
       - name: Get CloudFront URL
         id: get_cloudfront_url
         run: |
-          cloudfront_url=$(echo $(aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[?OriginPath=='/web/$PULL_REQUEST_NUMBER']].DomainName" --output text))
+          cloudfront_url=$(aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[?OriginPath=='/web/$PULL_REQUEST_NUMBER']].DomainName" --output text)
           echo "cloudfront_url=$cloudfront_url" >> "$GITHUB_OUTPUT"
         env:
           PULL_REQUEST_NUMBER: ${{github.event.number}}
