@@ -7,6 +7,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const dotenv = require('dotenv');
 const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
+const HtmlInlineScriptPlugin = require('html-inline-script-webpack-plugin');
 const CustomVersionFilePlugin = require('./CustomVersionFilePlugin');
 
 const includeModules = [
@@ -23,6 +24,20 @@ const includeModules = [
     '@react-navigation/drawer',
 ].join('|');
 
+const envToLogoSuffixMap = {
+    production: '',
+    staging: '-stg',
+    dev: '-dev',
+};
+
+function mapEnvToLogoSuffix(envFile) {
+    let env = envFile.split('.')[2];
+    if (typeof env === 'undefined') {
+        env = 'dev';
+    }
+    return envToLogoSuffixMap[env];
+}
+
 /**
  * Get a production grade config for web or desktop
  * @param {Object} env
@@ -33,10 +48,13 @@ const includeModules = [
 const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
     mode: 'production',
     devtool: 'source-map',
-    entry: [
-        'babel-polyfill',
-        './index.js',
-    ],
+    entry: {
+        main: [
+            'babel-polyfill',
+            './index.js',
+        ],
+        splash: ['./web/splash/splash.js'],
+    },
     output: {
         filename: '[name]-[contenthash].bundle.js',
         path: path.resolve(__dirname, '../../dist'),
@@ -58,6 +76,9 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             filename: 'index.html',
             usePolyfillIO: platform === 'web',
         }),
+        new HtmlInlineScriptPlugin({
+            scriptMatchPattern: [/splash.+[.]js$/],
+        }),
         new ProvidePlugin({
             process: 'process/browser',
         }),
@@ -69,6 +90,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 {from: 'web/favicon-unread.png'},
                 {from: 'web/og-preview-image.png'},
                 {from: 'assets/css', to: 'css'},
+                {from: 'assets/fonts', to: 'fonts'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
                 {from: 'assets/images/shadow.png', to: 'images/shadow.png'},
                 {from: '.well-known/apple-app-site-association', to: '.well-known/apple-app-site-association', toType: 'file'},
@@ -144,6 +166,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             // Load svg images
             {
                 test: /\.svg$/,
+                resourceQuery: {not: [/raw/]},
                 exclude: /node_modules/,
                 use: [
                     {
@@ -152,13 +175,32 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 ],
             },
             {
+                test: /splash.css$/i,
+                use: [{
+                    loader: 'style-loader',
+                    options: {
+                        insert: 'head',
+                        injectType: 'singletonStyleTag',
+                    },
+                }],
+            },
+            {
                 test: /\.css$/i,
                 use: ['style-loader', 'css-loader'],
+            },
+            {
+                test: /\.(woff|woff2)$/i,
+                type: 'asset',
+            },
+            {
+                resourceQuery: /raw/,
+                type: 'asset/source',
             },
         ],
     },
     resolve: {
         alias: {
+            logo$: path.resolve(__dirname, `../../assets/images/new-expensify${mapEnvToLogoSuffix(envFile)}.svg`),
             'react-native-config': 'react-web-config',
             'react-native$': '@expensify/react-native-web',
             'react-native-web': '@expensify/react-native-web',

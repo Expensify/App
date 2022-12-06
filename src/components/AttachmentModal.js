@@ -4,6 +4,7 @@ import {View, Animated, Keyboard} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashExtend from 'lodash/extend';
+import _ from 'underscore';
 import CONST from '../CONST';
 import Modal from './Modal';
 import AttachmentView from './AttachmentView';
@@ -168,6 +169,17 @@ class AttachmentModal extends PureComponent {
             return false;
         }
 
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
+        if (!_.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
+            const invalidReason = `${this.props.translate('attachmentPicker.notAllowedExtension')} ${CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS.join(', ')}`;
+            this.setState({
+                isAttachmentInvalid: true,
+                attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.wrongFileType'),
+                attachmentInvalidReason: invalidReason,
+            });
+            return false;
+        }
+
         return true;
     }
 
@@ -221,15 +233,6 @@ class AttachmentModal extends PureComponent {
             ? addEncryptedAuthTokenToURL(this.state.sourceURL)
             : this.state.sourceURL;
 
-        // When the confirm button is visible we don't need bottom padding on the attachment view.
-        const attachmentViewPaddingStyles = this.props.onConfirm
-            ? [styles.pl5, styles.pr5, styles.pt5]
-            : styles.p5;
-
-        const attachmentViewStyles = this.props.isSmallScreenWidth || this.props.isMediumScreenWidth
-            ? [styles.imageModalImageCenterContainer]
-            : [styles.imageModalImageCenterContainer, attachmentViewPaddingStyles];
-
         const {fileName, fileExtension} = FileUtils.splitExtensionFromFileName(this.props.originalFileName || lodashGet(this.state, 'file.name', ''));
 
         return (
@@ -260,7 +263,7 @@ class AttachmentModal extends PureComponent {
                             />
                         ) : ''}
                     />
-                    <View style={attachmentViewStyles}>
+                    <View style={styles.imageModalImageCenterContainer}>
                         {this.state.sourceURL && (
                             <AttachmentView
                                 sourceURL={sourceURL}
@@ -275,7 +278,7 @@ class AttachmentModal extends PureComponent {
                         <Animated.View style={StyleUtils.fade(this.state.confirmButtonFadeAnimation)}>
                             <Button
                                 success
-                                style={[styles.buttonConfirm]}
+                                style={[styles.buttonConfirm, this.props.isSmallScreenWidth ? {} : styles.attachmentButtonBigScreen]}
                                 textStyles={[styles.buttonConfirmText]}
                                 text={this.props.translate('common.send')}
                                 onPress={this.submitAndClose}

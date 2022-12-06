@@ -1,0 +1,9 @@
+name: 'Reviewer Checklist Test'
+description: 'Verifies that the reviewer checklist is filled out'
+inputs:
+  GITHUB_TOKEN:
+    description: Auth token for New Expensify Github
+    required: true
+runs:
+  using: 'node16'
+  main: './index.js'

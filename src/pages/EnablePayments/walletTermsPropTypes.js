@@ -6,5 +6,5 @@ export default PropTypes.shape({
     errors: PropTypes.objectOf(PropTypes.string),
 
     /** When the user accepts the Wallet's terms in order to pay an IOU, this is the ID of the chatReport the IOU is linked to */
-    chatReportID: PropTypes.number,
+    chatReportID: PropTypes.string,
 });

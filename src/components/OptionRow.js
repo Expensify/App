@@ -16,7 +16,7 @@ import MultipleAvatars from './MultipleAvatars';
 import Hoverable from './Hoverable';
 import DisplayNames from './DisplayNames';
 import IOUBadge from './IOUBadge';
-import colors from '../styles/colors';
+import themeColors from '../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Text from './Text';
 import SelectCircle from './SelectCircle';
@@ -70,6 +70,9 @@ const propTypes = {
     /** Whether this option should be disabled */
     isDisabled: PropTypes.bool,
 
+    /** Whether to show a line separating options in list */
+    shouldHaveOptionSeparator: PropTypes.bool,
+
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     ...withLocalizePropTypes,
@@ -78,7 +81,7 @@ const propTypes = {
 const defaultProps = {
     accessibilityHint: '',
     alternateTextAccessibilityLabel: '',
-    backgroundColor: colors.white,
+    backgroundColor: themeColors.appBG,
     hoverStyle: styles.sidebarLinkHover,
     hideAdditionalOptionStates: false,
     showSelectedState: false,
@@ -90,6 +93,7 @@ const defaultProps = {
     isDisabled: false,
     optionIsFocused: false,
     style: null,
+    shouldHaveOptionSeparator: false,
 };
 
 const OptionRow = (props) => {
@@ -164,6 +168,7 @@ const OptionRow = (props) => {
                             props.optionIsFocused ? styles.sidebarLinkActive : null,
                             hovered && !props.optionIsFocused ? props.hoverStyle : null,
                             props.isDisabled && styles.cursorDisabled,
+                            props.shouldHaveOptionSeparator && styles.borderTop,
                         ]}
                     >
                         <View accessibilityHint={props.accessibilityHint} style={sidebarInnerRowStyle}>
@@ -233,7 +238,7 @@ const OptionRow = (props) => {
                                 <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                     <Icon
                                         src={Expensicons.DotIndicator}
-                                        fill={colors.red}
+                                        fill={themeColors.danger}
                                         height={variables.iconSizeSmall}
                                         width={variables.iconSizeSmall}
                                     />
@@ -264,6 +269,16 @@ const OptionRow = (props) => {
                                         accessibilityLabel={props.translate('sidebarScreen.chatPinned')}
                                     >
                                         <Icon src={Expensicons.Pin} height={16} width={16} />
+                                    </View>
+                                )}
+                                {Boolean(props.option.customIcon) && (
+                                    <View>
+                                        <Icon
+                                            src={lodashGet(props.option, 'customIcon.src', '')}
+                                            height={16}
+                                            width={16}
+                                            fill={lodashGet(props.option, 'customIcon.color')}
+                                        />
                                     </View>
                                 )}
                             </View>

@@ -90,17 +90,6 @@ function getNavigationDrawerType(isSmallScreenWidth) {
     return isSmallScreenWidth ? 'slide' : 'permanent';
 }
 
-function getNavigationModalCardStyle(isSmallScreenWidth) {
-    return {
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-        backgroundColor: 'transparent',
-        height: '100%',
-    };
-}
-
 /**
  * @param {Boolean} isZoomed
  * @param {Boolean} isDragging
@@ -274,9 +263,10 @@ function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT
  * Generate fill color of an icon based on its state.
  *
  * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
+ * @param {Boolean} isMenuIcon - whether this icon is apart of a list
  * @returns {Object}
  */
-function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
+function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT, isMenuIcon = false) {
     switch (buttonState) {
         case CONST.BUTTON_STATES.ACTIVE:
         case CONST.BUTTON_STATES.PRESSED:
@@ -286,6 +276,9 @@ function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
         case CONST.BUTTON_STATES.DEFAULT:
         case CONST.BUTTON_STATES.DISABLED:
         default:
+            if (isMenuIcon) {
+                return themeColors.iconMenu;
+            }
             return themeColors.icon;
     }
 }
@@ -319,16 +312,22 @@ function getWidthAndHeightStyle(width, height) {
  * @returns {Object}
  */
 function getModalPaddingStyles({
+    shouldAddBottomSafeAreaMargin,
+    shouldAddTopSafeAreaMargin,
     shouldAddBottomSafeAreaPadding,
     shouldAddTopSafeAreaPadding,
     safeAreaPaddingTop,
     safeAreaPaddingBottom,
     safeAreaPaddingLeft,
     safeAreaPaddingRight,
+    modalContainerStyleMarginTop,
+    modalContainerStyleMarginBottom,
     modalContainerStylePaddingTop,
     modalContainerStylePaddingBottom,
 }) {
     return {
+        marginTop: (modalContainerStyleMarginTop || 0) + (shouldAddTopSafeAreaMargin ? safeAreaPaddingTop : 0),
+        marginBottom: (modalContainerStyleMarginBottom || 0) + (shouldAddBottomSafeAreaMargin ? safeAreaPaddingBottom : 0),
         paddingTop: shouldAddTopSafeAreaPadding
             ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
             : modalContainerStylePaddingTop || 0,
@@ -547,7 +546,6 @@ export {
     getSafeAreaMargins,
     getNavigationDrawerStyle,
     getNavigationDrawerType,
-    getNavigationModalCardStyle,
     getZoomCursorStyle,
     getZoomSizingStyle,
     getAutoGrowTextInputStyle,

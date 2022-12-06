@@ -1,7 +1,5 @@
 import React, {PureComponent} from 'react';
-import {
-    Pressable, Animated, Easing, KeyboardAvoidingView,
-} from 'react-native';
+import {Pressable, Animated, Easing} from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -64,30 +62,33 @@ class FloatingActionButton extends PureComponent {
 
         const backgroundColor = this.animatedValue.interpolate({
             inputRange: [0, 1],
-            outputRange: [themeColors.buttonSuccessBG, themeColors.buttonDefaultBG],
+            outputRange: [themeColors.success, themeColors.buttonDefaultBG],
         });
 
         const fill = this.animatedValue.interpolate({
             inputRange: [0, 1],
-            outputRange: [themeColors.componentBG, themeColors.heading],
+            outputRange: [themeColors.textLight, themeColors.textDark],
         });
 
         return (
-            <KeyboardAvoidingView behavior="padding">
-                <Tooltip absolute text={this.props.translate('common.new')}>
-                    <AnimatedPressable
-                        accessibilityLabel={this.props.accessibilityLabel}
-                        accessibilityRole={this.props.accessibilityRole}
-                        onPress={this.props.onPress}
-                        style={[
-                            styles.floatingActionButton,
-                            StyleUtils.getAnimatedFABStyle(rotate, backgroundColor),
-                        ]}
-                    >
-                        <AnimatedIcon src={Expensicons.Plus} fill={fill} />
-                    </AnimatedPressable>
-                </Tooltip>
-            </KeyboardAvoidingView>
+            <Tooltip absolute text={this.props.translate('common.new')}>
+                <AnimatedPressable
+                    ref={el => this.fabPressable = el}
+                    accessibilityLabel={this.props.accessibilityLabel}
+                    accessibilityRole={this.props.accessibilityRole}
+                    onPress={(e) => {
+                        // Drop focus to avoid blue focus ring.
+                        this.fabPressable.blur();
+                        this.props.onPress(e);
+                    }}
+                    style={[
+                        styles.floatingActionButton,
+                        StyleUtils.getAnimatedFABStyle(rotate, backgroundColor),
+                    ]}
+                >
+                    <AnimatedIcon src={Expensicons.Plus} fill={fill} />
+                </AnimatedPressable>
+            </Tooltip>
         );
     }
 }

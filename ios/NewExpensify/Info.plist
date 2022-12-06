@@ -17,7 +17,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.2.23</string>
+	<string>1.2.36</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -30,7 +30,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1.2.23.7</string>
+	<string>1.2.36.2</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationQueriesSchemes</key>
@@ -75,18 +75,14 @@
 	<string>Your photos are used to create chat attachments.</string>
 	<key>UIAppFonts</key>
 	<array>
-		<string>GTAmericaExp-Bold.otf</string>
-		<string>GTAmericaExp-Light.otf</string>
-		<string>GTAmericaExp-Medium.otf</string>
-		<string>GTAmericaExp-Regular.otf</string>
-		<string>GTAmericaExp-Thin.otf</string>
-		<string>GTAmericaExpMono-Rg.otf</string>
-		<string>GTAmericaExp-BdIt.otf</string>
-		<string>GTAmericaExp-MdIt.otf</string>
-		<string>GTAmericaExp-RgIt.otf</string>
-		<string>GTAmericaExpMono-Bd.otf</string>
-		<string>GTAmericaExpMono-BdIt.otf</string>
-		<string>GTAmericaExpMono-RgIt.otf</string>
+		<string>ExpensifyNewKansas-MediumItalic.otf</string>
+		<string>ExpensifyNewKansas-Meduim.otf</string>
+		<string>ExpensifyNeue-Regular.otf</string>
+		<string>ExpensifyNeue-Italic.otf</string>
+		<string>ExpensifyNeue-BoldItalic.otf</string>
+		<string>ExpensifyNeue-Bold.otf</string>
+		<string>ExpensifyMono-Regular.otf</string>
+		<string>ExpensifyMono-Bold.otf</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>

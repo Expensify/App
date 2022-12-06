@@ -14,7 +14,6 @@ import {
 } from 'react-native-reanimated';
 import CONST from '../../CONST';
 import compose from '../../libs/compose';
-import colors from '../../styles/colors';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import Button from '../Button';
@@ -38,6 +37,9 @@ const propTypes = {
     /** Name of the image */
     imageName: PropTypes.string,
 
+    /** Type of the image file */
+    imageType: PropTypes.string,
+
     /** Callback to be called when user closes the modal */
     onClose: PropTypes.func,
 
@@ -54,6 +56,7 @@ const propTypes = {
 const defaultProps = {
     imageUri: '',
     imageName: '',
+    imageType: '',
     onClose: () => {},
     onSave: () => {},
 };
@@ -266,12 +269,16 @@ const AvatarCropModal = (props) => {
             height: size, width: size, originX, originY,
         };
 
-        cropOrRotateImage(props.imageUri, [{rotate: rotation.value % 360}, {crop}], {compress: 1, name: props.imageName})
+        cropOrRotateImage(
+            props.imageUri,
+            [{rotate: rotation.value % 360}, {crop}],
+            {compress: 1, name: props.imageName, type: props.imageType},
+        )
             .then((newImage) => {
                 props.onClose();
                 props.onSave(newImage);
             });
-    }, [props.imageUri, props.imageName, imageContainerSize]);
+    }, [props.imageUri, props.imageName, props.imageType, imageContainerSize]);
 
     /**
      * @param {Event} event
@@ -317,7 +324,7 @@ const AvatarCropModal = (props) => {
                                 rotation={rotation}
                             />
                             <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthAndHeightStyle(imageContainerSize)]}>
-                                <Icon src={Expensicons.Zoom} fill={colors.gray3} />
+                                <Icon src={Expensicons.Zoom} fill={themeColors.icons} />
                                 <Pressable
                                     style={[styles.mh5, styles.flex1]}
                                     onLayout={initializeSliderContainer}
@@ -328,7 +335,7 @@ const AvatarCropModal = (props) => {
                                 <Button
                                     medium
                                     icon={Expensicons.Rotate}
-                                    iconFill={colors.black}
+                                    iconFill={themeColors.inverse}
                                     iconStyles={[styles.mr0]}
                                     style={[styles.imageCropRotateButton]}
                                     onPress={rotateImage}

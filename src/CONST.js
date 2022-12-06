@@ -15,8 +15,11 @@ const CONST = {
     ANIMATION_IN_TIMING: 100,
 
     API_ATTACHMENT_VALIDATIONS: {
-        // 50 megabytes in bytes
-        MAX_SIZE: 52428800,
+        // Same as the PHP layer allows
+        ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml', 'mp3', 'mp4', 'mov'],
+
+        // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
+        MAX_SIZE: 25165824,
 
         // An arbitrary size, but the same minimum as in the PHP layer
         MIN_SIZE: 240,
@@ -37,6 +40,7 @@ const CONST = {
     },
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
+        UNIX_EPOCH: '1970-01-01 00:00:00.000',
     },
     SMS: {
         DOMAIN: '@expensify.sms',
@@ -101,7 +105,11 @@ const CONST = {
         },
         MAX_LENGTH: {
             SSN: 4,
-            ZIP_CODE: 5,
+            ZIP_CODE: 10,
+        },
+        TYPE: {
+            BUSINESS: 'BUSINESS',
+            PERSONAL: 'PERSONAL',
         },
     },
     INCORPORATION_TYPES: {
@@ -223,6 +231,7 @@ const CONST = {
     DEEPLINK_BASE_URL: 'new-expensify://',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
+    CONCIERGE_ICON_URL: `${CLOUDFRONT_URL}/images/icons/concierge_2022.png`,
     UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
     GITHUB_URL: 'https://github.com/Expensify/App',
     TERMS_URL: `${USE_EXPENSIFY_URL}/terms`,
@@ -261,9 +270,6 @@ const CONST = {
             ACCOUNT_MERGED: 'accountMerged',
             REMOVED_FROM_POLICY: 'removedFromPolicy',
             POLICY_DELETED: 'policyDeleted',
-        },
-        ERROR: {
-            INACCESSIBLE_REPORT: 'Report not found',
         },
         MESSAGE: {
             TYPE: {
@@ -315,6 +321,7 @@ const CONST = {
         MAX_ROOM_NAME_LENGTH: 80,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
         OWNER_EMAIL_FAKE: '__FAKE__',
+        DEFAULT_REPORT_NAME: 'Chat Report',
     },
     COMPOSER: {
         MAX_LINES: 16,
@@ -348,7 +355,6 @@ const CONST = {
         SEARCH_RENDER: 'search_render',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',
-        HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
         SWITCH_REPORT: 'switch_report',
         SIDEBAR_LOADED: 'sidebar_loaded',
         COLD: 'cold',
@@ -489,8 +495,8 @@ const CONST = {
         WIDTH: 320,
         HEIGHT: 400,
     },
-    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
-    EMOJI_PICKER_ITEM_HEIGHT: 40,
+    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 298,
+    EMOJI_PICKER_ITEM_HEIGHT: 32,
     EMOJI_PICKER_HEADER_HEIGHT: 38,
     COMPOSER_MAX_HEIGHT: 125,
     CHAT_FOOTER_MIN_HEIGHT: 65,
@@ -573,6 +579,7 @@ const CONST = {
         STEP: {
             // In the order they appear in the Wallet flow
             ADDITIONAL_DETAILS: 'AdditionalDetailsStep',
+            ADDITIONAL_DETAILS_KBA: 'AdditionalDetailsKBAStep',
             ONFIDO: 'OnfidoStep',
             TERMS: 'TermsStep',
             ACTIVATE: 'ActivateStep',
@@ -658,6 +665,8 @@ const CONST = {
             PAY: 'pay',
             CREATE: 'create',
             SPLIT: 'split',
+            DECLINE: 'decline',
+            CANCEL: 'cancel',
         },
         AMOUNT_MAX_LENGTH: 10,
     },
@@ -682,6 +691,8 @@ const CONST = {
         },
         ROLE: {
             ADMIN: 'admin',
+            AUDITOR: 'auditor',
+            USER: 'user',
         },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
@@ -745,6 +756,7 @@ const CONST = {
         NON_NUMERIC: /\D/g,
         EMOJI_NAME: /:[\w+-]+:/g,
         EMOJI_SUGGESTIONS: /:[a-zA-Z]{1,20}(\s[a-zA-Z]{0,20})?$/,
+        AFTER_FIRST_LINE_BREAK: /\n.*/g,
     },
 
     PRONOUNS: {
@@ -821,7 +833,6 @@ const CONST = {
         INVITE: 'invite',
         LEAVE_ROOM: 'leaveRoom',
     },
-    PROFILE_SETTINGS_FORM: 'profileSettingsForm',
 
     // These split the maximum decimal value of a signed 64-bit number (9,223,372,036,854,775,807) into parts where none of them are too big to fit into a 32-bit number, so that we can
     // generate them each with a random number generator with only 32-bits of precision.

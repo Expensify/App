@@ -47,6 +47,21 @@
         ::-ms-reveal {
             display: none;
         }
+
+        /* Customizes the background and text colors for autofill inputs in Chrome */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        textarea:-webkit-autofill,
+        textarea:-webkit-autofill:hover,
+        textarea:-webkit-autofill:focus,
+        select:-webkit-autofill,
+        select:-webkit-autofill:hover,
+        select:-webkit-autofill:focus {
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: #ffffff;
+            caret-color: #ffffff;
+        }
     </style>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <link rel="shortcut icon" id="favicon" href="/favicon.png">
@@ -58,5 +73,8 @@
 <body>
     <div style="position: absolute; top: 0; left: 0; right: 0; height: 30px;" id="drag-area"></div>
     <div id="root"></div>
+    <div id="splash">
+        <div class="splash-logo"></div>
+    </div>
 </body>
 </html>

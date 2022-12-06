@@ -1,0 +1,15 @@
+name: PR Reviewer Checklist
+
+on: pull_request_review
+
+jobs:
+  # Note: PHP specifically looks for the name of this job, "checklist", so if the name of the job is changed,
+  # then you also need to go into PHP and update the name of this job in the GH_JOB_NAME_CHECKLIST constant
+  checklist:
+    runs-on: ubuntu-latest
+    if: github.actor != 'OSBotify'
+    steps:
+      - name: reviewerChecklist.js
+        uses: Expensify/App/.github/actions/javascript/reviewerChecklist@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

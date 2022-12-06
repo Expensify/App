@@ -10,19 +10,26 @@ import Navigation from '../Navigation/Navigation';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import asyncOpenURL from '../asyncOpenURL';
-import Log from '../Log';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
 import * as IOUUtils from '../IOUUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
-import * as NumberUtils from '../NumberUtils';
 import DateUtils from '../DateUtils';
 
-let iouReports;
+const chatReports = {};
+const iouReports = {};
 Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_IOUS,
-    waitForCollectionCallback: true,
-    callback: val => iouReports = val,
+    key: ONYXKEYS.COLLECTION.REPORT,
+    callback: (report, key) => {
+        if (!report) {
+            delete iouReports[key];
+            delete chatReports[key];
+        } else if (ReportUtils.isIOUReport(report)) {
+            iouReports[key] = report;
+        } else {
+            chatReports[key] = report;
+        }
+    },
 });
 
 let preferredLocale = CONST.DEFAULT_LOCALE;
@@ -44,7 +51,7 @@ Onyx.connect({
  * @param {Number} amount
  * @param {String} currency
  * @param {String} recipientEmail
- * @param {String} participant
+ * @param {Object} participant
  * @param {String} comment
  */
 function requestMoney(report, amount, currency, recipientEmail, participant, comment) {
@@ -62,9 +69,10 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
     const originalIOUStatus = chatReport.hasOutstandingIOU;
     if (originalIOUStatus) {
         iouReport = IOUUtils.updateIOUOwnerAndTotal(
-            iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`],
+            iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`],
             recipientEmail,
             amount,
+            currency,
         );
     } else {
         iouReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, debtorEmail, amount, chatReport.reportID, currency, preferredLocale);
@@ -107,8 +115,8 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
             },
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReport.reportID}`,
+            onyxMethod: originalIOUStatus ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: iouReport,
         },
     ];
@@ -210,7 +218,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         comment,
         iouReportID: iouReport.reportID,
         chatReportID: chatReport.reportID,
-        transactionID: NumberUtils.rand64(),
+        transactionID: optimisticReportAction.originalMessage.IOUTransactionID,
         reportActionID: optimisticReportAction.reportActionID,
         clientID: optimisticReportAction.sequenceNumber,
     }, {optimisticData, successData, failureData});
@@ -331,11 +339,12 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         let oneOnOneIOUReport;
         let existingIOUReport = null;
         if (oneOnOneChatReport.iouReportID) {
-            existingIOUReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneChatReport.iouReportID}`];
+            existingIOUReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`];
             oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(
                 existingIOUReport,
                 currentUserEmail,
                 splitAmount,
+                currency,
             );
             oneOnOneChatReport.hasOutstandingIOU = oneOnOneIOUReport.total !== 0;
         } else {
@@ -451,13 +460,13 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             // If we have multiple participants selected, we need to check if the 1:1 chat between the users already exists
             // If we have only one other participant, the group chat is the 1:1 chat and we need to check if that already exists
             onyxMethod: ((hasMultipleParticipants && existingOneOnOneChatReport) || (!hasMultipleParticipants && existingGroupChatReport)) ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneIOUReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneIOUReport.reportID}`,
             value: oneOnOneIOUReport,
         });
 
         failureData.push({
             onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${oneOnOneIOUReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneIOUReport.reportID}`,
             value: existingIOUReport || oneOnOneIOUReport,
         });
 
@@ -535,41 +544,102 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
 }
 
 /**
- * Reject an iouReport transaction. Declining and cancelling transactions are done via the same Auth command.
+ * Cancels or declines a transaction in iouReport.
+ * Declining and cancelling transactions are done via the same Auth command.
  *
- * @param {Object} params
- * @param {Number} params.reportID
- * @param {Number} params.chatReportID
- * @param {String} params.transactionID
- * @param {String} params.comment
+ * @param {String} chatReportID
+ * @param {String} iouReportID
+ * @param {String} type - cancel|decline
+ * @param {Object} moneyRequestAction - the create IOU reportAction we are cancelling
  */
-function rejectTransaction({
-    reportID, chatReportID, transactionID, comment,
-}) {
-    Onyx.merge(ONYXKEYS.TRANSACTIONS_BEING_REJECTED, {
-        [transactionID]: true,
-    });
-    DeprecatedAPI.RejectTransaction({
-        reportID,
-        transactionID,
-        comment,
-    })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                Log.hmmm('Error rejecting transaction', {error: response.error});
-                return;
-            }
+function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction) {
+    const chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
+    const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+    const transactionID = moneyRequestAction.originalMessage.IOUTransactionID;
 
-            const chatReport = response.reports[chatReportID];
-            const iouReport = response.reports[reportID];
-            Report.syncChatAndIOUReports(chatReport, iouReport);
-        })
-        .finally(() => {
-            // Setting as null deletes the transactionID
-            Onyx.merge(ONYXKEYS.TRANSACTIONS_BEING_REJECTED, {
-                [transactionID]: null,
-            });
-        });
+    // Get the amount we are cancelling
+    const amount = moneyRequestAction.originalMessage.amount;
+    const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
+    const optimisticReportAction = ReportUtils.buildOptimisticIOUReportAction(
+        newSequenceNumber,
+        type,
+        amount,
+        moneyRequestAction.originalMessage.currency,
+        moneyRequestAction.originalMessage.comment,
+        [],
+        '',
+        transactionID,
+        iouReportID,
+    );
+
+    const currentUserEmail = optimisticReportAction.actorEmail;
+    const updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, moneyRequestAction.originalMessage.currency, type);
+
+    chatReport.maxSequenceNumber = newSequenceNumber;
+    chatReport.lastReadSequenceNumber = newSequenceNumber;
+    chatReport.lastMessageText = optimisticReportAction.message[0].text;
+    chatReport.lastMessageHtml = optimisticReportAction.message[0].html;
+    chatReport.hasOutstandingIOU = updatedIOUReport.total !== 0;
+
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            value: {
+                [optimisticReportAction.sequenceNumber]: {
+                    ...optimisticReportAction,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+            value: chatReport,
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+            value: updatedIOUReport,
+        },
+    ];
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            value: {
+                [optimisticReportAction.sequenceNumber]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            value: {
+                [optimisticReportAction.sequenceNumber]: {
+                    pendingAction: null,
+                    errors: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCancelFailureMessage', {type}),
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write('CancelMoneyRequest', {
+        transactionID,
+        iouReportID: updatedIOUReport.reportID,
+        comment: '',
+        clientID: optimisticReportAction.sequenceNumber,
+        cancelMoneyRequestReportActionID: optimisticReportAction.reportActionID,
+        chatReportID,
+        debtorEmail: chatReport.participants[0],
+    }, {optimisticData, successData, failureData});
+
+    Navigation.navigate(ROUTES.getReportRoute(chatReportID));
 }
 
 /**
@@ -655,9 +725,9 @@ function payIOUReport({
 }
 
 export {
+    cancelMoneyRequest,
     splitBill,
     splitBillAndOpenReport,
-    rejectTransaction,
     requestMoney,
     payIOUReport,
     setIOUSelectedCurrency,
