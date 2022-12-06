@@ -104,6 +104,7 @@ class Composer extends React.Component {
                 ref={el => this.textInput = el}
                 //maxHeight={this.props.isComposerFullSize ? '100%' : CONST.COMPOSER_MAX_HEIGHT}
                 maximumNumberOfLines={6}
+                numberOfLines={6}
                 onContentSizeChange={e => ComposerUtils.updateNumberOfLines(this.props, e)}
                 rejectResponderTermination={false}
                 textAlignVertical="center"
