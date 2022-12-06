@@ -255,6 +255,8 @@ jobs:
 
       - name: Checkout "Baseline" commit (last release)
         run: git checkout "$(gh release list --limit 1 | awk '{ print $1 }')"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build "Baseline" APK
         run: npm run android-build-e2e
