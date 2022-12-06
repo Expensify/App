@@ -48,7 +48,6 @@ const propTypes = {
             }),
         ),
         outputCurrency: PropTypes.string,
-        hasVBA: PropTypes.bool,
         lastModified: PropTypes.number,
     }).isRequired,
 

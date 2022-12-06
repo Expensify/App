@@ -17,6 +17,11 @@ import * as ReimbursementAccount from '../../../libs/actions/ReimbursementAccoun
 import networkPropTypes from '../../../components/networkPropTypes';
 
 const propTypes = {
+    /** Policy values needed in the component */
+    policy: PropTypes.shape({
+        id: PropTypes.string,
+    }).isRequired,
+
     /** Bank account attached to free plan */
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
 
