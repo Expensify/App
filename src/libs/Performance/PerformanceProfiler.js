@@ -1,3 +1,4 @@
+import React from 'react';
 import {PerformanceProfiler as RNPerformanceProfiler, LogLevel} from '@shopify/react-native-performance';
 import PropTypes from 'prop-types';
 

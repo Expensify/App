@@ -4,9 +4,6 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {Freeze} from 'react-freeze';
-import {
-    ReactNavigationPerformanceView,
-} from '@shopify/react-native-performance-navigation';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -31,6 +28,7 @@ import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
 import withProfiler, {withProfilerPropTypes} from '../../../libs/Performance/withProfiler';
+import ReactNavigationPerformanceView from '../../../libs/Performance/ReactNavigationPerformanceView';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */

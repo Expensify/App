@@ -5,7 +5,6 @@ import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {Freeze} from 'react-freeze';
-import {PerformanceMeasureView} from '@shopify/react-native-performance';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
@@ -34,6 +33,7 @@ import reportPropTypes from '../reportPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
 import withProfiler, {withProfilerPropTypes} from '../../libs/Performance/withProfiler';
+import PerformanceMeasureView from '../../libs/Performance/PerformanceMeasureView';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
