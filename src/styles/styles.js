@@ -695,7 +695,7 @@ const styles = {
         height: '100%',
         backgroundColor: themeColors.componentBG,
         borderBottomWidth: 2,
-        borderBottomColor: themeColors.border,
+        borderColor: themeColors.border,
         overflow: 'hidden',
     },
 
