@@ -285,6 +285,9 @@ const AvatarCropModal = (props) => {
      * @param {Number} locationX
      */
     const sliderOnPress = (locationX) => {
+        // We are using the worklet directive here and running on the UI thread to ensure the Reanimated
+        // shared values are updated synchronously, as they update asynchronously on the JS thread.
+
         'worklet';
 
         if (!isPressableEnabled.value) {
