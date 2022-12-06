@@ -74,16 +74,9 @@ const IOUAction = (props) => {
         && props.chatReport.hasOutstandingIOU
         && props.isMostRecentIOUReportAction
         && props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
+        && props.network.isOffline
     ) {
-        if (props.network.isOffline) {
-            shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(props.reportActions, props.iouReport);
-        } else {
-            // Keep the pending message showing until all report actions in different currency are synced with the server
-            shouldShowPendingConversionMessage = _.some(
-                IOUUtils.getIOUReportActions(props.reportActions, props.iouReport, '', '', true),
-                action => action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            );
-        }
+        shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(props.reportActions, props.iouReport);
     }
 
     return (
