@@ -79,10 +79,10 @@ const IOUAction = (props) => {
             shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(props.reportActions, props.iouReport);
         } else {
             // Keep the pending message showing until all report actions in different currency are synced with the server
-            const hasPendingRequests = _.chain(
+            shouldShowPendingConversionMessage = _.some(
                 IOUUtils.getIOUReportActions(props.reportActions, props.iouReport, '', '', true),
-            ).some(action => action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD).value();
-            shouldShowPendingConversionMessage = hasPendingRequests;
+                action => action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            );
         }
     }
 
