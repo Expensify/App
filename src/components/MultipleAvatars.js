@@ -83,7 +83,7 @@ const MultipleAvatars = (props) => {
                         _.map([...props.icons].splice(0, 4).reverse(), (icon, index) => (
                             <View
                                 key={`stackedAvatars-${index}`}
-                                style={[StyleUtils.getHorizontalStackedAvatarStyle(props.isHovered, props.isPressed), styles.alignItemsCenter, horizontalStyles[index]]}
+                                style={[StyleUtils.getHorizontalStackedAvatarStyle(props.isHovered, props.isPressed), horizontalStyles[index]]}
                             >
                                 <Avatar
                                     source={icon || props.fallbackIcon}

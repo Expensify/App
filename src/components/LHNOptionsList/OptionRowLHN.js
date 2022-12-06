@@ -138,6 +138,7 @@ const OptionRowLHN = (props) => {
                                 && (
                                     optionItem.shouldShowSubscript ? (
                                         <SubscriptAvatar
+                                            backgroundColor={props.isFocused ? themeColors.activeComponentBG : themeColors.sidebar}
                                             mainAvatar={optionItem.icons[0]}
                                             secondaryAvatar={optionItem.icons[1]}
                                             mainTooltip={optionItem.ownerEmail}

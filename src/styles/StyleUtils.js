@@ -548,7 +548,7 @@ function getHorizontalStackedAvatarStyle(isHovered, isPressed) {
     let backgroundColor = themeColors.appBG;
 
     if (isHovered) {
-        backgroundColor = colors.greenDefaultButtonHover;
+        backgroundColor = themeColors.buttonHoveredBG;
     }
 
     if (isPressed) {
@@ -560,6 +560,7 @@ function getHorizontalStackedAvatarStyle(isHovered, isPressed) {
         width: 28,
         borderRadius: 33,
         paddingTop: 2,
+        alignItems: 'center',
         backgroundColor,
     };
 }
