@@ -86,6 +86,8 @@ const IOUAction = (props) => {
         && props.isMostRecentIOUReportAction
         && !props.network.isOffline
     ) {
+        // If we have pending IOU requests either created or cancelled, show a message
+        // that conversion is in progress
         isConverting = _.chain(
             IOUUtils.getIOUReportActions(props.reportActions, props.iouReport, '', '', true),
         ).some(action => action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD).value();

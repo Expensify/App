@@ -186,7 +186,7 @@ const IOUPreview = (props) => {
                                         <>
                                             <Text>
                                                 {props.iouReport.hasOutstandingIOU
-                                                    ? `${props.translate('iou.owesyou', {manager: managerName})}`
+                                                    ? props.translate('iou.owesyou', {manager: managerName})
                                                     : props.translate('iou.paidyou', {manager: managerName})}
                                             </Text>
                                             {(props.shouldShowPendingConversionMessage || props.isConverting) && (

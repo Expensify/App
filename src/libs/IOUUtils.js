@@ -122,12 +122,13 @@ function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
     const hasPendingRequests = Boolean(pendingRequestsInDifferentCurrency.length || pendingCancelledRequestsInDifferentCurrency.length);
 
     // If we have pending money requests made offline, check if all of them have been cancelled offline
-    // In order to do that, we can grab transactionIDs of all the requested and cancelled money requests and check if they're identical
+    // In order to do that, we can grab transactionIDs of all the created and cancelled money requests and check if they're identical
     if (hasPendingRequests && _.isEqual(pendingRequestsInDifferentCurrency, pendingCancelledRequestsInDifferentCurrency)) {
         return false;
     }
 
-    // Not all requests made offline have been cancelled, simply return if we have any pending created or cancelled requests
+    // We don't have requests made offline that have all been cancelled
+    // simply return if we have any pending created or cancelled requests
     return hasPendingRequests;
 }
 
