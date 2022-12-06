@@ -581,39 +581,10 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction,
 
     const currentUserEmail = optimisticReportAction.actorEmail;
 
-    // Every money request in this IOU
-    const allRequests = _.chain(IOUUtils.getIOUReportActions(
-        reportActions,
-        iouReport,
-        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-    )).map(action => action.originalMessage.IOUTransactionID).value();
-
-    // List of all of the cancelled (either online of offline) money requests
-    const allCancelledRequests = _.chain(IOUUtils.getIOUReportActions(
-        reportActions,
-        iouReport,
-        CONST.IOU.REPORT_ACTION_TYPE.CANCEL,
-    ))
-        .map(action => action.originalMessage.IOUTransactionID)
-
-        // Include the current request being cancelled in the array
-        .concat([moneyRequestAction.originalMessage.IOUTransactionID])
-        .value();
-
-    let updatedIOUReport;
-
-    // If every request in this IOU has been cancelled, we can set the total to 0.
-    if (_.every(allRequests, requestTransactionID => _.contains(allCancelledRequests, requestTransactionID))) {
-        updatedIOUReport = {
-            ...iouReport,
-            total: 0,
-        };
-    } else {
-        // Do not make changes to the IOU report locally if we're waiting for conversion from the backend
-        updatedIOUReport = isNetworkOffline && IOUUtils.isIOUReportPendingCurrencyConversion(reportActions, iouReport)
-            ? iouReport
-            : IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, moneyRequestAction.originalMessage.currency, type);
-    }
+    // Do not make changes to the IOU report locally if we're waiting for conversion from the backend
+    const updatedIOUReport = isNetworkOffline && IOUUtils.isIOUReportPendingCurrencyConversion(reportActions, iouReport)
+        ? iouReport
+        : IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, moneyRequestAction.originalMessage.currency, type);
 
     chatReport.maxSequenceNumber = newSequenceNumber;
     chatReport.lastReadSequenceNumber = newSequenceNumber;
