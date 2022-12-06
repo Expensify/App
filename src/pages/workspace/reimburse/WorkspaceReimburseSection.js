@@ -63,11 +63,8 @@ class WorkspaceReimburseSection extends React.Component {
                     title={this.props.translate('workspace.reimburse.reimburseReceipts')}
                     icon={Expensicons.OfflineCloud}
                 >
-                    <View
-                        style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}
-                    >
-                        <Text style={[styles.headerText, styles.textLarge, styles.mt5, styles.mb2]}>{this.props.translate('common.youAppearToBeOffline')}</Text>
-                        <Text style={[styles.w70, styles.textAlignCenter]}>{this.props.translate('common.thisFeatureRequiresInternet')}</Text>
+                    <View style={[styles.mv3]}>
+                        <Text>{`${this.props.translate('common.youAppearToBeOffline')} ${this.props.translate('common.thisFeatureRequiresInternet')}`}</Text>
                     </View>
                 </Section>
             );
