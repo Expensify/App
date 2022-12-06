@@ -157,8 +157,9 @@ class ProfilePage extends Component {
                         />
                     </OfflineWithFeedback>
                     <View style={[styles.mt4, styles.mb4]}>
-                        {_.map(profileSettingsOptions, detail => (
+                        {_.map(profileSettingsOptions, (detail, index) => (
                             <MenuItemWithTopDescription
+                                key={`${detail.title}_${index}`}
                                 shouldShowRightIcon
                                 title={detail.title}
                                 description={detail.description}
