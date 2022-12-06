@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {
+    runOnUI,
     interpolate,
     useAnimatedGestureHandler,
     useSharedValue,
@@ -281,14 +282,16 @@ const AvatarCropModal = (props) => {
     }, [props.imageUri, props.imageName, props.imageType, imageContainerSize]);
 
     /**
-     * @param {Event} event
+     * @param {Number} locationX
      */
-    const sliderOnPress = (event) => {
+    const sliderOnPress = (locationX) => {
+        'worklet';
+
         if (!isPressableEnabled.value) {
             return;
         }
-        const newScale = newScaleValue(event.nativeEvent.locationX, sliderContainerSize);
-        translateSlider.value = event.nativeEvent.locationX;
+        const newScale = newScaleValue(locationX, sliderContainerSize);
+        translateSlider.value = locationX;
         scale.value = newScale;
     };
 
@@ -328,7 +331,9 @@ const AvatarCropModal = (props) => {
                                 <Pressable
                                     style={[styles.mh5, styles.flex1]}
                                     onLayout={initializeSliderContainer}
-                                    onPressIn={sliderOnPress}
+                                    onPressIn={(e) => {
+                                        runOnUI(sliderOnPress)(e.nativeEvent.locationX);
+                                    }}
                                 >
                                     <Slider sliderValue={translateSlider} onGesture={panSliderGestureEventHandler} />
                                 </Pressable>
