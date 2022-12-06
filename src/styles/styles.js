@@ -818,13 +818,9 @@ const styles = {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
             ...picker,
-            ...(focused && {borderBottomColor: themeColors.borderFocus}),
-            ...(error && {borderBottomColor: themeColors.badgeDangerBG}),
         },
         inputNative: {
             ...picker,
-            ...(focused && {borderBottomColor: themeColors.borderFocus}),
-            ...(error && {borderBottomColor: themeColors.badgeDangerBG}),
         },
     }),
 
