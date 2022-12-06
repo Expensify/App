@@ -142,8 +142,14 @@ platform :ios do
 
     build_app(
         workspace: "./ios/NewExpensify.xcworkspace",
+        skip_profile_detection: true,
         scheme: "NewExpensify",
+        export_method: "ad-hoc",
         export_options: {
+            method: "ad-hoc",
+            provisioningProfiles: {
+              "com.chat.expensify.chat" => "chat_expensify_adhoc",
+            },
             manageAppVersionAndBuildNumber: false
         }
     )
