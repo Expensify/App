@@ -21,9 +21,9 @@ const WorkspaceTravelNoVBAView = props => (
     <>
         <Section
             title={props.translate('workspace.travel.unlockConciergeBookingTravel')}
-            icon={Illustrations.JewelBoxYellow}
+            icon={Illustrations.Luggage}
         >
-            <View style={[styles.mv4]}>
+            <View style={[styles.mv3]}>
                 <Text>{props.translate('workspace.travel.noVBACopy')}</Text>
             </View>
             <Button

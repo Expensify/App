@@ -11,6 +11,7 @@ import themeColors from '../../styles/themes/default';
 import CONST from '../../CONST';
 import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
 import getNumberOfLines from '../../libs/ComposerUtils/index';
+import * as Browser from '../../libs/Browser';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -295,6 +296,12 @@ class Composer extends React.Component {
 
             // If HTML has img tag, then fetch images from it.
             if (embeddedImages.length > 0 && embeddedImages[0].src) {
+                // If HTML has emoji, then treat this as plain text.
+                if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
+                    const plainText = event.clipboardData.getData('text/plain');
+                    this.paste(Str.htmlDecode(plainText));
+                    return;
+                }
                 fetch(embeddedImages[0].src)
                     .then((response) => {
                         if (!response.ok) { throw Error(response.statusText); }
@@ -386,9 +393,12 @@ class Composer extends React.Component {
         const propStyles = StyleSheet.flatten(this.props.style);
         propStyles.outline = 'none';
         const propsWithoutStyles = _.omit(this.props, 'style');
+
+        // We're disabling autoCorrect for iOS Safari until Safari fixes this issue. See https://github.com/Expensify/App/issues/8592
         return (
             <RNTextInput
                 autoComplete="off"
+                autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
                 selection={this.state.selection}

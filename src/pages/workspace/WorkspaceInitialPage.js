@@ -79,7 +79,7 @@ class WorkspaceInitialPage extends React.Component {
         const policyReports = _.filter(this.props.reports, report => report && report.policyID === this.props.policy.id);
         Policy.deleteWorkspace(this.props.policy.id, policyReports);
         this.toggleDeleteModal(false);
-        Navigation.navigate(ROUTES.SETTINGS);
+        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
     }
 
     /**

@@ -87,7 +87,7 @@ class IOUTransactions extends Component {
                             chatReportID={this.props.chatReportID}
                             iouReportID={this.props.iouReportID}
                             action={reportAction}
-                            key={reportAction.sequenceNumber}
+                            key={reportAction.reportActionID}
                             canBeRejected={canBeRejected}
                             rejectButtonType={isCurrentUserTransactionCreator ? CONST.IOU.REPORT_ACTION_TYPE.CANCEL : CONST.IOU.REPORT_ACTION_TYPE.DECLINE}
                         />

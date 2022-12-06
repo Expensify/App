@@ -2,7 +2,6 @@ import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
-import moment from 'moment';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
@@ -15,6 +14,7 @@ import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
 import * as NumberFormatUtils from './NumberFormatUtils';
 import Permissions from './Permissions';
+import DateUtils from './DateUtils';
 
 let sessionEmail;
 Onyx.connect({
@@ -76,6 +76,15 @@ function getReportParticipantsTitle(logins) {
 }
 
 /**
+ * Attempts to find a report in onyx with the provided list of participants
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isIOUReport(report) {
+    return report && _.has(report, 'total');
+}
+
+/**
  * Check whether a report action is Attachment or not.
  * Ignore messages containing [Attachment] as the main content. Attachments are actions with only text as [Attachment].
  *
@@ -95,7 +104,7 @@ function isReportMessageAttachment({text, html}) {
 function sortReportsByLastVisited(reports) {
     return _.chain(reports)
         .toArray()
-        .filter(report => report && report.reportID)
+        .filter(report => report && report.reportID && !isIOUReport(report))
         .sortBy('lastVisitedTimestamp')
         .value();
 }
@@ -274,7 +283,7 @@ function getPolicyName(report, policies) {
 
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
     if (!policy) {
-        return Localize.translateLocal('workspace.common.unavailable');
+        return report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
     }
 
     return policy.name
@@ -394,7 +403,9 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
  * @returns {String}
  */
 function formatReportLastMessageText(lastMessageText) {
-    return String(lastMessageText).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
+    return String(lastMessageText)
+        .replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '')
+        .substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
 }
 
 /**
@@ -643,7 +654,7 @@ function buildOptimisticReportAction(sequenceNumber, text, file) {
             sequenceNumber,
             clientID: NumberUtils.generateReportActionClientID(),
             avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
-            timestamp: moment().unix(),
+            created: DateUtils.getDBTime(),
             message: [
                 {
                     type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
@@ -795,7 +806,7 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, 
         reportActionID: NumberUtils.rand64(),
         sequenceNumber,
         shouldShow: true,
-        timestamp: moment().unix(),
+        created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 }
@@ -816,7 +827,7 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, 
  */
 function buildOptimisticChatReport(
     participantList,
-    reportName = 'Chat Report',
+    reportName = CONST.REPORT.DEFAULT_REPORT_NAME,
     chatType = '',
     policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
     ownerEmail = CONST.REPORT.OWNER_EMAIL_FAKE,
@@ -834,7 +845,7 @@ function buildOptimisticChatReport(
         lastMessageHtml: '',
         lastMessageText: null,
         lastReadSequenceNumber: 0,
-        lastMessageTimestamp: 0,
+        lastActionCreated: '',
         lastVisitedTimestamp: 0,
         maxSequenceNumber: 0,
         notificationPreference,
@@ -883,7 +894,7 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
             automatic: false,
             sequenceNumber: 0,
             avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
-            timestamp: moment().unix(),
+            created: DateUtils.getDBTime(),
             shouldShow: true,
         },
     };
@@ -967,13 +978,12 @@ function isUnread(report) {
  * @param {Object} iouReports
  * @returns {boolean}
  */
-
 function hasOutstandingIOU(report, currentUserLogin, iouReports) {
     if (!report || !report.iouReportID || _.isUndefined(report.hasOutstandingIOU)) {
         return false;
     }
 
-    const iouReport = iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`];
+    const iouReport = iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
     if (!iouReport || !iouReport.ownerEmail) {
         return false;
     }
@@ -983,6 +993,39 @@ function hasOutstandingIOU(report, currentUserLogin, iouReports) {
     }
 
     return report.hasOutstandingIOU;
+}
+
+/**
+ * @param {Object} report
+ * @param {String} report.iouReportID
+ * @param {Object} iouReports
+ * @returns {Number}
+ */
+function getIOUTotal(report, iouReports = {}) {
+    if (report.hasOutstandingIOU) {
+        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
+        if (iouReport) {
+            return iouReport.total;
+        }
+    }
+    return 0;
+}
+
+/**
+ * @param {Object} report
+ * @param {String} report.iouReportID
+ * @param {String} currentUserLogin
+ * @param {Object} iouReports
+ * @returns {Boolean}
+ */
+function isIOUOwnedByCurrentUser(report, currentUserLogin, iouReports = {}) {
+    if (report.hasOutstandingIOU) {
+        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
+        if (iouReport) {
+            return iouReport.ownerEmail === currentUserLogin;
+        }
+    }
+    return false;
 }
 
 /**
@@ -1006,7 +1049,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
-    if (!report || !report.reportID || !report.participants || _.isEmpty(report.participants)) {
+    if (!report || !report.reportID || !report.participants || _.isEmpty(report.participants) || isIOUReport(report)) {
         return false;
     }
 
@@ -1078,6 +1121,16 @@ function getChatByParticipants(newParticipantList) {
     });
 }
 
+/**
+* Returns true if Chronos is one of the chat participants (1:1)
+* @param {Object} report
+* @returns {Boolean}
+*/
+function chatIncludesChronos(report) {
+    return report.participants
+                && _.contains(report.participants, CONST.EMAIL.CHRONOS);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1098,6 +1151,8 @@ export {
     hasExpensifyEmails,
     hasExpensifyGuidesEmails,
     hasOutstandingIOU,
+    isIOUOwnedByCurrentUser,
+    getIOUTotal,
     canShowReportRecipientLocalTime,
     formatReportLastMessageText,
     chatIncludesConcierge,
@@ -1121,4 +1176,6 @@ export {
     getChatByParticipants,
     getIOUReportActionMessage,
     getDisplayNameForParticipant,
+    isIOUReport,
+    chatIncludesChronos,
 };

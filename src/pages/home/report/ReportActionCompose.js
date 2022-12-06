@@ -144,7 +144,9 @@ class ReportActionCompose extends React.Component {
             },
             maxLines: props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES,
             value: props.comment,
-            conciergePlaceholderRandomIndex: _.random(this.props.translate('reportActionCompose.conciergePlaceholderOptions').length - 1),
+
+            // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
+            conciergePlaceholderRandomIndex: _.random(this.props.translate('reportActionCompose.conciergePlaceholderOptions').length - (this.props.isSmallScreenWidth ? 4 : 1)),
         };
     }
 
@@ -251,10 +253,6 @@ class ReportActionCompose extends React.Component {
             return this.props.translate('reportActionCompose.conciergePlaceholderOptions')[this.state.conciergePlaceholderRandomIndex];
         }
 
-        if (this.isEmptyChat()) {
-            return this.props.translate('reportActionCompose.sayHello');
-        }
-
         return this.props.translate('reportActionCompose.writeSomething');
     }
 
@@ -268,33 +266,40 @@ class ReportActionCompose extends React.Component {
         const participants = _.filter(reportParticipants, email => this.props.currentUserPersonalDetails.login !== email);
         const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
         const hasMultipleParticipants = participants.length > 1;
-        const iouOptions = [];
 
         if (hasExcludedIOUEmails || participants.length === 0 || !Permissions.canUseIOU(this.props.betas)) {
             return [];
         }
 
-        if (hasMultipleParticipants) {
-            return [{
-                icon: Expensicons.Receipt,
-                text: this.props.translate('iou.splitBill'),
-                onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(this.props.reportID)),
-            }];
+        // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
+        // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
+        // DM chats and workspace chats will have the Split Bill option only when there are at least 3 people in the chat.
+        if (ReportUtils.isChatRoom(this.props.report) || hasMultipleParticipants) {
+            return [
+                {
+                    icon: Expensicons.Receipt,
+                    text: this.props.translate('iou.splitBill'),
+                    onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(this.props.reportID)),
+                },
+            ];
         }
 
-        iouOptions.push({
-            icon: Expensicons.MoneyCircle,
-            text: this.props.translate('iou.requestMoney'),
-            onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
-        });
-        if (Permissions.canUseIOUSend(this.props.betas)) {
-            iouOptions.push({
-                icon: Expensicons.Send,
-                text: this.props.translate('iou.sendMoney'),
-                onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
-            });
-        }
-        return iouOptions;
+        // DM chats and workspace chats that only have 2 people will see the Send / Request money options.
+        return [
+            {
+                icon: Expensicons.MoneyCircle,
+                text: this.props.translate('iou.requestMoney'),
+                onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
+            },
+            ...(Permissions.canUseIOUSend(this.props.betas)
+                ? [
+                    {
+                        icon: Expensicons.Send,
+                        text: this.props.translate('iou.sendMoney'),
+                        onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
+                    }]
+                : []),
+        ];
     }
 
     /**
@@ -381,9 +386,19 @@ class ReportActionCompose extends React.Component {
      */
     updateComment(comment, shouldDebounceSaveComment) {
         const newComment = EmojiUtils.replaceEmojis(comment);
-        this.setState({
-            isCommentEmpty: !!newComment.match(/^(\s|`)*$/),
-            value: newComment,
+        this.setState((prevState) => {
+            const newState = {
+                isCommentEmpty: !!newComment.match(/^(\s|`)*$/),
+                value: newComment,
+            };
+            if (comment !== newComment) {
+                const remainder = prevState.value.slice(prevState.selection.end).length;
+                newState.selection = {
+                    start: newComment.length - remainder,
+                    end: newComment.length - remainder,
+                };
+            }
+            return newState;
         });
 
         // Indicate that draft has been created.
@@ -423,8 +438,8 @@ class ReportActionCompose extends React.Component {
             this.submitForm();
         }
 
-        // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty
-        if (e.key === 'ArrowUp' && this.textInput.selectionStart === 0 && this.state.isCommentEmpty) {
+        // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
+        if (e.key === 'ArrowUp' && this.textInput.selectionStart === 0 && this.state.isCommentEmpty && !ReportUtils.chatIncludesChronos(this.props.report)) {
             e.preventDefault();
 
             const reportActionKey = _.find(
@@ -550,6 +565,9 @@ class ReportActionCompose extends React.Component {
                                                                 e.preventDefault();
                                                                 Report.setIsComposerFullSize(this.props.reportID, false);
                                                             }}
+
+                                                            // Keep focus on the composer when Collapse button is clicked.
+                                                            onMouseDown={e => e.preventDefault()}
                                                             style={styles.composerSizeButton}
                                                             underlayColor={themeColors.componentBG}
                                                             disabled={isBlockedFromConcierge}
@@ -566,6 +584,9 @@ class ReportActionCompose extends React.Component {
                                                                 e.preventDefault();
                                                                 Report.setIsComposerFullSize(this.props.reportID, true);
                                                             }}
+
+                                                            // Keep focus on the composer when Expand button is clicked.
+                                                            onMouseDown={e => e.preventDefault()}
                                                             style={styles.composerSizeButton}
                                                             underlayColor={themeColors.componentBG}
                                                             disabled={isBlockedFromConcierge}
@@ -576,8 +597,12 @@ class ReportActionCompose extends React.Component {
                                                 )}
                                                 <Tooltip text={this.props.translate('reportActionCompose.addAction')}>
                                                     <TouchableOpacity
+                                                        ref={el => this.actionButton = el}
                                                         onPress={(e) => {
                                                             e.preventDefault();
+
+                                                            // Drop focus to avoid blue focus ring.
+                                                            this.actionButton.blur();
                                                             this.setMenuVisibility(true);
                                                         }}
                                                         style={styles.chatItemAttachButton}
@@ -674,9 +699,8 @@ class ReportActionCompose extends React.Component {
                     <View style={[styles.justifyContentEnd]}>
                         <Tooltip text={this.props.translate('common.send')}>
                             <TouchableOpacity
-                                style={[
-                                    styles.chatItemSubmitButton,
-                                    (this.state.isCommentEmpty || hasExceededMaxCommentLength) ? styles.buttonDisable : styles.buttonSuccess,
+                                style={[styles.chatItemSubmitButton,
+                                    (this.state.isCommentEmpty || hasExceededMaxCommentLength) ? undefined : styles.buttonSuccess,
                                 ]}
                                 onPress={this.submitForm}
                                 underlayColor={themeColors.componentBG}
@@ -689,7 +713,7 @@ class ReportActionCompose extends React.Component {
                                     top: 3, right: 3, bottom: 3, left: 3,
                                 }}
                             >
-                                <Icon src={Expensicons.Send} fill={themeColors.componentBG} />
+                                <Icon src={Expensicons.Send} fill={(this.state.isCommentEmpty || hasExceededMaxCommentLength) ? themeColors.icon : themeColors.textLight} />
                             </TouchableOpacity>
                         </Tooltip>
                     </View>
