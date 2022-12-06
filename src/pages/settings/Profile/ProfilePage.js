@@ -15,10 +15,8 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import CONST from '../../../CONST';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import compose from '../../../libs/compose';
-import * as Localize from '../../../libs/Localize';
 import Navigation from '../../../libs/Navigation/Navigation';
 import * as ReportUtils from '../../../libs/ReportUtils';
-import * as ValidationUtils from '../../../libs/ValidationUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
