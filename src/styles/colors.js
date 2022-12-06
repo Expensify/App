@@ -44,16 +44,7 @@ export default {
     lightblueLink: '#0164BF',
     lightblueLinkHover: '#B0D9FF',
     lightDefaultButton: '#EEEAE6',
-    lightDefaultButtonHover: '#2C6755',
+    lightDefaultButtonHover: '#E3DFD9',
     lightDefaultButtonPressed: '#467164',
-    lightDefaultButtonDisabled: '#8BA69E',
-
-    // DEPRECATED COLORS. Do not reference these colors. Will be deleted in color switch PR.
-    gray1: '#FAFAFA',
-    gray2: '#ECECEC',
-    gray3: '#C6C9CA',
-    gray4: '#7D8B8F',
-    oldRed: '#fc3826',
-    oldRedHover: '#e13826',
-    oldRedDisabled: '#fea29a',
+    lightDefaultButtonDisabled: '#EEEAE6',
 };
