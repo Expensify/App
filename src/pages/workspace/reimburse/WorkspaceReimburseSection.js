@@ -1,0 +1,107 @@
+import React from 'react';
+import PropTypes from 'prop-types';
+import {ActivityIndicator, View} from 'react-native';
+import lodashGet from 'lodash/get';
+import Text from '../../../components/Text';
+import styles from '../../../styles/styles';
+import themeColors from '../../../styles/themes/default';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import * as Illustrations from '../../../components/Icon/Illustrations';
+import Section from '../../../components/Section';
+import * as Link from '../../../libs/actions/Link';
+import Button from '../../../components/Button';
+import BankAccount from '../../../libs/models/BankAccount';
+import reimbursementAccountPropTypes from '../../ReimbursementAccount/reimbursementAccountPropTypes';
+import * as ReimbursementAccount from '../../../libs/actions/ReimbursementAccount';
+import networkPropTypes from '../../../components/networkPropTypes';
+
+const propTypes = {
+    /** Bank account attached to free plan */
+    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
+
+    /** Returns translated string for given locale and phrase */
+    translate: PropTypes.func.isRequired,
+};
+
+const WorkspaceReimburseSection = (props) => {
+    const isLoadingReimbursementAccount = props.reimbursementAccount.isLoading || false;
+    const achState = lodashGet(props.reimbursementAccount, 'achData.state', '');
+    const hasVBA = achState === BankAccount.STATE.OPEN;
+
+    if (props.network.isOffline) {
+        return (
+            <Section
+                title={props.translate('workspace.reimburse.reimburseReceipts')}
+                icon={Expensicons.OfflineCloud}
+            >
+                <View
+                    style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}
+                >
+                    <Text style={[styles.headerText, styles.textLarge, styles.mt5, styles.mb2]}>{props.translate('common.youAppearToBeOffline')}</Text>
+                    <Text style={[styles.w70, styles.textAlignCenter]}>{props.translate('common.thisFeatureRequiresInternet')}</Text>
+                </View>
+            </Section>
+        );
+    }
+
+    if (isLoadingReimbursementAccount) {
+        return (
+            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                <ActivityIndicator color={themeColors.spinner} size="large" />
+            </View>
+        );
+    }
+
+    return (
+        <>
+            {hasVBA ? (
+                <Section
+                    title={props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
+                    icon={Illustrations.TreasureChest}
+                    menuItems={[
+                        {
+                            title: props.translate('workspace.reimburse.reimburseReceipts'),
+                            onPress: () => Link.openOldDotLink(`reports?policyID=${props.policy.id}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`),
+                            icon: Expensicons.Bank,
+                            shouldShowRightIcon: true,
+                            iconRight: Expensicons.NewWindow,
+                            iconFill: themeColors.success,
+                            wrapperStyle: [styles.cardMenuItem],
+                        },
+                    ]}
+                >
+                    <View style={[styles.mv3]}>
+                        <Text>{props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
+                    </View>
+                </Section>
+            ) : (
+                <Section
+                    title={props.translate('workspace.reimburse.unlockNextDayReimbursements')}
+                    icon={Illustrations.OpenSafe}
+                >
+                    <View style={[styles.mv3]}>
+                        <Text>{props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
+                    </View>
+                    <Button
+                        text={props.translate('workspace.common.bankAccount')}
+                        onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policy.id)}
+                        icon={Expensicons.Bank}
+                        style={[styles.mt4]}
+                        iconStyles={[styles.buttonCTAIcon]}
+                        shouldShowRightIcon
+                        large
+                        success
+                    />
+                </Section>
+            )}
+        </>
+    );
+};
+
+WorkspaceReimburseSection.propTypes = propTypes;
+WorkspaceReimburseSection.displayName = 'WorkspaceReimburseSection';
+
+export default WorkspaceReimburseSection;
