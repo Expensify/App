@@ -171,7 +171,7 @@ function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerH
  * @param {Number} width
  * @return {Object}
  */
-function getAutoGrowTextInputStyle(width) {
+function getWidthStyle(width) {
     return {
         width,
     };
@@ -548,7 +548,7 @@ export {
     getNavigationDrawerType,
     getZoomCursorStyle,
     getZoomSizingStyle,
-    getAutoGrowTextInputStyle,
+    getWidthStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,
