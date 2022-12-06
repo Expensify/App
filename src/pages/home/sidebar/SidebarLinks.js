@@ -164,7 +164,7 @@ class SidebarLinks extends React.Component {
                         onPress={this.showSettingsPage}
                     >
                         <AvatarWithIndicator
-                            source={this.props.currentUserPersonalDetails.avatar}
+                            source={this.props.currentUserPersonalDetails.avatarThumbnail}
                             tooltipText={this.props.translate('common.settings')}
                         />
                     </TouchableOpacity>
