@@ -338,9 +338,7 @@ const AvatarCropModal = (props) => {
                                 <Pressable
                                     style={[styles.mh5, styles.flex1]}
                                     onLayout={initializeSliderContainer}
-                                    onPressIn={(e) => {
-                                        runOnUI(sliderOnPress)(e.nativeEvent.locationX);
-                                    }}
+                                    onPressIn={e => runOnUI(sliderOnPress)(e.nativeEvent.locationX)}
                                 >
                                     <Slider sliderValue={translateSlider} onGesture={panSliderGestureEventHandler} />
                                 </Pressable>
