@@ -41,10 +41,10 @@ class Carousel extends React.Component {
      */
     handleKeyPress(e) {
         if (e.key === 'ArrowLeft') {
-            this.props.onCycleThroughAttachments(-1);
+            this.props.onCycleThroughAttachments(1);
         }
         if (e.key === 'ArrowRight') {
-            this.props.onCycleThroughAttachments(1);
+            this.props.onCycleThroughAttachments(-1);
         }
     }
 
