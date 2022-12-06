@@ -153,7 +153,7 @@ class ProfilePage extends Component {
         const profileSettingsOptions = [
             {
                 description: this.props.translate('displayNamePage.headerTitle'),
-                title: `${lodashGet(currentUserDetails, 'firstName', '')} ${lodashGet(currentUserDetails, 'lastName', '')}`,
+                title: lodashGet(currentUserDetails, 'displayName', ''),
                 pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
             },
             {
