@@ -244,15 +244,15 @@ jobs:
       - name: Make zip directory for everything to send to AWS Device Farm
         run: mkdir zip
 
+      - name: Checkout "Compare" commit
+        run: git checkout ${{ github.event.before }}
+
       - name: Install node packages
         uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
         with:
           timeout_minutes: 10
           max_attempts: 5
           command: npm ci
-
-      - name: Checkout "Compare" commit
-        run: git checkout ${{ github.event.before }}
 
       - name: Build "Compare" APK
         run: npm run android-build-e2e
