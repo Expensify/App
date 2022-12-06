@@ -5,9 +5,7 @@ import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {Freeze} from 'react-freeze';
-import {
-    ReactNavigationPerformanceView,
-} from '@shopify/react-native-performance-navigation';
+import {PerformanceMeasureView} from '@shopify/react-native-performance';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
@@ -35,6 +33,7 @@ import withLocalize from '../../components/withLocalize';
 import reportPropTypes from '../reportPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
+import withProfiler, {withProfilerPropTypes} from '../../libs/Performance/withProfiler';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -75,6 +74,7 @@ const propTypes = {
 
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
+    ...withProfilerPropTypes,
 };
 
 const defaultProps = {
@@ -129,6 +129,12 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        // if (this.props.isDrawerOpen && !prevProps.isDrawerOpen) {
+        //     this.props.resetFlow({
+        //         destination: 'ReportScreen',
+        //     });
+        // }
+
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
         }
@@ -242,7 +248,7 @@ class ReportScreen extends React.Component {
                         </>
                     )}
                 >
-                    <ReactNavigationPerformanceView screenName="ReportScreen" interactive={!freeze && !isLoadingInitialReportActions}>
+                    <PerformanceMeasureView screenName="ReportScreen" componentInstanceId={this.props.componentInstanceId} interactive={!freeze && !isLoadingInitialReportActions}>
                         <FullPageNotFoundView
                             shouldShow={!this.props.report.reportID}
                             subtitleKey="notFound.noAccess"
@@ -321,7 +327,7 @@ class ReportScreen extends React.Component {
                                 )}
                             </View>
                         </FullPageNotFoundView>
-                    </ReactNavigationPerformanceView>
+                    </PerformanceMeasureView>
                 </Freeze>
             </ScreenWrapper>
         );
@@ -335,6 +341,7 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withDrawerState,
+    withProfiler,
     withNetwork(),
     withOnyx({
         isSidebarLoaded: {

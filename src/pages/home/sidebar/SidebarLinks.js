@@ -30,7 +30,7 @@ import reportActionPropTypes from '../report/reportActionPropTypes';
 import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
-import withStartProfiler, {withStartProfilerPropTypes} from '../../../libs/Performance/withStartProfiler';
+import withProfiler, {withProfilerPropTypes} from '../../../libs/Performance/withProfiler';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -70,7 +70,7 @@ const propTypes = {
     priorityMode: PropTypes.string,
 
     ...withLocalizePropTypes,
-    ...withStartProfilerPropTypes,
+    ...withProfilerPropTypes,
 };
 
 const defaultProps = {
@@ -279,7 +279,7 @@ export default compose(
     withLocalize,
     withCurrentUserPersonalDetails,
     withWindowDimensions,
-    withStartProfiler,
+    withProfiler,
     withOnyx({
         // Note: It is very important that the keys subscribed to here are the same
         // keys that are subscribed to at the top of SidebarUtils.js. If there was a key missing from here and data was updated
