@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.2.36-0",
+  "version": "1.2.36-2",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -37,7 +37,7 @@
     "analyze-packages": "ANALYZE_BUNDLE=true webpack --config config/webpack/webpack.common.js --env envFile=.env.production",
     "symbolicate:android": "npx metro-symbolicate android/app/build/generated/sourcemaps/react/release/index.android.bundle.map",
     "symbolicate:ios": "npx metro-symbolicate main.jsbundle.map",
-    "test:e2e": "node ./e2e/testRunner.js"
+    "test:e2e": "node tests/e2e/testRunner.js"
   },
   "dependencies": {
     "@expensify/react-native-web": "0.18.9",
@@ -46,7 +46,7 @@
     "@formatjs/intl-numberformat": "^6.2.5",
     "@formatjs/intl-pluralrules": "^4.0.13",
     "@oguzhnatly/react-native-image-manipulator": "github:Expensify/react-native-image-manipulator#c5f654fc9d0ad7cc5b89d50b34ecf8b0e3f4d050",
-    "@onfido/react-native-sdk": "6.0.0",
+    "@onfido/react-native-sdk": "7.0.1",
     "@pieter-pot/react-native-fast-image": "8.5.11",
     "@react-native-async-storage/async-storage": "^1.17.10",
     "@react-native-community/cameraroll": "git+https://github.com/react-native-cameraroll/react-native-cameraroll.git#3f0aed96db68e134f199171c7b06c1b4d6cb382b",
@@ -95,7 +95,7 @@
     "react-native-google-places-autocomplete": "git+https://github.com/Expensify/react-native-google-places-autocomplete.git#3bbd17d63e6c38d38d857b50f6037c1c0376ff06",
     "react-native-haptic-feedback": "^1.13.0",
     "react-native-image-pan-zoom": "^2.1.12",
-    "react-native-image-picker": "^4.10.1",
+    "react-native-image-picker": "^4.10.2",
     "react-native-image-size": "git+https://github.com/Expensify/react-native-image-size#6b5ab5110dc3ed554f8eafbc38d7d87c17147972",
     "react-native-modal": "^13.0.0",
     "react-native-onyx": "1.0.29",
