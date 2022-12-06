@@ -136,7 +136,7 @@ class ReportActionCompose extends React.PureComponent {
         };
 
         // This variable will be set when we insert an emoji using the picker. It will be used
-        // to set the selection caret behing the inserted emoji.
+        // to set the selection caret being the inserted emoji.
         this.nextSelectionAfterEmojiInsertion = null;
 
         this.state = {
@@ -362,7 +362,7 @@ class ReportActionCompose extends React.PureComponent {
                 });
             },
 
-            // Run the focus with a delay. Note: Its platform dependent whether there should be a delay or not.
+            // Run the focus with a delay. Note: Its platform dependent whether the delay will be respected or not.
             true,
         );
     }

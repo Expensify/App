@@ -70,6 +70,7 @@ class ReportActionItemMessageEdit extends React.Component {
         this.triggerSaveOrCancel = this.triggerSaveOrCancel.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
+        this.focusInputAndSetSelection = this.focusInputAndSetSelection.bind(this);
         this.saveButtonID = 'saveButton';
         this.cancelButtonID = 'cancelButton';
         this.emojiButtonID = 'emojiButton';
@@ -82,6 +83,10 @@ class ReportActionItemMessageEdit extends React.Component {
             end: draftMessage.length,
         };
         this.draft = draftMessage;
+
+        // This variable will be set when we insert an emoji using the picker. It will be used
+        // to set the selection caret being the inserted emoji.
+        this.nextSelectionAfterEmojiInsertion = null;
 
         this.state = {
             isFocused: false,
@@ -197,6 +202,7 @@ class ReportActionItemMessageEdit extends React.Component {
         });
 
         this.selection = newSelection;
+        this.nextSelectionAfterEmojiInsertion = newSelection;
         this.updateDraft(newText);
     }
 
@@ -216,6 +222,32 @@ class ReportActionItemMessageEdit extends React.Component {
             e.preventDefault();
             this.deleteDraft();
         }
+    }
+
+    /**
+     * This will be called when the emoji picker modal closes.
+     * Once that's closed we want to focus the text input again and
+     * set the selection to the new position if an emoji was added.
+     */
+    focusInputAndSetSelection() {
+        // We first need to focus the input, and then set the selection, as otherwise
+        // the focus might cause the selection to be set to the end of the text input
+        this.textInput.focus(
+            () => {
+                if (!this.nextSelectionAfterEmojiInsertion) {
+                    return;
+                }
+
+                requestAnimationFrame(() => {
+                    this.selection = this.nextSelectionAfterEmojiInsertion;
+                    this.textInput.setSelection(this.selection.start, this.selection.end);
+                    this.nextSelectionAfterEmojiInsertion = null;
+                });
+            },
+
+            // Run the focus with a delay. Note: Its platform dependent whether the delay will be respected or not.
+            true,
+        );
     }
 
     render() {
@@ -259,7 +291,7 @@ class ReportActionItemMessageEdit extends React.Component {
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton
                             isDisabled={this.props.shouldDisableEmojiPicker}
-                            onModalHide={() => InteractionManager.runAfterInteractions(() => this.textInput.focus())}
+                            onModalHide={this.focusInputAndSetSelection}
                             onEmojiSelected={this.addEmojiToTextBox}
                             nativeID={this.emojiButtonID}
                         />
