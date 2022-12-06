@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -78,6 +79,20 @@ const IOUAction = (props) => {
         shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(props.reportActions, props.iouReport);
     }
 
+    let isConverting = false;
+    if (
+        props.iouReport
+        && props.chatReport.hasOutstandingIOU
+        && props.isMostRecentIOUReportAction
+        && !props.network.isOffline
+    ) {
+        const hasPendingRequestsInDifferentCurrency = _.chain(
+            IOUUtils.getIOUReportActions(props.reportActions, props.iouReport, '', '', true),
+        ).some(action => action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD).value();
+
+        isConverting = !props.network.isOffline && hasPendingRequestsInDifferentCurrency;
+    }
+
     return (
         <>
             <IOUQuote
@@ -91,6 +106,7 @@ const IOUAction = (props) => {
                     iouReportID={props.action.originalMessage.IOUReportID.toString()}
                     chatReportID={props.chatReportID}
                     shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
+                    isConverting={isConverting}
                     onPayButtonPressed={launchDetailsModal}
                     onPreviewPressed={launchDetailsModal}
                     containerStyles={[
