@@ -45,7 +45,7 @@ const propTypes = {
     /** Whether this item is selected */
     isSelected: PropTypes.bool,
 
-    /** Force the text style to be the unread style */
+    /** Display the text of the option in bold font style */
     boldStyle: PropTypes.bool,
 
     /** Whether to show the title tooltip */

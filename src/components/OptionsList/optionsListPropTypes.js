@@ -46,7 +46,7 @@ const propTypes = {
     /** Whether to allow option focus or not */
     disableFocusOptions: PropTypes.bool,
 
-    /** Force the text style to be the unread style on all rows */
+    /** Display the text of the option in bold font style */
     boldStyle: PropTypes.bool,
 
     /** Callback to fire when a row is selected */

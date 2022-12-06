@@ -54,7 +54,7 @@ const propTypes = {
     /** Whether to disable interactivity of option rows */
     isDisabled: PropTypes.bool,
 
-    /** Force the text style to be the unread style on all rows */
+    /** Display the text of the option in bold font style */
     boldStyle: PropTypes.bool,
 
     /** Whether to show the title tooltip */
