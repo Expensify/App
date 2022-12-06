@@ -688,7 +688,7 @@ const styles = {
         flex: 1,
         justifyContent: 'center',
         height: '100%',
-        backgroundColor: themeColors.componentBG,
+        backgroundColor: 'transparent',
         borderBottomWidth: 2,
         borderColor: themeColors.border,
         overflow: 'hidden',
@@ -761,7 +761,7 @@ const styles = {
     },
 
     textInput: {
-        backgroundColor: themeColors.componentBG,
+        backgroundColor: 'transparent',
         borderRadius: variables.componentBorderRadiusNormal,
         height: variables.inputComponentSizeNormal,
         borderColor: themeColors.border,
@@ -795,7 +795,7 @@ const styles = {
         borderStyle: 'solid',
         borderColor: themeColors.border,
         justifyContent: 'center',
-        backgroundColor: themeColors.componentBG,
+        backgroundColor: 'transparent',
     },
 
     pickerLabel: {
