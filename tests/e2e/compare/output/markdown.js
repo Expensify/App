@@ -57,7 +57,7 @@ const buildSummaryTable = (entries, collapse = false) => {
 };
 
 const buildMarkdown = (data) => {
-    let result = '# Performance Comparison Report';
+    let result = '## Performance Comparison Report 📊';
 
     if (data.errors && data.errors.length) {
         result += '\n\n### Errors\n';
