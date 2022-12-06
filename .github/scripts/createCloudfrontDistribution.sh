@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 
-if [[ $(aws s3 ls s3://ad-hoc-expensify-cash/web/$1 | head) ]]; then 
+if [[ $(aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[?OriginPath=='/web/$1']].DomainName" --output text | head) ]]; then 
+    echo "Distribution for PR #$1 already exists!"
     exit 0;
 else
     echo $(aws cloudfront create-distribution --origin-domain-name ad-hoc-expensify-cash.s3.us-east-1.amazonaws.com --default-root-object index.html) >> cloudfront.config.json
