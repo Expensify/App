@@ -616,7 +616,7 @@ const styles = {
 
     border: {
         borderWidth: 1,
-        borderRadius: variables.buttonBorderRadius,
+        borderRadius: variables.componentBorderRadius,
         borderColor: themeColors.border,
     },
 
@@ -1477,9 +1477,10 @@ const styles = {
 
     chatItemEmojiButton: {
         alignSelf: 'flex-end',
-        borderRadius: 6,
+        borderRadius: variables.buttonBorderRadius,
         height: 32,
-        margin: 3,
+        marginVertical: 4,
+        paddingHorizontal: 6,
         justifyContent: 'center',
     },
 
