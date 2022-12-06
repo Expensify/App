@@ -1,10 +1,14 @@
 #!/bin/bash
 set -e
 
-if [[ $(aws cloudfront list-distributions --query "DistributionList.Items[0].Id") != null ]] && [[ $(aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[?OriginPath=='/web/$1']].Id" --output text) ]] ; then 
-    echo "Distribution for PR #$1 already exists!"
+DISTRIBUTION_ID=$(echo aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[?OriginPath=='/web/$1']].Id" --output text)
+
+if [[ $(aws cloudfront list-distributions --query "DistributionList.Items[0].Id") != null ]] && [[ $DISTRIBUTION_ID ]] ; then 
+    echo "Distribution for PR #$1 already exists! Invalidating cache..."
+    aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths '/'
     exit 0;
 else
+    echo "A new distribution for PR #$1 is being created"
     echo $(aws cloudfront create-distribution --origin-domain-name ad-hoc-expensify-cash.s3.us-east-1.amazonaws.com --default-root-object index.html) >> cloudfront.config.json
 
     CONFIG=$(cat "./cloudfront.config.json")
