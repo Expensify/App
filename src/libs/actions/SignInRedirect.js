@@ -48,7 +48,7 @@ function clearStorageAndRedirect(errorMessage) {
         keyStatesToPreserve.push(ONYXKEYS.NETWORK);
     }
     if (preferredLocale) {
-        keyStatesToPreserve.push(ONYXKEYS.NVP_PREFERRED_LOCALE)
+        keyStatesToPreserve.push(ONYXKEYS.NVP_PREFERRED_LOCALE);
     }
 
     // Clearing storage discards the authToken. This causes a redirect to the SignIn screen
