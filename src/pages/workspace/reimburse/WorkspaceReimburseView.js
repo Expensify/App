@@ -286,6 +286,7 @@ class WorkspaceReimburseView extends React.Component {
                     </OfflineWithFeedback>
                 </Section>
                 <WorkspaceReimburseSection
+                    policy={this.props.policy}
                     reimbursementAccount={this.props.reimbursementAccount}
                     network={this.props.network}
                     translate={this.props.translate}
