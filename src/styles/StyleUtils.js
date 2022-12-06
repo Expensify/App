@@ -545,7 +545,7 @@ function getKeyboardShortcutsModalWidth(isSmallScreenWidth) {
  * @returns {Object}
  */
 function getHorizontalStackedAvatarStyle(isHovered, isPressed) {
-    let backgroundColor = 'transparent';
+    let backgroundColor = themeColors.appBG;
 
     if (isHovered) {
         backgroundColor = colors.greenDefaultButtonHover;
