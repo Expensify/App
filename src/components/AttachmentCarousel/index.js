@@ -86,7 +86,7 @@ class AttachmentCarousel extends React.Component {
         const sourceURL = _.get(attachmentItem, 'sourceURL', '');
         const file = _.get(attachmentItem, 'file', {name: ''});
         return {
-            sourceURL: addEncryptedAuthTokenToURL(sourceURL),
+            sourceURL,
             file,
         };
     }
@@ -136,7 +136,7 @@ class AttachmentCarousel extends React.Component {
 
         this.setState(({attachments, page}) => {
             const nextIndex = page + deltaSlide;
-            if (nextIndex < 10) {
+            if (attachments.length - nextIndex < 10) {
                 Report.loadMoreActions(this.props.report.reportID, this.props.reportActions, this.props.report.isLoadingMoreReportActions);
             }
             const {sourceURL, file} = this.getAttachment(attachments[nextIndex]);
@@ -155,7 +155,7 @@ class AttachmentCarousel extends React.Component {
         if (!this.state.sourceURL) {
             return null;
         }
-
+        const authSourceURL = addEncryptedAuthTokenToURL(this.state.sourceURL);
         return (
             <View
                 style={[styles.attachmentModalArrowsContainer]}
@@ -192,7 +192,7 @@ class AttachmentCarousel extends React.Component {
                     onPress={() => this.canUseTouchScreen && this.onShowArrow(!this.state.shouldShowArrow)}
                     onCycleThroughAttachments={this.cycleThroughAttachments}
                 >
-                    <AttachmentView onPress={() => this.onShowArrow(!this.state.shouldShowArrow)} sourceURL={this.state.sourceURL} file={this.state.file} />
+                    <AttachmentView onPress={() => this.onShowArrow(!this.state.shouldShowArrow)} sourceURL={authSourceURL} file={this.state.file} />
                 </CarouselActions>
 
             </View>
