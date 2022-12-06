@@ -83,7 +83,7 @@ const MultipleAvatars = (props) => {
                         _.map([...props.icons].splice(0, 4).reverse(), (icon, index) => (
                             <View
                                 key={`stackedAvatars-${index}`}
-                                style={[StyleUtils.getHorizontalStackedAvatarStyle(props.isHovered, props.isPressed), horizontalStyles[index]]}
+                                style={[styles.horizontalStackedAvatar, StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed), horizontalStyles[index]]}
                             >
                                 <Avatar
                                     source={icon || props.fallbackIcon}
@@ -94,7 +94,14 @@ const MultipleAvatars = (props) => {
                         ))
                     }
                     {props.icons.length > 4 && (
-                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.horizontalStackedAvatar4Overlay]}>
+                        <View
+                            style={[
+                                styles.alignItemsCenter,
+                                styles.justifyContentCenter,
+                                StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed),
+                                styles.horizontalStackedAvatar4Overlay,
+                            ]}
+                        >
                             <Text style={styles.avatarInnerTextSmall}>
                                 {`+${props.icons.length - 4}`}
                             </Text>

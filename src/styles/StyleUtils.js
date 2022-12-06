@@ -544,7 +544,7 @@ function getKeyboardShortcutsModalWidth(isSmallScreenWidth) {
  * @param {Boolean} isPressed
  * @returns {Object}
  */
-function getHorizontalStackedAvatarStyle(isHovered, isPressed) {
+function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
     let backgroundColor = themeColors.appBG;
 
     if (isHovered) {
@@ -556,12 +556,8 @@ function getHorizontalStackedAvatarStyle(isHovered, isPressed) {
     }
 
     return {
-        height: 28,
-        width: 28,
-        borderRadius: 33,
-        paddingTop: 2,
-        alignItems: 'center',
         backgroundColor,
+        borderColor: backgroundColor,
     };
 }
 
@@ -598,5 +594,5 @@ export {
     hasSafeAreas,
     getHeight,
     fade,
-    getHorizontalStackedAvatarStyle,
+    getHorizontalStackedAvatarBorderStyle,
 };
