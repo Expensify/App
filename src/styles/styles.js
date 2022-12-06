@@ -29,12 +29,7 @@ const picker = {
     paddingBottom: 8,
     paddingTop: 23,
     height: variables.inputHeight,
-    borderTopWidth: 0,
-    borderLeftWidth: 0,
-    borderRightWidth: 0,
-    borderBottomWidth: 2,
-    borderBottomStyle: 'solid',
-    borderBottomColor: themeColors.border,
+    borderWidth: 0,
 };
 
 const link = {
@@ -796,7 +791,7 @@ const styles = {
     },
 
     pickerContainer: {
-        borderWidth: 0,
+        borderBottomWidth: 2,
         borderStyle: 'solid',
         borderColor: themeColors.border,
         justifyContent: 'center',
@@ -805,7 +800,7 @@ const styles = {
 
     pickerLabel: {
         position: 'absolute',
-        left: 11,
+        left: 0,
         top: 6,
     },
 
