@@ -701,7 +701,7 @@ function markCommentAsUnread(reportID, created, sequenceNumber) {
         {
             reportID,
 
-            // We need to subtract 1 millisecond so that the lastRead is updated to just before this reportAction's created date
+            // We subtract 1 millisecond so that the lastRead is updated to just before this reportAction's created date
             created: DateUtils.getDBTime(new Date(created) - 1),
             sequenceNumber,
         },
