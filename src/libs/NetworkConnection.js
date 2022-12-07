@@ -123,9 +123,7 @@ function onReconnect(callback) {
  * Delete all queued reconnection callbacks
  */
 function clearReconnectionCallbacks() {
-    for (const prop of Object.getOwnPropertyNames(reconnectionCallbacks)) {
-        delete reconnectionCallbacks[prop];
-    }
+    Object.keys(reconnectionCallbacks).forEach(key => delete reconnectionCallbacks[key]);
 }
 
 /**
