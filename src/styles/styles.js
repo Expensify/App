@@ -1123,7 +1123,7 @@ const styles = {
     },
 
     sidebarLinkText: {
-        color: themeColors.text,
+        color: themeColors.textSupporting,
         fontSize: variables.fontSizeNormal,
         textDecorationLine: 'none',
         overflow: 'hidden',
@@ -1144,7 +1144,7 @@ const styles = {
     },
 
     sidebarLinkActiveText: {
-        color: themeColors.text,
+        color: themeColors.textSupporting,
         fontSize: variables.fontSizeNormal,
         textDecorationLine: 'none',
         overflow: 'hidden',
@@ -1477,9 +1477,10 @@ const styles = {
 
     chatItemEmojiButton: {
         alignSelf: 'flex-end',
-        borderRadius: 6,
+        borderRadius: variables.buttonBorderRadius,
         height: 32,
-        margin: 3,
+        marginVertical: 4,
+        paddingHorizontal: 6,
         justifyContent: 'center',
     },
 
