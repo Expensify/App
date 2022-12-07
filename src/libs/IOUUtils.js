@@ -68,7 +68,7 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = 
  * Returns the list of IOU actions depnding on the type and whehter or not they are pending.
  * Used below so that we can decide if an IOU report is pending currency conversion.
  *
- * @param {Array} reportIOUActions
+ * @param {Array} reportActions
  * @param {Object} iouReport
  * @param {String} type - iouReportAction type. Can be oneOf(create, decline, cancel, pay, split)
  * @param {String} pendingAction
@@ -76,8 +76,8 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = 
  *
  * @returns {Array}
  */
-function getIOUReportActions(reportIOUActions, iouReport, type = '', pendingAction = '', filterRequestsInDifferentCurrency = false) {
-    return _.chain(reportIOUActions)
+function getIOUReportActions(reportActions, iouReport, type = '', pendingAction = '', filterRequestsInDifferentCurrency = false) {
+    return _.chain(reportActions)
         .filter(action => action.originalMessage
             && action.actionName === 'IOU'
             && action.originalMessage.IOUReportID.toString() === iouReport.reportID.toString())
