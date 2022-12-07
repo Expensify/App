@@ -63,7 +63,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    reimbursementAccount: {},
+    reimbursementAccount: {isLoading: true},
 };
 
 class WorkspaceReimburseView extends React.Component {
