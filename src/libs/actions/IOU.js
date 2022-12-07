@@ -662,6 +662,7 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
     return `https://paypal.me/${submitterPayPalMeAddress}/${(amount / 100)}${currency}`;
 }
 
+/**
  * @param {Object} report
  * @param {Number} amount
  * @param {String} currency
