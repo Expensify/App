@@ -762,7 +762,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         currency,
         comment,
         [recipient],
-        CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+        paymentMethodType,
         '',
         optimisticIOUReport.reportID,
     );
