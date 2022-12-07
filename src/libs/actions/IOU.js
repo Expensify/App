@@ -732,15 +732,16 @@ function payIOUReport({
  * @returns {Object}
  */
 function getSendMoneyParams(report, amount, currency, comment, paymentMethodType, managerEmail, recipient) {
+    const recipientEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(recipient.login);
+
     const newIOUReportDetails = JSON.stringify({
         amount,
         currency,
-        requestorEmail: OptionsListUtils.addSMSDomainIfPhoneNumber(recipient.login),
+        requestorEmail: recipientEmail,
         comment,
         idempotencyKey: Str.guid(),
     });
 
-    const recipientEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(recipient.login);
     let chatReport = report.reportID ? report : null;
     let isNewChat = false;
     if (!chatReport) {
