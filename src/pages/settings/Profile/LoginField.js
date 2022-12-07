@@ -100,8 +100,8 @@ class LoginField extends Component {
                         />
                     </View>
                 ) : (
-                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                        <Text numberOfLines={1}>
+                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.pt]}>
+                        <Text style={[styles.mt1]} numberOfLines={1}>
                             {this.props.type === CONST.LOGIN_TYPE.PHONE
                                 ? this.props.toLocalPhone(this.props.login.partnerUserID)
                                 : this.props.login.partnerUserID}
