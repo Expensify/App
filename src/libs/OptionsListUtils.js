@@ -779,23 +779,6 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
     return '';
 }
 
-/**
- * Returns the currency list for sections display
- *
- * @param {Object} currencyOptions
- * @param {String} searchValue
- * @returns {Array}
- */
-function getCurrencyListForSections(currencyOptions, searchValue) {
-    const filteredOptions = _.filter(currencyOptions, currencyOption => (
-        isSearchStringMatch(searchValue, currencyOption.text)));
-
-    return {
-        // returns filtered options i.e. options with string match if search text is entered
-        currencyOptions: filteredOptions,
-    };
-}
-
 export {
     addSMSDomainIfPhoneNumber,
     isCurrentUser,
@@ -804,7 +787,6 @@ export {
     getMemberInviteOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,
-    getCurrencyListForSections,
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
     getSearchText,
