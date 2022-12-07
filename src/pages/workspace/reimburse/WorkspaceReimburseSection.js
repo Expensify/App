@@ -36,18 +36,18 @@ class WorkspaceReimburseSection extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            isLoading: false,
+            shouldShowLoadingSpinner: false,
         };
 
-        this.debounceSetIsLoading = _.debounce(this.setIsLoading.bind(this), 250);
+        this.debounceSetShouldShowLoadingSpinner = _.debounce(this.setShouldShowLoadingSpinner.bind(this), 250);
     }
 
     componentDidUpdate() {
-        this.debounceSetIsLoading();
+        this.debounceSetShouldShowLoadingSpinner();
     }
 
-    setIsLoading() {
-        this.setState({isLoading: this.props.reimbursementAccount.isLoading || false});
+    setShouldShowLoadingSpinner() {
+        this.setState({shouldShowLoadingSpinner: this.props.reimbursementAccount.isLoading || false});
     }
 
     render() {
@@ -68,11 +68,11 @@ class WorkspaceReimburseSection extends React.Component {
         }
 
         // If the reimbursementAccount is loading but not enough time has passed to show a spinner, then render nothing.
-        if (this.props.reimbursementAccount.isLoading && !this.state.isLoading) {
+        if (this.props.reimbursementAccount.isLoading && !this.state.shouldShowLoadingSpinner) {
             return null;
         }
 
-        if (this.state.isLoading) {
+        if (this.state.shouldShowLoadingSpinner) {
             return (
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <ActivityIndicator color={themeColors.spinner} size="large" />
