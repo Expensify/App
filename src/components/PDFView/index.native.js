@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {TouchableWithoutFeedback, StyleSheet, View} from 'react-native';
+import {TouchableWithoutFeedback, View} from 'react-native';
 import PDF from 'react-native-pdf';
 import KeyboardAvoidingView from '../KeyboardAvoidingView';
 import styles from '../../styles/styles';
