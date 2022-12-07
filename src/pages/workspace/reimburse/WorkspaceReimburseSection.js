@@ -39,7 +39,7 @@ class WorkspaceReimburseSection extends React.Component {
             isLoading: false,
         };
 
-        this.debounceSetIsLoading = _.debounce(this.setIsLoading.bind(this), 500);
+        this.debounceSetIsLoading = _.debounce(this.setIsLoading.bind(this), 250);
     }
 
     componentDidUpdate(prevProps) {
