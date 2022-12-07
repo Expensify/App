@@ -206,7 +206,7 @@ describe('actions/Report', () => {
     it('should be updated correctly when new comments are added, deleted or marked as unread', () => {
         const REPORT_ID = 1;
         let report;
-        const reportActionCreated = DateUtils.getDBTime();
+        let reportActionCreated;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
             callback: val => report = val,
@@ -233,6 +233,7 @@ describe('actions/Report', () => {
             .then(() => TestHelper.setPersonalDetails(USER_1_LOGIN, USER_1_ACCOUNT_ID))
             .then(() => {
                 // When a Pusher event is handled for a new report comment
+                reportActionCreated = DateUtils.getDBTime();
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
                     {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -330,6 +331,36 @@ describe('actions/Report', () => {
                     reportActionID: 'derp',
                 };
 
+                const optimisticReportActions = {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                    value: {
+                        [_.toArray(reportActions)[1].clientID]: null,
+                        [_.toArray(reportActions)[2].clientID]: null,
+                        [_.toArray(reportActions)[3].clientID]: null,
+                        2: {
+                            ...USER_1_BASE_ACTION,
+                            message: [{type: 'COMMENT', html: 'Current User Comment 1', text: 'Current User Comment 1'}],
+                            created: DateUtils.getDBTime(),
+                            sequenceNumber: 2,
+                        },
+                        3: {
+                            ...USER_1_BASE_ACTION,
+                            message: [{type: 'COMMENT', html: 'Current User Comment 2', text: 'Current User Comment 2'}],
+                            created: DateUtils.getDBTime(),
+                            sequenceNumber: 3,
+                        },
+                        4: {
+                            ...USER_1_BASE_ACTION,
+                            message: [{type: 'COMMENT', html: 'Current User Comment 3', text: 'Current User Comment 3'}],
+                            created: DateUtils.getDBTime(),
+                            sequenceNumber: 4,
+                        },
+                    },
+                };
+                reportActionCreated = DateUtils.getDBTime();
+                optimisticReportActions.value[4].created = reportActionCreated;
+
                 // When we emit the events for these pending created actions to update them to not pending
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
                     {
@@ -345,33 +376,7 @@ describe('actions/Report', () => {
                             lastReadSequenceNumber: 4,
                         },
                     },
-                    {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-                        value: {
-                            [_.toArray(reportActions)[1].clientID]: null,
-                            [_.toArray(reportActions)[2].clientID]: null,
-                            [_.toArray(reportActions)[3].clientID]: null,
-                            2: {
-                                ...USER_1_BASE_ACTION,
-                                message: [{type: 'COMMENT', html: 'Current User Comment 1', text: 'Current User Comment 1'}],
-                                created: DateUtils.getDBTime(),
-                                sequenceNumber: 2,
-                            },
-                            3: {
-                                ...USER_1_BASE_ACTION,
-                                message: [{type: 'COMMENT', html: 'Current User Comment 2', text: 'Current User Comment 2'}],
-                                created: DateUtils.getDBTime(),
-                                sequenceNumber: 3,
-                            },
-                            4: {
-                                ...USER_1_BASE_ACTION,
-                                message: [{type: 'COMMENT', html: 'Current User Comment 3', text: 'Current User Comment 3'}],
-                                created: DateUtils.getDBTime(),
-                                sequenceNumber: 4,
-                            },
-                        },
-                    },
+                    optimisticReportActions,
                 ]);
 
                 return waitForPromisesToResolve();
@@ -387,7 +392,7 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnread(report)).toBe(false);
 
                 // When the user manually marks a message as "unread"
-                Report.markCommentAsUnread(REPORT_ID, USER_1_BASE_ACTION.created, 3);
+                Report.markCommentAsUnread(REPORT_ID, reportActionCreated, 3);
                 return waitForPromisesToResolve();
             })
             .then(() => {
