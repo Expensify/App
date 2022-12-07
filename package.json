@@ -29,6 +29,7 @@
     "test": "jest",
     "lint": "eslint . --max-warnings=0",
     "lint-watch": "npx eslint-watch --watch --changed",
+    "shellcheck": "./scripts/shellCheck.sh",
     "print-version": "echo $npm_package_version",
     "storybook": "start-storybook -p 6006",
     "storybook-build": "build-storybook -o dist/docs",
