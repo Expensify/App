@@ -723,122 +723,6 @@ function payIOUReport({
 
 /**
  * @param {String} chatReportID - Report ID of the chat where the IOU is.
- * @param {Number} amount - IOU amount in cents.
- * @param {String} currency - IOU currency.
- * @param {String} comment
- * @param {Array} participants - Participants on the IOU
- */
-function sendMoneyWithWallet(chatReportID, amount, currency, comment, participants) {
-    const chatReport = _.empty(chatReportID) ? ReportUtils.buildOptimisticChatReport(participants) : chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
-
-    // If the ownerEmail of the chat is fake then this is a optimistic report, and the owner should be the first of the participants
-    // Otherwise just use the owner email from the chatReport as that should be who created the report
-    const ownerEmail = chatReport.ownerEmail === CONST.REPORT.OWNER_EMAIL_FAKE || _.isEmpty(chatReport.ownerEmail) ? participants[0].login : chatReport.ownerEmail;
-    const userEmail = _.find(participants, participant => participant.login !== ownerEmail);
-    const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(
-        ownerEmail,
-        userEmail,
-        amount,
-        chatReport.chatReportID,
-        currency,
-        preferredLocale,
-    );
-    const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
-    const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
-        newSequenceNumber,
-        CONST.IOU.REPORT_ACTION_TYPE.PAY,
-        amount,
-        currency,
-        comment,
-        participants,
-        CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-        '',
-        optimisticIOUReport.reportID,
-    );
-    const optimisticData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.chatReportID}`,
-            value: {
-                [optimisticIOUReportAction.reportActionID]: {
-                    optimisticIOUReportAction,
-
-                    // Set pendingAction state for pattern B
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-            },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: {
-                ...chatReport,
-                lastVisitedTimestamp: Date.now(),
-                lastReadSequenceNumber: newSequenceNumber,
-                maxSequenceNumber: newSequenceNumber,
-                lastMessageText: optimisticIOUReportAction.message[0].text,
-                lastMessageHtml: optimisticIOUReportAction.message[0].html,
-                hasOutstandingIOU: optimisticIOUReport.total !== 0,
-                iouReportID: optimisticIOUReport.reportID,
-            },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_IOUS}${optimisticIOUReport.reportID}`,
-            value: optimisticIOUReport,
-        },
-    ];
-    const successData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-            value: {
-                [optimisticIOUReportAction.reportActionID]: {
-                    pendingAction: null,
-                },
-            },
-        },
-    ];
-    const failureData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-            value: {
-                [optimisticIOUReportAction.reportActionID]: {
-                    optimisticIOUReportAction,
-                    pendingAction: null,
-                    error: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
-                    },
-                },
-            },
-        },
-    ];
-
-    const newIOUReportDetails = JSON.stringify({
-        amount,
-        currency,
-        requestorEmail: ownerEmail,
-        comment,
-        idempotencyKey: Str.guid(),
-    });
-
-    const params = {
-        iouReportID: optimisticIOUReport.reportID,
-        chatReportID: chatReport.reportID,
-        paidReportActionID: optimisticIOUReportAction.reportActionID,
-        transactionID: optimisticIOUReportAction.originalMessage.IOUTransactionID,
-        clientID: newSequenceNumber,
-        newIOUReportDetails,
-    };
-
-    API.write('SendMoneyWithWallet',
-        {params},
-        {optimisticData, successData, failureData});
-}
-
-/**
- * @param {String} chatReportID - Report ID of the chat where the IOU is.
  * @param {String} iouReportID - Report ID of the IOU.
  * @param {Number} amount - IOU amount in cents.
  * @param {String} currency - IOU currency.
@@ -965,7 +849,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         currency,
         comment,
         [recipient],
-        CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+        paymentMethodType,
         '',
         optimisticIOUReport.reportID,
     );
