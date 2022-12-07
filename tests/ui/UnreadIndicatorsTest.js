@@ -109,6 +109,8 @@ const USER_B_EMAIL = 'user_b@test.com';
 const USER_C_ACCOUNT_ID = 3;
 const USER_C_EMAIL = 'user_c@test.com';
 const MOMENT_FORMAT = 'YYYY-MM-DD HH:mm:ss.SSS';
+let reportAction3Created;
+let reportAction9Created;
 
 /**
  * Sets up a test with a logged in user that has one unread chat from another user. Returns the <App/> test instance.
@@ -127,6 +129,8 @@ function signInAndGetAppWithUnreadChat() {
         })
         .then(() => {
             const MOMENT_TEN_MINUTES_AGO = moment().subtract(10, 'minutes');
+            reportAction3Created = MOMENT_TEN_MINUTES_AGO.add(30, 'seconds').format(MOMENT_FORMAT);
+            reportAction9Created = MOMENT_TEN_MINUTES_AGO.add(90, 'seconds').format(MOMENT_FORMAT);
 
             // Simulate setting an unread report and personal details
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
@@ -160,13 +164,13 @@ function signInAndGetAppWithUnreadChat() {
                 },
                 1: TestHelper.buildTestReportComment(USER_B_EMAIL, 1, MOMENT_TEN_MINUTES_AGO.add(10, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
                 2: TestHelper.buildTestReportComment(USER_B_EMAIL, 2, MOMENT_TEN_MINUTES_AGO.add(20, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
-                3: TestHelper.buildTestReportComment(USER_B_EMAIL, 3, MOMENT_TEN_MINUTES_AGO.add(30, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
+                3: TestHelper.buildTestReportComment(USER_B_EMAIL, 3, reportAction3Created, USER_B_ACCOUNT_ID),
                 4: TestHelper.buildTestReportComment(USER_B_EMAIL, 4, MOMENT_TEN_MINUTES_AGO.add(40, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
                 5: TestHelper.buildTestReportComment(USER_B_EMAIL, 5, MOMENT_TEN_MINUTES_AGO.add(50, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
                 6: TestHelper.buildTestReportComment(USER_B_EMAIL, 6, MOMENT_TEN_MINUTES_AGO.add(60, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
                 7: TestHelper.buildTestReportComment(USER_B_EMAIL, 7, MOMENT_TEN_MINUTES_AGO.add(70, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
                 8: TestHelper.buildTestReportComment(USER_B_EMAIL, 8, MOMENT_TEN_MINUTES_AGO.add(80, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
-                9: TestHelper.buildTestReportComment(USER_B_EMAIL, 9, MOMENT_TEN_MINUTES_AGO.add(90, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
+                9: TestHelper.buildTestReportComment(USER_B_EMAIL, 9, reportAction9Created, USER_B_ACCOUNT_ID),
             });
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
                 [USER_B_EMAIL]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
@@ -358,7 +362,7 @@ describe('Unread Indicators', () => {
             .then(() => {
                 // It's difficult to trigger marking a report comment as unread since we would have to mock the long press event and then
                 // another press on the context menu item so we will do it via the action directly and then test if the UI has updated properly
-                Report.markCommentAsUnread(REPORT_ID, 3);
+                Report.markCommentAsUnread(REPORT_ID, reportAction3Created, 3);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -467,7 +471,7 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(0);
 
                 // Mark a previous comment as unread and verify the unread action indicator returns
-                Report.markCommentAsUnread(REPORT_ID, 9);
+                Report.markCommentAsUnread(REPORT_ID, reportAction9Created, 9);
                 return waitForPromisesToResolve();
             })
             .then(() => {
