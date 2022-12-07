@@ -818,7 +818,6 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 [optimisticIOUReportAction.sequenceNumber]: {
-                    ...optimisticIOUReportAction,
                     errors: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),
                     },
