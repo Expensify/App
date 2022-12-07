@@ -190,7 +190,7 @@ jobs:
           PULL_REQUEST_NUMBER: ${{ github.event.number }}
 
       - name: Create CloudFront distribution for the PR if needed
-        run: ./.github/scripts/verifyActions.sh "$PULL_REQUEST_NUMBER"
+        run: ./.github/scripts/createCloudfrontDistribution.sh "$PULL_REQUEST_NUMBER"
         env:
           PULL_REQUEST_NUMBER: ${{ github.event.number }}
 
