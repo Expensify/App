@@ -65,7 +65,7 @@ index 6eb74da..b494ceb 100644
 +  RCTBaseTextInputShadowView *shadowView =
 +    (RCTBaseTextInputShadowView *)[super shadowView];
 +
-+  shadowView.maximumNumberOfLines = 1;
++  shadowView.maximumNumberOfLines = 0;
 +  shadowView.exactNumberOfLines = 0;
 +
 +  return shadowView;
