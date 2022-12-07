@@ -662,65 +662,6 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
     return `https://paypal.me/${submitterPayPalMeAddress}/${(amount / 100)}${currency}`;
 }
 
-/**
- * Pays an IOU Report and then retrieves the iou and chat reports to trigger updates to the UI.
- *
- * @param {Object} params
- * @param {Number} params.chatReportID
- * @param {String} params.reportID
- * @param {String} params.paymentMethodType - one of CONST.IOU.PAYMENT_TYPE
- * @param {Number} params.amount
- * @param {String} params.currency
- * @param {String} [params.requestorPayPalMeAddress]
- * @param {String} [params.newIOUReportDetails] - Extra details required only for send money flow
- *
- * @return {Promise}
- */
-function payIOUReport({
-    chatReportID,
-    reportID,
-    paymentMethodType,
-    amount,
-    currency,
-    requestorPayPalMeAddress,
-    newIOUReportDetails,
-}) {
-    Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
-
-    // Build the url for Paypal.me if they have selected it instead of a manual settlement or Expensify Wallet
-    let url;
-    if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-        url = buildPayPalPaymentUrl(amount, requestorPayPalMeAddress, currency);
-    }
-
-    const promiseWithHandlers = DeprecatedAPI.PayWithWallet({reportID, newIOUReportDetails})
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                switch (response.message) {
-                    case 'You cannot pay via Expensify Wallet until you have either a verified deposit bank account or debit card.':
-                        Growl.error(Localize.translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'), 5000);
-                        break;
-                    case 'This report doesn\'t have reimbursable expenses.':
-                        Growl.error(Localize.translateLocal('iou.noReimbursableExpenses'), 5000);
-                        break;
-                    default:
-                        Growl.error(response.message, 5000);
-                }
-                Onyx.merge(ONYXKEYS.IOU, {error: true});
-                return;
-            }
-
-            const chatReportStuff = response.reports[chatReportID];
-            const iouReportStuff = response.reports[reportID];
-            Report.syncChatAndIOUReports(chatReportStuff, iouReportStuff);
-        })
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.IOU, {loading: false});
-        });
-    asyncOpenURL(promiseWithHandlers, url);
-    return promiseWithHandlers;
-}
-
  * @param {Object} report
  * @param {Number} amount
  * @param {String} currency
@@ -1070,7 +1011,6 @@ export {
     splitBill,
     splitBillAndOpenReport,
     requestMoney,
-    payIOUReport,
     sendMoneyElsewhere,
     sendMoneyViaPaypal,
     payMoneyRequestElsewhere,
