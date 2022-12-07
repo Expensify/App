@@ -1192,6 +1192,24 @@ function sendMoneyElsewhere(report, amount, currency, comment, managerEmail, rec
  * @param {String} managerEmail - Email of the person sending the money
  * @param {Object} recipient - The user receiving the money
  */
+function sendMoneyWithWallet(report, amount, currency, comment, managerEmail, recipient) {
+    const {
+        params, optimisticData, successData, failureData,
+    } = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.EXPENSIFY, managerEmail, recipient);
+
+    API.write('SendMoneyWithWallet', params, {optimisticData, successData, failureData});
+
+    Navigation.navigate(ROUTES.getReportRoute(params.chatReportID));
+}
+
+/**
+ * @param {Object} report
+ * @param {Number} amount
+ * @param {String} currency
+ * @param {String} comment
+ * @param {String} managerEmail - Email of the person sending the money
+ * @param {Object} recipient - The user receiving the money
+ */
 function sendMoneyViaPaypal(report, amount, currency, comment, managerEmail, recipient) {
     const {
         params, optimisticData, successData, failureData,

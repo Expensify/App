@@ -310,7 +310,7 @@ class IOUModal extends Component {
                 participant,
             );
         }
- if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
             IOU.sendMoneyWithWallet(
                 chatReportID,
                 amount,
