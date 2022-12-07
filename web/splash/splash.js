@@ -11,8 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const root = document.getElementById('root');
     splash.style.backgroundColor = themeColors.appBG;
 
-    // // set app background color
-    const body = document.getElementById('bg');
+    // Set app background color
+    const body = document.querySelector('body');
     body.style.backgroundColor = themeColors.appBG;
 
     splashLogo.innerHTML = newExpensifyLogo;
