@@ -15,7 +15,7 @@
 @font-face {
     font-family: ExpensifyNeue-Italic;
     font-weight: 400;
-    font-style: normal;
+    font-style: italic;
     src: url('/fonts/ExpensifyNeue-Italic.woff2') format('woff2'), url('/fonts/ExpensifyNeue-Italic.woff') format('woff');
 }
 
