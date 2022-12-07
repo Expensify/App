@@ -1138,7 +1138,7 @@ const styles = {
         textDecorationLine: 'none',
     },
 
-    sidebarLinkTextUnread: {
+    sidebarLinkTextBold: {
         fontWeight: '700',
         color: themeColors.heading,
     },
@@ -1570,6 +1570,7 @@ const styles = {
         backgroundColor: themeColors.appBG,
         borderRadius: 33,
         paddingTop: 2,
+        alignItems: 'center',
     },
 
     singleSubscript: {
@@ -1733,7 +1734,6 @@ const styles = {
         width: 28,
         borderWidth: 2,
         borderStyle: 'solid',
-        borderColor: themeColors.appBG,
         backgroundColor: themeColors.opaqueAvatar,
         borderRadius: 24,
         zIndex: 6,
@@ -2757,6 +2757,18 @@ const styles = {
         alignSelf: 'center',
     },
 
+    fullScreenTransparentOverlay: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: themeColors.dropUIBG,
+        zIndex: 2,
+    },
+
     textPill: {
         ellipsizeMode: 'end',
         backgroundColor: themeColors.border,
@@ -2766,6 +2778,18 @@ const styles = {
         flexShrink: 1,
         fontSize: variables.fontSizeSmall,
         ...spacing.ph2,
+    },
+
+    dropZoneTopInvisibleOverlay: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: themeColors.dropTransparentOverlay,
+        zIndex: 1000,
     },
 
     cardSection: {
