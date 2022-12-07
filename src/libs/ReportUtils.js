@@ -468,12 +468,26 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
         ];
     }
 
-    // Return avatar sources for Group chats
-    const sortedParticipants = _.map(report.participants, dmParticipant => ({
-        firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
-        avatar: lodashGet(personalDetails, [dmParticipant, 'avatar']) || getDefaultAvatar(dmParticipant),
-    })).sort((first, second) => first.firstName - second.firstName);
-    return _.map(sortedParticipants, item => item.avatar);
+    const participantDetails = [];
+    for (let i = 0; i < report.participants.length; i++) {
+        const login = report.participants[i];
+        participantDetails.push([
+            login,
+            lodashGet(personalDetails, [login, 'firstName'], ''),
+            lodashGet(personalDetails, [login, 'avatar']) || getDefaultAvatar(login),
+        ]);
+    }
+
+    // Sort all logins by first name (which is the second element in the array)
+    const sortedParticipantDetails = participantDetails.sort((a, b) => a[1] - b[1]);
+
+    // Now that things are sorted, gather only the avatars (third element in the array) and return those
+    const avatars = [];
+    for (let i = 0; i < sortedParticipantDetails.length; i++) {
+        avatars.push(sortedParticipantDetails[i][2]);
+    }
+
+    return avatars;
 }
 
 /**
@@ -570,7 +584,13 @@ function getReportName(report, policies = {}) {
     const participants = (report && report.participants) || [];
     const participantsWithoutCurrentUser = _.without(participants, sessionEmail);
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
-    return _.map(participantsWithoutCurrentUser, login => getDisplayNameForParticipant(login, isMultipleParticipantReport)).join(', ');
+
+    const displayNames = [];
+    for (let i = 0; i < participantsWithoutCurrentUser.length; i++) {
+        const login = participantsWithoutCurrentUser[i];
+        displayNames.push(getDisplayNameForParticipant(login, isMultipleParticipantReport));
+    }
+    return displayNames.join(', ');
 }
 
 /**
