@@ -15,7 +15,8 @@ declare -r DIRECTORIES_TO_IGNORE=(
 )
 
 # This lists all shell scripts in this repo except those in directories we want to ignore
-SHELL_SCRIPTS=$(find . -type d \( -path "$(join_by_string " -o -path " "${DIRECTORIES_TO_IGNORE[@]}")" \) -prune -o -name '*.sh' -print)
+read -ra IGNORE_DIRS < <(join_by_string ' -o -path ' "${DIRECTORIES_TO_IGNORE[@]}")
+SHELL_SCRIPTS=$(find . -type d \( -path "${IGNORE_DIRS[@]}" \) -prune -o -name '*.sh' -print)
 info "👀 Linting the following shell scripts using ShellCheck: $SHELL_SCRIPTS"
 info
 
