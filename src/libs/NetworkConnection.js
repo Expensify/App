@@ -123,7 +123,7 @@ function onReconnect(callback) {
  * Delete all queued reconnection callbacks
  */
 function clearReconnectionCallbacks() {
-    Object.keys(reconnectionCallbacks).forEach(key => delete reconnectionCallbacks[key]);
+    _.each(_.keys(reconnectionCallbacks), key => delete reconnectionCallbacks[key]);
 }
 
 /**
