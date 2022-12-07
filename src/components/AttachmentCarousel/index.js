@@ -97,6 +97,11 @@ class AttachmentCarousel extends React.Component {
     makeStateWithReports() {
         let page;
         const actionsArr = ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions), true);
+
+        /**
+         * calling reducer will filter out attachments, determine the index of opened attachment,
+         * and retrieve the src url and name of attachements
+         */
         const attachments = _.reduce(actionsArr, (attachmentsAccumulator, {originalMessage}) => {
             if (originalMessage && originalMessage.html) {
                 const matchesIt = originalMessage.html.matchAll(CONST.REGEX.ATTACHMENT_DATA);
