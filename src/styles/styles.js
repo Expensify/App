@@ -1733,8 +1733,8 @@ const styles = {
         width: 28,
         borderWidth: 2,
         borderStyle: 'solid',
-        backgroundColor: themeColors.overlay,
-        opacity: 0.6,
+        backgroundColor: themeColors.border,
+        opacity: 1,
         borderRadius: 24,
         zIndex: 6,
     },
@@ -1972,14 +1972,14 @@ const styles = {
         marginLeft: -16,
     },
 
-    screenBlur: {
+    roomHeaderAvatarOverlay: {
         position: 'absolute',
         top: 0,
         right: 0,
         bottom: 0,
         left: 0,
         backgroundColor: themeColors.overlay,
-        opacity: 0.6,
+        opacity: 0.7,
     },
 
     avatarInnerTextChat: {
