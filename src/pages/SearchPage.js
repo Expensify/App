@@ -184,7 +184,7 @@ class SearchPage extends Component {
                                 hideAdditionalOptionStates
                                 showTitleTooltip
                                 shouldShowOptions={didScreenTransitionEnd}
-                                placeholderText = {this.props.translate('common.search')}
+                                placeholderText = {this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                             />
                         </View>
                     </>
