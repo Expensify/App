@@ -64,9 +64,6 @@ const propTypes = {
     /** Whether to show the title tooltip */
     showTitleTooltip: PropTypes.bool,
 
-    /** Toggle between compact and default view of the option */
-    optionMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
-
     /** Whether to disable the interactivity of the list's option row(s) */
     isDisabled: PropTypes.bool,
 
@@ -92,7 +89,6 @@ const defaultProps = {
     headerMessage: '',
     innerRef: null,
     showTitleTooltip: false,
-    optionMode: undefined,
     isDisabled: false,
     onLayout: undefined,
     shouldHaveOptionSeparator: false,
