@@ -90,6 +90,9 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
      * @param bitmap The bitmap image to modify.
      */
     public Bitmap getCroppedBitmap(Bitmap bitmap) {
+       // Convert hardware bitmap to software bitmap so it can be drawn on the canvas
+       bitmap = bitmap.copy(Config.ARGB_8888, true);
+
        Bitmap output = Bitmap.createBitmap(bitmap.getWidth(),
             bitmap.getHeight(), Config.ARGB_8888);
        Canvas canvas = new Canvas(output);
