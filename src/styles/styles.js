@@ -1570,6 +1570,7 @@ const styles = {
         backgroundColor: themeColors.appBG,
         borderRadius: 33,
         paddingTop: 2,
+        alignItems: 'center',
     },
 
     singleSubscript: {
@@ -1733,7 +1734,6 @@ const styles = {
         width: 28,
         borderWidth: 2,
         borderStyle: 'solid',
-        borderColor: themeColors.appBG,
         backgroundColor: themeColors.opaqueAvatar,
         borderRadius: 24,
         zIndex: 6,

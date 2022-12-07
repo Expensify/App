@@ -620,6 +620,28 @@ function getKeyboardShortcutsModalWidth(isSmallScreenWidth) {
     return {maxWidth: 600};
 }
 
+/**
+ * @param {Boolean} isHovered
+ * @param {Boolean} isPressed
+ * @returns {Object}
+ */
+function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
+    let backgroundColor = themeColors.appBG;
+
+    if (isHovered) {
+        backgroundColor = themeColors.buttonHoveredBG;
+    }
+
+    if (isPressed) {
+        backgroundColor = themeColors.buttonPressedBG;
+    }
+
+    return {
+        backgroundColor,
+        borderColor: backgroundColor,
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -654,4 +676,5 @@ export {
     hasSafeAreas,
     getHeight,
     fade,
+    getHorizontalStackedAvatarBorderStyle,
 };
