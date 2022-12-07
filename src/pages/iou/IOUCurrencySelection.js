@@ -43,7 +43,7 @@ class IOUCurrencySelection extends Component {
 
         this.state = {
             searchValue: '',
-            currencyData: this.getFilteredCurrencyList(),
+            currencyData: this.getCurrencyOptions(this.props.currencyList),
         };
         this.getCurrencyOptions = this.getCurrencyOptions.bind(this);
         this.getSections = this.getSections.bind(this);
@@ -82,24 +82,19 @@ class IOUCurrencySelection extends Component {
         }));
     }
 
-    getFilteredCurrencyList(searchValue = '') {
-        const currencyOptions = this.getCurrencyOptions(this.props.currencyList);
-        if (!searchValue) {
-            return currencyOptions;
-        }
-        const searchRegex = new RegExp(searchValue, 'i');
-        return _.filter(currencyOptions, currencyOption => searchRegex.test(currencyOption.text));
-    }
-
     /**
      * Sets new search value
      * @param {String} searchValue
      * @return {void}
      */
     changeSearchValue(searchValue) {
+        const currencyOptions = this.getCurrencyOptions(this.props.currencyList);
+        const searchRegex = new RegExp(searchValue, 'i');
+        const filteredCurrencies = _.filter(currencyOptions, currencyOption => searchRegex.test(currencyOption.text));
+
         this.setState({
             searchValue,
-            currencyData: this.getFilteredCurrencyList(searchValue),
+            currencyData: filteredCurrencies,
         });
     }
 
