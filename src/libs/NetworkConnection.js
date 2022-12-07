@@ -120,6 +120,15 @@ function onReconnect(callback) {
 }
 
 /**
+ * Delete all queued reconnection callbacks
+ */
+function clearReconnectionCallbacks() {
+    for (const prop of Object.getOwnPropertyNames(reconnectionCallbacks)) {
+        delete reconnectionCallbacks[prop];
+    }
+}
+
+/**
  * Refresh NetInfo state.
  */
 function recheckNetworkConnection() {
@@ -134,6 +143,7 @@ function recheckNetworkConnection() {
 }
 
 export default {
+    clearReconnectionCallbacks,
     setOfflineStatus,
     listenForReconnect,
     onReconnect,
