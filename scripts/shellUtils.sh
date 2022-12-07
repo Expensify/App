@@ -32,6 +32,8 @@ function assert_equal {
 }
 
 # Usage: join_by_string <delimiter> ...strings
+# example: join_by_string ' + ' 'string 1' 'string 2'
+# example: join_by_string ',' "${ARRAY_OF_STRINGS[@]}"
 function join_by_string {
   local separator="$1"
   shift
