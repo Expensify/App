@@ -30,3 +30,12 @@ function assert_equal {
     success "Assertion passed: $1 is equal to $1"
   fi
 }
+
+# Usage: join_by_string <delimiter> ...strings
+function join_by_string {
+  local separator="$1"
+  shift
+  local first="$1"
+  shift
+  printf "%s" "$first" "${@/#/$separator}"
+}
