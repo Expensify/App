@@ -439,7 +439,6 @@ function getOptions(reports, personalDetails, {
     includeMultipleParticipantReports = false,
     includePersonalDetails = false,
     includeRecentReports = false,
-    prioritizeDefaultRoomsInSearch = false,
 
     // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
     sortByReportTypeInSearch = false,
@@ -556,12 +555,6 @@ function getOptions(reports, personalDetails, {
         }
     }
 
-    // If we are prioritizing default rooms in search, do it only once we started something
-    if (prioritizeDefaultRoomsInSearch && searchValue !== '') {
-        const reportsSplitByDefaultChatRoom = _.partition(recentReportOptions, option => option.isChatRoom);
-        recentReportOptions = reportsSplitByDefaultChatRoom[0].concat(reportsSplitByDefaultChatRoom[1]);
-    }
-
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         _.each(allPersonalDetailsOptions, (personalDetailOption) => {
@@ -649,11 +642,8 @@ function getSearchOptions(
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
-        prioritizePinnedReports: false,
-        prioritizeDefaultRoomsInSearch: false,
         sortByReportTypeInSearch: true,
         showChatPreviewLine: true,
-        showReportsWithNoComments: true,
         includePersonalDetails: true,
         forcePolicyNamePreview: true,
     });
