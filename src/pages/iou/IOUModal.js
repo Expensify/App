@@ -25,7 +25,6 @@ import Tooltip from '../../components/Tooltip';
 import CONST from '../../CONST';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
-import ROUTES from '../../ROUTES';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import reportPropTypes from '../reportPropTypes';
@@ -286,10 +285,32 @@ class IOUModal extends Component {
         const amount = Math.round(this.state.amount * 100);
         const currency = this.props.iou.selectedCurrencyCode;
         const comment = this.state.comment;
-        const chatReportID = lodashGet(this.props, 'route.params.reportID', '');
+        const participant = this.state.participants[0];
 
-        // In case user's paying with wallet
-        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            IOU.sendMoneyElsewhere(
+                this.props.report,
+                amount,
+                currency,
+                comment,
+                this.props.currentUserPersonalDetails.login,
+                participant,
+            );
+            return;
+        }
+
+
+        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
+            IOU.sendMoneyViaPaypal(
+                this.props.report,
+                amount,
+                currency,
+                comment,
+                this.props.currentUserPersonalDetails.login,
+                participant,
+            );
+        }
+ if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
             IOU.sendMoneyWithWallet(
                 chatReportID,
                 amount,
@@ -302,28 +323,6 @@ class IOUModal extends Component {
             Navigation.navigate(ROUTES.getReportRoute(chatReportID));
             return;
         }
-
-        const newIOUReportDetails = JSON.stringify({
-            amount,
-            currency,
-            requestorEmail: this.state.participants[0].login,
-            comment,
-            idempotencyKey: Str.guid(),
-        });
-
-        IOU.payIOUReport({
-            chatReportID,
-            reportID: '0',
-            paymentMethodType,
-            amount,
-            currency,
-            requestorPayPalMeAddress: this.state.participants[0].payPalMeAddress,
-            comment,
-            newIOUReportDetails,
-        })
-            .finally(() => {
-                Navigation.navigate(ROUTES.REPORT);
-            });
     }
 
     /**
