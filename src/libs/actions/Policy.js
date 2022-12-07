@@ -352,7 +352,7 @@ function clearAvatarErrors(policyID) {
  * @param {String} name
  * @param {String} currency
  */
-function updateGeneralSettings(policyID, name, currency, prevName) {
+function updateGeneralSettings(policyID, name, currency) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -395,7 +395,6 @@ function updateGeneralSettings(policyID, name, currency, prevName) {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.editor.genericFailureMessage'),
                     },
                 },
-                name: prevName,
             },
         },
     ];
