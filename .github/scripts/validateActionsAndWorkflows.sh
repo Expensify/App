@@ -41,6 +41,12 @@ done
 
 for ((i=0; i < ${#WORKFLOWS[@]}; i++)); do
   WORKFLOW=${WORKFLOWS[$i]}
+
+    # Skip linting e2e workflow due to bug here: https://github.com/SchemaStore/schemastore/issues/2579
+    if [[ "$WORKFLOW" == './workflows/preDeploy.yml' ]]; then
+      continue
+    fi
+
   ajv -s ./tempSchemas/github-workflow.json -d "$WORKFLOW" --strict=false &
   ASYNC_PROCESSES[${#ACTIONS[@]} + $i]=$!
 done
