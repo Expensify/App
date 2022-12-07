@@ -690,13 +690,15 @@ function readNewestAction(reportID) {
  * Sets the last read comment on a report
  *
  * @param {String} reportID
+ * @param {String} created
  * @param {Number} sequenceNumber
  */
-function markCommentAsUnread(reportID, sequenceNumber) {
+function markCommentAsUnread(reportID, created, sequenceNumber) {
     const newLastReadSequenceNumber = sequenceNumber - 1;
     API.write('MarkAsUnread',
         {
             reportID,
+            created,
             sequenceNumber,
         },
         {

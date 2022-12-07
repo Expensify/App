@@ -206,6 +206,7 @@ describe('actions/Report', () => {
     it('should be updated correctly when new comments are added, deleted or marked as unread', () => {
         const REPORT_ID = 1;
         let report;
+        const reportActionCreated = DateUtils.getDBTime();
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
             callback: val => report = val,
@@ -260,7 +261,7 @@ describe('actions/Report', () => {
                                 person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
                                 sequenceNumber: 1,
                                 shouldShow: true,
-                                created: DateUtils.getDBTime(),
+                                created: reportActionCreated,
                             },
                         },
                     },
@@ -280,7 +281,7 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnread(report)).toBe(false);
 
                 // When the user manually marks a message as "unread"
-                Report.markCommentAsUnread(REPORT_ID, 1);
+                Report.markCommentAsUnread(REPORT_ID, reportActionCreated, 1);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -354,16 +355,19 @@ describe('actions/Report', () => {
                             2: {
                                 ...USER_1_BASE_ACTION,
                                 message: [{type: 'COMMENT', html: 'Current User Comment 1', text: 'Current User Comment 1'}],
+                                created: DateUtils.getDBTime(),
                                 sequenceNumber: 2,
                             },
                             3: {
                                 ...USER_1_BASE_ACTION,
                                 message: [{type: 'COMMENT', html: 'Current User Comment 2', text: 'Current User Comment 2'}],
+                                created: DateUtils.getDBTime(),
                                 sequenceNumber: 3,
                             },
                             4: {
                                 ...USER_1_BASE_ACTION,
                                 message: [{type: 'COMMENT', html: 'Current User Comment 3', text: 'Current User Comment 3'}],
+                                created: DateUtils.getDBTime(),
                                 sequenceNumber: 4,
                             },
                         },
@@ -383,7 +387,7 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnread(report)).toBe(false);
 
                 // When the user manually marks a message as "unread"
-                Report.markCommentAsUnread(REPORT_ID, 3);
+                Report.markCommentAsUnread(REPORT_ID, USER_1_BASE_ACTION.created, 3);
                 return waitForPromisesToResolve();
             })
             .then(() => {
