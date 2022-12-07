@@ -254,7 +254,7 @@ class NewChatPage extends Component {
                                     shouldShowConfirmButton={this.props.isGroupChat}
                                     confirmButtonText={this.props.translate('newChatPage.createGroup')}
                                     onConfirmSelection={this.props.isGroupChat ? this.createGroup : () => {}}
-                                    placeholderText = {this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                    placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                                 />
                             )}
                         </View>

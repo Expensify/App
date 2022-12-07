@@ -139,7 +139,7 @@ class IOUParticipantsRequest extends Component {
                 headerMessage={headerMessage}
                 hideAdditionalOptionStates
                 forceTextUnreadStyle
-                placeholderText = {this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
             />
         );
     }
