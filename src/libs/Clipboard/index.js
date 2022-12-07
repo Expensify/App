@@ -1,8 +1,7 @@
-// on Web/desktop this import will be replaced with `react-native-web`
-import {Clipboard} from 'react-native-web';
-import lodashGet from 'lodash/get';
+import MiscClipboardFunctions from './miscClipboardFunctions';
 
-const canSetHtml = () => lodashGet(navigator, 'clipboard.write');
+const canSetHtml = MiscClipboardFunctions.canSetHtml;
+const setString = MiscClipboardFunctions.setString;
 
 /**
  * Writes the content as HTML if the web client supports it.
@@ -25,15 +24,6 @@ const setHtml = (html, text) => {
             'text/plain': new Blob([text], {type: 'text/plain'}),
         }),
     ]);
-};
-
-/**
- * Sets a string on the Clipboard object via react-native-web
- *
- * @param {String} text
- */
-const setString = (text) => {
-    Clipboard.setString(text);
 };
 
 export default {
