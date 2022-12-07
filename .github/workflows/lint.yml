@@ -15,8 +15,10 @@ jobs:
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
-      - run: npm run lint
+      - name: Lint JavaScript with ESLint
+        run: npm run lint
         env:
           CI: true
 
-      - run: npm run shellcheck
+      - name: Lint shell scripts with ShellCheck
+        run: npm run shellcheck
