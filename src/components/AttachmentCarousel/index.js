@@ -109,13 +109,12 @@ class AttachmentCarousel extends React.Component {
 
                 // matchAll captured both source url and name of the attachment
                 if (matches.length === 2) {
-                    const [src, name] = matches;
-                    if ((this.state.sourceURL && src[2].includes(this.state.sourceURL))
-                        || (!this.state.sourceURL && src[2].includes(this.props.sourceURL))) {
+                    const [sourceURL, name] = _.map(matches, m => m[2]);
+                    if ((this.state.sourceURL && sourceURL.includes(this.state.sourceURL))
+                        || (!this.state.sourceURL && sourceURL.includes(this.props.sourceURL))) {
                         page = attachmentsAccumulator.length;
                     }
-                    const {href} = new URL(src[2]);
-                    attachmentsAccumulator.push({sourceURL: href, file: {name: name[2]}});
+                    attachmentsAccumulator.push({sourceURL, file: {name}});
                 }
             }
             return attachmentsAccumulator;
