@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const root = document.getElementById('root');
     splash.style.backgroundColor = themeColors.appBG;
 
-    // Set app background color
+    // Set app background color for overflow scrolling
     const body = document.querySelector('body');
     body.style.backgroundColor = themeColors.appBG;
 
