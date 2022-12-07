@@ -350,6 +350,47 @@ class IOUModal extends Component {
             this.state.comment);
     }
 
+    renderHeader() {
+        return (
+            <View style={[styles.headerBar]}>
+                <View style={[
+                    styles.dFlex,
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                    styles.flexGrow1,
+                    styles.justifyContentBetween,
+                    styles.overflowHidden,
+                ]}
+                >
+                    {this.state.currentStepIndex > 0
+                        && (
+                            <Tooltip text={this.props.translate('common.back')}>
+                                <TouchableOpacity
+                                    onPress={this.navigateToPreviousStep}
+                                    style={[styles.touchableButtonImage]}
+                                >
+                                    <Icon src={Expensicons.BackArrow} />
+                                </TouchableOpacity>
+                            </Tooltip>
+                        )}
+                    <Header title={this.getTitleForStep()} />
+                    <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
+                        <Tooltip text={this.props.translate('common.close')}>
+                            <TouchableOpacity
+                                onPress={() => Navigation.dismissModal()}
+                                style={[styles.touchableButtonImage, styles.mr0]}
+                                accessibilityRole="button"
+                                accessibilityLabel={this.props.translate('common.close')}
+                            >
+                                <Icon src={Expensicons.Close} />
+                            </TouchableOpacity>
+                        </Tooltip>
+                    </View>
+                </View>
+            </View>
+        );
+    }
+
     render() {
         const currentStep = this.steps[this.state.currentStepIndex];
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
@@ -357,42 +398,6 @@ class IOUModal extends Component {
             <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
                     <>
-                        <View style={[styles.headerBar]}>
-                            <View style={[
-                                styles.dFlex,
-                                styles.flexRow,
-                                styles.alignItemsCenter,
-                                styles.flexGrow1,
-                                styles.justifyContentBetween,
-                                styles.overflowHidden,
-                            ]}
-                            >
-                                {this.state.currentStepIndex > 0
-                                    && (
-                                        <Tooltip text={this.props.translate('common.back')}>
-                                            <TouchableOpacity
-                                                onPress={this.navigateToPreviousStep}
-                                                style={[styles.touchableButtonImage]}
-                                            >
-                                                <Icon src={Expensicons.BackArrow} />
-                                            </TouchableOpacity>
-                                        </Tooltip>
-                                    )}
-                                <Header title={this.getTitleForStep()} />
-                                <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
-                                    <Tooltip text={this.props.translate('common.close')}>
-                                        <TouchableOpacity
-                                            onPress={() => Navigation.dismissModal()}
-                                            style={[styles.touchableButtonImage, styles.mr0]}
-                                            accessibilityRole="button"
-                                            accessibilityLabel={this.props.translate('common.close')}
-                                        >
-                                            <Icon src={Expensicons.Close} />
-                                        </TouchableOpacity>
-                                    </Tooltip>
-                                </View>
-                            </View>
-                        </View>
                         <View style={[styles.pRelative, styles.flex1]}>
                             {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
                             {didScreenTransitionEnd && (
@@ -400,8 +405,9 @@ class IOUModal extends Component {
                                     {currentStep === Steps.IOUAmount && (
                                         <AnimatedStep
                                             direction={this.getDirection()}
-                                            style={[styles.flex1, styles.pageWrapper]}
+                                            style={[styles.flex1]}
                                         >
+                                            {this.renderHeader()}
                                             <IOUAmountPage
                                                 onStepComplete={(amount) => {
                                                     this.setState({amount});
@@ -420,6 +426,7 @@ class IOUModal extends Component {
                                             style={[styles.flex1]}
                                             direction={this.getDirection()}
                                         >
+                                            {this.renderHeader()}
                                             <IOUParticipantsPage
                                                 participants={this.state.participants}
                                                 hasMultipleParticipants={this.props.hasMultipleParticipants}
@@ -433,6 +440,7 @@ class IOUModal extends Component {
                                             style={[styles.flex1]}
                                             direction={this.getDirection()}
                                         >
+                                            {this.renderHeader()}
                                             <IOUConfirmPage
                                                 onConfirm={this.createTransaction}
                                                 onSendMoney={this.sendMoney}
@@ -442,7 +450,13 @@ class IOUModal extends Component {
                                                 comment={this.state.comment}
                                                 onUpdateComment={this.updateComment}
                                                 iouType={this.props.iouType}
-                                                isIOUAttachedToExistingChatReport={!_.isEmpty(reportID)}
+
+                                                // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.
+                                                // This is because when there is a group of people, say they are on a trip, and you have some shared expenses with some of the people,
+                                                // but not all of them (maybe someone skipped out on dinner). Then it's nice to be able to select/deselect people from the group chat bill
+                                                // split rather than forcing the user to create a new group, just for that expense. The reportID is empty, when the action was initiated from
+                                                // the floating-action-button (since it is something that exists outside the context of a report).
+                                                canModifyParticipants={!_.isEmpty(reportID)}
                                             />
                                         </AnimatedStep>
                                     )}

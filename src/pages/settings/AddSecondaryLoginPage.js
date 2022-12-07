@@ -107,7 +107,8 @@ class AddSecondaryLoginPage extends Component {
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
-                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
+                {/* We use keyboardShouldPersistTaps="handled" to prevent the keyboard from being hidden when switching focus on input fields  */}
+                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5} keyboardShouldPersistTaps="handled">
                     <Text style={[styles.mb6]}>
                         {this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
                             ? 'addSecondaryLoginPage.enterPreferredPhoneNumberToSendValidationLink'
