@@ -363,6 +363,16 @@ function openWorkspaceView() {
     API.read('OpenWorkspaceView');
 }
 
+/**
+ * Set the reimbursement account loading so that it happens right away, instead of when the API command is processed.
+ *
+ * @param {Boolean} isLoading
+ * @return {Promise}
+ */
+function setReimbursementAccountLoading(isLoading) {
+    return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading});
+}
+
 export {
     addPersonalBankAccount,
     clearOnfidoToken,
@@ -379,4 +389,5 @@ export {
     openWorkspaceView,
     validateBankAccount,
     verifyIdentityForBankAccount,
+    setReimbursementAccountLoading,
 };

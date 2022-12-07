@@ -26,6 +26,7 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import networkPropTypes from '../../../components/networkPropTypes';
 import Log from '../../../libs/Log';
 import WorkspaceReimburseSection from './WorkspaceReimburseSection';
+import * as BankAccounts from '../../../libs/actions/BankAccounts';
 
 const propTypes = {
     /** Policy values needed in the component */
@@ -185,6 +186,7 @@ class WorkspaceReimburseView extends React.Component {
     fetchData() {
         const subStep = this.props.reimbursementAccount.subStep || '';
         const localCurrentStep = this.props.reimbursementAccount.currentStep || '';
+        BankAccounts.setReimbursementAccountLoading(true);
         Policy.openWorkspaceReimburseView(this.props.policy.id, subStep, localCurrentStep);
     }
 

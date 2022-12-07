@@ -914,15 +914,6 @@ function openWorkspaceReimburseView(policyID, subStep, localCurrentStep) {
         return;
     }
     const onyxData = {
-        optimisticData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {
-                    isLoading: true,
-                },
-            },
-        ],
         successData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
