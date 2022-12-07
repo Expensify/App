@@ -8,7 +8,7 @@ cd "$ROOT_DIR" || exit 1
 source scripts/shellUtils.sh
 
 # This lists all shell scripts in this repo except those in directories we want to ignore
-SHELL_SCRIPTS=$(find . -type d \( -path ./node_modules -o -path ./vendor -o -path ./ios/Pods \) -prune -o -name '*.sh' -print)
+SHELL_SCRIPTS=$(find . -type d \( -path ./node_modules -o -path ./vendor -o -path ./ios/Pods -o -path ./.husky \) -prune -o -name '*.sh' -print)
 info "👀 Linting the following shell scripts using ShellCheck: $SHELL_SCRIPTS"
 info
 
