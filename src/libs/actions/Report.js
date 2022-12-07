@@ -666,12 +666,14 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
  * Marks the new report actions as read
  *
  * @param {String} reportID
+ * @param {String} created
  */
-function readNewestAction(reportID) {
+function readNewestAction(reportID, created) {
     const sequenceNumber = getMaxSequenceNumber(reportID);
     API.write('ReadNewestAction',
         {
             reportID,
+            created,
             sequenceNumber,
         },
         {
