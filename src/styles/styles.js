@@ -833,16 +833,6 @@ const styles = {
         color: themeColors.icon,
     },
 
-    textInputReversed: addOutlineWidth({
-        backgroundColor: themeColors.heading,
-        borderBottomColor: themeColors.text,
-        color: themeColors.textReversed,
-    }, 0),
-
-    textInputReversedFocus: {
-        borderColor: themeColors.icon,
-    },
-
     noOutline: addOutlineWidth({}, 0),
 
     errorOutline: {
