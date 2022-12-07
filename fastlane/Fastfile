@@ -144,6 +144,7 @@ platform :ios do
         workspace: "./ios/NewExpensify.xcworkspace",
         skip_profile_detection: true,
         scheme: "NewExpensify",
+        xcargs: { :PROVISIONING_PROFILE_SPECIFIER => "chat_expensify_adhoc", },
         export_method: "ad-hoc",
         export_options: {
             method: "ad-hoc",
