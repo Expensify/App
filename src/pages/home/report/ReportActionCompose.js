@@ -133,6 +133,7 @@ class ReportActionCompose extends React.Component {
         this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
         this.state = {
+            heavyWork: false,
             isFocused: this.shouldFocusInputOnScreenFocus,
             isFullComposerAvailable: props.isComposerFullSize,
             textInputShouldClear: false,
@@ -494,7 +495,7 @@ class ReportActionCompose extends React.Component {
             e.preventDefault();
         }
 
-        // Since we're submitting the form here which should clear the composer
+        /*// Since we're submitting the form here which should clear the composer
         // We don't really care about saving the draft the user was typing
         // We need to make sure an empty draft gets saved instead
         this.debouncedSaveReportComment.cancel();
@@ -504,10 +505,23 @@ class ReportActionCompose extends React.Component {
             return;
         }
 
-        this.props.onSubmit(comment);
+        this.props.onSubmit(comment);*/
+        this.setState({heavyWork: !this.state.heavyWork});
     }
 
     render() {
+        console.log('rerender', this.state.heavyWork);
+        if (this.state.heavyWork) {
+            const bef = performance.now();
+            let x = 0;
+            for (let i = 0; i < 1000000000; ++i) {
+                x += i;
+                x *= 2;
+                x % 4;
+            }
+            const aft = performance.now();
+            console.log('sleep took', aft-bef);
+        }
         // Waiting until ONYX variables are loaded before displaying the component
         if (_.isEmpty(this.props.personalDetails)) {
             return null;
@@ -670,7 +684,7 @@ class ReportActionCompose extends React.Component {
                                             displayFileInModal(file);
                                             this.setState({isDraggingOver: false});
                                         }}
-                                        style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
+                                        style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4, {borderWidth: 1, borderColor: 'red'}]}
                                         maxLines={this.state.maxLines}
                                         onFocus={() => this.setIsFocused(true)}
                                         onBlur={() => this.setIsFocused(false)}

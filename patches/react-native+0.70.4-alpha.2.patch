@@ -1,0 +1,135 @@
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js b/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
+index 52134db..53312d4 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
++++ b/node_modules/react-native/Libraries/Components/TextInput/RCTTextInputViewConfig.js
+@@ -137,6 +137,8 @@ const RCTTextInputViewConfig = {
+     placeholder: true,
+     autoCorrect: true,
+     multiline: true,
++    maximumNumberOfLines: true,
++    numberOfLines: true,
+     textContentType: true,
+     maxLength: true,
+     autoCapitalize: true,
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
+index 8fa1171..c76590f 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
++++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.js
+@@ -32,6 +32,7 @@ import type {
+   PressEvent,
+ } from '../../Types/CoreEventTypes';
+ import type {HostComponent} from '../../Renderer/shims/ReactNativeTypes';
++import { number } from 'yargs';
+ 
+ const {useLayoutEffect, useRef, useState} = React;
+ 
+@@ -596,6 +597,11 @@ export type Props = $ReadOnly<{|
+    */
+   multiline?: ?boolean,
+ 
++  /**
++   * It limits the height of TextInput.
++   */
++  maxNumberOfLines?: ?number,
++
+   /**
+    * Callback that is called when the text input is blurred.
+    */
+@@ -1240,6 +1246,7 @@ function InternalTextInput(props: Props): React.Node {
+       (props.unstable_onChangeSync || props.unstable_onChangeTextSync) &&
+       !(props.onChange || props.onChangeText);
+ 
++    console.log('props.maximumNumberOfLines', props.maximumNumberOfLines);  
+     textInput = (
+       <RCTTextInputView
+         ref={_setNativeRef}
+diff --git a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTMultilineTextInputViewManager.m b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTMultilineTextInputViewManager.m
+index 6eb74da..b494ceb 100644
+--- a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTMultilineTextInputViewManager.m
++++ b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTMultilineTextInputViewManager.m
+@@ -7,6 +7,8 @@
+ 
+ #import <React/RCTMultilineTextInputViewManager.h>
+ #import <React/RCTMultilineTextInputView.h>
++#import <React/RCTUITextView.h>
++#import <React/RCTBaseTextInputShadowView.h>
+ 
+ @implementation RCTMultilineTextInputViewManager
+ 
+@@ -17,8 +19,30 @@ - (UIView *)view
+   return [[RCTMultilineTextInputView alloc] initWithBridge:self.bridge];
+ }
+ 
++- (RCTShadowView *)shadowView
++{
++  RCTBaseTextInputShadowView *shadowView =
++    (RCTBaseTextInputShadowView *)[super shadowView];
++
++  shadowView.maximumNumberOfLines = 0;
++  shadowView.exactNumberOfLines = 0;
++
++  return shadowView;
++}
++
+ #pragma mark - Multiline <TextInput> (aka TextView) specific properties
+ 
+ RCT_REMAP_VIEW_PROPERTY(dataDetectorTypes, backedTextInputView.dataDetectorTypes, UIDataDetectorTypes)
+ 
++RCT_CUSTOM_SHADOW_PROPERTY(maximumNumberOfLines, NSNumber, RCTBaseTextInputShadowView)
++{
++    view.maximumNumberOfLines = [json intValue];
++}
++
++RCT_CUSTOM_SHADOW_PROPERTY(numberOfLines, NSNumber, RCTBaseTextInputShadowView)
++{
++    view.exactNumberOfLines = [json intValue];
++}
++
++
+ @end
+diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputShadowView.h b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputShadowView.h
+index 8f4cf7e..6238ebc 100644
+--- a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputShadowView.h
++++ b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputShadowView.h
+@@ -16,6 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
+ @property (nonatomic, copy, nullable) NSString *text;
+ @property (nonatomic, copy, nullable) NSString *placeholder;
+ @property (nonatomic, assign) NSInteger maximumNumberOfLines;
++@property (nonatomic, assign) NSInteger exactNumberOfLines;
+ @property (nonatomic, copy, nullable) RCTDirectEventBlock onContentSizeChange;
+ 
+ - (void)uiManagerWillPerformMounting;
+diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputShadowView.m b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputShadowView.m
+index 19d202c..89457de 100644
+--- a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputShadowView.m
++++ b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputShadowView.m
+@@ -221,7 +221,16 @@ - (NSAttributedString *)measurableAttributedText
+ 
+ - (CGSize)sizeThatFitsMinimumSize:(CGSize)minimumSize maximumSize:(CGSize)maximumSize
+ {
+-  NSAttributedString *attributedText = [self measurableAttributedText];
++  NSMutableAttributedString *attributedText = [[self measurableAttributedText] mutableCopy];
++    
++    if (self.exactNumberOfLines) {
++        NSMutableString *newLines = [NSMutableString stringWithCapacity: self.exactNumberOfLines];
++        for (NSUInteger i = 0UL; i < self.exactNumberOfLines; ++i) {
++            [newLines appendString:@"\n"];
++        }
++        [attributedText insertAttributedString:[[NSAttributedString alloc] initWithString:newLines attributes:self.textAttributes.effectiveTextAttributes] atIndex:0];
++        _maximumNumberOfLines = self.exactNumberOfLines;
++    }
+     
+   if (!_textStorage) {
+     _textContainer = [NSTextContainer new];
+diff --git a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTSinglelineTextInputViewManager.m b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTSinglelineTextInputViewManager.m
+index 1fa2dc5..f9aad6e 100644
+--- a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTSinglelineTextInputViewManager.m
++++ b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTSinglelineTextInputViewManager.m
+@@ -20,6 +20,7 @@ - (RCTShadowView *)shadowView
+     (RCTBaseTextInputShadowView *)[super shadowView];
+ 
+   shadowView.maximumNumberOfLines = 1;
++  shadowView.exactNumberOfLines = 0;
+ 
+   return shadowView;
+ }
