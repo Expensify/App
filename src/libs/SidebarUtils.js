@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportUtils from './ReportUtils';
@@ -148,23 +149,11 @@ function getOrderedReportIDs(reportIDFromRoute) {
 
     // Sort each group of reports accordingly
     pinnedReports = _.sortBy(pinnedReports, report => report.displayName.toLowerCase());
-    outstandingIOUReports = outstandingIOUReports.sort((a, b) => {
-        if (a.iouReportAmount > b.iouReportAmount) {
-            return -1;
-        }
-        if (a.iouReportAmount < b.iouReportAmount) {
-            return 1;
-        }
-        return a.displayName.toLowerCase() > b.displayName.toLowerCase() ? 1 : -1;
-    });
+    outstandingIOUReports = lodashOrderBy(outstandingIOUReports, ['iouReportAmount', report => report.displayName.toLowerCase()], ['desc', 'asc']);
     draftReports = _.sortBy(draftReports, report => report.displayName.toLowerCase());
-    nonArchivedReports = nonArchivedReports.sort((a, b) => {
-        if (isInDefaultMode && (a.lastActionCreated || b.lastActionCreated) && a.lastActionCreated !== b.lastActionCreated) {
-            return a.lastActionCreated > b.lastActionCreated ? -1 : 1;
-        }
-
-        return a.displayName.toLowerCase() > b.displayName.toLowerCase() ? 1 : -1;
-    });
+    nonArchivedReports = isInDefaultMode
+        ? lodashOrderBy(nonArchivedReports, ['lastActionCreated', report => report.displayName.toLowerCase()], ['desc', 'asc'])
+        : lodashOrderBy(nonArchivedReports, [report => report.displayName.toLowerCase()], ['asc']);
     archivedReports = _.sortBy(archivedReports, report => (isInDefaultMode ? report.lastActionCreated : report.displayName.toLowerCase()));
 
     // For archived reports ensure that most recent reports are at the top by reversing the order of the arrays because underscore will only sort them in ascending order
