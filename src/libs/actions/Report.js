@@ -547,11 +547,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
 
         // Also create a report action so that the page isn't endlessly loading
         const optimisticReportAction = ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail);
-        optimisticReportActionID = NumberUtils.rand64();
-        // optimisticReportAction[optimisticReportActionID] = optimisticReportAction[0];
-        // delete optimisticReportAction[0];
-        // console.log('sending optimisticReportActionID', optimisticReportActionID);
-        optimisticReportAction[0].reportActionID = optimisticReportActionID;
+        optimisticReportActionID = optimisticReportAction.reportActionID;
         onyxData.optimisticData[1] = {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
