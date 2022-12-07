@@ -673,7 +673,7 @@ function readNewestAction(reportID, created) {
     API.write('ReadNewestAction',
         {
             reportID,
-            created,
+            created: DateUtils.getDBTime(created),
             sequenceNumber,
         },
         {
