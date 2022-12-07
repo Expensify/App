@@ -100,8 +100,8 @@ class BaseModal extends PureComponent {
                 onSwipeComplete={this.props.onClose}
                 swipeDirection={swipeDirection}
                 isVisible={this.props.isVisible}
-                backdropColor={themeColors.modalBackdrop}
-                backdropOpacity={hideBackdrop ? 0 : 0.5}
+                backdropColor={themeColors.overlay}
+                backdropOpacity={hideBackdrop ? 0 : 0.6}
                 backdropTransitionOutTiming={0}
                 hasBackdrop={this.props.fullscreen}
                 coverScreen={this.props.fullscreen}

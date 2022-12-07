@@ -1733,8 +1733,8 @@ const styles = {
         width: 28,
         borderWidth: 2,
         borderStyle: 'solid',
-        borderColor: themeColors.appBG,
-        backgroundColor: themeColors.opaqueAvatar,
+        backgroundColor: themeColors.overlay,
+        opacity: 0.6,
         borderRadius: 24,
         zIndex: 6,
     },
@@ -1978,8 +1978,8 @@ const styles = {
         right: 0,
         bottom: 0,
         left: 0,
-        backgroundColor: themeColors.inverse,
-        opacity: 0.5,
+        backgroundColor: themeColors.overlay,
+        opacity: 0.6,
     },
 
     avatarInnerTextChat: {
@@ -2496,13 +2496,13 @@ const styles = {
     },
 
     cardOverlay: {
-        backgroundColor: themeColors.modalBackdrop,
+        backgroundColor: themeColors.overlay,
         position: 'absolute',
         top: 0,
         left: 0,
         width: '100%',
         height: '100%',
-        opacity: 0.5,
+        opacity: 0.6,
     },
 
     communicationsLinkIcon: {
