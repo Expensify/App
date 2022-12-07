@@ -239,7 +239,7 @@ class BaseOptionsSelector extends Component {
                 value={this.props.value}
                 label={this.props.textInputLabel}
                 onChangeText={this.props.onChangeText}
-                placeholder={_.isUndefined(this.props.placeholderText) ? this.props.translate('optionsSelector.nameEmailOrPhoneNumber') : this.props.placeholderText}
+                placeholder={this.props.placeholderText}
                 onBlur={(e) => {
                     if (!this.props.shouldFocusOnSelectRow) {
                         return;

@@ -298,6 +298,7 @@ class WorkspaceInvitePage extends React.Component {
                                     hideAdditionalOptionStates
                                     forceTextUnreadStyle
                                     shouldFocusOnSelectRow
+                                    placeholderText = {this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                                 />
                                 )}
                             </View>
