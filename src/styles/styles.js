@@ -28,7 +28,7 @@ const picker = {
     lineHeight: variables.fontSizeNormalHeight,
     paddingBottom: 8,
     paddingTop: 23,
-    paddingLeft: 0,
+    paddingHorizontal: 0,
     height: variables.inputHeight,
     borderWidth: 0,
 };
