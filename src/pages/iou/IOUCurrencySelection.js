@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import OptionsSelector from '../../components/OptionsSelector';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
