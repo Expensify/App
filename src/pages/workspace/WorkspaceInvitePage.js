@@ -24,6 +24,7 @@ import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
+import ROUTES from '../../ROUTES';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -252,7 +253,10 @@ class WorkspaceInvitePage extends React.Component {
         return (
             <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
-                    <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)}>
+                    <FullPageNotFoundView
+                        shouldShow={_.isEmpty(this.props.policy)}
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                    >
                         <>
                             <HeaderWithCloseButton
                                 title={this.props.translate('workspace.invite.invitePeople')}
