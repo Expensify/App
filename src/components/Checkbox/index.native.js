@@ -1,12 +1,12 @@
+import _ from 'lodash';
 import React from 'react';
 import BaseCheckbox from './BaseCheckbox';
 
 const Checkbox = props => (
     <BaseCheckbox
         // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        onPress={props.onPress ? props.onPress : props.onMouseDown}
-        onMouseDown={undefined}
+        {..._.omit(props, 'onMouseDown')}
+        onPress={props.onPress || props.onMouseDown}
     />
 );
 
