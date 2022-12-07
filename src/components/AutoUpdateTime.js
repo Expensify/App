@@ -8,6 +8,7 @@ import Timers from '../libs/Timers';
 import Text from './Text';
 
 const propTypes = {
+    /** timezone of the user from their personal details */
     timezone: PropTypes.shape({
         /** Value of selected timezone */
         selected: PropTypes.string,
@@ -23,6 +24,7 @@ class AutoUpdateTime extends PureComponent {
         super(props);
         this.getCurrentUserLocalTime = this.getCurrentUserLocalTime.bind(this);
         this.updateCurrentTime = this.updateCurrentTime.bind(this);
+        this.getTimezoneName = this.getTimezoneName.bind(this);
         this.state = {
             timezone: this.getCurrentUserLocalTime(),
         };
@@ -33,6 +35,7 @@ class AutoUpdateTime extends PureComponent {
     }
 
     componentDidUpdate() {
+        // Make sure the interval is up to date everytime component updated.
         this.updateCurrentTime();
     }
 
@@ -46,6 +49,16 @@ class AutoUpdateTime extends PureComponent {
             null,
             this.props.timezone.selected,
         );
+    }
+
+    getTimezoneName() {
+        // With non-GMT timezone, moment.zoneAbbr() will return the name of that timezone, so we can use it directly.
+        if (Number.isNaN(Number(this.state.timezone.zoneAbbr()))) {
+            return this.state.timezone.zoneAbbr();
+        }
+
+        // With GMT timezone, moment.zoneAbbr() will return a number, so we need to display it as GMT {abbreviations} format, ie: GMT +07
+        return `GMT ${this.state.timezone.zoneAbbr()}`;
     }
 
     updateCurrentTime() {
@@ -64,20 +77,6 @@ class AutoUpdateTime extends PureComponent {
     }
 
     render() {
-        let currentTime;
-
-        // With non-GMT timezone, moment.zoneAbbr() will return the name of that timezone, so we can use it directly.
-        if (Number.isNaN(Number(this.state.timezone.zoneAbbr()))) {
-            currentTime = this.state.timezone.zoneAbbr();
-        } else {
-        // With GMT timezone, moment.zoneAbbr() will return a number, so we need to display it as GMT {abbreviations} format
-        // ie: GMT +07
-            currentTime = `${this.state.timezone
-                .toString()
-                .split(/[+-]/)[0]
-                .slice(-3)} ${this.state.timezone.zoneAbbr()}`;
-        }
-
         return (
             <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                 <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
@@ -86,7 +85,7 @@ class AutoUpdateTime extends PureComponent {
                 <Text numberOfLines={1}>
                     {this.state.timezone.format('LT')}
                     {' '}
-                    {currentTime}
+                    {this.getTimezoneName()}
                 </Text>
             </View>
         );
