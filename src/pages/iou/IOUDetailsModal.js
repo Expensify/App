@@ -22,7 +22,6 @@ import SettlementButton from '../../components/SettlementButton';
 import ROUTES from '../../ROUTES';
 import FixedFooter from '../../components/FixedFooter';
 import networkPropTypes from '../../components/networkPropTypes';
-import {payMoneyRequestWithWallet} from "../../libs/actions/IOU";
 
 const propTypes = {
     /** URL Route params */
@@ -125,13 +124,12 @@ class IOUDetailsModal extends Component {
         }
 
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-             IOU.payMoneyRequestWithWallet(
-                 this.props.chatReport,
-                 this.props.iouReport,
-                 recipient,
+            IOU.payMoneyRequestWithWallet(
+                this.props.chatReport,
+                this.props.iouReport,
+                recipient,
             );
             Navigation.navigate(ROUTES.getReportRoute(this.props.route.params.chatReportID));
-            return;
         }
     }
 
