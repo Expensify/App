@@ -66,7 +66,7 @@ const OptionRowLHN = (props) => {
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
     const textUnreadStyle = optionItem.isUnread
-        ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
+        ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, ...textUnreadStyle], props.style);
     const textPillStyle = props.isFocused
         ? [styles.ml1, StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.icon, 0.5)]
@@ -215,23 +215,21 @@ const OptionRowLHN = (props) => {
                             accessible={false}
                         >
                             {optionItem.hasDraftComment && (
-                            <View
-                                style={styles.ml2}
-                                accessibilityLabel={props.translate('sidebarScreen.draftedMessage')}
-                            >
-                                <Icon src={Expensicons.Pencil} height={16} width={16} />
-                            </View>
+                                <View
+                                    style={styles.ml2}
+                                    accessibilityLabel={props.translate('sidebarScreen.draftedMessage')}
+                                >
+                                    <Icon src={Expensicons.Pencil} height={16} width={16} />
+                                </View>
                             )}
-                            {optionItem.hasOutstandingIOU && (
-                            <IOUBadge iouReportID={optionItem.iouReportID} />
-                            )}
+                            {optionItem.hasOutstandingIOU && <IOUBadge iouReportID={optionItem.iouReportID} />}
                             {optionItem.isPinned && (
-                            <View
-                                style={styles.ml2}
-                                accessibilityLabel={props.translate('sidebarScreen.chatPinned')}
-                            >
-                                <Icon src={Expensicons.Pin} height={16} width={16} />
-                            </View>
+                                <View
+                                    style={styles.ml2}
+                                    accessibilityLabel={props.translate('sidebarScreen.chatPinned')}
+                                >
+                                    <Icon src={Expensicons.Pin} height={16} width={16} />
+                                </View>
                             )}
                         </View>
                     </TouchableOpacity>
