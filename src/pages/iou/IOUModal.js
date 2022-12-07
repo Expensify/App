@@ -320,7 +320,6 @@ class IOUModal extends Component {
                 this.props.currentUserPersonalDetails.login,
                 participant,
             );
-            return;
         }
     }
 
