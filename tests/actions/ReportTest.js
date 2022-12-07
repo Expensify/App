@@ -206,7 +206,7 @@ describe('actions/Report', () => {
     it('should be updated correctly when new comments are added, deleted or marked as unread', () => {
         const REPORT_ID = 1;
         let report;
-        let reportActionCreated;
+        let reportActionCreatedDate;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
             callback: val => report = val,
@@ -233,7 +233,7 @@ describe('actions/Report', () => {
             .then(() => TestHelper.setPersonalDetails(USER_1_LOGIN, USER_1_ACCOUNT_ID))
             .then(() => {
                 // When a Pusher event is handled for a new report comment
-                reportActionCreated = DateUtils.getDBTime();
+                reportActionCreatedDate = DateUtils.getDBTime();
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
                     {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -262,7 +262,7 @@ describe('actions/Report', () => {
                                 person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
                                 sequenceNumber: 1,
                                 shouldShow: true,
-                                created: reportActionCreated,
+                                created: reportActionCreatedDate,
                             },
                         },
                     },
@@ -282,7 +282,7 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnread(report)).toBe(false);
 
                 // When the user manually marks a message as "unread"
-                Report.markCommentAsUnread(REPORT_ID, reportActionCreated, 1);
+                Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate, 1);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -358,8 +358,8 @@ describe('actions/Report', () => {
                         },
                     },
                 };
-                reportActionCreated = DateUtils.getDBTime();
-                optimisticReportActions.value[4].created = reportActionCreated;
+                reportActionCreatedDate = DateUtils.getDBTime();
+                optimisticReportActions.value[4].created = reportActionCreatedDate;
 
                 // When we emit the events for these pending created actions to update them to not pending
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
@@ -392,7 +392,7 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnread(report)).toBe(false);
 
                 // When the user manually marks a message as "unread"
-                Report.markCommentAsUnread(REPORT_ID, reportActionCreated, 3);
+                Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate, 3);
                 return waitForPromisesToResolve();
             })
             .then(() => {
