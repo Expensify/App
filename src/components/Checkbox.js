@@ -84,7 +84,7 @@ class Checkbox extends React.Component {
 
         const wasChecked = this.props.isChecked;
 
-        // Make sure the checkbox gets unfocused when it's about to be unselected
+        // If checkbox is checked and focused, make sure it's unfocused when pressed.
         if (this.state.isFocused && wasChecked) {
             this.onBlur();
         }
