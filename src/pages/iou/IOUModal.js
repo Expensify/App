@@ -299,7 +299,6 @@ class IOUModal extends Component {
             return;
         }
 
-
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
             IOU.sendMoneyViaPaypal(
                 this.props.report,
@@ -309,18 +308,18 @@ class IOUModal extends Component {
                 this.props.currentUserPersonalDetails.login,
                 participant,
             );
+            return;
         }
+
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
             IOU.sendMoneyWithWallet(
-                chatReportID,
+                this.props.report,
                 amount,
                 currency,
                 comment,
-                this.state.participants,
+                this.props.currentUserPersonalDetails.login,
+                participant,
             );
-
-            // Exit to the report as the API pusher response will be handled elsewhere
-            Navigation.navigate(ROUTES.getReportRoute(chatReportID));
             return;
         }
     }
