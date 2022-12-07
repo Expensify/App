@@ -9,6 +9,7 @@ import CONST from '../../CONST';
 import PDFPasswordForm from './PDFPasswordForm';
 import * as pdfViewPropTypes from './pdfViewPropTypes';
 import withWindowDimensions from '../withWindowDimensions';
+import Text from '../Text';
 
 class PDFView extends Component {
     constructor(props) {
@@ -125,6 +126,7 @@ class PDFView extends Component {
                     onLayout={event => this.setState({windowWidth: event.nativeEvent.layout.width})}
                 >
                     <Document
+                        error={<Text style={[styles.textLabel, styles.textLarge]}>Failed to load PDF file.</Text>}
                         loading={<FullScreenLoadingIndicator />}
                         file={this.props.sourceURL}
                         options={{
