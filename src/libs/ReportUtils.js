@@ -966,7 +966,9 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
 function isUnread(report) {
     const lastReadSequenceNumber = report.lastReadSequenceNumber || 0;
     const maxSequenceNumber = report.maxSequenceNumber || 0;
-    return lastReadSequenceNumber < maxSequenceNumber;
+
+    // maxSequenceNumber is actually reportActionsCount
+    return lastReadSequenceNumber + 1 < maxSequenceNumber;
 }
 
 /**
