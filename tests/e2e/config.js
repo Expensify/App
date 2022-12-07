@@ -1,4 +1,4 @@
-const OUTPUT_DIR = 'e2e/.results';
+const OUTPUT_DIR = process.env.WORKING_DIRECTORY || './results';
 
 /**
  * @typedef TestConfig
@@ -14,7 +14,7 @@ module.exports = {
     APP_PACKAGE: 'com.expensify.chat',
 
     // The port of the testing server that communicates with the app
-    SERVER_PORT: 3000,
+    SERVER_PORT: 4723,
 
     // The amount of times a test should be executed for average performance metrics
     RUNS: 30,
@@ -36,7 +36,7 @@ module.exports = {
     LOG_FILE: `${OUTPUT_DIR}/debug.log`,
 
     // The time in milliseconds after which an operation fails due to timeout
-    INTERACTION_TIMEOUT: 30_000,
+    INTERACTION_TIMEOUT: 300000,
 
     TEST_NAMES,
 

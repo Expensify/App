@@ -61,6 +61,8 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = 
         iouReportUpdate.total = -iouReportUpdate.total;
     }
 
+    iouReportUpdate.hasOutstandingIOU = iouReportUpdate.total !== 0;
+
     return iouReportUpdate;
 }
 
