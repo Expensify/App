@@ -1224,6 +1224,21 @@ function payMoneyRequestElsewhere(chatReport, iouReport, recipient) {
  * @param {Object} iouReport
  * @param {Object} recipient
  */
+function payMoneyRequestWithWallet(chatReport, iouReport, recipient) {
+    const {
+        params, optimisticData, successData, failureData,
+    } = getPayMoneyRequestParams(chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
+
+    API.write('PayMoneyRequestWithWallet', params, {optimisticData, successData, failureData});
+
+    Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
+}
+
+/**
+ * @param {Object} chatReport
+ * @param {Object} iouReport
+ * @param {Object} recipient
+ */
 function payMoneyRequestViaPaypal(chatReport, iouReport, recipient) {
     const {
         params, optimisticData, successData, failureData,
