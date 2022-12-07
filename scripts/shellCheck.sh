@@ -10,7 +10,7 @@ SHELL_SCRIPTS=$(find . -type d \( -path ./node_modules -o -path ./vendor -o -pat
 
 ASYNC_PROCESSES=()
 for SHELL_SCRIPT in $SHELL_SCRIPTS; do
-  npx shellcheck "$SHELL_SCRIPT" &
+  npx shellcheck -e SC1091 "$SHELL_SCRIPT" &
   ASYNC_PROCESSES+=($!)
 done
 
