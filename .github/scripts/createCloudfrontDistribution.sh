@@ -1,21 +1,20 @@
 #!/bin/bash
 set -e
 
-DISTRIBUTION_ID=$(echo aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[?OriginPath=='/web/$1']].Id" --output text)
+DISTRIBUTION_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?Origins.Items[?OriginPath=='/web/$1']].Id" --output text)
 
-if [[ $(aws cloudfront list-distributions --query "DistributionList.Items[0].Id") != null ]] && [[ $DISTRIBUTION_ID ]] ; then 
-    echo "Distribution for PR #$1 already exists! Invalidating cache..."
+if [[ $(aws cloudfront list-distributions --query "DistributionList.Items[0].Id") != "null" ]] && [[ $DISTRIBUTION_ID ]] ; then 
+    echo "Distribution for PR #$1 already exists!"
     aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths '/'
-    exit 0;
+    exit 0
 else
     echo "A new distribution for PR #$1 is being created"
-    echo $(aws cloudfront create-distribution --origin-domain-name ad-hoc-expensify-cash.s3.us-east-1.amazonaws.com --default-root-object index.html) >> cloudfront.config.json
+    CLOUDFRONT_CONFIG=$(aws cloudfront create-distribution --origin-domain-name ad-hoc-expensify-cash.s3.us-east-1.amazonaws.com --default-root-object index.html)
 
-    CONFIG=$(cat "./cloudfront.config.json")
-    DISTRIBUTION_ID=$(echo $CONFIG | jq -r .Distribution.Id) 
-    ETAG=$(echo $CONFIG | jq -r .ETag) 
+    DISTRIBUTION_ID=$(jq -r .Distribution.Id <<< $CLOUDFRONT_CONFIG) 
+    ETAG=$(jq -r .ETag <<< $CLOUDFRONT_CONFIG) 
 
-    echo $CONFIG | jq -r .Distribution.DistributionConfig >> dist.config.json
+    echo $CLOUDFRONT_CONFIG | jq -r .Distribution.DistributionConfig >> dist.config.json
 
     tmp=$(mktemp /tmp/tmp.XXXXXXX)
     NEW_ORIGIN_PATH=$(echo "/web/$1")
