@@ -700,7 +700,7 @@ function markCommentAsUnread(reportID, created, sequenceNumber) {
     API.write('MarkAsUnread',
         {
             reportID,
-            created,
+            created: DateUtils.getDBTime(new Date(created) - 1),
             sequenceNumber,
         },
         {
