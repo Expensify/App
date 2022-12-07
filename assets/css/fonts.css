@@ -6,23 +6,23 @@
 }
 
 @font-face {
-    font-family: ExpensifyNeue-Bold;
+    font-family: ExpensifyNeue-Regular;
     font-weight: 700;
     font-style: normal;
     src: url('/fonts/ExpensifyNeue-Bold.woff2') format('woff2'), url('/fonts/ExpensifyNeue-Bold.woff') format('woff');
 }
 
 @font-face {
-    font-family: ExpensifyNeue-Italic;
+    font-family: ExpensifyNeue-Regular;
     font-weight: 400;
     font-style: italic;
     src: url('/fonts/ExpensifyNeue-Italic.woff2') format('woff2'), url('/fonts/ExpensifyNeue-Italic.woff') format('woff');
 }
 
 @font-face {
-    font-family: ExpensifyNeue-BoldItalic;
+    font-family: ExpensifyNeue-Regular;
     font-weight: 700;
-    font-style: normal;
+    font-style: italic;
     src: url('/fonts/ExpensifyNeue-BoldItalic.woff2') format('woff2'), url('/fonts/ExpensifyNeue-BoldItalic.woff') format('woff');
 }
 
@@ -34,7 +34,7 @@
 }
 
 @font-face {
-    font-family: ExpensifyMono-Bold;
+    font-family: ExpensifyMono-Regular;
     font-weight: 700;
     font-style: normal;
     src: url('/fonts/ExpensifyMono-Bold.woff2') format('woff2'),  url('/fonts/ExpensifyMono-Bold.woff') format('woff');
