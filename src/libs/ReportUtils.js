@@ -964,9 +964,14 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
  * @returns {Boolean}
  */
 function isUnread(report) {
-    const lastReadSequenceNumber = report.lastReadSequenceNumber || 0;
-    const maxSequenceNumber = report.maxSequenceNumber || 0;
-    return lastReadSequenceNumber < maxSequenceNumber;
+    const lastMessageTimestamp = report.lastMessageTimestamp || 0;
+    const lastReadTimestamp = report.lastReadTimestamp || 0;
+    if (report.reportID == 1865899401596486) {
+        console.log('lastMessageTimestamp:', lastMessageTimestamp);
+        console.log('lastReadTimestamp:', lastReadTimestamp);
+        console.log('is unread:', lastReadTimestamp < lastMessageTimestamp);
+    }
+    return lastReadTimestamp < lastMessageTimestamp;
 }
 
 /**
