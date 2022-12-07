@@ -117,7 +117,7 @@ In order to bundle actions with their dependencies into a single Node.js executa
       - name: Generate Version
         uses: Expensify/App/.github/actions/javascript/bumpVersion@main
       ```
-       Do not try to use a relative path.
+    - Do not try to use a relative path.
 - Confusingly, paths in action metadata files (`action.yml`) _must_ use relative paths.
 - You can't use any dynamic values or environment variables in a `uses` statement
 - In general, it is a best practice to minimize any side-effects of each action. Using atomic ("dumb") actions that have a clear and simple purpose will promote reuse and make it easier to understand the workflows that use them.
