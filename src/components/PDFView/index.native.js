@@ -1,15 +1,17 @@
 import React, {Component} from 'react';
-import {TouchableWithoutFeedback, View} from 'react-native';
+import {TouchableWithoutFeedback, StyleSheet, View} from 'react-native';
 import PDF from 'react-native-pdf';
 import KeyboardAvoidingView from '../KeyboardAvoidingView';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
+import Text from '../Text';
 import PDFPasswordForm from './PDFPasswordForm';
 import * as pdfViewPropTypes from './pdfViewPropTypes';
 import compose from '../../libs/compose';
 import withWindowDimensions from '../withWindowDimensions';
 import withKeyboardState from '../withKeyboardState';
+import withLocalize from '../withLocalize';
 
 /**
  * On the native layer, we use react-native-pdf/PDF to display PDFs. If a PDF is
@@ -33,15 +35,29 @@ class PDFView extends Component {
             shouldAttemptPdfLoad: true,
             shouldShowLoadingIndicator: true,
             isPasswordInvalid: false,
+            failedToLoadPDF: false,
             password: '',
         };
         this.initiatePasswordChallenge = this.initiatePasswordChallenge.bind(this);
         this.attemptPdfLoadWithPassword = this.attemptPdfLoadWithPassword.bind(this);
         this.finishPdfLoad = this.finishPdfLoad.bind(this);
+        this.handleFailureToLoadPDF = this.handleFailureToLoadPDF.bind(this);
     }
 
     componentDidUpdate() {
         this.props.onToggleKeyboard(this.props.isShown);
+    }
+
+    handleFailureToLoadPDF(error) {
+        if (error.message.match(/password/i)) {
+            this.initiatePasswordChallenge();
+            return;
+        }
+
+        this.setState({
+            failedToLoadPDF: true,
+            shouldAttemptPdfLoad: false,
+        });
     }
 
     /**
@@ -51,15 +67,9 @@ class PDFView extends Component {
      * For a password challenge the message is "Password required or incorrect password."
      * Note that the message doesn't specify whether the password is simply empty or
      * invalid.
-     *
-     * @param {String} message
      */
-    initiatePasswordChallenge({message}) {
+    initiatePasswordChallenge() {
         this.setState({shouldShowLoadingIndicator: false});
-
-        if (!message.match(/password/i)) {
-            return;
-        }
 
         // Render password form, and don't render PDF and loading indicator.
         this.setState({
@@ -129,6 +139,13 @@ class PDFView extends Component {
 
         return (
             <View style={containerStyles}>
+                {this.state.failedToLoadPDF && (
+                    <View style={[styles.flex1, styles.justifyContentCenter]}>
+                        <Text style={[styles.textLabel, styles.textLarge]}>
+                            {this.props.translate('attachmentView.failedToLoadPDF')}
+                        </Text>
+                    </View>
+                )}
                 {this.state.shouldAttemptPdfLoad && (
                     <TouchableWithoutFeedback style={touchableStyles}>
                         <PDF
@@ -136,7 +153,7 @@ class PDFView extends Component {
                             renderActivityIndicator={() => <FullScreenLoadingIndicator />}
                             source={{uri: this.props.sourceURL}}
                             style={pdfStyles}
-                            onError={this.initiatePasswordChallenge}
+                            onError={this.handleFailureToLoadPDF}
                             password={this.state.password}
                             onLoadComplete={this.finishPdfLoad}
                         />
@@ -163,4 +180,5 @@ PDFView.defaultProps = pdfViewPropTypes.defaultProps;
 export default compose(
     withWindowDimensions,
     withKeyboardState,
+    withLocalize,
 )(PDFView);
