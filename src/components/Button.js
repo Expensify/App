@@ -144,7 +144,6 @@ const defaultProps = {
 class Button extends Component {
     constructor(props) {
         super(props);
-        this.additionalStyles = StyleUtils.parseStyleAsArray(this.props.style);
 
         this.renderContent = this.renderContent.bind(this);
     }
@@ -256,7 +255,7 @@ class Button extends Component {
                 disabled={this.props.isLoading || this.props.isDisabled}
                 style={[
                     this.props.isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
-                    ...this.additionalStyles,
+                    ...StyleUtils.parseStyleAsArray(this.props.style),
                 ]}
                 nativeID={this.props.nativeID}
             >

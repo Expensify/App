@@ -333,6 +333,11 @@ export default {
         john: 'Juan',
         doe: 'Nadie',
     },
+    timezonePage: {
+        timezone: 'Zona horaria',
+        isShownOnProfile: 'Tu zona horaria se muestra en tu perfil.',
+        getLocationAutomatically: 'Detecta tu ubicación automáticamente.',
+    },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Agregar número de teléfono',
         addEmailAddress: 'Agregar dirección de email',
