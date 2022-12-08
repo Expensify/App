@@ -144,8 +144,10 @@ class ReportActionsList extends React.Component {
     }
 
     render() {
-        // If there is at least one non-pending action, then that means the chat report is fully loaded, and we don't need to show the non-animating skeleton UI
-        const hasAtLeastOneNonPendingAction = _.some(this.props.reportActions, reportAction => !reportAction.pendingAction);
+        // While offline if there is at least one non-pending action or if this is a new chat then we don't need to show the non-animating skeleton UI
+        // Non-animating skeleton UI represents that chat history exists but is not loaded locally in Onyx.
+        const shouldShowNonAnimatingSkeleton = !(_.some(this.props.sortedReportActions, action => !action.pendingAction || action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED));
+        const skeletonHeight = shouldShowNonAnimatingSkeleton ? this.props.windowHeight - CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT : CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3;
 
         // Native mobile does not render updates flatlist the changes even though component did update called.
         // To notify there something changes we can use extraData prop to flatlist
@@ -167,11 +169,11 @@ class ReportActionsList extends React.Component {
                     initialNumToRender={this.calculateInitialNumToRender()}
                     onEndReached={() => !this.props.network.isOffline && this.props.loadMoreChats()}
                     onEndReachedThreshold={0.75}
-                    ListFooterComponent={this.props.isLoadingMoreReportActions || !hasAtLeastOneNonPendingAction
+                    ListFooterComponent={this.props.isLoadingMoreReportActions || shouldShowNonAnimatingSkeleton
                         ? (
                             <ReportActionsSkeletonView
-                                containerHeight={!hasAtLeastOneNonPendingAction ? this.props.windowHeight - CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT : this.CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 8}
-                                animate={hasAtLeastOneNonPendingAction}
+                                containerHeight={skeletonHeight}
+                                animate={!shouldShowNonAnimatingSkeleton}
                             />
                         )
                         : null}
