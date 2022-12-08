@@ -41,6 +41,9 @@ class AttachmentPicker extends React.Component {
                         // Cleanup after selecting a file to start from a fresh state
                         this.fileInput.value = null;
                     }}
+
+                    // Prevent parent's onclick event from firing
+                    onClick={e => e.stopPropagation()}
                     accept={getAcceptableFileTypes(this.props.type)}
                 />
                 {this.props.children({
