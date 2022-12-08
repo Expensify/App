@@ -712,7 +712,7 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
  * @returns {Array}
  */
 function getIOUReportActionMessage(type, total, participants, comment, currency) {
-    const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
+    const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency, currencyDisplay: 'code'});
     const displayNames = _.map(participants, participant => getDisplayNameForParticipant(participant.login, true));
     const who = displayNames.length < 3
         ? displayNames.join(' and ')
