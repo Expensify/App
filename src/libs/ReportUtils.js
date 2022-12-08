@@ -966,11 +966,6 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
 function isUnread(report) {
     const lastMessageTimestamp = report.lastMessageTimestamp || 0;
     const lastReadTimestamp = report.lastReadTimestamp || 0;
-    if (report.reportID == 1865899401596486) {
-        console.log('lastMessageTimestamp:', lastMessageTimestamp);
-        console.log('lastReadTimestamp:', lastReadTimestamp);
-        console.log('is unread:', lastReadTimestamp < lastMessageTimestamp);
-    }
     return lastReadTimestamp < lastMessageTimestamp;
 }
 
