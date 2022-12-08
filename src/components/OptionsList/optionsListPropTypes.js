@@ -6,9 +6,6 @@ import optionPropTypes from '../optionPropTypes';
 import CONST from '../../CONST';
 
 const propTypes = {
-    /** option Background Color */
-    optionBackgroundColor: PropTypes.string,
-
     /** option flexStyle for the options list container */
     listContainerStyles: PropTypes.arrayOf(PropTypes.object),
 
@@ -49,11 +46,8 @@ const propTypes = {
     /** Whether to allow option focus or not */
     disableFocusOptions: PropTypes.bool,
 
-    /** A flag to indicate whether to show additional optional states, such as pin and draft icons */
-    hideAdditionalOptionStates: PropTypes.bool,
-
-    /** Force the text style to be the unread style on all rows */
-    forceTextUnreadStyle: PropTypes.bool,
+    /** Display the text of the option in bold font style */
+    boldStyle: PropTypes.bool,
 
     /** Callback to fire when a row is selected */
     onSelectRow: PropTypes.func,
@@ -84,7 +78,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    optionBackgroundColor: undefined,
     optionHoveredStyle: undefined,
     contentContainerStyles: [],
     listContainerStyles: [styles.flex1],
@@ -94,8 +87,7 @@ const defaultProps = {
     canSelectMultipleOptions: false,
     hideSectionHeaders: false,
     disableFocusOptions: false,
-    hideAdditionalOptionStates: false,
-    forceTextUnreadStyle: false,
+    boldStyle: false,
     onSelectRow: () => {},
     headerMessage: '',
     innerRef: null,

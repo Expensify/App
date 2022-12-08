@@ -450,7 +450,13 @@ class IOUModal extends Component {
                                                 comment={this.state.comment}
                                                 onUpdateComment={this.updateComment}
                                                 iouType={this.props.iouType}
-                                                isIOUAttachedToExistingChatReport={!_.isEmpty(reportID)}
+
+                                                // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.
+                                                // This is because when there is a group of people, say they are on a trip, and you have some shared expenses with some of the people,
+                                                // but not all of them (maybe someone skipped out on dinner). Then it's nice to be able to select/deselect people from the group chat bill
+                                                // split rather than forcing the user to create a new group, just for that expense. The reportID is empty, when the action was initiated from
+                                                // the floating-action-button (since it is something that exists outside the context of a report).
+                                                canModifyParticipants={!_.isEmpty(reportID)}
                                             />
                                         </AnimatedStep>
                                     )}

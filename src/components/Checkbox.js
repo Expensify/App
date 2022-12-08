@@ -1,22 +1,18 @@
 import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import stylePropTypes from '../../styles/stylePropTypes';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-
-// eslint-disable-next-line rulesdir/prefer-early-return
-const requiredPropsCheck = (props, componentName) => {
-    if (!props.onMouseDown && !props.onPress) {
-        return new Error(`One of "onMouseDown" or "onPress" must be provided in ${componentName}`);
-    }
-};
+import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
+import stylePropTypes from '../styles/stylePropTypes';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
 
 const propTypes = {
     /** Whether checkbox is checked */
     isChecked: PropTypes.bool,
+
+    /** A function that is called when the box/label is pressed */
+    onPress: PropTypes.func.isRequired,
 
     /** Should the input be styled for errors  */
     hasError: PropTypes.bool,
@@ -30,17 +26,14 @@ const propTypes = {
     /** Additional styles to add to checkbox button */
     style: stylePropTypes,
 
+    /** Callback that is called when mousedown is triggered. */
+    onMouseDown: PropTypes.func,
+
     /** A ref to forward to the Pressable */
     forwardedRef: PropTypes.oneOfType([
         PropTypes.func,
         PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
     ]),
-
-    /** A function that is called when the box/label is pressed */
-    onPress: requiredPropsCheck,
-
-    /** Callback that is called when mousedown is triggered. */
-    onMouseDown: requiredPropsCheck,
 };
 
 const defaultProps = {
@@ -51,10 +44,9 @@ const defaultProps = {
     forwardedRef: undefined,
     children: null,
     onMouseDown: undefined,
-    onPress: undefined,
 };
 
-class BaseCheckbox extends React.Component {
+class Checkbox extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -80,11 +72,7 @@ class BaseCheckbox extends React.Component {
             return;
         }
 
-        if (this.props.onPress) {
-            this.props.onPress(event);
-        } else {
-            this.props.onMouseDown(event);
-        }
+        this.props.onPress();
     }
 
     firePressHandlerOnClick(event) {
@@ -94,9 +82,14 @@ class BaseCheckbox extends React.Component {
             return;
         }
 
-        if (this.props.onPress) {
-            this.props.onPress(event);
+        const wasChecked = this.props.isChecked;
+
+        // If checkbox is checked and focused, make sure it's unfocused when pressed.
+        if (this.state.isFocused && wasChecked) {
+            this.onBlur();
         }
+
+        this.props.onPress();
     }
 
     render() {
@@ -108,6 +101,7 @@ class BaseCheckbox extends React.Component {
                 onFocus={this.onFocus}
                 onBlur={this.onBlur}
                 ref={this.props.forwardedRef}
+                onPressOut={this.onBlur}
                 style={this.props.style}
                 onKeyDown={this.handleSpaceKey}
                 accessibilityRole="checkbox"
@@ -124,7 +118,7 @@ class BaseCheckbox extends React.Component {
                                 this.props.isChecked && styles.checkedContainer,
                                 this.props.hasError && styles.borderColorDanger,
                                 this.props.disabled && styles.cursorDisabled,
-                                this.state.isFocused && styles.borderColorFocus,
+                                (this.state.isFocused || this.props.isChecked) && styles.borderColorFocus,
                             ]}
                         >
                             {this.props.isChecked && <Icon src={Expensicons.Checkmark} fill={themeColors.textLight} height={14} width={14} />}
@@ -135,7 +129,7 @@ class BaseCheckbox extends React.Component {
     }
 }
 
-BaseCheckbox.propTypes = propTypes;
-BaseCheckbox.defaultProps = defaultProps;
+Checkbox.propTypes = propTypes;
+Checkbox.defaultProps = defaultProps;
 
-export default BaseCheckbox;
+export default Checkbox;
