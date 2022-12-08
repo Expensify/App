@@ -347,11 +347,8 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
-        // If there is at least one non-pending action, then that means the chat report is fully loaded, and we don't need to show the non-animating skeleton UI
-        const hasAtLeastOneNonPendingAction = _.some(this.props.reportActions, reportAction => !reportAction.pendingAction);
-
         // Comments have not loaded at all yet do nothing
-        if (!_.size(this.props.reportActions)) {
+        if (!_.size(this.props.reportActions) && !this.props.network.isOffline) {
             return null;
         }
 
@@ -372,7 +369,6 @@ class ReportActionsView extends React.Component {
                             isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
                             loadMoreChats={this.loadMoreChats}
                             newMarkerSequenceNumber={this.state.newMarkerSequenceNumber}
-                            hasAtLeastOneNonPendingAction={hasAtLeastOneNonPendingAction}
                         />
                         <PopoverReportActionContextMenu
                             ref={ReportActionContextMenu.contextMenuRef}
