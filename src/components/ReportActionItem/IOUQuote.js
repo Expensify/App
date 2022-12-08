@@ -33,18 +33,23 @@ const defaultProps = {
 };
 
 const IOUQuote = (props) => {
-    const iouMessageText = ReportUtils.getIOUReportActionMessage(
-        lodashGet(props.action, 'originalMessage.type'),
-        lodashGet(props.action, 'originalMessage.amount'),
-        _.map(lodashGet(props.action, 'originalMessage.participants', []), (login) => ({login})),
-        lodashGet(props.action, 'originalMessage.comment'),
-        lodashGet(props.action, 'originalMessage.currency'),
-        lodashGet(props.action, 'originalMessage.paymentType', ''),
-        lodashGet(props.action, 'originalMessage.iouTransactionID', ''),
-        lodashGet(props.action, 'originalMessage.iouReportID', ''),
-        lodashGet(props.action, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.PAY,
-        false,
-    )[0].text;
+    const renderIOUMessage = fragment => (
+        <Text>
+            <Text style={props.shouldAllowViewDetails && styles.chatItemMessageLink}>
+                {/* Get first word of IOU message */}
+                {Str.htmlDecode(fragment.text.split(' ')[0])}
+            </Text>
+            <Text style={[styles.chatItemMessage, styles.cursorPointer]}>
+                {/* Get remainder of IOU message */}
+                {IOUUtils.formatIOUMessageCurrencySymbol(
+                    Str.htmlDecode(fragment.text.substring(fragment.text.indexOf(' '))),
+                    lodashGet(props.action, 'originalMessage.type'),
+                    props.preferredLocale,
+                )}
+            </Text>
+        </Text>
+    );
+
 
     return (
         <View style={[styles.chatItemMessage]}>
@@ -53,7 +58,8 @@ const IOUQuote = (props) => {
                     key={`iouQuote-${props.action.reportActionID}-${index}`}
                     onPress={props.shouldAllowViewDetails
                         ? props.onViewDetailsPressed
-                        : () => {}}
+                        : () => {
+                        }}
                     style={[styles.flexRow, styles.justifyContentBetween,
                         props.shouldAllowViewDetails
                             ? undefined
@@ -61,16 +67,7 @@ const IOUQuote = (props) => {
                     ]}
                     focusable={props.shouldAllowViewDetails}
                 >
-                    <Text>
-                        <Text style={props.shouldAllowViewDetails && styles.chatItemMessageLink}>
-                            {/* Get first word of IOU message */}
-                            {Str.htmlDecode(iouMessageText.split(' ')[0])}
-                        </Text>
-                        <Text style={[styles.chatItemMessage, styles.cursorPointer]}>
-                            {/* /!* Get remainder of IOU message *!/ */}
-                            {Str.htmlDecode(iouMessageText.substring(iouMessageText.indexOf(' ')))}
-                        </Text>
-                    </Text>
+                    {renderIOUMessage(fragment)}
                     <Icon src={Expensicons.ArrowRight} fill={props.shouldAllowViewDetails ? themeColors.icon : themeColors.transparent} />
                 </Pressable>
             ))}
