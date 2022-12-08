@@ -41,6 +41,7 @@ const IOUQuote = (props) => {
         lodashGet(props.action, 'originalMessage.paymentType', ''),
         lodashGet(props.action, 'originalMessage.iouTransactionID', ''),
         lodashGet(props.action, 'originalMessage.iouReportID', ''),
+        lodashGet(props.action, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.PAY,
         false,
     )[0].text;
 
