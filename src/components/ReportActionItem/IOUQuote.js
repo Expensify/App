@@ -6,6 +6,7 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import Text from '../Text';
 import Icon from '../Icon';
+import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';
 import * as ReportUtils from '../../libs/ReportUtils';
 import styles from '../../styles/styles';
