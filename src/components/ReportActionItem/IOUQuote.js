@@ -52,8 +52,7 @@ const IOUQuote = (props) => {
                     key={`iouQuote-${props.action.reportActionID}-${index}`}
                     onPress={props.shouldAllowViewDetails
                         ? props.onViewDetailsPressed
-                        : () => {
-                        }}
+                        : () => {}}
                     style={[styles.flexRow, styles.justifyContentBetween,
                         props.shouldAllowViewDetails
                             ? undefined
