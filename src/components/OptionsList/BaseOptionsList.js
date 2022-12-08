@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
 import OptionRow from '../OptionRow';
@@ -40,7 +39,6 @@ class BaseOptionsList extends Component {
         this.buildFlatSectionArray = this.buildFlatSectionArray.bind(this);
         this.extractKey = this.extractKey.bind(this);
         this.onViewableItemsChanged = this.onViewableItemsChanged.bind(this);
-        this.viewabilityConfig = {viewAreaCoveragePercentThreshold: 95};
         this.didLayout = false;
 
         this.flattenedData = this.buildFlatSectionArray();
@@ -106,7 +104,7 @@ class BaseOptionsList extends Component {
      * @returns {Array<Object>}
      */
     buildFlatSectionArray() {
-        const optionHeight = this.props.optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
+        const optionHeight = variables.optionRowHeight;
         let offset = 0;
 
         // Start with just an empty list header
@@ -159,7 +157,6 @@ class BaseOptionsList extends Component {
         return (
             <OptionRow
                 option={item}
-                mode={this.props.optionMode}
                 showTitleTooltip={this.props.showTitleTooltip}
                 hoverStyle={this.props.optionHoveredStyle}
                 optionIsFocused={!this.props.disableFocusOptions
@@ -232,7 +229,7 @@ class BaseOptionsList extends Component {
                     initialNumToRender={5}
                     maxToRenderPerBatch={5}
                     windowSize={5}
-                    viewabilityConfig={this.viewabilityConfig}
+                    viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                     onViewableItemsChanged={this.onViewableItemsChanged}
                 />
             </View>
