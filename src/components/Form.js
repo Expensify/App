@@ -79,6 +79,7 @@ class Form extends React.Component {
 
         this.inputRefs = {};
         this.touchedInputs = {};
+        this.childPosition = {};
 
         this.setTouchedInput = this.setTouchedInput.bind(this);
         this.validate = this.validate.bind(this);
@@ -106,6 +107,21 @@ class Form extends React.Component {
         }
 
         return _.first(_.keys(hasStateErrors ? this.state.erorrs : this.props.formState.errorFields));
+    }
+
+    setPosition(element, position) {
+        // Some elements might not have props defined, e.g. Text
+        if (!element.props) {
+            return;
+        }
+
+        if (!element.props.inputID && element.props.children) {
+            _.forEach(element.props.children, (child) => {
+                this.setPosition(child, position);
+            });
+        } else {
+            this.childPosition[element.props.inputID] = position;
+        }
     }
 
     submit() {
@@ -249,9 +265,19 @@ class Form extends React.Component {
                     style={[styles.w100, styles.flex1]}
                     contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
+                    ref={el => this.form = el}
                 >
                     <View style={[this.props.style]}>
-                        {this.childrenWrapperWithProps(this.props.children)}
+                        {_.map(this.childrenWrapperWithProps(this.props.children), child => (
+                            <View
+                                key={child.key}
+                                onLayout={(event) => {
+                                    this.setPosition(child, event.nativeEvent.layout.y);
+                                }}
+                            >
+                                {child}
+                            </View>
+                        ))}
                         {this.props.isSubmitButtonVisible && (
                         <FormAlertWithSubmitButton
                             buttonText={this.props.submitButtonText}
@@ -263,6 +289,7 @@ class Form extends React.Component {
                                 const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
                                 const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
                                 const focusInput = this.inputRefs[focusKey];
+                                this.form.scrollTo({y: this.childPosition[focusKey], animated: false});
                                 if (focusInput.focus && typeof focusInput.focus === 'function') {
                                     focusInput.focus();
                                 }

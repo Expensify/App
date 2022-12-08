@@ -93,4 +93,4 @@ storybook-static
 .jest-cache
 
 # E2E test reports
-e2e/.results/
+tests/e2e/.results/

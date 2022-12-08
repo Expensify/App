@@ -100,7 +100,7 @@ const ReportParticipantsPage = (props) => {
                         showTitleTooltip
                         disableFocusOptions
                         optionMode="default"
-                        forceTextUnreadStyle
+                        boldStyle
                         optionHoveredStyle={styles.hoveredComponentBG}
                     />
                     )}

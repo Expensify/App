@@ -14,10 +14,10 @@ const propTypes = {
     /** Determines whether the keyboard gets dismissed in response to a drag */
     keyboardDismissMode: PropTypes.string,
 
-    /** Called when the user begins to drag the scroll view */
+    /** Called when the user begins to drag the scroll view. Only used for the native component */
     onScrollBeginDrag: PropTypes.func,
 
-    /** Callback executed on scroll */
+    /** Callback executed on scroll. Only used for web/desktop component */
     onScroll: PropTypes.func,
 
     ...optionsListPropTypes,
@@ -47,23 +47,11 @@ class BaseOptionsList extends Component {
     }
 
     shouldComponentUpdate(nextProps) {
-        if (nextProps.focusedIndex !== this.props.focusedIndex) {
-            return true;
-        }
-
-        if (nextProps.selectedOptions.length !== this.props.selectedOptions.length) {
-            return true;
-        }
-
-        if (nextProps.headerMessage !== this.props.headerMessage) {
-            return true;
-        }
-
-        if (!_.isEqual(nextProps.sections, this.props.sections)) {
-            return true;
-        }
-
-        return false;
+        return nextProps.focusedIndex !== this.props.focusedIndex
+            || nextProps.selectedOptions.length !== this.props.selectedOptions.length
+            || nextProps.headerMessage !== this.props.headerMessage
+            || !_.isEqual(nextProps.sections, this.props.sections)
+            || !_.isEqual(nextProps.sections, this.props.sections);
     }
 
     componentDidUpdate(prevProps) {
@@ -170,20 +158,16 @@ class BaseOptionsList extends Component {
     renderItem({item, index, section}) {
         return (
             <OptionRow
-                alternateTextAccessibilityLabel={this.props.optionRowAlternateTextAccessibilityLabel}
-                accessibilityHint={this.props.optionRowAccessibilityHint}
                 option={item}
                 mode={this.props.optionMode}
                 showTitleTooltip={this.props.showTitleTooltip}
-                backgroundColor={this.props.optionBackgroundColor}
                 hoverStyle={this.props.optionHoveredStyle}
                 optionIsFocused={!this.props.disableFocusOptions
-                        && this.props.focusedIndex === (index + section.indexOffset)}
+                    && this.props.focusedIndex === (index + section.indexOffset)}
                 onSelectRow={this.props.onSelectRow}
                 isSelected={Boolean(_.find(this.props.selectedOptions, option => option.login === item.login))}
                 showSelectedState={this.props.canSelectMultipleOptions}
-                hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
-                forceTextUnreadStyle={this.props.forceTextUnreadStyle}
+                boldStyle={this.props.boldStyle}
                 isDisabled={this.props.isDisabled || section.isDisabled}
                 shouldHaveOptionSeparator={index > 0 && this.props.shouldHaveOptionSeparator}
             />

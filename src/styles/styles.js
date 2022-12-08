@@ -616,7 +616,7 @@ const styles = {
 
     border: {
         borderWidth: 1,
-        borderRadius: variables.buttonBorderRadius,
+        borderRadius: variables.componentBorderRadius,
         borderColor: themeColors.border,
     },
 
@@ -734,7 +734,7 @@ const styles = {
     baseTextInput: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeNormal,
-        lineHeight: variables.fontSizeNormalHeight,
+        lineHeight: variables.lineHeightNormal,
         color: themeColors.text,
         paddingTop: 23,
         paddingBottom: 8,
@@ -1123,7 +1123,7 @@ const styles = {
     },
 
     sidebarLinkText: {
-        color: themeColors.text,
+        color: themeColors.textSupporting,
         fontSize: variables.fontSizeNormal,
         textDecorationLine: 'none',
         overflow: 'hidden',
@@ -1138,13 +1138,13 @@ const styles = {
         textDecorationLine: 'none',
     },
 
-    sidebarLinkTextUnread: {
+    sidebarLinkTextBold: {
         fontWeight: '700',
         color: themeColors.heading,
     },
 
     sidebarLinkActiveText: {
-        color: themeColors.text,
+        color: themeColors.textSupporting,
         fontSize: variables.fontSizeNormal,
         textDecorationLine: 'none',
         overflow: 'hidden',
@@ -1477,9 +1477,10 @@ const styles = {
 
     chatItemEmojiButton: {
         alignSelf: 'flex-end',
-        borderRadius: 6,
+        borderRadius: variables.buttonBorderRadius,
         height: 32,
-        margin: 3,
+        marginVertical: 4,
+        paddingHorizontal: 6,
         justifyContent: 'center',
     },
 
@@ -1569,6 +1570,7 @@ const styles = {
         backgroundColor: themeColors.appBG,
         borderRadius: 33,
         paddingTop: 2,
+        alignItems: 'center',
     },
 
     singleSubscript: {
@@ -1732,7 +1734,6 @@ const styles = {
         width: 28,
         borderWidth: 2,
         borderStyle: 'solid',
-        borderColor: themeColors.appBG,
         backgroundColor: themeColors.opaqueAvatar,
         borderRadius: 24,
         zIndex: 6,
@@ -2756,6 +2757,18 @@ const styles = {
         alignSelf: 'center',
     },
 
+    fullScreenTransparentOverlay: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: themeColors.dropUIBG,
+        zIndex: 2,
+    },
+
     textPill: {
         ellipsizeMode: 'end',
         backgroundColor: themeColors.border,
@@ -2765,6 +2778,18 @@ const styles = {
         flexShrink: 1,
         fontSize: variables.fontSizeSmall,
         ...spacing.ph2,
+    },
+
+    dropZoneTopInvisibleOverlay: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: themeColors.dropTransparentOverlay,
+        zIndex: 1000,
     },
 
     cardSection: {
