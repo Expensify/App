@@ -33,7 +33,7 @@ const defaultProps = {
 
 const IOUQuote = (props) => {
     const formatCurrencySymbol = (text) => {
-        // offsetInText is the index in number of words we expect to see currencyCode in text
+        // currencyCodeIndexInText is the index in number of words we expect to see currencyCode in text
         const convertCurrencyCodeToSymbol = (currencyCodeIndexInText) => {
             const words = text.split(' ');
             const amountWithCode = words[currencyCodeIndexInText];
