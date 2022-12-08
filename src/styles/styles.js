@@ -29,7 +29,7 @@ const picker = {
     paddingHorizontal: 11,
     paddingBottom: 8,
     paddingTop: 23,
-    height: 50,
+    height: variables.inputHeight,
     borderWidth: 0,
     borderRadius: variables.componentBorderRadiusNormal,
     textAlign: 'left',
@@ -216,25 +216,25 @@ const styles = {
 
     label: {
         fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        lineHeight: variables.lineHeightLarge,
     },
 
     textLabel: {
         color: themeColors.text,
         fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        lineHeight: variables.lineHeightLarge,
     },
 
     mutedTextLabel: {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        lineHeight: variables.lineHeightLarge,
     },
 
     textMicro: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeSmall,
-        lineHeight: 14,
+        lineHeight: variables.lineHeightSmall,
     },
 
     textMicroBold: {
@@ -248,7 +248,7 @@ const styles = {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeSmall,
-        lineHeight: 14,
+        lineHeight: variables.lineHeightSmall,
     },
 
     textExtraSmallSupporting: {
@@ -385,7 +385,7 @@ const styles = {
         borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeLarge,
         paddingTop: 8,
-        paddingRight: 18,
+        paddingRight: 10,
         paddingBottom: 8,
         paddingLeft: 18,
         backgroundColor: themeColors.buttonDefaultBG,
@@ -471,6 +471,11 @@ const styles = {
 
     buttonConfirm: {
         margin: 20,
+    },
+
+    attachmentButtonBigScreen: {
+        minWidth: 300,
+        alignSelf: 'center',
     },
 
     buttonConfirmText: {
@@ -605,13 +610,13 @@ const styles = {
     badgeText: {
         color: themeColors.text,
         fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
+        lineHeight: variables.lineHeightNormal,
         ...whiteSpace.noWrap,
     },
 
     border: {
         borderWidth: 1,
-        borderRadius: variables.buttonBorderRadius,
+        borderRadius: variables.componentBorderRadius,
         borderColor: themeColors.border,
     },
 
@@ -652,7 +657,7 @@ const styles = {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeSmall,
-        lineHeight: 14,
+        lineHeight: variables.lineHeightSmall,
     },
 
     chatItemComposeSecondaryRowOffset: {
@@ -679,7 +684,7 @@ const styles = {
     },
 
     componentHeightLarge: {
-        height: variables.componentSizeLarge,
+        height: variables.inputHeight,
     },
 
     textInputContainer: {
@@ -729,7 +734,7 @@ const styles = {
     baseTextInput: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeNormal,
-        lineHeight: variables.fontSizeNormalHeight,
+        lineHeight: variables.lineHeightNormal,
         color: themeColors.text,
         paddingTop: 23,
         paddingBottom: 8,
@@ -808,7 +813,7 @@ const styles = {
     },
     picker: (disabled = false) => ({
         iconContainer: {
-            top: 15,
+            top: Math.round(variables.inputHeight * 0.5) - 11,
             right: 10,
             zIndex: -1,
         },
@@ -862,21 +867,21 @@ const styles = {
         fontWeight: fontWeightBold,
         color: themeColors.heading,
         fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        lineHeight: variables.lineHeightLarge,
         marginBottom: 8,
     },
 
     formHelp: {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        lineHeight: variables.lineHeightLarge,
         marginBottom: 4,
     },
 
     formError: {
         color: themeColors.textError,
         fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        lineHeight: variables.formErrorLineHeight,
         marginBottom: 4,
     },
 
@@ -893,11 +898,6 @@ const styles = {
         flex: 1,
     },
 
-    signInPageLogo: {
-        height: variables.componentSizeLarge,
-        marginBottom: 24,
-    },
-
     signInPageInner: {
         marginLeft: 'auto',
         marginRight: 'auto',
@@ -905,48 +905,26 @@ const styles = {
         width: '100%',
     },
 
-    signInPageInnerNative: {
-        width: '100%',
+    signInPageContentTopSpacer: {
+        maxHeight: 132,
+        minHeight: 24,
     },
 
-    signInPageHeroHeading: {
-        fontFamily: fontFamily.EXP_NEUE,
-        fontWeight: fontWeightBold,
-        fontSize: variables.fontSizeHero,
-        color: themeColors.appBG,
-        lineHeight: variables.lineHeightHero,
+    signInPageLeftContainer: {
+        paddingLeft: 40,
+        paddingRight: 40,
     },
 
-    signInPageHeroDescription: {
-        fontFamily: fontFamily.EXP_NEUE,
-        fontSize: variables.fontSizeNormal,
-        color: themeColors.appBG,
+    signInPageLeftContainerWide: {
+        maxWidth: 360,
     },
 
-    signInPageFormContainer: {
-        maxWidth: 295,
-        width: '100%',
+    signInPageWelcomeFormContainer: {
+        maxWidth: 300,
     },
 
-    signInPageNarrowContentContainer: {
-        maxWidth: 335,
-    },
-
-    signInPageNarrowContentMargin: {
-        marginTop: '40%',
-    },
-
-    signInPageWideLeftContainer: {
-        width: 375,
-        maxWidth: 375,
-    },
-
-    signInPageWideLeftContentMargin: {
-        marginTop: '44.5%',
-    },
-
-    signInPageWideHeroContent: {
-        maxWidth: 400,
+    signInPageWelcomeTextContainer: {
+        width: 300,
     },
 
     changeExpensifyLoginLinkContainer: {
@@ -965,7 +943,7 @@ const styles = {
         alignItems: 'center',
         display: 'flex',
         justifyContent: 'center',
-        paddingVertical: 20,
+        paddingVertical: variables.lineHeightXLarge,
         width: '100%',
     },
 
@@ -1145,7 +1123,7 @@ const styles = {
     },
 
     sidebarLinkText: {
-        color: themeColors.text,
+        color: themeColors.textSupporting,
         fontSize: variables.fontSizeNormal,
         textDecorationLine: 'none',
         overflow: 'hidden',
@@ -1160,13 +1138,13 @@ const styles = {
         textDecorationLine: 'none',
     },
 
-    sidebarLinkTextUnread: {
+    sidebarLinkTextBold: {
         fontWeight: '700',
         color: themeColors.heading,
     },
 
     sidebarLinkActiveText: {
-        color: themeColors.text,
+        color: themeColors.textSupporting,
         fontSize: variables.fontSizeNormal,
         textDecorationLine: 'none',
         overflow: 'hidden',
@@ -1179,8 +1157,8 @@ const styles = {
 
     optionDisplayName: {
         fontFamily: fontFamily.EXP_NEUE,
-        height: 20,
-        lineHeight: 20,
+        height: variables.alternateTextHeight,
+        lineHeight: variables.lineHeightXLarge,
         ...whiteSpace.noWrap,
     },
 
@@ -1199,8 +1177,8 @@ const styles = {
     },
 
     optionAlternateText: {
-        height: 20,
-        lineHeight: 20,
+        height: variables.alternateTextHeight,
+        lineHeight: variables.lineHeightXLarge,
     },
 
     optionAlternateTextCompact: {
@@ -1312,7 +1290,7 @@ const styles = {
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
-        lineHeight: 20,
+        lineHeight: variables.lineHeightXLarge,
         paddingRight: 5,
         paddingBottom: 4,
         ...wordBreak.breakWord,
@@ -1323,14 +1301,14 @@ const styles = {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeSmall,
         height: 24,
-        lineHeight: 20,
+        lineHeight: variables.lineHeightXLarge,
     },
 
     chatItemMessage: {
         color: themeColors.text,
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.EXP_NEUE,
-        lineHeight: 20,
+        lineHeight: variables.lineHeightXLarge,
         marginTop: -2,
         marginBottom: -2,
         maxWidth: '100%',
@@ -1343,7 +1321,7 @@ const styles = {
         color: themeColors.link,
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.EXP_NEUE,
-        lineHeight: 20,
+        lineHeight: variables.lineHeightXLarge,
     },
 
     chatItemComposeWithFirstRow: {
@@ -1365,7 +1343,7 @@ const styles = {
     chatItemComposeBox: {
         backgroundColor: themeColors.componentBG,
         borderWidth: 1,
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.componentBorderRadiusRounded,
         minHeight: variables.componentSizeNormal,
     },
 
@@ -1397,9 +1375,9 @@ const styles = {
         fontFamily: fontFamily.EMOJI_TEXT_FONT,
         fontSize: variables.fontSizeNormal,
         borderWidth: 0,
-        borderRadius: 0,
+        borderRadius: variables.componentBorderRadiusRounded,
         height: 'auto',
-        lineHeight: 20,
+        lineHeight: variables.lineHeightXLarge,
         ...overflowXHidden,
 
         // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
@@ -1432,10 +1410,11 @@ const styles = {
 
     chatItemSubmitButton: {
         alignSelf: 'flex-end',
-        borderRadius: 6,
+        borderRadius: variables.componentBorderRadiusRounded,
+        backgroundColor: themeColors.transparent,
         height: 32,
         padding: 6,
-        margin: 3,
+        margin: 4,
         justifyContent: 'center',
     },
 
@@ -1498,9 +1477,10 @@ const styles = {
 
     chatItemEmojiButton: {
         alignSelf: 'flex-end',
-        borderRadius: 6,
+        borderRadius: variables.buttonBorderRadius,
         height: 32,
-        margin: 3,
+        marginVertical: 4,
+        paddingHorizontal: 6,
         justifyContent: 'center',
     },
 
@@ -1517,11 +1497,12 @@ const styles = {
         alignSelf: 'flex-end',
         borderRightColor: themeColors.border,
         borderRightWidth: 1,
-        height: 26,
-        marginBottom: 6,
-        marginTop: 6,
+        height: 32,
+        width: 32,
+        marginBottom: 4,
+        marginTop: 4,
+        marginLeft: 4,
         justifyContent: 'center',
-        width: 39,
     },
 
     composerSizeButton: {
@@ -1531,7 +1512,7 @@ const styles = {
         marginBottom: 6,
         marginTop: 6,
         justifyContent: 'center',
-        width: 39,
+        width: 32,
     },
 
     chatItemAttachmentPlaceholder: {
@@ -1589,6 +1570,7 @@ const styles = {
         backgroundColor: themeColors.appBG,
         borderRadius: 33,
         paddingTop: 2,
+        alignItems: 'center',
     },
 
     singleSubscript: {
@@ -1752,7 +1734,6 @@ const styles = {
         width: 28,
         borderWidth: 2,
         borderStyle: 'solid',
-        borderColor: themeColors.appBG,
         backgroundColor: themeColors.opaqueAvatar,
         borderRadius: 24,
         zIndex: 6,
@@ -1927,7 +1908,7 @@ const styles = {
         ...spacing.p1,
         ...spacing.mv1,
         ...spacing.mh1,
-        ...{borderRadius: variables.componentBorderRadiusSmall},
+        ...{borderRadius: variables.buttonBorderRadius},
     },
 
     reportActionSystemMessageContainer: {
@@ -2466,7 +2447,7 @@ const styles = {
     peopleBadgeText: {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
+        lineHeight: variables.lineHeightNormal,
         ...whiteSpace.noWrap,
     },
 
@@ -2574,7 +2555,7 @@ const styles = {
     },
 
     communicationsLinkHeight: {
-        height: 20,
+        height: variables.communicationsLinkHeight,
     },
 
     floatingMessageCounterWrapper: {
@@ -2776,6 +2757,18 @@ const styles = {
         alignSelf: 'center',
     },
 
+    fullScreenTransparentOverlay: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: themeColors.dropUIBG,
+        zIndex: 2,
+    },
+
     textPill: {
         ellipsizeMode: 'end',
         backgroundColor: themeColors.border,
@@ -2785,6 +2778,18 @@ const styles = {
         flexShrink: 1,
         fontSize: variables.fontSizeSmall,
         ...spacing.ph2,
+    },
+
+    dropZoneTopInvisibleOverlay: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: themeColors.dropTransparentOverlay,
+        zIndex: 1000,
     },
 
     cardSection: {
@@ -2798,9 +2803,11 @@ const styles = {
     },
 
     cardMenuItem: {
-        paddingHorizontal: 0,
-        borderRadius: variables.componentBorderRadiusNormal,
-        paddingVertical: 12,
+        paddingLeft: 8,
+        paddingRight: 0,
+        borderRadius: variables.buttonBorderRadius,
+        height: variables.componentSizeLarge,
+        alignItems: 'center',
     },
 
     callRequestSection: {
@@ -2809,6 +2816,11 @@ const styles = {
         paddingBottom: 0,
         marginHorizontal: 0,
         marginBottom: 0,
+    },
+
+    saveButtonPadding: {
+        paddingLeft: 18,
+        paddingRight: 18,
     },
 };
 

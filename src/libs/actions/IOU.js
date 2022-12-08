@@ -65,8 +65,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         isNewChat = true;
     }
     let iouReport;
-    const originalIOUStatus = chatReport.hasOutstandingIOU;
-    if (originalIOUStatus) {
+    if (chatReport.iouReportID) {
         iouReport = IOUUtils.updateIOUOwnerAndTotal(
             iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`],
             recipientEmail,
@@ -97,7 +96,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
                 ...chatReport,
-                lastVisitedTimestamp: Date.now(),
+                lastReadTimestamp: Date.now(),
                 lastReadSequenceNumber: newSequenceNumber,
                 maxSequenceNumber: newSequenceNumber,
                 lastMessageText: optimisticReportAction.message[0].text,
@@ -114,7 +113,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
             },
         },
         {
-            onyxMethod: originalIOUStatus ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
+            onyxMethod: chatReport.hasOutstandingIOU ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: iouReport,
         },
@@ -136,7 +135,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
-                hasOutstandingIOU: originalIOUStatus,
+                hasOutstandingIOU: chatReport.hasOutstandingIOU,
             },
         },
         {
@@ -262,7 +261,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
 
     groupChatReport.maxSequenceNumber = groupChatReportMaxSequenceNumber + 1;
     groupChatReport.lastReadSequenceNumber = groupChatReportMaxSequenceNumber + 1;
-    groupChatReport.lastVisitedTimestamp = Date.now();
+    groupChatReport.lastReadTimestamp = Date.now();
     groupChatReport.lastMessageText = groupIOUReportAction.message[0].text;
     groupChatReport.lastMessageHtml = groupIOUReportAction.message[0].html;
     groupChatReport.pendingFields = {
@@ -671,15 +670,16 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
  * @returns {Object}
  */
 function getSendMoneyParams(report, amount, currency, comment, paymentMethodType, managerEmail, recipient) {
+    const recipientEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(recipient.login);
+
     const newIOUReportDetails = JSON.stringify({
         amount,
         currency,
-        requestorEmail: OptionsListUtils.addSMSDomainIfPhoneNumber(recipient.login),
+        requestorEmail: recipientEmail,
         comment,
         idempotencyKey: Str.guid(),
     });
 
-    const recipientEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(recipient.login);
     let chatReport = report.reportID ? report : null;
     let isNewChat = false;
     if (!chatReport) {
@@ -732,7 +732,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             },
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticIOUReport.reportID}`,
             value: optimisticIOUReport,
         },
@@ -756,7 +756,6 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 [optimisticIOUReportAction.sequenceNumber]: {
-                    ...optimisticIOUReportAction,
                     errors: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),
                     },
@@ -836,7 +835,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 lastMessageText: optimisticIOUReportAction.message[0].text,
                 lastMessageHtml: optimisticIOUReportAction.message[0].html,
                 hasOutstandingIOU: false,
-                iouReportID: iouReport.reportID,
+                iouReportID: null,
             },
         },
         {
@@ -878,8 +877,6 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 [optimisticIOUReportAction.sequenceNumber]: {
-                    hasOutstandingIOU: true,
-                    stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
                     pendingAction: null,
                     errors: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),

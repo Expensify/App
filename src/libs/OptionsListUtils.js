@@ -150,7 +150,7 @@ function getParticipantNames(personalDetailList) {
 }
 
 /**
- * A very optimized method to remove unique items from an array.
+ * A very optimized method to remove duplicates from an array.
  * Taken from https://stackoverflow.com/a/9229821/9114791
  *
  * @param {Array} items
@@ -190,7 +190,11 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
     if (!isChatRoomOrPolicyExpenseChat) {
         for (let i = 0; i < personalDetailList.length; i++) {
             const personalDetail = personalDetailList[i];
-            searchTerms = searchTerms.concat([personalDetail.displayName, personalDetail.login.replace(/\./g, '')]);
+
+            // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
+            // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
+            // More info https://github.com/Expensify/App/issues/8007
+            searchTerms = searchTerms.concat([personalDetail.displayName, personalDetail.login, personalDetail.login.replace(/\.(?=[^\s@]*@)/g, '')]);
         }
     }
     if (report) {
@@ -273,7 +277,6 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         reportID: null,
         phoneNumber: null,
         payPalMeAddress: null,
-        isUnread: null,
         hasDraftComment: false,
         keyForList: null,
         searchText: null,
@@ -385,16 +388,13 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
  * @returns {Boolean}
  */
 function isSearchStringMatch(searchValue, searchText, participantNames = new Set(), isChatRoom = false) {
-    const searchWords = _.map(
-        searchValue
-            .replace(/\./g, '')
-            .replace(/,/g, ' ')
-            .split(' '),
-        word => word.trim(),
-    );
-    return _.every(searchWords, (word) => {
+    const searchWords = _.compact(uniqFast([
+        searchValue,
+        ..._.map(searchValue.replace(/,/g, ' ').split(' '), word => word.trim()),
+    ]));
+    const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
+    return _.some(searchWords, (word) => {
         const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
-        const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
         return matchRegex.test(valueToSearch) || (!isChatRoom && participantNames.has(word));
     });
 }
@@ -439,7 +439,6 @@ function getOptions(reports, personalDetails, {
     includeMultipleParticipantReports = false,
     includePersonalDetails = false,
     includeRecentReports = false,
-    prioritizeDefaultRoomsInSearch = false,
 
     // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
     sortByReportTypeInSearch = false,
@@ -556,12 +555,6 @@ function getOptions(reports, personalDetails, {
         }
     }
 
-    // If we are prioritizing default rooms in search, do it only once we started something
-    if (prioritizeDefaultRoomsInSearch && searchValue !== '') {
-        const reportsSplitByDefaultChatRoom = _.partition(recentReportOptions, option => option.isChatRoom);
-        recentReportOptions = reportsSplitByDefaultChatRoom[0].concat(reportsSplitByDefaultChatRoom[1]);
-    }
-
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         _.each(allPersonalDetailsOptions, (personalDetailOption) => {
@@ -649,11 +642,8 @@ function getSearchOptions(
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
-        prioritizePinnedReports: false,
-        prioritizeDefaultRoomsInSearch: false,
         sortByReportTypeInSearch: true,
         showChatPreviewLine: true,
-        showReportsWithNoComments: true,
         includePersonalDetails: true,
         forcePolicyNamePreview: true,
     });
@@ -778,23 +768,6 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
     return '';
 }
 
-/**
- * Returns the currency list for sections display
- *
- * @param {Object} currencyOptions
- * @param {String} searchValue
- * @returns {Array}
- */
-function getCurrencyListForSections(currencyOptions, searchValue) {
-    const filteredOptions = _.filter(currencyOptions, currencyOption => (
-        isSearchStringMatch(searchValue, currencyOption.text)));
-
-    return {
-        // returns filtered options i.e. options with string match if search text is entered
-        currencyOptions: filteredOptions,
-    };
-}
-
 export {
     addSMSDomainIfPhoneNumber,
     isCurrentUser,
@@ -803,7 +776,6 @@ export {
     getMemberInviteOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,
-    getCurrencyListForSections,
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
     getSearchText,

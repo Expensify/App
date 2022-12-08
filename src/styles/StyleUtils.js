@@ -171,7 +171,7 @@ function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerH
  * @param {Number} width
  * @return {Object}
  */
-function getAutoGrowTextInputStyle(width) {
+function getWidthStyle(width) {
     return {
         width,
     };
@@ -203,6 +203,20 @@ function getBackgroundColorStyle(backgroundColor) {
 }
 
 /**
+ * Converts a color in hexadecimal notation into RGB notation.
+ *
+ * @param {String} hexadecimal A color in hexadecimal notation.
+ * @returns {Array} `undefined` if the input color is not in hexadecimal notation. Otherwise, the RGB components of the input color.
+ */
+function hexadecimalToRGBArray(hexadecimal) {
+    const components = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexadecimal);
+
+    if (components === null) { return undefined; }
+
+    return _.map(components.slice(1), component => parseInt(component, 16));
+}
+
+/**
  * Returns a background color with opacity style
  *
  * @param {String} backgroundColor
@@ -210,13 +224,10 @@ function getBackgroundColorStyle(backgroundColor) {
  * @returns {Object}
  */
 function getBackgroundColorWithOpacityStyle(backgroundColor, opacity) {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(backgroundColor);
-    if (result !== null) {
-        const r = parseInt(result[1], 16);
-        const g = parseInt(result[2], 16);
-        const b = parseInt(result[3], 16);
+    const result = hexadecimalToRGBArray(backgroundColor);
+    if (result !== undefined) {
         return {
-            backgroundColor: `rgba(${r}, ${g}, ${b}, ${opacity})`,
+            backgroundColor: `rgba(${result[0]}, ${result[1]}, ${result[2]}, ${opacity})`,
         };
     }
     return {};
@@ -297,13 +308,13 @@ function getAnimatedFABStyle(rotate, backgroundColor) {
 
 /**
  * @param {Number} width
- * @param {Number} height
+ * @param {Number | null} height
  * @returns {Object}
  */
-function getWidthAndHeightStyle(width, height) {
+function getWidthAndHeightStyle(width, height = null) {
     return {
         width,
-        height,
+        height: height != null ? height : width,
     };
 }
 
@@ -449,6 +460,76 @@ function getPaymentMethodMenuWidth(isSmallScreenWidth) {
 }
 
 /**
+ * Converts a color in RGBA notation to an equivalent color in RGB notation.
+ *
+ * @param {Array} foregroundRGB The three components of the foreground color in RGB notation.
+ * @param {Array} backgroundRGB The three components of the background color in RGB notation.
+ * @param {number} opacity The desired opacity of the foreground color.
+ * @returns {Array} The RGB components of the RGBA color converted to RGB.
+ */
+function convertRGBAToRGB(foregroundRGB, backgroundRGB, opacity) {
+    const [foregroundRed, foregroundGreen, foregroundBlue] = foregroundRGB;
+    const [backgroundRed, backgroundGreen, backgroundBlue] = backgroundRGB;
+
+    return [
+        ((1 - opacity) * backgroundRed) + (opacity * foregroundRed),
+        ((1 - opacity) * backgroundGreen) + (opacity * foregroundGreen),
+        ((1 - opacity) * backgroundBlue) + (opacity * foregroundBlue),
+    ];
+}
+
+/**
+ * Converts three unit values to the three components of a color in RGB notation.
+ *
+ * @param {number} red A unit value representing the first component of a color in RGB notation.
+ * @param {number} green A unit value representing the second component of a color in RGB notation.
+ * @param {number} blue A unit value representing the third component of a color in RGB notation.
+ * @returns {Array} An array with the three components of a color in RGB notation.
+ */
+function convertUnitValuesToRGB(red, green, blue) {
+    return [Math.floor(red * 255), Math.floor(green * 255), Math.floor(blue * 255)];
+}
+
+/**
+ * Converts the three components of a color in RGB notation to three unit values.
+ *
+ * @param {number} red The first component of a color in RGB notation.
+ * @param {number} green The second component of a color in RGB notation.
+ * @param {number} blue The third component of a color in RGB notation.
+ * @returns {Array} An array with three unit values representing the components of a color in RGB notation.
+ */
+function convertRGBToUnitValues(red, green, blue) {
+    return [red / 255, green / 255, blue / 255];
+}
+
+/**
+ * Determines the theme color for a modal based on the app's background color,
+ * the modal's backdrop, and the backdrop's opacity.
+ *
+ * @returns {String} The theme color as an RGB value.
+ */
+function getThemeBackgroundColor() {
+    const backdropOpacity = variables.modalFullscreenBackdropOpacity;
+
+    const [backgroundRed, backgroundGreen, backgroundBlue] = hexadecimalToRGBArray(themeColors.appBG);
+    const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(themeColors.modalBackdrop);
+    const normalizedBackdropRGB = convertRGBToUnitValues(backdropRed, backdropGreen, backdropBlue);
+    const normalizedBackgroundRGB = convertRGBToUnitValues(
+        backgroundRed,
+        backgroundGreen,
+        backgroundBlue,
+    );
+    const themeRGBNormalized = convertRGBAToRGB(
+        normalizedBackdropRGB,
+        normalizedBackgroundRGB,
+        backdropOpacity,
+    );
+    const themeRGB = convertUnitValuesToRGB(...themeRGBNormalized);
+
+    return `rgb(${themeRGB.join(', ')})`;
+}
+
+/**
  * Parse styleParam and return Styles array
  * @param {Object|Object[]} styleParam
  * @returns {Object[]}
@@ -539,6 +620,28 @@ function getKeyboardShortcutsModalWidth(isSmallScreenWidth) {
     return {maxWidth: 600};
 }
 
+/**
+ * @param {Boolean} isHovered
+ * @param {Boolean} isPressed
+ * @returns {Object}
+ */
+function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
+    let backgroundColor = themeColors.appBG;
+
+    if (isHovered) {
+        backgroundColor = themeColors.buttonHoveredBG;
+    }
+
+    if (isPressed) {
+        backgroundColor = themeColors.buttonPressedBG;
+    }
+
+    return {
+        backgroundColor,
+        borderColor: backgroundColor,
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -548,7 +651,7 @@ export {
     getNavigationDrawerType,
     getZoomCursorStyle,
     getZoomSizingStyle,
-    getAutoGrowTextInputStyle,
+    getWidthStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,
@@ -565,6 +668,7 @@ export {
     getMiniReportActionContextMenuWrapperStyle,
     getKeyboardShortcutsModalWidth,
     getPaymentMethodMenuWidth,
+    getThemeBackgroundColor,
     parseStyleAsArray,
     combineStyles,
     getPaddingLeft,
@@ -572,4 +676,5 @@ export {
     hasSafeAreas,
     getHeight,
     fade,
+    getHorizontalStackedAvatarBorderStyle,
 };

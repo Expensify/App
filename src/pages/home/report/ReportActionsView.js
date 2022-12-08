@@ -80,7 +80,7 @@ class ReportActionsView extends React.Component {
         this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
-        this.scrollToUnreadMsgAndMarkReportAsRead = this.scrollToUnreadMsgAndMarkReportAsRead.bind(this);
+        this.scrollToBottomAndMarkReportAsRead = this.scrollToBottomAndMarkReportAsRead.bind(this);
         this.openReportIfNecessary = this.openReportIfNecessary.bind(this);
     }
 
@@ -115,7 +115,7 @@ class ReportActionsView extends React.Component {
                 // If the user is scrolled up and no new line marker is set we will set it otherwise we will do nothing so the new marker
                 // stays in it's previous position.
                 if (this.currentScrollOffset === 0) {
-                    Report.readNewestAction(this.props.report.reportID);
+                    Report.readNewestAction(this.props.report.reportID, _.last(_.toArray(this.props.reportActions)).created);
                     this.setState({newMarkerSequenceNumber: 0});
                 } else if (this.state.newMarkerSequenceNumber === 0) {
                     this.setState({newMarkerSequenceNumber: currentLastSequenceNumber});
@@ -298,9 +298,9 @@ class ReportActionsView extends React.Component {
         Report.readOldestAction(this.props.report.reportID, oldestActionSequenceNumber);
     }
 
-    scrollToUnreadMsgAndMarkReportAsRead() {
-        ReportScrollManager.scrollToIndex({animated: true, index: this.props.report.maxSequenceNumber - this.state.newMarkerSequenceNumber}, false);
-        Report.readNewestAction(this.props.report.reportID);
+    scrollToBottomAndMarkReportAsRead() {
+        ReportScrollManager.scrollToBottom();
+        Report.readNewestAction(this.props.report.reportID, _.last(_.toArray(this.props.reportActions)).created);
     }
 
     /**
@@ -358,7 +358,7 @@ class ReportActionsView extends React.Component {
                     <>
                         <FloatingMessageCounter
                             isActive={this.state.isFloatingMessageCounterVisible && this.state.newMarkerSequenceNumber > 0}
-                            onClick={this.scrollToUnreadMsgAndMarkReportAsRead}
+                            onClick={this.scrollToBottomAndMarkReportAsRead}
                         />
                         <ReportActionsList
                             report={this.props.report}

@@ -65,6 +65,10 @@ Onyx.connect({
     callback: val => allReports = val,
 });
 
+function getChatType(report) {
+    return report ? report.chatType : '';
+}
+
 /**
  * Returns the concatenated title for the PrimaryLogins of a report
  *
@@ -96,16 +100,16 @@ function isReportMessageAttachment({text, html}) {
 }
 
 /**
- * Given a collection of reports returns them sorted by last visited
+ * Given a collection of reports returns them sorted by last read
  *
  * @param {Object} reports
  * @returns {Array}
  */
-function sortReportsByLastVisited(reports) {
+function sortReportsByLastRead(reports) {
     return _.chain(reports)
         .toArray()
         .filter(report => report && report.reportID && !isIOUReport(report))
-        .sortBy('lastVisitedTimestamp')
+        .sortBy('lastReadTimestamp')
         .value();
 }
 
@@ -150,7 +154,7 @@ function canDeleteReportAction(reportAction) {
  * @returns {Boolean}
  */
 function isAdminRoom(report) {
-    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
 }
 
 /**
@@ -160,7 +164,7 @@ function isAdminRoom(report) {
  * @returns {Boolean}
  */
 function isAnnounceRoom(report) {
-    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE;
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE;
 }
 
 /**
@@ -170,11 +174,11 @@ function isAnnounceRoom(report) {
  * @returns {Boolean}
  */
 function isDefaultRoom(report) {
-    return _.contains([
+    return [
         CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
         CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
         CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
-    ], lodashGet(report, ['chatType'], ''));
+    ].indexOf(getChatType(report)) > -1;
 }
 
 /**
@@ -184,7 +188,7 @@ function isDefaultRoom(report) {
  * @returns {Boolean}
  */
 function isDomainRoom(report) {
-    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL;
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL;
 }
 
 /**
@@ -194,7 +198,7 @@ function isDomainRoom(report) {
  * @returns {Boolean}
  */
 function isUserCreatedPolicyRoom(report) {
-    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
 }
 
 /**
@@ -204,7 +208,7 @@ function isUserCreatedPolicyRoom(report) {
  * @returns {Boolean}
  */
 function isPolicyExpenseChat(report) {
-    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT;
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT;
 }
 
 /**
@@ -240,13 +244,13 @@ function hasExpensifyGuidesEmails(emails) {
 /**
  * Given a collection of reports returns the most recently accessed one
  *
- * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
+ * @param {Record<String, {lastReadTimestamp, reportID}>|Array<{lastReadTimestamp, reportID}>} reports
  * @param {Boolean} [ignoreDefaultRooms]
  * @param {Object} policies
  * @returns {Object}
  */
 function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
-    let sortedReports = sortReportsByLastVisited(reports);
+    let sortedReports = sortReportsByLastRead(reports);
 
     if (ignoreDefaultRooms) {
         sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report)
@@ -301,7 +305,7 @@ function getChatRoomSubtitle(report, policiesMap) {
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
     }
-    if (report.chatType === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL) {
+    if (getChatType(report) === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL) {
         // The domainAll rooms are just #domainName, so we ignore the prefix '#' to get the domainName
         return report.reportName.substring(1);
     }
@@ -403,7 +407,9 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
  * @returns {String}
  */
 function formatReportLastMessageText(lastMessageText) {
-    return String(lastMessageText).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
+    return String(lastMessageText)
+        .replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '')
+        .substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
 }
 
 /**
@@ -466,12 +472,26 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
         ];
     }
 
-    // Return avatar sources for Group chats
-    const sortedParticipants = _.map(report.participants, dmParticipant => ({
-        firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
-        avatar: lodashGet(personalDetails, [dmParticipant, 'avatar']) || getDefaultAvatar(dmParticipant),
-    })).sort((first, second) => first.firstName - second.firstName);
-    return _.map(sortedParticipants, item => item.avatar);
+    const participantDetails = [];
+    for (let i = 0; i < report.participants.length; i++) {
+        const login = report.participants[i];
+        participantDetails.push([
+            login,
+            lodashGet(personalDetails, [login, 'firstName'], ''),
+            lodashGet(personalDetails, [login, 'avatar']) || getDefaultAvatar(login),
+        ]);
+    }
+
+    // Sort all logins by first name (which is the second element in the array)
+    const sortedParticipantDetails = participantDetails.sort((a, b) => a[1] - b[1]);
+
+    // Now that things are sorted, gather only the avatars (third element in the array) and return those
+    const avatars = [];
+    for (let i = 0; i < sortedParticipantDetails.length; i++) {
+        avatars.push(sortedParticipantDetails[i][2]);
+    }
+
+    return avatars;
 }
 
 /**
@@ -568,7 +588,13 @@ function getReportName(report, policies = {}) {
     const participants = (report && report.participants) || [];
     const participantsWithoutCurrentUser = _.without(participants, sessionEmail);
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
-    return _.map(participantsWithoutCurrentUser, login => getDisplayNameForParticipant(login, isMultipleParticipantReport)).join(', ');
+
+    const displayNames = [];
+    for (let i = 0; i < participantsWithoutCurrentUser.length; i++) {
+        const login = participantsWithoutCurrentUser[i];
+        displayNames.push(getDisplayNameForParticipant(login, isMultipleParticipantReport));
+    }
+    return displayNames.join(', ');
 }
 
 /**
@@ -869,7 +895,7 @@ function buildOptimisticChatReport(
         lastMessageText: null,
         lastReadSequenceNumber: 0,
         lastActionCreated: '',
-        lastVisitedTimestamp: 0,
+        lastReadTimestamp: 0,
         maxSequenceNumber: 0,
         notificationPreference,
         oldPolicyName,
@@ -1160,7 +1186,7 @@ export {
     findLastAccessedReport,
     canEditReportAction,
     canDeleteReportAction,
-    sortReportsByLastVisited,
+    sortReportsByLastRead,
     isDefaultRoom,
     isAdminRoom,
     isAnnounceRoom,

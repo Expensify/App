@@ -272,7 +272,7 @@ class WorkspaceMembersPage extends React.Component {
                         <View style={styles.flex1}>
                             <OptionRow
                                 onSelectRow={() => this.toggleUser(item.login, item.pendingAction)}
-                                forceTextUnreadStyle
+                                boldStyle
                                 isDisabled={!canBeRemoved}
                                 option={{
                                     text: Str.removeSMSDomain(item.displayName),
@@ -318,7 +318,10 @@ class WorkspaceMembersPage extends React.Component {
 
         return (
             <ScreenWrapper style={[styles.defaultModalContainer]}>
-                <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)}>
+                <FullPageNotFoundView
+                    shouldShow={_.isEmpty(this.props.policy)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                >
                     <HeaderWithCloseButton
                         title={this.props.translate('workspace.common.members')}
                         subtitle={policyName}

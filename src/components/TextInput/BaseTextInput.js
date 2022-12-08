@@ -186,11 +186,7 @@ class BaseTextInput extends Component {
         ]).start();
     }
 
-    togglePasswordVisibility(event) {
-        if (!event) {
-            return;
-        }
-        event.preventDefault();
+    togglePasswordVisibility() {
         this.setState(prevState => ({passwordHidden: !prevState.passwordHidden}));
     }
 
@@ -207,7 +203,7 @@ class BaseTextInput extends Component {
         const textInputContainerStyles = _.reduce([
             styles.textInputContainer,
             ...this.props.textInputContainerStyles,
-            this.props.autoGrow && StyleUtils.getAutoGrowTextInputStyle(this.state.textInputWidth),
+            this.props.autoGrow && StyleUtils.getWidthStyle(this.state.textInputWidth),
             !this.props.hideFocusedState && this.state.isFocused && styles.borderColorFocus,
             (this.props.hasError || this.props.errorText) && styles.borderColorDanger,
         ], (finalStyles, s) => ({...finalStyles, ...s}), {});
@@ -295,7 +291,8 @@ class BaseTextInput extends Component {
                                     {this.props.secureTextEntry && (
                                         <Checkbox
                                             style={styles.secureInputShowPasswordButton}
-                                            onMouseDown={this.togglePasswordVisibility}
+                                            onPress={this.togglePasswordVisibility}
+                                            onMouseDown={e => e.preventDefault()}
                                         >
                                             <Icon
                                                 src={this.state.passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
