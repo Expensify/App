@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
 import OptionRow from '../OptionRow';
@@ -204,13 +203,13 @@ class BaseOptionsList extends Component {
     render() {
         return (
             <View style={this.props.listContainerStyles}>
-                {this.props.headerMessage && (
+                {this.props.headerMessage ? (
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textLabel, styles.colorMuted]}>
                             {this.props.headerMessage}
                         </Text>
                     </View>
-                )}
+                ) : null}
                 <SectionList
                     ref={this.props.innerRef}
                     indicatorStyle="white"
