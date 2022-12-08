@@ -1,4 +1,5 @@
 import CONST from '../CONST';
+import * as NumberFormatUtils from './NumberFormatUtils';
 
 /**
  * Calculates the amount per user given a list of participants
@@ -83,13 +84,15 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = 
         return _.map(words, ((word, i) => (i === currencyCodeIndexInText ? formattedAmount : word))).join(' ');
     };
 
-    // Check ReportUtils.getIOUReportActionMessage for the actual message strings
-    // that are being referenced here.
+    // Check ReportUtils.getIOUReportActionMessage for the actual IOU message strings referenced here.
     switch (iouType) {
         case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
             return convertCurrencyCodeToSymbol(1);
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
-            return convertCurrencyCodeToSymbol(2);
+            if (iouMessage.startsWith('Settled up')) {
+                return iouMessage;
+            }
+            return convertCurrencyCodeToSymbol(1);
         case CONST.IOU.REPORT_ACTION_TYPE.CANCEL:
             return convertCurrencyCodeToSymbol(2);
         case CONST.IOU.REPORT_ACTION_TYPE.DECLINE:

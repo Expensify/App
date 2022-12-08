@@ -5,7 +5,7 @@ import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import CONST from '../CONST';
 import * as IOU from '../libs/actions/IOU';
-import * as ReportUtils from '../libs/ReportUtils';
+import * as IOUUtils from '../libs/IOUUtils';
 import * as ReportActions from '../libs/actions/ReportActions';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import ReportActionItemSingle from '../pages/home/report/ReportActionItemSingle';
