@@ -13,9 +13,16 @@ Onyx.connect({
 });
 
 let shouldFailAllRequests = false;
+let shouldForceOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
-    callback: val => shouldFailAllRequests = (val && _.isBoolean(val.shouldFailAllRequests)) ? val.shouldFailAllRequests : false,
+    callback: (network) => {
+        if (!network) {
+            return;
+        }
+        shouldFailAllRequests = Boolean(network.shouldFailAllRequests);
+        shouldForceOffline = Boolean(network.shouldForceOffline);
+    },
 });
 
 // We use the AbortController API to terminate pending request in `cancelPendingRequests`
@@ -40,7 +47,7 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
     })
         .then((response) => {
             // Test mode where all requests will succeed in the server, but fail to return a response
-            if (shouldFailAllRequests) {
+            if (shouldFailAllRequests || shouldForceOffline) {
                 throw new HttpsError({
                     message: CONST.ERROR.FAILED_TO_FETCH,
                 });
