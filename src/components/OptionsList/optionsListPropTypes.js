@@ -1,9 +1,7 @@
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import SectionList from '../SectionList';
 import styles from '../../styles/styles';
 import optionPropTypes from '../optionPropTypes';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** option flexStyle for the options list container */

@@ -65,6 +65,10 @@ Onyx.connect({
     callback: val => allReports = val,
 });
 
+function getChatType(report) {
+    return report ? report.chatType : '';
+}
+
 /**
  * Returns the concatenated title for the PrimaryLogins of a report
  *
@@ -150,7 +154,7 @@ function canDeleteReportAction(reportAction) {
  * @returns {Boolean}
  */
 function isAdminRoom(report) {
-    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
 }
 
 /**
@@ -160,7 +164,7 @@ function isAdminRoom(report) {
  * @returns {Boolean}
  */
 function isAnnounceRoom(report) {
-    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE;
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE;
 }
 
 /**
@@ -174,7 +178,7 @@ function isDefaultRoom(report) {
         CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
         CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
         CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
-    ].indexOf(report ? report.chatType : '') > -1;
+    ].indexOf(getChatType(report)) > -1;
 }
 
 /**
@@ -184,7 +188,7 @@ function isDefaultRoom(report) {
  * @returns {Boolean}
  */
 function isDomainRoom(report) {
-    return (report ? report.chatType : '') === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL;
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL;
 }
 
 /**
@@ -194,7 +198,7 @@ function isDomainRoom(report) {
  * @returns {Boolean}
  */
 function isUserCreatedPolicyRoom(report) {
-    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
 }
 
 /**
@@ -204,7 +208,7 @@ function isUserCreatedPolicyRoom(report) {
  * @returns {Boolean}
  */
 function isPolicyExpenseChat(report) {
-    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT;
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT;
 }
 
 /**
