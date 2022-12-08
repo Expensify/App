@@ -166,6 +166,7 @@ export default {
     },
     reportActionCompose: {
         addAction: 'Actions',
+        dropToUpload: 'Drop to upload',
         sendAttachment: 'Send attachment',
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
