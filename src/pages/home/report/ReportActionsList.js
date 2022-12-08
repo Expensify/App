@@ -47,6 +47,9 @@ const propTypes = {
     /** Function to load more chats */
     loadMoreChats: PropTypes.func.isRequired,
 
+    /** This ensures the chat report exists in ONYX and has been loaded */
+    hasAtLeastOneNonPendingAction: PropTypes.bool.isRequired,
+
     ...withDrawerPropTypes,
     ...windowDimensionsPropTypes,
 };
@@ -170,6 +173,11 @@ class ReportActionsList extends React.Component {
                     onLayout={this.props.onLayout}
                     onScroll={this.props.onScroll}
                     extraData={extraData}
+                    ListHeaderComponent={!this.props.hasAtLeastOneNonPendingAction ? (
+                        <ReportActionsSkeletonView
+                            containerHeight={300}
+                        />
+                    ) : null}
                 />
             </Animated.View>
         );

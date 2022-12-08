@@ -165,7 +165,8 @@ class ReportScreen extends React.Component {
         // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
         // is not stored locally yet. If props.report.reportID exists, then the report has been stored locally and nothing more needs to be done.
         // If it doesn't exist, then we fetch the report from the API.
-        if (this.props.report.reportID) {
+        // If the client is offline, we cannot fetch the report, so let's just return.
+        if (this.props.report.reportID || this.props.network.isOffline) {
             return;
         }
 
@@ -218,10 +219,7 @@ class ReportScreen extends React.Component {
         const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: this.state.viewportOffsetTop}];
 
         // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
-        const isLoadingInitialReportActions = (_.isEmpty(this.props.reportActions) && !this.props.network.isOffline) && this.props.report.isLoadingReportActions;
-
-        // Check if for the current chat report there are no report actions available while we are offline
-        const isChatReportEmptyWhileOffline = _.isEmpty(this.props.reportActions) && this.props.network.isOffline;
+        const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
 
         // When the ReportScreen is not open/in the viewport, we want to "freeze" it for performance reasons
         const freeze = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
@@ -299,7 +297,6 @@ class ReportScreen extends React.Component {
                                         isComposerFullSize={this.props.isComposerFullSize}
                                         isDrawerOpen={this.props.isDrawerOpen}
                                         parentViewHeight={this.state.skeletonViewContainerHeight}
-                                        isChatReportEmptyWhileOffline={isChatReportEmptyWhileOffline}
                                     />
                                     <ReportFooter
                                         errors={addWorkspaceRoomOrChatErrors}
