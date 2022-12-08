@@ -1,4 +1,4 @@
-import * as Localize from './Localize';
+import * as Localize from '../src/Localize';
 
 const {
     app,
@@ -146,21 +146,21 @@ const showKeyboardShortcutsModal = (browserWindow) => {
 // Defines the system-level menu item to manually apply an update
 // This menu item should become visible after an update is downloaded and ready to be applied
 const updateAppMenuItem = new MenuItem({
-    label: 'Update New Expensify',
+    label: Localize.translate('systemContextMenu.aboutExpensify'),
     visible: false,
     click: quitAndInstallWithUpdate,
 });
 
 // System-level menu item to manually check for App updates
 const checkForUpdateMenuItem = new MenuItem({
-    label: 'Check For Updates',
+    label: Localize.translate('systemContextMenu.checkForUpdates'),
     visible: true,
     click: manuallyCheckForUpdates,
 });
 
 // Defines the system-level menu item for opening keyboard shortcuts modal
 const keyboardShortcutsMenu = new MenuItem({
-    label: 'View Keyboard Shortcuts',
+    label: Localize.translate('initialSettingsPage.aboutPage.viewKeyboardShortcuts'),
     accelerator: 'CmdOrCtrl+I',
 });
 
