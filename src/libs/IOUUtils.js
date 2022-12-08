@@ -67,44 +67,7 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = 
     return iouReportUpdate;
 }
 
-/**
- * Given an IOU Message, converts the currency code to a currency symbol.
- * @param {String} iouMessage
- * @param {String} iouType
- * @param {String} locale
- * @returns {String}
- */
-function formatIOUMessageCurrencySymbol(iouMessage, iouType, locale) {
-    // currencyCodeIndexInText is the index in number of words we expect to see currencyCode in text
-    const convertCurrencyCodeToSymbol = (currencyCodeIndexInText) => {
-        const words = iouMessage.split(' ');
-        const amountWithCurrencyCode = words[currencyCodeIndexInText];
-        const currency = amountWithCurrencyCode.substring(0, 3);
-        const amount = Number(amountWithCurrencyCode.substring(3).replace(/,/g, ''));
-        const formattedAmount = NumberFormatUtils.format(locale, amount, {style: 'currency', currency});
-        return _.map(words, ((word, i) => (i === currencyCodeIndexInText ? formattedAmount : word))).join(' ');
-    };
-
-    // Check ReportUtils.getIOUReportActionMessage for the actual message strings
-    // that are being referenced here.
-    switch (iouType) {
-        case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
-            return convertCurrencyCodeToSymbol(1);
-        case CONST.IOU.REPORT_ACTION_TYPE.PAY:
-            return convertCurrencyCodeToSymbol(2);
-        case CONST.IOU.REPORT_ACTION_TYPE.CANCEL:
-            return convertCurrencyCodeToSymbol(2);
-        case CONST.IOU.REPORT_ACTION_TYPE.DECLINE:
-            return convertCurrencyCodeToSymbol(2);
-        case CONST.IOU.REPORT_ACTION_TYPE.SPLIT:
-            return convertCurrencyCodeToSymbol(2);
-        default:
-            return iouMessage;
-    }
-}
-
 export {
     calculateAmount,
     updateIOUOwnerAndTotal,
-    formatIOUMessageCurrencySymbol,
 };

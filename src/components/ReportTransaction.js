@@ -5,7 +5,7 @@ import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import CONST from '../CONST';
 import * as IOU from '../libs/actions/IOU';
-import * as IOUUtils from '../libs/IOUUtils';
+import * as ReportUtils from '../libs/ReportUtils';
 import * as ReportActions from '../libs/actions/ReportActions';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import ReportActionItemSingle from '../pages/home/report/ReportActionItemSingle';
@@ -75,11 +75,17 @@ class ReportTransaction extends Component {
                         wrapperStyles={[styles.reportTransactionWrapper]}
                     >
                         <Text style={[styles.chatItemMessage]}>
-                            {IOUUtils.formatIOUMessageCurrencySymbol(
-                                this.props.action.message[0].text,
+                            {ReportUtils.getIOUReportActionMessage(
                                 lodashGet(this.props.action, 'originalMessage.type'),
-                                this.props.preferredLocale,
-                            )}
+                                lodashGet(this.props.action, 'originalMessage.amount'),
+                                _.map(lodashGet(this.props.action, 'originalMessage.participants', []), (login) => ({login})),
+                                lodashGet(this.props.action, 'originalMessage.comment'),
+                                lodashGet(this.props.action, 'originalMessage.currency'),
+                                lodashGet(this.props.action, 'originalMessage.paymentType', ''),
+                                lodashGet(this.props.action, 'originalMessage.iouTransactionID', ''),
+                                lodashGet(this.props.action, 'originalMessage.iouReportID', ''),
+                                false,
+                            )[0].text}
                         </Text>
                     </ReportActionItemSingle>
                     {this.props.canBeRejected && (

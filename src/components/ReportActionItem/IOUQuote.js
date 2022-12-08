@@ -7,11 +7,11 @@ import lodashGet from 'lodash/get';
 import Text from '../Text';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
+import * as ReportUtils from '../../libs/ReportUtils';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import * as IOUUtils from '../../libs/IOUUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -32,22 +32,17 @@ const defaultProps = {
 };
 
 const IOUQuote = (props) => {
-    const renderIOUMessage = fragment => (
-        <Text>
-            <Text style={props.shouldAllowViewDetails && styles.chatItemMessageLink}>
-                {/* Get first word of IOU message */}
-                {Str.htmlDecode(fragment.text.split(' ')[0])}
-            </Text>
-            <Text style={[styles.chatItemMessage, styles.cursorPointer]}>
-                {/* Get remainder of IOU message */}
-                {IOUUtils.formatIOUMessageCurrencySymbol(
-                    Str.htmlDecode(fragment.text.substring(fragment.text.indexOf(' '))),
-                    lodashGet(props.action, 'originalMessage.type'),
-                    props.preferredLocale,
-                )}
-            </Text>
-        </Text>
-    );
+    const iouMessageText = ReportUtils.getIOUReportActionMessage(
+        lodashGet(props.action, 'originalMessage.type'),
+        lodashGet(props.action, 'originalMessage.amount'),
+        _.map(lodashGet(props.action, 'originalMessage.participants', []), (login) => ({login})),
+        lodashGet(props.action, 'originalMessage.comment'),
+        lodashGet(props.action, 'originalMessage.currency'),
+        lodashGet(props.action, 'originalMessage.paymentType', ''),
+        lodashGet(props.action, 'originalMessage.iouTransactionID', ''),
+        lodashGet(props.action, 'originalMessage.iouReportID', ''),
+        false,
+    )[0].text;
 
     return (
         <View style={[styles.chatItemMessage]}>
@@ -65,7 +60,16 @@ const IOUQuote = (props) => {
                     ]}
                     focusable={props.shouldAllowViewDetails}
                 >
-                    {renderIOUMessage(fragment)}
+                    <Text>
+                        <Text style={props.shouldAllowViewDetails && styles.chatItemMessageLink}>
+                            {/* Get first word of IOU message */}
+                            {Str.htmlDecode(iouMessageText.split(' ')[0])}
+                        </Text>
+                        <Text style={[styles.chatItemMessage, styles.cursorPointer]}>
+                            {/* /!* Get remainder of IOU message *!/ */}
+                            {Str.htmlDecode(iouMessageText.substring(iouMessageText.indexOf(' ')))}
+                        </Text>
+                    </Text>
                     <Icon src={Expensicons.ArrowRight} fill={props.shouldAllowViewDetails ? themeColors.icon : themeColors.transparent} />
                 </Pressable>
             ))}
