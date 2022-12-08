@@ -84,6 +84,9 @@ function formatIOUMessageCurrencySymbol(iouMessage, iouType, locale) {
         const formattedAmount = NumberFormatUtils.format(locale, amount, {style: 'currency', currency});
         return _.map(words, ((word, i) => (i === currencyCodeIndexInText ? formattedAmount : word))).join(' ');
     };
+
+    // Check ReportUtils.getIOUReportActionMessage for the actual message strings
+    // that are being referenced here.
     switch (iouType) {
         case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
             return convertCurrencyCodeToSymbol(1);
