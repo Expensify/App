@@ -16,6 +16,8 @@ const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
 const checkForUpdates = require('../src/libs/checkForUpdates');
 const CONFIG = require('../src/CONFIG').default;
 const Localize = require('../src/libs/Localize');
+const ONYXKEYS = require('../src/ONYXKEYS').default;
+const Onyx = require('react-native-onyx').default;
 
 const port = process.env.PORT || 8080;
 
@@ -82,6 +84,34 @@ const quitAndInstallWithUpdate = () => {
     autoUpdater.quitAndInstall();
 };
 
+let preferredLocale = 'en';
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+
+        preferredLocale = val;
+        checkForUpdateMenuItem = new MenuItem({
+            label: Localize.translate(val, 'systemContextMenu.checkForUpdates'),
+            visible: true,
+            click: manuallyCheckForUpdates,
+        });
+        updateAppMenuItem = new MenuItem({
+            label: Localize.translateLocal(val, 'systemContextMenu.aboutExpensify'),
+            visible: false,
+            click: quitAndInstallWithUpdate,
+        });
+        keyboardShortcutsMenu = new MenuItem({
+            label: Localize.translateLocal(val, 'initialSettingsPage.aboutPage.viewKeyboardShortcuts'),
+            accelerator: 'CmdOrCtrl+I',
+        });
+
+        generateContextMenu();
+    },
+});
+
 /**
  * Menu Item callback to triggers an update check
  * @param {MenuItem} menuItem
@@ -108,7 +138,7 @@ const manuallyCheckForUpdates = (menuItem, browserWindow) => {
             } else if (result && result.error) {
                 dialog.showMessageBox(browserWindow, {
                     type: 'error',
-                    message: Localize.translateLocal('checkForUpdatesModal.error.title'),
+                    message: Localize.translate(preferredLocale, 'checkForUpdatesModal.error.title'),
                     detail: Localize.translateLocal('checkForUpdatesModal.error.message'),
                     buttons: [Localize.translateLocal('checkForUpdatesModal.notAvailable.okay')],
                 });
@@ -144,21 +174,21 @@ const showKeyboardShortcutsModal = (browserWindow) => {
 
 // Defines the system-level menu item to manually apply an update
 // This menu item should become visible after an update is downloaded and ready to be applied
-const updateAppMenuItem = new MenuItem({
+let updateAppMenuItem = new MenuItem({
     label: Localize.translateLocal('systemContextMenu.aboutExpensify'),
     visible: false,
     click: quitAndInstallWithUpdate,
 });
 
 // System-level menu item to manually check for App updates
-const checkForUpdateMenuItem = new MenuItem({
+let checkForUpdateMenuItem = new MenuItem({
     label: Localize.translateLocal('systemContextMenu.checkForUpdates'),
     visible: true,
     click: manuallyCheckForUpdates,
 });
 
 // Defines the system-level menu item for opening keyboard shortcuts modal
-const keyboardShortcutsMenu = new MenuItem({
+let keyboardShortcutsMenu = new MenuItem({
     label: Localize.translateLocal('initialSettingsPage.aboutPage.viewKeyboardShortcuts'),
     accelerator: 'CmdOrCtrl+I',
 });
@@ -183,6 +213,55 @@ const electronUpdater = browserWindow => ({
     update: () => {
         autoUpdater.checkForUpdates();
     },
+});
+
+const generateContextMenu = (() => {
+    // List the Expensify Chat instance under the Window menu, even when it's hidden
+    const systemMenu = Menu.getApplicationMenu();
+    systemMenu.insert(4, new MenuItem({
+        label: 'History',
+        submenu: [{
+            role: 'back',
+            label: 'Back',
+            accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
+            click: () => { browserWindow.webContents.goBack(); },
+        },
+            {
+                role: 'forward',
+                label: 'Forward',
+                accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
+                click: () => { browserWindow.webContents.goForward(); },
+            }],
+    }));
+
+    // Register the custom Paste and Match Style command and place it near the default shortcut of the same role.
+    const editMenu = _.find(systemMenu.items, item => item.role === 'editmenu');
+    editMenu.submenu.insert(6, new MenuItem({
+        role: 'pasteAndMatchStyle',
+        accelerator: 'CmdOrCtrl+Shift+V',
+    }));
+
+    const appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');
+    appMenu.submenu.insert(1, updateAppMenuItem);
+    appMenu.submenu.insert(2, checkForUpdateMenuItem);
+    appMenu.submenu.insert(3, keyboardShortcutsMenu);
+
+    // On mac, pressing cmd++ actually sends a cmd+=. cmd++ is generally the zoom in shortcut, but this is
+    // not properly listened for by electron. Adding in an invisible cmd+= listener fixes this.
+    const viewWindow = _.find(systemMenu.items, item => item.role === 'viewmenu');
+    viewWindow.submenu.append(new MenuItem({
+        role: 'zoomin',
+        accelerator: 'CommandOrControl+=',
+        visible: false,
+    }));
+    const windowMenu = _.find(systemMenu.items, item => item.role === 'windowmenu');
+    windowMenu.submenu.append(new MenuItem({type: 'separator'}));
+    windowMenu.submenu.append(new MenuItem({
+        label: 'New Expensify',
+        accelerator: 'CmdOrCtrl+1',
+        click: () => browserWindow.show(),
+    }));
+    Menu.setApplicationMenu(systemMenu);
 });
 
 const mainWindow = (() => {
@@ -261,52 +340,7 @@ const mainWindow = (() => {
                 showKeyboardShortcutsModal(browserWindow);
             };
 
-            // List the Expensify Chat instance under the Window menu, even when it's hidden
-            const systemMenu = Menu.getApplicationMenu();
-            systemMenu.insert(4, new MenuItem({
-                label: 'History',
-                submenu: [{
-                    role: 'back',
-                    label: 'Back',
-                    accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
-                    click: () => { browserWindow.webContents.goBack(); },
-                },
-                {
-                    role: 'forward',
-                    label: 'Forward',
-                    accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
-                    click: () => { browserWindow.webContents.goForward(); },
-                }],
-            }));
-
-            // Register the custom Paste and Match Style command and place it near the default shortcut of the same role.
-            const editMenu = _.find(systemMenu.items, item => item.role === 'editmenu');
-            editMenu.submenu.insert(6, new MenuItem({
-                role: 'pasteAndMatchStyle',
-                accelerator: 'CmdOrCtrl+Shift+V',
-            }));
-
-            const appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');
-            appMenu.submenu.insert(1, updateAppMenuItem);
-            appMenu.submenu.insert(2, checkForUpdateMenuItem);
-            appMenu.submenu.insert(3, keyboardShortcutsMenu);
-
-            // On mac, pressing cmd++ actually sends a cmd+=. cmd++ is generally the zoom in shortcut, but this is
-            // not properly listened for by electron. Adding in an invisible cmd+= listener fixes this.
-            const viewWindow = _.find(systemMenu.items, item => item.role === 'viewmenu');
-            viewWindow.submenu.append(new MenuItem({
-                role: 'zoomin',
-                accelerator: 'CommandOrControl+=',
-                visible: false,
-            }));
-            const windowMenu = _.find(systemMenu.items, item => item.role === 'windowmenu');
-            windowMenu.submenu.append(new MenuItem({type: 'separator'}));
-            windowMenu.submenu.append(new MenuItem({
-                label: 'New Expensify',
-                accelerator: 'CmdOrCtrl+1',
-                click: () => browserWindow.show(),
-            }));
-            Menu.setApplicationMenu(systemMenu);
+            generateContextMenu();
 
             // When the user clicks a link that has target="_blank" (which is all external links)
             // open the default browser instead of a new electron window
