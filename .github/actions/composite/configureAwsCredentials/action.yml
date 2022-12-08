@@ -8,6 +8,10 @@ inputs:
   AWS_SECRET_ACCESS_KEY:
     description: 'Secret Access Key to AWS'
     required: true
+  AWS_REGION:
+    description: 'Region for AWS'
+    required: true
+    default: 'us-east-1'
 
 runs:
   using: composite
@@ -18,4 +22,4 @@ runs:
       with:
         aws-access-key-id: ${{ inputs.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ inputs.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+        aws-region: ${{ inputs.AWS_REGION }}

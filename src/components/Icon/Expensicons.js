@@ -95,6 +95,7 @@ import Workspace from '../../../assets/images/workspace-default-avatar.svg';
 import Zoom from '../../../assets/images/zoom.svg';
 import FallbackAvatar from '../../../assets/images/avatars/fallback-avatar.svg';
 import FallbackWorkspaceAvatar from '../../../assets/images/avatars/fallback-workspace-avatar.svg';
+import DragAndDrop from '../../../assets/images/drag-and-drop.svg';
 
 export {
     ActiveRoomAvatar,
@@ -130,6 +131,7 @@ export {
     DotIndicator,
     DownArrow,
     Download,
+    DragAndDrop,
     Emoji,
     Exclamation,
     Exit,
