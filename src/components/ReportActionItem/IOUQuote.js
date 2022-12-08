@@ -50,7 +50,6 @@ const IOUQuote = (props) => {
         </Text>
     );
 
-
     return (
         <View style={[styles.chatItemMessage]}>
             {_.map(props.action.message, (fragment, index) => (
