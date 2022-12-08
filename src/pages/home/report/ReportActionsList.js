@@ -176,6 +176,7 @@ class ReportActionsList extends React.Component {
                     ListHeaderComponent={!this.props.hasAtLeastOneNonPendingAction ? (
                         <ReportActionsSkeletonView
                             containerHeight={300}
+                            animate={false}
                         />
                     ) : null}
                 />

@@ -266,7 +266,7 @@ class ReportActionsView extends React.Component {
 
     // If the report is optimistic (AKA not yet created) we don't need to call openReport again
     openReportIfNecessary() {
-        if (this.props.report.isOptimisticReport) {
+        if (this.props.report.isOptimisticReport || this.props.network.isOffline) {
             return;
         }
 
