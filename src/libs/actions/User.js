@@ -109,7 +109,7 @@ function getUserDetails() {
             Onyx.merge(ONYXKEYS.USER, {isSubscribedToNewsletter: !!isSubscribedToNewsletter, validated: !!validatedStatus});
 
             // Update login list
-            const loginList = LoginUtils.cleanLoginListServerResponse(response.loginList);
+            const loginList = LoginUtils.getExpensifyPartnerLoginList(response.loginList);
             Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
 
             // Update the nvp_payPalMeAddress NVP
@@ -179,7 +179,7 @@ function setSecondaryLoginAndNavigate(login, password) {
         password,
     }).then((response) => {
         if (response.jsonCode === 200) {
-            const loginList = LoginUtils.cleanLoginListServerResponse(response.loginList);
+            const loginList = response.loginList;
             Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
             Navigation.navigate(ROUTES.SETTINGS_PROFILE);
             return;
