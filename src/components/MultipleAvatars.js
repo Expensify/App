@@ -29,6 +29,12 @@ const propTypes = {
 
     /** Prop to identify if we should load avatars vertically instead of diagonally */
     shouldStackHorizontally: PropTypes.bool,
+
+    /** Whether the avatars are hovered */
+    isHovered: PropTypes.bool,
+
+    /** Whether the avatars are in an element being pressed */
+    isPressed: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -38,6 +44,8 @@ const defaultProps = {
     avatarTooltips: [],
     fallbackIcon: undefined,
     shouldStackHorizontally: false,
+    isHovered: false,
+    isPressed: false,
 };
 
 const MultipleAvatars = (props) => {
@@ -75,7 +83,7 @@ const MultipleAvatars = (props) => {
                         _.map([...props.icons].splice(0, 4).reverse(), (icon, index) => (
                             <View
                                 key={`stackedAvatars-${index}`}
-                                style={[styles.horizontalStackedAvatar, styles.alignItemsCenter, horizontalStyles[index]]}
+                                style={[styles.horizontalStackedAvatar, StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed), horizontalStyles[index]]}
                             >
                                 <Avatar
                                     source={icon || props.fallbackIcon}
@@ -86,7 +94,14 @@ const MultipleAvatars = (props) => {
                         ))
                     }
                     {props.icons.length > 4 && (
-                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.horizontalStackedAvatar4Overlay]}>
+                        <View
+                            style={[
+                                styles.alignItemsCenter,
+                                styles.justifyContentCenter,
+                                StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed),
+                                styles.horizontalStackedAvatar4Overlay,
+                            ]}
+                        >
                             <Text style={styles.avatarInnerTextSmall}>
                                 {`+${props.icons.length - 4}`}
                             </Text>

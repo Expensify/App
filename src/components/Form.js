@@ -110,6 +110,11 @@ class Form extends React.Component {
     }
 
     setPosition(element, position) {
+        // Some elements might not have props defined, e.g. Text
+        if (!element.props) {
+            return;
+        }
+
         if (!element.props.inputID && element.props.children) {
             _.forEach(element.props.children, (child) => {
                 this.setPosition(child, position);
@@ -265,6 +270,7 @@ class Form extends React.Component {
                     <View style={[this.props.style]}>
                         {_.map(this.childrenWrapperWithProps(this.props.children), child => (
                             <View
+                                key={child.key}
                                 onLayout={(event) => {
                                     this.setPosition(child, event.nativeEvent.layout.y);
                                 }}
