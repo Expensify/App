@@ -12,6 +12,7 @@ import themeColors from '../../styles/themes/default';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import CONST from '../../CONST';
+import * as IOUUtils from '../../libs/IOUUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -32,36 +33,6 @@ const defaultProps = {
 };
 
 const IOUQuote = (props) => {
-    const formatCurrencySymbol = (text) => {
-        // currencyCodeIndexInText is the index in number of words we expect to see currencyCode in text
-        const convertCurrencyCodeToSymbol = (currencyCodeIndexInText) => {
-            const words = text.split(' ');
-            const amountWithCode = words[currencyCodeIndexInText];
-            const currency = amountWithCode.substring(0, 3);
-            const amount = Number(amountWithCode.replace(/,/g, '').substring(3));
-            const formattedAmount = props.numberFormat(
-                amount,
-                {style: 'currency', currency},
-            );
-            return _.map(words, ((word, i) => (i === currencyCodeIndexInText ? formattedAmount : word))).join(' ');
-        };
-
-        switch (lodashGet(props.action, 'originalMessage.type')) {
-            case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
-                return convertCurrencyCodeToSymbol(1);
-            case CONST.IOU.REPORT_ACTION_TYPE.PAY:
-                return convertCurrencyCodeToSymbol(2);
-            case CONST.IOU.REPORT_ACTION_TYPE.CANCEL:
-                return convertCurrencyCodeToSymbol(2);
-            case CONST.IOU.REPORT_ACTION_TYPE.DECLINE:
-                return convertCurrencyCodeToSymbol(2);
-            case CONST.IOU.REPORT_ACTION_TYPE.SPLIT:
-                return convertCurrencyCodeToSymbol(2);
-            default:
-                return text;
-        }
-    };
-
     const renderIOUMessage = fragment => (
         <Text>
             <Text style={props.shouldAllowViewDetails && styles.chatItemMessageLink}>
@@ -70,7 +41,11 @@ const IOUQuote = (props) => {
             </Text>
             <Text style={[styles.chatItemMessage, styles.cursorPointer]}>
                 {/* Get remainder of IOU message */}
-                {formatCurrencySymbol(Str.htmlDecode(fragment.text.substring(fragment.text.indexOf(' '))))}
+                {IOUUtils.formatIOUMessageCurrencySymbol(
+                    Str.htmlDecode(fragment.text.substring(fragment.text.indexOf(' '))),
+                    lodashGet(props.action, 'originalMessage.type'),
+                    props.preferredLocale,
+                )}
             </Text>
         </Text>
     );

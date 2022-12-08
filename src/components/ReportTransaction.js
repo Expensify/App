@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import styles from '../styles/styles';
 import CONST from '../CONST';
 import * as IOU from '../libs/actions/IOU';
+import * as IOUUtils from '../libs/IOUUtils';
 import * as ReportActions from '../libs/actions/ReportActions';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import ReportActionItemSingle from '../pages/home/report/ReportActionItemSingle';
@@ -11,6 +12,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import Text from './Text';
 import Button from './Button';
+import lodashGet from 'lodash/get';
 
 const propTypes = {
     /** The chatReport which the transaction is associated with */
@@ -73,7 +75,11 @@ class ReportTransaction extends Component {
                         wrapperStyles={[styles.reportTransactionWrapper]}
                     >
                         <Text style={[styles.chatItemMessage]}>
-                            {this.props.action.message[0].text}
+                            {IOUUtils.formatIOUMessageCurrencySymbol(
+                                this.props.action.message[0].text,
+                                lodashGet(this.props.action, 'originalMessage.type'),
+                                this.props.preferredLocale,
+                            )}
                         </Text>
                     </ReportActionItemSingle>
                     {this.props.canBeRejected && (
