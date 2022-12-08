@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {Freeze} from 'react-freeze';
+import {PortalHost} from '@gorhom/portal';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
@@ -235,7 +236,13 @@ class ReportScreen extends React.Component {
                     placeholder={(
                         <>
                             <ReportHeaderSkeletonView animate={animatePlaceholder} />
-                            <ReportActionsSkeletonView animate={animatePlaceholder} containerHeight={this.state.skeletonViewContainerHeight} />
+                            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
+                                <ReportActionsSkeletonView animate={animatePlaceholder} containerHeight={this.state.skeletonViewContainerHeight} />
+                                <ReportFooter
+                                    shouldDisableCompose
+                                    isOffline={this.props.network.isOffline}
+                                />
+                            </View>
                         </>
                     )}
                 >
@@ -311,10 +318,17 @@ class ReportScreen extends React.Component {
                             {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
                             we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
                             {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions) && (
-                                <ReportActionsSkeletonView
-                                    containerHeight={this.state.skeletonViewContainerHeight}
-                                />
+                                <>
+                                    <ReportActionsSkeletonView
+                                        containerHeight={this.state.skeletonViewContainerHeight}
+                                    />
+                                    <ReportFooter
+                                        shouldDisableCompose
+                                        isOffline={this.props.network.isOffline}
+                                    />
+                                </>
                             )}
+                            <PortalHost name={CONST.REPORT.DROP_HOST_NAME} />
                         </View>
                     </FullPageNotFoundView>
                 </Freeze>

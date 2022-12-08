@@ -3,6 +3,8 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as MainQueue from '../Network/MainQueue';
 import DateUtils from '../DateUtils';
 import * as Localize from '../Localize';
+import * as PersistedRequests from './PersistedRequests';
+import NetworkConnection from '../NetworkConnection';
 
 let currentActiveClients;
 Onyx.connect({
@@ -76,6 +78,8 @@ function clearStorageAndRedirect(errorMessage) {
  */
 function redirectToSignIn(errorMessage) {
     MainQueue.clear();
+    PersistedRequests.clear();
+    NetworkConnection.clearReconnectionCallbacks();
     clearStorageAndRedirect(errorMessage);
 }
 
