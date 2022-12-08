@@ -1,6 +1,4 @@
-import _ from 'underscore';
 import CONST from '../CONST';
-import * as NumberFormatUtils from './NumberFormatUtils';
 
 /**
  * Calculates the amount per user given a list of participants
