@@ -897,7 +897,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 lastMessageText: optimisticIOUReportAction.message[0].text,
                 lastMessageHtml: optimisticIOUReportAction.message[0].html,
                 hasOutstandingIOU: false,
-                iouReportID: iouReport.reportID,
+                iouReportID: null,
             },
         },
         {
@@ -939,8 +939,6 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 [optimisticIOUReportAction.sequenceNumber]: {
-                    hasOutstandingIOU: true,
-                    stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
                     pendingAction: null,
                     errors: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),
