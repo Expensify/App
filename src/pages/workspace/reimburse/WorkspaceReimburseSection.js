@@ -58,7 +58,7 @@ class WorkspaceReimburseSection extends React.Component {
             return (
                 <Section
                     title={this.props.translate('workspace.reimburse.reimburseReceipts')}
-                    icon={Expensicons.OfflineCloud}
+                    icon={Illustrations.MoneyWings}
                 >
                     <View style={[styles.mv3]}>
                         <Text>{`${this.props.translate('common.youAppearToBeOffline')} ${this.props.translate('common.thisFeatureRequiresInternet')}`}</Text>
