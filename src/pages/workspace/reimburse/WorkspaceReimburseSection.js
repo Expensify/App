@@ -15,6 +15,7 @@ import BankAccount from '../../../libs/models/BankAccount';
 import reimbursementAccountPropTypes from '../../ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccount from '../../../libs/actions/ReimbursementAccount';
 import networkPropTypes from '../../../components/networkPropTypes';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** Policy values needed in the component */
@@ -39,7 +40,7 @@ class WorkspaceReimburseSection extends React.Component {
             shouldShowLoadingSpinner: false,
         };
 
-        this.debounceSetShouldShowLoadingSpinner = _.debounce(this.setShouldShowLoadingSpinner.bind(this), 250);
+        this.debounceSetShouldShowLoadingSpinner = _.debounce(this.setShouldShowLoadingSpinner.bind(this), CONST.TIMING.SHOW_LOADING_SPINNER_DEBOUNCE_TIME);
     }
 
     componentDidUpdate() {
