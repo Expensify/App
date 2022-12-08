@@ -1734,8 +1734,6 @@ const styles = {
         width: 28,
         borderWidth: 2,
         borderStyle: 'solid',
-        backgroundColor: themeColors.overlay,
-        opacity: variables.overlayOpacity,
         borderRadius: 24,
         zIndex: 6,
     },
