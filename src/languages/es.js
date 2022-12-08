@@ -351,7 +351,7 @@ export default {
         aboutPage: {
             description: 'La nueva Expensify está creada por una comunidad de desarrolladores de código abierto de todo el mundo. Ayúdanos a construir el futuro de Expensify.',
             appDownloadLinks: 'Enlaces para descargar la App',
-            viewKeyboardShortcuts: 'Ver atajos de teclado',
+            viewKeyboardShortcuts: 'Ver Atajos de Teclado',
             viewTheCode: 'Ver codigo',
             viewOpenJobs: 'Ver trabajos disponibles',
             reportABug: 'Reporta un error',
@@ -1076,7 +1076,6 @@ export default {
     systemContextMenu: {
         aboutExpensify: 'Sobre New Expensify',
         checkForUpdates: 'Buscar Actualizaciones',
-        keyboardShortcuts: 'Ver Atajos de Teclado',
     },
     checkForUpdatesModal: {
         available: {
@@ -1092,6 +1091,6 @@ export default {
         error: {
             title: 'Comprobación fallida',
             message: 'No hemos podido comprobar si existe una actualización. Inténtalo de nuevo más tarde!',
-        }
-    }
+        },
+    },
 };

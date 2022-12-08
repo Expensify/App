@@ -1074,7 +1074,6 @@ export default {
     systemContextMenu: {
         aboutExpensify: 'About New Expensify',
         checkForUpdates: 'Check For Updates',
-        keyboardShortcuts: 'View Keyboard Shortcuts',
     },
     checkForUpdatesModal: {
         available: {
@@ -1091,5 +1090,5 @@ export default {
             title: 'Update Check Failed',
             message: 'We couldn\'t look for an update. Please check again in a bit!',
         },
-    }
+    },
 };

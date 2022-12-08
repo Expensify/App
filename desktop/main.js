@@ -1,3 +1,5 @@
+import * as Localize from './Localize';
+
 const {
     app,
     dialog,
@@ -100,23 +102,23 @@ const manuallyCheckForUpdates = (menuItem, browserWindow) => {
             if (downloadPromise) {
                 dialog.showMessageBox(browserWindow, {
                     type: 'info',
-                    message: 'Update Available',
-                    detail: 'The new version will be available shortly. We’ll notify you when we’re ready to update.',
-                    buttons: ['Sounds good'],
+                    message: Localize.translate('checkForUpdatesModal.available.title'),
+                    detail: Localize.translate('checkForUpdatesModal.available.message'),
+                    buttons: [Localize.translate('checkForUpdatesModal.available.soundsGood')],
                 });
             } else if (result && result.error) {
                 dialog.showMessageBox(browserWindow, {
                     type: 'error',
-                    message: 'Update Check Failed',
-                    detail: 'We couldn’t look for an update. Please check again in a bit!',
-                    buttons: ['Okay'],
+                    message: Localize.translate('checkForUpdatesModal.error.title'),
+                    detail: Localize.translate('checkForUpdatesModal.error.message'),
+                    buttons: [Localize.translate('checkForUpdatesModal.notAvailable.okay')],
                 });
             } else {
                 dialog.showMessageBox(browserWindow, {
                     type: 'info',
-                    message: 'Update Not Available',
-                    detail: 'There is no update available as of now! Check again at a later time.',
-                    buttons: ['Okay'],
+                    message: Localize.translate('checkForUpdatesModal.notAvailable.title'),
+                    detail: Localize.translate('checkForUpdatesModal.notAvailable.message'),
+                    buttons: [Localize.translate('checkForUpdatesModal.notAvailable.okay')],
                     cancelId: 2,
                 });
             }
