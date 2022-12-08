@@ -84,7 +84,7 @@ class ReportTransaction extends Component {
                                 lodashGet(this.props.action, 'originalMessage.paymentType', ''),
                                 lodashGet(this.props.action, 'originalMessage.iouTransactionID', ''),
                                 lodashGet(this.props.action, 'originalMessage.iouReportID', ''),
-                                lodashGet(props.action, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                                lodashGet(this.props.action, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.PAY,
                                 false,
                             )[0].text}
                         </Text>
