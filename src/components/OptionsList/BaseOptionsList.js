@@ -226,7 +226,7 @@ class BaseOptionsList extends Component {
                     getItemLayout={this.getItemLayout}
                     renderSectionHeader={this.renderSectionHeader}
                     extraData={this.props.focusedIndex}
-                    initialNumToRender={5}
+                    initialNumToRender={12}
                     maxToRenderPerBatch={5}
                     windowSize={5}
                     viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
