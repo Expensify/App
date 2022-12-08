@@ -261,10 +261,10 @@ class BaseOptionsSelector extends Component {
                 canSelectMultipleOptions={this.props.canSelectMultipleOptions}
                 hideSectionHeaders={this.props.hideSectionHeaders}
                 headerMessage={this.props.headerMessage}
-                hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
-                forceTextUnreadStyle={this.props.forceTextUnreadStyle}
+                boldStyle={this.props.boldStyle}
                 showTitleTooltip={this.props.showTitleTooltip}
                 isDisabled={this.props.isDisabled}
+                shouldHaveOptionSeparator={this.props.shouldHaveOptionSeparator}
             />
         ) : <FullScreenLoadingIndicator />;
         return (

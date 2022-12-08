@@ -78,13 +78,13 @@ class ReportActionsView extends React.Component {
         };
 
         this.currentScrollOffset = 0;
-        this.sortedReportActions = ReportActionsUtils.getSortedReportActions(props.reportActions);
+        this.sortedReportActions = this.getSortedReportActionsForDisplay(props.reportActions);
         this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(props.reportActions);
         this.trackScroll = this.trackScroll.bind(this);
         this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
-        this.scrollToUnreadMsgAndMarkReportAsRead = this.scrollToUnreadMsgAndMarkReportAsRead.bind(this);
+        this.scrollToBottomAndMarkReportAsRead = this.scrollToBottomAndMarkReportAsRead.bind(this);
         this.openReportIfNecessary = this.openReportIfNecessary.bind(this);
     }
 
@@ -134,7 +134,7 @@ class ReportActionsView extends React.Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
-            this.sortedReportActions = ReportActionsUtils.getSortedReportActions(nextProps.reportActions);
+            this.sortedReportActions = this.getSortedReportActionsForDisplay(nextProps.reportActions);
             this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(nextProps.reportActions);
             return true;
         }
@@ -252,6 +252,15 @@ class ReportActionsView extends React.Component {
     }
 
     /**
+     * @param {Object} reportActions
+     * @returns {Array}
+     */
+    getSortedReportActionsForDisplay(reportActions) {
+        const sortedReportActions = ReportActionsUtils.getSortedReportActions(_.values(reportActions), true);
+        return ReportActionsUtils.filterReportActionsForDisplay(sortedReportActions);
+    }
+
+    /**
      * @returns {Boolean}
      */
     getIsReportFullyVisible() {
@@ -293,8 +302,8 @@ class ReportActionsView extends React.Component {
         Report.readOldestAction(this.props.report.reportID, oldestActionSequenceNumber);
     }
 
-    scrollToUnreadMsgAndMarkReportAsRead() {
-        ReportScrollManager.scrollToIndex({animated: true, index: this.props.report.maxSequenceNumber - this.state.newMarkerSequenceNumber}, false);
+    scrollToBottomAndMarkReportAsRead() {
+        ReportScrollManager.scrollToBottom();
         Report.readNewestAction(this.props.report.reportID);
     }
 
@@ -358,7 +367,7 @@ class ReportActionsView extends React.Component {
                     <>
                         <FloatingMessageCounter
                             isActive={this.state.isFloatingMessageCounterVisible && this.state.newMarkerSequenceNumber > 0}
-                            onClick={this.scrollToUnreadMsgAndMarkReportAsRead}
+                            onClick={this.scrollToBottomAndMarkReportAsRead}
                         />
                         <ReportActionsList
                             report={this.props.report}

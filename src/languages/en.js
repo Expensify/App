@@ -166,6 +166,7 @@ export default {
     },
     reportActionCompose: {
         addAction: 'Actions',
+        dropToUpload: 'Drop to upload',
         sendAttachment: 'Send attachment',
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
@@ -332,6 +333,11 @@ export default {
         isShownOnProfile: 'Your display name is shown on your profile.',
         john: 'John',
         doe: 'Doe',
+    },
+    timezonePage: {
+        timezone: 'Timezone',
+        isShownOnProfile: 'Your timezone is shown on your profile.',
+        getLocationAutomatically: 'Automatically determine your location.',
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add phone number',

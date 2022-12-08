@@ -7,10 +7,9 @@ import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import FormHelpMessage from '../FormHelpMessage';
 import Text from '../Text';
-import CONST from '../../CONST';
 import styles from '../../styles/styles';
+import variables from '../../styles/variables';
 import pickerStyles from './pickerStyles';
-import getOperatingSystem from '../../libs/getOperatingSystem';
 
 const propTypes = {
     /** Picker label */
@@ -104,28 +103,23 @@ class Picker extends PureComponent {
         };
 
         this.onInputChange = this.onInputChange.bind(this);
-        this.placeholder = this.props.placeholder;
-        this.items = this.props.items;
+
+        // Windows will reuse the text color of the select for each one of the options
+        // so we might need to color accordingly so it doesn't blend with the background.
+        this.placeholder = _.isEmpty(this.props.placeholder) ? {} : {
+            ...this.props.placeholder,
+            color: variables.pickerOptionsTextColor,
+        };
+        this.items = _.map(this.props.items, item => (
+            {
+                ...item,
+                color: variables.pickerOptionsTextColor,
+            }
+        ));
     }
 
     componentDidMount() {
         this.setDefaultValue();
-
-        // Windows will reuse the text color of the select for each one of the options
-        // so we might need to color accordingly so it doesn't blend with the background.
-        if (getOperatingSystem() === CONST.OS.WINDOWS) {
-            this.placeholder = _.isEmpty(this.placeholder) ? {} : {
-                ...this.placeholder,
-                color: '#002140',
-            };
-
-            this.items = _.map(this.items, item => (
-                {
-                    ...item,
-                    color: '#002140',
-                }
-            ));
-        }
     }
 
     componentDidUpdate(prevProps) {
@@ -187,6 +181,7 @@ class Picker extends PureComponent {
                         fixAndroidTouchableBug
                         onOpen={() => this.setState({isOpen: true})}
                         onClose={() => this.setState({isOpen: false})}
+                        textInputProps={{allowFontScaling: false}}
                         pickerProps={{
                             onFocus: () => this.setState({isOpen: true}),
                             onBlur: () => {

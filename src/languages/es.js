@@ -166,6 +166,7 @@ export default {
     },
     reportActionCompose: {
         addAction: 'Acción',
+        dropToUpload: 'Suelta el archivo aquí para compartirlo',
         sendAttachment: 'Enviar adjunto',
         addAttachment: 'Agregar archivo adjunto',
         writeSomething: 'Escribe algo...',
@@ -332,6 +333,11 @@ export default {
         isShownOnProfile: 'Este nombre es visible en su perfil.',
         john: 'Juan',
         doe: 'Nadie',
+    },
+    timezonePage: {
+        timezone: 'Zona horaria',
+        isShownOnProfile: 'Tu zona horaria se muestra en tu perfil.',
+        getLocationAutomatically: 'Detecta tu ubicación automáticamente.',
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Agregar número de teléfono',
