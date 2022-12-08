@@ -1735,7 +1735,7 @@ const styles = {
         borderWidth: 2,
         borderStyle: 'solid',
         backgroundColor: themeColors.overlay,
-        opacity: 0.6,
+        opacity: variables.overlayOpacity,
         borderRadius: 24,
         zIndex: 6,
     },
@@ -1980,7 +1980,7 @@ const styles = {
         bottom: 0,
         left: 0,
         backgroundColor: themeColors.overlay,
-        opacity: 0.6,
+        opacity: variables.overlayOpacity,
     },
 
     avatarInnerTextChat: {
@@ -2503,7 +2503,7 @@ const styles = {
         left: 0,
         width: '100%',
         height: '100%',
-        opacity: 0.6,
+        opacity: variables.overlayOpacity,
     },
 
     communicationsLinkIcon: {

@@ -70,6 +70,7 @@ export default {
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(54, 60),
+    overlayOpacity: 0.6,
     lineHeightSmall: getValueUsingPixelRatio(14, 16),
     lineHeightNormal: getValueUsingPixelRatio(16, 21),
     lineHeightLarge: getValueUsingPixelRatio(18, 24),
