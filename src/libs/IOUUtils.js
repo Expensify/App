@@ -74,7 +74,7 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = 
  * @returns {String}
  */
  function formatIOUMessageCurrencySymbol(iouMessage, iouType, locale) {
-    // currencyCodeIndexInText is the index in number of words we expect to see currencyCode in text
+    // currencyCodeIndexInText is the index in number of words in we expect to see currencyCode in text
     const convertCurrencyCodeToSymbol = (currencyCodeIndexInText) => {
         const words = iouMessage.split(' ');
         const amountWithCurrencyCode = words[currencyCodeIndexInText];
@@ -98,7 +98,7 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = 
         case CONST.IOU.REPORT_ACTION_TYPE.DECLINE:
             return convertCurrencyCodeToSymbol(2);
         case CONST.IOU.REPORT_ACTION_TYPE.SPLIT:
-            return convertCurrencyCodeToSymbol(2);
+            return convertCurrencyCodeToSymbol(1);
         default:
             return iouMessage;
     }

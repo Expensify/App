@@ -41,10 +41,11 @@ const IOUQuote = (props) => {
             <Text style={[styles.chatItemMessage, styles.cursorPointer]}>
                 {/* Get remainder of IOU message */}
                 {IOUUtils.formatIOUMessageCurrencySymbol(
-                    Str.htmlDecode(fragment.text.substring(fragment.text.indexOf(' '))),
+                    Str.htmlDecode(fragment.text),
                     lodashGet(props.action, 'originalMessage.type'),
-                    props.preferredLocale,
-                )}
+                    props.preferredLocale
+                ).substring(fragment.text.indexOf(' '))}
+        
             </Text>
         </Text>
     );
