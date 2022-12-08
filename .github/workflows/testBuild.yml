@@ -185,7 +185,7 @@ jobs:
   postGithubComment:
     runs-on: ubuntu-latest
     name: Post a GitHub comment with app download links for testing
-    needs: [android, ios, desktop, web]
+    needs: [getBranchHash, android, ios, desktop]
     env:
       BRANCH_HASH: ${{ needs.getBranchHash.outputs.BRANCH_HASH }}
     steps:
