@@ -794,7 +794,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             },
         },
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticIOUReport.reportID}`,
             value: optimisticIOUReport,
         },
