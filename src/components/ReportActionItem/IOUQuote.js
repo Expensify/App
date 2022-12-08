@@ -38,7 +38,7 @@ const IOUQuote = (props) => {
             const words = text.split(' ');
             const amountWithCode = words[currencyCodeIndexInText];
             const currency = amountWithCode.substring(0, 3);
-            const amount = Number(amountWithCode.substring(4));
+            const amount = Number(amountWithCode.substring(3));
             const formattedAmount = props.numberFormat(
                 amount,
                 {style: 'currency', currency},
