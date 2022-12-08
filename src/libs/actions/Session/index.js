@@ -465,9 +465,9 @@ function authenticatePusher(socketID, channelName, callback) {
 
 export {
     beginSignIn,
+    createTemporaryLogin,
     updatePasswordAndSignin,
     signIn,
-    signInWithShortLivedToken,
     signOut,
     signOutAndRedirectToSignIn,
     resendValidationLink,
