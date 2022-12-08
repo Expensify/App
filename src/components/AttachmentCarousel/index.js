@@ -170,24 +170,29 @@ class AttachmentCarousel extends React.Component {
             >
                 {this.state.shouldShowArrow && (
                     <>
-                        <Button
-                            medium
-                            style={[styles.leftAttachmentArrow]}
-                            icon={Expensicons.BackArrow}
-                            iconFill={themeColors.text}
-                            iconStyles={[styles.mr0]}
-                            onPress={() => this.cycleThroughAttachments(1)}
-                            isDisabled={this.state.isBackDisabled}
-                        />
-                        <Button
-                            medium
-                            style={[styles.rightAttachmentArrow]}
-                            icon={Expensicons.ArrowRight}
-                            iconFill={themeColors.text}
-                            iconStyles={[styles.mr0]}
-                            onPress={() => this.cycleThroughAttachments(-1)}
-                            isDisabled={this.state.isForwardDisabled}
-                        />
+                        {!this.state.isBackDisabled && (
+                            <Button
+                                medium
+                                style={[styles.leftAttachmentArrow]}
+                                innerStyles={[styles.arrowIcon]}
+                                icon={Expensicons.BackArrow}
+                                iconFill={themeColors.text}
+                                iconStyles={[styles.mr0]}
+                                onPress={() => this.cycleThroughAttachments(1)}
+                            />
+                        )}
+                        {!this.state.isForwardDisabled && (
+                            <Button
+                                medium
+                                style={[styles.rightAttachmentArrow]}
+                                innerStyles={[styles.arrowIcon]}
+                                icon={Expensicons.ArrowRight}
+                                iconFill={themeColors.text}
+                                iconStyles={[styles.mr0]}
+                                onPress={() => this.cycleThroughAttachments(-1)}
+                                isDisabled={this.state.isForwardDisabled}
+                            />
+                        )}
                     </>
                 )}
 

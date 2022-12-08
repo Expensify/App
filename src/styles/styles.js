@@ -2103,6 +2103,11 @@ const styles = {
         right: 32,
     },
 
+    arrowIcon: {
+        height: 52,
+        width: 52,
+    },
+
     detailsPageSectionVersion: {
         alignSelf: 'center',
         color: themeColors.textSupporting,

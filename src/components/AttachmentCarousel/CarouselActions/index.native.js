@@ -35,20 +35,20 @@ class Carousel extends Component {
                     return this.props.onPress();
                 }
 
-                const deltaSlide = gestureState.dx > 0 ? -1 : 1;
-                if (Math.abs(gestureState.vx) < 1.6 || (deltaSlide === -1 && !this.props.canSwipeLeft) || (deltaSlide === 1 && !this.props.canSwipeRight)) {
+                const deltaSlide = gestureState.dx > 0 ? 1 : -1;
+                if (Math.abs(gestureState.vx) < 1 || (deltaSlide === 1 && !this.props.canSwipeLeft) || (deltaSlide === -1 && !this.props.canSwipeRight)) {
                     return Animated.spring(this.pan, {useNativeDriver: false, toValue: 0}).start();
                 }
 
                 const width = Dimensions.get('window').width;
-                const slideLength = deltaSlide * (width * (3 / 4));
-                Animated.timing(this.pan, {useNativeDriver: false, duration: 100, toValue: -slideLength}).start(({finished}) => {
+                const slideLength = deltaSlide * ((3 / 4) * width);
+                Animated.timing(this.pan, {useNativeDriver: false, duration: 100, toValue: slideLength}).start(({finished}) => {
                     if (!finished) {
                         return;
                     }
 
                     this.props.onCycleThroughAttachments(deltaSlide);
-                    this.pan.setValue(slideLength);
+                    this.pan.setValue(-slideLength);
                     Animated.timing(this.pan, {useNativeDriver: false, duration: 100, toValue: 0}).start();
                 });
             },
