@@ -128,7 +128,7 @@ function getSimplifiedReportObject(report) {
         maxSequenceNumber: lodashGet(report, 'reportActionCount', 0),
         participants: getParticipantEmailsFromReport(report),
         isPinned: report.isPinned,
-        lastVisitedTimestamp: lodashGet(report, [
+        lastReadTimestamp: lodashGet(report, [
             'reportNameValuePairs',
             `lastRead_${currentUserAccountID}`,
             'timestamp',
@@ -507,7 +507,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             value: {
                 isLoadingReportActions: true,
                 isLoadingMoreReportActions: false,
-                lastVisitedTimestamp: Date.now(),
+                lastReadTimestamp: Date.now(),
                 lastReadSequenceNumber: getMaxSequenceNumber(reportID),
                 reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
             },
@@ -680,7 +680,7 @@ function readNewestAction(reportID) {
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     lastReadSequenceNumber: sequenceNumber,
-                    lastVisitedTimestamp: Date.now(),
+                    lastReadTimestamp: Date.now(),
                 },
             }],
         });
@@ -705,7 +705,7 @@ function markCommentAsUnread(reportID, sequenceNumber) {
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     lastReadSequenceNumber: newLastReadSequenceNumber,
-                    lastVisitedTimestamp: Date.now(),
+                    lastReadTimestamp: Date.now(),
                 },
             }],
         });
@@ -1238,7 +1238,7 @@ function viewNewReportAction(reportID, action) {
     // but not necessarily reflected locally so we will update the lastReadSequenceNumber to mark the report as read.
     updatedReportObject.maxSequenceNumber = action.sequenceNumber;
     if (isFromCurrentUser) {
-        updatedReportObject.lastVisitedTimestamp = Date.now();
+        updatedReportObject.lastReadTimestamp = Date.now();
         updatedReportObject.lastReadSequenceNumber = action.sequenceNumber;
     }
 

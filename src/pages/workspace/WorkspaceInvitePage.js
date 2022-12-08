@@ -68,6 +68,9 @@ class WorkspaceInvitePage extends React.Component {
         this.clearErrors = this.clearErrors.bind(this);
         this.getExcludedUsers = this.getExcludedUsers.bind(this);
         this.toggleOption = this.toggleOption.bind(this);
+        this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
+        this.openPrivacyURL = this.openPrivacyURL.bind(this);
+
         const {
             personalDetails,
             userToInvite,
@@ -78,7 +81,7 @@ class WorkspaceInvitePage extends React.Component {
             this.getExcludedUsers(),
         );
         this.state = {
-            searchValue: '',
+            searchTerm: '',
             personalDetails,
             selectedOptions: [],
             userToInvite,
@@ -167,9 +170,34 @@ class WorkspaceInvitePage extends React.Component {
         return sections;
     }
 
-    clearErrors() {
+    updateOptionsWithSearchTerm(searchTerm = '') {
+        const {
+            personalDetails,
+            userToInvite,
+        } = OptionsListUtils.getMemberInviteOptions(
+            this.props.personalDetails,
+            this.props.betas,
+            searchTerm,
+            this.getExcludedUsers(),
+        );
+        this.setState({
+            searchTerm,
+            userToInvite,
+            personalDetails,
+        });
+    }
+
+    openPrivacyURL(e) {
+        e.preventDefault();
+        Link.openExternalLink(CONST.PRIVACY_URL);
+    }
+
+    clearErrors(closeModal = false) {
         Policy.setWorkspaceErrors(this.props.route.params.policyID, {});
         Policy.hideWorkspaceAlertMessage(this.props.route.params.policyID);
+        if (closeModal) {
+            Navigation.dismissModal();
+        }
     }
 
     /**
@@ -200,7 +228,7 @@ class WorkspaceInvitePage extends React.Component {
             } = OptionsListUtils.getMemberInviteOptions(
                 this.props.personalDetails,
                 this.props.betas,
-                prevState.searchValue,
+                prevState.searchTerm,
                 this.getExcludedUsers(),
             );
 
@@ -208,7 +236,7 @@ class WorkspaceInvitePage extends React.Component {
                 selectedOptions: newSelectedOptions,
                 personalDetails,
                 userToInvite,
-                searchValue: prevState.searchValue,
+                searchTerm: prevState.searchTerm,
             };
         });
     }
@@ -245,7 +273,7 @@ class WorkspaceInvitePage extends React.Component {
         const headerMessage = OptionsListUtils.getHeaderMessage(
             this.state.personalDetails.length !== 0,
             Boolean(this.state.userToInvite),
-            this.state.searchValue,
+            this.state.searchTerm,
         );
         const policyName = lodashGet(this.props.policy, 'name');
 
@@ -257,49 +285,31 @@ class WorkspaceInvitePage extends React.Component {
                             <HeaderWithCloseButton
                                 title={this.props.translate('workspace.invite.invitePeople')}
                                 subtitle={policyName}
-                                onCloseButtonPress={() => {
-                                    this.clearErrors();
-                                    Navigation.dismissModal();
-                                }}
+                                onCloseButtonPress={() => this.clearErrors(true)}
                                 shouldShowGetAssistanceButton
                                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                                 shouldShowBackButton
                                 onBackButtonPress={() => Navigation.goBack()}
                             />
                             <View style={[styles.flex1]}>
-                                {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
-                                {didScreenTransitionEnd && (
-                                <OptionsSelector
-                                    autoFocus={false}
-                                    canSelectMultipleOptions
-                                    sections={sections}
-                                    selectedOptions={this.state.selectedOptions}
-                                    value={this.state.searchValue}
-                                    onSelectRow={this.toggleOption}
-                                    onChangeText={(searchValue = '') => {
-                                        const {
-                                            personalDetails,
-                                            userToInvite,
-                                        } = OptionsListUtils.getMemberInviteOptions(
-                                            this.props.personalDetails,
-                                            this.props.betas,
-                                            searchValue,
-                                            this.getExcludedUsers(),
-                                        );
-                                        this.setState({
-                                            searchValue,
-                                            userToInvite,
-                                            personalDetails,
-                                        });
-                                    }}
-                                    onConfirmSelection={this.inviteUser}
-                                    headerMessage={headerMessage}
-                                    hideSectionHeaders
-                                    hideAdditionalOptionStates
-                                    forceTextUnreadStyle
-                                    shouldFocusOnSelectRow
-                                    placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                                />
+                                {didScreenTransitionEnd ? (
+                                    <OptionsSelector
+                                        autoFocus={false}
+                                        canSelectMultipleOptions
+                                        sections={sections}
+                                        selectedOptions={this.state.selectedOptions}
+                                        value={this.state.searchTerm}
+                                        onSelectRow={this.toggleOption}
+                                        onChangeText={this.updateOptionsWithSearchTerm}
+                                        onConfirmSelection={this.inviteUser}
+                                        headerMessage={headerMessage}
+                                        hideSectionHeaders
+                                        boldStyle
+                                        shouldFocusOnSelectRow
+                                        placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                    />
+                                ) : (
+                                    <FullScreenLoadingIndicator />
                                 )}
                             </View>
                             <View style={[styles.flexShrink0]}>
@@ -321,16 +331,12 @@ class WorkspaceInvitePage extends React.Component {
                                     isAlertVisible={this.getShouldShowAlertPrompt()}
                                     buttonText={this.props.translate('common.invite')}
                                     onSubmit={this.inviteUser}
-                                    onFixTheErrorsLinkPressed={() => {}}
                                     message={this.props.policy.alertMessage}
                                     containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                                     enabledWhenOffline
                                 />
                                 <Pressable
-                                    onPress={(e) => {
-                                        e.preventDefault();
-                                        Link.openExternalLink(CONST.PRIVACY_URL);
-                                    }}
+                                    onPress={this.openPrivacyURL}
                                     accessibilityRole="link"
                                     href={CONST.PRIVACY_URL}
                                     style={[styles.mh5, styles.mv2, styles.alignSelfStart]}
