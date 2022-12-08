@@ -92,7 +92,6 @@ function setSidebarLoaded() {
     if (isSidebarLoaded) {
         return;
     }
-
     Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
     Timing.end(CONST.TIMING.SIDEBAR_LOADED);
     Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
