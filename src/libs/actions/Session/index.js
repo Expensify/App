@@ -246,29 +246,6 @@ function signIn(password, twoFactorAuthCode) {
 }
 
 /**
- * Uses a short lived authToken to continue a user's session from OldDot
- *
- * @param {String} email
- * @param {String} shortLivedToken
- * @param {String} exitTo
- */
-function signInWithShortLivedToken(email, shortLivedToken) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
-
-    createTemporaryLogin(shortLivedToken, email)
-        .then((response) => {
-            if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                return;
-            }
-
-            User.getUserDetails();
-            Onyx.merge(ONYXKEYS.ACCOUNT, {success: true});
-        }).finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: false});
-        });
-}
-
-/**
  * User forgot the password so let's send them the link to reset their password
  */
 function resetPassword() {
