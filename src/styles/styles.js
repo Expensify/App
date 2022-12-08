@@ -2818,6 +2818,11 @@ const styles = {
         marginBottom: 0,
     },
 
+    welcomeTextHeader: {
+        fontSize: variables.fontSizeHero,
+        marginTop: 8,
+    },
+
     saveButtonPadding: {
         paddingLeft: 18,
         paddingRight: 18,

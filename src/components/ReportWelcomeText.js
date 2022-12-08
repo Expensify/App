@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../styles/styles';
@@ -62,7 +63,7 @@ const ReportWelcomeText = (props) => {
     );
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report, props.policies);
     return (
-        <Text style={[styles.mt3, styles.mw100, styles.textAlignCenter]}>
+        <Text style={[styles.mt3, styles.mw100]}>
             {isPolicyExpenseChat && (
                 <>
                     {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
@@ -99,27 +100,39 @@ const ReportWelcomeText = (props) => {
                 </>
             )}
             {isDefault && (
-                <>
-                    {/* Add align center style individually because of limited style inheritance in React Native https://reactnative.dev/docs/text#limited-style-inheritance */}
-                    <Text style={styles.textAlignCenter}>
-                        {props.translate('reportActionsView.beginningOfChatHistory')}
-                    </Text>
-                    {_.map(displayNamesWithTooltips, ({
-                        displayName, pronouns, tooltip,
-                    }, index) => (
-                        <Text key={`${displayName}${pronouns}${index}`}>
-                            <Tooltip text={tooltip} containerStyles={[styles.dInline]}>
-                                <Text style={[styles.textStrong]} onPress={() => Navigation.navigate(ROUTES.getDetailsRoute(participants[index]))}>
-                                    {displayName}
-                                </Text>
-                            </Tooltip>
-                            {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
-                            {(index === displayNamesWithTooltips.length - 1) && <Text>.</Text>}
-                            {(index === displayNamesWithTooltips.length - 2) && <Text>{` ${props.translate('common.and')} `}</Text>}
-                            {(index < displayNamesWithTooltips.length - 2) && <Text>, </Text>}
+                <View>
+                    <View>
+                        <Text style={[styles.welcomeTextHeader]}>
+                            Say Hello!
                         </Text>
-                    ))}
-                </>
+                    </View>
+                    <Text style={[styles.mt4]}>
+                        <Text>
+                            {props.translate('reportActionsView.beginningOfChatHistory')}
+                        </Text>
+                        {_.map(displayNamesWithTooltips, ({
+                            displayName, pronouns, tooltip,
+                        }, index) => (
+                            <Text key={`${displayName}${pronouns}${index}`}>
+                                <Tooltip text={tooltip} containerStyles={[styles.dInline]}>
+                                    <Text style={[styles.textStrong]} onPress={() => Navigation.navigate(ROUTES.getDetailsRoute(participants[index]))}>
+                                        {displayName}
+                                    </Text>
+                                </Tooltip>
+                                {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
+                                {(index === displayNamesWithTooltips.length - 1) && <Text>.</Text>}
+                                {(index === displayNamesWithTooltips.length - 2) && <Text>{` ${props.translate('common.and')} `}</Text>}
+                                {(index < displayNamesWithTooltips.length - 2) && <Text>, </Text>}
+                            </Text>
+                        ))}
+                    </Text>
+                    <View>
+                        <Text style={[styles.mt3]}>
+                            {/* Need to confirm copy for the below with marketing, and then add to translations. */}
+                            {'You can also use the + button below to send or request money. Try it, it\'s super easy!'}
+                        </Text>
+                    </View>
+                </View>
             )}
         </Text>
     );

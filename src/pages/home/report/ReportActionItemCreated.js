@@ -49,11 +49,10 @@ const ReportActionItemCreated = (props) => {
                 accessibilityLabel="Chat welcome message"
                 style={[
                     styles.chatContent,
-                    styles.pb8,
                     styles.p5,
                 ]}
             >
-                <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.flex1]}>
+                <View style={[styles.flex1]}>
                     <Pressable onPress={() => ReportUtils.navigateToDetailsPage(props.report)}>
                         <RoomHeaderAvatars
                             icons={icons}
