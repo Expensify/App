@@ -277,7 +277,6 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         reportID: null,
         phoneNumber: null,
         payPalMeAddress: null,
-        isUnread: null,
         hasDraftComment: false,
         keyForList: null,
         searchText: null,
