@@ -1,4 +1,4 @@
-import _ from 'underscore/underscore-node';
+import _ from 'underscore';
 import CONST from '../CONST';
 import * as NumberFormatUtils from './NumberFormatUtils';
 
