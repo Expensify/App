@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import CONST from '../CONST';
 import * as IOU from '../libs/actions/IOU';
@@ -12,7 +13,6 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import Text from './Text';
 import Button from './Button';
-import lodashGet from 'lodash/get';
 
 const propTypes = {
     /** The chatReport which the transaction is associated with */
