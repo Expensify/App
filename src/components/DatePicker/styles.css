@@ -6,10 +6,13 @@
  */
 
 .expensify-datepicker::-webkit-calendar-picker-indicator {
-    position: absolute;
-    right: 12px;
-    top: 13px;
     color-scheme: dark;
+    cursor: pointer;
+    padding: 18px 13px;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
 }
 .expensify-datepicker::-webkit-date-and-time-value {
     text-align: left;

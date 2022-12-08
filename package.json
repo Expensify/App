@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.2.36-1",
+  "version": "1.2.37-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -29,6 +29,7 @@
     "test": "jest",
     "lint": "eslint . --max-warnings=0",
     "lint-watch": "npx eslint-watch --watch --changed",
+    "shellcheck": "./scripts/shellCheck.sh",
     "print-version": "echo $npm_package_version",
     "storybook": "start-storybook -p 6006",
     "storybook-build": "build-storybook -o dist/docs",
@@ -37,7 +38,7 @@
     "analyze-packages": "ANALYZE_BUNDLE=true webpack --config config/webpack/webpack.common.js --env envFile=.env.production",
     "symbolicate:android": "npx metro-symbolicate android/app/build/generated/sourcemaps/react/release/index.android.bundle.map",
     "symbolicate:ios": "npx metro-symbolicate main.jsbundle.map",
-    "test:e2e": "node ./e2e/testRunner.js"
+    "test:e2e": "node tests/e2e/testRunner.js"
   },
   "dependencies": {
     "@expensify/react-native-web": "0.18.9",
@@ -45,6 +46,7 @@
     "@formatjs/intl-locale": "^2.4.21",
     "@formatjs/intl-numberformat": "^6.2.5",
     "@formatjs/intl-pluralrules": "^4.0.13",
+    "@gorhom/portal": "^1.0.14",
     "@oguzhnatly/react-native-image-manipulator": "github:Expensify/react-native-image-manipulator#c5f654fc9d0ad7cc5b89d50b34ecf8b0e3f4d050",
     "@onfido/react-native-sdk": "7.0.1",
     "@pieter-pot/react-native-fast-image": "8.5.11",
@@ -68,7 +70,7 @@
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
     "dotenv": "^8.2.0",
-    "expensify-common": "git+https://github.com/Expensify/expensify-common.git#6bd112f1e7ebbd6679042fa04060104b68beace2",
+    "expensify-common": "git+https://github.com/Expensify/expensify-common.git#9ec5a530793715ef743b5bf986ef11dbca3a64f3",
     "fbjs": "^3.0.2",
     "file-loader": "^6.0.0",
     "html-entities": "^1.3.1",
@@ -95,7 +97,7 @@
     "react-native-google-places-autocomplete": "git+https://github.com/Expensify/react-native-google-places-autocomplete.git#3bbd17d63e6c38d38d857b50f6037c1c0376ff06",
     "react-native-haptic-feedback": "^1.13.0",
     "react-native-image-pan-zoom": "^2.1.12",
-    "react-native-image-picker": "^4.10.1",
+    "react-native-image-picker": "^4.10.2",
     "react-native-image-size": "git+https://github.com/Expensify/react-native-image-size#6b5ab5110dc3ed554f8eafbc38d7d87c17147972",
     "react-native-modal": "^13.0.0",
     "react-native-onyx": "1.0.29",
@@ -183,6 +185,7 @@
     "react-native-svg-transformer": "^1.0.0",
     "react-test-renderer": "18.1.0",
     "semver": "^7.3.4",
+    "shellcheck": "^1.1.0",
     "speed-measure-webpack-plugin": "^1.5.0",
     "style-loader": "^2.0.0",
     "wait-port": "^0.2.9",

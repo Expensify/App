@@ -59,6 +59,7 @@ export default {
     emojiLineHeight: 28,
     iouAmountTextSize: 40,
     mobileResponsiveWidthBreakpoint: 800,
+    modalFullscreenBackdropOpacity: 0.5,
     tabletResponsiveWidthBreakpoint: 1024,
     safeInsertPercentage: 0.7,
     sideBarWidth: 375,
@@ -66,7 +67,6 @@ export default {
     tooltipzIndex: 10050,
     gutterWidth: 16,
     popoverMenuShadow: '0px 4px 12px 0px rgba(0, 0, 0, 0.06)',
-    minHeightToShowGraphics: 854, // Login form layout breaks below this height due to insufficient space to show the form and graphics
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(54, 60),
@@ -81,4 +81,5 @@ export default {
     INACTIVE_LABEL_TRANSLATE_Y: getValueUsingPixelRatio(16, 21),
     sliderBarHeight: 8,
     sliderKnobSize: 26,
+    pickerOptionsTextColor: '#002140',
 };
