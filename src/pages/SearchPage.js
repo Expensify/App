@@ -129,7 +129,6 @@ class SearchPage extends Component {
             this.state.searchValue.trim(),
             this.props.betas,
         );
-        console.log(recentReports, personalDetails, userToInvite);
         this.setState({
             userToInvite,
             recentReports,
