@@ -101,9 +101,7 @@ class CompanyStep extends React.Component {
 
         if (!values.incorporationDate || !ValidationUtils.isValidDate(values.incorporationDate)) {
             errors.incorporationDate = this.props.translate('bankAccount.error.incorporationDate');
-        }
-
-        if (!values.incorporationDate || !ValidationUtils.isValidPastDate(values.incorporationDate)) {
+        } else if (!values.incorporationDate || !ValidationUtils.isValidPastDate(values.incorporationDate)) {
             errors.incorporationDate = this.props.translate('bankAccount.error.incorporationDateFuture');
         }
 
