@@ -1073,4 +1073,25 @@ export default {
             message: 'Expensify no tiene acceso para guardar archivos. Para habilitar la descarga de archivos, entra en Settings y habilita el accesso',
         },
     },
+    systemContextMenu: {
+        aboutExpensify: 'Sobre New Expensify',
+        checkForUpdates: 'Buscar Actualizaciones',
+        keyboardShortcuts: 'Ver Atajos de Teclado',
+    },
+    checkForUpdatesModal: {
+        available: {
+            title: 'Actualización Disponible',
+            message: 'La nueva versión estará disponible dentro de poco. Te notificaremos cuando esté lista.',
+            soundsGood: 'Suena bien',
+        },
+        notAvailable: {
+            title: 'Actualización No Disponible',
+            message: 'No existe ninguna actualización disponible! Inténtalo de nuevo más tarde.',
+            okay: 'Vale',
+        },
+        error: {
+            title: 'Comprobación fallida',
+            message: 'No hemos podido comprobar si existe una actualización. Inténtalo de nuevo más tarde!',
+        }
+    }
 };

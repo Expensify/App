@@ -1071,4 +1071,25 @@ export default {
             message: 'Expensify does not have access to save attachments. To enable access, go to Settings and allow access',
         },
     },
+    systemContextMenu: {
+        aboutExpensify: 'About New Expensify',
+        checkForUpdates: 'Check For Updates',
+        keyboardShortcuts: 'View Keyboard Shortcuts',
+    },
+    checkForUpdatesModal: {
+        available: {
+            title: 'Update Available',
+            message: 'The new version will be available shortly. We\'ll notify you when we\'re ready to update.',
+            soundsGood: 'Sounds good',
+        },
+        notAvailable: {
+            title: 'Update Not Available',
+            message: 'There is no update available as of now! Check again at a later time.',
+            okay: 'Okay',
+        },
+        error: {
+            title: 'Update Check Failed',
+            message: 'We couldn\'t look for an update. Please check again in a bit!',
+        },
+    }
 };
