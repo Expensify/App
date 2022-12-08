@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.2.36-2",
+  "version": "1.2.37-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -29,6 +29,7 @@
     "test": "jest",
     "lint": "eslint . --max-warnings=0",
     "lint-watch": "npx eslint-watch --watch --changed",
+    "shellcheck": "./scripts/shellCheck.sh",
     "print-version": "echo $npm_package_version",
     "storybook": "start-storybook -p 6006",
     "storybook-build": "build-storybook -o dist/docs",
@@ -184,6 +185,7 @@
     "react-native-svg-transformer": "^1.0.0",
     "react-test-renderer": "18.1.0",
     "semver": "^7.3.4",
+    "shellcheck": "^1.1.0",
     "speed-measure-webpack-plugin": "^1.5.0",
     "style-loader": "^2.0.0",
     "wait-port": "^0.2.9",
