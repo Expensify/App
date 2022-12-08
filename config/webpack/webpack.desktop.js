@@ -14,7 +14,7 @@ const getCommonConfig = require('./webpack.common');
  * @returns {webpack.Configuration[]}
  */
 module.exports = (env) => {
-    const rendererConfig = getCommonConfig({...env, platform: 'desktop'});
+    const rendererConfig = getCommonConfig({...env, platform: 'desktop', extensions: ['*', '.js', '.jsx']});
     const outputPath = path.resolve(__dirname, '../../desktop/dist');
 
     rendererConfig.name = 'renderer';
@@ -50,6 +50,20 @@ module.exports = (env) => {
             __dirname: false,
             __filename: false,
         },
+        module: {
+            rules: [
+                {
+                    test: /react-native-onyx/,
+                    use: {
+                        loader: 'babel-loader',
+                        options: {
+                            presets: ['@babel/preset-react'],
+
+                        },
+                    },
+                },
+            ],
+        }
     };
 
     return [mainProcessConfig, rendererConfig];

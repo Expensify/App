@@ -101,23 +101,23 @@ const manuallyCheckForUpdates = (menuItem, browserWindow) => {
             if (downloadPromise) {
                 dialog.showMessageBox(browserWindow, {
                     type: 'info',
-                    message: Localize.translate('checkForUpdatesModal.available.title'),
-                    detail: Localize.translate('checkForUpdatesModal.available.message'),
-                    buttons: [Localize.translate('checkForUpdatesModal.available.soundsGood')],
+                    message: Localize.translateLocal('checkForUpdatesModal.available.title'),
+                    detail: Localize.translateLocal('checkForUpdatesModal.available.message'),
+                    buttons: [Localize.translateLocal('checkForUpdatesModal.available.soundsGood')],
                 });
             } else if (result && result.error) {
                 dialog.showMessageBox(browserWindow, {
                     type: 'error',
-                    message: Localize.translate('checkForUpdatesModal.error.title'),
-                    detail: Localize.translate('checkForUpdatesModal.error.message'),
-                    buttons: [Localize.translate('checkForUpdatesModal.notAvailable.okay')],
+                    message: Localize.translateLocal('checkForUpdatesModal.error.title'),
+                    detail: Localize.translateLocal('checkForUpdatesModal.error.message'),
+                    buttons: [Localize.translateLocal('checkForUpdatesModal.notAvailable.okay')],
                 });
             } else {
                 dialog.showMessageBox(browserWindow, {
                     type: 'info',
-                    message: Localize.translate('checkForUpdatesModal.notAvailable.title'),
-                    detail: Localize.translate('checkForUpdatesModal.notAvailable.message'),
-                    buttons: [Localize.translate('checkForUpdatesModal.notAvailable.okay')],
+                    message: Localize.translateLocal('checkForUpdatesModal.notAvailable.title'),
+                    detail: Localize.translateLocal('checkForUpdatesModal.notAvailable.message'),
+                    buttons: [Localize.translateLocal('checkForUpdatesModal.notAvailable.okay')],
                     cancelId: 2,
                 });
             }
@@ -145,21 +145,21 @@ const showKeyboardShortcutsModal = (browserWindow) => {
 // Defines the system-level menu item to manually apply an update
 // This menu item should become visible after an update is downloaded and ready to be applied
 const updateAppMenuItem = new MenuItem({
-    label: Localize.translate('systemContextMenu.aboutExpensify'),
+    label: Localize.translateLocal('systemContextMenu.aboutExpensify'),
     visible: false,
     click: quitAndInstallWithUpdate,
 });
 
 // System-level menu item to manually check for App updates
 const checkForUpdateMenuItem = new MenuItem({
-    label: Localize.translate('systemContextMenu.checkForUpdates'),
+    label: Localize.translateLocal('systemContextMenu.checkForUpdates'),
     visible: true,
     click: manuallyCheckForUpdates,
 });
 
 // Defines the system-level menu item for opening keyboard shortcuts modal
 const keyboardShortcutsMenu = new MenuItem({
-    label: Localize.translate('initialSettingsPage.aboutPage.viewKeyboardShortcuts'),
+    label: Localize.translateLocal('initialSettingsPage.aboutPage.viewKeyboardShortcuts'),
     accelerator: 'CmdOrCtrl+I',
 });
 
