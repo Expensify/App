@@ -11,7 +11,6 @@ import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import CONST from '../../CONST';
 import * as IOUUtils from '../../libs/IOUUtils';
 
 const propTypes = {
