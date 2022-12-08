@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import CONST from '../CONST';
 import * as NumberFormatUtils from './NumberFormatUtils';
 
@@ -73,7 +74,7 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = 
  * @param {String} locale
  * @returns {String}
  */
- function formatIOUMessageCurrencySymbol(iouMessage, iouType, locale) {
+function formatIOUMessageCurrencySymbol(iouMessage, iouType, locale) {
     // currencyCodeIndexInText is the index in number of words in we expect to see currencyCode in text
     const convertCurrencyCodeToSymbol = (currencyCodeIndexInText) => {
         const words = iouMessage.split(' ');

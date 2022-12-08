@@ -43,9 +43,8 @@ const IOUQuote = (props) => {
                 {IOUUtils.formatIOUMessageCurrencySymbol(
                     Str.htmlDecode(fragment.text),
                     lodashGet(props.action, 'originalMessage.type'),
-                    props.preferredLocale
+                    props.preferredLocale,
                 ).substring(fragment.text.indexOf(' '))}
-        
             </Text>
         </Text>
     );
