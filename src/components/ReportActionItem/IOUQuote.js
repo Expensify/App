@@ -43,8 +43,6 @@ const IOUQuote = (props) => {
                 amount,
                 {style: 'currency', currency},
             );
-
-            // debugger;
             return _.map(words, ((word, i) => (i === currencyCodeIndexInText ? formattedAmount : word))).join(' ');
         };
 
