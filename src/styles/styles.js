@@ -2815,6 +2815,11 @@ const styles = {
         marginHorizontal: 0,
         marginBottom: 0,
     },
+
+    archivedReportFooter: {
+        borderRadius: variables.componentBorderRadius,
+       ...wordBreak.breakWord,
+    }
 };
 
 export default styles;
