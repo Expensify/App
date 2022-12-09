@@ -96,10 +96,10 @@ function formatIOUMessageCurrencySymbol(iouMessage, iouType, locale) {
         case CONST.IOU.REPORT_ACTION_TYPE.DECLINE:
             return convertCurrencyCodeToSymbol(2);
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
-                if (iouMessage.startsWith('Settled up')) {
-                    return iouMessage;
-                }
-                return convertCurrencyCodeToSymbol(1);
+            if (iouMessage.startsWith('Settled up')) {
+                return iouMessage;
+            }
+            return convertCurrencyCodeToSymbol(1);
         default:
             return iouMessage;
     }

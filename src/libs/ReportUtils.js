@@ -717,7 +717,7 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
  * @param {String} paymentType - IOU paymentMethodType. Can be oneOf(Elsewhere, Expensify, PayPal.me)
  * @param {Boolean} isSettlingUp - Whether we are settling up an IOU
  * @param {Boolean} shouldUseCurrencyCode - Whether we should use the currency code (e.g. USD) or symbol (e.g. $)
- * 
+ *
  * @returns {Array}
  */
 function getIOUReportActionMessage(type, total, participants, comment, currency, paymentType = '', isSettlingUp = false, shouldUseCurrencyCode = true) {
