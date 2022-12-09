@@ -2821,7 +2821,7 @@ const styles = {
     archivedReportFooter: {
         borderRadius: variables.componentBorderRadius,
        ...wordBreak.breakWord,
-    }
+    },
 
     saveButtonPadding: {
         paddingLeft: 18,

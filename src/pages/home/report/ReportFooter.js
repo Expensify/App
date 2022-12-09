@@ -76,7 +76,7 @@ class ReportFooter extends React.Component {
         return (
             <>
                 {(isArchivedRoom || hideComposer) && (
-                    <View style={[styles.chatFooter]}>
+                    <View style={[styles.chatFooter, this.props.isSmallScreenWidth ? styles.mb5 : null]}>
                         {isArchivedRoom && (
                             <ArchivedReportFooter
                                 reportClosedAction={reportClosedAction}
