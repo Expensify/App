@@ -86,8 +86,8 @@ class SignInPage extends Component {
                         shouldShowWelcomeText={showLoginForm || showPasswordForm || !shouldShowResendValidationLinkForm}
                     >
                         {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
-                        so that password managers can access the values. Conditionally rendering these components will break this feature. */}
-                        <LoginForm isVisible={showLoginForm} blurOnSubmit={shouldShowResendValidationLinkForm} />
+                    so that password managers can access the values. Conditionally rendering these components will break this feature. */}
+                        <LoginForm isVisible={showLoginForm} blurOnSubmit={this.props.account.validated === false} />
                         <PasswordForm isVisible={showPasswordForm} />
                         {shouldShowResendValidationLinkForm && <ResendValidationForm />}
                     </SignInPageLayout>

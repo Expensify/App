@@ -6,7 +6,7 @@ CONFIG_FILE="../Web-Expensify/_config.local.php"
 
 if [ -f ".env" ]; then
     # Export vars from the .env file to access the $EXPENSIFY_URL
-    export $(grep -v '^#' .env | xargs)
+    export "$(grep -v '^#' .env | xargs)"
 fi
 
 # use the suffix only when the config file can be found
