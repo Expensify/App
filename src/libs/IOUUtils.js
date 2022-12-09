@@ -89,17 +89,17 @@ function formatIOUMessageCurrencySymbol(iouMessage, iouType, locale) {
     switch (iouType) {
         case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
             return convertCurrencyCodeToSymbol(1);
-        case CONST.IOU.REPORT_ACTION_TYPE.PAY:
-            if (iouMessage.startsWith('Settled up')) {
-                return iouMessage;
-            }
+        case CONST.IOU.REPORT_ACTION_TYPE.SPLIT:
             return convertCurrencyCodeToSymbol(1);
         case CONST.IOU.REPORT_ACTION_TYPE.CANCEL:
             return convertCurrencyCodeToSymbol(2);
         case CONST.IOU.REPORT_ACTION_TYPE.DECLINE:
             return convertCurrencyCodeToSymbol(2);
-        case CONST.IOU.REPORT_ACTION_TYPE.SPLIT:
-            return convertCurrencyCodeToSymbol(1);
+        case CONST.IOU.REPORT_ACTION_TYPE.PAY:
+                if (iouMessage.startsWith('Settled up')) {
+                    return iouMessage;
+                }
+                return convertCurrencyCodeToSymbol(1);
         default:
             return iouMessage;
     }
