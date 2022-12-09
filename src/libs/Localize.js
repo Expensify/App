@@ -105,4 +105,5 @@ export {
     translate,
     translateLocal,
     arrayToString,
+    preferredLocale
 };
