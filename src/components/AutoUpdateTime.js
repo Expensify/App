@@ -8,7 +8,7 @@ import Timers from '../libs/Timers';
 import Text from './Text';
 
 const propTypes = {
-    /** timezone of the user from their personal details */
+    /** Timezone of the user from their personal details */
     timezone: PropTypes.shape({
         /** Value of selected timezone */
         selected: PropTypes.string,
@@ -61,6 +61,7 @@ class AutoUpdateTime extends PureComponent {
         return `GMT ${this.state.timezone.zoneAbbr()}`;
     }
 
+    // Update the timer after period time
     updateCurrentTime() {
         if (this.timer) {
             clearInterval(this.timer);
