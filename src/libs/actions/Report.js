@@ -1,5 +1,5 @@
 import {Linking} from 'react-native';
-import moment, { tz } from 'moment';
+import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
