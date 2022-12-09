@@ -336,7 +336,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             return;
         }
 
-        // If we only have one participant and the request was iniated from the global create menu, i.e. !existingGroupChatReportID, the oneOnOneChatReport is the groupChatReport
+        // If we only have one participant and the request was initiated from the global create menu, i.e. !existingGroupChatReportID, the oneOnOneChatReport is the groupChatReport
         const existingOneOnOneChatReport = (!hasMultipleParticipants && !existingGroupChatReportID) ? groupChatReport : ReportUtils.getChatByParticipants([email]);
         const oneOnOneChatReport = existingOneOnOneChatReport || ReportUtils.buildOptimisticChatReport([email]);
         let oneOnOneIOUReport;
