@@ -25,7 +25,6 @@ import Tooltip from '../../components/Tooltip';
 import CONST from '../../CONST';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
-import ROUTES from '../../ROUTES';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import reportPropTypes from '../reportPropTypes';
@@ -286,28 +285,30 @@ class IOUModal extends Component {
         const amount = Math.round(this.state.amount * 100);
         const currency = this.props.iou.selectedCurrencyCode;
         const comment = this.state.comment;
+        const participant = this.state.participants[0];
 
-        const newIOUReportDetails = JSON.stringify({
-            amount,
-            currency,
-            requestorEmail: this.state.participants[0].login,
-            comment,
-            idempotencyKey: Str.guid(),
-        });
+        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            IOU.sendMoneyElsewhere(
+                this.props.report,
+                amount,
+                currency,
+                comment,
+                this.props.currentUserPersonalDetails.login,
+                participant,
+            );
+            return;
+        }
 
-        IOU.payIOUReport({
-            chatReportID: lodashGet(this.props, 'route.params.reportID', ''),
-            reportID: '0',
-            paymentMethodType,
-            amount,
-            currency,
-            requestorPayPalMeAddress: this.state.participants[0].payPalMeAddress,
-            comment,
-            newIOUReportDetails,
-        })
-            .finally(() => {
-                Navigation.navigate(ROUTES.REPORT);
-            });
+        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
+            IOU.sendMoneyViaPaypal(
+                this.props.report,
+                amount,
+                currency,
+                comment,
+                this.props.currentUserPersonalDetails.login,
+                participant,
+            );
+        }
     }
 
     /**
@@ -450,7 +451,13 @@ class IOUModal extends Component {
                                                 comment={this.state.comment}
                                                 onUpdateComment={this.updateComment}
                                                 iouType={this.props.iouType}
-                                                isIOUAttachedToExistingChatReport={!_.isEmpty(reportID)}
+
+                                                // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.
+                                                // This is because when there is a group of people, say they are on a trip, and you have some shared expenses with some of the people,
+                                                // but not all of them (maybe someone skipped out on dinner). Then it's nice to be able to select/deselect people from the group chat bill
+                                                // split rather than forcing the user to create a new group, just for that expense. The reportID is empty, when the action was initiated from
+                                                // the floating-action-button (since it is something that exists outside the context of a report).
+                                                canModifyParticipants={!_.isEmpty(reportID)}
                                             />
                                         </AnimatedStep>
                                     )}

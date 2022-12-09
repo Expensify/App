@@ -8,9 +8,9 @@ import RNTextInput from '../RNTextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
-import CONST from '../../CONST';
 import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
 import getNumberOfLines from '../../libs/ComposerUtils/index';
+import * as Browser from '../../libs/Browser';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -34,18 +34,6 @@ const propTypes = {
 
     /** When the input has cleared whoever owns this input should know about it */
     onClear: PropTypes.func,
-
-    /** Callback to fire when a file has being dragged over the text input & report body */
-    onDragOver: PropTypes.func,
-
-    /** Callback to fire when a file has been dragged into the text input & report body */
-    onDragEnter: PropTypes.func,
-
-    /** Callback to fire when the user is no longer dragging over the text input & report body */
-    onDragLeave: PropTypes.func,
-
-    /** Callback to fire when a file is dropped on the text input & report body */
-    onDrop: PropTypes.func,
 
     /** Whether or not this TextInput is disabled. */
     isDisabled: PropTypes.bool,
@@ -79,10 +67,6 @@ const defaultProps = {
     shouldClear: false,
     onClear: () => {},
     style: null,
-    onDragEnter: () => {},
-    onDragOver: () => {},
-    onDragLeave: () => {},
-    onDrop: () => {},
     isDisabled: false,
     autoFocus: false,
     forwardedRef: null,
@@ -103,8 +87,6 @@ const IMAGE_EXTENSIONS = {
     'image/webp': 'webp',
 };
 
-const COPY_DROP_EFFECT = 'copy';
-
 /**
  * Enable Markdown parsing.
  * On web we like to have the Text Input field always focused so the user can easily type a new chat
@@ -116,8 +98,8 @@ class Composer extends React.Component {
         this.state = {
             numberOfLines: 1,
         };
-        this.dragNDropListener = this.dragNDropListener.bind(this);
         this.paste = this.paste.bind(this);
+
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
@@ -138,21 +120,14 @@ class Composer extends React.Component {
             this.props.forwardedRef(this.textInput);
         }
 
+        // There is no onPaste or onDrag for TextInput in react-native so we will add event
+        // listeners here and unbind when the component unmounts
         if (this.textInput) {
             this.textInput.setText = this.setText;
             this.textInput.setSelection = this.setSelection;
             this.textInput.focusInput = this.textInput.focus;
             this.textInput.focus = this.focus;
 
-            // There is no onPaste or onDrag for TextInput in react-native so we will add event
-            // listeners here and unbind when the component unmounts
-
-            // Firefox will not allow dropping unless we call preventDefault on the dragover event
-            // We listen on document to extend the Drop area beyond Composer
-            document.addEventListener('dragover', this.dragNDropListener);
-            document.addEventListener('dragenter', this.dragNDropListener);
-            document.addEventListener('dragleave', this.dragNDropListener);
-            document.addEventListener('drop', this.dragNDropListener);
             this.textInput.addEventListener('paste', this.handlePaste);
             this.textInput.addEventListener('wheel', this.handleWheel);
 
@@ -180,10 +155,6 @@ class Composer extends React.Component {
             return;
         }
 
-        document.removeEventListener('dragover', this.dragNDropListener);
-        document.removeEventListener('dragenter', this.dragNDropListener);
-        document.removeEventListener('dragleave', this.dragNDropListener);
-        document.removeEventListener('drop', this.dragNDropListener);
         this.textInput.removeEventListener('paste', this.handlePaste);
         this.textInput.removeEventListener('wheel', this.handleWheel);
     }
@@ -209,48 +180,6 @@ class Composer extends React.Component {
     setSelection(start, end) {
         this.textInput.setSelectionRange(start, end);
     }
-
-    /**
-     * Handles all types of drag-N-drop events on the composer
-     *
-     * @param {Object} e native Event
-     */
-    dragNDropListener(e) {
-        let isOriginComposer = false;
-        const handler = () => {
-            // Setting dropEffect for dragover is required for '+' icon on certain platforms/browsers (eg. Safari)
-            switch (e.type) {
-                case 'dragover':
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = COPY_DROP_EFFECT;
-                    this.props.onDragOver(e, isOriginComposer);
-                    break;
-                case 'dragenter':
-                    e.dataTransfer.dropEffect = COPY_DROP_EFFECT;
-                    this.props.onDragEnter(e, isOriginComposer);
-                    break;
-                case 'dragleave':
-                    this.props.onDragLeave(e, isOriginComposer);
-                    break;
-                case 'drop':
-                    this.props.onDrop(e, isOriginComposer);
-                    break;
-                default: break;
-            }
-        };
-
-        // We first check if drop target is composer so that it can be highlighted
-        if (this.textInput.contains(e.target)) {
-            isOriginComposer = true;
-            handler();
-            return;
-        }
-
-        if (document.getElementById(CONST.REPORT.DROP_NATIVE_ID).contains(e.target)) {
-            handler();
-        }
-    }
-
     /**
      * Set pasted text to clipboard
      * @param {String} text
@@ -404,9 +333,12 @@ class Composer extends React.Component {
         const propStyles = StyleSheet.flatten(this.props.style);
         propStyles.outline = 'none';
         const propsWithoutStyles = _.omit(this.props, 'style');
+
+        // We're disabling autoCorrect for iOS Safari until Safari fixes this issue. See https://github.com/Expensify/App/issues/8592
         return (
             <RNTextInput
                 autoComplete="off"
+                autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
                 onChange={this.updateNumberOfLines}

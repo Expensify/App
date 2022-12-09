@@ -128,7 +128,7 @@ function getSimplifiedReportObject(report) {
         maxSequenceNumber: lodashGet(report, 'reportActionCount', 0),
         participants: getParticipantEmailsFromReport(report),
         isPinned: report.isPinned,
-        lastVisitedTimestamp: lodashGet(report, [
+        lastReadTimestamp: lodashGet(report, [
             'reportNameValuePairs',
             `lastRead_${currentUserAccountID}`,
             'timestamp',
@@ -507,7 +507,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             value: {
                 isLoadingReportActions: true,
                 isLoadingMoreReportActions: false,
-                lastVisitedTimestamp: Date.now(),
+                lastReadTimestamp: Date.now(),
                 lastReadSequenceNumber: getMaxSequenceNumber(reportID),
                 reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
             },
@@ -666,12 +666,14 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
  * Marks the new report actions as read
  *
  * @param {String} reportID
+ * @param {String} created
  */
-function readNewestAction(reportID) {
+function readNewestAction(reportID, created) {
     const sequenceNumber = getMaxSequenceNumber(reportID);
     API.write('ReadNewestAction',
         {
             reportID,
+            created: DateUtils.getDBTime(created),
             sequenceNumber,
         },
         {
@@ -680,7 +682,7 @@ function readNewestAction(reportID) {
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     lastReadSequenceNumber: sequenceNumber,
-                    lastVisitedTimestamp: Date.now(),
+                    lastReadTimestamp: Date.now(),
                 },
             }],
         });
@@ -690,13 +692,17 @@ function readNewestAction(reportID) {
  * Sets the last read comment on a report
  *
  * @param {String} reportID
+ * @param {String} created
  * @param {Number} sequenceNumber
  */
-function markCommentAsUnread(reportID, sequenceNumber) {
+function markCommentAsUnread(reportID, created, sequenceNumber) {
     const newLastReadSequenceNumber = sequenceNumber - 1;
     API.write('MarkAsUnread',
         {
             reportID,
+
+            // We subtract 1 millisecond so that the lastRead is updated to just before this reportAction's created date
+            created: DateUtils.getDBTime(new Date(created) - 1),
             sequenceNumber,
         },
         {
@@ -705,7 +711,7 @@ function markCommentAsUnread(reportID, sequenceNumber) {
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     lastReadSequenceNumber: newLastReadSequenceNumber,
-                    lastVisitedTimestamp: Date.now(),
+                    lastReadTimestamp: Date.now(),
                 },
             }],
         });
@@ -1238,7 +1244,7 @@ function viewNewReportAction(reportID, action) {
     // but not necessarily reflected locally so we will update the lastReadSequenceNumber to mark the report as read.
     updatedReportObject.maxSequenceNumber = action.sequenceNumber;
     if (isFromCurrentUser) {
-        updatedReportObject.lastVisitedTimestamp = Date.now();
+        updatedReportObject.lastReadTimestamp = Date.now();
         updatedReportObject.lastReadSequenceNumber = action.sequenceNumber;
     }
 
