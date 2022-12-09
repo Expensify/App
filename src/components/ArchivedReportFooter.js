@@ -65,7 +65,7 @@ const ArchivedReportFooter = (props) => {
 
     return (
         <Banner
-            containerStyles = {[styles.archivedReportFooter]}
+            containerStyles={[styles.archivedReportFooter]}
             text={props.translate(`reportArchiveReasons.${archiveReason}`, {
                 displayName: `<strong>${displayName}</strong>`,
                 oldDisplayName: `<strong>${oldDisplayName}</strong>`,

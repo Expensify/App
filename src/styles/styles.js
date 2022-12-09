@@ -2820,7 +2820,7 @@ const styles = {
 
     archivedReportFooter: {
         borderRadius: variables.componentBorderRadius,
-       ...wordBreak.breakWord,
+        ...wordBreak.breakWord,
     },
 
     saveButtonPadding: {
