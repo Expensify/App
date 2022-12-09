@@ -1,0 +1,66 @@
+diff --git a/node_modules/html-inline-script-webpack-plugin/dist/HtmlInlineScriptPlugin.js b/node_modules/html-inline-script-webpack-plugin/dist/HtmlInlineScriptPlugin.js
+index 265004d..8d097f1 100644
+--- a/node_modules/html-inline-script-webpack-plugin/dist/HtmlInlineScriptPlugin.js
++++ b/node_modules/html-inline-script-webpack-plugin/dist/HtmlInlineScriptPlugin.js
+@@ -1,14 +1,3 @@
+-var __rest = (this && this.__rest) || function (s, e) {
+-    var t = {};
+-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+-        t[p] = s[p];
+-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+-                t[p[i]] = s[p[i]];
+-        }
+-    return t;
+-};
+ var __importDefault = (this && this.__importDefault) || function (mod) {
+     return (mod && mod.__esModule) ? mod : { "default": mod };
+ };
+@@ -34,9 +23,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+                 console.error('\x1b[35m%s \x1b[31m%s %s\x1b[0m', '[html-inline-script-webpack-plugin]', 'Options is now an object containing `scriptMatchPattern` and `htmlMatchPattern` in version 3.x.', 'Please refer to documentation for more information.');
+                 throw new Error('OPTIONS_PATTERN_UNMATCHED');
+             }
+-            var _a = options.scriptMatchPattern, scriptMatchPattern = _a === void 0 ? [/.+[.]js$/] : _a, _b = options.htmlMatchPattern, htmlMatchPattern = _b === void 0 ? [/.+[.]html$/] : _b;
++            var _a = options.scriptMatchPattern, scriptMatchPattern = _a === void 0 ? [/.+[.]js$/] : _a, _b = options.htmlMatchPattern, htmlMatchPattern = _b === void 0 ? [/.+[.]html$/] : _b, _c = options.scriptLoadingPatterns, scriptLoadingPatterns = _c === void 0 ? {} : _c;
+             this.scriptMatchPattern = scriptMatchPattern;
+             this.htmlMatchPattern = htmlMatchPattern;
++            this.scriptLoadingPatterns = scriptLoadingPatterns;
+             this.processedScriptFiles = [];
+             this.ignoredHtmlFiles = [];
+         }
+@@ -47,7 +37,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+             return this.htmlMatchPattern.some(function (test) { return templateName.match(test); });
+         };
+         HtmlInlineScriptPlugin.prototype.processScriptTag = function (publicPath, assets, tag) {
+-            var _a;
++            var _a, _b, _c;
+             if (tag.tagName !== 'script' || !((_a = tag.attributes) === null || _a === void 0 ? void 0 : _a.src)) {
+                 return tag;
+             }
+@@ -61,14 +51,23 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+                 return tag;
+             }
+             // eslint-disable-next-line @typescript-eslint/no-unused-vars
+-            var _b = tag.attributes, src = _b.src, attributesWithoutSrc = __rest(_b, ["src"]);
++            var updatedAttributes = tag.attributes;
++            delete updatedAttributes.src;
++            if ((_b = this.scriptLoadingPatterns.blocking) === null || _b === void 0 ? void 0 : _b.some(function (test) { return scriptName.match(test); })) {
++                delete updatedAttributes.async;
++                delete updatedAttributes.defer;
++            }
++            if ((_c = this.scriptLoadingPatterns.defer) === null || _c === void 0 ? void 0 : _c.some(function (test) { return scriptName.match(test); })) {
++                delete updatedAttributes.async;
++                updatedAttributes.defer = true;
++            }
+             this.processedScriptFiles.push(scriptName);
+             return {
+                 tagName: 'script',
+                 // escape '</script>' appears in source
+                 innerHTML: asset.source().replace(/(<)(\/script>)/g, '\\x3C$2'),
+                 voidTag: false,
+-                attributes: attributesWithoutSrc,
++                attributes: updatedAttributes,
+                 meta: { plugin: 'html-inline-script-webpack-plugin' }
+             };
+         };

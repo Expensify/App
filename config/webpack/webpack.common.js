@@ -75,9 +75,20 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             template: 'web/index.html',
             filename: 'index.html',
             usePolyfillIO: platform === 'web',
+            chunksSortMode: (chunkA, chunkB) => {
+                console.log('RORY_DEBUG sorting chunks:', {chunkA, chunkB});
+                if (chunkA === 'splash') {
+                    return -1;
+                }
+
+                return chunkB - chunkA;
+            },
         }),
         new HtmlInlineScriptPlugin({
             scriptMatchPattern: [/splash.+[.]js$/],
+            scriptLoadingPatterns: {
+                blocking: [/splash.+[.]js$/],
+            },
         }),
         new ProvidePlugin({
             process: 'process/browser',
