@@ -18,7 +18,7 @@ const propTypes = {
 
 function CurrencySymbolButton(props) {
     return (
-        <Tooltip text={props.translate('common.currency')}>
+        <Tooltip text={props.translate('iOUCurrencySelection.selectCurrency')}>
             <TouchableOpacity onPress={props.onCurrencyButtonPress}>
                 <Text style={styles.iouAmountText}>{props.currencySymbol}</Text>
             </TouchableOpacity>
