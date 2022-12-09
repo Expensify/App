@@ -20,7 +20,6 @@ const Localize = require('../src/libs/Localize');
 const port = process.env.PORT || 8080;
 
 app.setName('New Expensify');
-app.commandLine.appendSwitch('lang', 'es');
 
 /**
  * Electron main process that handles wrapping the web application.
@@ -76,7 +75,7 @@ let hasUpdate = false;
 let downloadedVersion;
 
 // Current locale being used for translating menu items
-let preferredLocale = Localize.preferredLocale;
+let preferredLocale = Localize.getPreferredLocale();
 
 const quitAndInstallWithUpdate = () => {
     if (!downloadedVersion) {

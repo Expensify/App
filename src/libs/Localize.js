@@ -101,9 +101,16 @@ function arrayToString(anArray) {
     return aString;
 }
 
+/*
+* @return {String}
+*/
+function getPreferredLocale() {
+    return preferredLocale;
+}
+
 export {
     translate,
     translateLocal,
     arrayToString,
-    preferredLocale
+    getPreferredLocale,
 };
