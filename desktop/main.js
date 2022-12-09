@@ -104,23 +104,23 @@ const manuallyCheckForUpdates = (menuItem, browserWindow) => {
             if (downloadPromise) {
                 dialog.showMessageBox(browserWindow, {
                     type: 'info',
-                    message: Localize.translateLocal('checkForUpdatesModal.available.title'),
-                    detail: Localize.translateLocal('checkForUpdatesModal.available.message'),
-                    buttons: [Localize.translateLocal('checkForUpdatesModal.available.soundsGood')],
+                    message: Localize.translate(preferredLocale, 'checkForUpdatesModal.available.title'),
+                    detail: Localize.translate(preferredLocale, 'checkForUpdatesModal.available.message'),
+                    buttons: [Localize.translate(preferredLocale, 'checkForUpdatesModal.available.soundsGood')],
                 });
             } else if (result && result.error) {
                 dialog.showMessageBox(browserWindow, {
                     type: 'error',
-                    message: Localize.translateLocal('checkForUpdatesModal.error.title'),
-                    detail: Localize.translateLocal('checkForUpdatesModal.error.message'),
-                    buttons: [Localize.translateLocal('checkForUpdatesModal.notAvailable.okay')],
+                    message: Localize.translate(preferredLocale, 'checkForUpdatesModal.error.title'),
+                    detail: Localize.translate(preferredLocale, 'checkForUpdatesModal.error.message'),
+                    buttons: [Localize.translate(preferredLocale, 'checkForUpdatesModal.notAvailable.okay')],
                 });
             } else {
                 dialog.showMessageBox(browserWindow, {
                     type: 'info',
-                    message: Localize.translateLocal('checkForUpdatesModal.notAvailable.title'),
-                    detail: Localize.translateLocal('checkForUpdatesModal.notAvailable.message'),
-                    buttons: [Localize.translateLocal('checkForUpdatesModal.notAvailable.okay')],
+                    message: Localize.translate(preferredLocale, 'checkForUpdatesModal.notAvailable.title'),
+                    detail: Localize.translate(preferredLocale, 'checkForUpdatesModal.notAvailable.message'),
+                    buttons: [Localize.translate(preferredLocale, 'checkForUpdatesModal.notAvailable.okay')],
                     cancelId: 2,
                 });
             }
@@ -390,7 +390,7 @@ const mainWindow = (() => {
                 let appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');
                 const currentUpdateAppMenuItem = systemMenu.getMenuItemById(`updateAppMenuItem-${preferredLocale}`);
                 const currentCheckForUpdateMenuItem = systemMenu.getMenuItemById(`checkForUpdateMenuItem-${preferredLocale}`);
-                const currentKeyboardShortcutsMenu = systemMenu.getMenuItemById(`keyboardShortcutsMenuItem-${preferredLocale}`);
+                const currentKeyboardShortcutsMenuItem = systemMenu.getMenuItemById(`keyboardShortcutsMenuItem-${preferredLocale}`);
 
                 // Update the labels and ids to use the translations.
                 const updateAppMenuItem = new MenuItem({
@@ -418,7 +418,7 @@ const mainWindow = (() => {
                 if (systemMenu.getMenuItemById(`updateAppMenuItem-${updatedLocale}`)) {
                     systemMenu.getMenuItemById(`updateAppMenuItem-${updatedLocale}`).visible = true;
                     systemMenu.getMenuItemById(`checkForUpdateMenuItem-${updatedLocale}`).visible = true;
-                    systemMenu.getMenuItemById(`keyboardShortcutsMenu-${updatedLocale}`).visible = true;
+                    systemMenu.getMenuItemById(`keyboardShortcutsMenuItem-${updatedLocale}`).visible = true;
                 } else {
                     appMenu.submenu.insert(1, updateAppMenuItem);
                     appMenu.submenu.insert(2, checkForUpdateMenuItem);
@@ -428,7 +428,7 @@ const mainWindow = (() => {
                 // Since we can remove menu items, we hide the old ones.
                 currentUpdateAppMenuItem.visible = false;
                 currentCheckForUpdateMenuItem.visible = false;
-                currentKeyboardShortcutsMenu.visible = false;
+                currentKeyboardShortcutsMenuItem.visible = false;
 
                 Menu.setApplicationMenu(systemMenu);
                 preferredLocale = updatedLocale;
