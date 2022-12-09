@@ -673,7 +673,7 @@ function readNewestAction(reportID, created) {
     API.write('ReadNewestAction',
         {
             reportID,
-            created: DateUtils.getDBTime(created),
+            createdDate: DateUtils.getDBTime(created),
             sequenceNumber,
         },
         {
@@ -702,7 +702,7 @@ function markCommentAsUnread(reportID, created, sequenceNumber) {
             reportID,
 
             // We subtract 1 millisecond so that the lastRead is updated to just before this reportAction's created date
-            created: DateUtils.getDBTime(new Date(created) - 1),
+            createdDate: DateUtils.getDBTime(new Date(created) - 1),
             sequenceNumber,
         },
         {
