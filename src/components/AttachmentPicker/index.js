@@ -42,7 +42,8 @@ class AttachmentPicker extends React.Component {
                         this.fileInput.value = null;
                     }}
 
-                    // Prevent parent's onclick event from firing
+                    // We are stopping the event propagation because triggering the `click()` on the hidden input
+                    // causes the event to unexpectedly bubble up to anything wrapping this component e.g. Pressable
                     onClick={e => e.stopPropagation()}
                     accept={getAcceptableFileTypes(this.props.type)}
                 />
