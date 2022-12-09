@@ -14,7 +14,7 @@ const getCommonConfig = require('./webpack.common');
  * @returns {webpack.Configuration[]}
  */
 module.exports = (env) => {
-    const rendererConfig = getCommonConfig({...env, platform: 'desktop', extensions: ['*', '.js', '.jsx']});
+    const rendererConfig = getCommonConfig({...env, platform: 'desktop'});
     const outputPath = path.resolve(__dirname, '../../desktop/dist');
 
     rendererConfig.name = 'renderer';

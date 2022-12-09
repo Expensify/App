@@ -18,7 +18,6 @@ const CONFIG = require('../src/CONFIG').default;
 const Localize = require('../src/libs/Localize');
 
 const port = process.env.PORT || 8080;
-let preferredLocale = 'en'
 
 app.setName('New Expensify');
 
@@ -146,21 +145,21 @@ const showKeyboardShortcutsModal = (browserWindow) => {
 // Defines the system-level menu item to manually apply an update
 // This menu item should become visible after an update is downloaded and ready to be applied
 const updateAppMenuItem = new MenuItem({
-    label: Localize.translate(preferredLocale, 'systemContextMenu.aboutExpensify'),
+    label: Localize.translateLocal('systemContextMenu.aboutExpensify'),
     visible: false,
     click: quitAndInstallWithUpdate,
 });
 
 // System-level menu item to manually check for App updates
 const checkForUpdateMenuItem = new MenuItem({
-    label: Localize.translate(preferredLocale, 'systemContextMenu.checkForUpdates'),
+    label: Localize.translateLocal('systemContextMenu.checkForUpdates'),
     visible: true,
     click: manuallyCheckForUpdates,
 });
 
 // Defines the system-level menu item for opening keyboard shortcuts modal
 const keyboardShortcutsMenu = new MenuItem({
-    label: Localize.translate(preferredLocale, 'initialSettingsPage.aboutPage.viewKeyboardShortcuts'),
+    label: Localize.translateLocal('initialSettingsPage.aboutPage.viewKeyboardShortcuts'),
     accelerator: 'CmdOrCtrl+I',
 });
 
@@ -376,10 +375,10 @@ const mainWindow = (() => {
                 app.hide();
             }
 
-            ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, preferredLocale) => {
-                updateAppMenuItem.label = Localize.translate(preferredLocale, 'systemContextMenu.aboutExpensify');
-                checkForUpdateMenuItem.label = Localize.translate(preferredLocale, 'systemContextMenu.checkForUpdates');
-                keyboardShortcutsMenu.label = Localize.translate(preferredLocale, 'initialSettingsPage.aboutPage.viewKeyboardShortcuts');
+            ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale) => {
+                updateAppMenuItem.label = Localize.translate(updatedLocale, 'systemContextMenu.aboutExpensify');
+                checkForUpdateMenuItem.label = Localize.translate(updatedLocale, 'systemContextMenu.checkForUpdates');
+                keyboardShortcutsMenu.label = Localize.translate(updatedLocale, 'initialSettingsPage.aboutPage.viewKeyboardShortcuts');
             });
 
             ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {
