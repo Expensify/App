@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
@@ -156,7 +157,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
 
     // Now, let's add the data we need just when we are creating a new chat report
     if (isNewChat) {
-        const optimisticCreateAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
+        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
 
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
@@ -167,7 +168,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         };
         optimisticData[1].onyxMethod = CONST.ONYX.METHOD.SET;
         optimisticData[1].value = {
-            ...optimisticCreateAction,
+            ...optimisticCreatedAction,
             ...optimisticData[1].value,
         };
         optimisticData[2].onyxMethod = CONST.ONYX.METHOD.SET;
@@ -685,17 +686,13 @@ function payIOUReport({
 }) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
 
-    const payIOUPromise = paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
-        ? DeprecatedAPI.PayWithWallet({reportID, newIOUReportDetails})
-        : DeprecatedAPI.PayIOU({reportID, paymentMethodType, newIOUReportDetails});
-
     // Build the url for Paypal.me if they have selected it instead of a manual settlement or Expensify Wallet
     let url;
     if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
         url = buildPayPalPaymentUrl(amount, requestorPayPalMeAddress, currency);
     }
 
-    const promiseWithHandlers = payIOUPromise
+    const promiseWithHandlers = DeprecatedAPI.PayWithWallet({reportID, newIOUReportDetails})
         .then((response) => {
             if (response.jsonCode !== 200) {
                 switch (response.message) {
@@ -723,11 +720,325 @@ function payIOUReport({
     return promiseWithHandlers;
 }
 
+/**
+ * @param {Object} report
+ * @param {Number} amount
+ * @param {String} currency
+ * @param {String} comment
+ * @param {String} paymentMethodType
+ * @param {String} managerEmail - Email of the person sending the money
+ * @param {Object} recipient - The user receiving the money
+ * @returns {Object}
+ */
+function getSendMoneyParams(report, amount, currency, comment, paymentMethodType, managerEmail, recipient) {
+    const recipientEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(recipient.login);
+
+    const newIOUReportDetails = JSON.stringify({
+        amount,
+        currency,
+        requestorEmail: recipientEmail,
+        comment,
+        idempotencyKey: Str.guid(),
+    });
+
+    let chatReport = report.reportID ? report : null;
+    let isNewChat = false;
+    if (!chatReport) {
+        chatReport = ReportUtils.getChatByParticipants([recipientEmail]);
+    }
+    if (!chatReport) {
+        chatReport = ReportUtils.buildOptimisticChatReport([recipientEmail]);
+        isNewChat = true;
+    }
+    const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, managerEmail, amount, chatReport.reportID, currency, preferredLocale, true);
+
+    // This will be deprecated soon, in case the migration happens before this PR is merged we'll need to adjust the code here
+    const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
+
+    const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
+        newSequenceNumber,
+        CONST.IOU.REPORT_ACTION_TYPE.PAY,
+        amount,
+        currency,
+        comment,
+        [recipient],
+        paymentMethodType,
+        '',
+        optimisticIOUReport.reportID,
+    );
+
+    // First, add data that will be used in all cases
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                ...chatReport,
+                lastVisitedTimestamp: Date.now(),
+                lastActionCreated: optimisticIOUReportAction.created,
+                lastReadSequenceNumber: newSequenceNumber,
+                maxSequenceNumber: newSequenceNumber,
+                lastMessageText: optimisticIOUReportAction.message[0].text,
+                lastMessageHtml: optimisticIOUReportAction.message[0].html,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticIOUReportAction.sequenceNumber]: {
+                    ...optimisticIOUReportAction,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticIOUReport.reportID}`,
+            value: optimisticIOUReport,
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticIOUReportAction.sequenceNumber]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticIOUReportAction.sequenceNumber]: {
+                    errors: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),
+                    },
+                },
+            },
+        },
+    ];
+
+    // Now, let's add the data we need just when we are creating a new chat report
+    if (isNewChat) {
+        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
+
+        // Change the method to set for new reports because it doesn't exist yet, is faster,
+        // and we need the data to be available when we navigate to the chat page
+        optimisticData[0].onyxMethod = CONST.ONYX.METHOD.SET;
+        optimisticData[0].value = {
+            ...optimisticData[0].value,
+            pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+        };
+        optimisticData[1].onyxMethod = CONST.ONYX.METHOD.SET;
+        optimisticData[1].value = {
+            ...optimisticCreatedAction,
+            ...optimisticData[1].value,
+        };
+        optimisticData[2].onyxMethod = CONST.ONYX.METHOD.SET;
+    }
+
+    return {
+        params: {
+            iouReportID: optimisticIOUReport.reportID,
+            chatReportID: chatReport.reportID,
+            reportActionID: optimisticIOUReportAction.reportActionID,
+            paymentMethodType,
+            transactionID: optimisticIOUReportAction.originalMessage.IOUTransactionID,
+            clientID: optimisticIOUReportAction.sequenceNumber,
+            newIOUReportDetails,
+        },
+        optimisticData,
+        successData,
+        failureData,
+    };
+}
+
+/**
+ * @param {Object} chatReport
+ * @param {Object} iouReport
+ * @param {Object} recipient
+ * @param {String} paymentMethodType
+ * @returns {Object}
+ */
+function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMethodType) {
+    const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
+
+    const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
+        newSequenceNumber,
+        CONST.IOU.REPORT_ACTION_TYPE.PAY,
+        iouReport.total,
+        iouReport.currency,
+        '',
+        [recipient],
+        paymentMethodType,
+        '',
+        iouReport.reportID,
+        true,
+    );
+
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                ...chatReport,
+                lastVisitedTimestamp: Date.now(),
+                lastActionCreated: optimisticIOUReportAction.created,
+                lastReadSequenceNumber: newSequenceNumber,
+                maxSequenceNumber: newSequenceNumber,
+                lastMessageText: optimisticIOUReportAction.message[0].text,
+                lastMessageHtml: optimisticIOUReportAction.message[0].html,
+                hasOutstandingIOU: false,
+                iouReportID: null,
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticIOUReportAction.sequenceNumber]: {
+                    ...optimisticIOUReportAction,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                ...iouReport,
+                hasOutstandingIOU: false,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticIOUReportAction.sequenceNumber]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticIOUReportAction.sequenceNumber]: {
+                    pendingAction: null,
+                    errors: {
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),
+                    },
+                },
+            },
+        },
+    ];
+
+    return {
+        params: {
+            iouReportID: iouReport.reportID,
+            reportActionID: optimisticIOUReportAction.reportActionID,
+            paymentMethodType,
+            clientID: optimisticIOUReportAction.sequenceNumber,
+        },
+        optimisticData,
+        successData,
+        failureData,
+    };
+}
+
+/**
+ * @param {Object} report
+ * @param {Number} amount
+ * @param {String} currency
+ * @param {String} comment
+ * @param {String} managerEmail - Email of the person sending the money
+ * @param {Object} recipient - The user receiving the money
+ */
+function sendMoneyElsewhere(report, amount, currency, comment, managerEmail, recipient) {
+    const {
+        params, optimisticData, successData, failureData,
+    } = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.ELSEWHERE, managerEmail, recipient);
+
+    API.write('SendMoneyElsewhere', params, {optimisticData, successData, failureData});
+
+    Navigation.navigate(ROUTES.getReportRoute(params.chatReportID));
+}
+
+/**
+ * @param {Object} report
+ * @param {Number} amount
+ * @param {String} currency
+ * @param {String} comment
+ * @param {String} managerEmail - Email of the person sending the money
+ * @param {Object} recipient - The user receiving the money
+ */
+function sendMoneyViaPaypal(report, amount, currency, comment, managerEmail, recipient) {
+    const {
+        params, optimisticData, successData, failureData,
+    } = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.PAYPAL_ME, managerEmail, recipient);
+
+    API.write('SendMoneyViaPaypal', params, {optimisticData, successData, failureData});
+
+    Navigation.navigate(ROUTES.getReportRoute(params.chatReportID));
+
+    asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(amount, recipient.payPalMeAddress, currency));
+}
+
+/**
+ * @param {Object} chatReport
+ * @param {Object} iouReport
+ * @param {Object} recipient
+ */
+function payMoneyRequestElsewhere(chatReport, iouReport, recipient) {
+    const {
+        params, optimisticData, successData, failureData,
+    } = getPayMoneyRequestParams(chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+
+    API.write('PayMoneyRequestElsewhere', params, {optimisticData, successData, failureData});
+
+    Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
+}
+
+/**
+ * @param {Object} chatReport
+ * @param {Object} iouReport
+ * @param {Object} recipient
+ */
+function payMoneyRequestViaPaypal(chatReport, iouReport, recipient) {
+    const {
+        params, optimisticData, successData, failureData,
+    } = getPayMoneyRequestParams(chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.PAYPAL_ME);
+
+    API.write('PayMoneyRequestViaPaypal', params, {optimisticData, successData, failureData});
+
+    Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
+
+    asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(iouReport.total, recipient.payPalMeAddress, iouReport.currency));
+}
+
 export {
     cancelMoneyRequest,
     splitBill,
     splitBillAndOpenReport,
     requestMoney,
     payIOUReport,
+    sendMoneyElsewhere,
+    sendMoneyViaPaypal,
+    payMoneyRequestElsewhere,
+    payMoneyRequestViaPaypal,
     setIOUSelectedCurrency,
 };
