@@ -1,5 +1,5 @@
 import {Linking} from 'react-native';
-import moment from 'moment';
+import moment, { tz } from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -666,14 +666,14 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
  * Marks the new report actions as read
  *
  * @param {String} reportID
- * @param {String} created
+ * @param {String} createdDate
  */
-function readNewestAction(reportID, created) {
+function readNewestAction(reportID, createdDate) {
     const sequenceNumber = getMaxSequenceNumber(reportID);
     API.write('ReadNewestAction',
         {
             reportID,
-            createdDate: DateUtils.getDBTime(created),
+            createdDate,
             sequenceNumber,
         },
         {
@@ -692,17 +692,17 @@ function readNewestAction(reportID, created) {
  * Sets the last read comment on a report
  *
  * @param {String} reportID
- * @param {String} created
+ * @param {String} createdDate
  * @param {Number} sequenceNumber
  */
-function markCommentAsUnread(reportID, created, sequenceNumber) {
+function markCommentAsUnread(reportID, createdDate, sequenceNumber) {
     const newLastReadSequenceNumber = sequenceNumber - 1;
     API.write('MarkAsUnread',
         {
             reportID,
 
             // We subtract 1 millisecond so that the lastRead is updated to just before this reportAction's created date
-            createdDate: DateUtils.getDBTime(new Date(created) - 1),
+            createdDate: DateUtils.getDBTime(moment.utc(createdDate).valueOf() - 1),
             sequenceNumber,
         },
         {
