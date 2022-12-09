@@ -384,7 +384,7 @@ const mainWindow = (() => {
                 app.hide();
             }
 
-            ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (preferredLocale) => {
+            ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, preferredLocale) => {
                 generateContextMenu(preferredLocale);
             });
 

@@ -19,8 +19,8 @@ Onyx.connect({
 
         preferredLocale = val;
 
-        // Update the system context menus with the localized options
-        window.electron.sendSync(ELECTRON_EVENTS.LOCALE_UPDATED, preferredLocale);
+        // Update the system context menus with the localized options.
+        window.electron.send(ELECTRON_EVENTS.LOCALE_UPDATED, val);
     },
 });
 
