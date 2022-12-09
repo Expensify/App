@@ -76,7 +76,6 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             filename: 'index.html',
             usePolyfillIO: platform === 'web',
             chunksSortMode: (chunkA, chunkB) => {
-                console.log('RORY_DEBUG sorting chunks:', {chunkA, chunkB});
                 if (chunkA === 'splash') {
                     return -1;
                 }

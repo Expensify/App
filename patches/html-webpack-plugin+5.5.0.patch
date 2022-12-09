@@ -1,5 +1,5 @@
 diff --git a/node_modules/html-webpack-plugin/index.js b/node_modules/html-webpack-plugin/index.js
-index de9a629..464fa57 100644
+index de9a629..aaad8a3 100644
 --- a/node_modules/html-webpack-plugin/index.js
 +++ b/node_modules/html-webpack-plugin/index.js
 @@ -76,7 +76,7 @@ class HtmlWebpackPlugin {
@@ -532,7 +532,7 @@ index de9a629..464fa57 100644
      const compilationHash = compilation.hash;
      /**
       * @type {{
-@@ -656,14 +656,15 @@ function hookIntoCompiler (compiler, options, plugin) {
+@@ -656,14 +656,14 @@ function hookIntoCompiler (compiler, options, plugin) {
      }
  
      // Extract paths to .js, .mjs and .css files from the current compilation
@@ -545,7 +545,6 @@ index de9a629..464fa57 100644
 -      const entryPointUnfilteredFiles = compilation.entrypoints.get(entryName).getFiles();
 +    for (let i = 0; i < chunkNames.length; i++) {
 +      const chunkName = chunkNames[i];
-+      console.log('RORY_DEBUG named chunk unfiltered files:', compilation.namedChunks.get(chunkName).files);
 +      /** chunkUnfilteredFiles - also includes hot module update files */
 +      const chunkUnfilteredFiles = compilation.namedChunks.get(chunkName).files;
  
@@ -554,7 +553,7 @@ index de9a629..464fa57 100644
          // compilation.getAsset was introduced in webpack 4.4.0
          // once the support pre webpack 4.4.0 is dropped please
          // remove the following guard:
-@@ -679,29 +680,29 @@ function hookIntoCompiler (compiler, options, plugin) {
+@@ -679,29 +679,29 @@ function hookIntoCompiler (compiler, options, plugin) {
        // Prepend the publicPath and append the hash depending on the
        // webpack.output.publicPath and hashOptions
        // E.g. bundle.js -> /bundle.js?hash
@@ -596,7 +595,7 @@ index de9a629..464fa57 100644
        });
      }
      return assets;
-@@ -721,13 +722,13 @@ function hookIntoCompiler (compiler, options, plugin) {
+@@ -721,13 +721,13 @@ function hookIntoCompiler (compiler, options, plugin) {
        return Promise.resolve(undefined);
      }
      return addFileToAssets(faviconFilePath, compilation)
@@ -617,7 +616,7 @@ index de9a629..464fa57 100644
    }
  
    /**
-@@ -771,8 +772,8 @@ function hookIntoCompiler (compiler, options, plugin) {
+@@ -771,8 +771,8 @@ function hookIntoCompiler (compiler, options, plugin) {
              | string
              | {[attributeName: string]: string} // attributes e.g. { href:"http://example.com/page.html" target:"_blank" }
              } baseOption
@@ -628,7 +627,7 @@ index de9a629..464fa57 100644
    function generateBaseTag (baseOption) {
      if (baseOption === false) {
        return [];
-@@ -796,8 +797,8 @@ function hookIntoCompiler (compiler, options, plugin) {
+@@ -796,8 +796,8 @@ function hookIntoCompiler (compiler, options, plugin) {
                | string // name content pair e.g. {viewport: 'width=device-width, initial-scale=1, shrink-to-fit=no'}`
                | {[attributeName: string]: string|boolean} // custom properties e.g. { name:"viewport" content:"width=500, initial-scale=1" }
          }} metaOptions
@@ -639,7 +638,7 @@ index de9a629..464fa57 100644
    function generatedMetaTags (metaOptions) {
      if (metaOptions === false) {
        return [];
-@@ -806,16 +807,16 @@ function hookIntoCompiler (compiler, options, plugin) {
+@@ -806,16 +806,16 @@ function hookIntoCompiler (compiler, options, plugin) {
      // Turn { "viewport" : "width=500, initial-scale=1" } into
      // [{ name:"viewport" content:"width=500, initial-scale=1" }]
      const metaTagAttributeObjects = Object.keys(metaOptions)
@@ -666,7 +665,7 @@ index de9a629..464fa57 100644
      return metaTagAttributeObjects.map((metaTagAttributes) => {
        if (metaTagAttributes === false) {
          throw new Error('Invalid meta tag');
-@@ -857,12 +858,12 @@ function hookIntoCompiler (compiler, options, plugin) {
+@@ -857,12 +857,12 @@ function hookIntoCompiler (compiler, options, plugin) {
        styles: Array<HtmlTagObject>;
        meta: Array<HtmlTagObject>;
      }} assetTags
@@ -682,7 +681,7 @@ index de9a629..464fa57 100644
    function generateAssetGroups (assetTags, scriptTarget) {
      /** @type {{ headTags: Array<HtmlTagObject>; bodyTags: Array<HtmlTagObject>; }} */
      const result = {
-@@ -1029,8 +1030,8 @@ function hookIntoCompiler (compiler, options, plugin) {
+@@ -1029,8 +1029,8 @@ function hookIntoCompiler (compiler, options, plugin) {
      }
      // Resolve template path
      return template.replace(
@@ -693,7 +692,7 @@ index de9a629..464fa57 100644
    }
  
    /**
-@@ -1059,7 +1060,7 @@ function hookIntoCompiler (compiler, options, plugin) {
+@@ -1059,7 +1059,7 @@ function hookIntoCompiler (compiler, options, plugin) {
              'See https://github.com/jantimon/html-webpack-plugin#options for details.\n\n' +
              'For parser dedicated bugs please create an issue here:\n' +
              'https://danielruf.github.io/html-minifier-terser/' +
