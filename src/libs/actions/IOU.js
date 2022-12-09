@@ -475,6 +475,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             amount: splitAmount,
             iouReportID: oneOnOneIOUReport.reportID,
             chatReportID: oneOnOneChatReport.reportID,
+            createdReportActionID: oneOnOneCreatedReportAction.reportActionID,
             transactionID: oneOnOneIOUReportAction.originalMessage.IOUTransactionID,
             reportActionID: oneOnOneIOUReportAction.reportActionID,
             clientID: oneOnOneIOUReportAction.clientID.toString(),
@@ -484,6 +485,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     return {
         groupData: {
             chatReportID: groupChatReport.reportID,
+            createdReportActionID: groupCreatedReportAction.reportActionID,
             transactionID: groupIOUReportAction.originalMessage.IOUTransactionID,
             reportActionID: groupIOUReportAction.reportActionID,
             clientID: groupIOUReportAction.clientID.toString(),
@@ -512,6 +514,7 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, lo
         comment,
         transactionID: groupData.transactionID,
         reportActionID: groupData.reportActionID,
+        createdReportActionID: groupData.createdReportActionID,
         clientID: groupData.clientID,
     }, onyxData);
 
@@ -537,6 +540,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
         comment,
         transactionID: groupData.transactionID,
         reportActionID: groupData.reportActionID,
+        createdReportActionID: groupData.createdReportActionID,
         clientID: groupData.clientID,
     }, onyxData);
 
