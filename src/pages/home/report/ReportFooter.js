@@ -21,16 +21,16 @@ import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** Report object for the current report */
-    report: reportPropTypes,
+    report: reportPropTypes.isRequired,
 
     /** Report actions for the current report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)).isRequired,
 
     /** Offline status */
     isOffline: PropTypes.bool.isRequired,
 
     /** Callback fired when the comment is submitted */
-    onSubmitComment: PropTypes.func,
+    onSubmitComment: PropTypes.func.isRequired,
 
     /** Any errors associated with an attempt to create a chat */
     // eslint-disable-next-line react/forbid-prop-types
@@ -42,20 +42,13 @@ const propTypes = {
     /** Whether the composer input should be shown */
     shouldShowComposeInput: PropTypes.bool,
 
-    /** Whether user interactions should be disabled */
-    shouldDisableCompose: PropTypes.bool,
-
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
-    report: {reportID: '0'},
-    reportActions: {},
-    onSubmitComment: () => {},
+    shouldShowComposeInput: true,
     errors: {},
     pendingAction: null,
-    shouldShowComposeInput: true,
-    shouldDisableCompose: false,
 };
 
 class ReportFooter extends React.Component {
@@ -106,7 +99,6 @@ class ReportFooter extends React.Component {
                                     reportActions={this.props.reportActions}
                                     report={this.props.report}
                                     isComposerFullSize={this.props.isComposerFullSize}
-                                    disabled={this.props.shouldDisableCompose}
                                 />
                             </OfflineWithFeedback>
                         </SwipeableView>
