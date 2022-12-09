@@ -143,6 +143,27 @@ const showKeyboardShortcutsModal = (browserWindow) => {
     browserWindow.webContents.send(ELECTRON_EVENTS.SHOW_KEYBOARD_SHORTCUTS_MODAL);
 };
 
+// Defines the system-level menu item to manually apply an update
+// This menu item should become visible after an update is downloaded and ready to be applied
+const updateAppMenuItem = new MenuItem({
+    label: Localize.translate(preferredLocale, 'systemContextMenu.aboutExpensify'),
+    visible: false,
+    click: quitAndInstallWithUpdate,
+});
+
+// System-level menu item to manually check for App updates
+const checkForUpdateMenuItem = new MenuItem({
+    label: Localize.translate(preferredLocale, 'systemContextMenu.checkForUpdates'),
+    visible: true,
+    click: manuallyCheckForUpdates,
+});
+
+// Defines the system-level menu item for opening keyboard shortcuts modal
+const keyboardShortcutsMenu = new MenuItem({
+    label: Localize.translate(preferredLocale, 'initialSettingsPage.aboutPage.viewKeyboardShortcuts'),
+    accelerator: 'CmdOrCtrl+I',
+});
+
 // Actual auto-update listeners
 const electronUpdater = browserWindow => ({
     init: () => {
@@ -163,79 +184,6 @@ const electronUpdater = browserWindow => ({
     update: () => {
         autoUpdater.checkForUpdates();
     },
-});
-
-let updateAppMenuItem;
-let checkForUpdateMenuItem;
-let keyboardShortcutsMenu;
-const generateContextMenu = ((preferredLocale) => {
-    // Defines the system-level menu item to manually apply an update
-    // This menu item should become visible after an update is downloaded and ready to be applied
-    updateAppMenuItem = new MenuItem({
-        label: Localize.translate(preferredLocale, 'systemContextMenu.aboutExpensify'),
-        visible: false,
-        click: quitAndInstallWithUpdate,
-    });
-
-    // System-level menu item to manually check for App updates
-    checkForUpdateMenuItem = new MenuItem({
-        label: Localize.translate(preferredLocale, 'systemContextMenu.checkForUpdates'),
-        visible: true,
-        click: manuallyCheckForUpdates,
-    });
-
-    // Defines the system-level menu item for opening keyboard shortcuts modal
-    keyboardShortcutsMenu = new MenuItem({
-        label: Localize.translate(preferredLocale, 'initialSettingsPage.aboutPage.viewKeyboardShortcuts'),
-        accelerator: 'CmdOrCtrl+I',
-    });
-
-    // List the Expensify Chat instance under the Window menu, even when it's hidden
-    const systemMenu = Menu.getApplicationMenu();
-    systemMenu.insert(4, new MenuItem({
-        label: 'History',
-        submenu: [{
-            role: 'back',
-            label: 'Back',
-            accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
-            click: () => { browserWindow.webContents.goBack(); },
-        },
-            {
-                role: 'forward',
-                label: 'Forward',
-                accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
-                click: () => { browserWindow.webContents.goForward(); },
-            }],
-    }));
-
-    // Register the custom Paste and Match Style command and place it near the default shortcut of the same role.
-    const editMenu = _.find(systemMenu.items, item => item.role === 'editmenu');
-    editMenu.submenu.insert(6, new MenuItem({
-        role: 'pasteAndMatchStyle',
-        accelerator: 'CmdOrCtrl+Shift+V',
-    }));
-
-    const appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');
-    appMenu.submenu.insert(1, updateAppMenuItem);
-    appMenu.submenu.insert(2, checkForUpdateMenuItem);
-    appMenu.submenu.insert(3, keyboardShortcutsMenu);
-
-    // On mac, pressing cmd++ actually sends a cmd+=. cmd++ is generally the zoom in shortcut, but this is
-    // not properly listened for by electron. Adding in an invisible cmd+= listener fixes this.
-    const viewWindow = _.find(systemMenu.items, item => item.role === 'viewmenu');
-    viewWindow.submenu.append(new MenuItem({
-        role: 'zoomin',
-        accelerator: 'CommandOrControl+=',
-        visible: false,
-    }));
-    const windowMenu = _.find(systemMenu.items, item => item.role === 'windowmenu');
-    windowMenu.submenu.append(new MenuItem({type: 'separator'}));
-    windowMenu.submenu.append(new MenuItem({
-        label: 'New Expensify',
-        accelerator: 'CmdOrCtrl+1',
-        click: () => browserWindow.show(),
-    }));
-    Menu.setApplicationMenu(systemMenu);
 });
 
 const mainWindow = (() => {
@@ -310,12 +258,56 @@ const mainWindow = (() => {
                 browserWindow.setTitle('New Expensify');
             }
 
-            // Show the custom menu items using the preferred user language
-            generateContextMenu('en');
-
             keyboardShortcutsMenu.click = () => {
                 showKeyboardShortcutsModal(browserWindow);
             };
+
+            // List the Expensify Chat instance under the Window menu, even when it's hidden
+            const systemMenu = Menu.getApplicationMenu();
+            systemMenu.insert(4, new MenuItem({
+                label: 'History',
+                submenu: [{
+                    role: 'back',
+                    label: 'Back',
+                    accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
+                    click: () => { browserWindow.webContents.goBack(); },
+                },
+                    {
+                        role: 'forward',
+                        label: 'Forward',
+                        accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
+                        click: () => { browserWindow.webContents.goForward(); },
+                    }],
+            }));
+
+            // Register the custom Paste and Match Style command and place it near the default shortcut of the same role.
+            const editMenu = _.find(systemMenu.items, item => item.role === 'editmenu');
+            editMenu.submenu.insert(6, new MenuItem({
+                role: 'pasteAndMatchStyle',
+                accelerator: 'CmdOrCtrl+Shift+V',
+            }));
+
+            const appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');
+            appMenu.submenu.insert(1, updateAppMenuItem);
+            appMenu.submenu.insert(2, checkForUpdateMenuItem);
+            appMenu.submenu.insert(3, keyboardShortcutsMenu);
+
+            // On mac, pressing cmd++ actually sends a cmd+=. cmd++ is generally the zoom in shortcut, but this is
+            // not properly listened for by electron. Adding in an invisible cmd+= listener fixes this.
+            const viewWindow = _.find(systemMenu.items, item => item.role === 'viewmenu');
+            viewWindow.submenu.append(new MenuItem({
+                role: 'zoomin',
+                accelerator: 'CommandOrControl+=',
+                visible: false,
+            }));
+            const windowMenu = _.find(systemMenu.items, item => item.role === 'windowmenu');
+            windowMenu.submenu.append(new MenuItem({type: 'separator'}));
+            windowMenu.submenu.append(new MenuItem({
+                label: 'New Expensify',
+                accelerator: 'CmdOrCtrl+1',
+                click: () => browserWindow.show(),
+            }));
+            Menu.setApplicationMenu(systemMenu);
 
             // When the user clicks a link that has target="_blank" (which is all external links)
             // open the default browser instead of a new electron window
@@ -385,7 +377,9 @@ const mainWindow = (() => {
             }
 
             ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, preferredLocale) => {
-                generateContextMenu(preferredLocale);
+                updateAppMenuItem.label = Localize.translate(preferredLocale, 'systemContextMenu.aboutExpensify');
+                checkForUpdateMenuItem.label = Localize.translate(preferredLocale, 'systemContextMenu.checkForUpdates');
+                keyboardShortcutsMenu.label = Localize.translate(preferredLocale, 'initialSettingsPage.aboutPage.viewKeyboardShortcuts');
             });
 
             ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {
