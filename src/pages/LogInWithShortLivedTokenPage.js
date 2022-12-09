@@ -22,7 +22,7 @@ class LogInWithShortLivedTokenPage extends Component {
     componentDidMount() {
         const email = lodashGet(this.props, 'route.params.email', '');
         const shortLivedToken = lodashGet(this.props, 'route.params.shortLivedToken', '');
-        Session.createTemporaryLogin(shortLivedToken, email);
+        Session.createTemporaryLogin(shortLivedToken);
     }
 
     render() {

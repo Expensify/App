@@ -1,10 +1,8 @@
 import Onyx from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../ONYXKEYS';
 import redirectToSignIn from '../SignInRedirect';
-import * as DeprecatedAPI from '../../deprecatedAPI';
 import CONFIG from '../../../CONFIG';
 import Log from '../../Log';
 import PushNotification from '../../Notification/PushNotification';
@@ -14,7 +12,6 @@ import * as Localize from '../../Localize';
 import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
 import Timers from '../../Timers';
 import * as Pusher from '../../Pusher/pusher';
-import * as User from '../User';
 import * as Authentication from '../../Authentication';
 import * as Welcome from '../Welcome';
 import * as API from '../../API';
@@ -26,23 +23,6 @@ Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
     callback: val => credentials = val,
 });
-
-/**
- * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
- *
- * @param {Object} data
- * @param {String} data.accountID
- * @param {String} data.authToken
- * @param {String} data.email
- */
-function setSuccessfulSignInData(data) {
-    PushNotification.register(data.accountID);
-    Onyx.merge(ONYXKEYS.SESSION, {
-        errors: null,
-        ..._.pick(data, 'authToken', 'accountID', 'email', 'encryptedAuthToken'),
-    });
-    Onyx.set(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, true);
-}
 
 /**
  * Clears the Onyx store and redirects user to the sign in page
@@ -164,10 +144,8 @@ function beginSignIn(login) {
  * re-authenticating after an authToken expires.
  *
  * @param {String} authToken
- * @param {String} email
- * @return {Promise}
  */
-function createTemporaryLogin(authToken, email) {
+function createTemporaryLogin(authToken) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
