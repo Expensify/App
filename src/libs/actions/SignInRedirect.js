@@ -37,33 +37,29 @@ Onyx.connect({
  * @param {String} errorMessage
  */
 function clearStorageAndRedirect(errorMessage) {
-    const activeClients = currentActiveClients;
-    const preferredLocale = currentPreferredLocale;
-    const isOffline = currentIsOffline;
-    const shouldForceOffline = currentShouldForceOffline;
-
     const keysToPreserve = [];
 
     // After signing out, set ourselves as offline if we were offline before logging out and we are not forcing it.
     // If we are forcing offline, ignore it while signed out, otherwise it would require a refresh because there's no way to toggle the switch to go back online while signed out.
-    if (isOffline && !shouldForceOffline) {
+    if (currentIsOffline && !currentShouldForceOffline) {
         keysToPreserve.push(ONYXKEYS.NETWORK);
     }
-    if (preferredLocale) {
+    if (currentPreferredLocale) {
         keysToPreserve.push(ONYXKEYS.NVP_PREFERRED_LOCALE);
+    }
+    if (currentActiveClients && currentActiveClients.length > 0) {
+        keysToPreserve.push(ONYXKEYS.ACTIVE_CLIENTS);
     }
 
     // Clearing storage discards the authToken. This causes a redirect to the SignIn screen
     Onyx.clear(keysToPreserve)
         .then(() => {
-            if (activeClients && activeClients.length > 0) {
-                Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
+            if (!errorMessage) {
+                return;
             }
 
-            // `Onyx.clear` reinitialize the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`
-            if (errorMessage) {
-                Onyx.merge(ONYXKEYS.SESSION, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal(errorMessage)}});
-            }
+            // `Onyx.clear` reinitializes the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`
+            Onyx.merge(ONYXKEYS.SESSION, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal(errorMessage)}});
         });
 }
 
