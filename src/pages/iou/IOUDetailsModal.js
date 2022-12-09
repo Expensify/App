@@ -119,7 +119,6 @@ class IOUDetailsModal extends Component {
                 this.props.iouReport,
                 recipient,
             );
-            Navigation.navigate(ROUTES.getReportRoute(this.props.route.params.chatReportID));
             return;
         }
 
