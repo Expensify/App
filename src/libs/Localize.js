@@ -7,6 +7,7 @@ import Config from '../CONFIG';
 import translations from '../languages/translations';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
+import ELECTRON_EVENTS from '../../desktop/ELECTRON_EVENTS';
 
 let preferredLocale = CONST.DEFAULT_LOCALE;
 Onyx.connect({
@@ -17,6 +18,9 @@ Onyx.connect({
         }
 
         preferredLocale = val;
+
+        // Update the system context menus with the localized options
+        window.electron.sendSync(ELECTRON_EVENTS.LOCALE_UPDATED, preferredLocale);
     },
 });
 

@@ -16,10 +16,9 @@ const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
 const checkForUpdates = require('../src/libs/checkForUpdates');
 const CONFIG = require('../src/CONFIG').default;
 const Localize = require('../src/libs/Localize');
-const ONYXKEYS = require('../src/ONYXKEYS').default;
-const Onyx = require('react-native-onyx').default;
 
 const port = process.env.PORT || 8080;
+let preferredLocale = 'en'
 
 app.setName('New Expensify');
 
@@ -84,34 +83,6 @@ const quitAndInstallWithUpdate = () => {
     autoUpdater.quitAndInstall();
 };
 
-let preferredLocale = 'en';
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-
-        preferredLocale = val;
-        checkForUpdateMenuItem = new MenuItem({
-            label: Localize.translate(val, 'systemContextMenu.checkForUpdates'),
-            visible: true,
-            click: manuallyCheckForUpdates,
-        });
-        updateAppMenuItem = new MenuItem({
-            label: Localize.translateLocal(val, 'systemContextMenu.aboutExpensify'),
-            visible: false,
-            click: quitAndInstallWithUpdate,
-        });
-        keyboardShortcutsMenu = new MenuItem({
-            label: Localize.translateLocal(val, 'initialSettingsPage.aboutPage.viewKeyboardShortcuts'),
-            accelerator: 'CmdOrCtrl+I',
-        });
-
-        generateContextMenu();
-    },
-});
-
 /**
  * Menu Item callback to triggers an update check
  * @param {MenuItem} menuItem
@@ -139,8 +110,8 @@ const manuallyCheckForUpdates = (menuItem, browserWindow) => {
                 dialog.showMessageBox(browserWindow, {
                     type: 'error',
                     message: Localize.translate(preferredLocale, 'checkForUpdatesModal.error.title'),
-                    detail: Localize.translateLocal('checkForUpdatesModal.error.message'),
-                    buttons: [Localize.translateLocal('checkForUpdatesModal.notAvailable.okay')],
+                    detail:Localize.translate(preferredLocale,'checkForUpdatesModal.error.message'),
+                    buttons: [Localize.translate(preferredLocale, 'checkForUpdatesModal.notAvailable.okay')],
                 });
             } else {
                 dialog.showMessageBox(browserWindow, {
@@ -172,27 +143,6 @@ const showKeyboardShortcutsModal = (browserWindow) => {
     browserWindow.webContents.send(ELECTRON_EVENTS.SHOW_KEYBOARD_SHORTCUTS_MODAL);
 };
 
-// Defines the system-level menu item to manually apply an update
-// This menu item should become visible after an update is downloaded and ready to be applied
-let updateAppMenuItem = new MenuItem({
-    label: Localize.translateLocal('systemContextMenu.aboutExpensify'),
-    visible: false,
-    click: quitAndInstallWithUpdate,
-});
-
-// System-level menu item to manually check for App updates
-let checkForUpdateMenuItem = new MenuItem({
-    label: Localize.translateLocal('systemContextMenu.checkForUpdates'),
-    visible: true,
-    click: manuallyCheckForUpdates,
-});
-
-// Defines the system-level menu item for opening keyboard shortcuts modal
-let keyboardShortcutsMenu = new MenuItem({
-    label: Localize.translateLocal('initialSettingsPage.aboutPage.viewKeyboardShortcuts'),
-    accelerator: 'CmdOrCtrl+I',
-});
-
 // Actual auto-update listeners
 const electronUpdater = browserWindow => ({
     init: () => {
@@ -215,7 +165,31 @@ const electronUpdater = browserWindow => ({
     },
 });
 
-const generateContextMenu = (() => {
+let updateAppMenuItem;
+let checkForUpdateMenuItem;
+let keyboardShortcutsMenu;
+const generateContextMenu = ((preferredLocale) => {
+    // Defines the system-level menu item to manually apply an update
+    // This menu item should become visible after an update is downloaded and ready to be applied
+    updateAppMenuItem = new MenuItem({
+        label: Localize.translate(preferredLocale, 'systemContextMenu.aboutExpensify'),
+        visible: false,
+        click: quitAndInstallWithUpdate,
+    });
+
+    // System-level menu item to manually check for App updates
+    checkForUpdateMenuItem = new MenuItem({
+        label: Localize.translate(preferredLocale, 'systemContextMenu.checkForUpdates'),
+        visible: true,
+        click: manuallyCheckForUpdates,
+    });
+
+    // Defines the system-level menu item for opening keyboard shortcuts modal
+    keyboardShortcutsMenu = new MenuItem({
+        label: Localize.translate(preferredLocale, 'initialSettingsPage.aboutPage.viewKeyboardShortcuts'),
+        accelerator: 'CmdOrCtrl+I',
+    });
+
     // List the Expensify Chat instance under the Window menu, even when it's hidden
     const systemMenu = Menu.getApplicationMenu();
     systemMenu.insert(4, new MenuItem({
@@ -336,11 +310,12 @@ const mainWindow = (() => {
                 browserWindow.setTitle('New Expensify');
             }
 
+            // Show the custom menu items using the preferred user language
+            generateContextMenu('en');
+
             keyboardShortcutsMenu.click = () => {
                 showKeyboardShortcutsModal(browserWindow);
             };
-
-            generateContextMenu();
 
             // When the user clicks a link that has target="_blank" (which is all external links)
             // open the default browser instead of a new electron window
@@ -408,6 +383,10 @@ const mainWindow = (() => {
                 browserWindow.hide();
                 app.hide();
             }
+
+            ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (preferredLocale) => {
+                generateContextMenu(preferredLocale);
+            });
 
             ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {
                 // This is how synchronous messages work in Electron
