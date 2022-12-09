@@ -36,11 +36,10 @@ function setHTMLSync(html, text) {
 
     try {
         document.execCommand('copy');
-
-        // The 'copy' command can throw a SecurityError exception.
+    } catch (e) {
+        // The 'copy' command can throw a SecurityError exception, we ignore this exception on purpose.
         // See https://dvcs.w3.org/hg/editing/raw-file/tip/editing.html#the-copy-command for more details.
-        // eslint-disable-next-line no-empty
-    } catch (e) {}
+    }
 
     selection.removeAllRanges();
     document.body.removeChild(node);
