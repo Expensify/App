@@ -168,6 +168,61 @@ const electronUpdater = browserWindow => ({
     },
 });
 
+/*
+* @param {Menu} systemMenu
+*/
+const localizeMenuItems = (browserWindow, systemMenu) => {
+    // List the Expensify Chat instance under the Window menu, even when it's hidden
+    systemMenu.insert(4, new MenuItem({
+        id: `historyMenuItem-${preferredLocale}`,
+        label: Localize.translate(preferredLocale, 'systemContextMenu.history'),
+        submenu: [{
+            id: `backMenuItem-${preferredLocale}`,
+            label: Localize.translate(preferredLocale, 'historyMenu.back'),
+            accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
+            click: () => { browserWindow.webContents.goBack(); },
+        },
+            {
+                id: `forwardMenuItem-${preferredLocale}`,
+                label: Localize.translate(preferredLocale, 'historyMenu.forward'),
+                accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
+                click: () => { browserWindow.webContents.goForward(); },
+            }],
+    }));
+
+    // Defines the system-level menu item to manually apply an update
+    // This menu item should become visible after an update is downloaded and ready to be applied
+    const updateAppMenuItem = new MenuItem({
+        id: `updateAppMenuItem-${preferredLocale}`,
+        label: Localize.translate(preferredLocale, 'systemContextMenu.updateExpensify'),
+        visible: false,
+        click: quitAndInstallWithUpdate,
+    });
+
+    // System-level menu item to manually check for App updates
+    const checkForUpdateMenuItem = new MenuItem({
+        id: `checkForUpdateMenuItem-${preferredLocale}`,
+        label: Localize.translate(preferredLocale, 'systemContextMenu.checkForUpdates'),
+        visible: true,
+        click: manuallyCheckForUpdates,
+    });
+
+    // Defines the system-level menu item for opening keyboard shortcuts modal
+    const keyboardShortcutsMenuItem = new MenuItem({
+        id: `keyboardShortcutsMenuItem-${preferredLocale}`,
+        label: Localize.translate(preferredLocale, 'initialSettingsPage.aboutPage.viewKeyboardShortcuts'),
+        accelerator: 'CmdOrCtrl+I',
+        click: () => {
+            showKeyboardShortcutsModal(browserWindow);
+        },
+    });
+
+    const appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');
+    appMenu.submenu.insert(1, updateAppMenuItem);
+    appMenu.submenu.insert(2, checkForUpdateMenuItem);
+    appMenu.submenu.insert(3, keyboardShortcutsMenuItem);
+};
+
 const mainWindow = (() => {
     const loadURL = __DEV__
         ? win => win.loadURL(`http://localhost:${port}`)
@@ -240,23 +295,7 @@ const mainWindow = (() => {
                 browserWindow.setTitle('New Expensify');
             }
 
-            // List the Expensify Chat instance under the Window menu, even when it's hidden
             const systemMenu = Menu.getApplicationMenu();
-            systemMenu.insert(4, new MenuItem({
-                label: 'History',
-                submenu: [{
-                    role: 'back',
-                    label: 'Back',
-                    accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
-                    click: () => { browserWindow.webContents.goBack(); },
-                },
-                {
-                    role: 'forward',
-                    label: 'Forward',
-                    accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
-                    click: () => { browserWindow.webContents.goForward(); },
-                }],
-            }));
 
             // Register the custom Paste and Match Style command and place it near the default shortcut of the same role.
             const editMenu = _.find(systemMenu.items, item => item.role === 'editmenu');
@@ -265,37 +304,8 @@ const mainWindow = (() => {
                 accelerator: 'CmdOrCtrl+Shift+V',
             }));
 
-            // Defines the system-level menu item to manually apply an update
-            // This menu item should become visible after an update is downloaded and ready to be applied
-            const updateAppMenuItem = new MenuItem({
-                id: `updateAppMenuItem-${preferredLocale}`,
-                label: Localize.translateLocal('systemContextMenu.updateExpensify'),
-                visible: false,
-                click: quitAndInstallWithUpdate,
-            });
-
-            // System-level menu item to manually check for App updates
-            const checkForUpdateMenuItem = new MenuItem({
-                id: `checkForUpdateMenuItem-${preferredLocale}`,
-                label: Localize.translateLocal('systemContextMenu.checkForUpdates'),
-                visible: true,
-                click: manuallyCheckForUpdates,
-            });
-
-            // Defines the system-level menu item for opening keyboard shortcuts modal
-            const keyboardShortcutsMenuItem = new MenuItem({
-                id: `keyboardShortcutsMenuItem-${preferredLocale}`,
-                label: Localize.translateLocal('initialSettingsPage.aboutPage.viewKeyboardShortcuts'),
-                accelerator: 'CmdOrCtrl+I',
-                click: () => {
-                    showKeyboardShortcutsModal(browserWindow);
-                },
-            });
-
-            const appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');
-            appMenu.submenu.insert(1, updateAppMenuItem);
-            appMenu.submenu.insert(2, checkForUpdateMenuItem);
-            appMenu.submenu.insert(3, keyboardShortcutsMenuItem);
+            // Append custom context menu items using the preferred language of the user.
+            localizeMenuItems(browserWindow, systemMenu);
 
             // On mac, pressing cmd++ actually sends a cmd+=. cmd++ is generally the zoom in shortcut, but this is
             // not properly listened for by electron. Adding in an invisible cmd+= listener fixes this.
@@ -386,52 +396,40 @@ const mainWindow = (() => {
                     return;
                 }
 
+                // Store the old locale so we can hide/remove these items after adding/showing the new ones.
+                const outdatedLocale = preferredLocale;
+                preferredLocale = updatedLocale;
+
                 let systemMenu = Menu.getApplicationMenu();
                 let appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');
-                const currentUpdateAppMenuItem = systemMenu.getMenuItemById(`updateAppMenuItem-${preferredLocale}`);
-                const currentCheckForUpdateMenuItem = systemMenu.getMenuItemById(`checkForUpdateMenuItem-${preferredLocale}`);
-                const currentKeyboardShortcutsMenuItem = systemMenu.getMenuItemById(`keyboardShortcutsMenuItem-${preferredLocale}`);
 
-                // Update the labels and ids to use the translations.
-                const updateAppMenuItem = new MenuItem({
-                    id: `updateAppMenuItem-${updatedLocale}`,
-                    label: Localize.translate(updatedLocale, 'systemContextMenu.updateExpensify'),
-                    visible: currentUpdateAppMenuItem.visible,
-                    click: quitAndInstallWithUpdate,
-                });
-                const checkForUpdateMenuItem = new MenuItem({
-                    id: `checkForUpdateMenuItem-${updatedLocale}`,
-                    label: Localize.translate(updatedLocale, 'systemContextMenu.checkForUpdates'),
-                    visible: currentCheckForUpdateMenuItem.visible,
-                    click: manuallyCheckForUpdates,
-                });
-                const keyboardShortcutsMenuItem = new MenuItem({
-                    id: `keyboardShortcutsMenuItem-${updatedLocale}`,
-                    label: Localize.translate(updatedLocale, 'initialSettingsPage.aboutPage.viewKeyboardShortcuts'),
-                    accelerator: 'CmdOrCtrl+I',
-                    click: () => {
-                        showKeyboardShortcutsModal(browserWindow);
-                    },
-                });
+                const currentHistoryMenuItem = systemMenu.getMenuItemById(`historyMenuItem-${outdatedLocale}`);
+                const currentBackMenuItem = systemMenu.getMenuItemById(`backMenuItem-${outdatedLocale}`);
+                const currentForwardMenuItem = systemMenu.getMenuItemById(`forwardMenuItem-${outdatedLocale}`);
+
+                const currentUpdateAppMenuItem = systemMenu.getMenuItemById(`updateAppMenuItem-${outdatedLocale}`);
+                const currentCheckForUpdateMenuItem = systemMenu.getMenuItemById(`checkForUpdateMenuItem-${outdatedLocale}`);
+                const currentKeyboardShortcutsMenuItem = systemMenu.getMenuItemById(`keyboardShortcutsMenuItem-${outdatedLocale}`);
 
                 // If we have previously added those languages, don't add new menu items, reshow them.
-                if (systemMenu.getMenuItemById(`updateAppMenuItem-${updatedLocale}`)) {
-                    systemMenu.getMenuItemById(`updateAppMenuItem-${updatedLocale}`).visible = true;
-                    systemMenu.getMenuItemById(`checkForUpdateMenuItem-${updatedLocale}`).visible = true;
-                    systemMenu.getMenuItemById(`keyboardShortcutsMenuItem-${updatedLocale}`).visible = true;
-                } else {
-                    appMenu.submenu.insert(1, updateAppMenuItem);
-                    appMenu.submenu.insert(2, checkForUpdateMenuItem);
-                    appMenu.submenu.insert(3, keyboardShortcutsMenuItem);
+                if (!systemMenu.getMenuItemById(`updateAppMenuItem-${updatedLocale}`)) {
+                    // Update the labels and ids to use the translations.
+                    localizeMenuItems(browserWindow, systemMenu);
                 }
+
+                // Show the localized menu items if there were visible before we updated teh locale.
+                systemMenu.getMenuItemById(`updateAppMenuItem-${updatedLocale}`).visible = currentUpdateAppMenuItem.visible;
+                systemMenu.getMenuItemById(`checkForUpdateMenuItem-${updatedLocale}`).visible = currentCheckForUpdateMenuItem.visible;
+                systemMenu.getMenuItemById(`keyboardShortcutsMenuItem-${updatedLocale}`).visible = currentKeyboardShortcutsMenuItem.visible;
+                systemMenu.getMenuItemById(`historyMenuItem-${updatedLocale}`).visible = currentHistoryMenuItem.visible;
 
                 // Since we can remove menu items, we hide the old ones.
                 currentUpdateAppMenuItem.visible = false;
                 currentCheckForUpdateMenuItem.visible = false;
                 currentKeyboardShortcutsMenuItem.visible = false;
+                currentHistoryMenuItem.visible = false;
 
                 Menu.setApplicationMenu(systemMenu);
-                preferredLocale = updatedLocale;
             });
 
             ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {

@@ -1077,6 +1077,11 @@ export default {
         aboutExpensify: 'Sobre Nuevo Expensify',
         updateExpensify: 'Actualizar Nuevo Expensify',
         checkForUpdates: 'Buscar Actualizaciones',
+        history: 'Historial',
+    },
+    historyMenu: {
+        forward: 'Adelante',
+        back: 'Atrás',
     },
     checkForUpdatesModal: {
         available: {
