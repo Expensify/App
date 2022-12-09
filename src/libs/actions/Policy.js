@@ -729,7 +729,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
         type: CONST.POLICY.TYPE.FREE,
         announceCreatedReportActionID,
         adminsCreatedReportActionID,
-        expenseCreatedReportActionID
+        expenseCreatedReportActionID,
     },
     {
         optimisticData: [{
