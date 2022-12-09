@@ -11,16 +11,12 @@ const propTypes = {
         params: PropTypes.shape({
             /** Short lived token to sign in a user */
             shortLivedToken: PropTypes.string,
-
-            /** The email of the transitioning user */
-            email: PropTypes.string,
         }),
     }).isRequired,
 };
 
 class LogInWithShortLivedTokenPage extends Component {
     componentDidMount() {
-        const email = lodashGet(this.props, 'route.params.email', '');
         const shortLivedToken = lodashGet(this.props, 'route.params.shortLivedToken', '');
         Session.createTemporaryLogin(shortLivedToken);
     }

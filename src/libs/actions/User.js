@@ -15,10 +15,8 @@ import NetworkConnection from '../NetworkConnection';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import * as Link from './Link';
-import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
 import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
-import * as LoginUtils from '../LoginUtils';
 
 let currentUserAccountID = '';
 Onyx.connect({
