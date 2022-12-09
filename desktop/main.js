@@ -144,21 +144,21 @@ const showKeyboardShortcutsModal = (browserWindow) => {
 
 // Defines the system-level menu item to manually apply an update
 // This menu item should become visible after an update is downloaded and ready to be applied
-const updateAppMenuItem = new MenuItem({
-    label: Localize.translateLocal('systemContextMenu.aboutExpensify'),
+let updateAppMenuItem = new MenuItem({
+    label: Localize.translateLocal('systemContextMenu.updateExpensify'),
     visible: false,
     click: quitAndInstallWithUpdate,
 });
 
 // System-level menu item to manually check for App updates
-const checkForUpdateMenuItem = new MenuItem({
+let checkForUpdateMenuItem = new MenuItem({
     label: Localize.translateLocal('systemContextMenu.checkForUpdates'),
     visible: true,
     click: manuallyCheckForUpdates,
 });
 
 // Defines the system-level menu item for opening keyboard shortcuts modal
-const keyboardShortcutsMenu = new MenuItem({
+let keyboardShortcutsMenuItem = new MenuItem({
     label: Localize.translateLocal('initialSettingsPage.aboutPage.viewKeyboardShortcuts'),
     accelerator: 'CmdOrCtrl+I',
 });
@@ -257,7 +257,7 @@ const mainWindow = (() => {
                 browserWindow.setTitle('New Expensify');
             }
 
-            keyboardShortcutsMenu.click = () => {
+            keyboardShortcutsMenuItem.click = () => {
                 showKeyboardShortcutsModal(browserWindow);
             };
 
@@ -289,7 +289,7 @@ const mainWindow = (() => {
             const appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');
             appMenu.submenu.insert(1, updateAppMenuItem);
             appMenu.submenu.insert(2, checkForUpdateMenuItem);
-            appMenu.submenu.insert(3, keyboardShortcutsMenu);
+            appMenu.submenu.insert(3, keyboardShortcutsMenuItem);
 
             // On mac, pressing cmd++ actually sends a cmd+=. cmd++ is generally the zoom in shortcut, but this is
             // not properly listened for by electron. Adding in an invisible cmd+= listener fixes this.
@@ -376,19 +376,48 @@ const mainWindow = (() => {
             }
 
             ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale) => {
-                // We can't dynamically change the labels of the menu, so we need to rebuild it.
                 let systemMenu = Menu.getApplicationMenu();
                 let appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');
+                const updateAppMenuItemId = updateAppMenuItem.id;
+                const checkForUpdateMenuItemId = checkForUpdateMenuItem.id;
+                const keyboardShortcutsMenuItemId = keyboardShortcutsMenuItem.id;
 
-                // Update the labels to use the new selected language.
-                updateAppMenuItem.label = Localize.translate(updatedLocale, 'systemContextMenu.aboutExpensify');
-                checkForUpdateMenuItem.label = Localize.translate(updatedLocale, 'systemContextMenu.checkForUpdates');
-                keyboardShortcutsMenu.label = Localize.translate(updatedLocale, 'initialSettingsPage.aboutPage.viewKeyboardShortcuts');
+                // Update the labels and ids to use the translations.
+                updateAppMenuItem = new MenuItem({
+                    id: `updateAppMenuItem-${updatedLocale}`,
+                    label: Localize.translate(updatedLocale, 'systemContextMenu.updateExpensify'),
+                    visible: updateAppMenuItem.visible,
+                    click: quitAndInstallWithUpdate,
+                });
+                checkForUpdateMenuItem = new MenuItem({
+                    id: `checkForUpdateMenuItem-${updatedLocale}`,
+                    label: Localize.translate(updatedLocale, 'systemContextMenu.checkForUpdates'),
+                    visible: checkForUpdateMenuItem.visible,
+                    click: manuallyCheckForUpdates,
+                });
+                keyboardShortcutsMenuItem = new MenuItem({
+                    id: `keyboardShortcutsMenu-${updatedLocale}`,
+                    label: Localize.translate(updatedLocale, 'initialSettingsPage.aboutPage.viewKeyboardShortcuts'),
+                    accelerator: 'CmdOrCtrl+I',
+                });
 
-                appMenu.submenu.insert(1, updateAppMenuItem);
-                appMenu.submenu.insert(2, checkForUpdateMenuItem);
-                appMenu.submenu.insert(3, keyboardShortcutsMenu);
+                // If we have previously added those languages, don't add new menu items, reshow them.
+                if (systemMenu.getMenuItemById(`updateAppMenuItem-${updatedLocale}`)) {
+                    systemMenu.getMenuItemById(`updateAppMenuItem-${updatedLocale}`).visible = true;
+                    systemMenu.getMenuItemById(`checkForUpdateMenuItem-${updatedLocale}`).visible = true;
+                    systemMenu.getMenuItemById(`keyboardShortcutsMenu-${updatedLocale}`).visible = true;
+                } else {
+                    appMenu.submenu.insert(1, updateAppMenuItem);
+                    appMenu.submenu.insert(2, checkForUpdateMenuItem);
+                    appMenu.submenu.insert(3, keyboardShortcutsMenuItem);
+                }
+
                 Menu.setApplicationMenu(systemMenu);
+
+                // Since we can remove menu items, we hide the old ones.
+                systemMenu.getMenuItemById(updateAppMenuItemId).visible = false;
+                systemMenu.getMenuItemById(checkForUpdateMenuItemId).visible = false;
+                systemMenu.getMenuItemById(keyboardShortcutsMenuItemId).visible = false;
             });
 
             ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {

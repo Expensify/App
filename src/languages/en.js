@@ -1073,6 +1073,7 @@ export default {
     },
     systemContextMenu: {
         aboutExpensify: 'About New Expensify',
+        updateExpensify: 'Update New Expensify',
         checkForUpdates: 'Check For Updates',
     },
     checkForUpdatesModal: {

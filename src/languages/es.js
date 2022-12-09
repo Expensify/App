@@ -497,7 +497,7 @@ export default {
         heroHeading: 'Dividir cuentas\ny chatear con amigos.',
         heroDescription: {
             phrase1: 'El dinero habla. Y ahora que el chat y los pagos están en un solo lugar, también es fácil. Sus pagos le llegan tan rápido como puede transmitir su punto.',
-            phrase2: 'New Expensify es de código abierto. Vista',
+            phrase2: 'Nuevo Expensify es de código abierto. Vista',
             phrase3: 'el código',
             phrase4: 'Vista',
             phrase5: 'vacantes',
@@ -1074,7 +1074,8 @@ export default {
         },
     },
     systemContextMenu: {
-        aboutExpensify: 'Sobre New Expensify',
+        aboutExpensify: 'Sobre Nuevo Expensify',
+        updateExpensify: 'Actualizar Nuevo Expensify',
         checkForUpdates: 'Buscar Actualizaciones',
     },
     checkForUpdatesModal: {
