@@ -180,6 +180,7 @@ class Composer extends React.Component {
     setSelection(start, end) {
         this.textInput.setSelectionRange(start, end);
     }
+
     /**
      * Set pasted text to clipboard
      * @param {String} text
