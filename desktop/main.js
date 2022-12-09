@@ -20,6 +20,7 @@ const Localize = require('../src/libs/Localize');
 const port = process.env.PORT || 8080;
 
 app.setName('New Expensify');
+app.commandLine.appendSwitch('lang', 'es');
 
 /**
  * Electron main process that handles wrapping the web application.
@@ -182,12 +183,12 @@ const localizeMenuItems = (browserWindow, systemMenu) => {
             accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
             click: () => { browserWindow.webContents.goBack(); },
         },
-            {
-                id: `forwardMenuItem-${preferredLocale}`,
-                label: Localize.translate(preferredLocale, 'historyMenu.forward'),
-                accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
-                click: () => { browserWindow.webContents.goForward(); },
-            }],
+        {
+            id: `forwardMenuItem-${preferredLocale}`,
+            label: Localize.translate(preferredLocale, 'historyMenu.forward'),
+            accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
+            click: () => { browserWindow.webContents.goForward(); },
+        }],
     }));
 
     // Defines the system-level menu item to manually apply an update
@@ -400,13 +401,7 @@ const mainWindow = (() => {
                 const outdatedLocale = preferredLocale;
                 preferredLocale = updatedLocale;
 
-                let systemMenu = Menu.getApplicationMenu();
-                let appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');
-
                 const currentHistoryMenuItem = systemMenu.getMenuItemById(`historyMenuItem-${outdatedLocale}`);
-                const currentBackMenuItem = systemMenu.getMenuItemById(`backMenuItem-${outdatedLocale}`);
-                const currentForwardMenuItem = systemMenu.getMenuItemById(`forwardMenuItem-${outdatedLocale}`);
-
                 const currentUpdateAppMenuItem = systemMenu.getMenuItemById(`updateAppMenuItem-${outdatedLocale}`);
                 const currentCheckForUpdateMenuItem = systemMenu.getMenuItemById(`checkForUpdateMenuItem-${outdatedLocale}`);
                 const currentKeyboardShortcutsMenuItem = systemMenu.getMenuItemById(`keyboardShortcutsMenuItem-${outdatedLocale}`);
