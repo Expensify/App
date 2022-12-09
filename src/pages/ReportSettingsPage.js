@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View, ScrollView} from 'react-native';
+import {View, ScrollView, Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -91,6 +91,7 @@ class ReportSettingsPage extends Component {
         if (!this.validate()) {
             return;
         }
+        Keyboard.dismiss();
         Report.updatePolicyRoomName(this.props.report, this.state.newRoomName);
     }
 
@@ -149,7 +150,7 @@ class ReportSettingsPage extends Component {
                     onBackButtonPress={Navigation.goBack}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
+                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5} keyboardShouldPersistTaps="handled">
                     <View>
                         <View style={[styles.mt2]}>
                             <Picker
@@ -208,7 +209,7 @@ class ReportSettingsPage extends Component {
                                             onPress={this.validateAndUpdatePolicyRoomName}
                                             style={[styles.ml2, styles.mnw25]}
                                             textStyles={[styles.label]}
-                                            innerStyles={[styles.ph5]}
+                                            innerStyles={[styles.saveButtonPadding]}
                                             isDisabled={shouldDisableRename}
                                         />
                                     )}

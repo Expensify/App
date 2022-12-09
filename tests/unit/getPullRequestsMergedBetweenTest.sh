@@ -289,7 +289,7 @@ git checkout main
 git checkout -b version-bump
 npm --no-git-tag-version version 1.1.1 -m "Update version to 1.1.1"
 git add package.json package-lock.json
-git commit -m "Update version to $(cat package.json | jq -r .version)"
+git commit -m "Update version to $(jq -r .version < package.json)"
 git checkout main
 git merge version-bump --no-ff -m "Merge pull request #12 from Expensify/version-bump"
 info "Merged PR #12 into main"

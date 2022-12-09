@@ -166,6 +166,7 @@ export default {
     },
     reportActionCompose: {
         addAction: 'Acción',
+        dropToUpload: 'Suelta el archivo aquí para compartirlo',
         sendAttachment: 'Enviar adjunto',
         addAttachment: 'Agregar archivo adjunto',
         writeSomething: 'Escribe algo...',
@@ -630,6 +631,7 @@ export default {
         unknownFilename: 'Archivo desconocido',
         passwordRequired: 'Por favor introduce tu contraseña',
         passwordIncorrect: 'Contraseña incorrecta. Por favor intenta de nuevo.',
+        failedToLoadPDF: 'Hubo un error al intentar cargar el PDF.',
         pdfPasswordForm: {
             title: 'PDF protegido con contraseña',
             infoText: 'Este PDF esta protegido con contraseña.',
@@ -797,9 +799,6 @@ export default {
         letsChatCTA: 'Sí, vamos a chatear',
         letsChatText: 'Gracias. Necesitamos tu ayuda para verificar la información, pero podemos hacerlo rápidamente a través del chat. ¿Estás listo?',
         letsChatTitle: '¡Vamos a chatear!',
-        enable2FATitle: 'Evita fraudes, activa la autenticación de dos factores!',
-        enable2FAText: 'Tu seguridad es importante para nosotros, por favor configura ahora la autenticación de dos factores. Eso nos permitirá disputar las transacciones de la Tarjeta Expensify y reducirá tu riesgo de fraude.',
-        secureYourAccount: 'Asegura tu cuenta',
     },
     beneficialOwnersStep: {
         additionalInformation: 'Información adicional',
