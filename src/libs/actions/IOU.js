@@ -889,6 +889,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
     return {
         params: {
             iouReportID: iouReport.reportID,
+            chatReportID: chatReport.reportID,
             reportActionID: optimisticIOUReportAction.reportActionID,
             paymentMethodType,
             clientID: optimisticIOUReportAction.sequenceNumber,
