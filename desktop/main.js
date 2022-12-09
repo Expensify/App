@@ -108,9 +108,9 @@ const manuallyCheckForUpdates = (menuItem, browserWindow) => {
             } else if (result && result.error) {
                 dialog.showMessageBox(browserWindow, {
                     type: 'error',
-                    message: Localize.translate(preferredLocale, 'checkForUpdatesModal.error.title'),
-                    detail:Localize.translate(preferredLocale,'checkForUpdatesModal.error.message'),
-                    buttons: [Localize.translate(preferredLocale, 'checkForUpdatesModal.notAvailable.okay')],
+                    message: Localize.translateLocal('checkForUpdatesModal.error.title'),
+                    detail: Localize.translateLocal('checkForUpdatesModal.error.message'),
+                    buttons: [Localize.translateLocal('checkForUpdatesModal.notAvailable.okay')],
                 });
             } else {
                 dialog.showMessageBox(browserWindow, {
@@ -271,12 +271,12 @@ const mainWindow = (() => {
                     accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
                     click: () => { browserWindow.webContents.goBack(); },
                 },
-                    {
-                        role: 'forward',
-                        label: 'Forward',
-                        accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
-                        click: () => { browserWindow.webContents.goForward(); },
-                    }],
+                {
+                    role: 'forward',
+                    label: 'Forward',
+                    accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
+                    click: () => { browserWindow.webContents.goForward(); },
+                }],
             }));
 
             // Register the custom Paste and Match Style command and place it near the default shortcut of the same role.

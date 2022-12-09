@@ -63,7 +63,7 @@ module.exports = (env) => {
                     },
                 },
             ],
-        }
+        },
     };
 
     return [mainProcessConfig, rendererConfig];
