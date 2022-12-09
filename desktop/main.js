@@ -376,9 +376,19 @@ const mainWindow = (() => {
             }
 
             ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale) => {
+                // We can't dynamically change the labels of the menu, so we need to rebuild it.
+                let systemMenu = Menu.getApplicationMenu();
+                let appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');
+
+                // Update the labels to use the new selected language.
                 updateAppMenuItem.label = Localize.translate(updatedLocale, 'systemContextMenu.aboutExpensify');
                 checkForUpdateMenuItem.label = Localize.translate(updatedLocale, 'systemContextMenu.checkForUpdates');
                 keyboardShortcutsMenu.label = Localize.translate(updatedLocale, 'initialSettingsPage.aboutPage.viewKeyboardShortcuts');
+
+                appMenu.submenu.insert(1, updateAppMenuItem);
+                appMenu.submenu.insert(2, checkForUpdateMenuItem);
+                appMenu.submenu.insert(3, keyboardShortcutsMenu);
+                Menu.setApplicationMenu(systemMenu);
             });
 
             ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {
