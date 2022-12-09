@@ -36,6 +36,9 @@ function setHTMLSync(html, text) {
 
     try {
         document.execCommand('copy');
+
+        // The 'copy' command can throw a SecurityError exception.
+        // See https://dvcs.w3.org/hg/editing/raw-file/tip/editing.html#the-copy-command for more details.
         // eslint-disable-next-line no-empty
     } catch (e) {}
 
