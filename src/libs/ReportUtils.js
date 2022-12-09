@@ -894,7 +894,7 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
             sequenceNumber: 0,
             avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
             created: DateUtils.getDBTime(),
-            reportActionID: reportActionID,
+            reportActionID,
             shouldShow: true,
         },
     };
