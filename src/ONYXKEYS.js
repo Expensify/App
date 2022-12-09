@@ -178,6 +178,7 @@ export default {
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
         PROFILE_SETTINGS_FORM: 'profileSettingsForm',
         DISPLAY_NAME_FORM: 'displayNameForm',
+        NEW_ROOM_FORM: 'newRoomForm',
     },
 
     // Whether we should show the compose input or not
