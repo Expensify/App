@@ -110,6 +110,7 @@ export default {
         thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
         areYouSure: 'Are you sure?',
         zipCodeExample: 'e.g. 12345, 12345-1234, 12345 1234',
+        currency: 'Currency',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
