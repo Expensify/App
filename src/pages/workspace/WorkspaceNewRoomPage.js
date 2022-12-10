@@ -15,8 +15,6 @@ import Picker from '../../components/Picker';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import Text from '../../components/Text';
-import Button from '../../components/Button';
-import FixedFooter from '../../components/FixedFooter';
 import Permissions from '../../libs/Permissions';
 import Log from '../../libs/Log';
 import * as ValidationUtils from '../../libs/ValidationUtils';
@@ -51,11 +49,12 @@ class WorkspaceNewRoomPage extends React.Component {
         this.state = {
             roomName: '',
             policyID: '',
-            visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
+            visibilityDescription: this.props.translate('newRoomPage.restrictedDescription'),
             errors: {},
         };
 
         this.validate = this.validate.bind(this);
+        this.updateVisibilityDescription = this.updateVisibilityDescription.bind(this);
         this.validateAndAddPolicyReport = this.validateAndAddPolicyReport.bind(this);
         this.focusRoomNameInput = this.focusRoomNameInput.bind(this);
     }
@@ -68,9 +67,15 @@ class WorkspaceNewRoomPage extends React.Component {
         Report.addPolicyReport(policy, this.state.roomName, this.state.visibility);
     }
 
+    updateVisibilityDescription(visibility) {
+        const visibilityDescription = this.props.translate(`newRoomPage.${visibility}Description`);
+        this.setState({visibilityDescription});
+    }
+
     validate(values) {
         const errors = {};
         console.log(values);
+        this.updateVisibilityDescription(values.visibility);
 
         // We error if the user doesn't enter a room name or left blank
         if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
@@ -160,21 +165,20 @@ class WorkspaceNewRoomPage extends React.Component {
                         <Picker
                             inputID="workspace"
                             label={this.props.translate('workspace.common.workspace')}
-                            placeholder={{value: '', label: this.props.translate('newRoomPage.selectAWorkspace')}}
                             items={workspaceOptions}
+                            placeholder={{value: '', label: this.props.translate('newRoomPage.selectAWorkspace')}}
                         />
                     </View>
                     <View style={styles.mb2}>
                         <Picker
                             inputID="visibility"
-                            value={this.state.visibility}
                             label={this.props.translate('newRoomPage.visibility')}
                             items={visibilityOptions}
-                            onInputChange={visibility => this.setState({visibility})}
+                            defaultValue={CONST.REPORT.VISIBILITY.RESTRICTED}
                         />
                     </View>
                     <Text style={[styles.textLabel, styles.colorMuted]}>
-                        {_.find(visibilityOptions, option => option.value === this.state.visibility).description}
+                        {this.state.visibilityDescription}
                     </Text>
                 </Form>
             </ScreenWrapper>
