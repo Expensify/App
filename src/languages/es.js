@@ -166,6 +166,7 @@ export default {
     },
     reportActionCompose: {
         addAction: 'Acción',
+        dropToUpload: 'Suelta el archivo aquí para compartirlo',
         sendAttachment: 'Enviar adjunto',
         addAttachment: 'Agregar archivo adjunto',
         writeSomething: 'Escribe algo...',

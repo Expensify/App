@@ -109,7 +109,6 @@ class SearchPage extends Component {
 
         if (this.state.userToInvite) {
             sections.push(({
-                undefined,
                 data: [this.state.userToInvite],
                 shouldShow: true,
                 indexOffset,
@@ -181,7 +180,6 @@ class SearchPage extends Component {
                                 onChangeText={this.onChangeText}
                                 headerMessage={headerMessage}
                                 hideSectionHeaders
-                                hideAdditionalOptionStates
                                 showTitleTooltip
                                 shouldShowOptions={didScreenTransitionEnd}
                             />
