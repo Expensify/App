@@ -942,6 +942,7 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
             ],
             automatic: false,
             sequenceNumber: 0,
+            reportActionID: NumberUtils.rand64(),
             avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
             created: DateUtils.getDBTime(),
             shouldShow: true,
