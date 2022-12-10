@@ -16,7 +16,7 @@ opt_out_usage
 platform :android do
   desc "Generate a new local APK for e2e testing"
   lane :build_e2e do
-    ENV["ENVFILE"]="e2e/.env.e2e"
+    ENV["ENVFILE"]="tests/e2e/.env.e2e"
     ENV["ENTRY_FILE"]="src/libs/E2E/reactNativeLaunchingTest.js"
 
     gradle(
@@ -144,6 +144,7 @@ platform :ios do
         workspace: "./ios/NewExpensify.xcworkspace",
         skip_profile_detection: true,
         scheme: "NewExpensify",
+        xcargs: { :PROVISIONING_PROFILE_SPECIFIER => "chat_expensify_adhoc", },
         export_method: "ad-hoc",
         export_options: {
             method: "ad-hoc",
