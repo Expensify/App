@@ -53,30 +53,11 @@ class WorkspaceNewRoomPage extends React.Component {
             policyID: '',
             visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
             errors: {},
-            workspaceOptions: [],
         };
 
         this.validate = this.validate.bind(this);
         this.validateAndAddPolicyReport = this.validateAndAddPolicyReport.bind(this);
         this.focusRoomNameInput = this.focusRoomNameInput.bind(this);
-    }
-
-    componentDidMount() {
-        // Workspaces are policies with type === 'free'
-        const workspaces = _.filter(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE);
-        this.setState({workspaceOptions: _.map(workspaces, policy => ({label: policy.name, key: policy.id, value: policy.id}))});
-    }
-
-    componentDidUpdate(prevProps) {
-        if (this.props.policies.length === prevProps.policies.length) {
-            return;
-        }
-
-        // Workspaces are policies with type === 'free'
-        const workspaces = _.filter(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE);
-
-        // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({workspaceOptions: _.map(workspaces, policy => ({label: policy.name, key: policy.id, value: policy.id}))});
     }
 
     validateAndAddPolicyReport() {
@@ -89,6 +70,7 @@ class WorkspaceNewRoomPage extends React.Component {
 
     validate(values) {
         const errors = {};
+        console.log(values);
 
         // We error if the user doesn't enter a room name or left blank
         if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
@@ -142,6 +124,8 @@ class WorkspaceNewRoomPage extends React.Component {
             return null;
         }
 
+        const workspaces = _.filter(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE);
+        const workspaceOptions = _.map(workspaces, policy => ({label: policy.name, key: policy.id, value: policy.id}));
         const visibilityOptions = _.map(_.values(CONST.REPORT.VISIBILITY), visibilityOption => ({
             label: this.props.translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
             value: visibilityOption,
@@ -175,12 +159,9 @@ class WorkspaceNewRoomPage extends React.Component {
                     <View style={styles.mb5}>
                         <Picker
                             inputID="workspace"
-                            value={this.state.policyID}
                             label={this.props.translate('workspace.common.workspace')}
                             placeholder={{value: '', label: this.props.translate('newRoomPage.selectAWorkspace')}}
-                            items={this.state.workspaceOptions}
-                            errorText={this.state.errors.policyID}
-                            onInputChange={policyID => this.clearErrorAndSetValue('policyID', policyID)}
+                            items={workspaceOptions}
                         />
                     </View>
                     <View style={styles.mb2}>
