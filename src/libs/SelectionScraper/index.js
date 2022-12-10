@@ -105,6 +105,12 @@ const replaceNodes = (dom) => {
         if (htmlEngineUtils.isCommentTag(dom.attribs[tagAttribute])) {
             dom.children.push(new Element('br', {}));
         }
+    } else if (dom.name === 'div' && dom.children.length === 1 && dom.children[0].type !== 'text') {
+        // skip useless div because it's doing some issues on reconverting the HTML to markdown
+        // and we skip it only if:-
+        // 1- not contain specific attributes
+        // 2- have only one child and not a text
+        return replaceNodes(dom.children[0]);
     }
 
     // We need to preserve href attribute in order to copy links.
