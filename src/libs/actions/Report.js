@@ -528,7 +528,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
         }],
     };
 
-    const apiParams = {
+    const params = {
         reportID,
         emailList: participantList ? participantList.join(',') : '',
     };
@@ -557,10 +557,10 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
         };
 
         // Add the createdReportActionID parameter to the API call
-        apiParams.createdReportActionID = optimisticReportAction.reportActionID;
+        params.createdReportActionID = optimisticReportAction.reportActionID;
     }
 
-    API.write('OpenReport', apiParams, onyxData);
+    API.write('OpenReport', params, onyxData);
 }
 
 /**
