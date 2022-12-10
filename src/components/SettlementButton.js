@@ -84,7 +84,7 @@ class SettlementButton extends React.Component {
             >
                 {triggerKYCFlow => (
                     <ButtonWithMenu
-                        isDisabled={this.props.isDisabled || this.props.network.isOffline}
+                        isDisabled={this.props.isDisabled}
                         isLoading={this.props.isLoading}
                         onPress={(event, iouPaymentType) => {
                             if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
