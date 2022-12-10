@@ -53,16 +53,8 @@ class WorkspaceNewRoomPage extends React.Component {
         };
 
         this.validate = this.validate.bind(this);
+        this.submit = this.submit.bind(this);
         this.updateVisibilityDescription = this.updateVisibilityDescription.bind(this);
-        this.validateAndAddPolicyReport = this.validateAndAddPolicyReport.bind(this);
-    }
-
-    validateAndAddPolicyReport() {
-        if (!this.validate()) {
-            return;
-        }
-        const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.state.policyID}`];
-        Report.addPolicyReport(policy, this.state.roomName, this.state.visibility);
     }
 
     updateVisibilityDescription(visibility) {
@@ -96,6 +88,11 @@ class WorkspaceNewRoomPage extends React.Component {
         }
 
         return errors;
+    }
+
+    submit(values) {
+        const policyID = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${values.workspace}`];
+        Report.addPolicyReport(policyID, values.roomName, values.visibility);
     }
 
     /**
@@ -138,13 +135,12 @@ class WorkspaceNewRoomPage extends React.Component {
                     submitButtonText={this.props.translate('newRoomPage.createRoom')}
                     style={[styles.mh5, styles.mt5, styles.flexGrow1]}
                     validate={this.validate}
-                    onSubmit={this.validateAndAddPolicyReport}
+                    onSubmit={this.submit}
                     enabledWhenOffline
                 >
                     <View style={styles.mb5}>
                         <RoomNameInput
                             inputID="roomName"
-                            ref={el => this.roomNameInputRef = el}
                             policyID={this.state.policyID}
                             errorText={this.state.errors.roomName}
                             onChangeText={roomName => this.clearErrorAndSetValue('roomName', roomName)}
