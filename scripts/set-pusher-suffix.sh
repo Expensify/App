@@ -5,12 +5,12 @@
 CONFIG_FILE="../Web-Expensify/_config.local.php"
 
 if [ -f '.env' ]; then
-  while read -r line; do
-    if [[ "$line" == \#* ]]; then
-      continue
-    fi
-    export "${line?}"
-  done < .env
+    while read -r line; do
+        if [[ "$line" == \#* ]]; then
+            continue
+        fi
+        export "${line?}"
+    done < .env
 fi
 
 # use the suffix only when the config file can be found
