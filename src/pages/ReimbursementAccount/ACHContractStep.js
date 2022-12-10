@@ -20,7 +20,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
-import ReimbursementAccountForm from './ReimbursementAccountForm';
+import Form from '../../components/Form';
 
 const propTypes = {
     /** Name of the company */
@@ -36,6 +36,7 @@ const propTypes = {
 class ACHContractStep extends React.Component {
     constructor(props) {
         super(props);
+        this.validate = this.validate.bind(this);
 
         this.addBeneficialOwner = this.addBeneficialOwner.bind(this);
         this.submit = this.submit.bind(this);
@@ -43,48 +44,83 @@ class ACHContractStep extends React.Component {
         this.state = {
             ownsMoreThan25Percent: ReimbursementAccountUtils.getDefaultStateForField(props, 'ownsMoreThan25Percent', false),
             hasOtherBeneficialOwners: ReimbursementAccountUtils.getDefaultStateForField(props, 'hasOtherBeneficialOwners', false),
-            acceptTermsAndConditions: ReimbursementAccountUtils.getDefaultStateForField(props, 'acceptTermsAndConditions', false),
-            certifyTrueInformation: ReimbursementAccountUtils.getDefaultStateForField(props, 'certifyTrueInformation', false),
             beneficialOwners: ReimbursementAccountUtils.getDefaultStateForField(props, 'beneficialOwners', []),
         };
-
-        // These fields need to be filled out in order to submit the form (doesn't include IdentityForm fields)
-        this.requiredFields = [
-            'acceptTermsAndConditions',
-            'certifyTrueInformation',
-        ];
-
-        // Map a field to the key of the error's translation
-        this.errorTranslationKeys = {
-            acceptTermsAndConditions: 'common.error.acceptedTerms',
-            certifyTrueInformation: 'beneficialOwnersStep.error.certify',
-        };
-
-        this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
-        this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
-        this.clearErrors = inputKeys => ReimbursementAccountUtils.clearErrors(this.props, inputKeys);
-        this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
     }
 
     /**
-     * @returns {Boolean}
+     * Get default value from reimbursementAccount or achData
+     * @param {String} fieldName
+     * @param {*} defaultValue
+     * @returns {String}
      */
-    validate() {
-        let beneficialOwnersErrors = [];
-        if (this.state.hasOtherBeneficialOwners) {
-            beneficialOwnersErrors = _.map(this.state.beneficialOwners, ValidationUtils.validateIdentity);
+    getDefaultStateForField(fieldName, defaultValue) {
+        return lodashGet(this.props, ['reimbursementAccount', 'achData', fieldName], defaultValue);
+    }
+
+    /**
+     * @param {Object} values
+     * @returns {Object}
+     */
+    validate(values) {
+        const errors = {};
+
+        // let beneficialOwnersErrors = [];
+        if (values.hasOtherBeneficialOwners) {
+            //  beneficialOwnersErrors = _.map(this.state.beneficialOwners, ValidationUtils.validateIdentity);
+
+            _.each(values.beneficialOwners, (beneficialOwner, index) => {
+                if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.firstName)) {
+                    errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.firstName');
+                }
+
+                if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.lastName)) {
+                    errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.lastName');
+                }
+
+                if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.dob)) {
+                    errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.dob');
+                }
+
+                if (values.dob && !ValidationUtils.meetsAgeRequirements(values.dob)) {
+                    errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.age');
+                }
+
+                if (!ValidationUtils.isRequiredFulfilled(values.ssnLast4) || !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {
+                    errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.ssnLast4');
+                }
+
+                if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.beneficialOwnerAddressStreet)) {
+                    errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.address');
+                }
+
+                if (values.beneficialOwnerAddressStreet && !ValidationUtils.isValidAddress(beneficialOwner.beneficialOwnerAddressStreet)) {
+                    errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.addressStreet');
+                }
+
+                if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.beneficialOwnerAddressCity)) {
+                    errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.addressCity');
+                }
+
+                if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.beneficialOwnerAddressState)) {
+                    errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.addressState');
+                }
+
+                if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.beneficialOwnerAddressZipCode) || !ValidationUtils.isValidZipCode(values.beneficialOwnerAddressZipCode)) {
+                    errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.zipCode');
+                }
+            });
         }
 
-        const errors = {};
-        _.each(this.requiredFields, (inputKey) => {
-            if (ValidationUtils.isRequiredFulfilled(this.state[inputKey])) {
-                return;
-            }
+        if (!ValidationUtils.isRequiredFulfilled(values.acceptTermsAndConditions)) {
+            errors.acceptTermsAndConditions = this.props.translate('common.error.acceptedTerms');
+        }
 
-            errors[inputKey] = true;
-        });
-        BankAccounts.setBankAccountFormValidationErrors({...errors, beneficialOwnersErrors});
-        return _.every(beneficialOwnersErrors, _.isEmpty) && _.isEmpty(errors);
+        if (!ValidationUtils.isRequiredFulfilled(values.certifyTrueInformation)) {
+            errors.certifyTrueInformation = this.props.translate('beneficialOwnersStep.error.certify');
+        }
+
+        return errors;
     }
 
     removeBeneficialOwner(beneficialOwner) {
@@ -164,7 +200,6 @@ class ACHContractStep extends React.Component {
             BankAccounts.updateReimbursementAccountDraft(newState);
             return newState;
         });
-        this.clearError(fieldName);
     }
 
     render() {
@@ -176,52 +211,43 @@ class ACHContractStep extends React.Component {
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={() => {
                         BankAccounts.clearOnfidoToken();
-                        BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+                        BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.beneficialOwner);
                     }}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
                 />
-                <ReimbursementAccountForm
-                    reimbursementAccount={this.props.reimbursementAccount}
-                    onSubmit={this.submit}
+                <Form
+                    formID={ONYXKEYS.FORMS.ACH_CONTRACT_FORM}
+                    validate={this.validate}
+                    onSubmit={() => {}}
+                    submitButtonText={this.props.translate('common.save')}
+                    style={[styles.mh5, styles.flexGrow1]}
                 >
                     <Text style={[styles.mb5]}>
                         <Text>{this.props.translate('beneficialOwnersStep.checkAllThatApply')}</Text>
                     </Text>
                     <CheckboxWithLabel
+                        inputID="ownsMoreThan25Percent"
                         style={[styles.mb2]}
-                        isChecked={this.state.ownsMoreThan25Percent}
-                        onInputChange={() => this.toggleCheckbox('ownsMoreThan25Percent')}
                         LabelComponent={() => (
                             <Text>
                                 {this.props.translate('beneficialOwnersStep.iOwnMoreThan25Percent')}
                                 <Text style={[styles.textStrong]}>{this.props.companyName}</Text>
                             </Text>
                         )}
+                        shouldSaveDraft
                     />
                     <CheckboxWithLabel
+                        inputID="hasOtherBeneficialOwners"
                         style={[styles.mb2]}
-                        isChecked={this.state.hasOtherBeneficialOwners}
-                        onInputChange={() => {
-                            this.setState((prevState) => {
-                                const hasOtherBeneficialOwners = !prevState.hasOtherBeneficialOwners;
-                                const newState = {
-                                    hasOtherBeneficialOwners,
-                                    beneficialOwners: hasOtherBeneficialOwners && _.isEmpty(prevState.beneficialOwners)
-                                        ? [{}]
-                                        : prevState.beneficialOwners,
-                                };
-                                BankAccounts.updateReimbursementAccountDraft(newState);
-                                return newState;
-                            });
-                        }}
                         LabelComponent={() => (
                             <Text>
                                 {this.props.translate('beneficialOwnersStep.someoneOwnsMoreThan25Percent')}
                                 <Text style={[styles.textStrong]}>{this.props.companyName}</Text>
                             </Text>
                         )}
+                        shouldSaveDraft
                     />
                     {this.state.hasOtherBeneficialOwners && (
                         <View style={[styles.mb2]}>
@@ -233,18 +259,27 @@ class ACHContractStep extends React.Component {
                                     <IdentityForm
                                         translate={this.props.translate}
                                         style={[styles.mb2]}
-                                        onFieldChange={values => this.clearErrorAndSetBeneficialOwnerValues(index, values)}
-                                        values={{
-                                            firstName: owner.firstName || '',
-                                            lastName: owner.lastName || '',
-                                            street: owner.street || '',
-                                            city: owner.city || '',
-                                            state: owner.state || '',
-                                            zipCode: owner.zipCode || '',
-                                            dob: owner.dob || '',
-                                            ssnLast4: owner.ssnLast4 || '',
+                                        defaultValues={{
+                                            firstName: this.getDefaultStateForField('firstName'),
+                                            lastName: this.getDefaultStateForField('lastName'),
+                                            street: this.getDefaultStateForField('beneficialOwnerAddressStreet'),
+                                            city: this.getDefaultStateForField('beneficialOwnerAddressCity'),
+                                            state: this.getDefaultStateForField('beneficialOwnerAddressState'),
+                                            zipCode: this.getDefaultStateForField('beneficialOwnerAddressZipCode'),
+                                            dob: this.getDefaultStateForField('dob'),
+                                            ssnLast4: this.getDefaultStateForField('ssnLast4'),
                                         }}
-                                        errors={lodashGet(this.getErrors(), `beneficialOwnersErrors[${index}]`, {})}
+                                        inputKeys={{
+                                            firstName: 'firstName',
+                                            lastName: 'lastName',
+                                            dob: 'dob',
+                                            ssnLast4: 'ssnLast4',
+                                            street: 'beneficialOwnerAddressStreet',
+                                            city: 'beneficialOwnerAddressCity',
+                                            state: 'beneficialOwnerAddressState',
+                                            zipCode: 'beneficialOwnerAddressZipCode',
+                                        }}
+                                        shouldSaveDraft
                                     />
                                     {this.state.beneficialOwners.length > 1 && (
                                         <TextLink onPress={() => this.removeBeneficialOwner(owner)}>
@@ -265,9 +300,8 @@ class ACHContractStep extends React.Component {
                         {this.props.translate('beneficialOwnersStep.agreement')}
                     </Text>
                     <CheckboxWithLabel
+                        inputID="acceptTermsAndConditions"
                         style={[styles.mt4]}
-                        isChecked={this.state.acceptTermsAndConditions}
-                        onInputChange={() => this.toggleCheckbox('acceptTermsAndConditions')}
                         LabelComponent={() => (
                             <View style={[styles.flexRow]}>
                                 <Text>{this.props.translate('common.iAcceptThe')}</Text>
@@ -276,19 +310,17 @@ class ACHContractStep extends React.Component {
                                 </TextLink>
                             </View>
                         )}
-                        errorText={this.getErrorText('acceptTermsAndConditions')}
-                        hasError={this.getErrors().acceptTermsAndConditions}
+                        shouldSaveDraft
                     />
                     <CheckboxWithLabel
+                        inputID="certifyTrueInformation"
                         style={[styles.mt4]}
-                        isChecked={this.state.certifyTrueInformation}
-                        onInputChange={() => this.toggleCheckbox('certifyTrueInformation')}
                         LabelComponent={() => (
                             <Text>{this.props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}</Text>
                         )}
-                        errorText={this.getErrorText('certifyTrueInformation')}
+                        shouldSaveDraft
                     />
-                </ReimbursementAccountForm>
+                </Form>
             </>
         );
     }
