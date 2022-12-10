@@ -8,7 +8,6 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import styles from '../../styles/styles';
 import RoomNameInput from '../../components/RoomNameInput';
 import Picker from '../../components/Picker';
@@ -56,7 +55,6 @@ class WorkspaceNewRoomPage extends React.Component {
         this.validate = this.validate.bind(this);
         this.updateVisibilityDescription = this.updateVisibilityDescription.bind(this);
         this.validateAndAddPolicyReport = this.validateAndAddPolicyReport.bind(this);
-        this.focusRoomNameInput = this.focusRoomNameInput.bind(this);
     }
 
     validateAndAddPolicyReport() {
@@ -114,14 +112,6 @@ class WorkspaceNewRoomPage extends React.Component {
         }));
     }
 
-    focusRoomNameInput() {
-        if (!this.roomNameInputRef) {
-            return;
-        }
-
-        this.roomNameInputRef.focus();
-    }
-
     render() {
         if (!Permissions.canUsePolicyRooms(this.props.betas)) {
             Log.info('Not showing create Policy Room page since user is not on policy rooms beta');
@@ -138,7 +128,7 @@ class WorkspaceNewRoomPage extends React.Component {
         }));
 
         return (
-            <ScreenWrapper onTransitionEnd={this.focusRoomNameInput}>
+            <>
                 <HeaderWithCloseButton
                     title={this.props.translate('newRoomPage.newRoom')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
@@ -181,7 +171,7 @@ class WorkspaceNewRoomPage extends React.Component {
                         {this.state.visibilityDescription}
                     </Text>
                 </Form>
-            </ScreenWrapper>
+            </>
         );
     }
 }
