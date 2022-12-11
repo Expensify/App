@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, ScrollView} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
@@ -20,6 +20,7 @@ import withPolicy from './withPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import ScrollViewWithPickers from '../../components/ScrollViewWithPickers';
 
 const propTypes = {
     shouldSkipVBBACall: PropTypes.bool,
@@ -67,7 +68,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    children: () => {},
+    children: () => { },
     user: {},
     reimbursementAccount: {},
     footer: null,
@@ -121,7 +122,7 @@ class WorkspacePageWithSections extends React.Component {
                     />
                     {this.props.shouldUseScrollView
                         ? (
-                            <ScrollView
+                            <ScrollViewWithPickers
                                 keyboardShouldPersistTaps="handled"
                                 style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
                             >
@@ -130,7 +131,7 @@ class WorkspacePageWithSections extends React.Component {
                                     {this.props.children(hasVBA, policyID, isUsingECard)}
 
                                 </View>
-                            </ScrollView>
+                            </ScrollViewWithPickers>
                         )
                         : this.props.children(hasVBA, policyID, isUsingECard)}
                     {this.props.footer}

@@ -10,6 +10,7 @@ import Text from '../Text';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import pickerStyles from './pickerStyles';
+import {ScrollViewWithPickersContext} from '../ScrollViewWithPickers';
 
 const propTypes = {
     /** Picker label */
@@ -91,8 +92,8 @@ const defaultProps = {
             {...(size === 'small' ? {width: styles.pickerSmall.icon.width, height: styles.pickerSmall.icon.height} : {})}
         />
     ),
-    onBlur: () => {},
-    innerRef: () => {},
+    onBlur: () => { },
+    innerRef: () => { },
 };
 
 class Picker extends PureComponent {
@@ -149,6 +150,13 @@ class Picker extends PureComponent {
 
     render() {
         const hasError = !_.isEmpty(this.props.errorText);
+
+        let scrollViewRef;
+        if (this.context != null
+            && this.context.scrollViewRef != null) {
+            scrollViewRef = this.context.scrollViewRef;
+        }
+
         return (
             <>
                 <View
@@ -191,6 +199,7 @@ class Picker extends PureComponent {
                             }
                             this.props.innerRef(el);
                         }}
+                        scrollViewRef={scrollViewRef}
                     />
                 </View>
                 <FormHelpMessage message={this.props.errorText} />
@@ -201,6 +210,7 @@ class Picker extends PureComponent {
 
 Picker.propTypes = propTypes;
 Picker.defaultProps = defaultProps;
+Picker.contextType = ScrollViewWithPickersContext;
 
 // eslint-disable-next-line react/jsx-props-no-spreading
 export default React.forwardRef((props, ref) => <Picker {...props} innerRef={ref} key={props.inputID} />);
