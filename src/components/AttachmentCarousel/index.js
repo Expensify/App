@@ -85,6 +85,8 @@ class AttachmentCarousel extends React.Component {
     getAttachment(attachmentItem) {
         const sourceURL = _.get(attachmentItem, 'sourceURL', '');
         const file = _.get(attachmentItem, 'file', {name: ''});
+        this.props.onNavigate({sourceURL: addEncryptedAuthTokenToURL(sourceURL), file});
+
         return {
             sourceURL,
             file,
@@ -146,7 +148,6 @@ class AttachmentCarousel extends React.Component {
                 Report.loadMoreActions(this.props.report.reportID, this.props.reportActions, this.props.report.isLoadingMoreReportActions);
             }
             const {sourceURL, file} = this.getAttachment(attachments[nextIndex]);
-            this.props.onNavigate({sourceURL, file});
             return {
                 page: nextIndex,
                 sourceURL,
