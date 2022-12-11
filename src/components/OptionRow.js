@@ -51,9 +51,6 @@ const propTypes = {
     /** Whether to show the title tooltip */
     showTitleTooltip: PropTypes.bool,
 
-    /** Toggle between compact and default view */
-    mode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
-
     /** Whether this option should be disabled */
     isDisabled: PropTypes.bool,
 
@@ -71,7 +68,6 @@ const defaultProps = {
     isSelected: false,
     boldStyle: false,
     showTitleTooltip: false,
-    mode: 'default',
     onSelectRow: () => {},
     isDisabled: false,
     optionIsFocused: false,
@@ -86,22 +82,10 @@ const OptionRow = (props) => {
         : styles.sidebarLinkText;
     const textUnreadStyle = (props.boldStyle)
         ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
-    const displayNameStyle = StyleUtils.combineStyles(props.mode === CONST.OPTION_MODE.COMPACT
-        ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2]
-        : [styles.optionDisplayName, ...textUnreadStyle], props.style);
-    const alternateTextStyle = StyleUtils.combineStyles(props.mode === CONST.OPTION_MODE.COMPACT
-        ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact]
-        : [textStyle, styles.optionAlternateText, styles.textLabelSupporting], props.style);
-    const contentContainerStyles = props.mode === CONST.OPTION_MODE.COMPACT
-        ? [styles.flex1, styles.flexRow, styles.overflowHidden, styles.alignItemsCenter]
-        : [styles.flex1];
-    const sidebarInnerRowStyle = StyleSheet.flatten(props.mode === CONST.OPTION_MODE.COMPACT ? [
-        styles.chatLinkRowPressable,
-        styles.flexGrow1,
-        styles.optionItemAvatarNameWrapper,
-        styles.optionRowCompact,
-        styles.justifyContentCenter,
-    ] : [
+    const displayNameStyle = [styles.optionDisplayName, ...textUnreadStyle, props.style];
+    const alternateTextStyle = [textStyle, styles.optionAlternateText, styles.textLabelSupporting, props.style];
+    const contentContainerStyles = [styles.flex1];
+    const sidebarInnerRowStyle = StyleSheet.flatten([
         styles.chatLinkRowPressable,
         styles.flexGrow1,
         styles.optionItemAvatarNameWrapper,
@@ -169,12 +153,12 @@ const OptionRow = (props) => {
                                             secondaryAvatar={props.option.icons[1]}
                                             mainTooltip={props.option.ownerEmail}
                                             secondaryTooltip={props.option.subtitle}
-                                            size={props.mode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                            size={CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     ) : (
                                         <MultipleAvatars
                                             icons={props.option.icons}
-                                            size={props.mode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                            size={CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[
                                                 props.optionIsFocused
                                                     ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor)
@@ -256,7 +240,6 @@ OptionRow.displayName = 'OptionRow';
 // It it very important to use React.memo here so SectionList items will not unnecessarily re-render
 export default withLocalize(memo(OptionRow, (prevProps, nextProps) => prevProps.optionIsFocused === nextProps.optionIsFocused
     && prevProps.isSelected === nextProps.isSelected
-    && prevProps.mode === nextProps.mode
     && prevProps.option.alternateText === nextProps.option.alternateText
     && prevProps.option.descriptiveText === nextProps.option.descriptiveText
     && _.isEqual(prevProps.option.icons, nextProps.option.icons)
