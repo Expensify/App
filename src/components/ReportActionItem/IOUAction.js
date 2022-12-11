@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -32,7 +31,7 @@ const propTypes = {
         participants: PropTypes.arrayOf(PropTypes.string),
 
         /** Whether the chat report has an outstanding IOU */
-        hasOutstandingIOU: PropTypes.bool,
+        hasOutstandingIOU: PropTypes.bool.isRequired,
     }),
 
     /** IOU report data object */
@@ -65,8 +64,9 @@ const IOUAction = (props) => {
     };
 
     const shouldShowIOUPreview = (
-        props.isMostRecentIOUReportAction && Boolean(props.action.originalMessage.IOUReportID)
-    ) || props.action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
+        props.isMostRecentIOUReportAction
+        && Boolean(props.action.originalMessage.IOUReportID)
+        && props.chatReport.hasOutstandingIOU) || props.action.originalMessage.type === 'pay';
 
     let shouldShowPendingConversionMessage = false;
     if (

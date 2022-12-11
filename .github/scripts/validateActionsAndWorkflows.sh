@@ -52,7 +52,7 @@ for ((i=0; i < ${#WORKFLOWS[@]}; i++)); do
 done
 
 # Wait for the background builds to finish
-for PID in ${ASYNC_PROCESSES[*]}; do
+for PID in "${ASYNC_PROCESSES[@]}"; do
   wait $PID
   RESULT=$?
   if [[ $RESULT != 0 ]]; then

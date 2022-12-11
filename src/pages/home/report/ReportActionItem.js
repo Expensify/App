@@ -199,7 +199,12 @@ class ReportActionItem extends Component {
                                 <OfflineWithFeedback
                                     onClose={() => {
                                         if (this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                                            ReportActions.deleteOptimisticReportAction(this.props.report.reportID, this.props.action.clientID);
+                                            const sequenceNumber = this.props.action.actionName
+                                              === CONST.REPORT.ACTIONS.TYPE.IOU
+                                                ? this.props.action
+                                                    .sequenceNumber
+                                                : this.props.action.clientID;
+                                            ReportActions.deleteOptimisticReportAction(this.props.report.reportID, sequenceNumber);
                                         } else {
                                             ReportActions.clearReportActionErrors(this.props.report.reportID, this.props.action.sequenceNumber);
                                         }
