@@ -18,6 +18,8 @@ import Permissions from '../../libs/Permissions';
 import Log from '../../libs/Log';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import Form from '../../components/Form';
+import TestClass from '../../components/TestClass';
+import TestFunctional from '../../components/TestFunctional';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -146,6 +148,12 @@ class WorkspaceNewRoomPage extends React.Component {
                             onChangeText={roomName => this.clearErrorAndSetValue('roomName', roomName)}
                             value={this.state.roomName}
                         />
+                    </View>
+                    <View style={styles.mb5}>
+                        <TestClass />
+                    </View>
+                    <View style={styles.mb5}>
+                        <TestFunctional />
                     </View>
                     <View style={styles.mb5}>
                         <Picker
