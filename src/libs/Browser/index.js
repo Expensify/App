@@ -3,9 +3,15 @@ function getBrowser() {
 }
 
 function isMobile() {
-    return '';
+    return false;
 }
+
+function isMobileSafari() {
+    return false;
+}
+
 export {
     getBrowser,
     isMobile,
+    isMobileSafari,
 };
