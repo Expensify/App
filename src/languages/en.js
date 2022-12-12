@@ -418,7 +418,7 @@ export default {
         nameOnCard: 'Name on card',
         debitCardNumber: 'Debit card number',
         expiration: 'Expiration date',
-        expirationDate: 'MM/YY',
+        expirationDate: 'MMYY',
         cvv: 'CVV',
         billingAddress: 'Billing address',
         expensifyTermsOfService: 'Expensify Terms of Service',

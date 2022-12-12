@@ -310,6 +310,7 @@ class WorkspaceInvitePage extends React.Component {
                                         hideSectionHeaders
                                         boldStyle
                                         shouldFocusOnSelectRow
+                                        placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                                     />
                                 ) : (
                                     <FullScreenLoadingIndicator />
