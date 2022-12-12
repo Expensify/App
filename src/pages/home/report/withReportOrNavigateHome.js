@@ -31,8 +31,10 @@ export default function (WrappedComponent) {
         }
 
         render() {
+            if (_.isEmpty(this.props.report)) {
+                return null;
+            }
             const rest = _.omit(this.props, ['forwardedRef']);
-
             return (
                 <WrappedComponent
                     // eslint-disable-next-line react/jsx-props-no-spreading
