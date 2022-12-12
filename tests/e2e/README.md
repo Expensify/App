@@ -28,6 +28,9 @@ The tests can be run with the following CLI options:
 - `--config`: Extend/Overwrite the default config with your values, e.g. `--config config.local.js`
 - `--includes`: Expects a string/regexp to filter the tests to run, e.g. `--includes "login|signup"`
 - `--skipInstallDeps`: Skips the `npm install` step, useful during development
+- `--development`: Applies some default configurations:
+  - Sets the config to `config.local.js`, which executes the tests with fewer iterations 
+  - Runs the tests only on the current branch
 - `--buildMode`: There are three build modes, the default is `full`:
   1. **full**: rebuilds the full native app in (e2e) release mode
   2. **js-only**: only rebuilds the js bundle, and then re-packages
