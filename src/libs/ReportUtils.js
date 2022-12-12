@@ -436,7 +436,7 @@ function getDefaultAvatar(login = '') {
  * @returns {Array<*>}
  */
 function getIcons(report, personalDetails, policies, defaultIcon = null) {
-    if (!report) {
+    if (_.isEmpty(report)) {
         return [defaultIcon || getDefaultAvatar()];
     }
     if (isArchivedRoom(report)) {
