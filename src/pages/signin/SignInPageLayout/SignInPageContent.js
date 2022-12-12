@@ -51,7 +51,7 @@ const SignInPageContent = (props) => {
             >
                     <KeyboardAvoidingView behavior="padding" style={[styles.flex1, styles.alignSelfCenter, styles.signInPageWelcomeFormContainer]}>
                         {/* This empty view creates margin on the top of the sign in form which will shrink and grow depending on if the keyboard is open or not */}
-                        <View style={[styles.flexGrow1, styles.signInPageContentTopSpacer, {backgroundColor: 'yellow'}, props.isShown && {backgroundColor: 'pink'}]} />
+                        <View style={[styles.flexGrow1, styles.signInPageContentTopSpacer, {backgroundColor: 'yellow'}]} />
 
                         <View style={[styles.flexGrow2, {backgroundColor: 'blue'}]}>
                             <SignInPageForm style={[styles.alignSelfStretch]}>
@@ -75,7 +75,7 @@ const SignInPageContent = (props) => {
                                 {props.children}
                             </SignInPageForm>
                         </View>
-                        <View style={[styles.mv5, {backgroundColor: 'green'}]}>
+                        <View style={[styles.mv5, {backgroundColor: 'green'}, props.isShown && {marginBottom: 60}]}>
                             <TermsAndLicenses />
                         </View>
                     </KeyboardAvoidingView>
