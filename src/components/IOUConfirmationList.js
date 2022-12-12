@@ -48,8 +48,6 @@ const propTypes = {
         searchText: PropTypes.string,
         text: PropTypes.string,
         keyForList: PropTypes.string,
-        isPinned: PropTypes.bool,
-        isUnread: PropTypes.bool,
         reportID: PropTypes.string,
         // eslint-disable-next-line react/forbid-prop-types
         participantsList: PropTypes.arrayOf(PropTypes.object),
@@ -242,7 +240,7 @@ class IOUConfirmationList extends Component {
         this.setState((prevState) => {
             const newParticipants = _.map(prevState.participants, (participant) => {
                 if (participant.login === option.login) {
-                    return {...option, selected: !option.selected};
+                    return {...participant, selected: !participant.selected};
                 }
                 return participant;
             });
@@ -291,8 +289,7 @@ class IOUConfirmationList extends Component {
                 canSelectMultipleOptions={canModifyParticipants}
                 disableArrowKeysActions={!canModifyParticipants}
                 isDisabled={!canModifyParticipants}
-                hideAdditionalOptionStates
-                forceTextUnreadStyle
+                boldStyle
                 autoFocus
                 shouldDelayFocus
                 shouldTextInputAppearBelowOptions

@@ -247,6 +247,13 @@ jobs:
       - name: Checkout "Compare" commit
         run: git checkout ${{ github.event.before }}
 
+      - name: Install node packages
+        uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          command: npm ci
+
       - name: Build "Compare" APK
         run: npm run android-build-e2e
 
@@ -257,6 +264,13 @@ jobs:
         run: git checkout "$(gh release list --limit 1 | awk '{ print $1 }')"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install node packages
+        uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          command: npm ci
 
       - name: Build "Baseline" APK
         run: npm run android-build-e2e
