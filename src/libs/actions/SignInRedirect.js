@@ -37,6 +37,9 @@ Onyx.connect({
  * @param {String} errorMessage
  */
 function clearStorageAndRedirect(errorMessage) {
+    // Under certain conditions, there are key-values we'd like to keep in storage even when a user is logged out.
+    // We pass these into the clear() method in order to avoid having to reset them on a delayed tick and getting
+    // flashes of unwanted default state.
     const keysToPreserve = [];
 
     // After signing out, set ourselves as offline if we were offline before logging out and we are not forcing it.
