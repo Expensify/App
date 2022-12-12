@@ -131,6 +131,11 @@ class ReportActionItemMessageEdit extends React.Component {
         Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, '');
         toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
         ReportActionComposeFocusManager.focus();
+        if (this.props.index !== 0) { return; }
+        const keyboardDidHideListener = Keyboard.addLstener('keyboardDidHide', () => {
+            ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, false);
+            keyboardDidHideListener.remove();
+        });
     }
 
     /**
