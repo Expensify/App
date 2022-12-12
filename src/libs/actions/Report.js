@@ -696,23 +696,20 @@ function readNewestAction(reportID, created) {
  * @param {String} created
  * @param {Number} sequenceNumber
  */
-function markCommentAsUnread(reportID, created, sequenceNumber) {
-    const newLastReadSequenceNumber = sequenceNumber - 1;
+function markCommentAsUnread(reportID, created) {
+    // We subtract 1 millisecond so that the lastRead is updated to just before this reportAction's created date
+    const lastRead = DateUtils.getDBTime(new Date(created) - 1);
     API.write('MarkAsUnread',
         {
             reportID,
-
-            // We subtract 1 millisecond so that the lastRead is updated to just before this reportAction's created date
-            created: DateUtils.getDBTime(new Date(created) - 1),
-            sequenceNumber,
+            created: lastRead,
         },
         {
             optimisticData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
-                    lastReadSequenceNumber: newLastReadSequenceNumber,
-                    lastReadTimestamp: Date.now(),
+                    lastReadTimestamp: Date.parse(lastRead),
                 },
             }],
         });
