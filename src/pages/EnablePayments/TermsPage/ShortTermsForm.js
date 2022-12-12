@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
-import * as Localize from '../../../libs/Localize/Localize';
+import * as Localize from '../../../libs/Localize';
 import CONST from '../../../CONST';
 import * as Link from '../../../libs/actions/Link';
 

@@ -6,7 +6,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
 import Growl from '../Growl';
-import * as Localize from '../Localize/Localize';
+import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import * as CardUtils from '../CardUtils';
 import * as User from './User';

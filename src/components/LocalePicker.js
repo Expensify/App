@@ -8,7 +8,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import Permissions from '../libs/Permissions';
-import * as Localize from '../libs/Localize/Localize';
+import * as Localize from '../libs/Localize';
 import Picker from './Picker';
 
 const propTypes = {

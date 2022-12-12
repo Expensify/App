@@ -1,7 +1,7 @@
 import getPlaidLinkTokenParameters from '../getPlaidLinkTokenParameters';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
-import * as Localize from '../Localize/Localize';
+import * as Localize from '../Localize';
 import CONST from '../../CONST';
 
 /**
