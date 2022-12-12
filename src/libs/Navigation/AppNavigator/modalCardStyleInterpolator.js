@@ -38,7 +38,7 @@ export default (
             backgroundColor: themeColors.overlay,
             opacity: progress.interpolate({
                 inputRange: [0, 1],
-                outputRange: [0, 0.6],
+                outputRange: [0, variables.overlayOpacity],
                 extrapolate: 'clamp',
             }),
         },
