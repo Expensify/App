@@ -17,6 +17,9 @@ const propTypes = {
     /** Guard for accepting drops in drop zone. Drag event is passed to this function as first parameter. This prop is necessary to be inlined to satisfy the linter */
     shouldAcceptDrop: PropTypes.func,
 
+    /** Whether drag & drop should be disabled */
+    disabled: PropTypes.bool,
+
     /** Rendered child component */
     children: PropTypes.node.isRequired,
 };
@@ -33,11 +36,17 @@ const defaultProps = {
         }
         return false;
     },
+    disabled: false,
 };
 
 export default class DragAndDrop extends React.Component {
     constructor(props) {
         super(props);
+
+        if (props.disabled) {
+            this.isDisabled = true;
+            return;
+        }
 
         this.throttledDragOverHandler = _.throttle(this.dragOverHandler.bind(this), 100);
         this.throttledDragNDropWindowResizeListener = _.throttle(this.dragNDropWindowResizeListener.bind(this), 100);
@@ -52,6 +61,10 @@ export default class DragAndDrop extends React.Component {
     }
 
     componentDidMount() {
+        if (this.isDisabled) {
+            return;
+        }
+
         this.dropZone = document.getElementById(this.props.dropZoneId);
         this.dropZoneRect = this.calculateDropZoneClientReact();
         document.addEventListener('dragover', this.dropZoneDragListener);
@@ -62,6 +75,10 @@ export default class DragAndDrop extends React.Component {
     }
 
     componentWillUnmount() {
+        if (this.isDisabled) {
+            return;
+        }
+
         document.removeEventListener('dragover', this.dropZoneDragListener);
         document.removeEventListener('dragenter', this.dropZoneDragListener);
         document.removeEventListener('dragleave', this.dropZoneDragListener);
