@@ -5,7 +5,7 @@ import Log from '../Log';
 import Config from '../../CONFIG';
 import translations from '../../languages/translations';
 import CONST from '../../CONST';
-import Localize, {listenForLocaleChanges} from './BaseLocaleListener';
+import * as Localize from './BaseLocaleListener';
 
 Localize.listenForLocaleChanges();
 
@@ -64,7 +64,7 @@ function translate(locale = CONST.DEFAULT_LOCALE, phrase, variables = {}) {
  * @returns {String}
  */
 function translateLocal(phrase, variables) {
-    return translate(preferredLocale, phrase, variables);
+    return translate(Localize.getPreferredLocale(), phrase, variables);
 }
 
 /**
@@ -90,5 +90,4 @@ export {
     translate,
     translateLocal,
     arrayToString,
-    getPreferredLocale,
 };

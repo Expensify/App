@@ -20,7 +20,7 @@ const listenForLocaleChanges = (callbackAfterChange) => {
             preferredLocale = val;
 
             // Update the system context menus with the localized options.
-            callbackAfterChange();
+            callbackAfterChange(val);
         },
     });
 };

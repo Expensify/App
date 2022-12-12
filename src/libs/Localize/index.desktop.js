@@ -1,3 +1,4 @@
-import ELECTRON_EVENTS from "../../../desktop/ELECTRON_EVENTS";
+import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
+import * as Localize from './BaseLocaleListener';
 
-window.electron.send(ELECTRON_EVENTS.LOCALE_UPDATED, val);
+Localize.listenForLocaleChanges(val => window.electron.send(ELECTRON_EVENTS.LOCALE_UPDATED, val));
