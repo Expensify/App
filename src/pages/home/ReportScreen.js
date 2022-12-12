@@ -130,11 +130,12 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // if (this.props.isDrawerOpen && !prevProps.isDrawerOpen) {
-        //     this.props.resetFlow({
-        //         destination: 'ReportScreen',
-        //     });
-        // }
+        if (this.props.isDrawerOpen && !prevProps.isDrawerOpen) {
+            this.props.resetFlow({
+                source: 'ReportScreen',
+                destination: 'ReportScreen',
+            });
+        }
 
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
@@ -198,6 +199,10 @@ class ReportScreen extends React.Component {
     }
 
     render() {
+        // make random id
+        const randomID = Math.random().toString(36).substring(7);
+        console.log(`>> [${randomID}] Render pass started`);
+
         if (!this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails)) {
             return null;
         }
@@ -236,6 +241,7 @@ class ReportScreen extends React.Component {
         // (which is shown, until all the actual views of the ReportScreen have been rendered)
         const animatePlaceholder = !freeze;
 
+        console.log(`>> [${randomID}] Render pass done ✅`);
         return (
             <ScreenWrapper
                 style={screenWrapperStyle}

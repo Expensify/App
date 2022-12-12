@@ -2,8 +2,8 @@ import React from 'react';
 import {PerformanceProfiler as RNPerformanceProfiler, LogLevel} from '@shopify/react-native-performance';
 import PropTypes from 'prop-types';
 
-const onReportPrepared = () => {
-    // console.log(report);
+const onReportPrepared = (report) => {
+    console.log(`>>${JSON.stringify(report, null, 2).replaceAll('\n', '\n>>')}`);
 };
 
 const propTypes = {
