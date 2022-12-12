@@ -21,20 +21,42 @@ const math = require('./measure/math');
 const writeTestStats = require('./measure/writeTestStats');
 const withFailTimeout = require('./utils/withFailTimeout');
 const reversePort = require('./utils/androidReversePort');
+const getCurrentBranchName = require('./utils/getCurrentBranchName');
 
 const args = process.argv.slice(2);
 
 let config = defaultConfig;
-if (args.includes('--config')) {
-    let configPath = args[args.indexOf('--config') + 1];
+const setConfigPath = (configPathParam) => {
+    let configPath = configPathParam;
     if (!configPath.startsWith('.')) {
         configPath = `./${configPath}`;
     }
     const customConfig = require(configPath);
     config = _.extend(defaultConfig, customConfig);
+};
+
+let baselineBranch = process.env.baseline || config.DEFAULT_BASELINE_BRANCH;
+
+// There are three build modes:
+// 1. full: rebuilds the full native app in (e2e) release mode
+// 2. js-only: only rebuilds the js bundle, and then re-packages
+//             the existing native app with the new package. If there
+//             is no existing native app, it will fallback to mode "full"
+// 3. skip: does not rebuild anything, and just runs the existing native app
+let buildMode = 'full';
+
+// When we are in dev mode we want to apply certain default params and configs
+const isDevMode = args.includes('--development');
+if (isDevMode) {
+    setConfigPath('config.local.js');
+    baselineBranch = getCurrentBranchName();
+    buildMode = 'js-only';
 }
 
-const baselineBranch = process.env.baseline || config.DEFAULT_BASELINE_BRANCH;
+if (args.includes('--config')) {
+    const configPath = args[args.indexOf('--config') + 1];
+    setConfigPath(configPath);
+}
 
 // Clear all files from previous jobs
 try {
@@ -45,6 +67,10 @@ try {
     console.error(error);
 }
 
+if (isDevMode) {
+    Logger.note(`Running in development mode. Set baseline branch to same as current ${baselineBranch}`);
+}
+
 const restartApp = async () => {
     Logger.log('Killing app …');
     await killApp('android');
@@ -53,13 +79,6 @@ const restartApp = async () => {
 };
 
 const runTestsOnBranch = async (branch, baselineOrCompare) => {
-    // There are three build modes:
-    // 1. full: rebuilds the full native app in (e2e) release mode
-    // 2. js-only: only rebuilds the js bundle, and then re-packages
-    //             the existing native app with the new package. If there
-    //             is no existing native app, it will fallback to mode "full"
-    // 3. skip: does not rebuild anything, and just runs the existing native app
-    let buildMode = 'full';
     if (args.includes('--buildMode')) {
         buildMode = args[args.indexOf('--buildMode') + 1];
     }
