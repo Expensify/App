@@ -67,7 +67,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         isNewChat = true;
     }
     let iouReport;
-    if (chatReport.iouReportID) {
+    if (chatReport.hasOutstandingIOU && chatReport.iouReportID) {
         iouReport = IOUUtils.updateIOUOwnerAndTotal(
             iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`],
             recipientEmail,
