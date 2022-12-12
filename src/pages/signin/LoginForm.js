@@ -111,6 +111,10 @@ class LoginForm extends React.Component {
         if (this.props.account.errors) {
             Session.clearAccountMessages();
         }
+        
+        if (this.props.closeAccount.success) {
+            Onyx.merge(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM, CONST.DEFAULT_CLOSE_ACCOUNT_DATA);
+        }
     }
 
     /**
