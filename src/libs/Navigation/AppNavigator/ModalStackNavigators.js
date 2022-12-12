@@ -219,10 +219,31 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsPronounsPage = require('../../../pages/settings/Profile/PronounsPage').default;
+            return SettingsPronounsPage;
+        },
+        name: 'Settings_Pronouns',
+    },
+    {
+        getComponent: () => {
             const SettingsDisplayNamePage = require('../../../pages/settings/Profile/DisplayNamePage').default;
             return SettingsDisplayNamePage;
         },
         name: 'Settings_Display_Name',
+    },
+    {
+        getComponent: () => {
+            const SettingsTimezoneInitialPage = require('../../../pages/settings/Profile/TimezoneInitialPage').default;
+            return SettingsTimezoneInitialPage;
+        },
+        name: 'Settings_Timezone',
+    },
+    {
+        getComponent: () => {
+            const SettingsTimezoneSelectPage = require('../../../pages/settings/Profile/TimezoneSelectPage').default;
+            return SettingsTimezoneSelectPage;
+        },
+        name: 'Settings_Timezone_Select',
     },
     {
         getComponent: () => {

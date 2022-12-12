@@ -5,17 +5,28 @@ import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import HttpsError from './Errors/HttpsError';
+import shouldUseStagingServer from './shouldUseStagingServer';
+import getPlatform from './getPlatform';
 
-let shouldUseStagingServer = false;
+// Desktop and web use staging config too so we we should default to staging API endpoint if on those platforms
+const shouldDefaultToStaging = _.contains([CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP], getPlatform());
+let stagingServerToggleState = false;
 Onyx.connect({
     key: ONYXKEYS.USER,
-    callback: val => shouldUseStagingServer = lodashGet(val, 'shouldUseStagingServer', true),
+    callback: val => stagingServerToggleState = lodashGet(val, 'shouldUseStagingServer', shouldDefaultToStaging),
 });
 
 let shouldFailAllRequests = false;
+let shouldForceOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
-    callback: val => shouldFailAllRequests = (val && _.isBoolean(val.shouldFailAllRequests)) ? val.shouldFailAllRequests : false,
+    callback: (network) => {
+        if (!network) {
+            return;
+        }
+        shouldFailAllRequests = Boolean(network.shouldFailAllRequests);
+        shouldForceOffline = Boolean(network.shouldForceOffline);
+    },
 });
 
 // We use the AbortController API to terminate pending request in `cancelPendingRequests`
@@ -40,7 +51,7 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
     })
         .then((response) => {
             // Test mode where all requests will succeed in the server, but fail to return a response
-            if (shouldFailAllRequests) {
+            if (shouldFailAllRequests || shouldForceOffline) {
                 throw new HttpsError({
                     message: CONST.ERROR.FAILED_TO_FETCH,
                 });
@@ -98,7 +109,7 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
 
     let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.URL_API_ROOT;
 
-    if (CONFIG.IS_IN_STAGING && shouldUseStagingServer) {
+    if (shouldUseStagingServer(stagingServerToggleState)) {
         apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.STAGING_SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.STAGING_EXPENSIFY_URL;
     }
 

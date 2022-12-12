@@ -36,10 +36,15 @@ function calculateAmount(participants, total, isDefaultUser = false) {
  * @param {Object} iouReport
  * @param {String} actorEmail
  * @param {Number} amount
+ * @param {String} currency
  * @param {String} type
  * @returns {Object}
  */
-function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, type = CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
+function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
+    if (currency !== iouReport.currency) {
+        return iouReport;
+    }
+
     const iouReportUpdate = {...iouReport};
 
     if (actorEmail === iouReport.ownerEmail) {
@@ -54,6 +59,8 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, type = CONST.IOU.
         iouReportUpdate.managerEmail = iouReport.ownerEmail;
         iouReportUpdate.total = -iouReportUpdate.total;
     }
+
+    iouReportUpdate.hasOutstandingIOU = iouReportUpdate.total !== 0;
 
     return iouReportUpdate;
 }

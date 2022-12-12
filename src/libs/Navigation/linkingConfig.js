@@ -88,8 +88,20 @@ export default {
                         path: ROUTES.SETTINGS_PROFILE,
                         exact: true,
                     },
+                    Settings_Pronouns: {
+                        path: ROUTES.SETTINGS_PRONOUNS,
+                        exact: true,
+                    },
                     Settings_Display_Name: {
                         path: ROUTES.SETTINGS_DISPLAY_NAME,
+                        exact: true,
+                    },
+                    Settings_Timezone: {
+                        path: ROUTES.SETTINGS_TIMEZONE,
+                        exact: true,
+                    },
+                    Settings_Timezone_Select: {
+                        path: ROUTES.SETTINGS_TIMEZONE_SELECT,
                         exact: true,
                     },
                     Settings_About: {
@@ -227,6 +239,7 @@ export default {
                     WalletStatement_Root: ROUTES.WALLET_STATEMENT_WITH_DATE,
                 },
             },
+            [SCREENS.NOT_FOUND]: '*',
         },
     },
 };

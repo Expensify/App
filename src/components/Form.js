@@ -39,6 +39,9 @@ const propTypes = {
 
         /** Server side errors keyed by microtime */
         errors: PropTypes.objectOf(PropTypes.string),
+
+        /** Field-specific server side errors keyed by microtime */
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
     /** Contains draft values for each input in the form */
@@ -47,6 +50,9 @@ const propTypes = {
 
     /** Should the button be enabled when offline */
     enabledWhenOffline: PropTypes.bool,
+
+    /** Whether the action is dangerous */
+    isDangerousAction: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
@@ -59,6 +65,7 @@ const defaultProps = {
     },
     draftValues: {},
     enabledWhenOffline: false,
+    isDangerousAction: false,
 };
 
 class Form extends React.Component {
@@ -72,6 +79,7 @@ class Form extends React.Component {
 
         this.inputRefs = {};
         this.touchedInputs = {};
+        this.childPosition = {};
 
         this.setTouchedInput = this.setTouchedInput.bind(this);
         this.validate = this.validate.bind(this);
@@ -88,6 +96,32 @@ class Form extends React.Component {
     getErrorMessage() {
         const latestErrorMessage = ErrorUtils.getLatestErrorMessage(this.props.formState);
         return this.props.formState.error || (typeof latestErrorMessage === 'string' ? latestErrorMessage : '');
+    }
+
+    getFirstErroredInput() {
+        const hasStateErrors = !_.isEmpty(this.state.errors);
+        const hasErrorFields = !_.isEmpty(this.props.formState.errorFields);
+
+        if (!hasStateErrors && !hasErrorFields) {
+            return;
+        }
+
+        return _.first(_.keys(hasStateErrors ? this.state.erorrs : this.props.formState.errorFields));
+    }
+
+    setPosition(element, position) {
+        // Some elements might not have props defined, e.g. Text
+        if (!element.props) {
+            return;
+        }
+
+        if (!element.props.inputID && element.props.children) {
+            _.forEach(element.props.children, (child) => {
+                this.setPosition(child, position);
+            });
+        } else {
+            this.childPosition[element.props.inputID] = position;
+        }
     }
 
     submit() {
@@ -116,6 +150,7 @@ class Form extends React.Component {
      */
     validate(values) {
         FormActions.setErrors(this.props.formID, null);
+        FormActions.setErrorFields(this.props.formID, null);
         const validationErrors = this.props.validate(values);
 
         if (!_.isObject(validationErrors)) {
@@ -125,7 +160,11 @@ class Form extends React.Component {
         const errors = _.pick(validationErrors, (inputValue, inputID) => (
             Boolean(this.touchedInputs[inputID])
         ));
-        this.setState({errors});
+
+        if (!_.isEqual(errors, this.state.errors)) {
+            this.setState({errors});
+        }
+
         return errors;
     }
 
@@ -181,10 +220,19 @@ class Form extends React.Component {
                 this.state.inputValues[inputID] = child.props.value;
             }
 
+            const errorFields = lodashGet(this.props.formState, 'errorFields', {});
+            const fieldErrorMessage = _.chain(errorFields[inputID])
+                .keys()
+                .sortBy()
+                .reverse()
+                .map(key => errorFields[inputID][key])
+                .first()
+                .value() || '';
+
             return React.cloneElement(child, {
                 ref: node => this.inputRefs[inputID] = node,
                 value: this.state.inputValues[inputID],
-                errorText: this.state.errors[inputID] || '',
+                errorText: this.state.errors[inputID] || fieldErrorMessage,
                 onBlur: () => {
                     this.setTouchedInput(inputID);
                     this.validate(this.state.inputValues);
@@ -217,21 +265,38 @@ class Form extends React.Component {
                     style={[styles.w100, styles.flex1]}
                     contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
+                    ref={el => this.form = el}
                 >
                     <View style={[this.props.style]}>
-                        {this.childrenWrapperWithProps(this.props.children)}
+                        {_.map(this.childrenWrapperWithProps(this.props.children), child => (
+                            <View
+                                key={child.key}
+                                onLayout={(event) => {
+                                    this.setPosition(child, event.nativeEvent.layout.y);
+                                }}
+                            >
+                                {child}
+                            </View>
+                        ))}
                         {this.props.isSubmitButtonVisible && (
                         <FormAlertWithSubmitButton
                             buttonText={this.props.submitButtonText}
-                            isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.getErrorMessage())}
+                            isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.getErrorMessage()) || !_.isEmpty(this.props.formState.errorFields)}
                             isLoading={this.props.formState.isLoading}
-                            message={this.getErrorMessage()}
+                            message={_.isEmpty(this.props.formState.errorFields) ? this.getErrorMessage() : null}
                             onSubmit={this.submit}
                             onFixTheErrorsLinkPressed={() => {
-                                this.inputRefs[_.first(_.keys(this.state.errors))].focus();
+                                const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
+                                const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
+                                const focusInput = this.inputRefs[focusKey];
+                                this.form.scrollTo({y: this.childPosition[focusKey], animated: false});
+                                if (focusInput.focus && typeof focusInput.focus === 'function') {
+                                    focusInput.focus();
+                                }
                             }}
                             containerStyles={[styles.mh0, styles.mt5]}
                             enabledWhenOffline={this.props.enabledWhenOffline}
+                            isDangerousAction={this.props.isDangerousAction}
                         />
                         )}
                     </View>

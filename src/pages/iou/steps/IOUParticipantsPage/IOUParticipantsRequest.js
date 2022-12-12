@@ -35,6 +35,7 @@ class IOUParticipantsRequest extends Component {
         super(props);
 
         this.addSingleParticipant = this.addSingleParticipant.bind(this);
+        this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
 
         const {
             recentReports,
@@ -53,7 +54,7 @@ class IOUParticipantsRequest extends Component {
             recentReports,
             personalDetails,
             userToInvite,
-            searchValue: '',
+            searchTerm: '',
         };
     }
 
@@ -64,31 +65,55 @@ class IOUParticipantsRequest extends Component {
      */
     getSections() {
         const sections = [];
+        let indexOffset = 0;
 
         sections.push({
             title: this.props.translate('common.recents'),
             data: this.state.recentReports,
             shouldShow: !_.isEmpty(this.state.recentReports),
-            indexOffset: 0,
+            indexOffset,
         });
+        indexOffset += this.state.recentReports.length;
 
         sections.push({
             title: this.props.translate('common.contacts'),
             data: this.state.personalDetails,
             shouldShow: !_.isEmpty(this.state.personalDetails),
-            indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
+            indexOffset,
         });
+        indexOffset += this.state.personalDetails.length;
 
         if (this.state.userToInvite && !OptionsListUtils.isCurrentUser(this.state.userToInvite)) {
             sections.push({
                 undefined,
                 data: [this.state.userToInvite],
                 shouldShow: true,
-                indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
+                indexOffset,
             });
         }
 
         return sections;
+    }
+
+    updateOptionsWithSearchTerm(searchTerm = '') {
+        const {
+            recentReports,
+            personalDetails,
+            userToInvite,
+        } = OptionsListUtils.getNewChatOptions(
+            this.props.reports,
+            this.props.personalDetails,
+            this.props.betas,
+            searchTerm,
+            [],
+            CONST.EXPENSIFY_EMAILS,
+        );
+        this.setState({
+            searchTerm,
+            recentReports,
+            userToInvite,
+            personalDetails,
+        });
     }
 
     /**
@@ -102,40 +127,20 @@ class IOUParticipantsRequest extends Component {
     }
 
     render() {
-        const sections = this.getSections();
         const headerMessage = OptionsListUtils.getHeaderMessage(
             this.state.personalDetails.length + this.state.recentReports.length !== 0,
             Boolean(this.state.userToInvite),
-            this.state.searchValue,
+            this.state.searchTerm,
         );
         return (
             <OptionsSelector
-                sections={sections}
-                value={this.state.searchValue}
+                sections={this.getSections()}
+                value={this.state.searchTerm}
                 onSelectRow={this.addSingleParticipant}
-                onChangeText={(searchValue = '') => {
-                    const {
-                        recentReports,
-                        personalDetails,
-                        userToInvite,
-                    } = OptionsListUtils.getNewChatOptions(
-                        this.props.reports,
-                        this.props.personalDetails,
-                        this.props.betas,
-                        searchValue,
-                        [],
-                        CONST.EXPENSIFY_EMAILS,
-                    );
-                    this.setState({
-                        searchValue,
-                        recentReports,
-                        userToInvite,
-                        personalDetails,
-                    });
-                }}
+                onChangeText={this.updateOptionsWithSearchTerm}
                 headerMessage={headerMessage}
-                hideAdditionalOptionStates
-                forceTextUnreadStyle
+                placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                boldStyle
             />
         );
     }
