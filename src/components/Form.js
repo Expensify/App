@@ -294,7 +294,7 @@ class Form extends React.Component {
                                     focusInput.focus();
                                 }
                             }}
-                            containerStyles={[styles.mh0, styles.mt5]}
+                            containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
                             enabledWhenOffline={this.props.enabledWhenOffline}
                             isDangerousAction={this.props.isDangerousAction}
                         />
