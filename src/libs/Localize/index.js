@@ -1,28 +1,13 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
-import Onyx from 'react-native-onyx';
-import Log from './Log';
-import Config from '../CONFIG';
-import translations from '../languages/translations';
-import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
-import ELECTRON_EVENTS from '../../desktop/ELECTRON_EVENTS';
+import Log from '../Log';
+import Config from '../../CONFIG';
+import translations from '../../languages/translations';
+import CONST from '../../CONST';
+import Localize, {listenForLocaleChanges} from './BaseLocaleListener';
 
-let preferredLocale = CONST.DEFAULT_LOCALE;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-
-        preferredLocale = val;
-
-        // Update the system context menus with the localized options.
-        window.electron.send(ELECTRON_EVENTS.LOCALE_UPDATED, val);
-    },
-});
+Localize.listenForLocaleChanges();
 
 /**
  * Return translated string for given locale and phrase
@@ -99,13 +84,6 @@ function arrayToString(anArray) {
         aString = `${anArray.slice(0, -1).join(', ')} ${and} ${anArray.slice(-1)}`;
     }
     return aString;
-}
-
-/*
-* @return {String}
-*/
-function getPreferredLocale() {
-    return preferredLocale;
 }
 
 export {

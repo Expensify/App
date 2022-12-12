@@ -8,7 +8,7 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-import * as Localize from './Localize';
+import * as Localize from './Localize/Localize';
 import * as CurrentDate from './actions/CurrentDate';
 
 let currentUserEmail;

@@ -4,7 +4,7 @@ import {Linking} from 'react-native';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import Growl from '../Growl';
-import * as Localize from '../Localize';
+import * as Localize from '../Localize/Localize';
 import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
 import asyncOpenURL from '../asyncOpenURL';
