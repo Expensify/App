@@ -752,7 +752,7 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
     let paymentMethodMessage;
     switch (paymentType) {
         case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
-            paymentMethodMessage = 'using wallet';
+            paymentMethodMessage = '!';
             break;
         case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
             paymentMethodMessage = 'elsewhere';
