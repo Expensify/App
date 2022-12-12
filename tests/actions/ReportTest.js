@@ -282,7 +282,7 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnread(report)).toBe(false);
 
                 // When the user manually marks a message as "unread"
-                Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate, 1);
+                Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -392,7 +392,7 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnread(report)).toBe(false);
 
                 // When the user manually marks a message as "unread"
-                Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate, 3);
+                Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate);
                 return waitForPromisesToResolve();
             })
             .then(() => {

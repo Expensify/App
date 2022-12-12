@@ -694,7 +694,6 @@ function readNewestAction(reportID, created) {
  *
  * @param {String} reportID
  * @param {String} created
- * @param {Number} sequenceNumber
  */
 function markCommentAsUnread(reportID, created) {
     // We subtract 1 millisecond so that the lastRead is updated to just before this reportAction's created date
@@ -1235,19 +1234,22 @@ function subscribeToNewActionEvent(reportID, callback) {
  * @param {Object} action
  */
 function viewNewReportAction(reportID, action) {
+    const report = allReports[reportID];
     const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
     const updatedReportObject = {};
 
-    // When handling an action from the current user we can assume that their last read actionID has been updated in the server,
-    // but not necessarily reflected locally so we will update the lastReadSequenceNumber to mark the report as read.
-    updatedReportObject.maxSequenceNumber = action.sequenceNumber;
+    // When handling an action from the current user we can assume that their lastReadMessage has been updated in the server,
+    // but not necessarily reflected locally so we will update the lastMessageTimestamp to mark the report as read.
+    if (report.lastMessageTimestamp < action.timestamp) {
+        updatedReportObject.lastMessageTimestamp = action.timestamp;
+    }
+
     if (isFromCurrentUser) {
         updatedReportObject.lastReadTimestamp = Date.now();
-        updatedReportObject.lastReadSequenceNumber = action.sequenceNumber;
     }
 
     if (reportID === newActionSubscriber.reportID) {
-        newActionSubscriber.callback(isFromCurrentUser, updatedReportObject.maxSequenceNumber);
+        newActionSubscriber.callback(isFromCurrentUser);
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
