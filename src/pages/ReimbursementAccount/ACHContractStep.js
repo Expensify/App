@@ -49,68 +49,53 @@ class ACHContractStep extends React.Component {
     }
 
     /**
-     * Get default value from reimbursementAccount or achData
-     * @param {String} fieldName
-     * @param {*} defaultValue
-     * @returns {String}
-     */
-    getDefaultStateForField(fieldName, defaultValue) {
-        return lodashGet(this.props, ['reimbursementAccount', 'achData', fieldName], defaultValue);
-    }
-
-    /**
      * @param {Object} values
      * @returns {Object}
      */
     validate(values) {
         const errors = {};
 
-        // let beneficialOwnersErrors = [];
-        if (values.hasOtherBeneficialOwners) {
-            //  beneficialOwnersErrors = _.map(this.state.beneficialOwners, ValidationUtils.validateIdentity);
+        _.each(values.beneficialOwners, (beneficialOwner, index) => {
+            if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.firstName)) {
+                errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.firstName');
+            }
 
-            _.each(values.beneficialOwners, (beneficialOwner, index) => {
-                if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.firstName)) {
-                    errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.firstName');
-                }
+            if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.lastName)) {
+                errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.lastName');
+            }
 
-                if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.lastName)) {
-                    errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.lastName');
-                }
+            if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.dob)) {
+                errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.dob');
+            }
 
-                if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.dob)) {
-                    errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.dob');
-                }
+            if (values.dob && !ValidationUtils.meetsAgeRequirements(values.dob)) {
+                errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.age');
+            }
 
-                if (values.dob && !ValidationUtils.meetsAgeRequirements(values.dob)) {
-                    errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.age');
-                }
+            if (!ValidationUtils.isRequiredFulfilled(values.ssnLast4) || !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {
+                errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.ssnLast4');
+            }
 
-                if (!ValidationUtils.isRequiredFulfilled(values.ssnLast4) || !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {
-                    errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.ssnLast4');
-                }
+            if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.beneficialOwnerAddressStreet)) {
+                errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.address');
+            }
 
-                if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.beneficialOwnerAddressStreet)) {
-                    errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.address');
-                }
+            if (values.beneficialOwnerAddressStreet && !ValidationUtils.isValidAddress(beneficialOwner.beneficialOwnerAddressStreet)) {
+                errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.addressStreet');
+            }
 
-                if (values.beneficialOwnerAddressStreet && !ValidationUtils.isValidAddress(beneficialOwner.beneficialOwnerAddressStreet)) {
-                    errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.addressStreet');
-                }
+            if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.beneficialOwnerAddressCity)) {
+                errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.addressCity');
+            }
 
-                if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.beneficialOwnerAddressCity)) {
-                    errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.addressCity');
-                }
+            if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.beneficialOwnerAddressState)) {
+                errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.addressState');
+            }
 
-                if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.beneficialOwnerAddressState)) {
-                    errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.addressState');
-                }
-
-                if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.beneficialOwnerAddressZipCode) || !ValidationUtils.isValidZipCode(values.beneficialOwnerAddressZipCode)) {
-                    errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.zipCode');
-                }
-            });
-        }
+            if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.beneficialOwnerAddressZipCode) || !ValidationUtils.isValidZipCode(values.beneficialOwnerAddressZipCode)) {
+                errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.zipCode');
+            }
+        });
 
         if (!ValidationUtils.isRequiredFulfilled(values.acceptTermsAndConditions)) {
             errors.acceptTermsAndConditions = this.props.translate('common.error.acceptedTerms');
@@ -119,7 +104,6 @@ class ACHContractStep extends React.Component {
         if (!ValidationUtils.isRequiredFulfilled(values.certifyTrueInformation)) {
             errors.certifyTrueInformation = this.props.translate('beneficialOwnersStep.error.certify');
         }
-
         return errors;
     }
 
@@ -174,8 +158,8 @@ class ACHContractStep extends React.Component {
         this.clearErrors(_.map(inputKeys, inputKey => `beneficialOwnersErrors.${ownerIndex}.${inputKey}`));
     }
 
-    submit() {
-        if (!this.validate()) {
+    submit(values) {
+        if (!this.validate(values)) {
             return;
         }
 
@@ -211,17 +195,17 @@ class ACHContractStep extends React.Component {
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={() => {
                         BankAccounts.clearOnfidoToken();
-                        BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.beneficialOwner);
+                        BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
                     }}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
                 />
                 <Form
-                    formID={ONYXKEYS.FORMS.ACH_CONTRACT_FORM}
+                    formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
                     validate={this.validate}
-                    onSubmit={() => {}}
-                    submitButtonText={this.props.translate('common.save')}
+                    onSubmit={this.submit}
+                    submitButtonText={this.props.translate('common.saveAndContinue')}
                     style={[styles.mh5, styles.flexGrow1]}
                 >
                     <Text style={[styles.mb5]}>
@@ -260,14 +244,14 @@ class ACHContractStep extends React.Component {
                                         translate={this.props.translate}
                                         style={[styles.mb2]}
                                         defaultValues={{
-                                            firstName: this.getDefaultStateForField('firstName'),
-                                            lastName: this.getDefaultStateForField('lastName'),
-                                            street: this.getDefaultStateForField('beneficialOwnerAddressStreet'),
-                                            city: this.getDefaultStateForField('beneficialOwnerAddressCity'),
-                                            state: this.getDefaultStateForField('beneficialOwnerAddressState'),
-                                            zipCode: this.getDefaultStateForField('beneficialOwnerAddressZipCode'),
-                                            dob: this.getDefaultStateForField('dob'),
-                                            ssnLast4: this.getDefaultStateForField('ssnLast4'),
+                                            firstName: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'firstName'),
+                                            lastName: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'lastName'),
+                                            street: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'beneficialOwnerAddressStreet'),
+                                            city: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'beneficialOwnerAddressCity'),
+                                            state: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'beneficialOwnerAddressState'),
+                                            zipCode: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'beneficialOwnerAddressZipCode'),
+                                            dob: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'dob'),
+                                            ssnLast4: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'ssnLast4'),
                                         }}
                                         inputKeys={{
                                             firstName: 'firstName',

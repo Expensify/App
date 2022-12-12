@@ -168,7 +168,6 @@ export default {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
         REQUEST_CALL_FORM: 'requestCallForm',
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
-        ACH_CONTRACT_FORM: 'ACHContractForm',
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
         CLOSE_ACCOUNT_FORM: 'closeAccount',
         PROFILE_SETTINGS_FORM: 'profileSettingsForm',
