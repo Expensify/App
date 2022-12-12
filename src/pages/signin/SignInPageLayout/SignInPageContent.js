@@ -68,7 +68,7 @@ const SignInPageContent = (props) => {
                                 {props.shouldShowWelcomeText && (
                                     <View style={[styles.signInPageWelcomeTextContainer]}>
                                         <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
-                                            {props.windowHeight}{props.welcomeText}
+                                            {props.welcomeText}
                                         </Text>
                                     </View>
                                 )}
