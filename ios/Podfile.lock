@@ -472,7 +472,7 @@ PODS:
     - React-Core
   - react-native-image-manipulator (1.0.5):
     - React
-  - react-native-image-picker (4.10.2):
+  - react-native-image-picker (4.10.1):
     - React-Core
   - react-native-netinfo (8.3.1):
     - React-Core
