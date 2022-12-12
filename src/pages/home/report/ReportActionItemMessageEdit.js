@@ -131,6 +131,13 @@ class ReportActionItemMessageEdit extends React.Component {
         Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, '');
         toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
         ReportActionComposeFocusManager.focus();
+        // The listener below scrolls to the last comment once the keyboard is hidden to make sure the comment is not hidden and 
+        // does not go outside the viewable area in the scroll view. This only applies to the last/latest comment in the report.
+        if (this.props.index !== 0) { return; }
+        const keyboardDidHideListener = Keyboard.addLstener('keyboardDidHide', () => {
+            ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, false);
+            keyboardDidHideListener.remove();
+        });
     }
 
     /**
