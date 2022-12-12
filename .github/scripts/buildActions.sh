@@ -17,7 +17,6 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/getDeployPullRequestList/getDeployPullRequestList.js"
     "$ACTIONS_DIR/getPullRequestDetails/getPullRequestDetails.js"
     "$ACTIONS_DIR/getReleaseBody/getReleaseBody.js"
-    "$ACTIONS_DIR/hashBranchName/hashBranchName.js"
     "$ACTIONS_DIR/isPullRequestMergeable/isPullRequestMergeable.js"
     "$ACTIONS_DIR/isStagingDeployLocked/isStagingDeployLocked.js"
     "$ACTIONS_DIR/markPullRequestsAsDeployed/markPullRequestsAsDeployed.js"

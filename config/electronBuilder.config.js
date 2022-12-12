@@ -1,7 +1,7 @@
 const {version} = require('../package.json');
 
 const isPublishing = process.argv.includes('--publish');
-const branchHash = process.env.BRANCH_HASH;
+const pullRequestNumber = process.env.PULL_REQUEST_NUMBER;
 
 const s3Bucket = {
     production: 'expensify-cash',
@@ -12,8 +12,8 @@ const s3Bucket = {
 const s3Path = {
     production: '/',
     staging: '/',
-    internal: process.env.BRANCH_HASH
-        ? `/desktop/${branchHash}/`
+    internal: process.env.PULL_REQUEST_NUMBER
+        ? `/desktop/${pullRequestNumber}/`
         : '/',
 };
 
