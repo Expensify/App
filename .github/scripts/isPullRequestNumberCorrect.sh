@@ -20,5 +20,4 @@ if [[ $EVENT_NAME == "workflow_dispatch" ]]; then
 else 
   echo "pullRequestNumber=$NUMBER" >> "$GITHUB_OUTPUT"
 fi
-
   
