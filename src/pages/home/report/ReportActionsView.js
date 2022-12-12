@@ -298,6 +298,9 @@ class ReportActionsView extends React.Component {
         Report.readOldestAction(this.props.report.reportID, oldestActionSequenceNumber);
     }
 
+    /**
+     * Scrolls down to the bottom of the chat when the new messages dialog is clicked.
+     */
     scrollToBottomAndMarkReportAsRead() {
         ReportScrollManager.scrollToBottom();
         Report.readNewestAction(this.props.report.reportID, _.last(_.toArray(this.props.reportActions)).created);
