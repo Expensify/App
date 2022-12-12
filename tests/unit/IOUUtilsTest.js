@@ -122,5 +122,18 @@ describe('isIOUReportPendingCurrencyConversion', () => {
         // We don't know what the total is because we need to subtract the converted amount of the offline request from the total
         expect(IOUUtils.isIOUReportPendingCurrencyConversion(reportActions, iouReport)).toBe(true);
     });
+
+    test('Cancelling a request offline in the report\'s currency when we have requests in a different currency does not show the pending ui', () => {
+        // Request money in the report's curreny (USD)
+        const onlineMoneyRequestInUSD = createIOUReportAction('create', 1000, 'USD', {isOnline: true});
+
+        // Request money online in a different currency
+        createIOUReportAction('create', 2000, 'AED', {isOnline: true});
+
+        // Cancel the USD request offline
+        cancelMoneyRequest(onlineMoneyRequestInUSD);
+
+        expect(IOUUtils.isIOUReportPendingCurrencyConversion(reportActions, iouReport)).toBe(false);
+    });
 });
 
