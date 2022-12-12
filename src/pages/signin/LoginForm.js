@@ -111,7 +111,8 @@ class LoginForm extends React.Component {
         if (this.props.account.errors) {
             Session.clearAccountMessages();
         }
-        
+
+        // Clear the "Account successfully closed" message when the user starts typing
         if (this.props.closeAccount.success) {
             Onyx.merge(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM, CONST.DEFAULT_CLOSE_ACCOUNT_DATA);
         }
