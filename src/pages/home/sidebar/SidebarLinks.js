@@ -224,6 +224,7 @@ const chatReportSelector = (report) => {
         stateNum: report.stateNum,
         chatType: report.chatType,
         policyID: report.policyID,
+        reportName: report.reportName,
     });
 };
 
