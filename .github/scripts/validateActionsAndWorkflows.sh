@@ -48,7 +48,7 @@ for ((i=0; i < ${#WORKFLOWS[@]}; i++)); do
     fi
 
   ajv -s ./tempSchemas/github-workflow.json -d "$WORKFLOW" --strict=false &
-  ASYNC_PROCESSES[${#ACTIONS[@]} + $i]=$!
+  ASYNC_PROCESSES[${#ACTIONS[@]} + i]=$!
 done
 
 # Wait for the background builds to finish
