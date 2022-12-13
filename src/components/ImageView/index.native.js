@@ -72,6 +72,13 @@ class ImageView extends PureComponent {
             const containerWidth = Math.round(this.props.windowWidth);
             const containerHeight = Math.round(this.state.containerHeight);
 
+            // On Android, the dimensions are sometimes returned to us flipped here. Swap them back to make sure the image fits nicely in the container. This has no effect on iOS.
+            if (imageWidth > imageHeight) {
+                const swap = imageHeight;
+                imageHeight = imageWidth;
+                imageWidth = swap;
+            }
+
             const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
 
             imageHeight *= aspectRatio;
