@@ -17,6 +17,9 @@ import fileDownload from '../../libs/fileDownload';
 import Growl from '../../libs/Growl';
 import CONST from '../../CONST';
 import makeCancellablePromise from '../../libs/MakeCancellablePromise';
+import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
+import {withNetwork} from '../../components/OnyxProvider';
+import networkPropTypes from '../../components/networkPropTypes';
 
 const propTypes = {
     /** The route object passed to this page from the navigator */
@@ -34,6 +37,9 @@ const propTypes = {
         /** Whether the PDF file available for download or not */
         isGenerating: PropTypes.bool,
     }),
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -106,13 +112,15 @@ class WalletStatementPage extends React.Component {
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={Str.recapitalize(title)}
-                    shouldShowDownloadButton
+                    shouldShowDownloadButton={!this.props.network.isOffline}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                     onDownloadButtonPress={() => this.processDownload(this.yearMonth)}
                 />
-                <WalletStatementModal
-                    statementPageURL={url}
-                />
+                <FullPageOfflineBlockingView>
+                    <WalletStatementModal
+                        statementPageURL={url}
+                    />
+                </FullPageOfflineBlockingView>
             </ScreenWrapper>
         );
     }
@@ -131,4 +139,5 @@ export default compose(
             key: ONYXKEYS.WALLET_STATEMENT,
         },
     }),
+    withNetwork(),
 )(WalletStatementPage);
