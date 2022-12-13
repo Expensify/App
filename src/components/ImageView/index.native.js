@@ -56,7 +56,7 @@ class ImageView extends PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        // This resizes the images on cycling
+        // Resize the image when cycled through
         if (!this.state.containerHeight || this.state.isLoading || prevProps.url === this.props.url) {
             return;
         }
