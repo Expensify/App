@@ -101,121 +101,124 @@ const defaultProps = {
     isHovered: false,
 };
 
-const IOUPreview = (props) => {
-    // Usually the parent determines whether the IOU Preview is displayed. But as the iouReport total cannot be known
-    // until it is stored locally, we need to make this check within the Component after retrieving it. This allows us
-    // to handle the loading UI from within this Component instead of needing to declare it within each parent, which
-    // would duplicate and complicate the logic
-    if (props.iouReport.total === 0) {
-        return null;
+class IOUPreview extends React.Component {
+    componentDidMount() {
+        if (!_.isEmpty(this.props.iouReport)) {
+            return;
+        }
+        Report.openIOUPreview(this.props.iouReportID, this.props.chatReportID);
     }
 
-    const sessionEmail = lodashGet(props.session, 'email', null);
-    const managerEmail = props.iouReport.managerEmail || '';
-    const ownerEmail = props.iouReport.ownerEmail || '';
+    render() {
+        // Usually the parent determines whether the IOU Preview is displayed. But as the iouReport total cannot be known
+        // until it is stored locally, we need to make this check within the Component after retrieving it. This allows us
+        // to handle the loading UI from within this Component instead of needing to declare it within each parent, which
+        // would duplicate and complicate the logic
+        if (this.props.iouReport.total === 0) {
+            return null;
+        }
 
-    // Pay button should only be visible to the manager of the report.
-    const isCurrentUserManager = managerEmail === sessionEmail;
-    const reportIsLoading = _.isEmpty(props.iouReport);
+        const sessionEmail = lodashGet(this.props.session, 'email', null);
+        const managerEmail = this.props.iouReport.managerEmail || '';
+        const ownerEmail = this.props.iouReport.ownerEmail || '';
 
-    if (reportIsLoading) {
-        Report.openIOUPreview(props.iouReportID, props.chatReportID);
-    }
+        // Pay button should only be visible to the manager of the report.
+        const isCurrentUserManager = managerEmail === sessionEmail;
+        const managerName = lodashGet(this.props.personalDetails, [managerEmail, 'firstName'], '')
+                            || Str.removeSMSDomain(managerEmail);
+        const ownerName = lodashGet(this.props.personalDetails, [ownerEmail, 'firstName'], '') || Str.removeSMSDomain(ownerEmail);
+        const managerAvatar = lodashGet(this.props.personalDetails, [managerEmail, 'avatar'], '');
+        const ownerAvatar = lodashGet(this.props.personalDetails, [ownerEmail, 'avatar'], '');
+        const cachedTotal = this.props.iouReport.total && this.props.iouReport.currency
+            ? this.props.numberFormat(
+                Math.abs(this.props.iouReport.total) / 100,
+                {style: 'currency', currency: this.props.iouReport.currency},
+            ) : '';
+        const avatarTooltip = [Str.removeSMSDomain(managerEmail), Str.removeSMSDomain(ownerEmail)];
 
-    const managerName = lodashGet(props.personalDetails, [managerEmail, 'firstName'], '')
-                        || Str.removeSMSDomain(managerEmail);
-    const ownerName = lodashGet(props.personalDetails, [ownerEmail, 'firstName'], '') || Str.removeSMSDomain(ownerEmail);
-    const managerAvatar = lodashGet(props.personalDetails, [managerEmail, 'avatar'], '');
-    const ownerAvatar = lodashGet(props.personalDetails, [ownerEmail, 'avatar'], '');
-    const cachedTotal = props.iouReport.total && props.iouReport.currency
-        ? props.numberFormat(
-            Math.abs(props.iouReport.total) / 100,
-            {style: 'currency', currency: props.iouReport.currency},
-        ) : '';
-    const avatarTooltip = [Str.removeSMSDomain(managerEmail), Str.removeSMSDomain(ownerEmail)];
-    return (
-        <TouchableWithoutFeedback onPress={props.onPreviewPressed}>
-            <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
-                {reportIsLoading
-                    ? <ActivityIndicator style={styles.iouPreviewBoxLoading} color={themeColors.text} />
-                    : (
-                        <OfflineWithFeedback
-                            pendingAction={props.pendingAction}
-                            errors={props.walletTerms.errors}
-                            onClose={() => {
-                                PaymentMethods.clearWalletTermsError();
-                                Report.clearIOUError(props.chatReportID);
-                            }}
-                            errorRowStyles={[styles.mbn1]}
-                        >
-                            <View>
-                                <View style={[styles.flexRow]}>
-                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                        <Text style={styles.h1}>
-                                            {cachedTotal}
-                                        </Text>
-                                        {!props.iouReport.hasOutstandingIOU && (
-                                            <View style={styles.iouPreviewBoxCheckmark}>
-                                                <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
-                                            </View>
+        return (
+            <TouchableWithoutFeedback onPress={this.props.onPreviewPressed}>
+                <View style={[styles.iouPreviewBox, ...this.props.containerStyles]}>
+                    {_.isEmpty(this.props.iouReport)
+                        ? <ActivityIndicator style={styles.iouPreviewBoxLoading} color={themeColors.text} />
+                        : (
+                            <OfflineWithFeedback
+                                pendingAction={this.props.pendingAction}
+                                errors={this.props.walletTerms.errors}
+                                onClose={() => {
+                                    PaymentMethods.clearWalletTermsError();
+                                    Report.clearIOUError(this.props.chatReportID);
+                                }}
+                                errorRowStyles={[styles.mbn1]}
+                            >
+                                <View>
+                                    <View style={[styles.flexRow]}>
+                                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                            <Text style={styles.h1}>
+                                                {cachedTotal}
+                                            </Text>
+                                            {!this.props.iouReport.hasOutstandingIOU && (
+                                                <View style={styles.iouPreviewBoxCheckmark}>
+                                                    <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
+                                                </View>
+                                            )}
+                                        </View>
+                                        <View style={styles.iouPreviewBoxAvatar}>
+                                            <MultipleAvatars
+                                                icons={[managerAvatar, ownerAvatar]}
+                                                secondAvatarStyle={[
+                                                    styles.secondAvatarInline,
+                                                    this.props.isHovered
+                                                        ? styles.iouPreviewBoxAvatarHover
+                                                        : undefined,
+                                                ]}
+                                                avatarTooltips={avatarTooltip}
+                                            />
+                                        </View>
+                                    </View>
+                                    {isCurrentUserManager
+                                        ? (
+                                            <Text>
+                                                {this.props.iouReport.hasOutstandingIOU
+                                                    ? this.props.translate('iou.youowe', {owner: ownerName})
+                                                    : this.props.translate('iou.youpaid', {owner: ownerName})}
+                                            </Text>
+                                        )
+                                        : (
+                                            <Text>
+                                                {this.props.iouReport.hasOutstandingIOU
+                                                    ? this.props.translate('iou.owesyou', {manager: managerName})
+                                                    : this.props.translate('iou.paidyou', {manager: managerName})}
+                                            </Text>
                                         )}
-                                    </View>
-                                    <View style={styles.iouPreviewBoxAvatar}>
-                                        <MultipleAvatars
-                                            icons={[managerAvatar, ownerAvatar]}
-                                            secondAvatarStyle={[
-                                                styles.secondAvatarInline,
-                                                props.isHovered
-                                                    ? styles.iouPreviewBoxAvatarHover
-                                                    : undefined,
-                                            ]}
-                                            avatarTooltips={avatarTooltip}
-                                        />
-                                    </View>
-                                </View>
-                                {isCurrentUserManager
-                                    ? (
-                                        <Text>
-                                            {props.iouReport.hasOutstandingIOU
-                                                ? props.translate('iou.youowe', {owner: ownerName})
-                                                : props.translate('iou.youpaid', {owner: ownerName})}
-                                        </Text>
-                                    )
-                                    : (
-                                        <Text>
-                                            {props.iouReport.hasOutstandingIOU
-                                                ? props.translate('iou.owesyou', {manager: managerName})
-                                                : props.translate('iou.paidyou', {manager: managerName})}
-                                        </Text>
-                                    )}
-                                {(isCurrentUserManager
-                                    && !props.shouldHidePayButton
-                                    && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
-                                    <TouchableOpacity
-                                        style={[styles.buttonMedium, styles.buttonSuccess, styles.mt4]}
-                                        onPress={props.onPayButtonPressed}
-                                    >
-                                        <Text
-                                            style={[
-                                                styles.buttonMediumText,
-                                                styles.buttonSuccessText,
-                                            ]}
+                                    {(isCurrentUserManager
+                                        && !this.props.shouldHidePayButton
+                                        && this.props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
+                                        <TouchableOpacity
+                                            style={[styles.buttonMedium, styles.buttonSuccess, styles.mt4]}
+                                            onPress={this.props.onPayButtonPressed}
                                         >
-                                            {props.translate('iou.pay')}
-                                        </Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        </OfflineWithFeedback>
-                    )}
-            </View>
-        </TouchableWithoutFeedback>
-    );
-};
+                                            <Text
+                                                style={[
+                                                    styles.buttonMediumText,
+                                                    styles.buttonSuccessText,
+                                                ]}
+                                            >
+                                                {this.props.translate('iou.pay')}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            </OfflineWithFeedback>
+                        )}
+                </View>
+            </TouchableWithoutFeedback>
+        );
+    }
+}
 
 IOUPreview.propTypes = propTypes;
 IOUPreview.defaultProps = defaultProps;
-IOUPreview.displayName = 'IOUPreview';
 
 export default compose(
     withLocalize,
