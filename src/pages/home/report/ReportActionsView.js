@@ -277,11 +277,12 @@ class ReportActionsView extends React.Component {
     computeNewMarkerReportActionID() {
         let newMarkerReportActionID = null;
         if (ReportUtils.isUnread(this.props.report)) {
-            const newMarkerIndex = _.findLastIndex(this.sortedReportActions, reportAction => {
-                const reportActionTimestamp = _.has(reportAction, 'reportActionTimestamp') ? reportAction.reportActionTimestamp : 0;
-                return reportActionTimestamp > this.props.report.lastReadTimestamp;
-            });
-            newMarkerReportActionID = this.sortedReportActions[newMarkerIndex].reportActionID;
+            const newMarkerIndex = _.findLastIndex(this.sortedReportActions, reportAction => (
+                (reportAction.reportActionTimestamp || 0) > this.props.report.lastReadTimestamp
+            ));
+            newMarkerReportActionID = _.has(this.sortedReportActions[newMarkerIndex], 'reportActionID')
+                ? this.sortedReportActions[newMarkerIndex].reportActionID
+                : null;
         }
         return newMarkerReportActionID;
     }
