@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import _ from 'underscore';
 import {Animated} from 'react-native';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
@@ -21,7 +22,7 @@ import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
     /** Position of the "New" line marker */
-    newMarkerSequenceNumber: PropTypes.number.isRequired,
+    newMarkerReportActionID: PropTypes.string,
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -52,6 +53,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    newMarkerReportActionID: null,
     personalDetails: {},
     mostRecentIOUReportActionID: '',
     isLoadingMoreReportActions: false,
@@ -120,10 +122,8 @@ class ReportActionsList extends React.Component {
         item: reportAction,
         index,
     }) {
-        // When the new indicator should not be displayed we explicitly set it to 0. The marker should never be shown above the
-        // created action (which will have sequenceNumber of 0) so we use 0 to indicate "hidden".
-        const shouldDisplayNewIndicator = this.props.newMarkerSequenceNumber > 0
-            && reportAction.sequenceNumber === this.props.newMarkerSequenceNumber
+        const shouldDisplayNewIndicator = !_.isNull(this.props.newMarkerReportActionID)
+            && reportAction.reportActionID === this.props.newMarkerReportActionID
             && !ReportActionsUtils.isDeletedAction(reportAction);
         return (
             <ReportActionItem
@@ -141,7 +141,7 @@ class ReportActionsList extends React.Component {
     render() {
         // Native mobile does not render updates flatlist the changes even though component did update called.
         // To notify there something changes we can use extraData prop to flatlist
-        const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.newMarkerSequenceNumber : undefined;
+        const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.newMarkerReportActionID : undefined;
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
         return (
             <Animated.View style={[StyleUtils.fade(this.state.fadeInAnimation), styles.flex1]}>
