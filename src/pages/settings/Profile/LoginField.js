@@ -82,14 +82,13 @@ class LoginField extends Component {
                 note = this.props.translate('loginField.numberHasNotBeenValidated');
             }
 
-        // Has unvalidated email
+            // Has unvalidated email
         } else if (this.props.login.partnerUserID && !this.props.login.validatedDate) {
             note = this.props.translate('loginField.emailHasNotBeenValidated');
         }
 
         return (
-            <View style={[styles.mb6, styles.ph8]}>
-                <Text style={[styles.textLabelSupporting, this.getLabelMargin()]}>{this.props.label}</Text>
+            <View style={[styles.ph8]}>
                 {!this.props.login.partnerUserID ? (
                     <View style={[styles.mln8, styles.mrn8]}>
                         <MenuItem
@@ -100,26 +99,29 @@ class LoginField extends Component {
                         />
                     </View>
                 ) : (
-                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.pt]}>
-                        <Text style={[styles.mt1]} numberOfLines={1}>
-                            {this.props.type === CONST.LOGIN_TYPE.PHONE
-                                ? this.props.toLocalPhone(this.props.login.partnerUserID)
-                                : this.props.login.partnerUserID}
-                        </Text>
-                        {!this.props.login.validatedDate && (
-                            <Button
-                                small
-                                style={[styles.mb2]}
-                                onPress={this.onResendClicked}
-                                ContentComponent={() => (this.state.showCheckmarkIcon ? (
-                                    <Icon fill={themeColors.inverse} src={Expensicons.Checkmark} />
-                                ) : (
-                                    <Text style={styles.buttonSmallText}>
-                                        {this.props.translate('common.resend')}
-                                    </Text>
-                                ))}
-                            />
-                        )}
+                    <View>
+                        <Text style={[styles.textLabelSupporting, this.getLabelMargin()]}>{this.props.label}</Text>
+                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.pt]}>
+                            <Text style={[styles.mt1]} numberOfLines={1}>
+                                {this.props.type === CONST.LOGIN_TYPE.PHONE
+                                    ? this.props.toLocalPhone(this.props.login.partnerUserID)
+                                    : this.props.login.partnerUserID}
+                            </Text>
+                            {!this.props.login.validatedDate && (
+                                <Button
+                                    small
+                                    style={[styles.mb2]}
+                                    onPress={this.onResendClicked}
+                                    ContentComponent={() => (this.state.showCheckmarkIcon ? (
+                                        <Icon fill={themeColors.inverse} src={Expensicons.Checkmark} />
+                                    ) : (
+                                        <Text style={styles.buttonSmallText}>
+                                            {this.props.translate('common.resend')}
+                                        </Text>
+                                    ))}
+                                />
+                            )}
+                        </View>
                     </View>
                 )}
                 {note && (
