@@ -54,7 +54,7 @@ class ImageView extends PureComponent {
     }
 
     componentDidUpdate() {
-        // resize the image when cycled through
+        // Resize the image when cycled through
         Image.getSize(this.props.url, (width, height) => {
             this.setImageRegion(width, height);
         });
