@@ -97,6 +97,7 @@ class LoginField extends Component {
                                         ? this.props.toLocalPhone(this.props.login.partnerUserID)
                                         : this.props.login.partnerUserID}
                                     description={this.props.label}
+                                    interactive={false}
                                 />
                             </View>
                         ) : (
