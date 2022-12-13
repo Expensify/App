@@ -572,7 +572,6 @@ const styles = {
         },
         iconContainer: {
             top: 7,
-            right: 8,
             ...pointerEventsNone,
         },
         icon: {
@@ -808,7 +807,7 @@ const styles = {
     picker: (disabled = false) => ({
         iconContainer: {
             top: Math.round(variables.inputHeight * 0.5) - 11,
-            right: 10,
+            right: 0,
             zIndex: -1,
         },
 
