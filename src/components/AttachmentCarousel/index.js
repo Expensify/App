@@ -134,7 +134,7 @@ class AttachmentCarousel extends React.Component {
     }
 
     /**
-     * increments or decrements the index to get another selected item
+     * Increments or decrements the index to get another selected item
      * @param {Number} deltaSlide
     */
     cycleThroughAttachments(deltaSlide) {
