@@ -40,10 +40,15 @@ function getURLObject(href) {
 
 /**
  * Determine if we should remove w3 from hostname
+ * E.g www.expensify.com should be the same as expensify.com
  * @param {String} hostname
  * @returns {Boolean}
  */
 function shouldRemoveW3FromExpensifyUrl(hostname) {
+    // Since expensify.com.dev is accessible with and without www subdomain
+    if (hostname === 'www.expensify.com.dev') {
+        return true;
+    }
     const parts = hostname.split('.').reverse();
     const subDomain = parts[2];
     return subDomain === 'www';
