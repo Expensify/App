@@ -35,7 +35,7 @@ class AutoUpdateTime extends PureComponent {
     }
 
     componentDidUpdate() {
-        // Make sure the interval is up to date everytime component updated.
+        // Make sure the interval is up to date every time the component updates
         this.updateCurrentTime();
     }
 
