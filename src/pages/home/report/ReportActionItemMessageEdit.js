@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {InteractionManager, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
