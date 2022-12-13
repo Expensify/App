@@ -1,20 +1,8 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
-import updateUnread from './updateUnread';
-import * as ReportUtils from '../ReportUtils';
 
 const reports = {};
-
-/**
- * Updates the title and favicon of the current browser tab and Mac OS or iOS dock icon with an unread indicator.
- * Note: We are throttling this since listening for report changes can trigger many updates depending on how many reports
- * a user has and how often they are updated.
- */
-const throttledUpdatePageTitleAndUnreadCount = _.throttle(() => {
-    const totalCount = _.filter(reports, ReportUtils.isUnread).length;
-    updateUnread(totalCount);
-}, 100, {leading: false});
 
 let connectionID;
 
@@ -31,7 +19,6 @@ function listenForReportChanges() {
             }
 
             reports[report.reportID] = report;
-            throttledUpdatePageTitleAndUnreadCount();
         },
     });
 }
@@ -50,5 +37,4 @@ function stopListeningForReportChanges() {
 export default {
     listenForReportChanges,
     stopListeningForReportChanges,
-    throttledUpdatePageTitleAndUnreadCount,
 };

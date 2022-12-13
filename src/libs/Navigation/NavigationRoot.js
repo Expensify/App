@@ -46,7 +46,6 @@ function parseAndLogRoute(state) {
         Log.info('Navigating to route', false, {path: currentPath});
     }
 
-    UnreadIndicatorUpdater.throttledUpdatePageTitleAndUnreadCount();
     Navigation.setIsNavigationReady();
 }
 
