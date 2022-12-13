@@ -817,9 +817,19 @@ const styles = {
             ...picker,
         },
 
-        inputNative: {
+        inputIOS: {
             ...picker,
         },
+
+        inputAndroid: {
+            ...picker,
+        }
+    }),
+
+    pickerStyles: (disabled = false) => ({
+        appearance: 'none',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        ...picker,
     }),
 
     disabledText: {
