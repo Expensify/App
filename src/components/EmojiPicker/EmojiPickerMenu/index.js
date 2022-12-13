@@ -386,8 +386,7 @@ class EmojiPickerMenu extends Component {
         ));
 
         // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
-        // Always set the highlighted index to -1 so that no emojis are highlighted until the keyboard is used
-        this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: [], highlightedIndex: -1});
+        this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: [], highlightedIndex: 0});
         this.setFirstNonHeaderIndex(newFilteredEmojiList);
     }
 
