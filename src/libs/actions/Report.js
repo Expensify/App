@@ -1299,7 +1299,6 @@ export {
     editReportComment,
     saveReportActionDraft,
     deleteReportComment,
-    getSimplifiedIOUReport,
     syncChatAndIOUReports,
     navigateToConciergeChat,
     setReportWithDraft,
