@@ -168,7 +168,7 @@ class Picker extends PureComponent {
 
                         // We add a text color to prevent white text on white background dropdown items on Windows
                         items={_.map(this.props.items, item => ({...item, color: themeColors.pickerOptionsTextColor}))}
-                        style={this.props.size === 'normal' ? pickerStyles(this.props.isDisabled) : styles.pickerSmall}
+                        style={this.props.size === 'normal' ? styles.picker(this.props.isDisabled) : styles.pickerSmall}
                         useNativeAndroidPickerStyle={false}
                         placeholder={this.placeholder}
                         value={this.props.value}
