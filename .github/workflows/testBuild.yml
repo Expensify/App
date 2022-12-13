@@ -3,7 +3,7 @@ name: Build and deploy apps for testing
 on:
   workflow_dispatch:
     inputs:
-      pullRequestNumber:
+      PULL_REQUEST_NUMBER:
         description: Pull Request number for correct placement of apps
         required: true
   pull_request_target:
@@ -26,37 +26,38 @@ jobs:
           username: ${{ github.actor }}
           team: mobile-deployers
 
-  isPullRequestNumberCorrect:
+  getBranchRef:
     runs-on: ubuntu-latest
     needs: validateActor
     if: ${{ fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) }}
     outputs:
-      PULL_REQUEST_NUMBER: ${{steps.isPrNumberCorrect.outputs.pullRequestNumber}}
+      REF: ${{steps.getHeadRef.outputs.REF}}
     steps:
       - name: Checkout
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
       - name: Check if pull request number is correct
-        id: isPrNumberCorrect
-        run: ./.github/scripts/isPullRequestNumberCorrect.sh "$EVENT_NAME" "$NUMBER" "$REF_NAME"
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        id: getHeadRef
+        run: |
+          set -e
+          gh pr checkout ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
+          echo "REF=$(git rev-parse --abbrev-ref HEAD)" >> "$GITHUB_OUTPUT"
         env:
-          EVENT_NAME: ${{ github.event_name }}
-          NUMBER: ${{ github.event.number || github.event.inputs.pullRequestNumber }}
-          REF_NAME: ${{ github.ref_name }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   android:
     name: Build and deploy Android for testing
-    needs: [validateActor, isPullRequestNumberCorrect]
+    needs: [validateActor, getBranchRef]
     if: ${{ fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) }}
     runs-on: ubuntu-latest
     env:
-      PULL_REQUEST_NUMBER: ${{ needs.isPullRequestNumberCorrect.outputs.PULL_REQUEST_NUMBER }}
+      PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     steps:
       # This action checks-out the repository, so the workflow can access it.
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.head_ref || needs.getBranchRef.outputs.REF }}
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
@@ -97,16 +98,16 @@ jobs:
 
   iOS:
     name: Build and deploy iOS for testing
-    needs: [validateActor, isPullRequestNumberCorrect]
+    needs: [validateActor, getBranchRef]
     if: ${{ fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) }}
     env:
-      PULL_REQUEST_NUMBER: ${{ needs.isPullRequestNumberCorrect.outputs.PULL_REQUEST_NUMBER }}
+      PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: macos-12
     steps:
       # This action checks-out the repository, so the workflow can access it.
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.head_ref || needs.getBranchRef.outputs.REF }}
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
@@ -153,15 +154,16 @@ jobs:
 
   desktop:
     name: Build and deploy Desktop for testing
-    needs: [validateActor, isPullRequestNumberCorrect]
+    needs: [validateActor, getBranchRef]
     if: ${{ fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) }}
     env:
-      PULL_REQUEST_NUMBER: ${{ needs.isPullRequestNumberCorrect.outputs.PULL_REQUEST_NUMBER }}
+      PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: macos-12
     steps:
       # This action checks-out the repository, so the workflow can access it.
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
+          ref: ${{ github.head_ref || needs.getBranchRef.outputs.REF }}
           fetch-depth: 0
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
@@ -190,14 +192,14 @@ jobs:
   postGithubComment:
     runs-on: ubuntu-latest
     name: Post a GitHub comment with app download links for testing
-    needs: [isPullRequestNumberCorrect, android, ios, desktop]
+    needs: [getBranchRef, android, ios, desktop]
     env:
-      PULL_REQUEST_NUMBER: ${{ needs.isPullRequestNumberCorrect.outputs.PULL_REQUEST_NUMBER }}
+      PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     steps:
       - name: Checkout
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.head_ref || needs.getBranchRef.outputs.REF }}
 
       - uses: actions/download-artifact@v3
 
