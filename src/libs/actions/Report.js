@@ -941,13 +941,13 @@ const removeLinks = (comment, links) => {
 
 /**
  * This function will handle removing only links that were purposely removed by the user while editing.
- * @param {String} htmlWithAutoLinks the new comment in html after autolinking all the links
- * @param {Array} originalHtml original html of the comment before editing
  * @param {String} newCommentText text of the comment after editing.
+* @param {Array} originalHtml original html of the comment before editing
  * @returns {String}
  */
-const handleUserDeletedLinks = (htmlWithAutoLinks, originalHtml, newCommentText) => {
+const handleUserDeletedLinks = (newCommentText, originalHtml) => {
     const parser = new ExpensiMark();
+    const htmlWithAutoLinks = parser.replace(newCommentText);
     const markdownWithAutoLinks = parser.htmlToMarkdown(htmlWithAutoLinks);
     const markdownOriginalComment = parser.htmlToMarkdown(originalHtml);
     const removedLinks = getRemovedLinks(markdownOriginalComment, newCommentText);
@@ -968,10 +968,8 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     // https://github.com/Expensify/App/issues/9090
     // https://github.com/Expensify/App/issues/13221
 
-    const htmlWithAutoLinking = parser.replace(textForNewComment); // Will generate html and autolink all links in comment
-
     // If user purposely removed a link while editing message. then remove it again.
-    const markdownForNewComment = handleUserDeletedLinks(htmlWithAutoLinking, lodashGet(originalReportAction, 'message[0].html'), textForNewComment);
+    const markdownForNewComment = handleUserDeletedLinks(textForNewComment, lodashGet(originalReportAction, 'message[0].html'));
     const htmlForNewComment = parser.replace(markdownForNewComment, {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')});
 
     //  Delete the comment if it's empty
@@ -1428,6 +1426,7 @@ export {
     broadcastUserIsTyping,
     togglePinnedState,
     editReportComment,
+    handleUserDeletedLinks,
     saveReportActionDraft,
     deleteReportComment,
     getSimplifiedIOUReport,
