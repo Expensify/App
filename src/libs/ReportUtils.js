@@ -867,7 +867,6 @@ function buildOptimisticChatReport(
  * @returns {Object}
  */
 function buildOptimisticCreatedReportAction(ownerEmail) {
-    const optimisticReportActionID = NumberUtils.rand64();
     return {
         0: {
             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
@@ -894,7 +893,7 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
             ],
             automatic: false,
             sequenceNumber: 0,
-            reportActionID: optimisticReportActionID,
+            reportActionID: NumberUtils.rand64(),
             avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
             created: DateUtils.getDBTime(),
             shouldShow: true,
@@ -968,9 +967,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
 function isUnread(report) {
     const lastReadSequenceNumber = report.lastReadSequenceNumber || 0;
     const maxSequenceNumber = report.maxSequenceNumber || 0;
-
-    // maxSequenceNumber is actually reportActionsCount
-    return lastReadSequenceNumber + 1 < maxSequenceNumber;
+    return lastReadSequenceNumber < maxSequenceNumber;
 }
 
 /**
