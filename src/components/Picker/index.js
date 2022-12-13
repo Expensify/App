@@ -9,7 +9,6 @@ import FormHelpMessage from '../FormHelpMessage';
 import Text from '../Text';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
-import pickerStyles from './pickerStyles';
 
 const propTypes = {
     /** Picker label */
