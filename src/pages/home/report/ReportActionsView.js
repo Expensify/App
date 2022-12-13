@@ -245,7 +245,6 @@ class ReportActionsView extends React.Component {
         Report.unsubscribeFromReportChannel(this.props.report.reportID);
     }
 
-
     /**
      * @param {Object} reportActions
      * @returns {Array}

@@ -1240,8 +1240,8 @@ function viewNewReportAction(reportID, action) {
 
     // When handling an action from the current user we can assume that their lastReadMessage has been updated in the server,
     // but not necessarily reflected locally so we will update the lastMessageTimestamp to mark the report as read.
-    if (report.lastMessageTimestamp < action.timestamp) {
-        updatedReportObject.lastMessageTimestamp = action.timestamp;
+    if (report.lastMessageTimestamp < action.reportActionTimestamp) {
+        updatedReportObject.lastMessageTimestamp = action.reportActionTimestamp;
     }
 
     if (isFromCurrentUser) {
