@@ -101,25 +101,27 @@ class LoginField extends Component {
                                 />
                             </View>
                         ) : (
-                            <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.pt]}>
+                            <View style={[styles.mt2]}>
                                 <Text style={[styles.textLabelSupporting]}>{this.props.label}</Text>
-                                <Text style={[styles.mt1]} numberOfLines={1}>
-                                    {this.props.type === CONST.LOGIN_TYPE.PHONE
-                                        ? this.props.toLocalPhone(this.props.login.partnerUserID)
-                                        : this.props.login.partnerUserID}
-                                </Text>
-                                <Button
-                                    small
-                                    style={[styles.mb2]}
-                                    onPress={this.onResendClicked}
-                                    ContentComponent={() => (this.state.showCheckmarkIcon ? (
-                                        <Icon fill={themeColors.inverse} src={Expensicons.Checkmark} />
-                                    ) : (
-                                        <Text style={styles.buttonSmallText}>
-                                            {this.props.translate('common.resend')}
-                                        </Text>
-                                    ))}
-                                />
+                                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.pt]}>
+                                    <Text numberOfLines={1}>
+                                        {this.props.type === CONST.LOGIN_TYPE.PHONE
+                                            ? this.props.toLocalPhone(this.props.login.partnerUserID)
+                                            : this.props.login.partnerUserID}
+                                    </Text>
+                                    <Button
+                                        small
+                                        style={[styles.mb2]}
+                                        onPress={this.onResendClicked}
+                                        ContentComponent={() => (this.state.showCheckmarkIcon ? (
+                                            <Icon fill={themeColors.inverse} src={Expensicons.Checkmark} />
+                                        ) : (
+                                            <Text style={styles.buttonSmallText}>
+                                                {this.props.translate('common.resend')}
+                                            </Text>
+                                        ))}
+                                    />
+                                </View>
                             </View>
                         )}
                     </View>
