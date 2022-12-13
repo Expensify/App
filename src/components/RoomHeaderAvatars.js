@@ -73,7 +73,7 @@ const RoomHeaderAvatars = (props) => {
                                 <View
                                     style={[
                                         styles.roomHeaderAvatar,
-                                        styles.screenBlur,
+                                        styles.roomHeaderAvatarOverlay,
                                     ]}
                                 />
                                 <Text style={styles.avatarInnerTextChat}>
