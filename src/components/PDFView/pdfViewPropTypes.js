@@ -12,7 +12,7 @@ const propTypes = {
     /** Notify parent that the keyboard has opened or closed */
     onToggleKeyboard: PropTypes.func,
 
-    /** handles press events like toggling attachment arrows natively */
+    /** Handles press events like toggling attachment arrows natively */
     onPress: PropTypes.func,
 
     ...windowDimensionsPropTypes,
