@@ -223,7 +223,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           body-include: 'Use the links below to test this build in android and iOS. Happy testing!'
-          number: ${{ github.event.number || github.event.inputs.pullRequestNumber }}
+          number: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
           delete: true
 
       - name: Publish links to apps for download
