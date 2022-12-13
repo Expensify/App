@@ -12,7 +12,6 @@ import Navigation from '../Navigation/Navigation';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
-import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
@@ -177,39 +176,6 @@ function getSimplifiedIOUReport(reportData, chatReportID) {
         submitterPhoneNumbers: reportData.submitterPhoneNumbers,
         hasOutstandingIOU: reportData.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && reportData.total !== 0,
     };
-}
-
-/**
- * Given IOU and chat report ID fetches most recent IOU data from DeprecatedAPI.
- *
- * @param {Number} iouReportID
- * @param {Number} chatReportID
- * @returns {Promise}
- */
-function fetchIOUReport(iouReportID, chatReportID) {
-    return DeprecatedAPI.Get({
-        returnValueList: 'reportStuff',
-        reportIDList: iouReportID,
-        shouldLoadOptionalKeys: true,
-        includePinnedReports: true,
-    }).then((response) => {
-        if (!response) {
-            return;
-        }
-        if (response.jsonCode !== 200) {
-            console.error(response.message);
-            return;
-        }
-        const iouReportData = response.reports[iouReportID];
-        if (!iouReportData) {
-            // IOU data for a report will be missing when the IOU report has already been paid.
-            // This is expected and we return early as no further processing can be done.
-            return;
-        }
-        return getSimplifiedIOUReport(iouReportData, chatReportID);
-    }).catch((error) => {
-        Log.hmmm('[Report] Failed to populate IOU Collection:', error.message);
-    });
 }
 
 /**
