@@ -893,7 +893,7 @@ function deleteReportComment(reportID, reportAction) {
 }
 
 /**
- * Extract all links in a markdown comment and returns them in a list.
+ * Extracts all links in a markdown comment and returns them in a list.
  *
  * @param {String} comment
  * @returns {Array}
@@ -901,12 +901,12 @@ function deleteReportComment(reportID, reportAction) {
 const extractLinksInComment = (comment) => {
     const reg = /\[[^[\]]*\]\(([^()]*)\)/gm;
     const matches = [...comment.matchAll(reg)];
-    const links = _.map(matches, match => match[1]); // select the group from match
+    const links = _.map(matches, match => match[1]); // Element 1 from match is the reg group if exists
     return links;
 };
 
 /**
- * compares two markdown comments and return a list of the links removed in new comment.
+ * Compares two markdown comments and returns a list of the links removed in a new comment.
  *
  * @param {String} oldComment
  * @param {String} newComment
@@ -919,7 +919,7 @@ const getRemovedLinks = (oldComment, newComment) => {
 };
 
 /**
- * removes links in a markdown comment.
+ * Removes the links in a markdown comment.
  * example:
  *      comment="test [link](https://www.google.com) test",
  *      links=["https://www.google.com"]
@@ -930,7 +930,7 @@ const getRemovedLinks = (oldComment, newComment) => {
  */
 const removeLinks = (comment, links) => {
     let commentCopy = comment.slice();
-    links.forEach((link) => {
+    _.forEach(links, (link) => {
         const reg = new RegExp(`\\[([^\\[\\]]*)\\]\\(${link}\\)`, 'gm');
         const linkMatch = reg.exec(commentCopy);
         const linkText = linkMatch && linkMatch[1];
@@ -950,11 +950,8 @@ const handleUserDeletedLinks = (htmlWithAutoLinks, originalHtml, newCommentText)
     const parser = new ExpensiMark();
     const markdownWithAutoLinks = parser.htmlToMarkdown(htmlWithAutoLinks);
     const markdownOriginalComment = parser.htmlToMarkdown(originalHtml);
-
     const removedLinks = getRemovedLinks(markdownOriginalComment, newCommentText);
-
-    const afterRemovingLinks = removeLinks(markdownWithAutoLinks, removedLinks);
-    return afterRemovingLinks;
+    return removeLinks(markdownWithAutoLinks, removedLinks);
 };
 
 /**
@@ -974,7 +971,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const htmlWithAutoLinking = parser.replace(textForNewComment); // Will generate html and autolink all links in comment
 
     // If user purposely removed a link while editing message. then remove it again.
-    const markdownForNewComment = handleUserDeletedLinks(htmlWithAutoLinking, originalReportAction.message[0].html, textForNewComment);
+    const markdownForNewComment = handleUserDeletedLinks(htmlWithAutoLinking, lodashGet(originalReportAction, 'message[0].html'), textForNewComment);
     const htmlForNewComment = parser.replace(markdownForNewComment, {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')});
 
     //  Delete the comment if it's empty
