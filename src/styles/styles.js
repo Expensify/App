@@ -823,7 +823,7 @@ const styles = {
 
         inputAndroid: {
             ...picker,
-        }
+        },
     }),
 
     pickerStyles: (disabled = false) => ({
