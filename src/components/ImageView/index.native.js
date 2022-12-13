@@ -66,17 +66,16 @@ class ImageView extends PureComponent {
         if (!this.props.url) {
             return;
         }
-        ImageSize.getSize(this.props.url).then(({width, height}) => {
+        ImageSize.getSize(this.props.url).then(({width, height, rotation}) => {
             let imageWidth = width;
             let imageHeight = height;
             const containerWidth = Math.round(this.props.windowWidth);
             const containerHeight = Math.round(this.state.containerHeight);
 
-            // On Android, the dimensions are sometimes returned to us flipped here. Swap them back to make sure the image fits nicely in the container. This has no effect on iOS.
-            if (imageWidth > imageHeight) {
-                const swap = imageHeight;
-                imageHeight = imageWidth;
-                imageWidth = swap;
+            // On specific Android devices, the dimensions are sometimes returned to us flipped here, with `rotation` set to 90 degrees.
+            // Swap them back to make sure the image fits nicely in the container. On iOS, the rotation is always undefined, so this does not apply.
+            if (rotation === 90 && imageWidth > imageHeight) {
+                [imageWidth, imageHeight] = [imageHeight, imageWidth];
             }
 
             const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
