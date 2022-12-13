@@ -36,7 +36,7 @@ info 'Validating actions and workflows against their JSON schemas...'
 for ((i=0; i < ${#ACTIONS[@]}; i++)); do
   ACTION=${ACTIONS[$i]}
   ajv -s ./tempSchemas/github-action.json -d "$ACTION" --strict=false &
-  ASYNC_PROCESSES[$i]=$!
+  ASYNC_PROCESSES[i]=$!
 done
 
 for ((i=0; i < ${#WORKFLOWS[@]}; i++)); do
@@ -53,7 +53,7 @@ done
 
 # Wait for the background builds to finish
 for PID in "${ASYNC_PROCESSES[@]}"; do
-  wait $PID
+  wait "$PID"
   RESULT=$?
   if [[ $RESULT != 0 ]]; then
     EXIT_CODE=$RESULT
