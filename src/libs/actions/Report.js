@@ -893,6 +893,76 @@ function deleteReportComment(reportID, reportAction) {
 }
 
 /**
+ * Extract all links in a markdown comment and returns them in a list.
+ *
+ * @param {String} comment
+ * @returns {Array}
+ */
+const extractLinksInComment = (comment) => {
+    const reg = /\[[^[\]]*\]\(([^()]*)\)/gm;
+    const matches = [...comment.matchAll(reg)];
+    const links = _.map(matches, match => match[1]); // select the group from match
+    return links;
+};
+
+/**
+ * compares two markdown comments and return a list of the links removed in new comment.
+ *
+ * @param {String} oldComment
+ * @param {String} newComment
+ * @returns {Array}
+ */
+const getRemovedLinks = (oldComment, newComment) => {
+    const linksInOld = extractLinksInComment(oldComment);
+    const linksInNew = extractLinksInComment(newComment);
+    return _.difference(linksInOld, linksInNew);
+};
+
+/**
+ * removes links in a markdown comment.
+ * example:
+ *      comment="test [link](https://www.google.com) test",
+ *      links=["https://www.google.com"]
+ * returns: "test link test"
+ * @param {String} comment
+ * @param {Array} links
+ * @returns {String}
+ */
+const removeLinks = (comment, links) => {
+    let commentCopy = comment.slice();
+    links.forEach((link) => {
+        const reg = new RegExp(`\\[([^\\[\\]]*)\\]\\(${link}\\)`, 'gm');
+        const linkMatch = reg.exec(commentCopy);
+        const linkText = linkMatch && linkMatch[1];
+        commentCopy = commentCopy.replace(`[${linkText}](${link})`, linkText);
+    });
+    return commentCopy;
+};
+
+const removeDeletedLinks = (commentWithLinks, links) => {
+    const userDeletedLinks = getRemovedLinks(markdownForOriginalComment, textForNewComment);
+    let commentCopy = commentWithLinks.slice();
+    links.forEach((link) => {
+        const reg = new RegExp(`\\[([^\\[\\]]*)\\]\\(${link}\\)`, 'gm');
+        const linkMatch = reg.exec(commentCopy);
+        const linkText = linkMatch && linkMatch[1];
+        commentCopy = commentCopy.replace(`[${linkText}](${link})`, linkText);
+    });
+    return commentCopy;
+};
+
+const bla = (htmlWithAutoLinks,originalHtml, newCommentText) => {
+    const parser = new ExpensiMark();
+    const markdownWithAutoLinks = parser.htmlToMarkdown(htmlWithAutoLinks);
+    const markdownOriginalComment = parser.htmlToMarkdown(originalHtml);
+
+    const removedLinks = getRemovedLinks(markdownOriginalComment, newCommentText);
+
+    const newMarkdownAfter = removeLinks(markdownWithAutoLinks, removedLinks);
+    return newMarkdownAfter;
+}
+
+/**
  * Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI.
  *
  * @param {String} reportID
@@ -904,7 +974,19 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 
     // Do not autolink if someone explicitly tries to remove a link from message.
     // https://github.com/Expensify/App/issues/9090
-    const htmlForNewComment = parser.replace(textForNewComment, {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')});
+    // https://github.com/Expensify/App/issues/13221
+
+    const htmlWithAutoLinking = parser.replace(textForNewComment); // Will generate html and autolink all links in comment
+
+    // If user purposely removed a link while editing message. then remove it again.
+    const markdownWithAutoLinking = parser.htmlToMarkdown(htmlWithAutoLinking);
+    const markdownForOriginalComment = parser.htmlToMarkdown(originalReportAction.message[0].html);
+
+    const linksRemovedInComment = getRemovedLinks(markdownForOriginalComment, textForNewComment);
+
+    const markdownAfterRemovingLinks = removeLinks(markdownWithAutoLinking, linksRemovedInComment);
+
+    const htmlForNewComment = parser.replace(markdownAfterRemovingLinks, {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')});
 
     //  Delete the comment if it's empty
     if (_.isEmpty(htmlForNewComment)) {
@@ -925,7 +1007,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
             message: [{
                 isEdited: true,
                 html: htmlForNewComment,
-                text: textForNewComment,
+                text: markdownAfterRemovingLinks,
                 type: originalReportAction.message[0].type,
             }],
         },
