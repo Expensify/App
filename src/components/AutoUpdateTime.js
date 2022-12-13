@@ -61,7 +61,9 @@ class AutoUpdateTime extends PureComponent {
         return `GMT ${this.state.timezone.zoneAbbr()}`;
     }
 
-    // Update the timer after period time
+    /**
+     * Update the user's local time at the top of every minute
+     */
     updateCurrentTime() {
         if (this.timer) {
             clearInterval(this.timer);
