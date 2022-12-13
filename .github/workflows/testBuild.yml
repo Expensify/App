@@ -216,6 +216,15 @@ jobs:
           content_ios="${content_ios//$'\n'/'%0A'}"
           content_ios="${content_ios//$'\r'/'%0D'}"
           echo "ios_paths=$content_ios" >> "$GITHUB_OUTPUT"
+      
+      # This step removes previous comments with links connected to the PR
+      - name: maintain-comment
+        uses: actions-cool/maintain-one-comment@de04bd2a3750d86b324829a3ff34d47e48e16f4b
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          body-include: 'Use the links below to test this build in android and iOS. Happy testing!'
+          number: ${{ github.event.number || github.event.inputs.pullRequestNumber }}
+          delete: true
 
       - name: Publish links to apps for download
         run: |
