@@ -418,7 +418,7 @@ export default {
         nameOnCard: 'Name on card',
         debitCardNumber: 'Debit card number',
         expiration: 'Expiration date',
-        expirationDate: 'MM/YY',
+        expirationDate: 'MMYY',
         cvv: 'CVV',
         billingAddress: 'Billing address',
         expensifyTermsOfService: 'Expensify Terms of Service',
@@ -632,6 +632,7 @@ export default {
         unknownFilename: 'Unknown filename',
         passwordRequired: 'Please enter a password',
         passwordIncorrect: 'Incorrect password. Please try again.',
+        failedToLoadPDF: 'Failed to load PDF file.',
         pdfPasswordForm: {
             title: 'Password protected PDF',
             infoText: 'This PDF is password protected.',
