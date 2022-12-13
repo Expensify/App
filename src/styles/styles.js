@@ -1370,7 +1370,6 @@ const styles = {
         fontFamily: fontFamily.EMOJI_TEXT_FONT,
         fontSize: variables.fontSizeNormal,
         borderWidth: 0,
-        borderRadius: variables.componentBorderRadiusRounded,
         height: 'auto',
         lineHeight: variables.lineHeightXLarge,
         ...overflowXHidden,
