@@ -2140,6 +2140,7 @@ const styles = {
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
+        lineHeight: variables.inputHeight,
     },
 
     iouAmountTextInput: addOutlineWidth({
