@@ -117,12 +117,10 @@ class ACHContractStep extends React.Component {
             errors.certifyTrueInformation = this.props.translate('beneficialOwnersStep.error.certify');
         }
 
-        console.log('validations: ', values, errors);
         return errors;
     }
 
     removeBeneficialOwner(ownerID) {
-        console.log('removing owner: ', ownerID);
         this.setState((prevState) => {
             const beneficialOwners = _.without(prevState.beneficialOwners, ownerID);
 
@@ -131,10 +129,8 @@ class ACHContractStep extends React.Component {
             FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners: null});
             FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners});
 
-            console.log('current state1 ', beneficialOwners);
             return {beneficialOwners};
         });
-        console.log('current state ', this.beneficialOwners);
     }
 
     addBeneficialOwner() {
@@ -157,35 +153,12 @@ class ACHContractStep extends React.Component {
             || (_.size(this.state.beneficialOwners) === 3 && !this.state.ownsMoreThan25Percent);
     }
 
-    /**
-     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
-     *
-     * @param {Integer} ownerIndex
-     * @param {Object} values
-     */
-    clearErrorAndSetBeneficialOwnerValues(ownerIndex, values) {
-        this.setState((prevState) => {
-            const beneficialOwners = [...prevState.beneficialOwners];
-            beneficialOwners[ownerIndex] = {...beneficialOwners[ownerIndex], ...values};
-            BankAccounts.updateReimbursementAccountDraft({beneficialOwners});
-            return {beneficialOwners};
-        });
-
-        // Prepare inputKeys for clearing errors
-        const inputKeys = _.keys(values);
-
-        // dob field has multiple validations/errors, we are handling it temporarily like this.
-        if (_.contains(inputKeys, 'dob')) {
-            inputKeys.push('dobAge');
-        }
-        this.clearErrors(_.map(inputKeys, inputKey => `beneficialOwnersErrors.${ownerIndex}.${inputKey}`));
-    }
-
     submit(values) {
         if (!this.validate(values)) {
             return;
         }
 
+        // Because we do not update the state of the form, we must filter removed beneficial owners and reformat the Identity Form data
         const beneficialOwnersFiltered = [];
         if (this.state.hasOtherBeneficialOwners) {
             _.each(this.state.beneficialOwners, (ownerID) => {
@@ -203,9 +176,15 @@ class ACHContractStep extends React.Component {
         }
 
         const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
-        console.log({...this.state, beneficialOwners: JSON.stringify(beneficialOwnersFiltered), bankAccountID});
 
-        // BankAccounts.updateBeneficialOwnersForBankAccount({...this.state, beneficialOwners: JSON.stringify(beneficialOwnersFiltered), bankAccountID});
+        BankAccounts.updateBeneficialOwnersForBankAccount({
+            ownsMoreThan25Percent: values.ownsMoreThan25Percent,
+            hasOtherBeneficialOwners: values.hasOtherBeneficialOwners,
+            acceptTermsAndConditions: values.acceptTermsAndConditions,
+            certifyTrueInformation: values.certifyTrueInformation,
+            beneficialOwners: JSON.stringify(beneficialOwnersFiltered),
+            bankAccountID,
+        });
     }
 
     /**
@@ -253,6 +232,7 @@ class ACHContractStep extends React.Component {
                                 <Text style={[styles.textStrong]}>{this.props.companyName}</Text>
                             </Text>
                         )}
+                        onValueChange={value => this.setState({ownsMoreThan25Percent: value})}
                         shouldSaveDraft
                     />
                     <CheckboxWithLabel
