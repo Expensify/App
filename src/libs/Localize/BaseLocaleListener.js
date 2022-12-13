@@ -32,7 +32,9 @@ function getPreferredLocale() {
     return preferredLocale;
 }
 
-export {
+const BaseLocaleListener = {
     listenForLocaleChanges,
     getPreferredLocale,
 };
+
+export default BaseLocaleListener;
