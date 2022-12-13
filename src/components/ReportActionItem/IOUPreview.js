@@ -119,7 +119,7 @@ const IOUPreview = (props) => {
     const reportIsLoading = _.isEmpty(props.iouReport);
 
     if (reportIsLoading) {
-        Report.fetchIOUReportByID(props.iouReportID, props.chatReportID);
+        Report.openIOUPreview(props.iouReportID, props.chatReportID);
     }
 
     const managerName = lodashGet(props.personalDetails, [managerEmail, 'firstName'], '')

@@ -232,23 +232,9 @@ function setLocalIOUReportData(iouReportObject) {
  *
  * @param {Number} iouReportID - ID of the report we are fetching
  * @param {Number} chatReportID - associated chatReportID, set as an iouReport field
- * @param {Boolean} [shouldRedirectIfEmpty=false] - Whether to redirect to Active Report Screen if IOUReport is empty
- * @returns {Promise}
  */
-function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = false) {
-    return fetchIOUReport(iouReportID, chatReportID)
-        .then((iouReportObject) => {
-            if (!iouReportObject && shouldRedirectIfEmpty) {
-                Growl.error(Localize.translateLocal('notFound.iouReportNotFound'));
-                Navigation.navigate(ROUTES.REPORT);
-                return;
-            }
-            if (!iouReportObject) {
-                return;
-            }
-            setLocalIOUReportData(iouReportObject);
-            return iouReportObject;
-        });
+function openIOUPreview(iouReportID, chatReportID) {
+    API.read('OpenIOUPreview', {iouReportID, chatReportID});
 }
 
 /**
@@ -1348,7 +1334,7 @@ Onyx.connect({
 });
 
 export {
-    fetchIOUReportByID,
+    openIOUPreview,
     addComment,
     addAttachment,
     reconnect,
