@@ -6,20 +6,6 @@ import * as Localize from '../Localize';
 import * as PersistedRequests from './PersistedRequests';
 import NetworkConnection from '../NetworkConnection';
 
-let currentActiveClients;
-Onyx.connect({
-    key: ONYXKEYS.ACTIVE_CLIENTS,
-    callback: (val) => {
-        currentActiveClients = !val ? [] : val;
-    },
-});
-
-let currentPreferredLocale;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: val => currentPreferredLocale = val,
-});
-
 let currentIsOffline;
 let currentShouldForceOffline;
 Onyx.connect({
