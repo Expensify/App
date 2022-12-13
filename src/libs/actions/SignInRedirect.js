@@ -41,17 +41,13 @@ function clearStorageAndRedirect(errorMessage) {
     // We pass these into the clear() method in order to avoid having to reset them on a delayed tick and getting
     // flashes of unwanted default state.
     const keysToPreserve = [];
+    keysToPreserve.push(ONYXKEYS.NVP_PREFERRED_LOCALE);
+    keysToPreserve.push(ONYXKEYS.ACTIVE_CLIENTS);
 
     // After signing out, set ourselves as offline if we were offline before logging out and we are not forcing it.
     // If we are forcing offline, ignore it while signed out, otherwise it would require a refresh because there's no way to toggle the switch to go back online while signed out.
     if (currentIsOffline && !currentShouldForceOffline) {
         keysToPreserve.push(ONYXKEYS.NETWORK);
-    }
-    if (currentPreferredLocale) {
-        keysToPreserve.push(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    }
-    if (currentActiveClients && currentActiveClients.length > 0) {
-        keysToPreserve.push(ONYXKEYS.ACTIVE_CLIENTS);
     }
 
     // Clearing storage discards the authToken. This causes a redirect to the SignIn screen
