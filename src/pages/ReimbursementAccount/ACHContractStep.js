@@ -21,6 +21,8 @@ import compose from '../../libs/compose';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import Form from '../../components/Form';
+import * as FormActions from '../../libs/actions/FormActions';
+import * as NumberUtils from '../../libs/NumberUtils';
 
 const propTypes = {
     /** Name of the company */
@@ -55,47 +57,57 @@ class ACHContractStep extends React.Component {
     validate(values) {
         const errors = {};
 
-        _.each(values.beneficialOwners, (beneficialOwner, index) => {
-            if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.firstName)) {
-                errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.firstName');
-            }
+        if (this.state.hasOtherBeneficialOwners) {
+            _.each(this.state.beneficialOwners, (ownerID) => {
+                // Don't validate ownerIDs that were removed from the beneficialOwners array
+                if (!_.contains(this.state.beneficialOwners, ownerID)) {
+                    return;
+                }
 
-            if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.lastName)) {
-                errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.lastName');
-            }
+                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerID}.firstName`])) {
+                    errors[`beneficialOwner.${ownerID}.firstName`] = this.props.translate('bankAccount.error.firstName');
+                }
 
-            if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.dob)) {
-                errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.dob');
-            }
+                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerID}.lastName`])) {
+                    errors[`beneficialOwner.${ownerID}.lastName`] = this.props.translate('bankAccount.error.lastName');
+                }
 
-            if (values.dob && !ValidationUtils.meetsAgeRequirements(values.dob)) {
-                errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.age');
-            }
+                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerID}.dob`])) {
+                    errors[`beneficialOwner.${ownerID}.dob`] = this.props.translate('bankAccount.error.dob');
+                }
 
-            if (!ValidationUtils.isRequiredFulfilled(values.ssnLast4) || !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {
-                errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.ssnLast4');
-            }
+                if (values.dob && !ValidationUtils.meetsAgeRequirements(values[`beneficialOwner.${ownerID}.dob`])) {
+                    errors[`beneficialOwner.${ownerID}.dob`] = this.props.translate('bankAccount.error.age');
+                }
 
-            if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.beneficialOwnerAddressStreet)) {
-                errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.address');
-            }
+                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerID}.ssnLast4`])
+                    || !ValidationUtils.isValidSSNLastFour(values[`beneficialOwner.${ownerID}.ssnLast4`])) {
+                    errors[`beneficialOwner.${ownerID}.ssnLast4`] = this.props.translate('bankAccount.error.ssnLast4');
+                }
 
-            if (values.beneficialOwnerAddressStreet && !ValidationUtils.isValidAddress(beneficialOwner.beneficialOwnerAddressStreet)) {
-                errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.addressStreet');
-            }
+                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerID}.street`])) {
+                    errors[`beneficialOwner.${ownerID}.street`] = this.props.translate('bankAccount.error.address');
+                }
 
-            if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.beneficialOwnerAddressCity)) {
-                errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.addressCity');
-            }
+                if (values[`beneficialOwner.${ownerID}.street`]
+                    && !ValidationUtils.isValidAddress(values[`beneficialOwner.${ownerID}.street`])) {
+                    errors[`beneficialOwner.${ownerID}.street`] = this.props.translate('bankAccount.error.addressStreet');
+                }
 
-            if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.beneficialOwnerAddressState)) {
-                errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.addressState');
-            }
+                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerID}.city`])) {
+                    errors[`beneficialOwner.${ownerID}.city`] = this.props.translate('bankAccount.error.addressCity');
+                }
 
-            if (!ValidationUtils.isRequiredFulfilled(beneficialOwner.beneficialOwnerAddressZipCode) || !ValidationUtils.isValidZipCode(values.beneficialOwnerAddressZipCode)) {
-                errors[`beneficialOwner${index}`] = this.props.translate('bankAccount.error.zipCode');
-            }
-        });
+                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerID}.state`])) {
+                    errors[`beneficialOwner.${ownerID}.state`] = this.props.translate('bankAccount.error.addressState');
+                }
+
+                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerID}.zipCode`])
+                    || !ValidationUtils.isValidZipCode(values[`beneficialOwner.${ownerID}.zipCode`])) {
+                    errors[`beneficialOwner.${ownerID}.zipCode`] = this.props.translate('bankAccount.error.zipCode');
+                }
+            });
+        }
 
         if (!ValidationUtils.isRequiredFulfilled(values.acceptTermsAndConditions)) {
             errors.acceptTermsAndConditions = this.props.translate('common.error.acceptedTerms');
@@ -104,26 +116,37 @@ class ACHContractStep extends React.Component {
         if (!ValidationUtils.isRequiredFulfilled(values.certifyTrueInformation)) {
             errors.certifyTrueInformation = this.props.translate('beneficialOwnersStep.error.certify');
         }
+
+        console.log('validations: ', values, errors);
         return errors;
     }
 
-    removeBeneficialOwner(beneficialOwner) {
+    removeBeneficialOwner(ownerID) {
+        console.log('removing owner: ', ownerID);
         this.setState((prevState) => {
-            const beneficialOwners = _.without(prevState.beneficialOwners, beneficialOwner);
+            const beneficialOwners = _.without(prevState.beneficialOwners, ownerID);
 
             // We set 'beneficialOwners' to null first because we don't have a way yet to replace a specific property without merging it.
             // We don't use the debounced function because we want to make both function calls.
-            BankAccounts.updateReimbursementAccountDraft({beneficialOwners: null});
-            BankAccounts.updateReimbursementAccountDraft({beneficialOwners});
+            FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners: null});
+            FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners});
 
-            // Clear errors
-            BankAccounts.setBankAccountFormValidationErrors({});
+            console.log('current state1 ', beneficialOwners);
             return {beneficialOwners};
         });
+        console.log('current state ', this.beneficialOwners);
     }
 
     addBeneficialOwner() {
-        this.setState(prevState => ({beneficialOwners: [...prevState.beneficialOwners, {}]}));
+        this.setState((prevState) => {
+            const beneficialOwners = [...prevState.beneficialOwners, NumberUtils.rand64()];
+
+            // We set 'beneficialOwners' to null first because we don't have a way yet to replace a specific property without merging it.
+            // We don't use the debounced function because we want to make both function calls.
+            FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners: null});
+            FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners});
+            return {beneficialOwners};
+        });
     }
 
     /**
@@ -163,16 +186,26 @@ class ACHContractStep extends React.Component {
             return;
         }
 
-        const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
+        const beneficialOwnersFiltered = [];
+        if (this.state.hasOtherBeneficialOwners) {
+            _.each(this.state.beneficialOwners, (ownerID) => {
+                const beneficialOwner = {};
+                beneficialOwner.firstName = lodashGet(values, `beneficialOwner.${ownerID}.firstName`);
+                beneficialOwner.lastName = lodashGet(values, `beneficialOwner.${ownerID}.lastName`);
+                beneficialOwner.dob = lodashGet(values, `beneficialOwner.${ownerID}.dob`);
+                beneficialOwner.ssnLast4 = lodashGet(values, `beneficialOwner.${ownerID}.ssnLast4`);
+                beneficialOwner.street = lodashGet(values, `beneficialOwner.${ownerID}.street`);
+                beneficialOwner.city = lodashGet(values, `beneficialOwner.${ownerID}.city`);
+                beneficialOwner.state = lodashGet(values, `beneficialOwner.${ownerID}.state`);
+                beneficialOwner.zipCode = lodashGet(values, `beneficialOwner.${ownerID}.zipCode`);
+                beneficialOwnersFiltered.push(beneficialOwner);
+            });
+        }
 
-        // If they did not select that there are other beneficial owners, then we need to clear out the array here. The
-        // reason we do it here is that if they filled out several beneficial owners, but then toggled the checkbox, we
-        // want the data to remain in the form so we don't lose the user input until they submit the form. This will
-        // prevent the data from being sent to the API
-        this.setState(prevState => ({
-            beneficialOwners: !prevState.hasOtherBeneficialOwners ? [] : prevState.beneficialOwners,
-        }),
-        () => BankAccounts.updateBeneficialOwnersForBankAccount({...this.state, beneficialOwners: JSON.stringify(this.state.beneficialOwners), bankAccountID}));
+        const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
+        console.log({...this.state, beneficialOwners: JSON.stringify(beneficialOwnersFiltered), bankAccountID});
+
+        // BankAccounts.updateBeneficialOwnersForBankAccount({...this.state, beneficialOwners: JSON.stringify(beneficialOwnersFiltered), bankAccountID});
     }
 
     /**
@@ -231,11 +264,12 @@ class ACHContractStep extends React.Component {
                                 <Text style={[styles.textStrong]}>{this.props.companyName}</Text>
                             </Text>
                         )}
+                        onValueChange={value => this.setState({hasOtherBeneficialOwners: value})}
                         shouldSaveDraft
                     />
                     {this.state.hasOtherBeneficialOwners && (
                         <View style={[styles.mb2]}>
-                            {_.map(this.state.beneficialOwners, (owner, index) => (
+                            {_.map(this.state.beneficialOwners, (ownerID, index) => (
                                 <View key={index} style={[styles.p5, styles.border, styles.mb2]}>
                                     <Text style={[styles.textStrong, styles.mb2]}>
                                         {this.props.translate('beneficialOwnersStep.additionalOwner')}
@@ -244,29 +278,29 @@ class ACHContractStep extends React.Component {
                                         translate={this.props.translate}
                                         style={[styles.mb2]}
                                         defaultValues={{
-                                            firstName: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'firstName'),
-                                            lastName: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'lastName'),
-                                            street: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'beneficialOwnerAddressStreet'),
-                                            city: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'beneficialOwnerAddressCity'),
-                                            state: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'beneficialOwnerAddressState'),
-                                            zipCode: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'beneficialOwnerAddressZipCode'),
-                                            dob: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'dob'),
-                                            ssnLast4: ReimbursementAccountUtils.getDefaultStateForField(this.props, 'ssnLast4'),
+                                            firstName: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner.${ownerID}.firstName`),
+                                            lastName: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner.${ownerID}.lastName`),
+                                            street: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner.${ownerID}.street`),
+                                            city: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner.${ownerID}.city`),
+                                            state: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner.${ownerID}.state`),
+                                            zipCode: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner.${ownerID}.zipCode`),
+                                            dob: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner.${ownerID}.dob`),
+                                            ssnLast4: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner.${ownerID}.ssnLast4`),
                                         }}
                                         inputKeys={{
-                                            firstName: 'firstName',
-                                            lastName: 'lastName',
-                                            dob: 'dob',
-                                            ssnLast4: 'ssnLast4',
-                                            street: 'beneficialOwnerAddressStreet',
-                                            city: 'beneficialOwnerAddressCity',
-                                            state: 'beneficialOwnerAddressState',
-                                            zipCode: 'beneficialOwnerAddressZipCode',
+                                            firstName: `beneficialOwner.${ownerID}.firstName`,
+                                            lastName: `beneficialOwner.${ownerID}.lastName`,
+                                            dob: `beneficialOwner.${ownerID}.dob`,
+                                            ssnLast4: `beneficialOwner.${ownerID}.ssnLast4`,
+                                            street: `beneficialOwner.${ownerID}.street`,
+                                            city: `beneficialOwner.${ownerID}.city`,
+                                            state: `beneficialOwner.${ownerID}.state`,
+                                            zipCode: `beneficialOwner.${ownerID}.zipCode`,
                                         }}
                                         shouldSaveDraft
                                     />
                                     {this.state.beneficialOwners.length > 1 && (
-                                        <TextLink onPress={() => this.removeBeneficialOwner(owner)}>
+                                        <TextLink onPress={() => this.removeBeneficialOwner(ownerID)}>
                                             {this.props.translate('beneficialOwnersStep.removeOwner')}
                                         </TextLink>
                                     )}
