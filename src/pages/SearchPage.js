@@ -182,6 +182,7 @@ class SearchPage extends Component {
                                 hideSectionHeaders
                                 showTitleTooltip
                                 shouldShowOptions={didScreenTransitionEnd}
+                                placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                             />
                         </View>
                     </>
