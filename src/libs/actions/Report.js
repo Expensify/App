@@ -939,28 +939,23 @@ const removeLinks = (comment, links) => {
     return commentCopy;
 };
 
-const removeDeletedLinks = (commentWithLinks, links) => {
-    const userDeletedLinks = getRemovedLinks(markdownForOriginalComment, textForNewComment);
-    let commentCopy = commentWithLinks.slice();
-    links.forEach((link) => {
-        const reg = new RegExp(`\\[([^\\[\\]]*)\\]\\(${link}\\)`, 'gm');
-        const linkMatch = reg.exec(commentCopy);
-        const linkText = linkMatch && linkMatch[1];
-        commentCopy = commentCopy.replace(`[${linkText}](${link})`, linkText);
-    });
-    return commentCopy;
-};
-
-const bla = (htmlWithAutoLinks,originalHtml, newCommentText) => {
+/**
+ * This function will handle removing only links that were purposely removed by the user while editing.
+ * @param {String} htmlWithAutoLinks the new comment in html after autolinking all the links
+ * @param {Array} originalHtml original html of the comment before editing
+ * @param {String} newCommentText text of the comment after editing.
+ * @returns {String}
+ */
+const handleUserDeletedLinks = (htmlWithAutoLinks, originalHtml, newCommentText) => {
     const parser = new ExpensiMark();
     const markdownWithAutoLinks = parser.htmlToMarkdown(htmlWithAutoLinks);
     const markdownOriginalComment = parser.htmlToMarkdown(originalHtml);
 
     const removedLinks = getRemovedLinks(markdownOriginalComment, newCommentText);
 
-    const newMarkdownAfter = removeLinks(markdownWithAutoLinks, removedLinks);
-    return newMarkdownAfter;
-}
+    const afterRemovingLinks = removeLinks(markdownWithAutoLinks, removedLinks);
+    return afterRemovingLinks;
+};
 
 /**
  * Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI.
@@ -979,14 +974,8 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const htmlWithAutoLinking = parser.replace(textForNewComment); // Will generate html and autolink all links in comment
 
     // If user purposely removed a link while editing message. then remove it again.
-    const markdownWithAutoLinking = parser.htmlToMarkdown(htmlWithAutoLinking);
-    const markdownForOriginalComment = parser.htmlToMarkdown(originalReportAction.message[0].html);
-
-    const linksRemovedInComment = getRemovedLinks(markdownForOriginalComment, textForNewComment);
-
-    const markdownAfterRemovingLinks = removeLinks(markdownWithAutoLinking, linksRemovedInComment);
-
-    const htmlForNewComment = parser.replace(markdownAfterRemovingLinks, {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')});
+    const markdownForNewComment = handleUserDeletedLinks(htmlWithAutoLinking, originalReportAction.message[0].html, textForNewComment);
+    const htmlForNewComment = parser.replace(markdownForNewComment, {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')});
 
     //  Delete the comment if it's empty
     if (_.isEmpty(htmlForNewComment)) {
@@ -1007,7 +996,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
             message: [{
                 isEdited: true,
                 html: htmlForNewComment,
-                text: markdownAfterRemovingLinks,
+                text: markdownForNewComment,
                 type: originalReportAction.message[0].type,
             }],
         },
