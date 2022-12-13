@@ -31,6 +31,7 @@ const picker = {
     paddingHorizontal: 0,
     height: variables.inputHeight,
     borderWidth: 0,
+    textAlign: 'left',
 };
 
 const link = {
