@@ -221,7 +221,7 @@ jobs:
       - name: maintain-comment
         uses: actions-cool/maintain-one-comment@de04bd2a3750d86b324829a3ff34d47e48e16f4b
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
           body-include: 'Use the links below to test this build in android and iOS. Happy testing!'
           number: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
           delete: true
