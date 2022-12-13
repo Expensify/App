@@ -1,40 +1,18 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
+import updateUnread from './updateUnread/index';
+import * as ReportUtils from '../ReportUtils';
 
-const reports = {};
+let unreadReports = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (reportsFromOnyx) => {
+        console.log('!!!', reportsFromOnyx)
+        unreadReports = _.filter(reportsFromOnyx, ReportUtils.isUnread);
+        console.log('!!!', _.size(unreadReports));
 
-let connectionID;
-
-/**
- * Bind to the report collection key and update
- * the title and unread count indicators
- */
-function listenForReportChanges() {
-    connectionID = Onyx.connect({
-        key: ONYXKEYS.COLLECTION.REPORT,
-        callback: (report) => {
-            if (!report || !report.reportID) {
-                return;
-            }
-
-            reports[report.reportID] = report;
-        },
-    });
-}
-
-/**
- * Remove the subscription callback when we no longer need it.
- */
-function stopListeningForReportChanges() {
-    if (!connectionID) {
-        return;
-    }
-
-    Onyx.disconnect(connectionID);
-}
-
-export default {
-    listenForReportChanges,
-    stopListeningForReportChanges,
-};
+        updateUnread(_.size(unreadReports));
+    },
+});
