@@ -1,0 +1,85 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/fonts/ExpensifyMono-Bold.otf",
+      "sha1": "6b83b1c1c0c8650f6258fd05771b4e25696c4046"
+    },
+    {
+      "path": "assets/fonts/ExpensifyMono-Bold.woff",
+      "sha1": "d9ef340e0feb3173ab403570381e898acd7cb20c"
+    },
+    {
+      "path": "assets/fonts/ExpensifyMono-Bold.woff2",
+      "sha1": "5c70eb874a2d71eca7c86fa5dc8e91405b9e175d"
+    },
+    {
+      "path": "assets/fonts/ExpensifyMono-Regular.otf",
+      "sha1": "c0522536213e24609badc298ed82a6c47cdb5b20"
+    },
+    {
+      "path": "assets/fonts/ExpensifyMono-Regular.woff",
+      "sha1": "75bcb44e314079afe9d3b28528d724f8d59af9b5"
+    },
+    {
+      "path": "assets/fonts/ExpensifyMono-Regular.woff2",
+      "sha1": "469ff70f94a39dbb24c1a53047c48804af0d5c30"
+    },
+    {
+      "path": "assets/fonts/ExpensifyNeue-Bold.otf",
+      "sha1": "c61cccfb6091f06381fa5b514272eab7105246d8"
+    },
+    {
+      "path": "assets/fonts/ExpensifyNeue-Bold.woff",
+      "sha1": "7be6adf5a649ba65e6d04ce09dde422ce959261f"
+    },
+    {
+      "path": "assets/fonts/ExpensifyNeue-Bold.woff2",
+      "sha1": "7a5efe905e58561b481e6ff8352b226296d86f2d"
+    },
+    {
+      "path": "assets/fonts/ExpensifyNeue-BoldItalic.otf",
+      "sha1": "039065b262036e708ebb5f64b236ef08cc4e8f4e"
+    },
+    {
+      "path": "assets/fonts/ExpensifyNeue-BoldItalic.woff",
+      "sha1": "94c2015288a04848fe3bd724cac379960984b57b"
+    },
+    {
+      "path": "assets/fonts/ExpensifyNeue-BoldItalic.woff2",
+      "sha1": "43a425d9499e7dec6b46ce90c5e4cf2c87baa082"
+    },
+    {
+      "path": "assets/fonts/ExpensifyNeue-Italic.otf",
+      "sha1": "7ddd0652175a9f27380fc63eec4395d65ed189eb"
+    },
+    {
+      "path": "assets/fonts/ExpensifyNeue-Italic.woff",
+      "sha1": "4b09d845d88ee78fc99402fac523db1032f3c776"
+    },
+    {
+      "path": "assets/fonts/ExpensifyNeue-Italic.woff2",
+      "sha1": "ebadc9028629de42df35a7f245bdc9fac19c6613"
+    },
+    {
+      "path": "assets/fonts/ExpensifyNeue-Regular.otf",
+      "sha1": "57b2cdd2f4adea3fad34464248502cd4edcaadd7"
+    },
+    {
+      "path": "assets/fonts/ExpensifyNeue-Regular.woff",
+      "sha1": "833e43957ed17349b3cb311bd323d89397eee250"
+    },
+    {
+      "path": "assets/fonts/ExpensifyNeue-Regular.woff2",
+      "sha1": "918dbf636c89ac75d8ef68bed2570f0146634a46"
+    },
+    {
+      "path": "assets/fonts/ExpensifyNewKansas-Medium.otf",
+      "sha1": "b07181fac8d0602d4b18c339bdbef9589c67c9f9"
+    },
+    {
+      "path": "assets/fonts/ExpensifyNewKansas-MediumItalic.otf",
+      "sha1": "00636ab2038c9690a123985b70a944c42cf65b8a"
+    }
+  ]
+}
