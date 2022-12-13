@@ -3,12 +3,12 @@ import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import RNPickerSelect from 'react-native-picker-select';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import FormHelpMessage from '../FormHelpMessage';
-import Text from '../Text';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
+import FormHelpMessage from './FormHelpMessage';
+import Text from './Text';
+import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 
 const propTypes = {
     /** Picker label */
