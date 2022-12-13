@@ -13,6 +13,7 @@ import * as User from '../../../libs/actions/User';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Button from '../../../components/Button';
 import MenuItem from '../../../components/MenuItem';
+import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
 
 const propTypes = {
     /** Label to display on login form */
@@ -41,7 +42,6 @@ class LoginField extends Component {
         };
         this.timeout = null;
         this.onResendClicked = this.onResendClicked.bind(this);
-        this.getLabelMargin = this.getLabelMargin.bind(this);
     }
 
     /**
@@ -64,16 +64,6 @@ class LoginField extends Component {
         }
     }
 
-    /**
-    * Bottom margin is not needed for phone/email label when unverified.
-    * When phone/email is not verified, the resend button increases the gap between the label and text,
-    * so the bottom margin is not required.
-    * @returns {Object}
-    */
-    getLabelMargin() {
-        return this.props.login.partnerUserID && !this.props.login.validatedDate ? styles.mb0 : {};
-    }
-
     render() {
         let note;
         if (this.props.type === CONST.LOGIN_TYPE.PHONE) {
@@ -93,21 +83,30 @@ class LoginField extends Component {
                     <View style={[styles.mln8, styles.mrn8]}>
                         <MenuItem
                             key={`common.add.${this.props.type}`}
-                            title={`${this.props.translate('common.add')} ${this.props.label}`}
-                            icon={Expensicons.Plus}
+                            title={this.props.label}
                             onPress={() => Navigation.navigate(ROUTES.getSettingsAddLoginRoute(this.props.type))}
+                            shouldShowRightIcon
                         />
                     </View>
                 ) : (
                     <View>
-                        <Text style={[styles.textLabelSupporting, this.getLabelMargin()]}>{this.props.label}</Text>
-                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.pt]}>
-                            <Text style={[styles.mt1]} numberOfLines={1}>
-                                {this.props.type === CONST.LOGIN_TYPE.PHONE
-                                    ? this.props.toLocalPhone(this.props.login.partnerUserID)
-                                    : this.props.login.partnerUserID}
-                            </Text>
-                            {!this.props.login.validatedDate && (
+                        {this.props.login.validatedDate ? (
+                            <View style={[styles.mln8, styles.mrn8]}>
+                                <MenuItemWithTopDescription
+                                    title={this.props.type === CONST.LOGIN_TYPE.PHONE
+                                        ? this.props.toLocalPhone(this.props.login.partnerUserID)
+                                        : this.props.login.partnerUserID}
+                                    description={this.props.label}
+                                />
+                            </View>
+                        ) : (
+                            <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.pt]}>
+                                <Text style={[styles.textLabelSupporting]}>{this.props.label}</Text>
+                                <Text style={[styles.mt1]} numberOfLines={1}>
+                                    {this.props.type === CONST.LOGIN_TYPE.PHONE
+                                        ? this.props.toLocalPhone(this.props.login.partnerUserID)
+                                        : this.props.login.partnerUserID}
+                                </Text>
                                 <Button
                                     small
                                     style={[styles.mb2]}
@@ -120,8 +119,8 @@ class LoginField extends Component {
                                         </Text>
                                     ))}
                                 />
-                            )}
-                        </View>
+                            </View>
+                        )}
                     </View>
                 )}
                 {note && (
