@@ -99,7 +99,6 @@ const ReportParticipantsPage = (props) => {
                         hideSectionHeaders
                         showTitleTooltip
                         disableFocusOptions
-                        optionMode="default"
                         boldStyle
                         optionHoveredStyle={styles.hoveredComponentBG}
                     />
