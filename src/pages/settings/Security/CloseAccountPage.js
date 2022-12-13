@@ -18,7 +18,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import * as CloseAccount from '../../../libs/actions/CloseAccount';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Form from '../../../components/Form';
-import CONST from "../../../CONST";
+import CONST from '../../../CONST';
 
 const propTypes = {
 
