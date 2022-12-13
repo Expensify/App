@@ -436,7 +436,7 @@ function getDefaultAvatar(login = '') {
  * @returns {Array<*>}
  */
 function getIcons(report, personalDetails, policies, defaultIcon = null) {
-    if (!report) {
+    if (_.isEmpty(report)) {
         return [defaultIcon || getDefaultAvatar()];
     }
     if (isArchivedRoom(report)) {
@@ -894,7 +894,7 @@ function buildOptimisticChatReport(
         lastMessageHtml: '',
         lastMessageText: null,
         lastReadSequenceNumber: 0,
-        lastActionCreated: '',
+        lastActionCreated: DateUtils.getDBTime(),
         lastReadTimestamp: 0,
         maxSequenceNumber: 0,
         notificationPreference,

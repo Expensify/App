@@ -667,14 +667,14 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
  * Marks the new report actions as read
  *
  * @param {String} reportID
- * @param {String} created
+ * @param {String} createdDate
  */
-function readNewestAction(reportID, created) {
+function readNewestAction(reportID, createdDate) {
     const sequenceNumber = getMaxSequenceNumber(reportID);
     API.write('ReadNewestAction',
         {
             reportID,
-            created: DateUtils.getDBTime(created),
+            createdDate,
             sequenceNumber,
         },
         {
@@ -701,7 +701,7 @@ function markCommentAsUnread(reportID, created) {
     API.write('MarkAsUnread',
         {
             reportID,
-            created: DateUtils.getDBTime(lastReadTimestamp),
+            createdDate: DateUtils.getDBTime(lastReadTimestamp),
         },
         {
             optimisticData: [{
