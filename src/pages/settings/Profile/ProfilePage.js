@@ -156,7 +156,7 @@ class ProfilePage extends Component {
                             size={CONST.AVATAR_SIZE.LARGE}
                         />
                     </OfflineWithFeedback>
-                    <View style={[styles.mt4, styles.mb4]}>
+                    <View style={[styles.mt4]}>
                         {_.map(profileSettingsOptions, (detail, index) => (
                             <MenuItemWithTopDescription
                                 key={`${detail.title}_${index}`}
