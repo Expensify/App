@@ -118,6 +118,7 @@ class SidebarLinks extends React.Component {
             // Prevent opening Report page when click LHN row quickly after clicking FAB icon
             return;
         }
+
         this.props.startProfiler({
             source: 'SidebarLinks',
         });
