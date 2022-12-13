@@ -385,7 +385,7 @@ const styles = {
         borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeLarge,
         paddingTop: 8,
-        paddingRight: 18,
+        paddingRight: 10,
         paddingBottom: 8,
         paddingLeft: 18,
         backgroundColor: themeColors.buttonDefaultBG,
@@ -1908,7 +1908,7 @@ const styles = {
         ...spacing.p1,
         ...spacing.mv1,
         ...spacing.mh1,
-        ...{borderRadius: variables.componentBorderRadiusSmall},
+        ...{borderRadius: variables.buttonBorderRadius},
     },
 
     reportActionSystemMessageContainer: {
@@ -2140,6 +2140,7 @@ const styles = {
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
+        lineHeight: variables.inputHeight,
     },
 
     iouAmountTextInput: addOutlineWidth({
@@ -2486,7 +2487,6 @@ const styles = {
 
     dotIndicatorMessage: {
         display: 'flex',
-        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
     },
@@ -2803,9 +2803,11 @@ const styles = {
     },
 
     cardMenuItem: {
-        paddingHorizontal: 0,
-        borderRadius: variables.componentBorderRadiusNormal,
-        paddingVertical: 12,
+        paddingLeft: 8,
+        paddingRight: 0,
+        borderRadius: variables.buttonBorderRadius,
+        height: variables.componentSizeLarge,
+        alignItems: 'center',
     },
 
     callRequestSection: {
@@ -2814,6 +2816,11 @@ const styles = {
         paddingBottom: 0,
         marginHorizontal: 0,
         marginBottom: 0,
+    },
+
+    saveButtonPadding: {
+        paddingLeft: 18,
+        paddingRight: 18,
     },
 };
 
