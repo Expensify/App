@@ -30,7 +30,6 @@ const propTypes = {
 };
 
 const SignInPageContent = (props) => {
-    console.log('!!!', props.isShown, props.windowHeight);
     const dismissKeyboardWhenTappedOutsideOfInput = () => {
         // This prop comes from withKeyboardState
         if (!props.isShown) {
@@ -49,7 +48,7 @@ const SignInPageContent = (props) => {
                     {backgroundColor: 'red'},
                 ]}
             >
-                    <KeyboardAvoidingView behavior="padding" style={[styles.flex1, styles.alignSelfCenter, styles.signInPageWelcomeFormContainer]}>
+                    <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={60} style={[styles.flex1, styles.alignSelfCenter, styles.signInPageWelcomeFormContainer]}>
                         {/* This empty view creates margin on the top of the sign in form which will shrink and grow depending on if the keyboard is open or not */}
                         <View style={[styles.flexGrow1, styles.signInPageContentTopSpacer, {backgroundColor: 'yellow'}]} />
 
@@ -75,7 +74,7 @@ const SignInPageContent = (props) => {
                                 {props.children}
                             </SignInPageForm>
                         </View>
-                        <View style={[styles.mv5, {backgroundColor: 'green'}, props.isShown && {marginBottom: 60}]}>
+                        <View style={[styles.mv5]}>
                             <TermsAndLicenses />
                         </View>
                     </KeyboardAvoidingView>
