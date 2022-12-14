@@ -41,6 +41,16 @@ function isMobile() {
 }
 
 /**
+ * Checks if requesting user agent is Safari browser on a mobile device
+ *
+ * @returns {Boolean}
+ */
+function isMobileSafari() {
+    const userAgent = navigator.userAgent;
+    return /iP(ad|od|hone)/i.test(userAgent) && /WebKit/i.test(userAgent) && !(/(CriOS|FxiOS|OPiOS|mercury)/i.test(userAgent));
+}
+
+/**
  * @returns {boolean}
  */
 function isInternetExplorer() {
@@ -50,5 +60,6 @@ function isInternetExplorer() {
 export {
     getBrowser,
     isMobile,
+    isMobileSafari,
     isInternetExplorer,
 };

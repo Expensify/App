@@ -89,7 +89,7 @@ function cropCanvas(canvas, options) {
 function convertCanvasToFile(canvas, options = {}) {
     return new Promise((resolve) => {
         canvas.toBlob((blob) => {
-            const file = new File([blob], `${options.name || 'fileName'}.jpg`, {type: 'image/jpeg'});
+            const file = new File([blob], options.name || 'fileName.jpeg', {type: options.type || 'image/jpeg'});
             file.uri = URL.createObjectURL(file);
             resolve(file);
         });

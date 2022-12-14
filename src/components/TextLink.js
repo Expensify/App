@@ -22,20 +22,24 @@ const propTypes = {
 
     /** Overwrites the default link behavior with a custom callback */
     onPress: PropTypes.func,
+
+    /** Callback that is called when mousedown is triggered */
+    onMouseDown: PropTypes.func,
 };
 
 const defaultProps = {
-    href: '',
+    href: undefined,
     style: [],
     onPress: undefined,
+    onMouseDown: undefined,
 };
 
 const TextLink = (props) => {
     const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
 
     /**
-     * @param {Event} event
-     */
+   * @param {Event} event
+   */
     const openLink = (event) => {
         event.preventDefault();
         if (props.onPress) {
@@ -47,8 +51,8 @@ const TextLink = (props) => {
     };
 
     /**
-     * @param {Event} event
-     */
+   * @param {Event} event
+   */
     const openLinkIfEnterKeyPressed = (event) => {
         if (event.key !== 'Enter') {
             return;
@@ -62,6 +66,7 @@ const TextLink = (props) => {
             accessibilityRole="link"
             href={props.href}
             onPress={openLink}
+            onMouseDown={props.onMouseDown}
             onKeyDown={openLinkIfEnterKeyPressed}
         >
             {props.children}

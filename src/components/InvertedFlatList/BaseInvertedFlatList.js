@@ -93,6 +93,12 @@ class BaseInvertedFlatList extends Component {
     measureItemLayout(nativeEvent, index) {
         const computedHeight = nativeEvent.layout.height;
 
+        // We've already measured this item so we don't need to
+        // measure it again.
+        if (this.sizeMap[index]) {
+            return;
+        }
+
         const previousItem = this.sizeMap[index - 1] || {};
 
         // If there is no previousItem this can mean we haven't yet measured
@@ -134,9 +140,7 @@ class BaseInvertedFlatList extends Component {
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
                 ref={this.props.innerRef}
-                inverted
                 renderItem={this.renderItem}
-                sizeMap={this.sizeMap}
 
                 // Native platforms do not need to measure items and work fine without this.
                 // Web requires that items be measured or else crazy things happen when scrolling.

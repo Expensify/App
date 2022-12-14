@@ -1,7 +1,4 @@
 import React from 'react';
-import {
-    Keyboard,
-} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -15,7 +12,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import {withDrawerPropTypes} from '../../../components/withDrawerState';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
 import Performance from '../../../libs/Performance';
@@ -78,13 +74,13 @@ class ReportActionsView extends React.Component {
         };
 
         this.currentScrollOffset = 0;
-        this.sortedReportActions = ReportActionsUtils.getSortedReportActions(props.reportActions);
+        this.sortedReportActions = this.getSortedReportActionsForDisplay(props.reportActions);
         this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(props.reportActions);
         this.trackScroll = this.trackScroll.bind(this);
         this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
-        this.scrollToUnreadMsgAndMarkReportAsRead = this.scrollToUnreadMsgAndMarkReportAsRead.bind(this);
+        this.scrollToBottomAndMarkReportAsRead = this.scrollToBottomAndMarkReportAsRead.bind(this);
         this.openReportIfNecessary = this.openReportIfNecessary.bind(this);
     }
 
@@ -98,13 +94,6 @@ class ReportActionsView extends React.Component {
             // e.g. they could have read these messages on another device and only just become active here
             this.openReportIfNecessary();
             this.setState({newMarkerSequenceNumber: 0});
-        });
-
-        this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
-            if (!ReportActionComposeFocusManager.isFocused()) {
-                return;
-            }
-            ReportScrollManager.scrollToBottom();
         });
 
         if (this.getIsReportFullyVisible()) {
@@ -126,7 +115,7 @@ class ReportActionsView extends React.Component {
                 // If the user is scrolled up and no new line marker is set we will set it otherwise we will do nothing so the new marker
                 // stays in it's previous position.
                 if (this.currentScrollOffset === 0) {
-                    Report.readNewestAction(this.props.report.reportID);
+                    Report.readNewestAction(this.props.report.reportID, _.last(_.toArray(this.props.reportActions)).created);
                     this.setState({newMarkerSequenceNumber: 0});
                 } else if (this.state.newMarkerSequenceNumber === 0) {
                     this.setState({newMarkerSequenceNumber: currentLastSequenceNumber});
@@ -141,7 +130,7 @@ class ReportActionsView extends React.Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
-            this.sortedReportActions = ReportActionsUtils.getSortedReportActions(nextProps.reportActions);
+            this.sortedReportActions = this.getSortedReportActionsForDisplay(nextProps.reportActions);
             this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(nextProps.reportActions);
             return true;
         }
@@ -259,6 +248,15 @@ class ReportActionsView extends React.Component {
     }
 
     /**
+     * @param {Object} reportActions
+     * @returns {Array}
+     */
+    getSortedReportActionsForDisplay(reportActions) {
+        const sortedReportActions = ReportActionsUtils.getSortedReportActions(_.values(reportActions), true);
+        return ReportActionsUtils.filterReportActionsForDisplay(sortedReportActions);
+    }
+
+    /**
      * @returns {Boolean}
      */
     getIsReportFullyVisible() {
@@ -300,9 +298,9 @@ class ReportActionsView extends React.Component {
         Report.readOldestAction(this.props.report.reportID, oldestActionSequenceNumber);
     }
 
-    scrollToUnreadMsgAndMarkReportAsRead() {
-        ReportScrollManager.scrollToIndex({animated: true, index: this.props.report.maxSequenceNumber - this.state.newMarkerSequenceNumber}, false);
-        Report.readNewestAction(this.props.report.reportID);
+    scrollToBottomAndMarkReportAsRead() {
+        ReportScrollManager.scrollToBottom();
+        Report.readNewestAction(this.props.report.reportID, _.last(_.toArray(this.props.reportActions)).created);
     }
 
     /**
@@ -360,7 +358,7 @@ class ReportActionsView extends React.Component {
                     <>
                         <FloatingMessageCounter
                             isActive={this.state.isFloatingMessageCounterVisible && this.state.newMarkerSequenceNumber > 0}
-                            onClick={this.scrollToUnreadMsgAndMarkReportAsRead}
+                            onClick={this.scrollToBottomAndMarkReportAsRead}
                         />
                         <ReportActionsList
                             report={this.props.report}
@@ -375,6 +373,7 @@ class ReportActionsView extends React.Component {
                         <PopoverReportActionContextMenu
                             ref={ReportActionContextMenu.contextMenuRef}
                             isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
+                            isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
                         />
                     </>
                 )}

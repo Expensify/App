@@ -106,7 +106,10 @@ class WorkspacePageWithSections extends React.Component {
 
         return (
             <ScreenWrapper>
-                <FullPageNotFoundView shouldShowBackButton={false} shouldShow={_.isEmpty(this.props.policy)}>
+                <FullPageNotFoundView
+                    shouldShow={_.isEmpty(this.props.policy)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                >
                     <HeaderWithCloseButton
                         title={this.props.headerText}
                         subtitle={policyName}

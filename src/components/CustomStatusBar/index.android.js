@@ -1,5 +1,6 @@
 import React from 'react';
 import {StatusBar} from 'react-native';
+import themeColors from '../../styles/themes/default';
 
 /**
  * Only the Android platform supports "setBackgroundColor"
@@ -7,9 +8,8 @@ import {StatusBar} from 'react-native';
 
 export default class CustomStatusBar extends React.Component {
     componentDidMount() {
-        StatusBar.setBarStyle('dark-content');
-        StatusBar.setBackgroundColor('transparent');
-        StatusBar.setTranslucent(true);
+        StatusBar.setBarStyle('light-content');
+        StatusBar.setBackgroundColor(themeColors.appBG);
     }
 
     render() {
