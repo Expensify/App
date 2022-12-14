@@ -65,6 +65,7 @@ class ReportActionsList extends React.Component {
 
         this.state = {
             fadeInAnimation: new Animated.Value(0),
+            skeletonViewHeight: 0,
         };
     }
 
@@ -159,7 +160,7 @@ class ReportActionsList extends React.Component {
                     initialNumToRender={this.calculateInitialNumToRender()}
                     onEndReached={this.props.loadMoreChats}
                     onEndReachedThreshold={0.75}
-                    ListFooterComponent={this.props.isLoadingMoreReportActions
+                    ListFooterComponent={this.props.report.isLoadingReportActions
                         ? (
                             <ReportActionsSkeletonView
                                 containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3}
@@ -167,7 +168,13 @@ class ReportActionsList extends React.Component {
                         )
                         : null}
                     keyboardShouldPersistTaps="handled"
-                    onLayout={this.props.onLayout}
+                    onLayout={(event) => {
+                        console.log("InvertedFlatList event.nativeEvent.layout.height: " + event.nativeEvent.layout.height);
+                        this.setState({
+                            skeletonViewHeight: event.nativeEvent.layout.height
+                        })
+                        this.props.onLayout(event);
+                    }}
                     onScroll={this.props.onScroll}
                     extraData={extraData}
                 />
