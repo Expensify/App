@@ -8,7 +8,6 @@ import AppNavigator from './AppNavigator';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
-import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
 import Log from '../Log';
 
 // https://reactnavigation.org/docs/themes
