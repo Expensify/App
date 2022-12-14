@@ -18,9 +18,6 @@ export default PropTypes.shape({
     // reportID (only present when there is a matching report)
     reportID: PropTypes.string,
 
-    // Whether the report has read or not
-    isUnread: PropTypes.bool,
-
     // Whether the report has a draft comment or not
     hasDraftComment: PropTypes.bool,
 
