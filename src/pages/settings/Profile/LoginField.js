@@ -82,13 +82,14 @@ class LoginField extends Component {
                     {!this.props.login.partnerUserID || this.props.login.validatedDate ? (
                         <View style={[styles.mln8, styles.mrn8]}>
                             <MenuItemWithTopDescription
-                                title={this.props.type === CONST.LOGIN_TYPE.PHONE
+                                title={this.props.login.partnerUserID ? (this.props.type === CONST.LOGIN_TYPE.PHONE
                                     ? this.props.toLocalPhone(this.props.login.partnerUserID)
-                                    : this.props.login.partnerUserID}
-                                description={this.props.label}
+                                    : this.props.login.partnerUserID) : this.props.label}
+                                description={this.props.login.partnerUserID ? this.props.label : undefined}
                                 interactive={Boolean(!this.props.login.partnerUserID)}
                                 onPress={this.props.login.partnerUserID ? () => { } : () => Navigation.navigate(ROUTES.getSettingsAddLoginRoute(this.props.type))}
                                 shouldShowRightIcon={Boolean(!this.props.login.partnerUserID)}
+                                style={[styles.pushToPageEmptyItemLabel, ]}
                             />
                         </View>
                     ) : (
