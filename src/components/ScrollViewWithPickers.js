@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React from 'react';
 import {ScrollView} from 'react-native';
 
 // eslint-disable-next-line rulesdir/no-inline-named-export
@@ -14,18 +14,24 @@ const propTypes = ScrollView.propTypes;
 * Using this wrapper will automatically hadnle scrolling to the picker's <TextInput />
 * when the picker modal is opened
 */
-export default function ScrollViewWithPickers(props) {
-    // eslint-disable-next-line react/destructuring-assignment
-    const {children, ...restProps} = props;
-    const scrollViewRef = useRef(null);
+class ScrollViewWithPickers extends React.Component {
+    setScrollViewRef(ref) {
+        this.scrollViewRef = ref;
+    }
 
-    return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <ScrollView {...restProps} ref={scrollViewRef}>
-            <ScrollViewWithPickersContext.Provider value={{scrollViewRef}}>
-                {children}
-            </ScrollViewWithPickersContext.Provider>
-        </ScrollView>
-    );
+    render() {
+        // eslint-disable-next-line react/destructuring-assignment
+        const {children, ...propsWithoutChildren} = this.props;
+        return (
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            <ScrollView {...propsWithoutChildren} ref={this.setScrollViewRef}>
+                <ScrollViewWithPickersContext.Provider value={{scrollViewRef: this.scrollViewRef}}>
+                    {children}
+                </ScrollViewWithPickersContext.Provider>
+            </ScrollView>
+        );
+    }
 }
 ScrollViewWithPickers.propTypes = propTypes;
+
+export default ScrollViewWithPickers;
