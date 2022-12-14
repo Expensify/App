@@ -234,9 +234,7 @@ class InitialSettingsPage extends React.Component {
         }
 
         return (
-            <ScreenWrapper
-                includePaddingBottom={false}
-            >
+            <ScreenWrapper includePaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('common.settings')}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}

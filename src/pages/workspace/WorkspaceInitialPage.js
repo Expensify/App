@@ -147,9 +147,7 @@ class WorkspaceInitialPage extends React.Component {
         ];
 
         return (
-            <ScreenWrapper
-                includePaddingBottom={false}
-            >
+            <ScreenWrapper includePaddingBottom={false}>
                 <FullPageNotFoundView
                     shouldShow={_.isEmpty(this.props.policy)}
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}

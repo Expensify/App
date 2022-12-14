@@ -88,6 +88,7 @@ class BankAccountManualStep extends React.Component {
                     onSubmit={this.submit}
                     validate={this.validate}
                     submitButtonText={this.props.translate('common.saveAndContinue')}
+                    style={[styles.mh5, styles.flexGrow1]}
                     includeSafeAreaBottomPadding
                 >
                     <Text style={[styles.mb5]}>

@@ -396,9 +396,7 @@ class IOUModal extends Component {
         const currentStep = this.steps[this.state.currentStepIndex];
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
         return (
-            <ScreenWrapper
-                includePaddingBottom={false}
-            >
+            <ScreenWrapper includePaddingBottom={false}>
                 {({didScreenTransitionEnd, safeAreaPaddingStyle}) => (
                     <>
                         <View style={[styles.pRelative, styles.flex1]}>
