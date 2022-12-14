@@ -42,7 +42,7 @@ jobs:
         run: |
           set -e
           gh pr checkout ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
-          echo "REF=$(git rev-parse --abbrev-ref HEAD)" >> "$GITHUB_OUTPUT"
+          echo "REF=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -57,7 +57,7 @@ jobs:
       # This action checks-out the repository, so the workflow can access it.
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
-          ref: ${{ github.head_ref || needs.getBranchRef.outputs.REF }}
+          ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
@@ -107,7 +107,7 @@ jobs:
       # This action checks-out the repository, so the workflow can access it.
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
-          ref: ${{ github.head_ref || needs.getBranchRef.outputs.REF }}
+          ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
@@ -163,7 +163,7 @@ jobs:
       # This action checks-out the repository, so the workflow can access it.
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
-          ref: ${{ github.head_ref || needs.getBranchRef.outputs.REF }}
+          ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
           fetch-depth: 0
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
@@ -199,7 +199,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
-          ref: ${{ github.head_ref || needs.getBranchRef.outputs.REF }}
+          ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
+          fetch-depth: 0
 
       - uses: actions/download-artifact@v3
 
@@ -228,11 +229,13 @@ jobs:
 
       - name: Publish links to apps for download
         run: |
+          set -e
+          gh pr checkout $PULL_REQUEST_NUMBER
           gh pr comment --body \
           ":test_tube::test_tube: Use the links below to test this build in android and iOS. Happy testing! :test_tube::test_tube:
           | android :robot:  | iOS :apple: | desktop :computer: |
           | ------------- | ------------- | ------------- | 
           | ${{fromJson(steps.set_var.outputs.android_paths).html_path}}  | ${{fromJson(steps.set_var.outputs.ios_paths).html_path}}  | https://ad-hoc-expensify-cash.us-east-1.amazonaws.com/desktop/$PULL_REQUEST_NUMBER/NewExpensify.dmg |
-          | ![Android](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.android_paths).html_path}}) | ![iOS](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.ios_paths).html_path}}) | ![desktop](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://ad-hoc-expensify-cash.us-east-1.amazonaws.com/desktop/$PULL_REQUEST_NUMBER/NewExpensify.dmg) |"
+          | ![Android](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.android_paths).html_path}}) | ![iOS](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.ios_paths).html_path}}) | ![desktop](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/$PULL_REQUEST_NUMBER/NewExpensify.dmg) |"
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
