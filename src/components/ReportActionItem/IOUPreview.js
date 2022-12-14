@@ -24,6 +24,7 @@ import Text from '../Text';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import walletTermsPropTypes from '../../pages/EnablePayments/walletTermsPropTypes';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
     /** Additional logic for displaying the pay button */
@@ -125,8 +126,8 @@ const IOUPreview = (props) => {
     const managerName = lodashGet(props.personalDetails, [managerEmail, 'firstName'], '')
                         || Str.removeSMSDomain(managerEmail);
     const ownerName = lodashGet(props.personalDetails, [ownerEmail, 'firstName'], '') || Str.removeSMSDomain(ownerEmail);
-    const managerAvatar = lodashGet(props.personalDetails, [managerEmail, 'avatar'], '');
-    const ownerAvatar = lodashGet(props.personalDetails, [ownerEmail, 'avatar'], '');
+    const managerAvatar = lodashGet(props.personalDetails, [managerEmail, 'avatar'], ReportUtils.getDefaultAvatar(managerEmail));
+    const ownerAvatar = lodashGet(props.personalDetails, [ownerEmail, 'avatar'], ReportUtils.getDefaultAvatar(ownerEmail));
     const cachedTotal = props.iouReport.total && props.iouReport.currency
         ? props.numberFormat(
             Math.abs(props.iouReport.total) / 100,
