@@ -92,8 +92,8 @@ const defaultProps = {
             {...(size === 'small' ? {width: styles.pickerSmall.icon.width, height: styles.pickerSmall.icon.height} : {})}
         />
     ),
-    onBlur: () => { },
-    innerRef: () => { },
+    onBlur: () => {},
+    innerRef: () => {},
 };
 
 class Picker extends PureComponent {
