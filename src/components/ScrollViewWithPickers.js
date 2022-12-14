@@ -43,6 +43,7 @@ class ScrollViewWithPickers extends React.Component {
                 ref={this.scrollViewRef}
                 onScroll={this.handleScroll}
                 scrollEventThrottle={scrollEventThrottle || 16}
+                scrollToOverflowEnabled
             >
                 <ScrollViewWithPickersContext.Provider
                     value={{
