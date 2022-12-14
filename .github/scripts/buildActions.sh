@@ -50,7 +50,7 @@ for ((i=0; i < ${#GITHUB_ACTIONS[@]}; i++)); do
   ACTION_DIR=$(dirname "$ACTION")
 
   # Wait for the background build to finish
-  wait "${ASYNC_BUILDS[i]}"
+  wait "${ASYNC_BUILDS[$i]}"
 
   # Prepend the warning note to the top of the compiled file
   OUTPUT_FILE="$ACTION_DIR/index.js"
