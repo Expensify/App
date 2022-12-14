@@ -9,7 +9,7 @@ import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import styles from '../../../styles/styles';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import {withPersonalDetails} from '../../../components/OnyxProvider';
+import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import ReportActionItem from './ReportActionItem';
 import ReportActionsSkeletonView from '../../../components/ReportActionsSkeletonView';
 import variables from '../../../styles/variables';
@@ -19,6 +19,7 @@ import reportActionPropTypes from './reportActionPropTypes';
 import CONST from '../../../CONST';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import reportPropTypes from '../../reportPropTypes';
+import networkPropTypes from '../../../components/networkPropTypes';
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -47,6 +48,9 @@ const propTypes = {
 
     /** Function to load more chats */
     loadMoreChats: PropTypes.func.isRequired,
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
 
     ...withDrawerPropTypes,
     ...windowDimensionsPropTypes,
@@ -175,6 +179,7 @@ class ReportActionsList extends React.Component {
                             return (
                                 <ReportActionsSkeletonView
                                     containerHeight={this.state.skeletonViewHeight}
+                                    animate={!this.props.network.isOffline}
                                 />
                             );
                         }
@@ -203,4 +208,5 @@ export default compose(
     withDrawerState,
     withWindowDimensions,
     withPersonalDetails(),
+    withNetwork(),
 )(ReportActionsList);
