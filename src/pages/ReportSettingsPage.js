@@ -209,7 +209,7 @@ class ReportSettingsPage extends Component {
                                             onPress={this.validateAndUpdatePolicyRoomName}
                                             style={[styles.ml2, styles.mnw25]}
                                             textStyles={[styles.label]}
-                                            innerStyles={[styles.ph5]}
+                                            innerStyles={[styles.saveButtonPadding]}
                                             isDisabled={shouldDisableRename}
                                         />
                                     )}
