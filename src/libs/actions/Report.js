@@ -179,16 +179,6 @@ function getSimplifiedIOUReport(reportData, chatReportID) {
 }
 
 /**
- * Fetch the iouReport and persist the data to Onyx.
- *
- * @param {Number} iouReportID - ID of the report we are fetching
- * @param {Number} chatReportID - associated chatReportID, set as an iouReport field
- */
-function openIOUPreview(iouReportID, chatReportID) {
-    API.read('OpenIOUPreview', {iouReportID, chatReportID});
-}
-
-/**
  * Get the private pusher channel name for a Report.
  *
  * @param {String} reportID
@@ -1285,7 +1275,6 @@ Onyx.connect({
 });
 
 export {
-    openIOUPreview,
     addComment,
     addAttachment,
     reconnect,
