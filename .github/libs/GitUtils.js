@@ -39,15 +39,17 @@ function getMergeLogsAsJSON(fromRef, toRef) {
             let sanitizedOutput = stdout.replace(/(?<="subject": ").*(?="})/g, subject => subject.replace(/"/g, "'"));
 
             // Also remove any newlines
-            sanitizedOutput = sanitizedOutput.replace(/(\r\n|\n|\r)/gm, '');
+            sanitizedOutput = sanitizedOutput.replace(/(\r\n|\n|\r)/gm, '').replace('\\"}', '\\\\"}').replace('\\', '\\\\');
 
             // Then format as JSON and convert to a proper JS object
-            const json = `[${sanitizedOutput}]`.replace('},]', '}]')
+            const json = `[${sanitizedOutput}]`.replace('},]', '}]');
 
-                // Escape backslashes in commit messages that end with a backslash
-                .replace('\\"}', '\\\\"}');
-
-            return JSON.parse(json);
+            try {
+                return JSON.parse(json);
+            } catch (e) {
+                console.log('Invalid JSON found', json);
+                throw e;
+            }
         });
 }
 
