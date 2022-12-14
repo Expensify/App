@@ -5,8 +5,6 @@ import DateUtils from '../DateUtils';
 import * as Localize from '../Localize';
 import * as PersistedRequests from './PersistedRequests';
 import NetworkConnection from '../NetworkConnection';
-import UnreadActionIndicator from '../../components/UnreadActionIndicator';
-import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
 
 let currentActiveClients;
 Onyx.connect({
