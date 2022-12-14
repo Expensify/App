@@ -1,7 +1,6 @@
 import React from 'react';
 import {
     View,
-    ActivityIndicator,
     TouchableOpacity,
     TouchableWithoutFeedback,
 } from 'react-native';
