@@ -191,7 +191,7 @@ jobs:
 
   web:
     name: Build and deploy Web
-    needs: validateActor
+    needs: [validateActor, getBranchRef]
     if: ${{ fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) }}
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
