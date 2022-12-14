@@ -317,7 +317,10 @@ class WorkspaceMembersPage extends React.Component {
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
-            <ScreenWrapper style={[styles.defaultModalContainer]}>
+            <ScreenWrapper
+                includePaddingBottom={false}
+                style={[styles.defaultModalContainer]}
+            >
                 <FullPageNotFoundView
                     shouldShow={_.isEmpty(this.props.policy)}
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}

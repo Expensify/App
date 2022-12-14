@@ -95,6 +95,7 @@ class ScreenWrapper extends React.Component {
                                     _.isFunction(this.props.children)
                                         ? this.props.children({
                                             insets,
+                                            paddingBottom,
                                             didScreenTransitionEnd: this.state.didScreenTransitionEnd,
                                         })
                                         : this.props.children
