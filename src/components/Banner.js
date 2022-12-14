@@ -55,13 +55,14 @@ const Banner = props => (
     <Hoverable>
         {(isHovered) => {
             const isClickable = props.onClose || props.onPress;
+            const shouldHighlight = isClickable && isHovered;
             return (
                 <View style={[
                     styles.flexRow,
                     styles.alignItemsCenter,
                     styles.p5,
                     styles.borderRadiusNormal,
-                    isClickable && isHovered ? styles.activeComponentBG : styles.hoveredComponentBG,
+                    shouldHighlight ? styles.activeComponentBG : styles.hoveredComponentBG,
                     styles.breakAll,
                     ...props.containerStyles,
                 ]}
@@ -71,7 +72,7 @@ const Banner = props => (
                             <View style={[styles.mr3]}>
                                 <Icon
                                     src={Expensicons.Exclamation}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(isClickable && isHovered))}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(shouldHighlight))}
                                 />
                             </View>
                         )}
