@@ -194,6 +194,7 @@ class Picker extends PureComponent {
                             this.props.innerRef(el);
                         }}
                         scrollViewRef={this.context && this.context.scrollViewRef}
+                        scrollViewContentOffsetY={this.context && this.context.contentOffsetY}
                     />
                 </View>
                 <FormHelpMessage message={this.props.errorText} />

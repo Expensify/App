@@ -18,16 +18,38 @@ class ScrollViewWithPickers extends React.Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            contentOffsetY: 0,
+        };
         this.scrollViewRef = React.createRef(null);
+
+        this.handleScroll = this.handleScroll.bind(this);
+    }
+
+    handleScroll(event) {
+        if (this.props.onScroll) {
+            this.props.onScroll(event);
+        }
+        this.setState({contentOffsetY: event.nativeEvent.contentOffset.y});
     }
 
     render() {
         // eslint-disable-next-line react/destructuring-assignment
-        const {children, ...propsWithoutChildren} = this.props;
+        const {children, scrollEventThrottle, ...propsWithoutChildrenAndScrollEventThrottle} = this.props;
         return (
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            <ScrollView {...propsWithoutChildren} ref={this.scrollViewRef}>
-                <ScrollViewWithPickersContext.Provider value={{scrollViewRef: this.scrollViewRef}}>
+            <ScrollView
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...propsWithoutChildrenAndScrollEventThrottle}
+                ref={this.scrollViewRef}
+                onScroll={this.handleScroll}
+                scrollEventThrottle={scrollEventThrottle || 16}
+            >
+                <ScrollViewWithPickersContext.Provider
+                    value={{
+                        scrollViewRef: this.scrollViewRef,
+                        contentOffsetY: this.state.contentOffsetY,
+                    }}
+                >
                     {children}
                 </ScrollViewWithPickersContext.Provider>
             </ScrollView>
