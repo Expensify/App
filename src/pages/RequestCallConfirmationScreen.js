@@ -7,6 +7,7 @@ import confettiPop from '../../assets/images/confetti-pop.gif';
 import Button from '../components/Button';
 import FixedFooter from '../components/FixedFooter';
 import Navigation from '../libs/Navigation/Navigation';
+import SafeAreaConsumer from '../components/SafeAreaConsumer';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -33,13 +34,17 @@ const RequestCallConfirmationScreen = props => (
             </Text>
         </View>
         <FixedFooter>
-            <Button
-                success
-                text={props.translate('requestCallConfirmationScreen.gotIt')}
-                style={[styles.mt6, {paddingBottom: props.paddingBottom}]}
-                pressOnEnter
-                onPress={() => Navigation.goBack()}
-            />
+            <SafeAreaConsumer>
+                {({paddingBottomStyle}) => (
+                    <Button
+                        success
+                        text={props.translate('requestCallConfirmationScreen.gotIt')}
+                        style={[styles.mt6, paddingBottomStyle]}
+                        pressOnEnter
+                        onPress={() => Navigation.goBack()}
+                    />
+                )}
+            </SafeAreaConsumer>
         </FixedFooter>
     </>
 );

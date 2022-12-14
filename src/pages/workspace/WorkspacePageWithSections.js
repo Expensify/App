@@ -105,40 +105,36 @@ class WorkspacePageWithSections extends React.Component {
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
-            <ScreenWrapper
-                includePaddingBottom={false}
-            >
-                {({paddingBottom}) => (
-                    <FullPageNotFoundView
-                        shouldShow={_.isEmpty(this.props.policy)}
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
-                    >
-                        <HeaderWithCloseButton
-                            title={this.props.headerText}
-                            subtitle={policyName}
-                            shouldShowGetAssistanceButton
-                            guidesCallTaskID={this.props.guidesCallTaskID}
-                            shouldShowBackButton
-                            onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
-                            onCloseButtonPress={() => Navigation.dismissModal()}
-                        />
-                        {this.props.shouldUseScrollView
-                            ? (
-                                <ScrollView
-                                    keyboardShouldPersistTaps="handled"
-                                    style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
-                                >
-                                    <View style={[styles.w100, styles.flex1]}>
+            <ScreenWrapper includePaddingBottom={false}>
+                <FullPageNotFoundView
+                    shouldShow={_.isEmpty(this.props.policy)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                >
+                    <HeaderWithCloseButton
+                        title={this.props.headerText}
+                        subtitle={policyName}
+                        shouldShowGetAssistanceButton
+                        guidesCallTaskID={this.props.guidesCallTaskID}
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
+                        onCloseButtonPress={() => Navigation.dismissModal()}
+                    />
+                    {this.props.shouldUseScrollView
+                        ? (
+                            <ScrollView
+                                keyboardShouldPersistTaps="handled"
+                                style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
+                            >
+                                <View style={[styles.w100, styles.flex1]}>
 
-                                        {this.props.children(hasVBA, policyID, isUsingECard, paddingBottom)}
+                                    {this.props.children(hasVBA, policyID, isUsingECard)}
 
-                                    </View>
-                                </ScrollView>
-                            )
-                            : this.props.children(hasVBA, policyID, isUsingECard, paddingBottom)}
-                        {this.props.footer}
-                    </FullPageNotFoundView>
-                )}
+                                </View>
+                            </ScrollView>
+                        )
+                        : this.props.children(hasVBA, policyID, isUsingECard)}
+                    {this.props.footer}
+                </FullPageNotFoundView>
             </ScreenWrapper>
         );
     }

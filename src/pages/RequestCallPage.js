@@ -245,83 +245,78 @@ class RequestCallPage extends Component {
         const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
 
         return (
-            <ScreenWrapper
-                includePaddingBottom={false}
-            >
-                {({paddingBottom}) => (
-                    <>
-                        <HeaderWithCloseButton
-                            title={this.props.translate('requestCallPage.title')}
-                            shouldShowBackButton
-                            onBackButtonPress={() => Navigation.goBack()}
-                            onCloseButtonPress={() => Navigation.dismissModal(true)}
-                        />
-                        {this.props.requestCallForm.didRequestCallSucceed
-                            ? (
-                                <RequestCallConfirmationScreen paddingBottom={paddingBottom} />
-                            ) : (
-                                <Form
-                                    formID={ONYXKEYS.FORMS.REQUEST_CALL_FORM}
-                                    validate={this.validate}
-                                    onSubmit={this.onSubmit}
-                                    submitButtonText={this.props.translate('requestCallPage.callMe')}
-                                    style={[styles.flexGrow1, styles.mh5, {paddingBottom}]}
-                                >
-                                    <Section
-                                        title={this.props.translate('requestCallPage.subtitle')}
-                                        icon={Illustrations.ConciergeBubble}
-                                        containerStyles={[styles.callRequestSection]}
-                                    >
-                                        <Text style={[styles.mv3]}>
-                                            {this.props.translate('requestCallPage.description')}
-                                        </Text>
-                                    </Section>
-                                    <TextInput
-                                        inputID="firstName"
-                                        defaultValue={firstName}
-                                        label={this.props.translate('common.firstName')}
-                                        name="fname"
-                                        placeholder={this.props.translate('profilePage.john')}
-                                        containerStyles={[styles.mt4]}
-                                    />
-                                    <TextInput
-                                        inputID="lastName"
-                                        defaultValue={lastName}
-                                        label={this.props.translate('common.lastName')}
-                                        name="lname"
-                                        placeholder={this.props.translate('profilePage.doe')}
-                                        containerStyles={[styles.mt4]}
-                                    />
-                                    <TextInput
-                                        inputID="phoneNumber"
-                                        defaultValue={this.getPhoneNumber()}
-                                        label={this.props.translate('common.phoneNumber')}
-                                        name="phone"
-                                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
-                                        autoCorrect={false}
-                                        placeholder="2109400803"
-                                        containerStyles={[styles.mt4]}
-                                    />
-                                    <TextInput
-                                        inputID="phoneNumberExtension"
-                                        label={this.props.translate('requestCallPage.phoneNumberExtension')}
-                                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
-                                        autoCompleteType="off"
-                                        autoCorrect={false}
-                                        placeholder="100"
-                                        containerStyles={[styles.mt4]}
-                                    />
-                                    {User.isBlockedFromConcierge(this.props.blockedFromConcierge) ? (
-                                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt4]}>
-                                            <Icon src={Expensicons.Exclamation} fill={colors.yellow} />
-                                            <Text style={[styles.mutedTextLabel, styles.ml2, styles.flex1]}>{this.props.translate('requestCallPage.blockedFromConcierge')}</Text>
-                                        </View>
-                                    )
-                                        : <Text style={[styles.textMicroSupporting, styles.mt4]}>{this.getWaitTimeMessage()}</Text>}
-                                </Form>
-                            )}
-                    </>
-                )}
+            <ScreenWrapper includePaddingBottom={false}>
+                <HeaderWithCloseButton
+                    title={this.props.translate('requestCallPage.title')}
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.goBack()}
+                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                />
+                {this.props.requestCallForm.didRequestCallSucceed
+                    ? (
+                        <RequestCallConfirmationScreen />
+                    ) : (
+                        <Form
+                            formID={ONYXKEYS.FORMS.REQUEST_CALL_FORM}
+                            validate={this.validate}
+                            onSubmit={this.onSubmit}
+                            submitButtonText={this.props.translate('requestCallPage.callMe')}
+                            style={[styles.flexGrow1, styles.mh5]}
+                            includeSafeAreaBottomPadding
+                        >
+                            <Section
+                                title={this.props.translate('requestCallPage.subtitle')}
+                                icon={Illustrations.ConciergeBubble}
+                                containerStyles={[styles.callRequestSection]}
+                            >
+                                <Text style={[styles.mv3]}>
+                                    {this.props.translate('requestCallPage.description')}
+                                </Text>
+                            </Section>
+                            <TextInput
+                                inputID="firstName"
+                                defaultValue={firstName}
+                                label={this.props.translate('common.firstName')}
+                                name="fname"
+                                placeholder={this.props.translate('profilePage.john')}
+                                containerStyles={[styles.mt4]}
+                            />
+                            <TextInput
+                                inputID="lastName"
+                                defaultValue={lastName}
+                                label={this.props.translate('common.lastName')}
+                                name="lname"
+                                placeholder={this.props.translate('profilePage.doe')}
+                                containerStyles={[styles.mt4]}
+                            />
+                            <TextInput
+                                inputID="phoneNumber"
+                                defaultValue={this.getPhoneNumber()}
+                                label={this.props.translate('common.phoneNumber')}
+                                name="phone"
+                                keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                                autoCorrect={false}
+                                placeholder="2109400803"
+                                containerStyles={[styles.mt4]}
+                            />
+                            <TextInput
+                                inputID="phoneNumberExtension"
+                                label={this.props.translate('requestCallPage.phoneNumberExtension')}
+                                keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                                autoCompleteType="off"
+                                autoCorrect={false}
+                                placeholder="100"
+                                containerStyles={[styles.mt4]}
+                            />
+                            {User.isBlockedFromConcierge(this.props.blockedFromConcierge) ? (
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt4]}>
+                                    <Icon src={Expensicons.Exclamation} fill={colors.yellow} />
+                                    <Text style={[styles.mutedTextLabel, styles.ml2, styles.flex1]}>{this.props.translate('requestCallPage.blockedFromConcierge')}</Text>
+                                </View>
+                            )
+                                : <Text style={[styles.textMicroSupporting, styles.mt4]}>{this.getWaitTimeMessage()}</Text>}
+                        </Form>
+                    )}
             </ScreenWrapper>
         );
     }

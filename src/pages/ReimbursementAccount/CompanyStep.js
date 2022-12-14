@@ -152,7 +152,8 @@ class CompanyStep extends React.Component {
                     validate={this.validate}
                     onSubmit={this.submit}
                     submitButtonText={this.props.translate('common.saveAndContinue')}
-                    style={[styles.ph5, styles.flexGrow1, {paddingBottom: this.props.paddingBottom}]}
+                    style={[styles.ph5, styles.flexGrow1]}
+                    includeSafeAreaBottomPadding
                 >
                     <Text>{this.props.translate('companyStep.subtitle')}</Text>
                     <TextInput

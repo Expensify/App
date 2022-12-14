@@ -399,7 +399,7 @@ class IOUModal extends Component {
             <ScreenWrapper
                 includePaddingBottom={false}
             >
-                {({didScreenTransitionEnd, paddingBottom}) => (
+                {({didScreenTransitionEnd, safeAreaPaddingStyle}) => (
                     <>
                         <View style={[styles.pRelative, styles.flex1]}>
                             {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
@@ -408,7 +408,7 @@ class IOUModal extends Component {
                                     {currentStep === Steps.IOUAmount && (
                                         <AnimatedStep
                                             direction={this.getDirection()}
-                                            style={[styles.flex1, {paddingBottom}]}
+                                            style={[styles.flex1, safeAreaPaddingStyle]}
                                         >
                                             {this.renderHeader()}
                                             <IOUAmountPage
@@ -435,13 +435,12 @@ class IOUModal extends Component {
                                                 hasMultipleParticipants={this.props.hasMultipleParticipants}
                                                 onAddParticipants={this.addParticipants}
                                                 onStepComplete={this.navigateToNextStep}
-                                                paddingBottom={paddingBottom}
                                             />
                                         </AnimatedStep>
                                     )}
                                     {currentStep === Steps.IOUConfirm && (
                                         <AnimatedStep
-                                            style={[styles.flex1, {paddingBottom}]}
+                                            style={[styles.flex1, safeAreaPaddingStyle]}
                                             direction={this.getDirection()}
                                         >
                                             {this.renderHeader()}

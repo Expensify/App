@@ -60,59 +60,54 @@ class CloseAccountPage extends Component {
     render() {
         const userEmailOrPhone = Str.removeSMSDomain(this.props.session.email);
         return (
-            <ScreenWrapper
-                includePaddingBottom={false}
-            >
-                {({paddingBottom}) => (
-                    <>
-                        <HeaderWithCloseButton
-                            title={this.props.translate('closeAccountPage.closeAccount')}
-                            shouldShowBackButton
-                            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_SECURITY)}
-                            onCloseButtonPress={() => Navigation.dismissModal(true)}
+            <ScreenWrapper includePaddingBottom={false}>
+                <HeaderWithCloseButton
+                    title={this.props.translate('closeAccountPage.closeAccount')}
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_SECURITY)}
+                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                />
+                <Form
+                    formID={ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM}
+                    validate={this.validate}
+                    onSubmit={this.onSubmit}
+                    submitButtonText={this.props.translate('closeAccountPage.closeAccount')}
+                    style={[styles.flexGrow1, styles.mh5]}
+                    isDangerousAction
+                    includeSafeAreaPaddingBottom
+                >
+                    <View style={[styles.flexGrow1]}>
+                        <Text>{this.props.translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
+                        <TextInput
+                            inputID="reasonForLeaving"
+                            multiline
+                            numberOfLines={6}
+                            textAlignVertical="top"
+                            label={this.props.translate('closeAccountPage.enterMessageHere')}
+                            containerStyles={[styles.mt5, styles.closeAccountMessageInput]}
                         />
-                        <Form
-                            formID={ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM}
-                            validate={this.validate}
-                            onSubmit={this.onSubmit}
-                            submitButtonText={this.props.translate('closeAccountPage.closeAccount')}
-                            style={[styles.flexGrow1, styles.mh5, {paddingBottom}]}
-                            isDangerousAction
-                        >
-                            <View style={[styles.flexGrow1]}>
-                                <Text>{this.props.translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
-                                <TextInput
-                                    inputID="reasonForLeaving"
-                                    multiline
-                                    numberOfLines={6}
-                                    textAlignVertical="top"
-                                    label={this.props.translate('closeAccountPage.enterMessageHere')}
-                                    containerStyles={[styles.mt5, styles.closeAccountMessageInput]}
-                                />
-                                <Text style={[styles.mt5]}>
-                                    <Text style={[styles.textStrong]}>
-                                        {this.props.translate('closeAccountPage.closeAccountWarning')}
-                                    </Text>
-                                    {' '}
-                                    {this.props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
-                                </Text>
-                                <Text textBreakStrategy="simple" style={[styles.mt5]}>
-                                    <Text style={[styles.textStrong]}>
-                                        {this.props.translate('closeAccountPage.defaultContact')}
-                                    </Text>
-                                    {' '}
-                                    {userEmailOrPhone}
-                                </Text>
-                                <TextInput
-                                    inputID="phoneOrEmail"
-                                    autoCapitalize="none"
-                                    label={this.props.translate('closeAccountPage.enterDefaultContact')}
-                                    containerStyles={[styles.mt5]}
-                                />
-                            </View>
-                        </Form>
-                    </>
-                )}
+                        <Text style={[styles.mt5]}>
+                            <Text style={[styles.textStrong]}>
+                                {this.props.translate('closeAccountPage.closeAccountWarning')}
+                            </Text>
+                            {' '}
+                            {this.props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
+                        </Text>
+                        <Text textBreakStrategy="simple" style={[styles.mt5]}>
+                            <Text style={[styles.textStrong]}>
+                                {this.props.translate('closeAccountPage.defaultContact')}
+                            </Text>
+                            {' '}
+                            {userEmailOrPhone}
+                        </Text>
+                        <TextInput
+                            inputID="phoneOrEmail"
+                            autoCapitalize="none"
+                            label={this.props.translate('closeAccountPage.enterDefaultContact')}
+                            containerStyles={[styles.mt5]}
+                        />
+                    </View>
+                </Form>
             </ScreenWrapper>
         );
     }

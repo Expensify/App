@@ -1,6 +1,5 @@
 import {View} from 'react-native';
 import React from 'react';
-import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import KeyboardAvoidingView from '../KeyboardAvoidingView';
@@ -8,7 +7,6 @@ import CONST from '../../CONST';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import Navigation from '../../libs/Navigation/Navigation';
 import onScreenTransitionEnd from '../../libs/onScreenTransitionEnd';
-import * as StyleUtils from '../../styles/StyleUtils';
 import styles from '../../styles/styles';
 import HeaderGap from '../HeaderGap';
 import OfflineIndicator from '../OfflineIndicator';
@@ -18,6 +16,7 @@ import withWindowDimensions from '../withWindowDimensions';
 import ONYXKEYS from '../../ONYXKEYS';
 import {withNetwork} from '../OnyxProvider';
 import {propTypes, defaultProps} from './propTypes';
+import SafeAreaConsumer from '../SafeAreaConsumer';
 
 class ScreenWrapper extends React.Component {
     constructor(props) {
@@ -67,9 +66,8 @@ class ScreenWrapper extends React.Component {
 
     render() {
         return (
-            <SafeAreaInsetsContext.Consumer>
-                {(insets) => {
-                    const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(insets);
+            <SafeAreaConsumer>
+                {({insets, paddingTop, paddingBottom}) => {
                     const paddingStyle = {};
 
                     if (this.props.includePaddingTop) {
@@ -95,7 +93,7 @@ class ScreenWrapper extends React.Component {
                                     _.isFunction(this.props.children)
                                         ? this.props.children({
                                             insets,
-                                            paddingBottom,
+                                            safeAreaPaddingStyle: {paddingBottom},
                                             didScreenTransitionEnd: this.state.didScreenTransitionEnd,
                                         })
                                         : this.props.children
@@ -107,7 +105,7 @@ class ScreenWrapper extends React.Component {
                         </View>
                     );
                 }}
-            </SafeAreaInsetsContext.Consumer>
+            </SafeAreaConsumer>
         );
     }
 }
