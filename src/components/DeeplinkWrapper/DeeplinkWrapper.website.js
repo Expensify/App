@@ -15,6 +15,7 @@ import CONFIG from '../../CONFIG';
 import * as FontFamily from '../../styles/fontFamily';
 import Icon from '../Icon';
 import colors from '../../styles/colors';
+import * as Browser from '../../libs/Browser';
 
 const propTypes = {
     /** Children to render. */
@@ -69,34 +70,37 @@ class DeeplinkWrapper extends PureComponent {
 
     openRouteInDesktopApp() {
         const pathname = window.location.pathname;
-        const expensifyUrl = new URL(CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
-        window.location = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}${pathname}`;
-    }
+        const expenfifyUrl = new URL(CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
+        const expenfifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expenfifyUrl.host}${pathname}`;
 
-    isiOSWeb() {
-        return [
-            'iPad Simulator',
-            'iPhone Simulator',
-            'iPod Simulator',
-            'iPad',
-            'iPhone',
-            'iPod',
-        ].includes(navigator.platform)
-        || (navigator.userAgent.includes('Mac') && 'ontouchend' in document)
+        // This check is necessary for Safari, otherwise, if the user
+        // does NOT have the Expensify desktop app installed, it's gonna
+        // show an error in the page saying that the address is invalid
+        if (CONST.BROWSER.SAFARI === Browser.getBrowser()) {
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+            iframe.contentWindow.location.href = expenfifyDeeplinkUrl;
+
+            setTimeout(() => {
+                if (!iframe.parentNode) {
+                    return;
+                }
+
+                iframe.parentNode.removeChild(iframe);
+            }, 100);
+        } else {
+            window.location.href = expenfifyDeeplinkUrl;
+        }
     }
 
     isMacOSWeb() {
-        if (
-            !this.isiOSWeb()
-            && typeof navigator === 'object'
+        return !Browser.isMobile() && (
+            typeof navigator === 'object'
             && typeof navigator.userAgent === 'string'
             && /Mac/i.test(navigator.userAgent)
             && !/Electron/i.test(navigator.userAgent)
-        ) {
-            return true;
-        }
-
-        return false;
+        );
     }
 
     render() {
