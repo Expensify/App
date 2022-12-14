@@ -464,18 +464,29 @@ function joinScreenShare(accessToken, roomName) {
  * @returns {Promise<Void>}
  */
 function generateStatementPDF(period) {
-    Onyx.merge(ONYXKEYS.WALLET_STATEMENT, {isGenerating: true});
-    return DeprecatedAPI.GetStatementPDF({period})
-        .then((response) => {
-            if (response.jsonCode !== 200 || !response.filename) {
-                Log.info('[User] Failed to generate statement PDF', false, {response});
-                return;
-            }
-
-            Onyx.merge(ONYXKEYS.WALLET_STATEMENT, {[period]: response.filename});
-        }).finally(() => {
-            Onyx.merge(ONYXKEYS.WALLET_STATEMENT, {isGenerating: false});
-        });
+    API.read('GetStatementPDF', {period}, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_STATEMENT,
+                value: true,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_STATEMENT,
+                value: false,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_STATEMENT,
+                value: false,
+            },
+        ]
+    });
 }
 
 export {
