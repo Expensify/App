@@ -79,53 +79,44 @@ class LoginField extends Component {
 
         return (
             <View style={[styles.ph8]}>
-                {!this.props.login.partnerUserID ? (
-                    <View style={[styles.mln8, styles.mrn8]}>
-                        <MenuItemWithTopDescription
-                            key={`common.add.${this.props.type}`}
-                            description={this.props.label}
-                            onPress={() => Navigation.navigate(ROUTES.getSettingsAddLoginRoute(this.props.type))}
-                            shouldShowRightIcon
-                        />
-                    </View>
-                ) : (
-                    <View>
-                        {this.props.login.validatedDate ? (
-                            <View style={[styles.mln8, styles.mrn8]}>
-                                <MenuItemWithTopDescription
-                                    title={this.props.type === CONST.LOGIN_TYPE.PHONE
+                <View>
+                    {!this.props.login.partnerUserID || this.props.login.validatedDate ? (
+                        <View style={[styles.mln8, styles.mrn8]}>
+                            <MenuItemWithTopDescription
+                                title={this.props.type === CONST.LOGIN_TYPE.PHONE
+                                    ? this.props.toLocalPhone(this.props.login.partnerUserID)
+                                    : this.props.login.partnerUserID}
+                                description={this.props.label}
+                                interactive={Boolean(!this.props.login.partnerUserID)}
+                                onPress={this.props.login.partnerUserID ? () => { } : () => Navigation.navigate(ROUTES.getSettingsAddLoginRoute(this.props.type))}
+                                shouldShowRightIcon={Boolean(!this.props.login.partnerUserID)}
+                            />
+                        </View>
+                    ) : (
+                        <View style={[styles.mt2]}>
+                            <Text style={[styles.textLabelSupporting]}>{this.props.label}</Text>
+                            <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.pt]}>
+                                <Text numberOfLines={1}>
+                                    {this.props.type === CONST.LOGIN_TYPE.PHONE
                                         ? this.props.toLocalPhone(this.props.login.partnerUserID)
                                         : this.props.login.partnerUserID}
-                                    description={this.props.label}
-                                    interactive={false}
+                                </Text>
+                                <Button
+                                    small
+                                    style={[styles.mb2]}
+                                    onPress={this.onResendClicked}
+                                    ContentComponent={() => (this.state.showCheckmarkIcon ? (
+                                        <Icon fill={themeColors.inverse} src={Expensicons.Checkmark} />
+                                    ) : (
+                                        <Text style={styles.buttonSmallText}>
+                                            {this.props.translate('common.resend')}
+                                        </Text>
+                                    ))}
                                 />
                             </View>
-                        ) : (
-                            <View style={[styles.mt2]}>
-                                <Text style={[styles.textLabelSupporting]}>{this.props.label}</Text>
-                                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.pt]}>
-                                    <Text numberOfLines={1}>
-                                        {this.props.type === CONST.LOGIN_TYPE.PHONE
-                                            ? this.props.toLocalPhone(this.props.login.partnerUserID)
-                                            : this.props.login.partnerUserID}
-                                    </Text>
-                                    <Button
-                                        small
-                                        style={[styles.mb2]}
-                                        onPress={this.onResendClicked}
-                                        ContentComponent={() => (this.state.showCheckmarkIcon ? (
-                                            <Icon fill={themeColors.inverse} src={Expensicons.Checkmark} />
-                                        ) : (
-                                            <Text style={styles.buttonSmallText}>
-                                                {this.props.translate('common.resend')}
-                                            </Text>
-                                        ))}
-                                    />
-                                </View>
-                            </View>
-                        )}
-                    </View>
-                )}
+                        </View>
+                    )}
+                </View>
                 {note && (
                     <Text style={[styles.textLabel, styles.colorMuted]}>
                         {note}
