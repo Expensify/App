@@ -266,9 +266,13 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     groupChatReport.lastReadTimestamp = Date.now();
     groupChatReport.lastMessageText = groupIOUReportAction.message[0].text;
     groupChatReport.lastMessageHtml = groupIOUReportAction.message[0].html;
-    groupChatReport.pendingFields = {
-        createChat: existingGroupChatReport ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-    };
+
+    // If we have an existing groupChatReport use it's pending fields, otherwise indicate that we are adding a chat
+    if (!existingGroupChatReport) {
+        groupChatReport.pendingFields = {
+            createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        };
+    }
 
     const optimisticData = [
         {
@@ -378,9 +382,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         oneOnOneChatReport.lastReadSequenceNumber = oneOnOneChatReportMaxSequenceNumber + 1;
         oneOnOneChatReport.lastMessageText = oneOnOneIOUReportAction.message[0].text;
         oneOnOneChatReport.lastMessageHtml = oneOnOneIOUReportAction.message[0].html;
-        oneOnOneChatReport.pendingFields = {
-            createChat: existingOneOnOneChatReport ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        };
+        if (!existingOneOnOneChatReport) {
+            oneOnOneChatReport.pendingFields = {
+                createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            };
+        }
 
         // If we only have one other participant, we just need to update onyxData for the groupChatReport and add an iouReportAction of type = create
         // If we have more participants, we need to push the new oneOnOneChaReport, the create reportAction and iouReportAction of type = create to onyxData
