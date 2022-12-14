@@ -74,6 +74,8 @@ class ImageView extends PureComponent {
         if (!this.props.url) {
             return;
         }
+
+        this.setState({imageHeight: undefined, imageWidth: undefined});
         ImageSize.getSize(this.props.url).then(({width, height}) => {
             let imageWidth = width;
             let imageHeight = height;
