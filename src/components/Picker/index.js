@@ -151,12 +151,6 @@ class Picker extends PureComponent {
     render() {
         const hasError = !_.isEmpty(this.props.errorText);
 
-        let scrollViewRef;
-        if (this.context != null
-            && this.context.scrollViewRef != null) {
-            scrollViewRef = this.context.scrollViewRef;
-        }
-
         return (
             <>
                 <View
@@ -199,7 +193,7 @@ class Picker extends PureComponent {
                             }
                             this.props.innerRef(el);
                         }}
-                        scrollViewRef={scrollViewRef}
+                        scrollViewRef={this.context && this.context.scrollViewRef}
                     />
                 </View>
                 <FormHelpMessage message={this.props.errorText} />
