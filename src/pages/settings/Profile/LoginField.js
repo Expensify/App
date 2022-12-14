@@ -81,9 +81,9 @@ class LoginField extends Component {
             <View style={[styles.ph8]}>
                 {!this.props.login.partnerUserID ? (
                     <View style={[styles.mln8, styles.mrn8]}>
-                        <MenuItem
+                        <MenuItemWithTopDescription
                             key={`common.add.${this.props.type}`}
-                            title={this.props.label}
+                            description={this.props.label}
                             onPress={() => Navigation.navigate(ROUTES.getSettingsAddLoginRoute(this.props.type))}
                             shouldShowRightIcon
                         />
