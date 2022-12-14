@@ -68,7 +68,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    children: () => { },
+    children: () => {},
     user: {},
     reimbursementAccount: {},
     footer: null,
