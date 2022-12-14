@@ -44,12 +44,7 @@ function getMergeLogsAsJSON(fromRef, toRef) {
             // Then format as JSON and convert to a proper JS object
             const json = `[${sanitizedOutput}]`.replace('},]', '}]');
 
-            try {
-                return JSON.parse(json);
-            } catch (e) {
-                console.log('Invalid JSON found', json);
-                throw e;
-            }
+            return JSON.parse(json);
         });
 }
 
