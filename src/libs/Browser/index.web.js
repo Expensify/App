@@ -50,16 +50,8 @@ function isMobileSafari() {
     return /iP(ad|od|hone)/i.test(userAgent) && /WebKit/i.test(userAgent) && !(/(CriOS|FxiOS|OPiOS|mercury)/i.test(userAgent));
 }
 
-/**
- * @returns {boolean}
- */
-function isInternetExplorer() {
-    return Boolean(window.document.documentMode);
-}
-
 export {
     getBrowser,
     isMobile,
     isMobileSafari,
-    isInternetExplorer,
 };
