@@ -54,49 +54,18 @@ class WalletStatementPage extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = {
-            isDownloading: false,
-        };
         this.processDownload = this.processDownload.bind(this);
         this.yearMonth = lodashGet(this.props.route.params, 'yearMonth', null);
-        this.generatePDFPromise = null;
-    }
-
-    componentDidMount() {
-        this.generatePDFPromise = makeCancellablePromise(User.generateStatementPDF(this.yearMonth));
-    }
-
-    componentWillUnmount() {
-        if (!this.generatePDFPromise) {
-            return;
-        }
-
-        this.generatePDFPromise.cancel();
-        this.generatePDFPromise = null;
     }
 
     processDownload(yearMonth) {
-        if (this.state.isDownloading) {
-            return;
-        }
-
-        this.setState({
-            isDownloading: true,
-        });
-
-        if (!this.props.walletStatement[yearMonth] || this.props.walletStatement.isGenerating) {
-            Growl.show(this.props.translate('common.genericErrorMessage'), CONST.GROWL.ERROR, 5000);
-            this.setState({
-                isDownloading: false,
-            });
+        if (!this.props.walletStatement[yearMonth] && !this.props.walletStatement.isGenerating) {
+            Growl.show(this.props.translate('statementPage.generatingPDF'), CONST.GROWL.NOTICE, 5000);
+            User.generateStatementPDF(this.yearMonth);
         } else {
             const fileName = `Expensify_Statement_${yearMonth}.pdf`;
             const pdfURL = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}secure?secureType=pdfreport&filename=${this.props.walletStatement[yearMonth]}&downloadName=${fileName}`;
-            fileDownload(pdfURL, fileName).then(() => {
-                this.setState({
-                    isDownloading: false,
-                });
-            });
+            fileDownload(pdfURL, fileName);
         }
     }
 
@@ -112,7 +81,7 @@ class WalletStatementPage extends React.Component {
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={Str.recapitalize(title)}
-                    shouldShowDownloadButton={!this.props.network.isOffline}
+                    shouldShowDownloadButton={!this.props.network.isOffline || this.props.walletStatement.isGenerating}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                     onDownloadButtonPress={() => this.processDownload(this.yearMonth)}
                 />
