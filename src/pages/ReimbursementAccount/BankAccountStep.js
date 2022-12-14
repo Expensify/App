@@ -77,11 +77,11 @@ const BankAccountStep = (props) => {
     const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}`;
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
-        return <BankAccountManualStep onBack={props.onSubStepBack} />;
+        return <BankAccountManualStep onBack={props.onSubStepBack} paddingBottom={props.paddingBottom} />;
     }
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
-        return <BankAccountPlaidStep onBack={props.onSubStepBack} />;
+        return <BankAccountPlaidStep onBack={props.onSubStepBack} paddingBottom={props.paddingBottom} />;
     }
 
     return (

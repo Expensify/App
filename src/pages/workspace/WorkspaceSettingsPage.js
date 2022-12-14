@@ -76,11 +76,12 @@ class WorkspaceSettingsPage extends React.Component {
                 route={this.props.route}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_SETTINGS}
             >
-                {hasVBA => (
+                {/* eslint-disable-next-line no-unused-vars */}
+                {(hasVBA, _policyID, _isUsingECard, paddingBottom) => (
                     <Form
                         formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
                         submitButtonText={this.props.translate('workspace.editor.save')}
-                        style={[styles.mh5, styles.mt5, styles.flexGrow1]}
+                        style={[styles.mh5, styles.mt5, styles.flexGrow1, {paddingBottom}]}
                         validate={this.validate}
                         onSubmit={this.submit}
                         enabledWhenOffline

@@ -63,6 +63,7 @@ const IOUParticipantsPage = (props) => {
                 onStepComplete={props.onStepComplete}
                 participants={props.participants}
                 onAddParticipants={props.onAddParticipants}
+                paddingBottom={props.paddingBottom}
             />
         )
         : (

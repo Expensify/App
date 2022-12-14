@@ -162,7 +162,7 @@ class RequestorStep extends React.Component {
                         submitButtonText={this.props.translate('common.saveAndContinue')}
                         validate={this.validate}
                         onSubmit={this.submit}
-                        style={[styles.mh5, styles.flexGrow1]}
+                        style={[styles.mh5, styles.flexGrow1, {paddingBottom: this.props.paddingBottom}]}
                     >
                         <Text>{this.props.translate('requestorStep.subtitle')}</Text>
                         <View style={[styles.mb5, styles.mt1, styles.dFlex, styles.flexRow]}>

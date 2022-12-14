@@ -80,7 +80,7 @@ class BankAccountPlaidStep extends React.Component {
                     validate={() => ({})}
                     onSubmit={this.submit}
                     submitButtonText={this.props.translate('common.saveAndContinue')}
-                    style={[styles.mh5, styles.flexGrow1]}
+                    style={[styles.mh5, styles.flexGrow1, {paddingBottom: this.props.paddingBottom}]}
                     isSubmitButtonVisible={Boolean(selectedPlaidAccountID)}
                 >
                     <AddPlaidBankAccount

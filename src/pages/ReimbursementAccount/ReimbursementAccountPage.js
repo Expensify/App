@@ -240,30 +240,37 @@ class ReimbursementAccountPage extends React.Component {
             );
         }
         return (
-            <ScreenWrapper>
-                {currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && (
-                    <BankAccountStep
-                        receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
-                        plaidLinkOAuthToken={this.props.plaidLinkToken}
-                        onSubStepBack={() => (hasInProgressVBBA ? this.setState({shouldShowContinueSetupButton: true}) : BankAccounts.setBankAccountSubStep(null))}
-                    />
+            <ScreenWrapper
+                includePaddingBottom={false}
+            >
+                {({paddingBottom}) => (
+                    <>
+                        {currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && (
+                            <BankAccountStep
+                                receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
+                                plaidLinkOAuthToken={this.props.plaidLinkToken}
+                                onSubStepBack={() => (hasInProgressVBBA ? this.setState({shouldShowContinueSetupButton: true}) : BankAccounts.setBankAccountSubStep(null))}
+                                paddingBottom={paddingBottom}
+                            />
+                        )}
+                        {currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && (
+                            <CompanyStep paddingBottom={paddingBottom} />
+                        )}
+                        {currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR && (
+                            <RequestorStep paddingBottom={paddingBottom} />
+                        )}
+                        {currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && (
+                            <ACHContractStep companyName={achData.companyName} paddingBottom={paddingBottom} />
+                        )}
+                        {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
+                            <ValidationStep />
+                        )}
+                        {currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE && (
+                            <EnableStep />
+                        )}
+                        <WorkspaceResetBankAccountModal />
+                    </>
                 )}
-                {currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && (
-                    <CompanyStep />
-                )}
-                {currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR && (
-                    <RequestorStep />
-                )}
-                {currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && (
-                    <ACHContractStep companyName={achData.companyName} />
-                )}
-                {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
-                    <ValidationStep />
-                )}
-                {currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE && (
-                    <EnableStep />
-                )}
-                <WorkspaceResetBankAccountModal />
             </ScreenWrapper>
         );
     }

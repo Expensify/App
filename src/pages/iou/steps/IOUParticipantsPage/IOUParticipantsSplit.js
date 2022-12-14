@@ -210,7 +210,7 @@ class IOUParticipantsSplit extends Component {
         );
         return (
             <>
-                <View style={[styles.flex1, styles.w100]}>
+                <View style={[styles.flex1, styles.w100, (this.props.participants.length > 0 ? {paddingBottom: this.props.paddingBottom} : {})]}>
                     <Text style={[styles.formLabel, styles.pt3, styles.ph5]}>
                         {this.props.translate('common.to')}
                     </Text>

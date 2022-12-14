@@ -36,7 +36,7 @@ const RequestCallConfirmationScreen = props => (
             <Button
                 success
                 text={props.translate('requestCallConfirmationScreen.gotIt')}
-                style={styles.mt6}
+                style={[styles.mt6, {paddingBottom: props.paddingBottom}]}
                 pressOnEnter
                 onPress={() => Navigation.goBack()}
             />

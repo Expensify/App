@@ -396,8 +396,10 @@ class IOUModal extends Component {
         const currentStep = this.steps[this.state.currentStepIndex];
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
         return (
-            <ScreenWrapper>
-                {({didScreenTransitionEnd}) => (
+            <ScreenWrapper
+                includePaddingBottom={false}
+            >
+                {({didScreenTransitionEnd, paddingBottom}) => (
                     <>
                         <View style={[styles.pRelative, styles.flex1]}>
                             {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
@@ -406,7 +408,7 @@ class IOUModal extends Component {
                                     {currentStep === Steps.IOUAmount && (
                                         <AnimatedStep
                                             direction={this.getDirection()}
-                                            style={[styles.flex1]}
+                                            style={[styles.flex1, {paddingBottom}]}
                                         >
                                             {this.renderHeader()}
                                             <IOUAmountPage
@@ -433,12 +435,13 @@ class IOUModal extends Component {
                                                 hasMultipleParticipants={this.props.hasMultipleParticipants}
                                                 onAddParticipants={this.addParticipants}
                                                 onStepComplete={this.navigateToNextStep}
+                                                paddingBottom={paddingBottom}
                                             />
                                         </AnimatedStep>
                                     )}
                                     {currentStep === Steps.IOUConfirm && (
                                         <AnimatedStep
-                                            style={[styles.flex1]}
+                                            style={[styles.flex1, {paddingBottom}]}
                                             direction={this.getDirection()}
                                         >
                                             {this.renderHeader()}
