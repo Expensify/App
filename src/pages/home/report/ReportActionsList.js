@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {Animated} from 'react-native';
+import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 import compose from '../../../libs/compose';
@@ -160,19 +161,31 @@ class ReportActionsList extends React.Component {
                     initialNumToRender={this.calculateInitialNumToRender()}
                     onEndReached={this.props.loadMoreChats}
                     onEndReachedThreshold={0.75}
-                    ListFooterComponent={this.props.report.isLoadingReportActions
-                        ? (
-                            <ReportActionsSkeletonView
-                                containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3}
-                            />
-                        )
-                        : null}
+                    ListFooterComponent={() => {
+                        if (this.props.report.isLoadingMoreReportActions) {
+                            return (
+                                <ReportActionsSkeletonView
+                                    containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3}
+                                />
+                            );
+                        }
+
+                        const lastReportAction = _.last(this.props.sortedReportActions);
+                        if (this.props.report.isLoadingReportActions && lastReportAction.sequenceNumber > 0) {
+                            return (
+                                <ReportActionsSkeletonView
+                                    containerHeight={this.state.skeletonViewHeight}
+                                />
+                            );
+                        }
+
+                        return null;
+                    }}
                     keyboardShouldPersistTaps="handled"
                     onLayout={(event) => {
-                        console.log("InvertedFlatList event.nativeEvent.layout.height: " + event.nativeEvent.layout.height);
                         this.setState({
-                            skeletonViewHeight: event.nativeEvent.layout.height
-                        })
+                            skeletonViewHeight: event.nativeEvent.layout.height,
+                        });
                         this.props.onLayout(event);
                     }}
                     onScroll={this.props.onScroll}
