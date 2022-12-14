@@ -410,7 +410,7 @@ describe('actions/Report', () => {
             });
     });
 
-    it.only('Should update comment with links properly', () => {
+    it('Should update comment with links properly', () => {
         /* This test is intended to test verity of scenarios when user edits a comment
         * We should generate a link when editing a message unless the link was
         * already in the comment and the user deleted it on purpose.
