@@ -941,9 +941,10 @@ const styles = {
     },
 
     sidebarBorder: {
-        borderColor: themeColors.appBG,
         borderRadius: 24,
-        borderWidth: 8,
+        marginLeft: variables.sidebarBorder,
+        marginTop: variables.sidebarBorder,
+        marginBottom: variables.sidebarBorder,
     },
 
     sidebarFooter: {

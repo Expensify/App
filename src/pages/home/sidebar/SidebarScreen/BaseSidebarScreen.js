@@ -13,6 +13,7 @@ import KeyboardShortcutsModal from '../../../../components/KeyboardShortcutsModa
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import compose from '../../../../libs/compose';
 import sidebarPropTypes from './sidebarPropTypes';
+import * as StyleUtils from '../../../../styles/StyleUtils';
 
 const propTypes = {
     ...sidebarPropTypes,
@@ -51,7 +52,7 @@ class BaseSidebarScreen extends Component {
         return (
             <ScreenWrapper
                 includePaddingBottom={false}
-                style={[styles.sidebar, styles.sidebarBorder]}
+                style={[styles.sidebar, StyleUtils.getSidebarBorderStyle(this.props.isSmallScreenWidth)]}
             >
                 {({insets}) => (
                     <>
