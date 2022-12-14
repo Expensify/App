@@ -229,7 +229,7 @@ jobs:
       - name: Publish links to apps for download
         run: |
           set -e
-          gh pr checkout $PULL_REQUEST_NUMBER
+          gh pr checkout "$PULL_REQUEST_NUMBER"
           gh pr comment --body \
           ":test_tube::test_tube: Use the links below to test this build in android and iOS. Happy testing! :test_tube::test_tube:
           | android :robot:  | iOS :apple: | desktop :computer: |
