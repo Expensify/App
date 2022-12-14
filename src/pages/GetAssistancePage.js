@@ -7,6 +7,7 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Section from '../components/Section';
 import Navigation from '../libs/Navigation/Navigation';
 import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 import Text from '../components/Text';
 import * as Expensicons from '../components/Icon/Expensicons';
 import * as Illustrations from '../components/Icon/Illustrations';
@@ -36,23 +37,27 @@ const GetAssistancePage = props => (
         <ScrollView>
             <Section
                 title={props.translate('getAssistancePage.subtitle')}
-                icon={Illustrations.ConciergeExclamation}
+                icon={Illustrations.ConciergeNew}
                 menuItems={[
                     {
                         title: props.translate('getAssistancePage.chatWithConcierge'),
                         onPress: () => Report.navigateToConciergeChat(),
                         icon: Expensicons.ChatBubble,
                         shouldShowRightIcon: true,
+                        iconFill: themeColors.success,
+                        wrapperStyle: [styles.cardMenuItem],
                     },
                     {
                         title: props.translate('getAssistancePage.requestSetupCall'),
                         onPress: () => Navigation.navigate(ROUTES.getRequestCallRoute(props.route.params.taskID)),
                         icon: Expensicons.Phone,
                         shouldShowRightIcon: true,
+                        iconFill: themeColors.success,
+                        wrapperStyle: [styles.cardMenuItem],
                     },
                 ]}
             >
-                <View style={styles.mv4}>
+                <View style={styles.mv3}>
                     <Text>{props.translate('getAssistancePage.description')}</Text>
                 </View>
             </Section>

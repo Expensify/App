@@ -236,7 +236,11 @@ function getMergeLogsAsJSON(fromRef, toRef) {
             sanitizedOutput = sanitizedOutput.replace(/(\r\n|\n|\r)/gm, '');
 
             // Then format as JSON and convert to a proper JS object
-            const json = `[${sanitizedOutput}]`.replace('},]', '}]');
+            const json = `[${sanitizedOutput}]`.replace('},]', '}]')
+
+                // Escape backslashes in commit messages that end with a backslash
+                .replace('\\"}', '\\\\"}');
+
             return JSON.parse(json);
         });
 }

@@ -1,8 +1,6 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {
-    View, Pressable,
-} from 'react-native';
+import {View, Pressable} from 'react-native';
 import Image from '../Image';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';

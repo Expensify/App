@@ -3,7 +3,6 @@ import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
 import fontWeightBold from './fontWeight/bold';
 import variables from './variables';
-import colors from './colors';
 import spacing from './utilities/spacing';
 import sizing from './utilities/sizing';
 import flex from './utilities/flex';
@@ -22,15 +21,15 @@ import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
 
 const picker = {
-    backgroundColor: 'transparent',
+    backgroundColor: themeColors.transparent,
     color: themeColors.text,
-    fontFamily: fontFamily.GTA,
+    fontFamily: fontFamily.EXP_NEUE,
     fontSize: variables.fontSizeNormal,
     lineHeight: variables.fontSizeNormalHeight,
     paddingHorizontal: 11,
     paddingBottom: 8,
     paddingTop: 23,
-    height: 50,
+    height: variables.inputHeight,
     borderWidth: 0,
     borderRadius: variables.componentBorderRadiusNormal,
     textAlign: 'left',
@@ -39,7 +38,7 @@ const picker = {
 const link = {
     color: themeColors.link,
     textDecorationColor: themeColors.link,
-    fontFamily: fontFamily.GTA,
+    fontFamily: fontFamily.EXP_NEUE,
 };
 
 const baseCodeTagStyles = {
@@ -57,7 +56,7 @@ const webViewStyles = {
     // component.
     tagStyles: {
         em: {
-            fontFamily: fontFamily.GTA,
+            fontFamily: fontFamily.EXP_NEUE,
             fontStyle: 'italic',
         },
 
@@ -67,7 +66,7 @@ const webViewStyles = {
         },
 
         strong: {
-            fontFamily: fontFamily.GTA,
+            fontFamily: fontFamily.EXP_NEUE,
             fontWeight: 'bold',
         },
 
@@ -135,7 +134,7 @@ const webViewStyles = {
     baseFontStyle: {
         color: themeColors.text,
         fontSize: variables.fontSizeNormal,
-        fontFamily: fontFamily.GTA,
+        fontFamily: fontFamily.EXP_NEUE,
         flex: 1,
     },
 };
@@ -151,6 +150,7 @@ const styles = {
     ...wordBreak,
     ...whiteSpace,
     ...writingDirection,
+    ...themeColors,
 
     rateCol: {
         margin: 0,
@@ -176,7 +176,7 @@ const styles = {
     linkMuted: {
         color: themeColors.textSupporting,
         textDecorationColor: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA,
+        fontFamily: fontFamily.EXP_NEUE,
     },
 
     linkMutedHovered: {
@@ -185,19 +185,19 @@ const styles = {
 
     h1: {
         color: themeColors.heading,
-        fontFamily: fontFamily.GTA_BOLD,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontSize: variables.fontSizeh1,
         fontWeight: fontWeightBold,
     },
 
     h3: {
-        fontFamily: fontFamily.GTA_BOLD,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
     },
 
     h4: {
-        fontFamily: fontFamily.GTA_BOLD,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontSize: variables.fontSizeLabel,
         fontWeight: fontWeightBold,
     },
@@ -216,44 +216,44 @@ const styles = {
 
     label: {
         fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        lineHeight: variables.lineHeightLarge,
     },
 
     textLabel: {
         color: themeColors.text,
         fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        lineHeight: variables.lineHeightLarge,
     },
 
     mutedTextLabel: {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        lineHeight: variables.lineHeightLarge,
     },
 
     textMicro: {
-        fontFamily: fontFamily.GTA,
+        fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeSmall,
-        lineHeight: 14,
+        lineHeight: variables.lineHeightSmall,
     },
 
     textMicroBold: {
         color: themeColors.text,
         fontWeight: fontWeightBold,
-        fontFamily: fontFamily.GTA_BOLD,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontSize: variables.fontSizeSmall,
     },
 
     textMicroSupporting: {
         color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA,
+        fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeSmall,
-        lineHeight: 14,
+        lineHeight: variables.lineHeightSmall,
     },
 
     textExtraSmallSupporting: {
         color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA,
+        fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeExtraSmall,
     },
 
@@ -267,18 +267,18 @@ const styles = {
 
     textXXXLarge: {
         color: themeColors.heading,
-        fontFamily: fontFamily.GTA_BOLD,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontSize: variables.fontSizeXXXLarge,
         fontWeight: fontWeightBold,
     },
 
     textStrong: {
-        fontFamily: fontFamily.GTA_BOLD,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
     },
 
     textItalic: {
-        fontFamily: fontFamily.GTA_ITALIC,
+        fontFamily: fontFamily.EXP_NEUE_ITALIC,
         fontStyle: 'italic',
     },
 
@@ -287,11 +287,11 @@ const styles = {
     },
 
     textWhite: {
-        color: colors.white,
+        color: themeColors.textLight,
     },
 
     textBlue: {
-        color: colors.blue,
+        color: themeColors.link,
     },
 
     textUppercase: {
@@ -323,7 +323,7 @@ const styles = {
     },
 
     bgDark: {
-        backgroundColor: colors.dark,
+        backgroundColor: themeColors.inverse,
     },
 
     opacity0: {
@@ -335,24 +335,24 @@ const styles = {
     },
 
     textDanger: {
-        color: colors.red,
+        color: themeColors.danger,
     },
 
     borderRadiusNormal: {
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
     },
 
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeLarge,
         justifyContent: 'center',
         ...spacing.ph3,
     },
 
     buttonText: {
-        color: themeColors.heading,
-        fontFamily: fontFamily.GTA_BOLD,
+        color: themeColors.text,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         textAlign: 'center',
@@ -363,58 +363,57 @@ const styles = {
     },
 
     buttonSmall: {
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeSmall,
-        paddingTop: 6,
-        paddingRight: 10,
-        paddingBottom: 6,
-        paddingLeft: 10,
+        paddingTop: 4,
+        paddingHorizontal: 14,
+        paddingBottom: 4,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
     buttonMedium: {
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeNormal,
-        paddingTop: 6,
-        paddingRight: 12,
-        paddingBottom: 6,
-        paddingLeft: 12,
+        paddingTop: 12,
+        paddingRight: 16,
+        paddingBottom: 12,
+        paddingLeft: 16,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
     buttonLarge: {
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeLarge,
         paddingTop: 8,
-        paddingRight: 14,
+        paddingRight: 10,
         paddingBottom: 8,
-        paddingLeft: 14,
+        paddingLeft: 18,
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
     buttonSmallText: {
         fontSize: variables.fontSizeSmall,
-        fontFamily: fontFamily.GTA_BOLD,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
     },
 
     buttonMediumText: {
         fontSize: variables.fontSizeLabel,
-        fontFamily: fontFamily.GTA_BOLD,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
     },
 
     buttonLargeText: {
         fontSize: variables.fontSizeNormal,
-        fontFamily: fontFamily.GTA_BOLD,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
     },
 
     buttonSuccess: {
-        backgroundColor: themeColors.buttonSuccessBG,
+        backgroundColor: themeColors.success,
         borderWidth: 0,
     },
 
@@ -423,32 +422,32 @@ const styles = {
     },
 
     buttonSuccessHovered: {
-        backgroundColor: themeColors.buttonSuccessHoveredBG,
+        backgroundColor: themeColors.successHover,
         borderWidth: 0,
     },
 
     buttonDanger: {
-        backgroundColor: themeColors.buttonDangerBG,
+        backgroundColor: themeColors.danger,
         borderWidth: 0,
     },
 
     buttonDangerDisabled: {
-        backgroundColor: themeColors.buttonDangerDisabledBG,
+        backgroundColor: themeColors.dangerDisabled,
     },
 
     buttonDangerHovered: {
-        backgroundColor: themeColors.buttonDangerPressedBG,
+        backgroundColor: themeColors.dangerHover,
         borderWidth: 0,
     },
 
     buttonDisable: {
-        backgroundColor: themeColors.buttonDisabledBG,
+        backgroundColor: themeColors.buttonDefaultBG,
         borderWidth: 0,
     },
 
     buttonDropdown: {
         borderLeftWidth: 1,
-        borderColor: themeColors.textReversed,
+        borderColor: themeColors.textLight,
     },
 
     noRightBorderRadius: {
@@ -474,17 +473,22 @@ const styles = {
         margin: 20,
     },
 
+    attachmentButtonBigScreen: {
+        minWidth: 300,
+        alignSelf: 'center',
+    },
+
     buttonConfirmText: {
         paddingLeft: 20,
         paddingRight: 20,
     },
 
     buttonSuccessText: {
-        color: themeColors.textReversed,
+        color: themeColors.textLight,
     },
 
     buttonDangerText: {
-        color: themeColors.textReversed,
+        color: themeColors.textLight,
     },
 
     hoveredComponentBG: {
@@ -525,7 +529,7 @@ const styles = {
 
     pickerSmall: {
         inputIOS: {
-            fontFamily: fontFamily.GTA,
+            fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
             paddingLeft: 9,
             paddingRight: 25,
@@ -539,7 +543,7 @@ const styles = {
             backgroundColor: 'transparent',
         },
         inputWeb: {
-            fontFamily: fontFamily.GTA,
+            fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
             paddingLeft: 9,
             paddingRight: 25,
@@ -555,7 +559,7 @@ const styles = {
             backgroundColor: 'transparent',
         },
         inputAndroid: {
-            fontFamily: fontFamily.GTA,
+            fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
             paddingLeft: 9,
             paddingRight: 25,
@@ -579,7 +583,7 @@ const styles = {
     },
 
     badge: {
-        backgroundColor: themeColors.badgeDefaultBG,
+        backgroundColor: themeColors.border,
         borderRadius: 14,
         height: variables.iconSizeNormal,
         flexDirection: 'row',
@@ -588,31 +592,31 @@ const styles = {
     },
 
     badgeSuccess: {
-        backgroundColor: themeColors.badgeSuccessBG,
+        backgroundColor: themeColors.success,
     },
 
     badgeSuccessPressed: {
-        backgroundColor: themeColors.badgeSuccessPressedBG,
+        backgroundColor: themeColors.successHover,
     },
 
     badgeDanger: {
-        backgroundColor: themeColors.badgeDangerBG,
+        backgroundColor: themeColors.danger,
     },
 
     badgeDangerPressed: {
-        backgroundColor: themeColors.badgeDangerPressedBG,
+        backgroundColor: themeColors.dangerPressed,
     },
 
     badgeText: {
         color: themeColors.text,
         fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
+        lineHeight: variables.lineHeightNormal,
         ...whiteSpace.noWrap,
     },
 
     border: {
         borderWidth: 1,
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.componentBorderRadius,
         borderColor: themeColors.border,
     },
 
@@ -621,12 +625,12 @@ const styles = {
     },
 
     borderColorDanger: {
-        borderColor: themeColors.badgeDangerBG,
+        borderColor: themeColors.danger,
     },
 
     headerText: {
         color: themeColors.heading,
-        fontFamily: fontFamily.GTA_BOLD,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
     },
@@ -651,9 +655,9 @@ const styles = {
 
     chatItemComposeSecondaryRowSubText: {
         color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA,
+        fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeSmall,
-        lineHeight: 14,
+        lineHeight: variables.lineHeightSmall,
     },
 
     chatItemComposeSecondaryRowOffset: {
@@ -680,7 +684,7 @@ const styles = {
     },
 
     componentHeightLarge: {
-        height: variables.componentSizeLarge,
+        height: variables.inputHeight,
     },
 
     textInputContainer: {
@@ -700,7 +704,7 @@ const styles = {
         top: 0,
         fontSize: variables.fontSizeNormal,
         color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA,
+        fontFamily: fontFamily.EXP_NEUE,
         width: '100%',
         textAlign: 'left',
     },
@@ -728,9 +732,9 @@ const styles = {
     }),
 
     baseTextInput: {
-        fontFamily: fontFamily.GTA,
+        fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeNormal,
-        lineHeight: variables.fontSizeNormalHeight,
+        lineHeight: variables.lineHeightNormal,
         color: themeColors.text,
         paddingTop: 23,
         paddingBottom: 8,
@@ -771,7 +775,7 @@ const styles = {
         borderColor: themeColors.border,
         borderWidth: 1,
         color: themeColors.text,
-        fontFamily: fontFamily.GTA,
+        fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeNormal,
         paddingLeft: 12,
         paddingRight: 12,
@@ -789,7 +793,7 @@ const styles = {
         paddingTop: 23,
         paddingBottom: 8,
         color: themeColors.text,
-        fontFamily: fontFamily.GTA,
+        fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeNormal,
         textAlignVertical: 'center',
     },
@@ -809,7 +813,7 @@ const styles = {
     },
     picker: (disabled = false) => ({
         iconContainer: {
-            top: 15,
+            top: Math.round(variables.inputHeight * 0.5) - 11,
             right: 10,
             zIndex: -1,
         },
@@ -824,12 +828,12 @@ const styles = {
     }),
 
     disabledText: {
-        color: colors.gray3,
+        color: themeColors.icon,
     },
 
     inputDisabled: {
-        backgroundColor: colors.gray1,
-        color: colors.gray3,
+        backgroundColor: themeColors.highlightBG,
+        color: themeColors.icon,
     },
 
     textInputReversed: addOutlineWidth({
@@ -845,11 +849,11 @@ const styles = {
     noOutline: addOutlineWidth({}, 0),
 
     errorOutline: {
-        borderColor: colors.red,
+        borderColor: themeColors.danger,
     },
 
     textLabelSupporting: {
-        fontFamily: fontFamily.GTA,
+        fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeLabel,
         color: themeColors.textSupporting,
     },
@@ -859,30 +863,30 @@ const styles = {
     },
 
     formLabel: {
-        fontFamily: fontFamily.GTA_BOLD,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
         fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        lineHeight: variables.lineHeightLarge,
         marginBottom: 8,
     },
 
     formHelp: {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        lineHeight: variables.lineHeightLarge,
         marginBottom: 4,
     },
 
     formError: {
         color: themeColors.textError,
         fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
+        lineHeight: variables.formErrorLineHeight,
         marginBottom: 4,
     },
 
     formSuccess: {
-        color: themeColors.textSuccess,
+        color: themeColors.success,
         fontSize: variables.fontSizeLabel,
         lineHeight: 18,
         marginBottom: 4,
@@ -894,11 +898,6 @@ const styles = {
         flex: 1,
     },
 
-    signInPageLogo: {
-        height: variables.componentSizeLarge,
-        marginBottom: 24,
-    },
-
     signInPageInner: {
         marginLeft: 'auto',
         marginRight: 'auto',
@@ -906,48 +905,26 @@ const styles = {
         width: '100%',
     },
 
-    signInPageInnerNative: {
-        width: '100%',
+    signInPageContentTopSpacer: {
+        maxHeight: 132,
+        minHeight: 24,
     },
 
-    signInPageHeroHeading: {
-        fontFamily: fontFamily.GTA,
-        fontWeight: fontWeightBold,
-        fontSize: variables.fontSizeHero,
-        color: colors.white,
-        lineHeight: variables.lineHeightHero,
+    signInPageLeftContainer: {
+        paddingLeft: 40,
+        paddingRight: 40,
     },
 
-    signInPageHeroDescription: {
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeNormal,
-        color: colors.white,
+    signInPageLeftContainerWide: {
+        maxWidth: 360,
     },
 
-    signInPageFormContainer: {
-        maxWidth: 295,
-        width: '100%',
+    signInPageWelcomeFormContainer: {
+        maxWidth: 300,
     },
 
-    signInPageNarrowContentContainer: {
-        maxWidth: 335,
-    },
-
-    signInPageNarrowContentMargin: {
-        marginTop: '40%',
-    },
-
-    signInPageWideLeftContainer: {
-        width: 375,
-        maxWidth: 375,
-    },
-
-    signInPageWideLeftContentMargin: {
-        marginTop: '44.5%',
-    },
-
-    signInPageWideHeroContent: {
-        maxWidth: 400,
+    signInPageWelcomeTextContainer: {
+        width: 300,
     },
 
     changeExpensifyLoginLinkContainer: {
@@ -966,7 +943,7 @@ const styles = {
         alignItems: 'center',
         display: 'flex',
         justifyContent: 'center',
-        paddingVertical: 20,
+        paddingVertical: variables.lineHeightXLarge,
         width: '100%',
     },
 
@@ -979,7 +956,7 @@ const styles = {
 
     statusIndicator: {
         borderColor: themeColors.sidebar,
-        backgroundColor: themeColors.buttonDangerBG,
+        backgroundColor: themeColors.danger,
         borderRadius: 6,
         borderWidth: 2,
         position: 'absolute',
@@ -992,7 +969,7 @@ const styles = {
 
     statusIndicatorLarge: {
         borderColor: themeColors.componentBG,
-        backgroundColor: themeColors.buttonDangerBG,
+        backgroundColor: themeColors.danger,
         borderRadius: 8,
         borderWidth: 2,
         position: 'absolute',
@@ -1004,7 +981,7 @@ const styles = {
     },
 
     statusIndicatorOnline: {
-        backgroundColor: themeColors.online,
+        backgroundColor: themeColors.success,
     },
 
     avatarWithIndicator: {
@@ -1022,7 +999,7 @@ const styles = {
     },
 
     floatingActionButton: {
-        backgroundColor: themeColors.buttonSuccessBG,
+        backgroundColor: themeColors.success,
         position: 'absolute',
         height: variables.componentSizeLarge,
         width: variables.componentSizeLarge,
@@ -1047,7 +1024,7 @@ const styles = {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeSmall,
         textDecorationLine: 'none',
-        fontFamily: fontFamily.GTA,
+        fontFamily: fontFamily.EXP_NEUE,
         lineHeight: 20,
     },
 
@@ -1092,7 +1069,7 @@ const styles = {
     },
 
     createMenuHeaderText: {
-        fontFamily: fontFamily.GTA,
+        fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeLabel,
         color: themeColors.heading,
     },
@@ -1146,7 +1123,7 @@ const styles = {
     },
 
     sidebarLinkText: {
-        color: themeColors.text,
+        color: themeColors.textSupporting,
         fontSize: variables.fontSizeNormal,
         textDecorationLine: 'none',
         overflow: 'hidden',
@@ -1161,13 +1138,13 @@ const styles = {
         textDecorationLine: 'none',
     },
 
-    sidebarLinkTextUnread: {
+    sidebarLinkTextBold: {
         fontWeight: '700',
         color: themeColors.heading,
     },
 
     sidebarLinkActiveText: {
-        color: themeColors.text,
+        color: themeColors.textSupporting,
         fontSize: variables.fontSizeNormal,
         textDecorationLine: 'none',
         overflow: 'hidden',
@@ -1179,9 +1156,9 @@ const styles = {
     },
 
     optionDisplayName: {
-        fontFamily: fontFamily.GTA,
-        height: 20,
-        lineHeight: 20,
+        fontFamily: fontFamily.EXP_NEUE,
+        height: variables.alternateTextHeight,
+        lineHeight: variables.lineHeightXLarge,
         ...whiteSpace.noWrap,
     },
 
@@ -1200,8 +1177,8 @@ const styles = {
     },
 
     optionAlternateText: {
-        height: 20,
-        lineHeight: 20,
+        height: variables.alternateTextHeight,
+        lineHeight: variables.lineHeightXLarge,
     },
 
     optionAlternateTextCompact: {
@@ -1230,6 +1207,12 @@ const styles = {
     appContent: {
         backgroundColor: themeColors.appBG,
         overflow: 'hidden',
+
+        // Starting version 6.3.2 @react-navigation/drawer adds "user-select: none;" to its container.
+        // We add user-select-auto to the inner component to prevent incorrect triple-click text selection.
+        // For further explanation see - https://github.com/Expensify/App/pull/12730/files#r1022883823
+        userSelect: 'auto',
+        WebkitUserSelect: 'auto',
     },
 
     appContentHeader: {
@@ -1304,10 +1287,10 @@ const styles = {
 
     chatItemMessageHeaderSender: {
         color: themeColors.heading,
-        fontFamily: fontFamily.GTA_BOLD,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
-        lineHeight: 20,
+        lineHeight: variables.lineHeightXLarge,
         paddingRight: 5,
         paddingBottom: 4,
         ...wordBreak.breakWord,
@@ -1318,26 +1301,27 @@ const styles = {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeSmall,
         height: 24,
-        lineHeight: 20,
+        lineHeight: variables.lineHeightXLarge,
     },
 
     chatItemMessage: {
         color: themeColors.text,
         fontSize: variables.fontSizeNormal,
-        fontFamily: fontFamily.GTA,
-        lineHeight: 20,
+        fontFamily: fontFamily.EXP_NEUE,
+        lineHeight: variables.lineHeightXLarge,
         marginTop: -2,
         marginBottom: -2,
         maxWidth: '100%',
+        cursor: 'auto',
         ...whiteSpace.preWrap,
         ...wordBreak.breakWord,
     },
 
     chatItemMessageLink: {
-        color: colors.blue,
+        color: themeColors.link,
         fontSize: variables.fontSizeNormal,
-        fontFamily: fontFamily.GTA,
-        lineHeight: 20,
+        fontFamily: fontFamily.EXP_NEUE,
+        lineHeight: variables.lineHeightXLarge,
     },
 
     chatItemComposeWithFirstRow: {
@@ -1359,7 +1343,7 @@ const styles = {
     chatItemComposeBox: {
         backgroundColor: themeColors.componentBG,
         borderWidth: 1,
-        borderRadius: variables.componentBorderRadiusNormal,
+        borderRadius: variables.componentBorderRadiusRounded,
         minHeight: variables.componentSizeNormal,
     },
 
@@ -1391,9 +1375,9 @@ const styles = {
         fontFamily: fontFamily.EMOJI_TEXT_FONT,
         fontSize: variables.fontSizeNormal,
         borderWidth: 0,
-        borderRadius: 0,
+        borderRadius: variables.componentBorderRadiusRounded,
         height: 'auto',
-        lineHeight: 20,
+        lineHeight: variables.lineHeightXLarge,
         ...overflowXHidden,
 
         // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
@@ -1426,10 +1410,11 @@ const styles = {
 
     chatItemSubmitButton: {
         alignSelf: 'flex-end',
-        borderRadius: 6,
+        borderRadius: variables.componentBorderRadiusRounded,
+        backgroundColor: themeColors.transparent,
         height: 32,
         padding: 6,
-        margin: 3,
+        margin: 4,
         justifyContent: 'center',
     },
 
@@ -1450,7 +1435,7 @@ const styles = {
         backgroundColor: themeColors.componentBG,
         width: '100%',
         ...spacing.pv3,
-        fontFamily: fontFamily.GTA_BOLD,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
         fontSize: variables.fontSizeSmall,
@@ -1460,7 +1445,7 @@ const styles = {
         backgroundColor: themeColors.componentBG,
         width: '100%',
         ...spacing.pv1,
-        fontFamily: fontFamily.GTA_BOLD,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
         fontSize: variables.fontSizeSmall,
@@ -1492,9 +1477,10 @@ const styles = {
 
     chatItemEmojiButton: {
         alignSelf: 'flex-end',
-        borderRadius: 6,
+        borderRadius: variables.buttonBorderRadius,
         height: 32,
-        margin: 3,
+        marginVertical: 4,
+        paddingHorizontal: 6,
         justifyContent: 'center',
     },
 
@@ -1511,11 +1497,12 @@ const styles = {
         alignSelf: 'flex-end',
         borderRightColor: themeColors.border,
         borderRightWidth: 1,
-        height: 26,
-        marginBottom: 6,
-        marginTop: 6,
+        height: 32,
+        width: 32,
+        marginBottom: 4,
+        marginTop: 4,
+        marginLeft: 4,
         justifyContent: 'center',
-        width: 39,
     },
 
     composerSizeButton: {
@@ -1525,7 +1512,7 @@ const styles = {
         marginBottom: 6,
         marginTop: 6,
         justifyContent: 'center',
-        width: 39,
+        width: 32,
     },
 
     chatItemAttachmentPlaceholder: {
@@ -1580,9 +1567,10 @@ const styles = {
     horizontalStackedAvatar: {
         height: 28,
         width: 28,
-        backgroundColor: colors.white,
+        backgroundColor: themeColors.appBG,
         borderRadius: 33,
         paddingTop: 2,
+        alignItems: 'center',
     },
 
     singleSubscript: {
@@ -1652,7 +1640,7 @@ const styles = {
         right: -25,
         borderWidth: 3,
         borderRadius: 18,
-        borderColor: themeColors.componentBG,
+        borderColor: themeColors.cardBorder,
     },
 
     avatarLarge: {
@@ -1673,7 +1661,7 @@ const styles = {
     },
 
     avatarInnerText: {
-        color: themeColors.textReversed,
+        color: themeColors.textLight,
         fontSize: variables.fontSizeSmall,
         lineHeight: undefined,
         marginLeft: -3,
@@ -1681,7 +1669,7 @@ const styles = {
     },
 
     avatarInnerTextSmall: {
-        color: themeColors.textReversed,
+        color: themeColors.textLight,
         fontSize: variables.fontSizeExtraSmall,
         lineHeight: undefined,
         marginLeft: -2,
@@ -1746,8 +1734,6 @@ const styles = {
         width: 28,
         borderWidth: 2,
         borderStyle: 'solid',
-        borderColor: colors.white,
-        backgroundColor: themeColors.opaqueAvatar,
         borderRadius: 24,
         zIndex: 6,
     },
@@ -1888,22 +1874,22 @@ const styles = {
     },
 
     notFoundTextHeader: {
-        color: colors.blue,
-        fontFamily: fontFamily.GTA_BOLD,
+        color: themeColors.link,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         fontSize: 150,
     },
 
     notFoundTextBody: {
         color: themeColors.componentBG,
-        fontFamily: fontFamily.GTA_BOLD,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         fontSize: 15,
     },
 
     notFoundButtonText: {
-        color: colors.blue,
-        fontFamily: fontFamily.GTA_BOLD,
+        color: themeColors.link,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         fontSize: 15,
     },
@@ -1914,14 +1900,14 @@ const styles = {
 
     defaultModalContainer: {
         backgroundColor: themeColors.componentBG,
-        borderColor: colors.transparent,
+        borderColor: themeColors.transparent,
     },
 
     reportActionContextMenuMiniButton: {
         ...spacing.p1,
         ...spacing.mv1,
         ...spacing.mh1,
-        ...{borderRadius: variables.componentBorderRadiusSmall},
+        ...{borderRadius: variables.buttonBorderRadius},
     },
 
     reportActionSystemMessageContainer: {
@@ -1985,18 +1971,18 @@ const styles = {
         marginLeft: -16,
     },
 
-    screenBlur: {
+    roomHeaderAvatarOverlay: {
         position: 'absolute',
         top: 0,
         right: 0,
         bottom: 0,
         left: 0,
-        backgroundColor: colors.dark,
-        opacity: 0.5,
+        backgroundColor: themeColors.overlay,
+        opacity: variables.overlayOpacity,
     },
 
     avatarInnerTextChat: {
-        color: themeColors.textReversed,
+        color: themeColors.textLight,
         fontSize: variables.fontSizeNormal,
         left: 1,
         textAlign: 'center',
@@ -2006,7 +1992,7 @@ const styles = {
 
     displayName: {
         fontSize: variables.fontSizeLarge,
-        fontFamily: fontFamily.GTA_BOLD,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
     },
@@ -2052,7 +2038,7 @@ const styles = {
 
     unreadIndicatorText: {
         color: themeColors.unreadIndicator,
-        fontFamily: fontFamily.GTA_BOLD,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontSize: variables.fontSizeSmall,
         fontWeight: fontWeightBold,
         textTransform: 'capitalize',
@@ -2106,11 +2092,11 @@ const styles = {
         justifyContent: 'center',
         borderRadius: 20,
         padding: 15,
-        backgroundColor: colors.green,
+        backgroundColor: themeColors.success,
     },
 
     switchInactive: {
-        backgroundColor: colors.gray2,
+        backgroundColor: themeColors.border,
     },
 
     switchThumb: {
@@ -2119,7 +2105,7 @@ const styles = {
         borderRadius: 11,
         position: 'absolute',
         left: 4,
-        backgroundColor: colors.white,
+        backgroundColor: themeColors.appBG,
     },
 
     radioButtonContainer: {
@@ -2145,18 +2131,19 @@ const styles = {
     },
 
     checkedContainer: {
-        backgroundColor: colors.blue,
+        backgroundColor: themeColors.checkBox,
     },
 
     iouAmountText: {
-        fontFamily: fontFamily.GTA_BOLD,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
+        lineHeight: variables.inputHeight,
     },
 
     iouAmountTextInput: addOutlineWidth({
-        fontFamily: fontFamily.GTA_BOLD,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
@@ -2165,14 +2152,16 @@ const styles = {
     }, 0),
 
     iouPreviewBox: {
-        backgroundColor: themeColors.componentBG,
-        borderColor: themeColors.border,
-        borderWidth: 1,
+        backgroundColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusCard,
         padding: 20,
         marginTop: 16,
         maxWidth: variables.sideBarWidth,
         width: '100%',
+    },
+
+    iouPreviewBoxHover: {
+        backgroundColor: themeColors.border,
     },
 
     iouPreviewBoxLoading: {
@@ -2186,6 +2175,10 @@ const styles = {
     iouPreviewBoxAvatar: {
         marginRight: -10,
         marginBottom: -10,
+    },
+
+    iouPreviewBoxAvatarHover: {
+        borderColor: themeColors.border,
     },
 
     iouPreviewBoxCheckmark: {
@@ -2243,7 +2236,7 @@ const styles = {
     },
 
     navigatorFullScreenLoading: {
-        backgroundColor: colors.gray1,
+        backgroundColor: themeColors.highlightBG,
         opacity: 1,
     },
 
@@ -2296,18 +2289,18 @@ const styles = {
     }),
 
     growlNotificationBox: {
-        backgroundColor: colors.dark,
+        backgroundColor: themeColors.inverse,
         borderRadius: variables.componentBorderRadiusNormal,
         alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        shadowColor: '#000',
+        shadowColor: themeColors.shadow,
         ...spacing.p5,
     },
 
     growlNotificationText: {
         fontSize: variables.fontSizeNormal,
-        fontFamily: fontFamily.GTA,
+        fontFamily: fontFamily.EXP_NEUE,
         width: '90%',
         lineHeight: variables.fontSizeNormalHeight,
         color: themeColors.textReversed,
@@ -2319,6 +2312,10 @@ const styles = {
         borderLeftWidth: 4,
         paddingLeft: 12,
         marginVertical: 4,
+    },
+
+    cursorDefault: {
+        cursor: 'default',
     },
 
     cursorDisabled: {
@@ -2450,7 +2447,7 @@ const styles = {
     peopleBadgeText: {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
+        lineHeight: variables.lineHeightNormal,
         ...whiteSpace.noWrap,
     },
 
@@ -2489,7 +2486,6 @@ const styles = {
 
     dotIndicatorMessage: {
         display: 'flex',
-        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
     },
@@ -2499,13 +2495,13 @@ const styles = {
     },
 
     cardOverlay: {
-        backgroundColor: themeColors.modalBackdrop,
+        backgroundColor: themeColors.overlay,
         position: 'absolute',
         top: 0,
         left: 0,
         width: '100%',
         height: '100%',
-        opacity: 0.5,
+        opacity: variables.overlayOpacity,
     },
 
     communicationsLinkIcon: {
@@ -2558,7 +2554,7 @@ const styles = {
     },
 
     communicationsLinkHeight: {
-        height: 20,
+        height: variables.communicationsLinkHeight,
     },
 
     floatingMessageCounterWrapper: {
@@ -2614,7 +2610,7 @@ const styles = {
         color: themeColors.text,
         fontSize: variables.fontSizeNormal,
         lineHeight: variables.fontSizeNormalHeight,
-        fontFamily: fontFamily.GTA,
+        fontFamily: fontFamily.EXP_NEUE,
         flex: 1,
     },
 
@@ -2625,6 +2621,11 @@ const styles = {
 
     googleListView: {
         transform: [{scale: 0}],
+    },
+
+    invert: {
+        // It's important to invert the Y AND X axis to prevent a react native issue that can lead to ANRs on android 13
+        transform: [{scaleX: -1}, {scaleY: -1}],
     },
 
     keyboardShortcutModalContainer: {
@@ -2668,13 +2669,14 @@ const styles = {
     },
 
     iPhoneXSafeArea: {
-        backgroundColor: colors.black,
+        backgroundColor: themeColors.inverse,
         flex: 1,
     },
 
     errorPageContainer: {
         backgroundColor: themeColors.componentBG,
     },
+
     transferBalancePayment: {
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
@@ -2703,7 +2705,7 @@ const styles = {
     },
 
     sliderKnob: {
-        backgroundColor: themeColors.badgeSuccessBG,
+        backgroundColor: themeColors.success,
         position: 'absolute',
         height: variables.sliderKnobSize,
         width: variables.sliderKnobSize,
@@ -2726,6 +2728,7 @@ const styles = {
 
     userSelectText: {
         userSelect: 'text',
+        WebkitUserSelect: 'text',
     },
 
     userSelectNone: {
@@ -2743,7 +2746,7 @@ const styles = {
     inlineSystemMessage: {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeLabel,
-        fontFamily: fontFamily.GTA,
+        fontFamily: fontFamily.EXP_NEUE,
         marginLeft: 6,
     },
 
@@ -2753,15 +2756,70 @@ const styles = {
         alignSelf: 'center',
     },
 
+    fullScreenTransparentOverlay: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: themeColors.dropUIBG,
+        zIndex: 2,
+    },
+
     textPill: {
         ellipsizeMode: 'end',
-        backgroundColor: colors.gray2,
+        backgroundColor: themeColors.border,
         borderRadius: 10,
         overflow: 'hidden',
         paddingVertical: 2,
         flexShrink: 1,
         fontSize: variables.fontSizeSmall,
         ...spacing.ph2,
+    },
+
+    dropZoneTopInvisibleOverlay: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: themeColors.dropTransparentOverlay,
+        zIndex: 1000,
+    },
+
+    cardSection: {
+        backgroundColor: themeColors.cardBG,
+        borderRadius: variables.componentBorderRadiusCard,
+        marginBottom: 20,
+        marginHorizontal: 16,
+        padding: 20,
+        width: 'auto',
+        textAlign: 'left',
+    },
+
+    cardMenuItem: {
+        paddingLeft: 8,
+        paddingRight: 0,
+        borderRadius: variables.buttonBorderRadius,
+        height: variables.componentSizeLarge,
+        alignItems: 'center',
+    },
+
+    callRequestSection: {
+        backgroundColor: themeColors.appBG,
+        paddingHorizontal: 0,
+        paddingBottom: 0,
+        marginHorizontal: 0,
+        marginBottom: 0,
+    },
+
+    saveButtonPadding: {
+        paddingLeft: 18,
+        paddingRight: 18,
     },
 };
 

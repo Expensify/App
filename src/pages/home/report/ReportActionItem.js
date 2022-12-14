@@ -76,6 +76,7 @@ class ReportActionItem extends Component {
         };
         this.checkIfContextMenuActive = this.checkIfContextMenuActive.bind(this);
         this.showPopover = this.showPopover.bind(this);
+        this.renderItemContent = this.renderItemContent.bind(this);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -97,6 +98,10 @@ class ReportActionItem extends Component {
         this.textInput.focus();
     }
 
+    checkIfContextMenuActive() {
+        this.setState({isContextMenuActive: ReportActionContextMenu.isActiveReportAction(this.props.action.reportActionID)});
+    }
+
     /**
      * Show the ReportActionContextMenu modal popover.
      *
@@ -107,6 +112,8 @@ class ReportActionItem extends Component {
         if (this.props.draftMessage) {
             return;
         }
+
+        this.setState({isContextMenuActive: true});
         const selection = SelectionScraper.getCurrentSelection();
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
@@ -116,23 +123,17 @@ class ReportActionItem extends Component {
             this.props.report.reportID,
             this.props.action,
             this.props.draftMessage,
-            this.checkIfContextMenuActive,
+            undefined,
             this.checkIfContextMenuActive,
         );
     }
 
-    checkIfContextMenuActive() {
-        this.setState({isContextMenuActive: ReportActionContextMenu.isActiveReportAction(this.props.action.reportActionID)});
-    }
-
-    render() {
-        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-            return <ReportActionItemCreated reportID={this.props.report.reportID} />;
-        }
-        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
-            return <RenameAction action={this.props.action} />;
-        }
-
+    /**
+     * Get the content of ReportActionItem
+     * @param {Boolean} hovered whether the ReportActionItem is hovered
+     * @returns {Object} child component(s)
+     */
+    renderItemContent(hovered = false) {
         let children;
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
             children = (
@@ -140,6 +141,7 @@ class ReportActionItem extends Component {
                     chatReportID={this.props.report.reportID}
                     action={this.props.action}
                     isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
+                    isHovered={hovered}
                 />
             );
         } else {
@@ -160,6 +162,16 @@ class ReportActionItem extends Component {
                         }
                     />
                 );
+        }
+        return children;
+    }
+
+    render() {
+        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+            return <ReportActionItemCreated reportID={this.props.report.reportID} />;
+        }
+        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+            return <RenameAction action={this.props.action} />;
         }
         return (
             <PressableWithSecondaryInteraction
@@ -186,7 +198,12 @@ class ReportActionItem extends Component {
                                 <OfflineWithFeedback
                                     onClose={() => {
                                         if (this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                                            ReportActions.deleteOptimisticReportAction(this.props.report.reportID, this.props.action.clientID);
+                                            const sequenceNumber = this.props.action.actionName
+                                              === CONST.REPORT.ACTIONS.TYPE.IOU
+                                                ? this.props.action
+                                                    .sequenceNumber
+                                                : this.props.action.clientID;
+                                            ReportActions.deleteOptimisticReportAction(this.props.report.reportID, sequenceNumber);
                                         } else {
                                             ReportActions.clearReportActionErrors(this.props.report.reportID, this.props.action.sequenceNumber);
                                         }
@@ -198,12 +215,12 @@ class ReportActionItem extends Component {
                                     {!this.props.displayAsGroup
                                         ? (
                                             <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>
-                                                {children}
+                                                {this.renderItemContent(hovered || this.state.isContextMenuActive)}
                                             </ReportActionItemSingle>
                                         )
                                         : (
                                             <ReportActionItemGrouped>
-                                                {children}
+                                                {this.renderItemContent(hovered || this.state.isContextMenuActive)}
                                             </ReportActionItemGrouped>
                                         )}
                                 </OfflineWithFeedback>
@@ -219,6 +236,7 @@ class ReportActionItem extends Component {
                                     && !this.props.draftMessage
                                 }
                                 draftMessage={this.props.draftMessage}
+                                isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
                             />
                         </View>
                     )}

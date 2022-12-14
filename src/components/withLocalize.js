@@ -19,11 +19,11 @@ const withLocalizePropTypes = {
     /** Formats number formatted according to locale and options */
     numberFormat: PropTypes.func.isRequired,
 
-    /** Converts a timestamp into a localized string representation that's relative to current moment in time */
-    timestampToRelative: PropTypes.func.isRequired,
+    /** Converts a datetime into a localized string representation that's relative to current moment in time */
+    datetimeToRelative: PropTypes.func.isRequired,
 
-    /** Formats a timestamp to local date and time string */
-    timestampToDateTime: PropTypes.func.isRequired,
+    /** Formats a datetime to local date and time string */
+    datetimeToCalendarTime: PropTypes.func.isRequired,
 
     /** Returns a locally converted phone number without the country code */
     toLocalPhone: PropTypes.func.isRequired,
@@ -59,8 +59,8 @@ class LocaleContextProvider extends React.Component {
         return {
             translate: this.translate.bind(this),
             numberFormat: this.numberFormat.bind(this),
-            timestampToRelative: this.timestampToRelative.bind(this),
-            timestampToDateTime: this.timestampToDateTime.bind(this),
+            datetimeToRelative: this.datetimeToRelative.bind(this),
+            datetimeToCalendarTime: this.datetimeToCalendarTime.bind(this),
             fromLocalPhone: this.fromLocalPhone.bind(this),
             toLocalPhone: this.toLocalPhone.bind(this),
             fromLocaleDigit: this.fromLocaleDigit.bind(this),
@@ -88,22 +88,22 @@ class LocaleContextProvider extends React.Component {
     }
 
     /**
-     * @param {Number} timestamp
+     * @param {String} datetime
      * @returns {String}
      */
-    timestampToRelative(timestamp) {
-        return DateUtils.timestampToRelative(this.props.preferredLocale, timestamp);
+    datetimeToRelative(datetime) {
+        return DateUtils.datetimeToRelative(this.props.preferredLocale, datetime);
     }
 
     /**
-     * @param {Number} timestamp
+     * @param {String} datetime - ISO-formatted datetime string
      * @param {Boolean} [includeTimezone]
      * @returns {String}
      */
-    timestampToDateTime(timestamp, includeTimezone) {
-        return DateUtils.timestampToDateTime(
+    datetimeToCalendarTime(datetime, includeTimezone) {
+        return DateUtils.datetimeToCalendarTime(
             this.props.preferredLocale,
-            timestamp,
+            datetime,
             includeTimezone,
         );
     }

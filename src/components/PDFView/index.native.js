@@ -1,14 +1,17 @@
 import React, {Component} from 'react';
-import {TouchableWithoutFeedback, View, KeyboardAvoidingView} from 'react-native';
+import {TouchableWithoutFeedback, View} from 'react-native';
 import PDF from 'react-native-pdf';
+import KeyboardAvoidingView from '../KeyboardAvoidingView';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
+import Text from '../Text';
 import PDFPasswordForm from './PDFPasswordForm';
 import * as pdfViewPropTypes from './pdfViewPropTypes';
 import compose from '../../libs/compose';
 import withWindowDimensions from '../withWindowDimensions';
 import withKeyboardState from '../withKeyboardState';
+import withLocalize from '../withLocalize';
 
 /**
  * On the native layer, we use react-native-pdf/PDF to display PDFs. If a PDF is
@@ -29,18 +32,32 @@ class PDFView extends Component {
         super(props);
         this.state = {
             shouldRequestPassword: false,
-            shouldAttemptPdfLoad: true,
+            shouldAttemptPDFLoad: true,
             shouldShowLoadingIndicator: true,
             isPasswordInvalid: false,
+            failedToLoadPDF: false,
             password: '',
         };
         this.initiatePasswordChallenge = this.initiatePasswordChallenge.bind(this);
-        this.attemptPdfLoadWithPassword = this.attemptPdfLoadWithPassword.bind(this);
-        this.finishPdfLoad = this.finishPdfLoad.bind(this);
+        this.attemptPDFLoadWithPassword = this.attemptPDFLoadWithPassword.bind(this);
+        this.finishPDFLoad = this.finishPDFLoad.bind(this);
+        this.handleFailureToLoadPDF = this.handleFailureToLoadPDF.bind(this);
     }
 
     componentDidUpdate() {
         this.props.onToggleKeyboard(this.props.isShown);
+    }
+
+    handleFailureToLoadPDF(error) {
+        if (error.message.match(/password/i)) {
+            this.initiatePasswordChallenge();
+            return;
+        }
+
+        this.setState({
+            failedToLoadPDF: true,
+            shouldAttemptPDFLoad: false,
+        });
     }
 
     /**
@@ -50,20 +67,14 @@ class PDFView extends Component {
      * For a password challenge the message is "Password required or incorrect password."
      * Note that the message doesn't specify whether the password is simply empty or
      * invalid.
-     *
-     * @param {String} message
      */
-    initiatePasswordChallenge({message}) {
+    initiatePasswordChallenge() {
         this.setState({shouldShowLoadingIndicator: false});
-
-        if (!message.match(/password/i)) {
-            return;
-        }
 
         // Render password form, and don't render PDF and loading indicator.
         this.setState({
             shouldRequestPassword: true,
-            shouldAttemptPdfLoad: false,
+            shouldAttemptPDFLoad: false,
         });
 
         // The message provided by react-native-pdf doesn't indicate whether this
@@ -81,13 +92,13 @@ class PDFView extends Component {
      *
      * @param {String} password Password submitted via PDFPasswordForm
      */
-    attemptPdfLoadWithPassword(password) {
+    attemptPDFLoadWithPassword(password) {
         // Render react-native-pdf/PDF so that it can validate the password.
         // Note that at this point in the password challenge, shouldRequestPassword is true.
         // Thus react-native-pdf/PDF will be rendered - but not visible.
         this.setState({
             password,
-            shouldAttemptPdfLoad: true,
+            shouldAttemptPDFLoad: true,
             shouldShowLoadingIndicator: true,
         });
     }
@@ -96,7 +107,7 @@ class PDFView extends Component {
      * After the PDF is successfully loaded hide PDFPasswordForm and the loading
      * indicator.
      */
-    finishPdfLoad() {
+    finishPDFLoad() {
         this.setState({
             shouldRequestPassword: false,
             shouldShowLoadingIndicator: false,
@@ -128,23 +139,30 @@ class PDFView extends Component {
 
         return (
             <View style={containerStyles}>
-                {this.state.shouldAttemptPdfLoad && (
+                {this.state.failedToLoadPDF && (
+                    <View style={[styles.flex1, styles.justifyContentCenter]}>
+                        <Text style={[styles.textLabel, styles.textLarge]}>
+                            {this.props.translate('attachmentView.failedToLoadPDF')}
+                        </Text>
+                    </View>
+                )}
+                {this.state.shouldAttemptPDFLoad && (
                     <TouchableWithoutFeedback style={touchableStyles}>
                         <PDF
                             trustAllCerts={false}
                             renderActivityIndicator={() => <FullScreenLoadingIndicator />}
                             source={{uri: this.props.sourceURL}}
                             style={pdfStyles}
-                            onError={this.initiatePasswordChallenge}
+                            onError={this.handleFailureToLoadPDF}
                             password={this.state.password}
-                            onLoadComplete={this.finishPdfLoad}
+                            onLoadComplete={this.finishPDFLoad}
                         />
                     </TouchableWithoutFeedback>
                 )}
                 {this.state.shouldRequestPassword && (
                     <KeyboardAvoidingView style={styles.flex1}>
                         <PDFPasswordForm
-                            onSubmit={this.attemptPdfLoadWithPassword}
+                            onSubmit={this.attemptPDFLoadWithPassword}
                             onPasswordUpdated={() => this.setState({isPasswordInvalid: false})}
                             isPasswordInvalid={this.state.isPasswordInvalid}
                             shouldShowLoadingIndicator={this.state.shouldShowLoadingIndicator}
@@ -162,4 +180,5 @@ PDFView.defaultProps = pdfViewPropTypes.defaultProps;
 export default compose(
     withWindowDimensions,
     withKeyboardState,
+    withLocalize,
 )(PDFView);

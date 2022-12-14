@@ -14,7 +14,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     /** Child elements */
-    children: PropTypes.node.isRequired,
+    children: PropTypes.node,
 
     /** If true, child components are replaced with a blocking "not found" view */
     shouldShow: PropTypes.bool,
@@ -36,6 +36,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    children: null,
     shouldShow: false,
     titleKey: 'notFound.notHere',
     subtitleKey: 'notFound.pageNotFound',

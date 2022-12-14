@@ -14,7 +14,7 @@ const https = __nccwpck_require__(7211);
 const GitHubUtils = __nccwpck_require__(7999);
 
 const pathToReviewerChecklist = 'https://raw.githubusercontent.com/Expensify/App/main/contributingGuides/REVIEWER_CHECKLIST.md';
-const reviewerChecklistStartsWith = '## Reviewer Checklist';
+const reviewerChecklistContains = '# Reviewer Checklist';
 const issue = github.context.payload.issue ? github.context.payload.issue.number : github.context.payload.pull_request.number;
 const combinedComments = [];
 
@@ -22,6 +22,7 @@ const combinedComments = [];
  * @returns {Promise}
  */
 function getNumberOfItemsFromReviewerChecklist() {
+    console.log('Getting the number of items in the reviewer checklist...');
     return new Promise((resolve, reject) => {
         https.get(pathToReviewerChecklist, (res) => {
             let fileContents = '';
@@ -30,10 +31,14 @@ function getNumberOfItemsFromReviewerChecklist() {
             });
             res.on('end', () => {
                 const numberOfChecklistItems = (fileContents.match(/- \[ \]/g) || []).length;
+                console.log(`There are ${numberOfChecklistItems} items in the reviewer checklist.`);
                 resolve(numberOfChecklistItems);
             });
         })
-            .on('error', reject);
+            .on('error', (err) => {
+                console.error(err);
+                reject(err);
+            });
     });
 }
 
@@ -42,10 +47,17 @@ function getNumberOfItemsFromReviewerChecklist() {
  */
 function checkIssueForCompletedChecklist(numberOfChecklistItems) {
     GitHubUtils.getAllReviewComments(issue)
-        .then(reviewComments => combinedComments.push(...reviewComments))
+        .then((reviewComments) => {
+            console.log(`Pulled ${reviewComments.length} review comments, now adding them to the list...`);
+            combinedComments.push(...reviewComments);
+        })
         .then(() => GitHubUtils.getAllComments(issue))
-        .then(comments => combinedComments.push(...comments))
+        .then((comments) => {
+            console.log(`Pulled ${comments.length} comments, now adding them to the list...`);
+            combinedComments.push(...comments);
+        })
         .then(() => {
+            console.log(`Looking through all ${combinedComments.length} comments for the reviewer checklist...`);
             let foundReviewerChecklist = false;
             let numberOfFinishedChecklistItems = 0;
             let numberOfUnfinishedChecklistItems = 0;
@@ -54,18 +66,26 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
             for (let i = 0; i < combinedComments.length; i++) {
                 // Skip all other comments if we already found the reviewer checklist
                 if (foundReviewerChecklist) {
-                    return;
+                    break;
                 }
 
                 const whitespace = /([\n\r])/gm;
                 const comment = combinedComments[i].replace(whitespace, '');
 
+                console.log(`Comment ${i} starts with: ${comment.slice(0, 20)}...`);
+
                 // Found the reviewer checklist, so count how many completed checklist items there are
-                if (comment.startsWith(reviewerChecklistStartsWith)) {
+                if (comment.indexOf(reviewerChecklistContains) !== -1) {
+                    console.log('Found the reviewer checklist!');
                     foundReviewerChecklist = true;
                     numberOfFinishedChecklistItems = (comment.match(/- \[x\]/gi) || []).length;
                     numberOfUnfinishedChecklistItems = (comment.match(/- \[ \]/g) || []).length;
                 }
+            }
+
+            if (!foundReviewerChecklist) {
+                core.setFailed('No PR Reviewer Checklist was found');
+                return;
             }
 
             const maxCompletedItems = numberOfChecklistItems + 2;
@@ -86,8 +106,10 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
 }
 
 getNumberOfItemsFromReviewerChecklist()
-    .then(checkIssueForCompletedChecklist, (err) => {
+    .then(checkIssueForCompletedChecklist)
+    .catch((err) => {
         console.error(err);
+        core.setFailed(err);
     });
 
 

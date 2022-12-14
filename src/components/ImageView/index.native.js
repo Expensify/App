@@ -10,7 +10,6 @@ import variables from '../../styles/variables';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import Image from '../Image';
-import chatAttachmentTokenHeaders from '../../libs/chatAttachmentTokenHeaders';
 
 /**
  * On the native layer, we use a image library to handle zoom functionality
@@ -115,7 +114,6 @@ class ImageView extends PureComponent {
     render() {
         // Default windowHeight accounts for the modal header height
         const windowHeight = this.props.windowHeight - variables.contentHeaderHeight;
-        const headers = this.props.isAuthTokenRequired ? chatAttachmentTokenHeaders() : undefined;
 
         // Zoom view should be loaded only after measuring actual image dimensions, otherwise it causes blurred images on Android
         return (
@@ -179,6 +177,7 @@ class ImageView extends PureComponent {
                             this.state.isLoading ? styles.opacity0 : styles.opacity1,
                         ]}
                         source={{uri: this.props.url}}
+                        isAuthTokenRequired={this.props.isAuthTokenRequired}
                         resizeMode={Image.resizeMode.contain}
                         onLoadStart={this.imageLoadingStart}
                         onLoad={this.imageLoad}
