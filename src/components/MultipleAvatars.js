@@ -9,6 +9,7 @@ import Text from './Text';
 import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 import CONST from '../CONST';
+import variables from '../styles/variables';
 
 const propTypes = {
     /** Array of avatar URLs or icons */
@@ -99,6 +100,9 @@ const MultipleAvatars = (props) => {
                                 styles.alignItemsCenter,
                                 styles.justifyContentCenter,
                                 StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed),
+
+                                // Set overlay background color with RGBA value so that the text will not inherit opacity
+                                StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.overlay, variables.overlayOpacity),
                                 styles.horizontalStackedAvatar4Overlay,
                             ]}
                         >
