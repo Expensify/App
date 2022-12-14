@@ -1,4 +1,4 @@
-import canUseTouchScreen from './canUseTouchscreen';
+import canUseTouchScreen from './canUseTouchScreen';
 import hasHoverSupport from './hasHoverSupport';
 
 export {

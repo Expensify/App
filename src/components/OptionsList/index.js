@@ -15,7 +15,7 @@ class OptionsList extends Component {
     }
 
     componentDidMount() {
-        if (!DeviceCapabilities.canUseTouchscreen()) {
+        if (!DeviceCapabilities.canUseTouchScreen()) {
             return;
         }
 
@@ -26,7 +26,7 @@ class OptionsList extends Component {
     }
 
     componentWillUnmount() {
-        if (!DeviceCapabilities.canUseTouchscreen()) {
+        if (!DeviceCapabilities.canUseTouchScreen()) {
             return;
         }
 
