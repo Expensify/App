@@ -31,6 +31,10 @@ const propTypes = {
     /** Callback for the Pay/Settle button */
     onPayButtonPressed: PropTypes.func,
 
+    /** The active IOUReport, used for Onyx subscription */
+    // eslint-disable-next-line react/no-unused-prop-types
+    iouReportID: PropTypes.string.isRequired,
+
     /** The associated chatReport */
     chatReportID: PropTypes.string.isRequired,
 
