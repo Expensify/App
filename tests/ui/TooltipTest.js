@@ -25,10 +25,7 @@ jest.mock('../../src/components/withWindowDimensions', () => ({
 describe('TooltipTest', () => {
     const TestTooltipComponent = (
         <PortalProvider>
-            <Tooltip
-                text="close"
-                onHoverIn={() => {console.log('RORY_DEBUG onHoverIn called on tooltip')}}
-            >
+            <Tooltip text="close">
                 <Text>Hover me</Text>
             </Tooltip>
         </PortalProvider>
