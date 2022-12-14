@@ -64,8 +64,7 @@ function clearStorageAndRedirect(errorMessage) {
             if (errorMessage) {
                 Onyx.merge(ONYXKEYS.SESSION, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal(errorMessage)}});
             }
-        })
-        // .finally(UnreadIndicatorUpdater.stopListeningForReportChanges);
+        });
 }
 
 /**
