@@ -937,6 +937,13 @@ const styles = {
     sidebar: {
         backgroundColor: themeColors.sidebar,
         height: '100%',
+        overflow: 'hidden',
+    },
+
+    sidebarBorder: {
+        borderColor: themeColors.appBG,
+        borderRadius: 24,
+        borderWidth: 8,
     },
 
     sidebarFooter: {
