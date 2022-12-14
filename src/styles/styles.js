@@ -796,7 +796,7 @@ const styles = {
         borderColor: themeColors.border,
         justifyContent: 'center',
         backgroundColor: 'transparent',
-        height: variables.inputHeight
+        height: variables.inputHeight,
     },
 
     pickerLabel: {
