@@ -32,9 +32,6 @@ const propTypes = {
     /** Callback for the Pay/Settle button */
     onPayButtonPressed: PropTypes.func,
 
-    /** The active IOUReport, used for Onyx subscription */
-    iouReportID: PropTypes.string.isRequired,
-
     /** The associated chatReport */
     chatReportID: PropTypes.string.isRequired,
 
@@ -117,11 +114,6 @@ const IOUPreview = (props) => {
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerEmail === sessionEmail;
     const reportIsLoading = _.isEmpty(props.iouReport);
-
-    if (reportIsLoading) {
-        Report.fetchIOUReportByID(props.iouReportID, props.chatReportID);
-    }
-
     const managerName = lodashGet(props.personalDetails, [managerEmail, 'firstName'], '')
                         || Str.removeSMSDomain(managerEmail);
     const ownerName = lodashGet(props.personalDetails, [ownerEmail, 'firstName'], '') || Str.removeSMSDomain(ownerEmail);
