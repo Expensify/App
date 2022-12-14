@@ -15,8 +15,10 @@ const propTypes = ScrollView.propTypes;
 * when the picker modal is opened
 */
 class ScrollViewWithPickers extends React.Component {
-    setScrollViewRef(ref) {
-        this.scrollViewRef = ref;
+    constructor(props) {
+        super(props);
+
+        this.scrollViewRef = React.createRef(null);
     }
 
     render() {
@@ -24,7 +26,7 @@ class ScrollViewWithPickers extends React.Component {
         const {children, ...propsWithoutChildren} = this.props;
         return (
             // eslint-disable-next-line react/jsx-props-no-spreading
-            <ScrollView {...propsWithoutChildren} ref={this.setScrollViewRef}>
+            <ScrollView {...propsWithoutChildren} ref={this.scrollViewRef}>
                 <ScrollViewWithPickersContext.Provider value={{scrollViewRef: this.scrollViewRef}}>
                     {children}
                 </ScrollViewWithPickersContext.Provider>
