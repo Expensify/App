@@ -273,7 +273,7 @@ class Form extends React.Component {
                                     focusInput.measureLayout(this.form, (x, y) => this.form.scrollTo({y: y - 10, animated: false}));
                                 }
                             }}
-                            containerStyles={[styles.mh0, styles.mt5]}
+                            containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
                             enabledWhenOffline={this.props.enabledWhenOffline}
                             isDangerousAction={this.props.isDangerousAction}
                         />
