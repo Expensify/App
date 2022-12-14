@@ -10,7 +10,6 @@ import compose from '../../compose';
 import * as PersonalDetails from '../../actions/PersonalDetails';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
-import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Timing from '../../actions/Timing';
