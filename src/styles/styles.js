@@ -1004,7 +1004,7 @@ const styles = {
         height: variables.componentSizeLarge,
         width: variables.componentSizeLarge,
         right: 20,
-        bottom: 34,
+        bottom: 25,
         borderRadius: 999,
         alignItems: 'center',
         justifyContent: 'center',
