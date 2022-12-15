@@ -1,5 +1,5 @@
 /**
- * For native Android devices, if an input is focused while an animation is happening, then they keyboard is not displayed. Delaying the focus until after the animation is done will ensure
+ * For native Android devices, if an input is focused while an animation is happening, then the keyboard is not displayed. Delaying the focus until after the animation is done will ensure
  * that the keyboard opens properly.
  *
  * @param {Object} inputRef
