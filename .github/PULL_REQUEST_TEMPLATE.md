@@ -81,7 +81,8 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
     - [ ] I verified that any callback methods that were added or modified are named for what the method does and never what callback they handle (i.e. `toggleReport` and not `onIconClick`)
     - [ ] I verified that comments were added to code that is not self explanatory
     - [ ] I verified that any new or modified comments were clear, correct English, and explained "why" the code was doing something instead of only explaining "what" the code was doing.
-    - [ ] I verified any copy / text shown in the product was added in all `src/languages/*` files
+    - [ ] I verified any copy / text shown in the product is localized by adding it to `src/languages/*` files and using the [translation method](https://github.com/Expensify/App/blob/4bd99402cebdf4d7394e0d1f260879ea238197eb/src/components/withLocalize.js#L60)
+    - [ ] I verified all numbers, amounts, dates and phone numbers shown in the product are using the [localization methods](https://github.com/Expensify/App/blob/4bd99402cebdf4d7394e0d1f260879ea238197eb/src/components/withLocalize.js#L60-L68)
     - [ ] I verified any copy / text that was added to the app is correct English and approved by marketing by adding the `Waiting for Copy` label for a copy review on the original GH to get the correct copy.
     - [ ] I verified proper file naming conventions were followed for any new files or renamed files. All non-platform specific files are named after what they export and are not named "index.js". All platform-specific files are named for the platform the code supports as outlined in the README.
     - [ ] I verified the JSDocs style guidelines (in [`STYLE.md`](https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md#jsdocs)) were followed
@@ -101,11 +102,14 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
     - [ ] Any internal methods bound to `this` are necessary to be bound (i.e. avoid `this.submit = this.submit.bind(this);` if `this.submit` is never passed to a component event handler like `onClick`)
     - [ ] All JSX used for rendering exists in the render method
     - [ ] The component has the minimum amount of code necessary for its purpose, and it is broken down into smaller components in order to separate concerns and functions
+- [ ] If any new file was added I verified that:
+    - [ ] The file has a description of what it does and/or why is needed at the top of the file if the code is not self explanatory
 - [ ] If a new CSS style is added I verified that:
     - [ ] A similar style doesn't already exist
     - [ ] The style can't be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/StyleUtils.js) function (i.e. `StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG`)
 - [ ] If the PR modifies a generic component, I tested and verified that those changes do not break usages of that component in the rest of the App (i.e. if a shared library or component like `Avatar` is modified, I verified that `Avatar` is working as expected in all cases)
 - [ ] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
+- [ ] If a new page is added, I verified it's using the `ScrollView` component to make it scrollable when more elements are added to the page.
 - [ ] I have checked off every checkbox in the PR author checklist, including those that don't apply to this PR.
 
 ### Screenshots/Videos
