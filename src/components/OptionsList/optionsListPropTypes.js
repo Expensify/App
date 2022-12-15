@@ -1,9 +1,7 @@
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import SectionList from '../SectionList';
 import styles from '../../styles/styles';
 import optionPropTypes from '../optionPropTypes';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** option flexStyle for the options list container */
@@ -64,9 +62,6 @@ const propTypes = {
     /** Whether to show the title tooltip */
     showTitleTooltip: PropTypes.bool,
 
-    /** Toggle between compact and default view of the option */
-    optionMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
-
     /** Whether to disable the interactivity of the list's option row(s) */
     isDisabled: PropTypes.bool,
 
@@ -92,7 +87,6 @@ const defaultProps = {
     headerMessage: '',
     innerRef: null,
     showTitleTooltip: false,
-    optionMode: undefined,
     isDisabled: false,
     onLayout: undefined,
     shouldHaveOptionSeparator: false,

@@ -115,7 +115,7 @@ class ReportActionsView extends React.Component {
                 // If the user is scrolled up and no new line marker is set we will set it otherwise we will do nothing so the new marker
                 // stays in it's previous position.
                 if (this.currentScrollOffset === 0) {
-                    Report.readNewestAction(this.props.report.reportID);
+                    Report.readNewestAction(this.props.report.reportID, _.last(_.toArray(this.props.reportActions)).created);
                     this.setState({newMarkerSequenceNumber: 0});
                 } else if (this.state.newMarkerSequenceNumber === 0) {
                     this.setState({newMarkerSequenceNumber: currentLastSequenceNumber});
@@ -300,7 +300,7 @@ class ReportActionsView extends React.Component {
 
     scrollToBottomAndMarkReportAsRead() {
         ReportScrollManager.scrollToBottom();
-        Report.readNewestAction(this.props.report.reportID);
+        Report.readNewestAction(this.props.report.reportID, _.last(_.toArray(this.props.reportActions)).created);
     }
 
     /**
