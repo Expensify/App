@@ -4,6 +4,7 @@ import withLocalize from '../withLocalize';
 import TextInput from '../TextInput';
 import * as roomNameInputPropTypes from './roomNameInputPropTypes';
 import * as RoomNameInputUtils from '../../libs/RoomNameInputUtils';
+import getOperatingSystem from '../getOperatingSystem';
 
 class RoomNameInput extends Component {
     constructor(props) {
