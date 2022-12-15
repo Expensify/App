@@ -132,8 +132,7 @@ class ReportActionItemMessageEdit extends React.Component {
         toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
         ReportActionComposeFocusManager.focus();
 
-        // After editing, this component's height changes which causes it's position to be changed in the scroll view.
-        // The listener below resets the scroll offset to make sure the whole comment is visible in the scroll view.
+        // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
         // This only applies to the last/latest comment in the report.
         if (this.props.index === 0) {
             const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
