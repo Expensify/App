@@ -66,7 +66,6 @@
     "@react-navigation/native": "6.0.13",
     "@react-navigation/stack": "6.3.1",
     "@shopify/react-native-performance": "^4.1.2",
-    "@shopify/react-native-performance-navigation": "^3.0.0",
     "babel-plugin-transform-remove-console": "^6.9.4",
     "babel-polyfill": "^6.26.0",
     "dom-serializer": "^0.2.2",
