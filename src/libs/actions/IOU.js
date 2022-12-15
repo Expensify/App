@@ -692,7 +692,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
     const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, managerEmail, amount, chatReport.reportID, currency, preferredLocale, true);
 
     // This will be deprecated soon, in case the migration happens before this PR is merged we'll need to adjust the code here
-    const newSequenceNumber = Report.getMaxSequenceNumber(chatReport.reportID) + 1;
+    const newSequenceNumber = isNewChat ? 0 : Report.getMaxSequenceNumber(chatReport.reportID) + 1;
 
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         newSequenceNumber,
