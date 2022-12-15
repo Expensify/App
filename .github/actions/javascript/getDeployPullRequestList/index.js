@@ -165,14 +165,11 @@ function getMergeLogsAsJSON(fromRef, toRef) {
             // Remove any double-quotes from commit subjects
             let sanitizedOutput = stdout.replace(/(?<="subject": ").*(?="})/g, subject => subject.replace(/"/g, "'"));
 
-            // Also remove any newlines
-            sanitizedOutput = sanitizedOutput.replace(/(\r\n|\n|\r)/gm, '');
+            // Also remove any newlines and escape backslashes
+            sanitizedOutput = sanitizedOutput.replace(/(\r\n|\n|\r)/gm, '').replace('\\', '\\\\');
 
             // Then format as JSON and convert to a proper JS object
-            const json = `[${sanitizedOutput}]`.replace('},]', '}]')
-
-                // Escape backslashes in commit messages that end with a backslash
-                .replace('\\"}', '\\\\"}');
+            const json = `[${sanitizedOutput}]`.replace('},]', '}]');
 
             return JSON.parse(json);
         });
@@ -15911,7 +15908,7 @@ module.exports = require("zlib");;
 /************************************************************************/
 /******/ 	// The module cache
 /******/ 	var __webpack_module_cache__ = {};
-/******/ 	
+/******/
 /******/ 	// The require function
 /******/ 	function __nccwpck_require__(moduleId) {
 /******/ 		// Check if module is in cache
@@ -15924,7 +15921,7 @@ module.exports = require("zlib");;
 /******/ 			// no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
-/******/ 	
+/******/
 /******/ 		// Execute the module function
 /******/ 		var threw = true;
 /******/ 		try {
@@ -15933,11 +15930,11 @@ module.exports = require("zlib");;
 /******/ 		} finally {
 /******/ 			if(threw) delete __webpack_module_cache__[moduleId];
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
-/******/ 	
+/******/
 /************************************************************************/
 /******/ 	/* webpack/runtime/compat get default export */
 /******/ 	(() => {
@@ -15950,7 +15947,7 @@ module.exports = require("zlib");;
 /******/ 			return getter;
 /******/ 		};
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/define property getters */
 /******/ 	(() => {
 /******/ 		// define getter functions for harmony exports
@@ -15962,12 +15959,12 @@ module.exports = require("zlib");;
 /******/ 			}
 /******/ 		};
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
 /******/ 	(() => {
 /******/ 		__nccwpck_require__.o = (obj, prop) => Object.prototype.hasOwnProperty.call(obj, prop)
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/make namespace object */
 /******/ 	(() => {
 /******/ 		// define __esModule on exports
@@ -15978,9 +15975,9 @@ module.exports = require("zlib");;
 /******/ 			Object.defineProperty(exports, '__esModule', { value: true });
 /******/ 		};
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/compat */
-/******/ 	
+/******/
 /******/ 	__nccwpck_require__.ab = __dirname + "/";/************************************************************************/
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
