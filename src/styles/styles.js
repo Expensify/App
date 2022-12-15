@@ -1475,6 +1475,13 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
+    emojiItemKeyboardHighlighted: {
+        transition: '0.2s ease',
+        borderWidth: 1,
+        borderColor: themeColors.link,
+        borderRadius: variables.buttonBorderRadius,
+    },
+
     chatItemEmojiButton: {
         alignSelf: 'flex-end',
         borderRadius: variables.buttonBorderRadius,
