@@ -98,7 +98,7 @@ class ReportActionItem extends Component {
         // Only focus the input when user edits a message, skip it for existing drafts being edited of the report.
         // There is an animation when the comment is hidden and the edit form is shown, and there can be bugs on different mobile platforms
         // if the input is given focus in the middle of that animation which can prevent the keyboard from opening.
-        focusTextInputAfterAnimation(this.textInput, 10);
+        focusTextInputAfterAnimation(this.textInput, 100);
     }
 
     checkIfContextMenuActive() {
