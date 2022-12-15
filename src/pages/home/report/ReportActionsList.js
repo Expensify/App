@@ -70,6 +70,7 @@ class ReportActionsList extends React.Component {
 
         this.state = {
             fadeInAnimation: new Animated.Value(0),
+            skeletonViewHeight: 0,
         };
     }
 
@@ -147,7 +148,7 @@ class ReportActionsList extends React.Component {
         // While offline if there is at least one non-pending action or if this is a new chat then we don't need to show the non-animating skeleton UI
         // Non-animating skeleton UI represents that chat history exists but is not loaded locally in Onyx.
         const shouldShowNonAnimatingSkeleton = !(_.some(this.props.sortedReportActions, action => !action.pendingAction || action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED));
-        const skeletonHeight = shouldShowNonAnimatingSkeleton ? this.props.windowHeight - CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT : CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3;
+        const skeletonHeight = shouldShowNonAnimatingSkeleton ? this.state.skeletonViewHeight : CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3;
 
         // Native mobile does not render updates flatlist the changes even though component did update called.
         // To notify there something changes we can use extraData prop to flatlist
@@ -178,7 +179,12 @@ class ReportActionsList extends React.Component {
                         )
                         : null}
                     keyboardShouldPersistTaps="handled"
-                    onLayout={this.props.onLayout}
+                    onLayout={(event) => {
+                        this.setState({
+                            skeletonViewHeight: event.nativeEvent.layout.height,
+                        });
+                        this.props.onLayout(event);
+                    }}
                     onScroll={this.props.onScroll}
                     extraData={extraData}
                 />
