@@ -893,15 +893,15 @@ function deleteReportComment(reportID, reportAction) {
 }
 
 /**
- * Extracts all links in a markdown comment and returns them in a list.
- *
  * @param {String} comment
  * @returns {Array}
  */
-const extractLinksInComment = (comment) => {
+const extractLinksInMarkdownComment = (comment) => {
     const reg = /\[[^[\]]*\]\(([^()]*)\)/gm;
     const matches = [...comment.matchAll(reg)];
-    const links = _.map(matches, match => match[1]); // Element 1 from match is the reg group if exists
+
+    // Element 1 from match is the regex group if it exists which contains the link URLs
+    const links = _.map(matches, match => match[1]);
     return links;
 };
 
@@ -912,9 +912,9 @@ const extractLinksInComment = (comment) => {
  * @param {String} newComment
  * @returns {Array}
  */
-const getRemovedLinks = (oldComment, newComment) => {
-    const linksInOld = extractLinksInComment(oldComment);
-    const linksInNew = extractLinksInComment(newComment);
+const getRemovedMarkdownLinks = (oldComment, newComment) => {
+    const linksInOld = extractLinksInMarkdownComment(oldComment);
+    const linksInNew = extractLinksInMarkdownComment(newComment);
     return _.difference(linksInOld, linksInNew);
 };
 
@@ -942,7 +942,7 @@ const removeLinks = (comment, links) => {
 /**
  * This function will handle removing only links that were purposely removed by the user while editing.
  * @param {String} newCommentText text of the comment after editing.
-* @param {Array} originalHtml original html of the comment before editing
+ * @param {Array} originalHtml original html of the comment before editing
  * @returns {String}
  */
 const handleUserDeletedLinks = (newCommentText, originalHtml) => {
@@ -950,7 +950,7 @@ const handleUserDeletedLinks = (newCommentText, originalHtml) => {
     const htmlWithAutoLinks = parser.replace(newCommentText);
     const markdownWithAutoLinks = parser.htmlToMarkdown(htmlWithAutoLinks);
     const markdownOriginalComment = parser.htmlToMarkdown(originalHtml);
-    const removedLinks = getRemovedLinks(markdownOriginalComment, newCommentText);
+    const removedLinks = getRemovedMarkdownLinks(markdownOriginalComment, newCommentText);
     return removeLinks(markdownWithAutoLinks, removedLinks);
 };
 
@@ -967,8 +967,6 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     // Do not autolink if someone explicitly tries to remove a link from message.
     // https://github.com/Expensify/App/issues/9090
     // https://github.com/Expensify/App/issues/13221
-
-    // If user purposely removed a link while editing message. then remove it again.
     const markdownForNewComment = handleUserDeletedLinks(textForNewComment, lodashGet(originalReportAction, 'message[0].html'));
     const htmlForNewComment = parser.replace(markdownForNewComment, {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')});
 
