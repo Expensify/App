@@ -459,7 +459,7 @@ function addActions(reportID, text = '', file) {
         optimisticData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
-            value: {[currentUserEmail]: timezone},
+            value: {[currentUserEmail]: {timezone}},
         });
         DateUtils.setTimezoneUpdated();
     }
@@ -967,8 +967,12 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     // Do not autolink if someone explicitly tries to remove a link from message.
     // https://github.com/Expensify/App/issues/9090
     // https://github.com/Expensify/App/issues/13221
-    const markdownForNewComment = handleUserDeletedLinks(textForNewComment, lodashGet(originalReportAction, 'message[0].html'));
-    const htmlForNewComment = parser.replace(markdownForNewComment, {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')});
+    const originalCommentHTML = lodashGet(originalReportAction, 'message[0].html');
+    const markdownForNewComment = handleUserDeletedLinks(textForNewComment, originalCommentHTML);
+
+    const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')};
+    const htmlForNewComment = parser.replace(markdownForNewComment, autolinkFilter);
+    const parsedOriginalCommentHTMl = parser.replace(originalCommentHTML, autolinkFilter);
 
     //  Delete the comment if it's empty
     if (_.isEmpty(htmlForNewComment)) {
@@ -977,7 +981,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     }
 
     // Skip the Edit if message is not changed
-    if (originalReportAction.message[0].html === htmlForNewComment.trim()) {
+    if (parsedOriginalCommentHTMl === htmlForNewComment.trim()) {
         return;
     }
 
