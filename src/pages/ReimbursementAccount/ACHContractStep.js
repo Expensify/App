@@ -51,7 +51,7 @@ class ACHContractStep extends React.Component {
     }
 
     /**
-     * @param {Object} values
+     * @param {Object} values - form input values passed by the Form component
      * @returns {Object}
      */
     validate(values) {
@@ -59,11 +59,6 @@ class ACHContractStep extends React.Component {
 
         if (this.state.hasOtherBeneficialOwners) {
             _.each(this.state.beneficialOwners, (ownerID) => {
-                // Don't validate ownerIDs that were removed from the beneficialOwners array
-                if (!_.contains(this.state.beneficialOwners, ownerID)) {
-                    return;
-                }
-
                 if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerID}.firstName`])) {
                     errors[`beneficialOwner.${ownerID}.firstName`] = this.props.translate('bankAccount.error.firstName');
                 }
@@ -154,26 +149,17 @@ class ACHContractStep extends React.Component {
     }
 
     submit(values) {
-        if (!this.validate(values)) {
-            return;
-        }
-
         // Because we do not update the state of the form, we must filter removed beneficial owners and reformat the Identity Form data
-        const beneficialOwnersFiltered = [];
-        if (this.state.hasOtherBeneficialOwners) {
-            _.each(this.state.beneficialOwners, (ownerID) => {
-                const beneficialOwner = {};
-                beneficialOwner.firstName = lodashGet(values, `beneficialOwner.${ownerID}.firstName`);
-                beneficialOwner.lastName = lodashGet(values, `beneficialOwner.${ownerID}.lastName`);
-                beneficialOwner.dob = lodashGet(values, `beneficialOwner.${ownerID}.dob`);
-                beneficialOwner.ssnLast4 = lodashGet(values, `beneficialOwner.${ownerID}.ssnLast4`);
-                beneficialOwner.street = lodashGet(values, `beneficialOwner.${ownerID}.street`);
-                beneficialOwner.city = lodashGet(values, `beneficialOwner.${ownerID}.city`);
-                beneficialOwner.state = lodashGet(values, `beneficialOwner.${ownerID}.state`);
-                beneficialOwner.zipCode = lodashGet(values, `beneficialOwner.${ownerID}.zipCode`);
-                beneficialOwnersFiltered.push(beneficialOwner);
-            });
-        }
+        const beneficialOwners = _.map(this.state.beneficialOwners, ownerID => ({
+            firstName: lodashGet(values, `beneficialOwner.${ownerID}.firstName`),
+            lastName: lodashGet(values, `beneficialOwner.${ownerID}.lastName`),
+            dob: lodashGet(values, `beneficialOwner.${ownerID}.dob`),
+            ssnLast4: lodashGet(values, `beneficialOwner.${ownerID}.ssnLast4`),
+            street: lodashGet(values, `beneficialOwner.${ownerID}.street`),
+            city: lodashGet(values, `beneficialOwner.${ownerID}.city`),
+            state: lodashGet(values, `beneficialOwner.${ownerID}.state`),
+            zipCode: lodashGet(values, `beneficialOwner.${ownerID}.zipCode`),
+        }));
 
         const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
 
@@ -182,19 +168,8 @@ class ACHContractStep extends React.Component {
             hasOtherBeneficialOwners: values.hasOtherBeneficialOwners,
             acceptTermsAndConditions: values.acceptTermsAndConditions,
             certifyTrueInformation: values.certifyTrueInformation,
-            beneficialOwners: JSON.stringify(beneficialOwnersFiltered),
+            beneficialOwners: JSON.stringify(beneficialOwners),
             bankAccountID,
-        });
-    }
-
-    /**
-    * @param {Object} fieldName
-    */
-    toggleCheckbox(fieldName) {
-        this.setState((prevState) => {
-            const newState = {[fieldName]: !prevState[fieldName]};
-            BankAccounts.updateReimbursementAccountDraft(newState);
-            return newState;
         });
     }
 
