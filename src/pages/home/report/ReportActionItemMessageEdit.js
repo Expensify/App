@@ -10,18 +10,18 @@ import Composer from '../../../components/Composer';
 import * as Report from '../../../libs/actions/Report';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Button from '../../../components/Button';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import compose from '../../../libs/compose';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
-import VirtualKeyboard from '../../../libs/VirtualKeyboard';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import reportPropTypes from '../../reportPropTypes';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import CONST from '../../../CONST';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withKeyboardState, {withKeyboardStatePropTypes} from '../../../components/withKeyboardState';
 
 const propTypes = {
     /** All the data of the action */
@@ -43,14 +43,12 @@ const propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
     report: reportPropTypes,
 
-    // Whether or not the emoji picker is disabled
+    /** Whether or not the emoji picker is disabled */
     shouldDisableEmojiPicker: PropTypes.bool,
 
-    /** Window Dimensions Props */
-    ...windowDimensionsPropTypes,
-
-    /** Localization props */
     ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
+    ...withKeyboardStatePropTypes,
 };
 
 const defaultProps = {
@@ -195,7 +193,8 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {Event} e
      */
     triggerSaveOrCancel(e) {
-        if (!e || VirtualKeyboard.shouldAssumeIsOpen()) {
+        // Do not trigger save/cancel for mobileWeb or native clients that have the keyboard open
+        if (!e || (this.props.isSmallScreenWidth || this.props.isShown)) {
             return;
         }
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -233,7 +232,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         onFocus={() => {
                             this.setState({isFocused: true});
                             ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
-                            toggleReportActionComposeView(false, VirtualKeyboard.shouldAssumeIsOpen());
+                            toggleReportActionComposeView(false, this.props.isSmallScreenWidth);
                         }}
                         onBlur={(event) => {
                             // Return to prevent re-render when save/cancel button is pressed which cancels the onPress event by re-rendering
@@ -241,7 +240,7 @@ class ReportActionItemMessageEdit extends React.Component {
                                 return;
                             }
                             this.setState({isFocused: false});
-                            toggleReportActionComposeView(true, VirtualKeyboard.shouldAssumeIsOpen());
+                            toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
                         }}
                         selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}
@@ -285,6 +284,7 @@ ReportActionItemMessageEdit.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
+    withKeyboardState,
 )(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
     <ReportActionItemMessageEdit {...props} forwardedRef={ref} />
