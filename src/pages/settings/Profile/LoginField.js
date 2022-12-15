@@ -65,15 +65,14 @@ class LoginField extends Component {
 
     render() {
         let note;
-        if (this.props.type === CONST.LOGIN_TYPE.PHONE) {
-            // Has unvalidated phone number
-            if (this.props.login.partnerUserID && !this.props.login.validatedDate) {
+        if (this.props.login.partnerUserID && !this.props.login.validatedDate) {
+            if (this.props.type === CONST.LOGIN_TYPE.PHONE) {
+                // Has unvalidated phone number
                 note = this.props.translate('loginField.numberHasNotBeenValidated');
+            } else {
+                // Has unvalidated email
+                note = this.props.translate('loginField.emailHasNotBeenValidated');
             }
-
-            // Has unvalidated email
-        } else if (this.props.login.partnerUserID && !this.props.login.validatedDate) {
-            note = this.props.translate('loginField.emailHasNotBeenValidated');
         }
 
         return (
@@ -89,7 +88,7 @@ class LoginField extends Component {
                                 interactive={Boolean(!this.props.login.partnerUserID)}
                                 onPress={this.props.login.partnerUserID ? () => { } : () => Navigation.navigate(ROUTES.getSettingsAddLoginRoute(this.props.type))}
                                 shouldShowRightIcon={Boolean(!this.props.login.partnerUserID)}
-                                style={[styles.pushToPageEmptyItemLabel, ]}
+                                style={[styles.pushToPageEmptyItemLabel]}
                             />
                         </View>
                     ) : (
