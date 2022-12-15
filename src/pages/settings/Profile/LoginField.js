@@ -41,6 +41,7 @@ class LoginField extends Component {
         };
         this.timeout = null;
         this.onResendClicked = this.onResendClicked.bind(this);
+        this.getTitle = this.getTitle.bind(this);
     }
 
     /**
@@ -63,6 +64,17 @@ class LoginField extends Component {
         }
     }
 
+    getTitle() {
+        if(!this.props.login.partnerUserID) {
+            return this.props.label;
+        }
+        if (this.props.type === CONST.LOGIN_TYPE.PHONE) {
+            return this.props.toLocalPhone(this.props.login.partnerUserID);
+        } else {
+            return this.props.login.partnerUserID;
+        }
+    }
+
     render() {
         let note;
         if (this.props.login.partnerUserID && !this.props.login.validatedDate) {
@@ -81,9 +93,7 @@ class LoginField extends Component {
                     {!this.props.login.partnerUserID || this.props.login.validatedDate ? (
                         <View style={[styles.mln8, styles.mrn8]}>
                             <MenuItemWithTopDescription
-                                title={this.props.login.partnerUserID ? (this.props.type === CONST.LOGIN_TYPE.PHONE
-                                    ? this.props.toLocalPhone(this.props.login.partnerUserID)
-                                    : this.props.login.partnerUserID) : this.props.label}
+                                title={this.getTitle()}
                                 description={this.props.login.partnerUserID ? this.props.label : undefined}
                                 interactive={Boolean(!this.props.login.partnerUserID)}
                                 onPress={this.props.login.partnerUserID ? () => { } : () => Navigation.navigate(ROUTES.getSettingsAddLoginRoute(this.props.type))}
