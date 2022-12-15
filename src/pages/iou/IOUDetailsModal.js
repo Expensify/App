@@ -147,7 +147,6 @@ class IOUDetailsModal extends Component {
                     <View style={[styles.flex1, styles.justifyContentBetween]}>
                         <ScrollView contentContainerStyle={styles.iouDetailsContainer}>
                             <IOUPreview
-                                iou={this.props.iouReport}
                                 chatReportID={this.props.route.params.chatReportID}
                                 iouReportID={this.props.route.params.iouReportID}
                                 shouldHidePayButton
