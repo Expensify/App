@@ -149,19 +149,19 @@ class ACHContractStep extends React.Component {
     }
 
     submit(values) {
-        // Because we do not update the state of the form, we must filter removed beneficial owners and reformat the Identity Form data
-        const beneficialOwners = _.map(this.state.beneficialOwners, ownerID => ({
-            firstName: lodashGet(values, `beneficialOwner.${ownerID}.firstName`),
-            lastName: lodashGet(values, `beneficialOwner.${ownerID}.lastName`),
-            dob: lodashGet(values, `beneficialOwner.${ownerID}.dob`),
-            ssnLast4: lodashGet(values, `beneficialOwner.${ownerID}.ssnLast4`),
-            street: lodashGet(values, `beneficialOwner.${ownerID}.street`),
-            city: lodashGet(values, `beneficialOwner.${ownerID}.city`),
-            state: lodashGet(values, `beneficialOwner.${ownerID}.state`),
-            zipCode: lodashGet(values, `beneficialOwner.${ownerID}.zipCode`),
-        }));
-
         const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
+
+        const beneficialOwners = !this.state.hasOtherBeneficialOwners ? []
+            : _.map(this.state.beneficialOwners, ownerID => ({
+                firstName: lodashGet(values, `beneficialOwner.${ownerID}.firstName`),
+                lastName: lodashGet(values, `beneficialOwner.${ownerID}.lastName`),
+                dob: lodashGet(values, `beneficialOwner.${ownerID}.dob`),
+                ssnLast4: lodashGet(values, `beneficialOwner.${ownerID}.ssnLast4`),
+                street: lodashGet(values, `beneficialOwner.${ownerID}.street`),
+                city: lodashGet(values, `beneficialOwner.${ownerID}.city`),
+                state: lodashGet(values, `beneficialOwner.${ownerID}.state`),
+                zipCode: lodashGet(values, `beneficialOwner.${ownerID}.zipCode`),
+            }));
 
         BankAccounts.updateBeneficialOwnersForBankAccount({
             ownsMoreThan25Percent: values.ownsMoreThan25Percent,
