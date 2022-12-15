@@ -98,13 +98,15 @@ class AttachmentCarousel extends React.Component {
      */
     makeStateWithReports() {
         let page;
-        const actionsArr = ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions), true);
+        const actions = ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions), true);
 
         /**
-         * Calling reducer will filter out attachments, determine the index of opened attachment,
+         * Calling reducer will filter out attachments,
+         * determine the index of opened attachment,
          * and retrieve the src url and name of attachements
          */
-        const attachments = _.reduce(actionsArr, (attachmentsAccumulator, {originalMessage}) => {
+        const attachments = [];
+        _.forEach(actions, ({originalMessage}) => {
             if (originalMessage && originalMessage.html) {
                 const matchesIt = originalMessage.html.matchAll(CONST.REGEX.ATTACHMENT_DATA);
                 const matches = [...matchesIt];
@@ -114,12 +116,12 @@ class AttachmentCarousel extends React.Component {
                     const [sourceURL, name] = _.map(matches, m => m[2]);
                     if ((this.state.sourceURL && sourceURL.includes(this.state.sourceURL))
                         || (!this.state.sourceURL && sourceURL.includes(this.props.sourceURL))) {
-                        page = attachmentsAccumulator.length;
+                        page = attachments.length;
                     }
-                    attachmentsAccumulator.push({sourceURL, file: {name}});
+                    attachments.push({sourceURL, file: {name}});
                 }
             }
-            return attachmentsAccumulator;
+            return attachments;
         }, []);
 
         const {sourceURL, file} = this.getAttachment(attachments[page]);
