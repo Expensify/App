@@ -1238,18 +1238,13 @@ function viewNewReportAction(reportID, action) {
     const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
     const updatedReportObject = {};
 
-    // When handling an action from the current user we can assume that their lastReadMessage has been updated in the server,
-    // but not necessarily reflected locally so we will update the lastMessageTimestamp to mark the report as read.
-    if (report.lastMessageTimestamp < action.reportActionTimestamp) {
-        updatedReportObject.lastMessageTimestamp = action.reportActionTimestamp;
-    }
-
+    updatedReportObject.lastMessageTimestamp = report.lastMessageTimestamp < action.timestamp ? action.timestamp : report.lastMessageTimestamp;
     if (isFromCurrentUser) {
         updatedReportObject.lastReadTimestamp = Date.now();
     }
 
     if (reportID === newActionSubscriber.reportID) {
-        newActionSubscriber.callback(isFromCurrentUser);
+        newActionSubscriber.callback(isFromCurrentUser, updatedReportObject.lastMessageTimestamp);
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
