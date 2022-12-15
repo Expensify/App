@@ -65,14 +65,13 @@ class LoginField extends Component {
     }
 
     getTitle() {
-        if(!this.props.login.partnerUserID) {
+        if (!this.props.login.partnerUserID) {
             return this.props.label;
         }
         if (this.props.type === CONST.LOGIN_TYPE.PHONE) {
             return this.props.toLocalPhone(this.props.login.partnerUserID);
-        } else {
-            return this.props.login.partnerUserID;
         }
+        return this.props.login.partnerUserID;
     }
 
     render() {

@@ -2826,7 +2826,7 @@ const styles = {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeNormal,
         maxWidth: 240,
-    }
+    },
 };
 
 export default styles;
