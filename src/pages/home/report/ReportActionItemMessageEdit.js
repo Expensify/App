@@ -133,7 +133,6 @@ class ReportActionItemMessageEdit extends React.Component {
         ReportActionComposeFocusManager.focus();
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
-        // This only applies to the last/latest comment in the report.
         if (this.props.index === 0) {
             const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
                 ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, false);
