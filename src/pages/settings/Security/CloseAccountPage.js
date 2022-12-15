@@ -105,6 +105,7 @@ class CloseAccountPage extends Component {
                             autoCapitalize="none"
                             label={this.props.translate('closeAccountPage.enterDefaultContact')}
                             containerStyles={[styles.mt5]}
+                            autoCorrect={false}
                             keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
                         />
                     </View>
