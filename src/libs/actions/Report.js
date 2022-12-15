@@ -459,7 +459,7 @@ function addActions(reportID, text = '', file) {
         optimisticData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
-            value: {[currentUserEmail]: timezone},
+            value: {[currentUserEmail]: {timezone}},
         });
         DateUtils.setTimezoneUpdated();
     }
@@ -666,14 +666,14 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
  * Marks the new report actions as read
  *
  * @param {String} reportID
- * @param {String} created
+ * @param {String} createdDate
  */
-function readNewestAction(reportID, created) {
+function readNewestAction(reportID, createdDate) {
     const sequenceNumber = getMaxSequenceNumber(reportID);
     API.write('ReadNewestAction',
         {
             reportID,
-            created: DateUtils.getDBTime(created),
+            createdDate,
             sequenceNumber,
         },
         {
@@ -692,17 +692,17 @@ function readNewestAction(reportID, created) {
  * Sets the last read comment on a report
  *
  * @param {String} reportID
- * @param {String} created
+ * @param {String} createdDate
  * @param {Number} sequenceNumber
  */
-function markCommentAsUnread(reportID, created, sequenceNumber) {
+function markCommentAsUnread(reportID, createdDate, sequenceNumber) {
     const newLastReadSequenceNumber = sequenceNumber - 1;
     API.write('MarkAsUnread',
         {
             reportID,
 
             // We subtract 1 millisecond so that the lastRead is updated to just before this reportAction's created date
-            created: DateUtils.getDBTime(new Date(created) - 1),
+            createdDate: DateUtils.getDBTime(moment.utc(createdDate).valueOf() - 1),
             sequenceNumber,
         },
         {

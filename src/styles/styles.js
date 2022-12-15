@@ -1734,7 +1734,6 @@ const styles = {
         width: 28,
         borderWidth: 2,
         borderStyle: 'solid',
-        backgroundColor: themeColors.opaqueAvatar,
         borderRadius: 24,
         zIndex: 6,
     },
@@ -1972,14 +1971,14 @@ const styles = {
         marginLeft: -16,
     },
 
-    screenBlur: {
+    roomHeaderAvatarOverlay: {
         position: 'absolute',
         top: 0,
         right: 0,
         bottom: 0,
         left: 0,
-        backgroundColor: themeColors.inverse,
-        opacity: 0.5,
+        backgroundColor: themeColors.overlay,
+        opacity: variables.overlayOpacity,
     },
 
     avatarInnerTextChat: {
@@ -2140,6 +2139,7 @@ const styles = {
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
+        lineHeight: variables.inputHeight,
     },
 
     iouAmountTextInput: addOutlineWidth({
@@ -2486,7 +2486,6 @@ const styles = {
 
     dotIndicatorMessage: {
         display: 'flex',
-        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
     },
@@ -2496,13 +2495,13 @@ const styles = {
     },
 
     cardOverlay: {
-        backgroundColor: themeColors.modalBackdrop,
+        backgroundColor: themeColors.overlay,
         position: 'absolute',
         top: 0,
         left: 0,
         width: '100%',
         height: '100%',
-        opacity: 0.5,
+        opacity: variables.overlayOpacity,
     },
 
     communicationsLinkIcon: {

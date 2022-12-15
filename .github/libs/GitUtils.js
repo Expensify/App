@@ -38,11 +38,12 @@ function getMergeLogsAsJSON(fromRef, toRef) {
             // Remove any double-quotes from commit subjects
             let sanitizedOutput = stdout.replace(/(?<="subject": ").*(?="})/g, subject => subject.replace(/"/g, "'"));
 
-            // Also remove any newlines
-            sanitizedOutput = sanitizedOutput.replace(/(\r\n|\n|\r)/gm, '');
+            // Also remove any newlines and escape backslashes
+            sanitizedOutput = sanitizedOutput.replace(/(\r\n|\n|\r)/gm, '').replace('\\', '\\\\');
 
             // Then format as JSON and convert to a proper JS object
             const json = `[${sanitizedOutput}]`.replace('},]', '}]');
+
             return JSON.parse(json);
         });
 }

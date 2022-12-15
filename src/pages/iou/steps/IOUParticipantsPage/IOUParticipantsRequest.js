@@ -139,6 +139,7 @@ class IOUParticipantsRequest extends Component {
                 onSelectRow={this.addSingleParticipant}
                 onChangeText={this.updateOptionsWithSearchTerm}
                 headerMessage={headerMessage}
+                placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                 boldStyle
             />
         );
