@@ -106,10 +106,8 @@ const replaceNodes = (dom) => {
             dom.children.push(new Element('br', {}));
         }
     } else if (dom.name === 'div' && dom.children.length === 1 && dom.children[0].type !== 'text') {
-        // skip useless div because it's doing some issues on reconverting the HTML to markdown
-        // and we skip it only if:-
-        // 1- not contain specific attributes
-        // 2- have only one child and not a text
+        // We are excluding divs that have only one child and no text nodes and don't have a tagAttribute.
+        // This is due to the fact that these divs are meaningless to us and are interfering with the HTML to Markdown conversion process.
         return replaceNodes(dom.children[0]);
     }
 
