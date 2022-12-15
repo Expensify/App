@@ -225,7 +225,13 @@ class ACHContractStep extends React.Component {
                                 <Text style={[styles.textStrong]}>{this.props.companyName}</Text>
                             </Text>
                         )}
-                        onValueChange={value => this.setState({hasOtherBeneficialOwners: value})}
+                        onValueChange={(value) => {
+                            this.setState({hasOtherBeneficialOwners: value});
+                            if (value && this.state.beneficialOwners.length === 0) {
+                                // if hasOtherBeneficialOwners is true and no working IdentityForms, add one
+                                this.addBeneficialOwner();
+                            }
+                        }}
                         shouldSaveDraft
                     />
                     {this.state.hasOtherBeneficialOwners && (
