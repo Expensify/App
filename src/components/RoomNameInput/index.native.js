@@ -23,7 +23,7 @@ class RoomNameInput extends Component {
     }
 
     render() {
-        const keyboardType = Platform.OS === 'ios' ? 'default' : 'visible-password';
+        const keyboardType = getOperatingSystem() === CONST.OS.IOS ? 'default' : 'visible-password';
         return (
             <TextInput
                 ref={this.props.forwardedRef}
