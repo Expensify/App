@@ -137,8 +137,7 @@ function setSecondaryLoginAndNavigate(login, password) {
         password,
     }).then((response) => {
         if (response.jsonCode === 200) {
-            const loginList = response.loginList;
-            Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
+            Onyx.set(ONYXKEYS.LOGIN_LIST, response.loginList);
             Navigation.navigate(ROUTES.SETTINGS_PROFILE);
             return;
         }
