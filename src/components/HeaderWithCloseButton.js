@@ -16,7 +16,7 @@ import compose from '../libs/compose';
 import ThreeDotsMenu, {ThreeDotsMenuItemPropTypes} from './ThreeDotsMenu';
 import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from './withDelayToggleButtonState';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import withKeyboardState, {withKeyboardStatePropTypes} from './withKeyboardState';
+import withKeyboardState, {keyboardStatePropTypes} from './withKeyboardState';
 
 const propTypes = {
     /** Title of the Header */
@@ -80,7 +80,7 @@ const propTypes = {
 
     ...withLocalizePropTypes,
     ...withDelayToggleButtonStatePropTypes,
-    ...withKeyboardStatePropTypes,
+    ...keyboardStatePropTypes,
 };
 
 const defaultProps = {

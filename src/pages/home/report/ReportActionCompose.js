@@ -48,7 +48,7 @@ import DragAndDrop from '../../../components/DragAndDrop';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withDrawerState from '../../../components/withDrawerState';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import withKeyboardState, {withKeyboardStatePropTypes} from '../../../components/withKeyboardState';
+import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 
 const propTypes = {
     /** Beta features list */
@@ -99,7 +99,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
-    ...withKeyboardStatePropTypes,
+    ...keyboardStatePropTypes,
 };
 
 const defaultProps = {

@@ -21,7 +21,7 @@ import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import CONST from '../../../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import withKeyboardState, {withKeyboardStatePropTypes} from '../../../components/withKeyboardState';
+import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 
 const propTypes = {
     /** All the data of the action */
@@ -48,7 +48,7 @@ const propTypes = {
 
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
-    ...withKeyboardStatePropTypes,
+    ...keyboardStatePropTypes,
 };
 
 const defaultProps = {
