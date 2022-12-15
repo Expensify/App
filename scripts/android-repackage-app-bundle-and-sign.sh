@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ###
 # Takes an android app that has been built with the debug keystore,
@@ -21,8 +21,8 @@ NEW_BUNDLE_FILE=$2
 OUTPUT_APK=$3
 
 ### Helper function to use echo but print text in bold
-function echo_bold() {
-    echo "\033[1m$@\033[0m"
+echo_bold() {
+    echo -e "\033[1m$@\033[0m"
 }
 
 ### Validating inputs
@@ -31,17 +31,17 @@ if [ -z "$APK" ] || [ -z "$NEW_BUNDLE_FILE" ] || [ -z "$OUTPUT_APK" ]; then
     echo "Usage: $0 <apk> <new-bundle-file> <output-apk>"
     exit 1
 fi
-APK=$(realpath $APK)
+APK=$(realpath "$APK")
 if [ ! -f "$APK" ]; then
     echo "APK not found: $APK"
     exit 1
 fi
-NEW_BUNDLE_FILE=$(realpath $NEW_BUNDLE_FILE)
+NEW_BUNDLE_FILE=$(realpath "$NEW_BUNDLE_FILE")
 if [ ! -f "$NEW_BUNDLE_FILE" ]; then
     echo "Bundle file not found: $NEW_BUNDLE_FILE"
     exit 1
 fi
-OUTPUT_APK=$(realpath $OUTPUT_APK)
+OUTPUT_APK=$(realpath "$OUTPUT_APK")
 # check if "apktool" command is available
 if ! command -v apktool &> /dev/null
 then
@@ -62,7 +62,7 @@ ORIGINAL_WD=$(pwd)
 
 TMP_DIR=$(mktemp -d)
 cp "$APK" "$TMP_DIR"
-cd "$TMP_DIR"
+cd "$TMP_DIR" || exit
 
 ### Dissemble app
 
@@ -83,17 +83,17 @@ apktool b app -o app.apk > /dev/null
 ### Do jarsigner
 
 echo_bold "Signing app..."
-jarsigner -verbose -keystore $KEYSTORE -storepass android -keypass android app.apk androiddebugkey
+jarsigner -verbose -keystore "$KEYSTORE" -storepass android -keypass android app.apk androiddebugkey
 
 ### Do zipalign
 
 echo_bold "Zipaligning app..."
-$BUILD_TOOLS/zipalign -p -v 4 app.apk app-aligned.apk
+"$BUILD_TOOLS"/zipalign -p -v 4 app.apk app-aligned.apk
 
 ### Do apksigner
 
 echo_bold "Signing app with apksigner..."
-$BUILD_TOOLS/apksigner sign  --v4-signing-enabled true --ks $KEYSTORE --ks-pass pass:android --ks-key-alias androiddebugkey --key-pass pass:android app-aligned.apk
+"$BUILD_TOOLS"/apksigner sign  --v4-signing-enabled true --ks "$KEYSTORE" --ks-pass pass:android --ks-key-alias androiddebugkey --key-pass pass:android app-aligned.apk
 
 ### Copy back to original location
 
@@ -101,5 +101,5 @@ echo_bold "Copying back to original location..."
 cp app-aligned.apk "$OUTPUT_APK"
 echo "Done. Repacked app is at $OUTPUT_APK"
 rm -rf "$TMP_DIR"
-cd "$ORIGINAL_WD"
+cd "$ORIGINAL_WD" || exit
 
