@@ -35,6 +35,7 @@ class RoomNameInput extends Component {
                 errorText={this.props.errorText}
                 autoCapitalize="none"
                 maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
+                keyboardType="visible-password"
             />
         );
     }
