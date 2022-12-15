@@ -432,7 +432,7 @@ class ReportActionCompose extends React.Component {
      */
     triggerHotkeyActions(e) {
         // Do not trigger actions for mobileWeb or native clients that have the keyboard open
-        if (!e || (this.props.isSmallScreenWidth || this.props.isShown)) {
+        if (!e || this.props.isSmallScreenWidth || this.props.isShown) {
             return;
         }
 

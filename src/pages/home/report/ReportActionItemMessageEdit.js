@@ -194,7 +194,7 @@ class ReportActionItemMessageEdit extends React.Component {
      */
     triggerSaveOrCancel(e) {
         // Do not trigger save/cancel for mobileWeb or native clients that have the keyboard open
-        if (!e || (this.props.isSmallScreenWidth || this.props.isShown)) {
+        if (!e || this.props.isSmallScreenWidth || this.props.isShown) {
             return;
         }
         if (e.key === 'Enter' && !e.shiftKey) {
