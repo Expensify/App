@@ -22,7 +22,7 @@ OUTPUT_APK=$3
 
 ### Helper function to use echo but print text in bold
 echo_bold() {
-    echo -e "\033[1m$@\033[0m"
+    echo -e "\033[1m$*\033[0m"
 }
 
 ### Validating inputs
