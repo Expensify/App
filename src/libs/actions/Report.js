@@ -1230,6 +1230,10 @@ function subscribeToNewActionEvent(reportID, callback) {
 }
 
 /**
+ * This is called whenever a new report action is inserted in Onyx.
+ * Typically, this will be called with the latest report action on the report. However, because we cannot
+ * guarantee the order that messages are sent from the server, it is not safe to assume that it is the latest report action.
+ *
  * @param {String} reportID
  * @param {Object} action
  */
@@ -1238,7 +1242,7 @@ function viewNewReportAction(reportID, action) {
     const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
     const updatedReportObject = {};
 
-    updatedReportObject.lastMessageTimestamp = report.lastMessageTimestamp < action.timestamp ? action.timestamp : report.lastMessageTimestamp;
+    updatedReportObject.lastMessageTimestamp = report.lastMessageTimestamp < action.reportActionTimestamp ? action.reportActionTimestamp : report.lastMessageTimestamp;
     if (isFromCurrentUser) {
         updatedReportObject.lastReadTimestamp = Date.now();
     }
