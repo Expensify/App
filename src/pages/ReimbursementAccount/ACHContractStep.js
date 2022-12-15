@@ -207,7 +207,13 @@ class ACHContractStep extends React.Component {
                                 <Text style={[styles.textStrong]}>{this.props.companyName}</Text>
                             </Text>
                         )}
-                        onValueChange={value => this.setState({ownsMoreThan25Percent: value})}
+                        onValueChange={(value) => {
+                            this.setState({ownsMoreThan25Percent: value});
+                            if (value && this.state.beneficialOwners.length > 3) {
+                                // if ownsMoreThan25Percent is true, then there can only be 3 IdentityForms so remove the last one
+                                this.setState(prevState => ({beneficialOwners: prevState.beneficialOwners.slice(0, -1)}));
+                            }
+                        }}
                         shouldSaveDraft
                     />
                     <CheckboxWithLabel
