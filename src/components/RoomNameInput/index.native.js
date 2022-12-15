@@ -33,7 +33,6 @@ class RoomNameInput extends Component {
                 onChange={this.setModifiedRoomName}
                 value={this.props.value.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.
                 errorText={this.props.errorText}
-                autoCapitalize="none"
                 maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
                 keyboardType="visible-password"
             />
