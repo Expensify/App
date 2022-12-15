@@ -4,9 +4,6 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import {
-    ReactNavigationPerformanceView,
-} from '@shopify/react-native-performance-navigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import updateUnread from '../../libs/UnreadIndicatorUpdater/updateUnread/index';
@@ -17,6 +14,7 @@ import PasswordForm from './PasswordForm';
 import ResendValidationForm from './ResendValidationForm';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Performance from '../../libs/Performance';
+import PerformanceMeasureView from '../../libs/Performance/PerformanceMeasureView';
 
 const propTypes = {
     /* Onyx Props */
@@ -79,7 +77,7 @@ class SignInPage extends Component {
             : this.props.translate(`welcomeText.${showPasswordForm ? 'welcomeBack' : 'welcome'}`);
 
         return (
-            <ReactNavigationPerformanceView screenName="SignInPage" interactive>
+            <PerformanceMeasureView screenName="SignInPage" interactive>
                 <SafeAreaView style={[styles.signInPage]}>
                     <SignInPageLayout
                         welcomeText={welcomeText}
@@ -92,7 +90,7 @@ class SignInPage extends Component {
                         {shouldShowResendValidationLinkForm && <ResendValidationForm />}
                     </SignInPageLayout>
                 </SafeAreaView>
-            </ReactNavigationPerformanceView>
+            </PerformanceMeasureView>
         );
     }
 }
