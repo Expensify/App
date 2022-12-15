@@ -235,7 +235,7 @@ function getMergeLogsAsJSON(fromRef, toRef) {
             console.log(`[debug] sanitizedOutput 1: ${sanitizedOutput}`);
 
             // Also remove any newlines and escape backslashes
-            sanitizedOutput = sanitizedOutput.replace(/(\r\n|\n|\r)/gm, '').replace('\\', '\\\\');
+            sanitizedOutput = sanitizedOutput.replace(/(\r\n|\n|\r)/gm, '').replace(/\\/g, '\\\\');
             console.log(`[debug] sanitizedOutput 2: ${sanitizedOutput}`);
 
             // Then format as JSON and convert to a proper JS object
