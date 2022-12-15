@@ -60,7 +60,7 @@ class CloseAccountPage extends Component {
     render() {
         const userEmailOrPhone = Str.removeSMSDomain(this.props.session.email);
         return (
-            <ScreenWrapper includePaddingBottom={false}>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('closeAccountPage.closeAccount')}
                     shouldShowBackButton

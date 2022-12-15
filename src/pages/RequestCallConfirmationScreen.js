@@ -35,11 +35,11 @@ const RequestCallConfirmationScreen = props => (
         </View>
         <FixedFooter>
             <SafeAreaConsumer>
-                {({paddingBottomStyle}) => (
+                {({safeAreaPaddingBottomStyle}) => (
                     <Button
                         success
                         text={props.translate('requestCallConfirmationScreen.gotIt')}
-                        style={[styles.mt6, paddingBottomStyle]}
+                        style={[styles.mt6, safeAreaPaddingBottomStyle]}
                         pressOnEnter
                         onPress={() => Navigation.goBack()}
                     />

@@ -246,14 +246,14 @@ class Form extends React.Component {
     render() {
         return (
             <SafeAreaConsumer>
-                {({paddingBottomStyle}) => (
+                {({safeAreaPaddingBottomStyle}) => (
                     <ScrollView
                         style={[styles.w100, styles.flex1]}
                         contentContainerStyle={styles.flexGrow1}
                         keyboardShouldPersistTaps="handled"
                         ref={el => this.form = el}
                     >
-                        <View style={[this.props.style, this.props.includeSafeAreaBottomPadding ? paddingBottomStyle : {}]}>
+                        <View style={[this.props.style, this.props.includeSafeAreaPaddingBottom ? safeAreaPaddingBottomStyle : {}]}>
                             {this.childrenWrapperWithProps(this.props.children)}
                             {this.props.isSubmitButtonVisible && (
                             <FormAlertWithSubmitButton

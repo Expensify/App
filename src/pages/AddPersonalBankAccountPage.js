@@ -86,7 +86,7 @@ class AddPersonalBankAccountPage extends React.Component {
         const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
 
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={shouldShowSuccess}>
                 <HeaderWithCloseButton
                     title={this.props.translate('bankAccount.addBankAccount')}
                     onCloseButtonPress={Navigation.dismissModal}
@@ -129,6 +129,7 @@ class AddPersonalBankAccountPage extends React.Component {
                         onSubmit={this.submit}
                         validate={this.validate}
                         style={[styles.mh5, styles.flex1]}
+                        includeSafeAreaPaddingBottom
                     >
                         <>
                             <AddPlaidBankAccount

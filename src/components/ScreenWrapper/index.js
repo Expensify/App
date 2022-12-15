@@ -67,7 +67,9 @@ class ScreenWrapper extends React.Component {
     render() {
         return (
             <SafeAreaConsumer>
-                {({insets, paddingTop, paddingBottom}) => {
+                {({
+                    insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle,
+                }) => {
                     const paddingStyle = {};
 
                     if (this.props.includePaddingTop) {
@@ -75,7 +77,7 @@ class ScreenWrapper extends React.Component {
                     }
 
                     // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
-                    if (this.props.includePaddingBottom || this.props.network.isOffline) {
+                    if (this.props.includeSafeAreaPaddingBottom || this.props.network.isOffline) {
                         paddingStyle.paddingBottom = paddingBottom;
                     }
 
@@ -93,7 +95,7 @@ class ScreenWrapper extends React.Component {
                                     _.isFunction(this.props.children)
                                         ? this.props.children({
                                             insets,
-                                            safeAreaPaddingStyle: {paddingBottom},
+                                            safeAreaPaddingBottomStyle,
                                             didScreenTransitionEnd: this.state.didScreenTransitionEnd,
                                         })
                                         : this.props.children

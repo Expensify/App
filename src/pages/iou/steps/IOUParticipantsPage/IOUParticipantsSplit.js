@@ -211,8 +211,8 @@ class IOUParticipantsSplit extends Component {
         );
         return (
             <SafeAreaConsumer>
-                {({paddingBottomStyle}) => (
-                    <View style={[styles.flex1, styles.w100, (this.props.participants.length > 0 ? paddingBottomStyle : {})]}>
+                {({safeAreaPaddingBottomStyle}) => (
+                    <View style={[styles.flex1, styles.w100, (this.props.participants.length > 0 ? safeAreaPaddingBottomStyle : {})]}>
                         <Text style={[styles.formLabel, styles.pt3, styles.ph5]}>
                             {this.props.translate('common.to')}
                         </Text>

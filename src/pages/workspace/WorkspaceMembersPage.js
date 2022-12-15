@@ -318,7 +318,7 @@ class WorkspaceMembersPage extends React.Component {
 
         return (
             <ScreenWrapper
-                includePaddingBottom={false}
+                includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
             >
                 <FullPageNotFoundView

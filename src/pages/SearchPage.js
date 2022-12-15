@@ -165,7 +165,7 @@ class SearchPage extends Component {
             this.state.searchValue,
         );
         return (
-            <ScreenWrapper includePaddingBottom={false}>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({didScreenTransitionEnd}) => (
                     <>
                         <HeaderWithCloseButton

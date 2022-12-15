@@ -84,7 +84,7 @@ class WorkspaceSettingsPage extends React.Component {
                         validate={this.validate}
                         onSubmit={this.submit}
                         enabledWhenOffline
-                        includeSafeAreaBottomPadding
+                        includeSafeAreaPaddingBottom
                     >
                         <OfflineWithFeedback
                             pendingAction={lodashGet(this.props.policy, 'pendingFields.avatar', null)}

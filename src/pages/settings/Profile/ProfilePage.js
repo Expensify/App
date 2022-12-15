@@ -221,7 +221,7 @@ class ProfilePage extends Component {
         const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.pronouns;
 
         return (
-            <ScreenWrapper includePaddingBottom={false}>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('common.profile')}
                     shouldShowBackButton
@@ -235,7 +235,7 @@ class ProfilePage extends Component {
                     onSubmit={this.updatePersonalDetails}
                     submitButtonText={this.props.translate('common.save')}
                     enabledWhenOffline
-                    includeSafeAreaBottomPadding
+                    includeSafeAreaPaddingBottom
                 >
                     <OfflineWithFeedback
                         pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}

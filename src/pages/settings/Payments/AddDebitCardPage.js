@@ -108,7 +108,7 @@ class DebitCardPage extends Component {
 
     render() {
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('addDebitCardPage.addADebitCard')}
                     shouldShowBackButton
@@ -121,6 +121,7 @@ class DebitCardPage extends Component {
                     onSubmit={PaymentMethods.addPaymentCard}
                     submitButtonText={this.props.translate('common.save')}
                     style={[styles.mh5, styles.flexGrow1]}
+                    includeSafeAreaPaddingBottom
                 >
                     <TextInput
                         inputID="nameOnCard"

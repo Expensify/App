@@ -245,7 +245,7 @@ class RequestCallPage extends Component {
         const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
 
         return (
-            <ScreenWrapper includePaddingBottom={false}>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('requestCallPage.title')}
                     shouldShowBackButton
@@ -262,7 +262,7 @@ class RequestCallPage extends Component {
                             onSubmit={this.onSubmit}
                             submitButtonText={this.props.translate('requestCallPage.callMe')}
                             style={[styles.flexGrow1, styles.mh5]}
-                            includeSafeAreaBottomPadding
+                            includeSafeAreaPaddingBottom
                         >
                             <Section
                                 title={this.props.translate('requestCallPage.subtitle')}
