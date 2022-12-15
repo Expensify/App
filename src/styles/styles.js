@@ -1499,9 +1499,7 @@ const styles = {
         borderRightWidth: 1,
         height: 32,
         width: 32,
-        marginBottom: 4,
-        marginTop: 4,
-        marginLeft: 4,
+        margin: 4,
         justifyContent: 'center',
     },
 
