@@ -940,13 +940,6 @@ const styles = {
         overflow: 'hidden',
     },
 
-    sidebarBorder: {
-        borderRadius: 24,
-        marginLeft: variables.sidebarBorder,
-        marginTop: variables.sidebarBorder,
-        marginBottom: variables.sidebarBorder,
-    },
-
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',

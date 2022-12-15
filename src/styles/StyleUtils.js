@@ -67,17 +67,6 @@ function getSafeAreaMargins(insets) {
 }
 
 /**
- *
- * @param {Boolean} isSmallScreenWidth
- * @returns {Object}
- */
-function getSidebarBorderStyle(isSmallScreenWidth) {
-    return isSmallScreenWidth
-        ? {}
-        : styles.sidebarBorder;
-}
-
-/**
  * Return navigation menu styles.
  *
  * @param {Boolean} isSmallScreenWidth
@@ -660,7 +649,6 @@ export {
     getAvatarStyle,
     getSafeAreaPadding,
     getSafeAreaMargins,
-    getSidebarBorderStyle,
     getNavigationDrawerStyle,
     getNavigationDrawerType,
     getZoomCursorStyle,
