@@ -28,7 +28,7 @@ import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
 import withProfiler, {withProfilerPropTypes} from '../../../libs/Performance/withProfiler';
-import ReactNavigationPerformanceView from '../../../libs/Performance/ReactNavigationPerformanceView';
+import PerformanceMeasureView from '../../../libs/Performance/PerformanceMeasureView';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -200,9 +200,9 @@ class SidebarLinks extends React.Component {
         }
 
         return (
-            <ReactNavigationPerformanceView screenName="SidebarLinks" interactive={content != null}>
+            <PerformanceMeasureView screenName="SidebarLinks" interactive={content != null}>
                 {content}
-            </ReactNavigationPerformanceView>
+            </PerformanceMeasureView>
         );
     }
 }
