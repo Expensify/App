@@ -47,6 +47,8 @@ import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import withNavigationFocus from '../../../components/withNavigationFocus';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import reportPropTypes from '../../reportPropTypes';
+import ReportDropUI from './ReportDropUI';
+import DragAndDrop from '../../../components/DragAndDrop';
 
 const propTypes = {
     /** Beta features list */
@@ -253,10 +255,6 @@ class ReportActionCompose extends React.Component {
             return this.props.translate('reportActionCompose.conciergePlaceholderOptions')[this.state.conciergePlaceholderRandomIndex];
         }
 
-        if (this.isEmptyChat()) {
-            return this.props.translate('reportActionCompose.sayHello');
-        }
-
         return this.props.translate('reportActionCompose.writeSomething');
     }
 
@@ -270,33 +268,40 @@ class ReportActionCompose extends React.Component {
         const participants = _.filter(reportParticipants, email => this.props.currentUserPersonalDetails.login !== email);
         const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
         const hasMultipleParticipants = participants.length > 1;
-        const iouOptions = [];
 
         if (hasExcludedIOUEmails || participants.length === 0 || !Permissions.canUseIOU(this.props.betas)) {
             return [];
         }
 
-        if (hasMultipleParticipants) {
-            return [{
-                icon: Expensicons.Receipt,
-                text: this.props.translate('iou.splitBill'),
-                onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(this.props.reportID)),
-            }];
+        // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
+        // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
+        // DM chats and workspace chats will have the Split Bill option only when there are at least 3 people in the chat.
+        if (ReportUtils.isChatRoom(this.props.report) || hasMultipleParticipants) {
+            return [
+                {
+                    icon: Expensicons.Receipt,
+                    text: this.props.translate('iou.splitBill'),
+                    onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(this.props.reportID)),
+                },
+            ];
         }
 
-        iouOptions.push({
-            icon: Expensicons.MoneyCircle,
-            text: this.props.translate('iou.requestMoney'),
-            onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
-        });
-        if (Permissions.canUseIOUSend(this.props.betas)) {
-            iouOptions.push({
-                icon: Expensicons.Send,
-                text: this.props.translate('iou.sendMoney'),
-                onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
-            });
-        }
-        return iouOptions;
+        // DM chats and workspace chats that only have 2 people will see the Send / Request money options.
+        return [
+            {
+                icon: Expensicons.MoneyCircle,
+                text: this.props.translate('iou.requestMoney'),
+                onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
+            },
+            ...(Permissions.canUseIOUSend(this.props.betas)
+                ? [
+                    {
+                        icon: Expensicons.Send,
+                        text: this.props.translate('iou.sendMoney'),
+                        onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
+                    }]
+                : []),
+        ];
     }
 
     /**
@@ -562,6 +567,9 @@ class ReportActionCompose extends React.Component {
                                                                 e.preventDefault();
                                                                 Report.setIsComposerFullSize(this.props.reportID, false);
                                                             }}
+
+                                                            // Keep focus on the composer when Collapse button is clicked.
+                                                            onMouseDown={e => e.preventDefault()}
                                                             style={styles.composerSizeButton}
                                                             underlayColor={themeColors.componentBG}
                                                             disabled={isBlockedFromConcierge}
@@ -578,6 +586,9 @@ class ReportActionCompose extends React.Component {
                                                                 e.preventDefault();
                                                                 Report.setIsComposerFullSize(this.props.reportID, true);
                                                             }}
+
+                                                            // Keep focus on the composer when Expand button is clicked.
+                                                            onMouseDown={e => e.preventDefault()}
                                                             style={styles.composerSizeButton}
                                                             underlayColor={themeColors.componentBG}
                                                             disabled={isBlockedFromConcierge}
@@ -626,56 +637,50 @@ class ReportActionCompose extends React.Component {
                                     )}
                                 </AttachmentPicker>
                                 <View style={styles.textInputComposeSpacing}>
-                                    <Composer
-                                        autoFocus={!this.props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || this.isEmptyChat())}
-                                        multiline
-                                        ref={this.setTextInputRef}
-                                        textAlignVertical="top"
-                                        placeholder={inputPlaceholder}
-                                        placeholderTextColor={themeColors.placeholderText}
-                                        onChangeText={comment => this.updateComment(comment, true)}
-                                        onKeyPress={this.triggerHotkeyActions}
-                                        onDragEnter={(e, isOriginComposer) => {
-                                            if (!isOriginComposer) {
-                                                return;
-                                            }
-
+                                    <DragAndDrop
+                                        dropZoneId={CONST.REPORT.DROP_NATIVE_ID}
+                                        activeDropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID}
+                                        onDragEnter={() => {
                                             this.setState({isDraggingOver: true});
                                         }}
-                                        onDragOver={(e, isOriginComposer) => {
-                                            if (!isOriginComposer) {
-                                                return;
-                                            }
-
-                                            this.setState({isDraggingOver: true});
+                                        onDragLeave={() => {
+                                            this.setState({isDraggingOver: false});
                                         }}
-                                        onDragLeave={() => this.setState({isDraggingOver: false})}
                                         onDrop={(e) => {
                                             e.preventDefault();
 
                                             const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-                                            if (!file) {
-                                                return;
-                                            }
 
                                             displayFileInModal(file);
+
                                             this.setState({isDraggingOver: false});
                                         }}
-                                        style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
-                                        maxLines={this.state.maxLines}
-                                        onFocus={() => this.setIsFocused(true)}
-                                        onBlur={() => this.setIsFocused(false)}
-                                        onPasteFile={displayFileInModal}
-                                        shouldClear={this.state.textInputShouldClear}
-                                        onClear={() => this.setTextInputShouldClear(false)}
-                                        isDisabled={isComposeDisabled || isBlockedFromConcierge}
-                                        selection={this.state.selection}
-                                        onSelectionChange={this.onSelectionChange}
-                                        isFullComposerAvailable={this.state.isFullComposerAvailable}
-                                        setIsFullComposerAvailable={this.setIsFullComposerAvailable}
-                                        isComposerFullSize={this.props.isComposerFullSize}
-                                        value={this.state.value}
-                                    />
+                                    >
+                                        <Composer
+                                            autoFocus={!this.props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || this.isEmptyChat())}
+                                            multiline
+                                            ref={this.setTextInputRef}
+                                            textAlignVertical="top"
+                                            placeholder={inputPlaceholder}
+                                            placeholderTextColor={themeColors.placeholderText}
+                                            onChangeText={comment => this.updateComment(comment, true)}
+                                            onKeyPress={this.triggerHotkeyActions}
+                                            style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
+                                            maxLines={this.state.maxLines}
+                                            onFocus={() => this.setIsFocused(true)}
+                                            onBlur={() => this.setIsFocused(false)}
+                                            onPasteFile={displayFileInModal}
+                                            shouldClear={this.state.textInputShouldClear}
+                                            onClear={() => this.setTextInputShouldClear(false)}
+                                            isDisabled={isComposeDisabled || isBlockedFromConcierge}
+                                            selection={this.state.selection}
+                                            onSelectionChange={this.onSelectionChange}
+                                            isFullComposerAvailable={this.state.isFullComposerAvailable}
+                                            setIsFullComposerAvailable={this.setIsFullComposerAvailable}
+                                            isComposerFullSize={this.props.isComposerFullSize}
+                                            value={this.state.value}
+                                        />
+                                    </DragAndDrop>
                                 </View>
                             </>
                         )}
@@ -690,9 +695,8 @@ class ReportActionCompose extends React.Component {
                     <View style={[styles.justifyContentEnd]}>
                         <Tooltip text={this.props.translate('common.send')}>
                             <TouchableOpacity
-                                style={[
-                                    styles.chatItemSubmitButton,
-                                    (this.state.isCommentEmpty || hasExceededMaxCommentLength) ? styles.buttonDisable : styles.buttonSuccess,
+                                style={[styles.chatItemSubmitButton,
+                                    (this.state.isCommentEmpty || hasExceededMaxCommentLength) ? undefined : styles.buttonSuccess,
                                 ]}
                                 onPress={this.submitForm}
                                 underlayColor={themeColors.componentBG}
@@ -705,7 +709,7 @@ class ReportActionCompose extends React.Component {
                                     top: 3, right: 3, bottom: 3, left: 3,
                                 }}
                             >
-                                <Icon src={Expensicons.Send} fill={themeColors.componentBG} />
+                                <Icon src={Expensicons.Send} fill={(this.state.isCommentEmpty || hasExceededMaxCommentLength) ? themeColors.icon : themeColors.textLight} />
                             </TouchableOpacity>
                         </Tooltip>
                     </View>
@@ -720,6 +724,7 @@ class ReportActionCompose extends React.Component {
                     <ReportTypingIndicator reportID={this.props.reportID} />
                     <ExceededCommentLength commentLength={this.comment.length} />
                 </View>
+                {this.state.isDraggingOver && <ReportDropUI />}
             </View>
         );
     }

@@ -35,6 +35,7 @@ class IOUParticipantsRequest extends Component {
         super(props);
 
         this.addSingleParticipant = this.addSingleParticipant.bind(this);
+        this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
 
         const {
             recentReports,
@@ -53,7 +54,7 @@ class IOUParticipantsRequest extends Component {
             recentReports,
             personalDetails,
             userToInvite,
-            searchValue: '',
+            searchTerm: '',
         };
     }
 
@@ -94,6 +95,27 @@ class IOUParticipantsRequest extends Component {
         return sections;
     }
 
+    updateOptionsWithSearchTerm(searchTerm = '') {
+        const {
+            recentReports,
+            personalDetails,
+            userToInvite,
+        } = OptionsListUtils.getNewChatOptions(
+            this.props.reports,
+            this.props.personalDetails,
+            this.props.betas,
+            searchTerm,
+            [],
+            CONST.EXPENSIFY_EMAILS,
+        );
+        this.setState({
+            searchTerm,
+            recentReports,
+            userToInvite,
+            personalDetails,
+        });
+    }
+
     /**
      * Adds a single participant to the request
      *
@@ -105,41 +127,20 @@ class IOUParticipantsRequest extends Component {
     }
 
     render() {
-        const sections = this.getSections();
         const headerMessage = OptionsListUtils.getHeaderMessage(
             this.state.personalDetails.length + this.state.recentReports.length !== 0,
             Boolean(this.state.userToInvite),
-            this.state.searchValue,
+            this.state.searchTerm,
         );
         return (
             <OptionsSelector
-                sections={sections}
-                value={this.state.searchValue}
+                sections={this.getSections()}
+                value={this.state.searchTerm}
                 onSelectRow={this.addSingleParticipant}
-                onChangeText={(searchValue = '') => {
-                    const {
-                        recentReports,
-                        personalDetails,
-                        userToInvite,
-                    } = OptionsListUtils.getNewChatOptions(
-                        this.props.reports,
-                        this.props.personalDetails,
-                        this.props.betas,
-                        searchValue,
-                        [],
-                        CONST.EXPENSIFY_EMAILS,
-                    );
-                    this.setState({
-                        searchValue,
-                        recentReports,
-                        userToInvite,
-                        personalDetails,
-                    });
-                }}
+                onChangeText={this.updateOptionsWithSearchTerm}
                 headerMessage={headerMessage}
-                hideAdditionalOptionStates
-                forceTextUnreadStyle
-                shouldDelayFocus
+                placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                boldStyle
             />
         );
     }

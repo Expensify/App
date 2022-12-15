@@ -90,8 +90,7 @@ function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs,
  * @returns {Object}
  */
 function getSimplifiedReportObject(report) {
-    const createTimestamp = lodashGet(report, 'lastActionCreated', 0);
-    const lastMessageTimestamp = moment.utc(createTimestamp).unix();
+    const lastActionCreated = lodashGet(report, 'lastActionCreated', 0);
     const lastActionMessage = lodashGet(report, ['lastActionMessage', 'html'], '');
     const isLastMessageAttachment = new RegExp(`<img|a\\s[^>]*${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}\\s*=\\s*"[^"]*"[^>]*>`, 'gi').test(lastActionMessage);
     const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
@@ -129,13 +128,13 @@ function getSimplifiedReportObject(report) {
         maxSequenceNumber: lodashGet(report, 'reportActionCount', 0),
         participants: getParticipantEmailsFromReport(report),
         isPinned: report.isPinned,
-        lastVisitedTimestamp: lodashGet(report, [
+        lastReadTimestamp: lodashGet(report, [
             'reportNameValuePairs',
             `lastRead_${currentUserAccountID}`,
             'timestamp',
         ], 0),
         lastReadSequenceNumber,
-        lastMessageTimestamp,
+        lastActionCreated,
         lastMessageText: isLastMessageAttachment ? '[Attachment]' : lastMessageText,
         lastActorEmail,
         notificationPreference,
@@ -224,7 +223,7 @@ function fetchIOUReport(iouReportID, chatReportID) {
  * @param {Number} iouReportObject.reportID
  */
 function setLocalIOUReportData(iouReportObject) {
-    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
+    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReportObject.reportID}`;
     Onyx.merge(iouReportKey, iouReportObject);
 }
 
@@ -414,7 +413,7 @@ function addActions(reportID, text = '', file) {
     // Update the report in Onyx to have the new sequence number
     const optimisticReport = {
         maxSequenceNumber: newSequenceNumber,
-        lastMessageTimestamp: Date.now(),
+        lastActionCreated: DateUtils.getDBTime(),
         lastMessageText: ReportUtils.formatReportLastMessageText(lastAction.message[0].text),
         lastActorEmail: currentUserEmail,
         lastReadSequenceNumber: newSequenceNumber,
@@ -460,7 +459,7 @@ function addActions(reportID, text = '', file) {
         optimisticData.push({
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,
-            value: {[currentUserEmail]: timezone},
+            value: {[currentUserEmail]: {timezone}},
         });
         DateUtils.setTimezoneUpdated();
     }
@@ -508,7 +507,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             value: {
                 isLoadingReportActions: true,
                 isLoadingMoreReportActions: false,
-                lastVisitedTimestamp: Date.now(),
+                lastReadTimestamp: Date.now(),
                 lastReadSequenceNumber: getMaxSequenceNumber(reportID),
                 reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
             },
@@ -667,12 +666,14 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
  * Marks the new report actions as read
  *
  * @param {String} reportID
+ * @param {String} createdDate
  */
-function readNewestAction(reportID) {
+function readNewestAction(reportID, createdDate) {
     const sequenceNumber = getMaxSequenceNumber(reportID);
     API.write('ReadNewestAction',
         {
             reportID,
+            createdDate,
             sequenceNumber,
         },
         {
@@ -681,7 +682,7 @@ function readNewestAction(reportID) {
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     lastReadSequenceNumber: sequenceNumber,
-                    lastVisitedTimestamp: Date.now(),
+                    lastReadTimestamp: Date.now(),
                 },
             }],
         });
@@ -691,13 +692,17 @@ function readNewestAction(reportID) {
  * Sets the last read comment on a report
  *
  * @param {String} reportID
+ * @param {String} createdDate
  * @param {Number} sequenceNumber
  */
-function markCommentAsUnread(reportID, sequenceNumber) {
+function markCommentAsUnread(reportID, createdDate, sequenceNumber) {
     const newLastReadSequenceNumber = sequenceNumber - 1;
     API.write('MarkAsUnread',
         {
             reportID,
+
+            // We subtract 1 millisecond so that the lastRead is updated to just before this reportAction's created date
+            createdDate: DateUtils.getDBTime(moment.utc(createdDate).valueOf() - 1),
             sequenceNumber,
         },
         {
@@ -706,7 +711,7 @@ function markCommentAsUnread(reportID, sequenceNumber) {
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     lastReadSequenceNumber: newLastReadSequenceNumber,
-                    lastVisitedTimestamp: Date.now(),
+                    lastReadTimestamp: Date.now(),
                 },
             }],
         });
@@ -776,7 +781,7 @@ function broadcastUserIsTyping(reportID) {
  * @param {Object} report
  */
 function handleReportChanged(report) {
-    if (!report) {
+    if (!report || ReportUtils.isIOUReport(report)) {
         return;
     }
 
@@ -998,7 +1003,7 @@ function syncChatAndIOUReports(chatReport, iouReport) {
     const simplifiedIouReport = {};
     const simplifiedReport = {};
     const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`;
-    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReport.reportID}`;
+    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`;
 
     // We don't want to sync an iou report that's already been reimbursed with its chat report.
     if (!iouReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED) {
@@ -1008,7 +1013,7 @@ function syncChatAndIOUReports(chatReport, iouReport) {
     simplifiedReport[chatReportKey].hasOutstandingIOU = iouReport.stateNum
         === CONST.REPORT.STATE_NUM.PROCESSING && iouReport.total !== 0;
     simplifiedIouReport[iouReportKey] = getSimplifiedIOUReport(iouReport, chatReport.reportID);
-    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, simplifiedIouReport);
+    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedIouReport);
     Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReport);
 }
 
@@ -1239,7 +1244,7 @@ function viewNewReportAction(reportID, action) {
     // but not necessarily reflected locally so we will update the lastReadSequenceNumber to mark the report as read.
     updatedReportObject.maxSequenceNumber = action.sequenceNumber;
     if (isFromCurrentUser) {
-        updatedReportObject.lastVisitedTimestamp = Date.now();
+        updatedReportObject.lastReadTimestamp = Date.now();
         updatedReportObject.lastReadSequenceNumber = action.sequenceNumber;
     }
 

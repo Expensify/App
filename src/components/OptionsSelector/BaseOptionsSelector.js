@@ -206,12 +206,13 @@ class BaseOptionsSelector extends Component {
      */
     selectRow(option, ref) {
         if (this.props.shouldFocusOnSelectRow) {
-            // Input is permanently focused on native platforms, so we always highlight the text inside of it
-            setSelection(this.textInput, 0, this.props.value.length);
             if (this.relatedTarget && ref === this.relatedTarget) {
                 this.textInput.focus();
+                this.relatedTarget = null;
             }
-            this.relatedTarget = null;
+            if (this.textInput.isFocused()) {
+                setSelection(this.textInput, 0, this.props.value.length);
+            }
         }
         this.props.onSelectRow(option);
 
@@ -238,7 +239,7 @@ class BaseOptionsSelector extends Component {
                 value={this.props.value}
                 label={this.props.textInputLabel}
                 onChangeText={this.props.onChangeText}
-                placeholder={this.props.placeholderText || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                placeholder={this.props.placeholderText}
                 onBlur={(e) => {
                     if (!this.props.shouldFocusOnSelectRow) {
                         return;
@@ -260,10 +261,10 @@ class BaseOptionsSelector extends Component {
                 canSelectMultipleOptions={this.props.canSelectMultipleOptions}
                 hideSectionHeaders={this.props.hideSectionHeaders}
                 headerMessage={this.props.headerMessage}
-                hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
-                forceTextUnreadStyle={this.props.forceTextUnreadStyle}
+                boldStyle={this.props.boldStyle}
                 showTitleTooltip={this.props.showTitleTooltip}
                 isDisabled={this.props.isDisabled}
+                shouldHaveOptionSeparator={this.props.shouldHaveOptionSeparator}
             />
         ) : <FullScreenLoadingIndicator />;
         return (

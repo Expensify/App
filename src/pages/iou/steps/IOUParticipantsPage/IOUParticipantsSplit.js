@@ -33,8 +33,6 @@ const propTypes = {
         searchText: PropTypes.string,
         text: PropTypes.string,
         keyForList: PropTypes.string,
-        isPinned: PropTypes.bool,
-        isUnread: PropTypes.bool,
         reportID: PropTypes.string,
     })),
 
@@ -57,6 +55,7 @@ class IOUParticipantsSplit extends Component {
 
         this.toggleOption = this.toggleOption.bind(this);
         this.finalizeParticipants = this.finalizeParticipants.bind(this);
+        this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
 
         const {
             recentReports,
@@ -72,7 +71,7 @@ class IOUParticipantsSplit extends Component {
         );
 
         this.state = {
-            searchValue: '',
+            searchTerm: '',
             recentReports,
             personalDetails,
             userToInvite,
@@ -129,6 +128,27 @@ class IOUParticipantsSplit extends Component {
         return sections;
     }
 
+    updateOptionsWithSearchTerm(searchTerm = '') {
+        const {
+            recentReports,
+            personalDetails,
+            userToInvite,
+        } = OptionsListUtils.getNewChatOptions(
+            this.props.reports,
+            this.props.personalDetails,
+            this.props.betas,
+            searchTerm,
+            this.props.participants,
+            CONST.EXPENSIFY_EMAILS,
+        );
+        this.setState({
+            searchTerm,
+            userToInvite,
+            recentReports,
+            personalDetails,
+        });
+    }
+
     /**
      * Once a single or more users are selected, navigates to next step
      */
@@ -166,7 +186,7 @@ class IOUParticipantsSplit extends Component {
                 this.props.reports,
                 this.props.personalDetails,
                 this.props.betas,
-                isOptionInList ? prevState.searchValue : '',
+                isOptionInList ? prevState.searchTerm : '',
                 newSelectedOptions,
                 CONST.EXPENSIFY_EMAILS,
             );
@@ -174,7 +194,7 @@ class IOUParticipantsSplit extends Component {
                 recentReports,
                 personalDetails,
                 userToInvite,
-                searchValue: isOptionInList ? prevState.searchValue : '',
+                searchTerm: isOptionInList ? prevState.searchTerm : '',
             };
         });
     }
@@ -185,7 +205,7 @@ class IOUParticipantsSplit extends Component {
         const headerMessage = OptionsListUtils.getHeaderMessage(
             this.state.personalDetails.length + this.state.recentReports.length !== 0,
             Boolean(this.state.userToInvite),
-            this.state.searchValue,
+            this.state.searchTerm,
             maxParticipantsReached,
         );
         return (
@@ -198,35 +218,15 @@ class IOUParticipantsSplit extends Component {
                         canSelectMultipleOptions
                         sections={sections}
                         selectedOptions={this.props.participants}
-                        value={this.state.searchValue}
+                        value={this.state.searchTerm}
                         onSelectRow={this.toggleOption}
-                        onChangeText={(searchValue = '') => {
-                            const {
-                                recentReports,
-                                personalDetails,
-                                userToInvite,
-                            } = OptionsListUtils.getNewChatOptions(
-                                this.props.reports,
-                                this.props.personalDetails,
-                                this.props.betas,
-                                searchValue,
-                                this.props.participants,
-                                CONST.EXPENSIFY_EMAILS,
-                            );
-                            this.setState({
-                                searchValue,
-                                userToInvite,
-                                recentReports,
-                                personalDetails,
-                            });
-                        }}
+                        onChangeText={this.updateOptionsWithSearchTerm}
                         headerMessage={headerMessage}
-                        hideAdditionalOptionStates
-                        forceTextUnreadStyle
+                        boldStyle
                         shouldShowConfirmButton
                         confirmButtonText={this.props.translate('common.next')}
                         onConfirmSelection={this.finalizeParticipants}
-                        shouldDelayFocus
+                        placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                     />
                 </View>
             </>

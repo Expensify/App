@@ -249,6 +249,7 @@ class Form extends React.Component {
                     style={[styles.w100, styles.flex1]}
                     contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
+                    ref={el => this.form = el}
                 >
                     <View style={[this.props.style]}>
                         {this.childrenWrapperWithProps(this.props.children)}
@@ -262,9 +263,17 @@ class Form extends React.Component {
                             onFixTheErrorsLinkPressed={() => {
                                 const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
                                 const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
-                                this.inputRefs[focusKey].focus();
+                                const focusInput = this.inputRefs[focusKey];
+                                if (focusInput.focus && typeof focusInput.focus === 'function') {
+                                    focusInput.focus();
+                                }
+
+                                // We substract 10 to scroll slightly above the input
+                                if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
+                                    focusInput.measureLayout(this.form, (x, y) => this.form.scrollTo({y: y - 10, animated: false}));
+                                }
                             }}
-                            containerStyles={[styles.mh0, styles.mt5]}
+                            containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
                             enabledWhenOffline={this.props.enabledWhenOffline}
                             isDangerousAction={this.props.isDangerousAction}
                         />

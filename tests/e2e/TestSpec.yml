@@ -1,0 +1,26 @@
+version: 0.1
+
+phases:
+  install:
+    commands:
+      # Install correct version of node
+      - export NVM_DIR=$HOME/.nvm
+      - . $NVM_DIR/nvm.sh
+      - nvm install 16.15.1
+      - nvm use 16.15.1
+
+      # Reverse ports using AWS magic
+      - PORT=4723
+      - IP_ADDRESS=$(ip -4 addr show eth0 | grep -Po "(?<=inet\s)\d+(\.\d+){3}")
+      - reverse_values="{\"ip_address\":\"$IP_ADDRESS\",\"local_port\":\"$PORT\",\"remote_port\":\"$PORT\"}"
+      - "curl -H \"Content-Type: application/json\" -X POST -d \"$reverse_values\" http://localhost:31007/reverse_forward_tcp"
+      - adb reverse tcp:$PORT tcp:$PORT
+
+  test:
+    commands:
+      - cd zip
+      - npm install underscore
+      - node e2e/testRunner.js -- --skipInstallDeps --skipBuild
+
+artifacts:
+- $WORKING_DIRECTORY

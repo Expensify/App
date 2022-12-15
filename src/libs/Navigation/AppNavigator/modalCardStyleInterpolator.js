@@ -1,6 +1,7 @@
 import {Animated} from 'react-native';
 import variables from '../../../styles/variables';
 import getCardStyles from '../../../styles/cardStyles';
+import themeColors from '../../../styles/themes/default';
 
 export default (
     isSmallScreenWidth,
@@ -28,20 +29,16 @@ export default (
         cardStyle.transform = [{translateX}];
     }
 
-    let containerStyle;
-    if (!isSmallScreenWidth) {
-        containerStyle = {
-            overflow: 'hidden',
-        };
-    }
-
     return ({
-        containerStyle,
+        containerStyle: {
+            overflow: 'hidden',
+        },
         cardStyle,
         overlayStyle: {
+            backgroundColor: themeColors.overlay,
             opacity: progress.interpolate({
                 inputRange: [0, 1],
-                outputRange: [0, 0.3],
+                outputRange: [0, variables.overlayOpacity],
                 extrapolate: 'clamp',
             }),
         },

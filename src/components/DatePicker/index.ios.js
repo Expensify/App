@@ -113,7 +113,7 @@ class DatePicker extends React.Component {
                         value={this.state.selectedDate}
                         mode="date"
                         display="spinner"
-                        themeVariant="light"
+                        themeVariant="dark"
                         onChange={this.updateLocalDate}
                         locale={this.props.preferredLocale}
                         maximumDate={this.props.maximumDate}
