@@ -62,7 +62,7 @@ export default {
     modalFullscreenBackdropOpacity: 0.5,
     tabletResponsiveWidthBreakpoint: 1024,
     safeInsertPercentage: 0.7,
-    sideBarWidth: 392,
+    sideBarWidth: 375,
     pdfPageMaxWidth: 992,
     tooltipzIndex: 10050,
     gutterWidth: 16,
@@ -82,5 +82,4 @@ export default {
     INACTIVE_LABEL_TRANSLATE_Y: getValueUsingPixelRatio(16, 21),
     sliderBarHeight: 8,
     sliderKnobSize: 26,
-    sidebarBorder: 8,
 };
