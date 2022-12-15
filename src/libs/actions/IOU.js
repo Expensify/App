@@ -8,7 +8,7 @@ import * as DeprecatedAPI from '../deprecatedAPI';
 import * as Report from './Report';
 import Navigation from '../Navigation/Navigation';
 import Growl from '../Growl';
-import * as Localize from '../Localize';
+import Localize from '../Localize';
 import asyncOpenURL from '../asyncOpenURL';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';

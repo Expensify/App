@@ -9,7 +9,7 @@ import * as DeprecatedAPI from '../deprecatedAPI';
 import NameValuePair from './NameValuePair';
 import * as ReportUtils from '../ReportUtils';
 import Growl from '../Growl';
-import * as Localize from '../Localize';
+import Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 

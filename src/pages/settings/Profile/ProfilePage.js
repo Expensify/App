@@ -17,7 +17,7 @@ import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import LoginField from './LoginField';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import * as Localize from '../../../libs/Localize';
+import Localize from '../../../libs/Localize';
 import compose from '../../../libs/compose';
 import TextInput from '../../../components/TextInput';
 import Picker from '../../../components/Picker';

@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import CollapsibleSection from '../../../components/CollapsibleSection';
-import * as Localize from '../../../libs/Localize';
+import Localize from '../../../libs/Localize';
 import CONST from '../../../CONST';
 import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
