@@ -5,9 +5,11 @@ import Log from '../Log';
 import Config from '../../CONFIG';
 import translations from '../../languages/translations';
 import CONST from '../../CONST';
-import BaseLocaleListener from './BaseLocaleListener';
+import LocaleListener from './LocaleListener';
+import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
 
-BaseLocaleListener.listenForLocaleChanges();
+// Listener when an update in Onyx happens so we use the updated locale when translating/localizing items.
+LocaleListener.listenForLocaleChanges();
 
 /**
  * Return translated string for given locale and phrase

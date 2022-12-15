@@ -15,7 +15,7 @@ const log = require('electron-log');
 const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
 const checkForUpdates = require('../src/libs/checkForUpdates');
 const CONFIG = require('../src/CONFIG').default;
-const BaseLocaleListener = require('../src/libs/Localize/BaseLocaleListener');
+const BaseLocaleListener = require('../src/libs/Localize/LocaleListener/BaseLocaleListener');
 const Localize = require('../src/libs/Localize');
 
 const port = process.env.PORT || 8080;
