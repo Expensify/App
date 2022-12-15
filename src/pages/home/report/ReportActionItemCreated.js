@@ -1,5 +1,5 @@
 import React from 'react';
-import {Pressable, View} from 'react-native';
+import {Pressable, Image, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -45,6 +45,10 @@ const ReportActionItemCreated = (props) => {
             errorRowStyles={styles.addWorkspaceRoomErrorRow}
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
         >
+            <Image
+                source={require('../../../../assets/images/empty-state_background-fade.png')}
+                style={{position: 'absolute', bottom: '80%', width: '100%', height: '80%'}}
+            />
             <View
                 accessibilityLabel="Chat welcome message"
                 style={[
