@@ -16,18 +16,6 @@ Keyboard.addListener(
     },
 );
 
-/**
- * Is the virtual keyboard open?
- *
- * Note – the web equivalent of this function may return null.
- *
- * @returns {Boolean}
- */
-function isOpen() {
-    return isVirtualKeyboardOpen;
-}
-
 export default {
-    isOpen,
-    shouldAssumeIsOpen: isOpen,
+    shouldAssumeIsOpen: () => isVirtualKeyboardOpen,
 };
