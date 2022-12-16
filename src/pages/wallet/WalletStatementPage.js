@@ -16,7 +16,6 @@ import * as User from '../../libs/actions/User';
 import fileDownload from '../../libs/fileDownload';
 import Growl from '../../libs/Growl';
 import CONST from '../../CONST';
-import makeCancellablePromise from '../../libs/MakeCancellablePromise';
 import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
@@ -34,7 +33,7 @@ const propTypes = {
     }).isRequired,
 
     walletStatement: PropTypes.shape({
-        /** Whether the PDF file available for download or not */
+        /** Whether we are currently generating a PDF version of the statement */
         isGenerating: PropTypes.bool,
     }),
 
@@ -59,14 +58,21 @@ class WalletStatementPage extends React.Component {
     }
 
     processDownload(yearMonth) {
-        if (!this.props.walletStatement[yearMonth] && !this.props.walletStatement.isGenerating) {
-            Growl.show(this.props.translate('statementPage.generatingPDF'), CONST.GROWL.NOTICE, 5000);
-            User.generateStatementPDF(this.yearMonth);
-        } else {
-            const fileName = `Expensify_Statement_${yearMonth}.pdf`;
-            const pdfURL = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}secure?secureType=pdfreport&filename=${this.props.walletStatement[yearMonth]}&downloadName=${fileName}`;
-            fileDownload(pdfURL, fileName);
+        if (this.props.walletStatement.isGenerating) {
+            return;
         }
+
+        if (this.props.walletStatement[yearMonth]) {
+            // We already have a file URL for this statement, so we can download it immediately
+            const downloadFileName = `Expensify_Statement_${yearMonth}.pdf`;
+            const fileName = this.props.walletStatement[yearMonth];
+            const pdfURL = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}`;
+            fileDownload(pdfURL, downloadFileName);
+            return;
+        }
+        
+        Growl.show(this.props.translate('statementPage.generatingPDF'), CONST.GROWL.NOTICE, 5000);
+        User.generateStatementPDF(this.yearMonth);
     }
 
     render() {

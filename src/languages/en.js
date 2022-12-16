@@ -1035,7 +1035,7 @@ export default {
         },
     },
     statementPage: {
-        generatingPDF: 'We\'re generating your PDF now. Please try again later.'
+        generatingPDF: 'We\'re generating your PDF right now. Please come back later!',
     },
     keyboardShortcutModal: {
         title: 'Keyboard Shortcuts',

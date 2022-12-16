@@ -461,7 +461,6 @@ function joinScreenShare(accessToken, roomName) {
 /**
  * Downloads the statement PDF for the provided period
  * @param {String} period YYYYMM format
- * @returns {Promise<Void>}
  */
 function generateStatementPDF(period) {
     API.read('GetStatementPDF', {period}, {
@@ -469,21 +468,27 @@ function generateStatementPDF(period) {
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.WALLET_STATEMENT,
-                value: true,
+                value: {
+                    isGenerating: true,
+                },
             },
         ],
         successData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.WALLET_STATEMENT,
-                value: false,
+                value: {
+                    isGenerating: false,
+                },
             },
         ],
         failureData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: ONYXKEYS.WALLET_STATEMENT,
-                value: false,
+                value: {
+                    isGenerating: false,
+                },
             },
         ]
     });
