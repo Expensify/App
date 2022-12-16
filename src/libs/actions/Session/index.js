@@ -307,6 +307,25 @@ function resetPassword() {
     });
 }
 
+function sendValidateCode() {
+    API.write('SendValidateCode', {
+        email: credentials.login,
+    },
+    {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    errors: null,
+                    forgotPassword: true,
+                    message: null,
+                },
+            },
+        ],
+    });
+}
+
 function resendResetPassword() {
     API.write('ResendRequestPasswordReset', {
         email: credentials.login,
@@ -520,4 +539,5 @@ export {
     reauthenticatePusher,
     invalidateCredentials,
     invalidateAuthToken,
+    sendValidateCode,
 };
