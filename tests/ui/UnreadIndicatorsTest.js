@@ -59,7 +59,7 @@ function scrollUpToRevealNewMessagesBadge() {
 
     // We advance the timer since we must wait for the animation to end
     // and the new style to be reflected
-    jest.advanceTimersByTime(100);
+    jest.advanceTimersByTime(500);
 }
 
 /**
@@ -67,8 +67,7 @@ function scrollUpToRevealNewMessagesBadge() {
  */
 function isNewMessagesBadgeVisible() {
     const badge = screen.queryByAccessibilityHint('Scroll to newest messages');
-    console.log('RORY_DEBUG newMessageBadge:', badge.props.style.transform);
-    return badge.props.style.transform[0].translateY === 10;
+    return Math.round(badge.props.style.transform[0].translateY) === 10;
 }
 
 /**
