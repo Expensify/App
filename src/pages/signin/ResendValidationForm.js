@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
@@ -82,7 +81,6 @@ const ResendValidationForm = (props) => {
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <TouchableOpacity
                     onPress={() => redirectToSignIn()}
-                    underlayColor={themeColors.componentBG}
                 >
                     <Text style={[styles.link]}>
                         {props.translate('common.back')}
