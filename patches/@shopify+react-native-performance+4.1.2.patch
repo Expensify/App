@@ -1,0 +1,105 @@
+diff --git a/node_modules/@shopify/react-native-performance/android/src/main/kotlin/com/shopify/reactnativeperformance/NextDrawListener.kt b/node_modules/@shopify/react-native-performance/android/src/main/kotlin/com/shopify/reactnativeperformance/NextDrawListener.kt
+new file mode 100644
+index 0000000..2d59df7
+--- /dev/null
++++ b/node_modules/@shopify/react-native-performance/android/src/main/kotlin/com/shopify/reactnativeperformance/NextDrawListener.kt
+@@ -0,0 +1,55 @@
++package com.shopify.reactnativeperformance
++
++import android.os.Handler
++import android.os.Looper
++import android.view.View
++import android.view.ViewTreeObserver
++
++/**
++ * Correctly detecting the "post-render" callback of a view
++ * by leveraging the ViewTreeObserver.
++ */
++class NextDrawListener(
++    private val view: View,
++    val onDrawCallback: () -> Unit
++) : ViewTreeObserver.OnDrawListener {
++
++    private val handler = Handler(Looper.getMainLooper())
++    var invoked = false
++
++    override fun onDraw() {
++        if (invoked) return
++        invoked = true
++        onDrawCallback()
++        handler.post {
++            if (view.viewTreeObserver.isAlive) {
++                view.viewTreeObserver.removeOnDrawListener(this)
++            }
++        }
++    }
++
++    companion object {
++        fun View.onNextDraw(onDrawCallback: () -> Unit) {
++            if (viewTreeObserver.isAlive && isAttachedToWindow) {
++                addNextDrawListener(onDrawCallback)
++            } else {
++                // Wait until attached
++                addOnAttachStateChangeListener(
++                    object : View.OnAttachStateChangeListener {
++                        override fun onViewAttachedToWindow(v: View) {
++                            addNextDrawListener(onDrawCallback)
++                            removeOnAttachStateChangeListener(this)
++                        }
++
++                        override fun onViewDetachedFromWindow(v: View) = Unit
++                    })
++            }
++        }
++
++        private fun View.addNextDrawListener(callback: () -> Unit) {
++            viewTreeObserver.addOnDrawListener(
++                NextDrawListener(this, callback)
++            )
++        }
++    }
++}
+\ No newline at end of file
+diff --git a/node_modules/@shopify/react-native-performance/android/src/main/kotlin/com/shopify/reactnativeperformance/PerformanceMarker.kt b/node_modules/@shopify/react-native-performance/android/src/main/kotlin/com/shopify/reactnativeperformance/PerformanceMarker.kt
+index 19b8fb4..199b3b8 100644
+--- a/node_modules/@shopify/react-native-performance/android/src/main/kotlin/com/shopify/reactnativeperformance/PerformanceMarker.kt
++++ b/node_modules/@shopify/react-native-performance/android/src/main/kotlin/com/shopify/reactnativeperformance/PerformanceMarker.kt
+@@ -4,13 +4,15 @@ import android.content.Context
+ import android.view.View
+ import com.facebook.react.bridge.Arguments
+ import com.facebook.react.bridge.ReactContext
++import com.facebook.react.common.MapBuilder
+ import com.facebook.react.uimanager.SimpleViewManager
+ import com.facebook.react.uimanager.ThemedReactContext
+ import com.facebook.react.uimanager.annotations.ReactProp
+ import com.facebook.react.uimanager.events.RCTEventEmitter
+-import kotlin.reflect.KProperty
++import com.shopify.reactnativeperformance.NextDrawListener.Companion.onNextDraw
+ import kotlin.properties.ReadWriteProperty
+-import com.facebook.react.common.MapBuilder
++import kotlin.reflect.KProperty
++
+ 
+ private const val RENDER_COMPLETION_EVENT_NAME = "@shopify/react-native-performance/onRenderComplete"
+ 
+@@ -22,7 +24,11 @@ class PerformanceMarker(context: Context?) : View(context) {
+     var componentInstanceId: String? by PerformanceMarkerProp()
+ 
+     init {
+-        setWillNotDraw(true)
++        onNextDraw {
++            if (!reportedOnce) {
++                sendRenderCompletionEventIfNeeded();
++            }
++        }
+     }
+ 
+     private var reportedOnce = false
+@@ -91,7 +97,6 @@ class PerformanceMarker(context: Context?) : View(context) {
+             }
+ 
+             field = value
+-            thisRef.sendRenderCompletionEventIfNeeded()
+         }
+     }
+ }
