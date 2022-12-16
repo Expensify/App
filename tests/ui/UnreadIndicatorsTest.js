@@ -138,6 +138,8 @@ function signInAndGetAppWithUnreadChat() {
                 reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                 maxSequenceNumber: 9,
                 lastReadSequenceNumber: 1,
+                lastMessageTimestamp: Date.parse(reportAction9CreatedDate),
+                lastReadTimestamp: Date.parse(reportAction3CreatedDate),
                 lastActionCreated: DateUtils.getDBTime(MOMENT_TEN_MINUTES_AGO.clone().utc().valueOf()),
                 lastMessageText: 'Test',
                 participants: [USER_B_EMAIL],
@@ -148,6 +150,7 @@ function signInAndGetAppWithUnreadChat() {
                     automatic: false,
                     sequenceNumber: 0,
                     created: MOMENT_TEN_MINUTES_AGO.clone().format(MOMENT_FORMAT),
+                    reportActionTimestamp: Date.parse(MOMENT_TEN_MINUTES_AGO.clone().format(MOMENT_FORMAT)),
                     reportActionID: NumberUtils.rand64(),
                     message: [
                         {
@@ -162,15 +165,15 @@ function signInAndGetAppWithUnreadChat() {
                         },
                     ],
                 },
-                1: TestHelper.buildTestReportComment(USER_B_EMAIL, 1, MOMENT_TEN_MINUTES_AGO.clone().add(10, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
-                2: TestHelper.buildTestReportComment(USER_B_EMAIL, 2, MOMENT_TEN_MINUTES_AGO.clone().add(20, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
-                3: TestHelper.buildTestReportComment(USER_B_EMAIL, 3, reportAction3CreatedDate, USER_B_ACCOUNT_ID),
-                4: TestHelper.buildTestReportComment(USER_B_EMAIL, 4, MOMENT_TEN_MINUTES_AGO.clone().add(40, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
-                5: TestHelper.buildTestReportComment(USER_B_EMAIL, 5, MOMENT_TEN_MINUTES_AGO.clone().add(50, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
-                6: TestHelper.buildTestReportComment(USER_B_EMAIL, 6, MOMENT_TEN_MINUTES_AGO.clone().add(60, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
-                7: TestHelper.buildTestReportComment(USER_B_EMAIL, 7, MOMENT_TEN_MINUTES_AGO.clone().add(70, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
-                8: TestHelper.buildTestReportComment(USER_B_EMAIL, 8, MOMENT_TEN_MINUTES_AGO.clone().add(80, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
-                9: TestHelper.buildTestReportComment(USER_B_EMAIL, 9, reportAction9CreatedDate, USER_B_ACCOUNT_ID),
+                1: TestHelper.buildTestReportComment(USER_B_EMAIL, 1, MOMENT_TEN_MINUTES_AGO.clone().add(10, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '1'),
+                2: TestHelper.buildTestReportComment(USER_B_EMAIL, 2, MOMENT_TEN_MINUTES_AGO.clone().add(20, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '2'),
+                3: TestHelper.buildTestReportComment(USER_B_EMAIL, 3, reportAction3CreatedDate, USER_B_ACCOUNT_ID, '3'),
+                4: TestHelper.buildTestReportComment(USER_B_EMAIL, 4, MOMENT_TEN_MINUTES_AGO.clone().add(40, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '4'),
+                5: TestHelper.buildTestReportComment(USER_B_EMAIL, 5, MOMENT_TEN_MINUTES_AGO.clone().add(50, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '5'),
+                6: TestHelper.buildTestReportComment(USER_B_EMAIL, 6, MOMENT_TEN_MINUTES_AGO.clone().add(60, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '6'),
+                7: TestHelper.buildTestReportComment(USER_B_EMAIL, 7, MOMENT_TEN_MINUTES_AGO.clone().add(70, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '7'),
+                8: TestHelper.buildTestReportComment(USER_B_EMAIL, 8, MOMENT_TEN_MINUTES_AGO.clone().add(80, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '8'),
+                9: TestHelper.buildTestReportComment(USER_B_EMAIL, 9, reportAction9CreatedDate, USER_B_ACCOUNT_ID, '9'),
             });
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
                 [USER_B_EMAIL]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
@@ -220,12 +223,12 @@ describe('Unread Indicators', () => {
                 const reportComments = renderedApp.queryAllByA11yLabel('Chat message');
                 expect(reportComments).toHaveLength(9);
 
-                // Since the last read sequenceNumber is 1 we should have an unread indicator above the next "unread" action which will
-                // have a sequenceNumber of 2
+                // Since the last read timestamp is the timestamp of action 3 we should have an unread indicator above the next "unread" action which will
+                // have actionID of 4
                 const unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
                 expect(unreadIndicator).toHaveLength(1);
-                const sequenceNumber = lodashGet(unreadIndicator, [0, 'props', 'data-sequence-number']);
-                expect(sequenceNumber).toBe(2);
+                const reportActionID = lodashGet(unreadIndicator, [0, 'props', 'data-action-id']);
+                expect(reportActionID).toBe('4');
 
                 // Scroll up and verify that the "New messages" badge appears
                 scrollUpToRevealNewMessagesBadge(renderedApp);
@@ -280,11 +283,14 @@ describe('Unread Indicators', () => {
                 // Simulate a new report arriving via Pusher along with reportActions and personalDetails for the other participant
                 const NEW_REPORT_ID = '2';
                 const NEW_REPORT_CREATED_MOMENT = moment();
+                const NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT = NEW_REPORT_CREATED_MOMENT.add(5, 'seconds');
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${NEW_REPORT_ID}`, {
                     reportID: NEW_REPORT_ID,
                     reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                     maxSequenceNumber: 1,
                     lastReadSequenceNumber: 0,
+                    lastReadTimestamp: null,
+                    lastMessageTimestamp: NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.utc().valueOf(),
                     lastActionCreated: DateUtils.getDBTime(NEW_REPORT_CREATED_MOMENT.utc().valueOf()),
                     lastMessageText: 'Comment 1',
                     participants: [USER_C_EMAIL],
@@ -295,6 +301,7 @@ describe('Unread Indicators', () => {
                         automatic: false,
                         sequenceNumber: 0,
                         created: NEW_REPORT_CREATED_MOMENT.format(MOMENT_FORMAT),
+                        reportActionTimestamp: NEW_REPORT_CREATED_MOMENT.utc().valueOf(),
                         reportActionID: NumberUtils.rand64(),
                     },
                     1: {
@@ -303,7 +310,8 @@ describe('Unread Indicators', () => {
                         actorAccountID: USER_C_ACCOUNT_ID,
                         person: [{type: 'TEXT', style: 'strong', text: 'User C'}],
                         sequenceNumber: 1,
-                        created: NEW_REPORT_CREATED_MOMENT.add(5, 'seconds').format(MOMENT_FORMAT),
+                        created: NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.format(MOMENT_FORMAT),
+                        reportActionTimestamp: NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.utc().valueOf(),
                         message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
                         reportActionID: NumberUtils.rand64(),
                     },
@@ -369,8 +377,8 @@ describe('Unread Indicators', () => {
                 // Verify the indicator appears above the last action
                 const unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
                 expect(unreadIndicator).toHaveLength(1);
-                const sequenceNumber = lodashGet(unreadIndicator, [0, 'props', 'data-sequence-number']);
-                expect(sequenceNumber).toBe(3);
+                const reportActionID = lodashGet(unreadIndicator, [0, 'props', 'data-action-id']);
+                expect(reportActionID).toBe('3');
 
                 // Scroll up and verify the new messages badge appears
                 scrollUpToRevealNewMessagesBadge(renderedApp);
