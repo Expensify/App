@@ -79,9 +79,7 @@ const ResendValidationForm = (props) => {
                 <DotIndicatorMessage style={[styles.mb5]} type="error" messages={props.account.errors} />
             )}
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                <TouchableOpacity
-                    onPress={() => redirectToSignIn()}
-                >
+                <TouchableOpacity onPress={() => redirectToSignIn()}>
                     <Text style={[styles.link]}>
                         {props.translate('common.back')}
                     </Text>
