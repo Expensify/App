@@ -210,7 +210,8 @@ class ACHContractStep extends React.Component {
                         onValueChange={(value) => {
                             this.setState({ownsMoreThan25Percent: value});
                             if (value && this.state.beneficialOwners.length > 3) {
-                                // If the user owns more than 25% of the company, then there can only be a maximum of 3 other beneficial owners who owns more than 25%. We have to remove the 4th beneficial owner if the checkbox is checked.
+                                // If the user owns more than 25% of the company, then there can only be a maximum of 3 other beneficial owners who owns more than 25%.
+                                // We have to remove the 4th beneficial owner if the checkbox is checked.
                                 this.setState(prevState => ({beneficialOwners: prevState.beneficialOwners.slice(0, -1)}));
                             }
                         }}
