@@ -70,7 +70,7 @@ const defaultProps = {
     allPolicies: {},
     allReports: {},
     betas: [],
-    isFirstTimeNewExpensifyUser: false,
+    isFirstTimeNewExpensifyUser: undefined,
     email: '',
 };
 
@@ -91,7 +91,24 @@ class FloatingActionButtonAndPopover extends React.Component {
     }
 
     componentDidMount() {
-        if (!this.props.isFirstTimeNewExpensifyUser) {
+        this.showWelcome();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.isFirstTimeNewExpensifyUser !== this.props.isFirstTimeNewExpensifyUser) {
+            this.showWelcome();
+        }
+
+        if (!this.didScreenBecomeInactive(prevProps)) {
+            return;
+        }
+
+        // Hide menu manually when other pages are opened using shortcut key
+        this.hideCreateMenu();
+    }
+
+    showWelcome() {
+        if (!_.isBoolean(this.props.isFirstTimeNewExpensifyUser) || !this.props.isFirstTimeNewExpensifyUser) {
             return;
         }
         const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
@@ -102,15 +119,6 @@ class FloatingActionButtonAndPopover extends React.Component {
             allReports: this.props.allReports,
             email: this.props.email,
         });
-    }
-
-    componentDidUpdate(prevProps) {
-        if (!this.didScreenBecomeInactive(prevProps)) {
-            return;
-        }
-
-        // Hide menu manually when other pages are opened using shortcut key
-        this.hideCreateMenu();
     }
 
     /**
