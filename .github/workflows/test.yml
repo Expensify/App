@@ -23,6 +23,10 @@ jobs:
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
+      - name: Get number of CPU cores
+        id: cpu-cores
+        uses: SimenB/github-actions-cpu-cores@31e91de0f8654375a21e8e83078be625380e2b18
+
       - name: Cache Jest cache
         id: cache-jest-cache
         uses: actions/cache@ac25611caef967612169ab7e95533cf932c32270
@@ -31,7 +35,7 @@ jobs:
           key: ${{ runner.os }}-jest
 
       - name: Jest tests
-        run: npx jest --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }}
+        run: npx jest --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --max-workers ${{ steps.cpu-cores.outputs.count }}
 
   shellTests:
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
