@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import _ from 'underscore';
 import {Animated} from 'react-native';
+import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 import compose from '../../../libs/compose';
@@ -9,7 +10,7 @@ import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import styles from '../../../styles/styles';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import {withPersonalDetails} from '../../../components/OnyxProvider';
+import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import ReportActionItem from './ReportActionItem';
 import ReportActionsSkeletonView from '../../../components/ReportActionsSkeletonView';
 import variables from '../../../styles/variables';
@@ -19,6 +20,7 @@ import reportActionPropTypes from './reportActionPropTypes';
 import CONST from '../../../CONST';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import reportPropTypes from '../../reportPropTypes';
+import networkPropTypes from '../../../components/networkPropTypes';
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -48,6 +50,9 @@ const propTypes = {
     /** Function to load more chats */
     loadMoreChats: PropTypes.func.isRequired,
 
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
+
     ...withDrawerPropTypes,
     ...windowDimensionsPropTypes,
 };
@@ -67,6 +72,7 @@ class ReportActionsList extends React.Component {
 
         this.state = {
             fadeInAnimation: new Animated.Value(0),
+            skeletonViewHeight: 0,
         };
     }
 
@@ -159,15 +165,37 @@ class ReportActionsList extends React.Component {
                     initialNumToRender={this.calculateInitialNumToRender()}
                     onEndReached={this.props.loadMoreChats}
                     onEndReachedThreshold={0.75}
-                    ListFooterComponent={this.props.isLoadingMoreReportActions
-                        ? (
-                            <ReportActionsSkeletonView
-                                containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3}
-                            />
-                        )
-                        : null}
+                    ListFooterComponent={() => {
+                        if (this.props.report.isLoadingMoreReportActions) {
+                            return (
+                                <ReportActionsSkeletonView
+                                    containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3}
+                                />
+                            );
+                        }
+
+                        // Make sure the oldest report action loaded is not the first. This is so we do not show the
+                        // skeleton view above the created action in a newly generated optimistic chat or one with not
+                        // that many comments.
+                        const lastReportAction = _.last(this.props.sortedReportActions);
+                        if (this.props.report.isLoadingReportActions && lastReportAction.sequenceNumber > 0) {
+                            return (
+                                <ReportActionsSkeletonView
+                                    containerHeight={this.state.skeletonViewHeight}
+                                    animate={!this.props.network.isOffline}
+                                />
+                            );
+                        }
+
+                        return null;
+                    }}
                     keyboardShouldPersistTaps="handled"
-                    onLayout={this.props.onLayout}
+                    onLayout={(event) => {
+                        this.setState({
+                            skeletonViewHeight: event.nativeEvent.layout.height,
+                        });
+                        this.props.onLayout(event);
+                    }}
                     onScroll={this.props.onScroll}
                     extraData={extraData}
                 />
@@ -183,4 +211,5 @@ export default compose(
     withDrawerState,
     withWindowDimensions,
     withPersonalDetails(),
+    withNetwork(),
 )(ReportActionsList);
