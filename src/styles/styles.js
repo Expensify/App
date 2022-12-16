@@ -1004,7 +1004,10 @@ const styles = {
         height: variables.componentSizeLarge,
         width: variables.componentSizeLarge,
         right: 20,
-        bottom: 34,
+
+        // The bottom of the floating action button should align with the bottom of the compose box.
+        // The value should be equal to the height + marginBottom + marginTop of chatItemComposeSecondaryRow
+        bottom: 25,
         borderRadius: 999,
         alignItems: 'center',
         justifyContent: 'center',
