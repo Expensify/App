@@ -897,8 +897,8 @@ function deleteReportComment(reportID, reportAction) {
  * @returns {Array}
  */
 const extractLinksInMarkdownComment = (comment) => {
-    const reg = /\[[^[\]]*\]\(([^()]*)\)/gm;
-    const matches = [...comment.matchAll(reg)];
+    const regex = /\[[^[\]]*\]\(([^()]*)\)/gm;
+    const matches = [...comment.matchAll(regex)];
 
     // Element 1 from match is the regex group if it exists which contains the link URLs
     const links = _.map(matches, match => match[1]);
@@ -931,8 +931,8 @@ const getRemovedMarkdownLinks = (oldComment, newComment) => {
 const removeLinks = (comment, links) => {
     let commentCopy = comment.slice();
     _.forEach(links, (link) => {
-        const reg = new RegExp(`\\[([^\\[\\]]*)\\]\\(${link}\\)`, 'gm');
-        const linkMatch = reg.exec(commentCopy);
+        const regex = new RegExp(`\\[([^\\[\\]]*)\\]\\(${link}\\)`, 'gm');
+        const linkMatch = regex.exec(commentCopy);
         const linkText = linkMatch && linkMatch[1];
         commentCopy = commentCopy.replace(`[${linkText}](${link})`, linkText);
     });
