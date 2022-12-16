@@ -998,16 +998,19 @@ const styles = {
         },
     },
 
-    floatingActionButton: {
-        backgroundColor: themeColors.success,
+    floatingActionButtonContainer: {
         position: 'absolute',
-        height: variables.componentSizeLarge,
-        width: variables.componentSizeLarge,
         right: 20,
 
         // The bottom of the floating action button should align with the bottom of the compose box.
         // The value should be equal to the height + marginBottom + marginTop of chatItemComposeSecondaryRow
         bottom: 25,
+    },
+
+    floatingActionButton: {
+        backgroundColor: themeColors.success,
+        height: variables.componentSizeLarge,
+        width: variables.componentSizeLarge,
         borderRadius: 999,
         alignItems: 'center',
         justifyContent: 'center',
