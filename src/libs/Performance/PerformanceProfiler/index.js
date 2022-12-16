@@ -5,5 +5,5 @@ const DummyComponent = props => <>{props.children}</>;
 DummyComponent.propTypes = {
     children: PropTypes.node.isRequired,
 };
-DummyComponent.displayName = 'PerformanceMeasureView';
+DummyComponent.displayName = 'PerformanceProfiler';
 export default DummyComponent;
