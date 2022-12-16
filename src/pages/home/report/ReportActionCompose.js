@@ -431,7 +431,7 @@ class ReportActionCompose extends React.Component {
      * @param {Object} e
      */
     triggerHotkeyActions(e) {
-        // Do not trigger actions for mobileWeb or native clients that have the keyboard open
+        // Do not trigger actions for mobileWeb or native clients that have the keyboard open because for those devices, we want the return key to insert newlines rather than submit the form
         if (!e || this.props.isSmallScreenWidth || this.props.isShown) {
             return;
         }
