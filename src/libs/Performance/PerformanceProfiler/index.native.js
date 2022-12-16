@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 
 // eslint-disable-next-line no-unused-vars
 const onReportPrepared = (report) => {
-    console.log(`>>${JSON.stringify(report, null, 2).replaceAll('\n', '\n>>')}`);
+    // console.log(`>>${JSON.stringify(report, null, 2).replaceAll('\n', '\n>>')}`);
 };
 
 const propTypes = {
