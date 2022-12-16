@@ -70,7 +70,7 @@ class WalletStatementPage extends React.Component {
             fileDownload(pdfURL, downloadFileName);
             return;
         }
-        
+
         Growl.show(this.props.translate('statementPage.generatingPDF'), CONST.GROWL.NOTICE, 5000);
         User.generateStatementPDF(this.yearMonth);
     }

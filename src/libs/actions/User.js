@@ -490,7 +490,7 @@ function generateStatementPDF(period) {
                     isGenerating: false,
                 },
             },
-        ]
+        ],
     });
 }
 
