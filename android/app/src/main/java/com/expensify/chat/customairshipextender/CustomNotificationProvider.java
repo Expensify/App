@@ -1,5 +1,7 @@
 package com.expensify.chat.customairshipextender;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -8,11 +10,13 @@ import android.graphics.Rect;
 import android.graphics.Bitmap.Config;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.PorterDuff.Mode;
+import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.WindowManager;
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
@@ -48,6 +52,9 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
     // Logging
     private static final String TAG = "NotificationProvider";
 
+    // Define notification channel
+    public static final String CHANNEL_MESSAGES_ID = "CHANNEL_MESSAGES";
+    public static final String CHANNEL_MESSAGES_NAME = "Message Notifications";
     // Conversation JSON keys
     private static final String PAYLOAD_KEY = "payload";
     private static final String TYPE_KEY = "type";
@@ -58,6 +65,9 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
     public CustomNotificationProvider(@NonNull Context context, @NonNull AirshipConfigOptions configOptions) {
         super(context, configOptions);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            createAndRegisterNotificationChannel(context);
+        }
     }
 
     @NonNull
@@ -80,6 +90,14 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         }
 
         return builder;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void createAndRegisterNotificationChannel(@NonNull Context context) {
+        NotificationChannel channel = new NotificationChannel(CHANNEL_MESSAGES_ID, CHANNEL_MESSAGES_NAME, NotificationManager.IMPORTANCE_HIGH);
+
+        NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+        notificationManager.createNotificationChannel(channel);
     }
 
     /**
