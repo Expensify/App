@@ -18,7 +18,40 @@ import CONST from '../CONST';
  * @param {Object} [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
  * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  */
-function write(command, apiCommandParameters = {}, onyxData = {}) {
+function write(command, apiCommandParameters = {}, onyxData = {}, usePromise = false) {
+    if (usePromise) {
+        return new Promise((resolve) => {
+        // Optimistically update Onyx
+            if (onyxData.optimisticData) {
+                Onyx.update(onyxData.optimisticData);
+            }
+
+            // Assemble the data we'll send to the API
+            const data = {
+                ...apiCommandParameters,
+                appversion: pkg.version,
+                apiRequestType: CONST.API_REQUEST_TYPE.WRITE,
+            };
+
+            // Assemble all the request data we'll be storing in the queue
+            const request = {
+                command,
+                data: {
+                    ...data,
+
+                    // This should be removed once we are no longer using deprecatedAPI https://github.com/Expensify/Expensify/issues/215650
+                    shouldRetry: true,
+                    canCancel: true,
+                },
+                ..._.omit(onyxData, 'optimisticData'),
+            };
+
+            // Write commands can be saved and retried, so push it to the SequentialQueue
+            SequentialQueue.push(request);
+            resolve();
+        });
+    }
+
     // Optimistically update Onyx
     if (onyxData.optimisticData) {
         Onyx.update(onyxData.optimisticData);

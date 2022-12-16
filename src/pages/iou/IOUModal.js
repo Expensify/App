@@ -131,6 +131,7 @@ class IOUModal extends Component {
             // amount is currency in decimal format
             amount: '',
             comment: '',
+            isLoading: false,
         };
 
         // Skip IOUParticipants step if participants are passed in
@@ -315,6 +316,11 @@ class IOUModal extends Component {
      * @param {Array} selectedParticipants
      */
     createTransaction(selectedParticipants) {
+        if (this.state.isLoading) {
+            return;
+        }
+        this.setState({isLoading: true});
+
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
 
         // IOUs created from a group report will have a reportID param in the route.
@@ -348,7 +354,7 @@ class IOUModal extends Component {
             this.props.iou.selectedCurrencyCode,
             this.props.currentUserPersonalDetails.login,
             selectedParticipants[0],
-            this.state.comment);
+            this.state.comment).then(() => this.setState({isLoading: false});
     }
 
     renderHeader() {

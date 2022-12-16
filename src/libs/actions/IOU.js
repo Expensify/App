@@ -211,7 +211,8 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
             },
         );
     }
-    API.write('RequestMoney', {
+
+    const moneyRequestPormise = API.write('RequestMoney', {
         debtorEmail,
         amount,
         currency,
@@ -221,8 +222,11 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         transactionID: optimisticReportAction.originalMessage.IOUTransactionID,
         reportActionID: optimisticReportAction.reportActionID,
         clientID: optimisticReportAction.sequenceNumber,
-    }, {optimisticData, successData, failureData});
+    }, {optimisticData, successData, failureData}, true);
+
     Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
+
+    return moneyRequestPormise;
 }
 
 /**
