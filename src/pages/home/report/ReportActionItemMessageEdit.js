@@ -202,7 +202,7 @@ class ReportActionItemMessageEdit extends React.Component {
      */
     triggerSaveOrCancel(e) {
         // Do not trigger actions for mobileWeb or native clients that have the keyboard open because for those devices, we want the return key to insert newlines rather than submit the form
-        if (!e || this.props.isSmallScreenWidth || this.props.isShown) {
+        if (!e || this.props.isSmallScreenWidth || this.props.isKeyboardShown) {
             return;
         }
         if (e.key === 'Enter' && !e.shiftKey) {

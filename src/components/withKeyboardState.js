@@ -7,7 +7,7 @@ import getComponentDisplayName from '../libs/getComponentDisplayName';
 const KeyboardStateContext = createContext(null);
 const keyboardStatePropTypes = {
     /** Whether or not the keyboard is open */
-    isShown: PropTypes.bool.isRequired,
+    isKeyboardShown: PropTypes.bool.isRequired,
 };
 
 const keyboardStateProviderPropTypes = {
@@ -20,7 +20,7 @@ class KeyboardStateProvider extends React.Component {
         super(props);
 
         this.state = {
-            isShown: false,
+            isKeyboardShown: false,
         };
     }
 
@@ -28,13 +28,13 @@ class KeyboardStateProvider extends React.Component {
         this.keyboardDidShowListener = Keyboard.addListener(
             'keyboardDidShow',
             () => {
-                this.setState({isShown: true});
+                this.setState({isKeyboardShown: true});
             },
         );
         this.keyboardDidHideListener = Keyboard.addListener(
             'keyboardDidHide',
             () => {
-                this.setState({isShown: false});
+                this.setState({isKeyboardShown: false});
             },
         );
     }

@@ -142,7 +142,7 @@ class HeaderWithCloseButton extends Component {
                         <Tooltip text={this.props.translate('common.back')}>
                             <Pressable
                                 onPress={() => {
-                                    if (this.props.isShown) {
+                                    if (this.props.isKeyboardShown) {
                                         Keyboard.dismiss();
                                     }
                                     this.props.onBackButtonPress();
