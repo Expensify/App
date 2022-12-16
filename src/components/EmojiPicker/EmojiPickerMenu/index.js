@@ -101,6 +101,7 @@ class EmojiPickerMenu extends Component {
                 end: 0,
             },
             isFocused: false,
+            isUsingKeyboardMovement: false,
         };
     }
 
@@ -246,6 +247,7 @@ class EmojiPickerMenu extends Component {
                 return;
             }
             this.searchInput.blur();
+            this.setState({isUsingKeyboardMovement: true});
 
             // We only want to hightlight the Emoji if none was highlighted already
             // If we already have a highlighted Emoji, lets just skip the first navigation
@@ -449,6 +451,7 @@ class EmojiPickerMenu extends Component {
                 }}
                 emoji={emojiCode}
                 isHighlighted={index === this.state.highlightedIndex}
+                isUsingKeyboardMovement={this.state.isUsingKeyboardMovement}
             />
         );
     }
