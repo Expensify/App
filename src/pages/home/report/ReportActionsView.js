@@ -79,7 +79,6 @@ class ReportActionsView extends React.Component {
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
         this.scrollToBottomAndMarkReportAsRead = this.scrollToBottomAndMarkReportAsRead.bind(this);
         this.openReportIfNecessary = this.openReportIfNecessary.bind(this);
-        this.computeNewMarkerReportActionID = this.computeNewMarkerReportActionID.bind(this);
     }
 
     componentDidMount() {
@@ -101,6 +100,8 @@ class ReportActionsView extends React.Component {
         // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
         // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
         this.unsubscribeFromNewActionEvent = Report.subscribeToNewActionEvent(this.props.report.reportID, (isFromCurrentUser, currentLastReportActionID) => {
+            const isNewMarkerReportActionIDSet = !_.isNull(this.state.newMarkerReportActionID);
+
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
             // they are now in the list.
             if (isFromCurrentUser) {
@@ -115,10 +116,10 @@ class ReportActionsView extends React.Component {
                 if (this.currentScrollOffset === 0) {
                     Report.readNewestAction(this.props.report.reportID, _.last(_.toArray(this.props.reportActions)).created);
                     this.setState({newMarkerReportActionID: null});
-                } else if (!this.state.newMarkerReportActionID) {
+                } else if (!isNewMarkerReportActionIDSet) {
                     this.setState({newMarkerReportActionID: currentLastReportActionID});
                 }
-            } else if (!this.state.newMarkerReportActionID) {
+            } else if (!isNewMarkerReportActionIDSet) {
                 // The report is not in view and we received a comment from another user while the new marker is not set
                 // so we will set the new marker now.
                 this.setState({newMarkerReportActionID: currentLastReportActionID});
@@ -138,6 +139,10 @@ class ReportActionsView extends React.Component {
         }
 
         if (nextProps.report.isLoadingMoreReportActions !== this.props.report.isLoadingMoreReportActions) {
+            return true;
+        }
+
+        if (nextProps.report.isLoadingReportActions !== this.props.report.isLoadingReportActions) {
             return true;
         }
 
@@ -275,16 +280,17 @@ class ReportActionsView extends React.Component {
      * @returns {String|null}
     */
     computeNewMarkerReportActionID() {
-        let newMarkerReportActionID = null;
-        if (ReportUtils.isUnread(this.props.report)) {
-            const newMarkerIndex = _.findLastIndex(this.sortedReportActions, reportAction => (
-                (reportAction.reportActionTimestamp || 0) > this.props.report.lastReadTimestamp
-            ));
-            newMarkerReportActionID = _.has(this.sortedReportActions[newMarkerIndex], 'reportActionID')
-                ? this.sortedReportActions[newMarkerIndex].reportActionID
-                : null;
+        if (!ReportUtils.isUnread(this.props.report)) {
+            return null;
         }
-        return newMarkerReportActionID;
+
+        const newMarkerIndex = _.findLastIndex(this.sortedReportActions, reportAction => (
+            (reportAction.reportActionTimestamp || 0) > this.props.report.lastReadTimestamp
+        ));
+
+        return _.has(this.sortedReportActions[newMarkerIndex], 'reportActionID')
+            ? this.sortedReportActions[newMarkerIndex].reportActionID
+            : null;
     }
 
     /**

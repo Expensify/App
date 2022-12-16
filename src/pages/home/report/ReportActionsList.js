@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import _ from 'underscore';
 import {Animated} from 'react-native';
+import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 import compose from '../../../libs/compose';

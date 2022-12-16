@@ -155,6 +155,7 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
 
 /**
  * Get the last comment on a report by its reportActionTimestamp
+ *
  * @param {String} reportID
  * @param {String} deletedReportActionID
  * @returns {String}
