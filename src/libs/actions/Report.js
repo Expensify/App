@@ -802,7 +802,6 @@ Onyx.connect({
  */
 function deleteReportComment(reportID, reportAction) {
     const sequenceNumber = reportAction.sequenceNumber;
-    const reportActionID = reportAction.reportActionID;
     const deletedMessage = [{
         type: 'COMMENT',
         html: '',
@@ -820,7 +819,7 @@ function deleteReportComment(reportID, reportAction) {
     // If we are deleting the last visible message, let's find the previous visible one and update the lastMessageText in the LHN.
     // Similarly, if we are deleting the last read comment we will want to update the lastReadSequenceNumber and maxSequenceNumber to use the previous visible message.
     const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID, optimisticReportActions);
-    const lastMessageTimestamp = ReportActionsUtils.getLastMessageTimestampAfterDeletingAction(reportID, reportActionID);
+    const lastMessageTimestamp = ReportActionsUtils.getLastVisibleMessageTimestamp(reportID, optimisticReportActions);
     const optimisticReport = {
         lastMessageText,
         lastMessageTimestamp,

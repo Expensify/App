@@ -154,23 +154,22 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
 }
 
 /**
- * Get the last comment on a report by its reportActionTimestamp
+ * Get the reportActionTimestamp of the last visible (non-deleted) comment on a report
  *
  * @param {String} reportID
- * @param {String} deletedReportActionID
+ * @param {Object} [actionsToMerge]
  * @returns {String}
  */
-function getLastMessageTimestampAfterDeletingAction(reportID, deletedReportActionID) {
-    const actionsWithoutDeleted = _.filter(allReportActions[reportID], action => (
-        action.reportActionID !== deletedReportActionID
-    ));
+function getLastVisibleMessageTimestamp(reportID, actionsToMerge = {}) {
+    const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
+    const actionsWithoutDeleted = _.filter(actions, action => (!isDeletedAction(action)));
     return _.max(actionsWithoutDeleted, action => action.reportActionTimestamp).reportActionTimestamp;
 }
 
 export {
     getSortedReportActions,
     filterReportActionsForDisplay,
-    getLastMessageTimestampAfterDeletingAction,
+    getLastVisibleMessageTimestamp,
     getLastVisibleMessageText,
     getMostRecentIOUReportActionID,
     isDeletedAction,
