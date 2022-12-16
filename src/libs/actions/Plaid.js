@@ -37,7 +37,7 @@ function openPlaidBankAccountSelector(publicToken, bankName, allowDebit) {
                     bankName,
                 },
             },
-            {            
+            {
                 onyxMethod: CONST.ONYX.METHOD.SET,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
                 value: null,
