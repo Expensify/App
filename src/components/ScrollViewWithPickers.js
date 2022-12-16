@@ -23,10 +23,10 @@ class ScrollViewWithPickers extends React.Component {
         };
         this.scrollViewRef = React.createRef(null);
 
-        this.handleScroll = this.handleScroll.bind(this);
+        this.handleScroll = this.setContextScrollPosition.bind(this);
     }
 
-    handleScroll(event) {
+    setContextScrollPosition(event) {
         if (this.props.onScroll) {
             this.props.onScroll(event);
         }
@@ -41,7 +41,7 @@ class ScrollViewWithPickers extends React.Component {
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...propsWithoutChildrenAndScrollEventThrottle}
                 ref={this.scrollViewRef}
-                onScroll={this.handleScroll}
+                onScroll={this.setContextScrollPosition}
                 scrollEventThrottle={scrollEventThrottle || 16}
                 scrollToOverflowEnabled
             >
