@@ -210,7 +210,7 @@ class ACHContractStep extends React.Component {
                         onValueChange={(value) => {
                             this.setState({ownsMoreThan25Percent: value});
                             if (value && this.state.beneficialOwners.length > 3) {
-                                // if ownsMoreThan25Percent is true, then there can only be 3 IdentityForms so remove the last one
+                                // If the user owns more than 25% of the company, then there can only be a maximum of 3 other beneficial owners who owns more than 25%. We have to remove the 4th beneficial owner if the checkbox is checked.
                                 this.setState(prevState => ({beneficialOwners: prevState.beneficialOwners.slice(0, -1)}));
                             }
                         }}
