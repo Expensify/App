@@ -90,7 +90,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 {from: 'web/favicon-unread.png'},
                 {from: 'web/og-preview-image.png'},
                 {from: 'assets/css', to: 'css'},
-                {from: 'assets/fonts', to: 'fonts'},
+                {from: 'assets/fonts/web', to: 'fonts'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
                 {from: 'assets/images/shadow.png', to: 'images/shadow.png'},
                 {from: '.well-known/apple-app-site-association', to: '.well-known/apple-app-site-association', toType: 'file'},
@@ -142,6 +142,13 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 ],
             },
 
+            // We are importing this worker as a string by using asset/source otherwise it will default to loading via an HTTPS request later.
+            // This causes issues if we have gone offline before the pdfjs web worker is set up as we won't be able to load it from the server.
+            {
+                test: new RegExp('node_modules/pdfjs-dist/legacy/build/pdf.worker.js'),
+                type: 'asset/source',
+            },
+
             // Rule for react-native-web-webview
             {
                 test: /postMock.html$/,
@@ -189,7 +196,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 use: ['style-loader', 'css-loader'],
             },
             {
-                test: /\.(woff|woff2)$/i,
+                test: /\.(woff|woff2|otf)$/i,
                 type: 'asset',
             },
             {
@@ -215,6 +222,26 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         extensions: ['.web.js', (platform === 'web') ? '.website.js' : '.desktop.js', '.js', '.jsx'],
         fallback: {
             'process/browser': require.resolve('process/browser'),
+        },
+    },
+    optimization: {
+        runtimeChunk: 'single',
+        splitChunks: {
+            cacheGroups: {
+                // Extract all 3rd party dependencies (~75% of App) to separate js file
+                // This gives a more efficient caching - 3rd party deps don't change as often as main source
+                // When dependencies don't change webpack would produce the same js file (and content hash)
+                // After App update end users would download just the main source and resolve the rest from cache
+                // When dependencies do change cache is invalidated and users download everything - same as before
+                vendor: {
+                    test: /[\\/]node_modules[\\/]/,
+                    name: 'vendors',
+
+                    // Capture only the scripts needed for the initial load, so any async imports
+                    // would be grouped (and lazy loaded) separately
+                    chunks: 'initial',
+                },
+            },
         },
     },
 });

@@ -10,7 +10,7 @@ podfileLockSha=$(awk '/PODFILE CHECKSUM: /{print $3}' ios/Podfile.lock)
 echo "Podfile: $podfileSha"
 echo "Podfile.lock: $podfileLockSha"
 
-if [ $podfileSha == $podfileLockSha ]; then
+if [ "$podfileSha" == "$podfileLockSha" ]; then
     echo -e "${GREEN}Podfile verified!${NC}"
     exit 0
 else

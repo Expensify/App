@@ -1,7 +1,8 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {View, Dimensions} from 'react-native';
-import {Document, Page} from 'react-pdf/dist/esm/entry.webpack';
+import {Document, Page, pdfjs} from 'react-pdf/dist/esm/entry.webpack';
+import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
@@ -9,6 +10,9 @@ import CONST from '../../CONST';
 import PDFPasswordForm from './PDFPasswordForm';
 import * as pdfViewPropTypes from './pdfViewPropTypes';
 import withWindowDimensions from '../withWindowDimensions';
+import withLocalize from '../withLocalize';
+import Text from '../Text';
+import compose from '../../libs/compose';
 
 class PDFView extends Component {
     constructor(props) {
@@ -22,8 +26,11 @@ class PDFView extends Component {
         };
         this.onDocumentLoadSuccess = this.onDocumentLoadSuccess.bind(this);
         this.initiatePasswordChallenge = this.initiatePasswordChallenge.bind(this);
-        this.attemptPdfLoad = this.attemptPdfLoad.bind(this);
+        this.attemptPDFLoad = this.attemptPDFLoad.bind(this);
         this.toggleKeyboardOnSmallScreens = this.toggleKeyboardOnSmallScreens.bind(this);
+
+        const workerBlob = new Blob([pdfWorkerSource], {type: 'text/javascript'});
+        pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
     }
 
     componentDidUpdate(prevProps) {
@@ -81,7 +88,7 @@ class PDFView extends Component {
      *
      * @param {String} password Password to send via callback to react-pdf
      */
-    attemptPdfLoad(password) {
+    attemptPDFLoad(password) {
         this.onPasswordCallback(password);
     }
 
@@ -125,6 +132,7 @@ class PDFView extends Component {
                     onLayout={event => this.setState({windowWidth: event.nativeEvent.layout.width})}
                 >
                     <Document
+                        error={<Text style={[styles.textLabel, styles.textLarge]}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>}
                         loading={<FullScreenLoadingIndicator />}
                         file={this.props.sourceURL}
                         options={{
@@ -146,7 +154,7 @@ class PDFView extends Component {
                 </View>
                 {this.state.shouldRequestPassword && (
                     <PDFPasswordForm
-                        onSubmit={this.attemptPdfLoad}
+                        onSubmit={this.attemptPDFLoad}
                         onPasswordUpdated={() => this.setState({isPasswordInvalid: false})}
                         isPasswordInvalid={this.state.isPasswordInvalid}
                         shouldAutofocusPasswordField={!this.props.isSmallScreenWidth}
@@ -161,4 +169,7 @@ class PDFView extends Component {
 PDFView.propTypes = pdfViewPropTypes.propTypes;
 PDFView.defaultProps = pdfViewPropTypes.defaultProps;
 
-export default withWindowDimensions(PDFView);
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+)(PDFView);
