@@ -27,18 +27,22 @@ function openPlaidBankAccountSelector(publicToken, bankName, allowDebit) {
         allowDebit,
         bank: bankName,
     }, {
-        optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.PLAID_DATA,
-            value: {
-                isLoading: true,
-                error: '',
-                bankName,
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.PLAID_DATA,
+                value: {
+                    isLoading: true,
+                    error: '',
+                    bankName,
+                },
             },
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
-            value: null,
-        }],
+            {            
+                onyxMethod: CONST.ONYX.METHOD.SET,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+                value: null,
+            },
+        ],
         successData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PLAID_DATA,
