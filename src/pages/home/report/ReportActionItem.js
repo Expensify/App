@@ -188,7 +188,7 @@ class ReportActionItem extends Component {
                     {hovered => (
                         <View accessibilityLabel="Chat message">
                             {this.props.shouldDisplayNewIndicator && (
-                                <UnreadActionIndicator sequenceNumber={this.props.action.sequenceNumber} />
+                                <UnreadActionIndicator reportActionID={this.props.action.reportActionID} />
                             )}
                             <View
                                 style={StyleUtils.getReportActionItemStyle(
