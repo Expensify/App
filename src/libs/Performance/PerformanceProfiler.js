@@ -13,7 +13,6 @@ const propTypes = {
 
 const loggingDisabled = 4;
 
-// TODO: does this implementation work on web as well?
 const PerformanceProfiler = props => (
     <RNPerformanceProfiler onReportPrepared={onReportPrepared} renderTimeoutMillis={20_000} logLevel={loggingDisabled}>
         {props.children}
