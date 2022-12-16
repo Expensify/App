@@ -45,5 +45,7 @@ jobs:
     steps:
       - uses: actions/checkout@885641592076c27bfb56c028cd5612cdad63e16d
 
+      - uses: Expensify/App/.github/actions/composite/setupNode@main
+
       - name: getPullRequestsMergedBetween
         run: tests/unit/getPullRequestsMergedBetweenTest.sh
