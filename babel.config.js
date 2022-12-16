@@ -35,6 +35,11 @@ const metro = {
     ],
     plugins: [
         'react-native-reanimated/plugin',
+
+        // This is needed due to a react-native bug: https://github.com/facebook/react-native/issues/29084#issuecomment-1030732709
+        // It is included in metro-react-native-babel-preset but needs to be before plugin-proposal-class-properties or FlatList will break
+        '@babel/plugin-transform-flow-strip-types',
+
         ['@babel/plugin-proposal-class-properties', {loose: true}],
         ['@babel/plugin-proposal-private-methods', {loose: true}],
         ['@babel/plugin-proposal-private-property-in-object', {loose: true}],
