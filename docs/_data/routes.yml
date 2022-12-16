@@ -39,5 +39,5 @@ hubs:
     description: Everything else you're looking for is right here.
     icon: /assets/images/users.svg
     articles:
-      - href: Account-Management
-        title: Account Management
+      - href: Your-Expensify-Account-Manager
+        title: Your Expensify Account Manager
