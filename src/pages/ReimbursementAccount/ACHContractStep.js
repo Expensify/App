@@ -51,55 +51,55 @@ class ACHContractStep extends React.Component {
     }
 
     /**
-     * @param {Object} values - form input values passed by the Form component
+     * @param {Object} values - input values passed by the Form component
      * @returns {Object}
      */
     validate(values) {
         const errors = {};
 
         if (this.state.hasOtherBeneficialOwners) {
-            _.each(this.state.beneficialOwners, (ownerID) => {
-                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerID}.firstName`])) {
-                    errors[`beneficialOwner.${ownerID}.firstName`] = this.props.translate('bankAccount.error.firstName');
+            _.each(this.state.beneficialOwners, (ownerKey) => {
+                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerKey}.firstName`])) {
+                    errors[`beneficialOwner.${ownerKey}.firstName`] = this.props.translate('bankAccount.error.firstName');
                 }
 
-                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerID}.lastName`])) {
-                    errors[`beneficialOwner.${ownerID}.lastName`] = this.props.translate('bankAccount.error.lastName');
+                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerKey}.lastName`])) {
+                    errors[`beneficialOwner.${ownerKey}.lastName`] = this.props.translate('bankAccount.error.lastName');
                 }
 
-                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerID}.dob`])) {
-                    errors[`beneficialOwner.${ownerID}.dob`] = this.props.translate('bankAccount.error.dob');
+                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerKey}.dob`])) {
+                    errors[`beneficialOwner.${ownerKey}.dob`] = this.props.translate('bankAccount.error.dob');
                 }
 
-                if (values[`beneficialOwner.${ownerID}.dob`] && !ValidationUtils.meetsAgeRequirements(values[`beneficialOwner.${ownerID}.dob`])) {
-                    errors[`beneficialOwner.${ownerID}.dob`] = this.props.translate('bankAccount.error.age');
+                if (values[`beneficialOwner.${ownerKey}.dob`] && !ValidationUtils.meetsAgeRequirements(values[`beneficialOwner.${ownerKey}.dob`])) {
+                    errors[`beneficialOwner.${ownerKey}.dob`] = this.props.translate('bankAccount.error.age');
                 }
 
-                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerID}.ssnLast4`])
-                    || !ValidationUtils.isValidSSNLastFour(values[`beneficialOwner.${ownerID}.ssnLast4`])) {
-                    errors[`beneficialOwner.${ownerID}.ssnLast4`] = this.props.translate('bankAccount.error.ssnLast4');
+                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerKey}.ssnLast4`])
+                    || !ValidationUtils.isValidSSNLastFour(values[`beneficialOwner.${ownerKey}.ssnLast4`])) {
+                    errors[`beneficialOwner.${ownerKey}.ssnLast4`] = this.props.translate('bankAccount.error.ssnLast4');
                 }
 
-                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerID}.street`])) {
-                    errors[`beneficialOwner.${ownerID}.street`] = this.props.translate('bankAccount.error.address');
+                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerKey}.street`])) {
+                    errors[`beneficialOwner.${ownerKey}.street`] = this.props.translate('bankAccount.error.address');
                 }
 
-                if (values[`beneficialOwner.${ownerID}.street`]
-                    && !ValidationUtils.isValidAddress(values[`beneficialOwner.${ownerID}.street`])) {
-                    errors[`beneficialOwner.${ownerID}.street`] = this.props.translate('bankAccount.error.addressStreet');
+                if (values[`beneficialOwner.${ownerKey}.street`]
+                    && !ValidationUtils.isValidAddress(values[`beneficialOwner.${ownerKey}.street`])) {
+                    errors[`beneficialOwner.${ownerKey}.street`] = this.props.translate('bankAccount.error.addressStreet');
                 }
 
-                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerID}.city`])) {
-                    errors[`beneficialOwner.${ownerID}.city`] = this.props.translate('bankAccount.error.addressCity');
+                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerKey}.city`])) {
+                    errors[`beneficialOwner.${ownerKey}.city`] = this.props.translate('bankAccount.error.addressCity');
                 }
 
-                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerID}.state`])) {
-                    errors[`beneficialOwner.${ownerID}.state`] = this.props.translate('bankAccount.error.addressState');
+                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerKey}.state`])) {
+                    errors[`beneficialOwner.${ownerKey}.state`] = this.props.translate('bankAccount.error.addressState');
                 }
 
-                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerID}.zipCode`])
-                    || !ValidationUtils.isValidZipCode(values[`beneficialOwner.${ownerID}.zipCode`])) {
-                    errors[`beneficialOwner.${ownerID}.zipCode`] = this.props.translate('bankAccount.error.zipCode');
+                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerKey}.zipCode`])
+                    || !ValidationUtils.isValidZipCode(values[`beneficialOwner.${ownerKey}.zipCode`])) {
+                    errors[`beneficialOwner.${ownerKey}.zipCode`] = this.props.translate('bankAccount.error.zipCode');
                 }
             });
         }
@@ -115,13 +115,13 @@ class ACHContractStep extends React.Component {
         return errors;
     }
 
-    removeBeneficialOwner(ownerID) {
+    /**
+     * @param {int} ownerKey - ID connected to the beneficial owner identity form
+     */
+    removeBeneficialOwner(ownerKey) {
         this.setState((prevState) => {
-            const beneficialOwners = _.without(prevState.beneficialOwners, ownerID);
+            const beneficialOwners = _.without(prevState.beneficialOwners, ownerKey);
 
-            // We set 'beneficialOwners' to null first because we don't have a way yet to replace a specific property without merging it.
-            // We don't use the debounced function because we want to make both function calls.
-            FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners: null});
             FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners});
 
             return {beneficialOwners};
@@ -130,11 +130,10 @@ class ACHContractStep extends React.Component {
 
     addBeneficialOwner() {
         this.setState((prevState) => {
+            // Each beneficial owner is assigned a unique key to connect to the correct Identity Form.
+            // This is because each Identity form is dynamically rendered by retrieving stored form values for each ownerKey.
             const beneficialOwners = [...prevState.beneficialOwners, NumberUtils.rand64()];
 
-            // We set 'beneficialOwners' to null first because we don't have a way yet to replace a specific property without merging it.
-            // We don't use the debounced function because we want to make both function calls.
-            FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners: null});
             FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners});
             return {beneficialOwners};
         });
@@ -148,19 +147,22 @@ class ACHContractStep extends React.Component {
             || (_.size(this.state.beneficialOwners) === 3 && !this.state.ownsMoreThan25Percent);
     }
 
+    /**
+     * @param {Object} values - object containing form input values
+     */
     submit(values) {
         const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
 
         const beneficialOwners = !this.state.hasOtherBeneficialOwners ? []
-            : _.map(this.state.beneficialOwners, ownerID => ({
-                firstName: lodashGet(values, `beneficialOwner.${ownerID}.firstName`),
-                lastName: lodashGet(values, `beneficialOwner.${ownerID}.lastName`),
-                dob: lodashGet(values, `beneficialOwner.${ownerID}.dob`),
-                ssnLast4: lodashGet(values, `beneficialOwner.${ownerID}.ssnLast4`),
-                street: lodashGet(values, `beneficialOwner.${ownerID}.street`),
-                city: lodashGet(values, `beneficialOwner.${ownerID}.city`),
-                state: lodashGet(values, `beneficialOwner.${ownerID}.state`),
-                zipCode: lodashGet(values, `beneficialOwner.${ownerID}.zipCode`),
+            : _.map(this.state.beneficialOwners, ownerKey => ({
+                firstName: lodashGet(values, `beneficialOwner.${ownerKey}.firstName`),
+                lastName: lodashGet(values, `beneficialOwner.${ownerKey}.lastName`),
+                dob: lodashGet(values, `beneficialOwner.${ownerKey}.dob`),
+                ssnLast4: lodashGet(values, `beneficialOwner.${ownerKey}.ssnLast4`),
+                street: lodashGet(values, `beneficialOwner.${ownerKey}.street`),
+                city: lodashGet(values, `beneficialOwner.${ownerKey}.city`),
+                state: lodashGet(values, `beneficialOwner.${ownerKey}.state`),
+                zipCode: lodashGet(values, `beneficialOwner.${ownerKey}.zipCode`),
             }));
 
         BankAccounts.updateBeneficialOwnersForBankAccount({
@@ -237,38 +239,38 @@ class ACHContractStep extends React.Component {
                     />
                     {this.state.hasOtherBeneficialOwners && (
                         <View style={[styles.mb2]}>
-                            {_.map(this.state.beneficialOwners, (ownerID, index) => (
+                            {_.map(this.state.beneficialOwners, (ownerKey, index) => (
                                 <View key={index} style={[styles.p5, styles.border, styles.mb2]}>
-                                    <Text style={[styles.textStrong, styles.mb2]}>
+                                    <Text style={[styles.textStrong, styles.mb2, styles.textWhite]}>
                                         {this.props.translate('beneficialOwnersStep.additionalOwner')}
                                     </Text>
                                     <IdentityForm
                                         translate={this.props.translate}
                                         style={[styles.mb2]}
                                         defaultValues={{
-                                            firstName: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner.${ownerID}.firstName`),
-                                            lastName: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner.${ownerID}.lastName`),
-                                            street: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner.${ownerID}.street`),
-                                            city: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner.${ownerID}.city`),
-                                            state: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner.${ownerID}.state`),
-                                            zipCode: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner.${ownerID}.zipCode`),
-                                            dob: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner.${ownerID}.dob`),
-                                            ssnLast4: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner.${ownerID}.ssnLast4`),
+                                            firstName: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner.${ownerKey}.firstName`),
+                                            lastName: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner.${ownerKey}.lastName`),
+                                            street: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner.${ownerKey}.street`),
+                                            city: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner.${ownerKey}.city`),
+                                            state: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner.${ownerKey}.state`),
+                                            zipCode: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner.${ownerKey}.zipCode`),
+                                            dob: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner.${ownerKey}.dob`),
+                                            ssnLast4: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner.${ownerKey}.ssnLast4`),
                                         }}
                                         inputKeys={{
-                                            firstName: `beneficialOwner.${ownerID}.firstName`,
-                                            lastName: `beneficialOwner.${ownerID}.lastName`,
-                                            dob: `beneficialOwner.${ownerID}.dob`,
-                                            ssnLast4: `beneficialOwner.${ownerID}.ssnLast4`,
-                                            street: `beneficialOwner.${ownerID}.street`,
-                                            city: `beneficialOwner.${ownerID}.city`,
-                                            state: `beneficialOwner.${ownerID}.state`,
-                                            zipCode: `beneficialOwner.${ownerID}.zipCode`,
+                                            firstName: `beneficialOwner.${ownerKey}.firstName`,
+                                            lastName: `beneficialOwner.${ownerKey}.lastName`,
+                                            dob: `beneficialOwner.${ownerKey}.dob`,
+                                            ssnLast4: `beneficialOwner.${ownerKey}.ssnLast4`,
+                                            street: `beneficialOwner.${ownerKey}.street`,
+                                            city: `beneficialOwner.${ownerKey}.city`,
+                                            state: `beneficialOwner.${ownerKey}.state`,
+                                            zipCode: `beneficialOwner.${ownerKey}.zipCode`,
                                         }}
                                         shouldSaveDraft
                                     />
                                     {this.state.beneficialOwners.length > 1 && (
-                                        <TextLink onPress={() => this.removeBeneficialOwner(ownerID)}>
+                                        <TextLink onPress={() => this.removeBeneficialOwner(ownerKey)}>
                                             {this.props.translate('beneficialOwnersStep.removeOwner')}
                                         </TextLink>
                                     )}
