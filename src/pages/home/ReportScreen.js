@@ -228,6 +228,16 @@ class ReportScreen extends React.Component {
         // (which is shown, until all the actual views of the ReportScreen have been rendered)
         const animatePlaceholder = !freeze;
 
+        const isReportReadyForDisplay = this.isReportReadyForDisplay();
+        const isInteractive = !freeze && !isLoadingInitialReportActions && isReportReadyForDisplay;
+
+        let renderPassName = 'interactive';
+        if (isLoadingInitialReportActions) {
+            renderPassName = 'loading';
+        } else if (!isInteractive) {
+            renderPassName = 'loading_from_cache';
+        }
+
         return (
             <ScreenWrapper
                 style={screenWrapperStyle}
@@ -241,7 +251,13 @@ class ReportScreen extends React.Component {
                         </>
                     )}
                 >
-                    <PerformanceMeasureView key={reportID} screenName="ReportScreen" componentInstanceId={reportID} interactive={!freeze && !isLoadingInitialReportActions}>
+                    <PerformanceMeasureView
+                        key={reportID}
+                        screenName="ReportScreen"
+                        componentInstanceId={reportID}
+                        renderPassName={renderPassName}
+                        interactive={isInteractive}
+                    >
                         <FullPageNotFoundView
                             shouldShow={!this.props.report.reportID}
                             subtitleKey="notFound.noAccess"
@@ -289,7 +305,7 @@ class ReportScreen extends React.Component {
                                     this.setState({skeletonViewContainerHeight});
                                 }}
                             >
-                                {(this.isReportReadyForDisplay() && !isLoadingInitialReportActions) && (
+                                {(isReportReadyForDisplay && !isLoadingInitialReportActions) && (
                                     <>
                                         <ReportActionsView
                                             reportActions={this.props.reportActions}
@@ -314,7 +330,7 @@ class ReportScreen extends React.Component {
                                 {/* Note: The report should be allowed to mount even if the initial report actions are not loaded.
                                 If we prevent rendering the report while they are loading then
                                 we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
-                                {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions) && (
+                                {(!isReportReadyForDisplay || isLoadingInitialReportActions) && (
                                 <ReportActionsSkeletonView
                                     containerHeight={this.state.skeletonViewContainerHeight}
                                 />
