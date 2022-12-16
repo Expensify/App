@@ -33,11 +33,6 @@ jobs:
       - name: Jest tests
         run: npx jest --shard=${{ fromJSON(matrix.chunk) }}/3
 
-      - name: Pull Request Tests
-        # Pull request related tests will be run in separate runner in parallel.
-        if: ${{ fromJSON(matrix.chunk) == fromJSON(env.CHUNKS) }}
-        run: tests/unit/getPullRequestsMergedBetweenTest.sh
-
   shellTests:
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
