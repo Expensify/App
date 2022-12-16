@@ -71,7 +71,7 @@ class ACHContractStep extends React.Component {
                     errors[`beneficialOwner.${ownerID}.dob`] = this.props.translate('bankAccount.error.dob');
                 }
 
-                if (values.dob && !ValidationUtils.meetsAgeRequirements(values[`beneficialOwner.${ownerID}.dob`])) {
+                if (values[`beneficialOwner.${ownerID}.dob`] && !ValidationUtils.meetsAgeRequirements(values[`beneficialOwner.${ownerID}.dob`])) {
                     errors[`beneficialOwner.${ownerID}.dob`] = this.props.translate('bankAccount.error.age');
                 }
 
