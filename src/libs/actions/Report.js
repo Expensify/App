@@ -972,7 +972,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 
     const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')};
     const htmlForNewComment = parser.replace(markdownForNewComment, autolinkFilter);
-    const parsedOriginalCommentHTMl = parser.replace(originalCommentHTML, autolinkFilter);
+    const parsedOriginalCommentHTML = parser.replace(originalCommentHTML, autolinkFilter);
 
     //  Delete the comment if it's empty
     if (_.isEmpty(htmlForNewComment)) {
@@ -981,7 +981,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     }
 
     // Skip the Edit if message is not changed
-    if (parsedOriginalCommentHTMl === htmlForNewComment.trim()) {
+    if (parsedOriginalCommentHTML === htmlForNewComment.trim()) {
         return;
     }
 
