@@ -246,6 +246,8 @@ class EmojiPickerMenu extends Component {
             ) {
                 return;
             }
+
+            // Blur the input and change the highlight type to keyboard
             this.searchInput.blur();
             this.setState({isUsingKeyboardMovement: true});
 
@@ -315,7 +317,7 @@ class EmojiPickerMenu extends Component {
                 break;
         }
 
-        // Actually highlight the new emoji and scroll to it if the index was changed
+        // Actually highlight the new emoji, apply keyboard movement styles, and scroll to it if the index was changed
         if (newIndex !== this.state.highlightedIndex) {
             this.setState({highlightedIndex: newIndex, isUsingKeyboardMovement: true});
             this.scrollToHighlightedIndex();
