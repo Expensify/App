@@ -4,6 +4,7 @@ import withLocalize from '../withLocalize';
 import TextInput from '../TextInput';
 import * as roomNameInputPropTypes from './roomNameInputPropTypes';
 import * as RoomNameInputUtils from '../../libs/RoomNameInputUtils';
+import getOperatingSystem from '../../libs/getOperatingSystem';
 
 class RoomNameInput extends Component {
     constructor(props) {
@@ -23,6 +24,7 @@ class RoomNameInput extends Component {
     }
 
     render() {
+        const keyboardType = getOperatingSystem() === CONST.OS.IOS ? 'default' : 'visible-password';
         return (
             <TextInput
                 ref={this.props.forwardedRef}
@@ -33,8 +35,8 @@ class RoomNameInput extends Component {
                 onChange={this.setModifiedRoomName}
                 value={this.props.value.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.
                 errorText={this.props.errorText}
-                autoCapitalize="none"
                 maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
+                keyboardType={keyboardType} // this is a bit hacky solution to a RN issue https://github.com/facebook/react-native/issues/27449
             />
         );
     }

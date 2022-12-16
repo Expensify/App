@@ -18,6 +18,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import * as CloseAccount from '../../../libs/actions/CloseAccount';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Form from '../../../components/Form';
+import CONST from '../../../CONST';
 
 const propTypes = {
 
@@ -105,6 +106,8 @@ class CloseAccountPage extends Component {
                             autoCapitalize="none"
                             label={this.props.translate('closeAccountPage.enterDefaultContact')}
                             containerStyles={[styles.mt5]}
+                            autoCorrect={false}
+                            keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
                         />
                     </View>
                 </Form>

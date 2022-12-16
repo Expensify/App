@@ -2,7 +2,7 @@ const path = require('path');
 const portfinder = require('portfinder');
 const {DefinePlugin} = require('webpack');
 const {merge} = require('webpack-merge');
-const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
+const {TimeAnalyticsPlugin} = require('time-analytics-webpack-plugin');
 const getCommonConfig = require('./webpack.common');
 
 const BASE_PORT = 8080;
@@ -26,7 +26,6 @@ module.exports = (env = {}) => portfinder.getPortPromise({port: BASE_PORT})
             };
 
         const baseConfig = getCommonConfig(env);
-        const speedMeasure = new SpeedMeasurePlugin();
 
         const config = merge(baseConfig, {
             mode: 'development',
@@ -59,5 +58,5 @@ module.exports = (env = {}) => portfinder.getPortPromise({port: BASE_PORT})
             },
         });
 
-        return speedMeasure.wrap(config);
+        return TimeAnalyticsPlugin.wrap(config);
     });
