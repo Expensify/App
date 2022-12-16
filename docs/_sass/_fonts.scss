@@ -89,6 +89,20 @@
   src: url('https://www.expensify.com/font/GT-America-Exp-Mono-Bold-Italic.eot') format('embedded-opentype'), url('https://www.expensify.com/font/GT-America-Exp-Mono-Bold-Italic.woff') format('woff'), url('https://www.expensify.com/font/GT-America-Exp-Mono-Bold-Italic.woff2') format('woff2');
 }
 
+@font-face {
+  font-family: ExpensifyNeue-Regular;
+  font-weight: 400;
+  font-style: normal;
+  src: url('/fonts/ExpensifyNeue-Regular.woff2') format('woff2'), url('/fonts/ExpensifyNeue-Regular.woff') format('woff');
+}
+
+@font-face {
+  font-family: ExpensifyMono-Regular;
+  font-weight: 400;
+  font-style: normal;
+  src: url('/fonts/ExpensifyMono-Regular.woff2') format('woff2'), url('/fonts/ExpensifyMono-Regular.woff') format('woff');
+}
+
 * {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
