@@ -1499,7 +1499,10 @@ const styles = {
         borderRightWidth: 1,
         height: 32,
         width: 32,
-        margin: 4,
+        marginBottom: 4,
+        marginTop: 4,
+        marginLeft: 4,
+        marginRight: 5,
         justifyContent: 'center',
     },
 
