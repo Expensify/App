@@ -19,6 +19,7 @@ export default {
         save: 'Save',
         saveChanges: 'Save changes',
         password: 'Password',
+        magicCode: 'Magic code',
         workspaces: 'Workspaces',
         profile: 'Profile',
         payments: 'Payments',
@@ -510,6 +511,10 @@ export default {
         phrase4: 'privacy policy',
         phrase5: 'Money transmission is provided by Expensify Payments LLC (NMLS ID:2017010) pursuant to its',
         phrase6: 'licenses',
+    },
+    validateCodeForm: {
+        magicCodeNotReceived: "Didn't receive a magic code?",
+        fillTwoFactorAuthOrRecoveryCode: 'Please enter your two factor code or recovery code',
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Please fill out all fields',

@@ -19,6 +19,7 @@ export default {
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
         password: 'Contraseña',
+        magicCode: '',
         workspaces: 'Espacios de trabajo',
         profile: 'Perfil',
         payments: 'Pagos',
@@ -510,6 +511,10 @@ export default {
         phrase4: 'política de privacidad',
         phrase5: 'El envío de dinero es brindado por Expensify Payments LLC (NMLS ID:2017010) de conformidad con sus',
         phrase6: 'licencias',
+    },
+    validateCodeForm: {
+        magicCodeNotReceived: '',
+        fillTwoFactorAuthOrRecoveryCode: '',
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Por favor completa todos los campos',
