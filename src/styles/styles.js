@@ -1501,8 +1501,7 @@ const styles = {
         width: 32,
         marginBottom: 4,
         marginTop: 4,
-        marginLeft: 4,
-        marginRight: 5,
+        marginLeft: 7,
         justifyContent: 'center',
     },
 
