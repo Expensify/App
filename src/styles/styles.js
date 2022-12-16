@@ -937,7 +937,6 @@ const styles = {
     sidebar: {
         backgroundColor: themeColors.sidebar,
         height: '100%',
-        overflow: 'hidden',
     },
 
     sidebarFooter: {

@@ -83,7 +83,7 @@ function getNavigationDrawerStyle(isSmallScreenWidth) {
         : {
             height: '100%',
             width: variables.sideBarWidth,
-            borderRightWidth: 0,
+            borderRightColor: themeColors.border,
             backgroundColor: themeColors.appBG,
         };
 }
