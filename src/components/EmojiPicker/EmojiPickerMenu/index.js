@@ -317,7 +317,7 @@ class EmojiPickerMenu extends Component {
 
         // Actually highlight the new emoji and scroll to it if the index was changed
         if (newIndex !== this.state.highlightedIndex) {
-            this.setState({highlightedIndex: newIndex});
+            this.setState({highlightedIndex: newIndex, isUsingKeyboardMovement: true});
             this.scrollToHighlightedIndex();
         }
     }
