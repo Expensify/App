@@ -13,8 +13,8 @@ jobs:
     env:
       CI: true
     strategy:
+      fail-fast: false
       matrix:
-        fail-fast: false
         chunk: [ 1, 2, 3 ]
     name: test (job ${{ fromJSON(matrix.chunk) }})
     steps:
