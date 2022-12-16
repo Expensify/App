@@ -31,7 +31,7 @@ jobs:
           key: ${{ runner.os }}-jest
 
       - name: Jest tests
-        run: npx jest --shard=${{ fromJSON(matrix.chunk) }}/3
+        run: npx jest --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }}
 
   shellTests:
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
