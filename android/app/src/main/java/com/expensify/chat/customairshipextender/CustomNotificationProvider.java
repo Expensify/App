@@ -1,5 +1,7 @@
 package com.expensify.chat.customairshipextender;
 
+import static androidx.core.app.NotificationCompat.PRIORITY_MAX;
+
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -75,6 +77,13 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
     protected NotificationCompat.Builder onExtendBuilder(@NonNull Context context, @NonNull NotificationCompat.Builder builder, @NonNull NotificationArguments arguments) {
         super.onExtendBuilder(context, builder, arguments);
         PushMessage message = arguments.getMessage();
+
+        // Configure the notification channel or priority to ensure it shows in foreground
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            builder.setChannelId(CHANNEL_MESSAGES_ID);
+        } else {
+            builder.setPriority(PRIORITY_MAX);
+        }
 
         if (message.containsKey(PAYLOAD_KEY)) {
             try {
