@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {InteractionManager, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -131,6 +131,14 @@ class ReportActionItemMessageEdit extends React.Component {
         Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, '');
         toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
         ReportActionComposeFocusManager.focus();
+
+        // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
+        if (this.props.index === 0) {
+            const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+                ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, false);
+                keyboardDidHideListener.remove();
+            });
+        }
     }
 
     /**
