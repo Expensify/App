@@ -350,6 +350,11 @@ const styles = {
         ...spacing.ph3,
     },
 
+    buttonContainer: {
+        padding: 1,
+        borderRadius: variables.buttonBorderRadius,
+    },
+
     buttonText: {
         color: themeColors.text,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
