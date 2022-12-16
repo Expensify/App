@@ -16,7 +16,6 @@ import Timers from '../../Timers';
 import * as Pusher from '../../Pusher/pusher';
 import * as User from '../User';
 import * as Authentication from '../../Authentication';
-import * as Welcome from '../Welcome';
 import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
 import DateUtils from '../../DateUtils';
@@ -375,7 +374,6 @@ function cleanupSession() {
     PushNotification.clearNotifications();
     Pusher.disconnect();
     Timers.clearAll();
-    Welcome.resetReadyCheck();
 }
 
 function clearAccountMessages() {

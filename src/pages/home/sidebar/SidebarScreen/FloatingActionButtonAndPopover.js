@@ -31,6 +31,12 @@ const policySelector = policy => policy && ({
     role: policy.role,
 });
 
+const reportSelector = report => report && ({
+    chatType: report.chatType,
+    reportID: report.reportID,
+    ownerEmail: report.ownerEmail,
+});
+
 const propTypes = {
     /* Callback function when the menu is shown */
     onShowCreateMenu: PropTypes.func,
@@ -44,6 +50,15 @@ const propTypes = {
         name: PropTypes.string,
     }),
 
+    /** The list of reports the user has access to. */
+    allReports: PropTypes.shape({
+        /** The policy name */
+        name: PropTypes.string,
+    }),
+
+    isFirstTimeNewExpensifyUser: PropTypes.bool,
+    email: PropTypes.string,
+
     /* Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
@@ -53,7 +68,10 @@ const defaultProps = {
     onHideCreateMenu: () => {},
     onShowCreateMenu: () => {},
     allPolicies: {},
+    allReports: {},
     betas: [],
+    isFirstTimeNewExpensifyUser: false,
+    email: '',
 };
 
 /**
@@ -73,8 +91,17 @@ class FloatingActionButtonAndPopover extends React.Component {
     }
 
     componentDidMount() {
+        if (!this.props.isFirstTimeNewExpensifyUser) {
+            return;
+        }
         const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
-        Welcome.show({routes, showCreateMenu: this.showCreateMenu});
+        Welcome.show({
+            routes,
+            showCreateMenu: this.showCreateMenu,
+            allPolicies: this.props.allPolicies,
+            allReports: this.props.allReports,
+            email: this.props.email,
+        });
     }
 
     componentDidUpdate(prevProps) {
@@ -100,11 +127,7 @@ class FloatingActionButtonAndPopover extends React.Component {
         }
 
         // When any other page is opened over LHN
-        if (!this.props.isFocused && prevProps.isFocused) {
-            return true;
-        }
-
-        return false;
+        return !this.props.isFocused && prevProps.isFocused;
     }
 
     /**
@@ -120,11 +143,7 @@ class FloatingActionButtonAndPopover extends React.Component {
         }
 
         // When any other page is open
-        if (!this.props.isFocused) {
-            return true;
-        }
-
-        return false;
+        return !this.props.isFocused;
     }
 
     /**
@@ -243,6 +262,17 @@ export default compose(
         allPolicies: {
             key: ONYXKEYS.COLLECTION.POLICY,
             selector: policySelector,
+        },
+        allReports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
+            selector: reportSelector,
+        },
+        email: {
+            key: ONYXKEYS.SESSION,
+            selector: val => val && val.email,
+        },
+        isFirstTimeNewExpensifyUser: {
+            key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
         },
         betas: {
             key: ONYXKEYS.BETAS,
