@@ -19,6 +19,8 @@ import * as Report from '../../src/libs/actions/Report';
 import * as CollectionUtils from '../../src/libs/CollectionUtils';
 import DateUtils from '../../src/libs/DateUtils';
 
+// We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
+jest.setTimeout(30000);
 jest.mock('../../src/libs/Notification/LocalNotification');
 
 beforeAll(() => {
@@ -31,11 +33,6 @@ beforeAll(() => {
 
     Linking.setInitialURL('https://new.expensify.com/r/1');
     appSetup();
-});
-
-beforeEach(() => {
-    // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
-    jest.setTimeout(30000);
 });
 
 function scrollUpToRevealNewMessagesBadge() {
