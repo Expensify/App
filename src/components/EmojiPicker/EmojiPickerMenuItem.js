@@ -59,6 +59,8 @@ EmojiPickerMenuItem.defaultProps = {
 // by only re-rendering at most two EmojiPickerMenuItems that are highlighted/un-highlighted per user action.
 export default React.memo(
     EmojiPickerMenuItem,
-    (prevProps, nextProps) => prevProps.isHighlighted === nextProps.isHighlighted
-                                && prevProps.emoji === nextProps.emoji,
+    (prevProps, nextProps) =>
+        prevProps.isHighlighted === nextProps.isHighlighted
+        && prevProps.emoji === nextProps.emoji
+        && prevProps.isUsingKeyboardMovement === nextProps.isUsingKeyboardMovement,
 );
