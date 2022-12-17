@@ -38,11 +38,11 @@ describe('TooltipTest', () => {
         // When we initially render the tooltip
         render(TestTooltipComponent);
 
-        // The wrapped component should be rendered
+        // Then the wrapped component should be rendered
         const textElement = screen.queryByText('Hover me');
         expect(textElement).not.toBeNull();
 
-        // But the tooltip text should not be rendered
+        // And the tooltip text should not be rendered
         let tooltipText = screen.queryByText('close');
         expect(tooltipText).toBeNull();
 
@@ -50,6 +50,13 @@ describe('TooltipTest', () => {
         fireEvent(textElement, 'hoverIn');
 
         // Then the tooltip text should be displayed
+        tooltipText = screen.queryByText('close');
+        expect(tooltipText).not.toBeNull();
+
+        // When we hover out of the wrapped component
+        fireEvent(textElement, 'hoverOut');
+
+        // Then the tooltip text should disappear again
         tooltipText = screen.queryByText('close');
         expect(tooltipText).not.toBeNull();
     });
@@ -61,11 +68,11 @@ describe('TooltipTest', () => {
         // When we initially render the tooltip
         render(TestTooltipComponent);
 
-        // The wrapped component should be rendered
+        // Then the wrapped component should be rendered
         const textElement = screen.queryByText('Hover me');
         expect(textElement).not.toBeNull();
 
-        // But the tooltip text should not be rendered
+        // And the tooltip text should not be rendered
         let tooltipText = screen.queryByText('close');
         expect(tooltipText).toBeNull();
 
