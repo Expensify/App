@@ -2841,7 +2841,7 @@ const styles = {
         backgroundColor: themeColors.appBG,
     },
 
-    deeplinkWrapperInfoSection: {
+    deeplinkWrapperMessage: {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',

@@ -202,8 +202,8 @@ const mainWindow = (() => {
     app.on('will-finish-launching', () => {
         app.on('open-url', (event, url) => {
             event.preventDefault();
-            const urlObj = new URL(url);
-            deeplinkUrl = `${APP_DOMAIN}${urlObj.pathname}`;
+            const urlObject = new URL(url);
+            deeplinkUrl = `${APP_DOMAIN}${urlObject.pathname}`;
 
             if (browserWindow) {
                 browserWindow.loadURL(deeplinkUrl);

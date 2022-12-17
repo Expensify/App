@@ -141,10 +141,10 @@ export default {
     },
     deeplinkWrapper: {
         // TODO: translate to spanish
-        launching: 'Launching Expensify',
-        redirectedToDesktopApp: 'We\'ve redirected you to the desktop app.',
-        youCanAlso: 'You can also',
-        openLinkInBrowser: 'open this link in your browser',
+        launching: 'Cargando Expensify',
+        redirectedToDesktopApp: 'Te hemos redirigido a la aplicación de escritorio.',
+        youCanAlso: 'También puedes',
+        openLinkInBrowser: 'abrir este enlace en tu navegador',
     },
     iOUConfirmationList: {
         whoPaid: '¿QUIÉN PAGO?',

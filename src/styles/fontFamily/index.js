@@ -10,17 +10,13 @@ const fontFamily = {
     MONOSPACE_ITALIC: 'ExpensifyMono-Regular',
     MONOSPACE_BOLD: 'ExpensifyMono-Bold',
     MONOSPACE_BOLD_ITALIC: 'ExpensifyMono-Bold',
-    EMOJI_TEXT_FONT: emojiFont,
-};
-
-const newKansas = {
     NEW_KANSAS_MEDIUM: 'ExpensifyNewKansas-Meduim',
     NEW_KANSAS_MEDIUM_ITALIC: 'ExpensifyNewKansas-MediumItalic',
+    EMOJI_TEXT_FONT: emojiFont,
 };
 
 export default fontFamily;
 
 export {
     fontFamily,
-    newKansas,
 };

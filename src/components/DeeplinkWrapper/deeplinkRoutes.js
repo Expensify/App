@@ -1,46 +1,44 @@
+import ROUTES from '../../ROUTES';
+
 export default [
     {
-        pattern: /\/r\/*/,
+        pattern: `/${ROUTES.REPORT}($|(//*))`,
         comment: 'Reports',
     },
     {
-        pattern: /\/settings\/*/,
+        pattern: `/${ROUTES.SETTINGS}($|(//*))`,
         comment: 'Profile and app settings',
     },
     {
-        pattern: /\/setpassword\/*/,
+        pattern: '/setpassword($|(//*))',
         comment: 'Passoword setup',
     },
     {
-        pattern: /\/details\/*/,
+        pattern: `/${ROUTES.DETAILS}($|(//*))`,
         comment: 'Details of another users',
     },
     {
-        pattern: /\/v\/*/,
+        pattern: '/v($|(//*))',
         comment: 'Account validation',
     },
     {
-        pattern: /\/bank-account\/*/,
+        pattern: `/${ROUTES.BANK_ACCOUNT}($|(//*))`,
         comment: 'Bank account setup and its steps',
     },
     {
-        pattern: /\/iou\/*/,
+        pattern: '/iou($|(//*))',
         comment: 'I Owe You reports',
     },
     {
-        pattern: /\/enable-payments\/*/,
+        pattern: `/${ROUTES.ENABLE_PAYMENTS}($|(//*))`,
         comment: 'Payments setup',
     },
     {
-        pattern: /\/partners\/plaid\/oauth_ios/,
-        comment: 'Plaid setup',
-    },
-    {
-        pattern: /\/statements\/*/,
+        pattern: '/statements($|(//*))',
         comment: 'Wallet statements',
     },
     {
-        pattern: /\/concierge\/*/,
+        pattern: `/${ROUTES.CONCIERGE}($|(//*))`,
         comment: 'Concierge',
     },
 ];

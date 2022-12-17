@@ -70,8 +70,8 @@ class DeeplinkWrapper extends PureComponent {
 
     openRouteInDesktopApp() {
         const pathname = window.location.pathname;
-        const expenfifyUrl = new URL(CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
-        const expenfifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expenfifyUrl.host}${pathname}`;
+        const expensifyUrl = new URL(CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
+        const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}${pathname}`;
 
         // This check is necessary for Safari, otherwise, if the user
         // does NOT have the Expensify desktop app installed, it's gonna
@@ -80,7 +80,7 @@ class DeeplinkWrapper extends PureComponent {
             const iframe = document.createElement('iframe');
             iframe.style.display = 'none';
             document.body.appendChild(iframe);
-            iframe.contentWindow.location.href = expenfifyDeeplinkUrl;
+            iframe.contentWindow.location.href = expensifyDeeplinkUrl;
 
             setTimeout(() => {
                 if (!iframe.parentNode) {
@@ -90,7 +90,7 @@ class DeeplinkWrapper extends PureComponent {
                 iframe.parentNode.removeChild(iframe);
             }, 100);
         } else {
-            window.location.href = expenfifyDeeplinkUrl;
+            window.location.href = expensifyDeeplinkUrl;
         }
     }
 
@@ -114,7 +114,7 @@ class DeeplinkWrapper extends PureComponent {
         ) {
             return (
                 <View style={styles.deeplinkWrapperContainer}>
-                    <View style={styles.deeplinkWrapperInfoSection}>
+                    <View style={styles.deeplinkWrapperMessage}>
                         <View style={styles.mb2}>
                             <Icon
                                 width={200}
@@ -122,7 +122,7 @@ class DeeplinkWrapper extends PureComponent {
                                 src={Illustrations.RocketBlue}
                             />
                         </View>
-                        <Text style={[styles.textXXLarge, {fontFamily: FontFamily.newKansas.NEW_KANSAS_MEDIUM}]}>
+                        <Text style={[styles.textXXLarge, {fontFamily: FontFamily.fontFamily.NEW_KANSAS_MEDIUM}]}>
                             {this.props.translate('deeplinkWrapper.launching')}
                         </Text>
                         <View style={styles.mt2}>
