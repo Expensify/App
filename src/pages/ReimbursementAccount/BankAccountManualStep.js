@@ -1,6 +1,5 @@
 import React from 'react';
 import {Image, View} from 'react-native';
-import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import CONST from '../../CONST';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
@@ -10,28 +9,18 @@ import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize from '../../components/withLocalize';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import ONYXKEYS from '../../ONYXKEYS';
 import exampleCheckImage from './exampleCheckImage';
 import Form from '../../components/Form';
 import shouldDelayFocus from '../../libs/shouldDelayFocus';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
-import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
+import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
-    /** The bank account currently in setup */
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
-
-    /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
-
-    /** Goes to the previous step */
-    onBackButtonPress: PropTypes.func.isRequired,
-
-    ...withLocalizePropTypes,
+    ...StepPropTypes,
 };
 
 class BankAccountManualStep extends React.Component {

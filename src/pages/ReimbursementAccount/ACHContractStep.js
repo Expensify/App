@@ -10,31 +10,21 @@ import styles from '../../styles/styles';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
 import IdentityForm from './IdentityForm';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize from '../../components/withLocalize';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
-import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
+import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
+    ...StepPropTypes,
+
     /** Name of the company */
     companyName: PropTypes.string.isRequired,
-
-    ...withLocalizePropTypes,
-
-    /** Bank account currently in setup */
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
-
-    /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
-
-    /** Goes to the previous step */
-    onBackButtonPress: PropTypes.func.isRequired,
 };
 
 class ACHContractStep extends React.Component {

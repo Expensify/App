@@ -22,7 +22,6 @@ function setBankAccountSubStep(subStep) {
     if (subStep === null) {
         Onyx.set(ONYXKEYS.PLAID_DATA, PlaidDataProps.plaidDataDefaultProps);
         Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
-        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, {plaidAccountID: null});
     }
 }
 

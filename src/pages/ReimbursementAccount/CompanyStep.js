@@ -5,7 +5,6 @@ import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import moment from 'moment';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import CONST from '../../CONST';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
@@ -17,30 +16,20 @@ import styles from '../../styles/styles';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize from '../../components/withLocalize';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as LoginUtils from '../../libs/LoginUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import Picker from '../../components/Picker';
 import AddressForm from './AddressForm';
-import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
-import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import Form from '../../components/Form';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
+import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
-    /** The bank account currently in setup */
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
-
-    /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
-
-    /** Goes to the previous step */
-    onBackButtonPress: PropTypes.func.isRequired,
-
-    ...withLocalizePropTypes,
+    ...StepPropTypes,
 };
 
 class CompanyStep extends React.Component {

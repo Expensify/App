@@ -15,7 +15,7 @@ import Icon from '../../components/Icon';
 import colors from '../../styles/colors';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize from '../../components/withLocalize';
 import Text from '../../components/Text';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -26,33 +26,23 @@ import getPlaidDesktopMessage from '../../libs/getPlaidDesktopMessage';
 import CONFIG from '../../CONFIG';
 import ROUTES from '../../ROUTES';
 import Button from '../../components/Button';
-import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
+import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
+    ...StepPropTypes,
+
     /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
     receivedRedirectURI: PropTypes.string,
 
     /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
     plaidLinkOAuthToken: PropTypes.string,
 
-    /** The bank account currently in setup */
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
-
-    /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
-
     /** Object with various information about the user */
     user: PropTypes.shape({
         /** Is the user account validated? */
         validated: PropTypes.bool,
     }),
-
-    /** Goes to the previous step */
-    onBackButtonPress: PropTypes.func.isRequired,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {

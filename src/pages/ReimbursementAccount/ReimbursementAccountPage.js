@@ -290,9 +290,9 @@ class ReimbursementAccountPage extends React.Component {
                 <BankAccountStep
                     reimbursementAccount={this.props.reimbursementAccount}
                     reimbursementAccountDraft={this.props.reimbursementAccountDraft}
+                    onBackButtonPress={this.goBack}
                     receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                     plaidLinkOAuthToken={this.props.plaidLinkToken}
-                    onBackButtonPress={this.goBack}
                 />
             );
         }
@@ -313,8 +313,8 @@ class ReimbursementAccountPage extends React.Component {
                 <RequestorStep
                     reimbursementAccount={this.props.reimbursementAccount}
                     reimbursementAccountDraft={this.props.reimbursementAccountDraft}
-                    shouldShowOnfido={Boolean(shouldShowOnfido)}
                     onBackButtonPress={this.goBack}
+                    shouldShowOnfido={Boolean(shouldShowOnfido)}
                 />
             );
         }
@@ -324,17 +324,15 @@ class ReimbursementAccountPage extends React.Component {
                 <ACHContractStep
                     reimbursementAccount={this.props.reimbursementAccount}
                     reimbursementAccountDraft={this.props.reimbursementAccountDraft}
-                    companyName={achData.companyName}
                     onBackButtonPress={this.goBack}
+                    companyName={achData.companyName}
                 />
             );
         }
 
         if (currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION) {
             return (
-                <ValidationStep
-                    reimbursementAccount={this.props.reimbursementAccount}
-                />
+                <ValidationStep reimbursementAccount={this.props.reimbursementAccount} />
             );
         }
 

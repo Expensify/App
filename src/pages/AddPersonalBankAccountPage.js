@@ -28,7 +28,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     /** Contains plaid data */
-    plaidData: PlaidDataProps.plaidDataPropTypes(),
+    plaidData: PlaidDataProps.plaidDataPropTypes,
 
     /** The details about the Personal bank account we are adding saved in Onyx */
     personalBankAccount: PropTypes.shape({

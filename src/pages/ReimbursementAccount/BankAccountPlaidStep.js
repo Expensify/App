@@ -7,7 +7,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import CONST from '../../CONST';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
@@ -15,31 +15,21 @@ import * as ReimbursementAccount from '../../libs/actions/ReimbursementAccount';
 import Form from '../../components/Form';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
-import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import * as PlaidDataProps from './plaidDataPropTypes';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
+import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
+    ...StepPropTypes,
+
     /** Contains plaid data */
-    plaidData: PlaidDataProps.plaidDataPropTypes(),
-
-    /** The bank account currently in setup */
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
-
-    /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: reimbursementAccountDraftPropTypes.isRequired,
+    plaidData: PlaidDataProps.plaidDataPropTypes,
 
     /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
     receivedRedirectURI: PropTypes.string,
 
     /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
     plaidLinkOAuthToken: PropTypes.string,
-
-    /** Goes to the previous step */
-    onBackButtonPress: PropTypes.func.isRequired,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
