@@ -203,17 +203,11 @@ class ProfilePage extends Component {
             [values.firstName, values.lastName, values.pronouns],
         );
 
-        if (hasFirstNameError) {
-            errors.firstName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
-        }
+        const characterLimitError = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
 
-        if (hasLastNameError) {
-            errors.lastName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
-        }
-
-        if (hasPronounError) {
-            errors.pronouns = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
-        }
+        errors.firstName = hasFirstNameError ? characterLimitError : '';
+        errors.lastName = hasLastNameError ? characterLimitError : '';
+        errors.pronouns = hasPronounError ? characterLimitError : '';
 
         return errors;
     }
