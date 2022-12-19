@@ -414,7 +414,7 @@ const mainWindow = (() => {
                     localizeMenuItems(browserWindow, systemMenu);
                 }
 
-                // Show the localized menu items if there were visible before we updated teh locale.
+                // Show the localized menu items if there were visible before we updated the locale.
                 systemMenu.getMenuItemById(`updateAppMenuItem-${updatedLocale}`).visible = currentUpdateAppMenuItem.visible;
                 systemMenu.getMenuItemById(`checkForUpdateMenuItem-${updatedLocale}`).visible = currentCheckForUpdateMenuItem.visible;
                 systemMenu.getMenuItemById(`keyboardShortcutsMenuItem-${updatedLocale}`).visible = currentKeyboardShortcutsMenuItem.visible;
