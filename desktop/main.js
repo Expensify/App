@@ -420,7 +420,7 @@ const mainWindow = (() => {
                 systemMenu.getMenuItemById(`keyboardShortcutsMenuItem-${updatedLocale}`).visible = currentKeyboardShortcutsMenuItem.visible;
                 systemMenu.getMenuItemById(`historyMenuItem-${updatedLocale}`).visible = currentHistoryMenuItem.visible;
 
-                // Since we can remove menu items, we hide the old ones.
+                // Since we can't remove menu items, we hide the old ones.
                 currentUpdateAppMenuItem.visible = false;
                 currentCheckForUpdateMenuItem.visible = false;
                 currentKeyboardShortcutsMenuItem.visible = false;
