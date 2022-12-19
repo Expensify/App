@@ -74,7 +74,7 @@ function init() {
     UrbanAirship.setForegroundPresentationOptions({
         alert: true,
         sound: true,
-        badge: true
+        badge: true,
     });
 }
 
