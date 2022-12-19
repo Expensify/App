@@ -5,10 +5,8 @@ import Str from 'expensify-common/lib/str';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
-import * as DeprecatedAPI from '../deprecatedAPI';
 import * as Report from './Report';
 import Navigation from '../Navigation/Navigation';
-import Growl from '../Growl';
 import * as Localize from '../Localize';
 import asyncOpenURL from '../asyncOpenURL';
 import * as API from '../API';
@@ -662,65 +660,6 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
 }
 
 /**
- * Pays an IOU Report and then retrieves the iou and chat reports to trigger updates to the UI.
- *
- * @param {Object} params
- * @param {Number} params.chatReportID
- * @param {String} params.reportID
- * @param {String} params.paymentMethodType - one of CONST.IOU.PAYMENT_TYPE
- * @param {Number} params.amount
- * @param {String} params.currency
- * @param {String} [params.requestorPayPalMeAddress]
- * @param {String} [params.newIOUReportDetails] - Extra details required only for send money flow
- *
- * @return {Promise}
- */
-function payIOUReport({
-    chatReportID,
-    reportID,
-    paymentMethodType,
-    amount,
-    currency,
-    requestorPayPalMeAddress,
-    newIOUReportDetails,
-}) {
-    Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
-
-    // Build the url for Paypal.me if they have selected it instead of a manual settlement or Expensify Wallet
-    let url;
-    if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-        url = buildPayPalPaymentUrl(amount, requestorPayPalMeAddress, currency);
-    }
-
-    const promiseWithHandlers = DeprecatedAPI.PayWithWallet({reportID, newIOUReportDetails})
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                switch (response.message) {
-                    case 'You cannot pay via Expensify Wallet until you have either a verified deposit bank account or debit card.':
-                        Growl.error(Localize.translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'), 5000);
-                        break;
-                    case 'This report doesn\'t have reimbursable expenses.':
-                        Growl.error(Localize.translateLocal('iou.noReimbursableExpenses'), 5000);
-                        break;
-                    default:
-                        Growl.error(response.message, 5000);
-                }
-                Onyx.merge(ONYXKEYS.IOU, {error: true});
-                return;
-            }
-
-            const chatReportStuff = response.reports[chatReportID];
-            const iouReportStuff = response.reports[reportID];
-            Report.syncChatAndIOUReports(chatReportStuff, iouReportStuff);
-        })
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.IOU, {loading: false});
-        });
-    asyncOpenURL(promiseWithHandlers, url);
-    return promiseWithHandlers;
-}
-
-/**
  * @param {Object} report
  * @param {Number} amount
  * @param {String} currency
@@ -950,6 +889,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
     return {
         params: {
             iouReportID: iouReport.reportID,
+            chatReportID: chatReport.reportID,
             reportActionID: optimisticIOUReportAction.reportActionID,
             paymentMethodType,
             clientID: optimisticIOUReportAction.sequenceNumber,
@@ -974,6 +914,24 @@ function sendMoneyElsewhere(report, amount, currency, comment, managerEmail, rec
     } = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.ELSEWHERE, managerEmail, recipient);
 
     API.write('SendMoneyElsewhere', params, {optimisticData, successData, failureData});
+
+    Navigation.navigate(ROUTES.getReportRoute(params.chatReportID));
+}
+
+/**
+ * @param {Object} report
+ * @param {Number} amount
+ * @param {String} currency
+ * @param {String} comment
+ * @param {String} managerEmail - Email of the person sending the money
+ * @param {Object} recipient - The user receiving the money
+ */
+function sendMoneyWithWallet(report, amount, currency, comment, managerEmail, recipient) {
+    const {
+        params, optimisticData, successData, failureData,
+    } = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.EXPENSIFY, managerEmail, recipient);
+
+    API.write('SendMoneyWithWallet', params, {optimisticData, successData, failureData});
 
     Navigation.navigate(ROUTES.getReportRoute(params.chatReportID));
 }
@@ -1018,6 +976,21 @@ function payMoneyRequestElsewhere(chatReport, iouReport, recipient) {
  * @param {Object} iouReport
  * @param {Object} recipient
  */
+function payMoneyRequestWithWallet(chatReport, iouReport, recipient) {
+    const {
+        params, optimisticData, successData, failureData,
+    } = getPayMoneyRequestParams(chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
+
+    API.write('PayMoneyRequestWithWallet', params, {optimisticData, successData, failureData});
+
+    Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
+}
+
+/**
+ * @param {Object} chatReport
+ * @param {Object} iouReport
+ * @param {Object} recipient
+ */
 function payMoneyRequestViaPaypal(chatReport, iouReport, recipient) {
     const {
         params, optimisticData, successData, failureData,
@@ -1035,10 +1008,11 @@ export {
     splitBill,
     splitBillAndOpenReport,
     requestMoney,
-    payIOUReport,
     sendMoneyElsewhere,
     sendMoneyViaPaypal,
     payMoneyRequestElsewhere,
     payMoneyRequestViaPaypal,
     setIOUSelectedCurrency,
+    sendMoneyWithWallet,
+    payMoneyRequestWithWallet,
 };
