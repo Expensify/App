@@ -9,7 +9,7 @@ import LocaleListener from './LocaleListener';
 import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
 
 // Listener when an update in Onyx happens so we use the updated locale when translating/localizing items.
-LocaleListener.listenForLocaleChanges();
+LocaleListener.connect();
 
 /**
  * Return translated string for given locale and phrase

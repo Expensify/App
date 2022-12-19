@@ -395,10 +395,6 @@ const mainWindow = (() => {
             }
 
             ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale) => {
-                if (preferredLocale === updatedLocale) {
-                    return;
-                }
-
                 // Store the old locale so we can hide/remove these items after adding/showing the new ones.
                 const outdatedLocale = preferredLocale;
                 preferredLocale = updatedLocale;

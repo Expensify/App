@@ -1,11 +1,5 @@
 import BaseLocaleListener from './BaseLocaleListener';
 
-const listenForLocaleChanges = () => {
-    BaseLocaleListener.connect(() => {});
+export default {
+    connect: BaseLocaleListener.connect,
 };
-
-const LocaleListener = {
-    listenForLocaleChanges,
-};
-
-export default LocaleListener;
