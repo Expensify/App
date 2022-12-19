@@ -108,7 +108,6 @@ const propTypes = {
 
     /** Id to use for this button */
     nativeID: PropTypes.string,
-
 };
 
 const defaultProps = {
@@ -257,8 +256,8 @@ class Button extends Component {
                 style={[
                     this.props.isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
                     styles.buttonContainer,
-                    this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : [],
-                    this.props.shouldRemoveLeftBorderRadius ? styles.shouldRemoveLeftBorderRadius : [],
+                    this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
+                    this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
                     ...StyleUtils.parseStyleAsArray(this.props.style),
                 ]}
                 nativeID={this.props.nativeID}

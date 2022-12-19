@@ -458,9 +458,11 @@ const styles = {
         borderWidth: 0,
     },
 
-    buttonDropdown: {
-        borderLeftWidth: 1,
-        borderColor: themeColors.textLight,
+    buttonDivider: {
+        width: 1,
+        alignSelf: 'stretch',
+        backgroundColor: themeColors.textLight,
+        marginVertical: 1,
     },
 
     noRightBorderRadius: {

@@ -43,10 +43,10 @@ const ButtonWithDropdown = props => (
             style={[styles.flex1, styles.pr0]}
             pressOnEnter
         />
+        <View style={styles.buttonDivider} />
         <Button
             success
             isDisabled={props.isDisabled}
-            innerStyles={[styles.buttonDropdown]}
             style={[styles.pl0]}
             onPress={props.onDropdownPress}
             shouldRemoveLeftBorderRadius
