@@ -3,6 +3,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import * as Localize from '../Localize';
 import CONST from '../../CONST';
+import * as PlaidDataProps from '../../pages/ReimbursementAccount/plaidDataPropTypes';
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
@@ -15,13 +16,13 @@ function openPlaidBankLogin(allowDebit, bankAccountID) {
     params.bankAccountID = bankAccountID;
     API.read('OpenPlaidBankLogin', params, {
         optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: CONST.ONYX.METHOD.SET,
             key: ONYXKEYS.PLAID_DATA,
-            value: {
-                isLoading: true,
-                error: '',
-                bankAccounts: null,
-            },
+            value: {...PlaidDataProps.plaidDataDefaultProps, isLoading: true},
+        }, {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: ONYXKEYS.PLAID_LINK_TOKEN,
+            value: '',
         }],
     });
 }

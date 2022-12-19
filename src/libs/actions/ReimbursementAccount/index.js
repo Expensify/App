@@ -13,16 +13,19 @@ export {
 } from './errors';
 
 /**
- * Set the current sub step in first step of adding withdrawal bank account
+ * Set the current sub step in first step of adding withdrawal bank account:
+ * - `null` of we want to go back to the view with the 2 button choices (Plaid and Manual)
+ * - CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL to ask them for their accountNumber and accountNumber
+ * - CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID to ask them to log in their bank
  *
- * @param {String} subStep - One of {CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL, CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID, null}
+ * @param {String} subStep
  */
 function setBankAccountSubStep(subStep) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
-    if (subStep === null) {
-        Onyx.set(ONYXKEYS.PLAID_DATA, PlaidDataProps.plaidDataDefaultProps);
-        Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
-    }
+
+    // When going back to the bank account view, let's remove Plaid data so they can try to connect again
+    Onyx.set(ONYXKEYS.PLAID_DATA, PlaidDataProps.plaidDataDefaultProps);
+    Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
 }
 
 function hideBankAccountErrors() {
