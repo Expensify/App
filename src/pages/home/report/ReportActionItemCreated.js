@@ -48,12 +48,7 @@ const ReportActionItemCreated = (props) => {
         >
             <Image
                 source={EmptyStateBackgroundImage}
-                style={{
-                    height: '80%',
-                    width: '100%',
-                    position: 'absolute',
-                    bottom: '60%',
-                }}
+                style={[styles.emptyStateBackground]}
             />
             <View
                 accessibilityLabel="Chat welcome message"
@@ -62,9 +57,9 @@ const ReportActionItemCreated = (props) => {
                     styles.p5,
                 ]}
             >
+                {/* This spacer view is required to show the full Image above, otherwise it is cut off by the bounding box. */}
                 <View style={{
-                    height: Dimensions.get('screen').height / 10,
-
+                    height: Dimensions.get('screen').height / 9,
                 }}
                 />
                 <View>

@@ -66,7 +66,7 @@ const ReportWelcomeText = (props) => {
         <>
             <View>
                 <Text style={[styles.welcomeTextHeader]}>
-                    Say Hello!
+                    {props.translate('reportActionsView.sayHello')}
                 </Text>
             </View>
             <Text style={[styles.mt3, styles.mw100]}>
@@ -123,9 +123,9 @@ const ReportWelcomeText = (props) => {
                                 {(index < displayNamesWithTooltips.length - 2) && <Text>, </Text>}
                             </Text>
                         ))}
-                        <Text style={[styles.mt3]}>
+                        <Text>
                             {/* Need to confirm copy for the below with marketing, and then add to translations. */}
-                            {'\n\nYou can also use the + button below to send or request money. Try it, it\'s super easy!'}
+                            {props.translate('reportActionsView.usePlusButton')}
                         </Text>
                     </Text>
                 )}

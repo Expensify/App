@@ -2824,7 +2824,13 @@ const styles = {
 
     welcomeTextHeader: {
         fontSize: variables.fontSizeHero,
-        marginTop: 8,
+    },
+
+    emptyStateBackground: {
+        height: '100%',
+        width: '100%',
+        position: 'absolute',
+        bottom: '60%',
     },
 };
 
