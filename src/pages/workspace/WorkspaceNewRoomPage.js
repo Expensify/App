@@ -73,7 +73,7 @@ class WorkspaceNewRoomPage extends React.Component {
         this.state = {
             roomName: '',
             policyID: '',
-            visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
+            visibilityDescription: this.props.translate('newRoomPage.restrictedDescription'),
             errors: {},
         };
 
@@ -91,11 +91,25 @@ class WorkspaceNewRoomPage extends React.Component {
     }
 
     /**
+     * @param {String} visibility - form input value passed by the Form component
+     */
+    updateVisibilityDescription(visibility) {
+        const visibilityDescription = this.props.translate(`newRoomPage.${visibility}Description`);
+        if (visibilityDescription === this.state.visibilityDescription) {
+            return;
+        }
+        this.setState({visibilityDescription});
+    }
+
+    /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Boolean}
      */
     validate(values) {
         const errors = {};
+
+        // update visibility
+        this.updateVisibilityDescription(values.visibility);
 
         // We error if the user doesn't enter a room name or left blank
         if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
@@ -191,14 +205,13 @@ class WorkspaceNewRoomPage extends React.Component {
                     <View style={styles.mb2}>
                         <Picker
                             inputID="visibility"
-                            value={this.state.visibility}
                             label={this.props.translate('newRoomPage.visibility')}
                             items={visibilityOptions}
-                            onInputChange={visibility => this.setState({visibility})}
+                            defaultValue={CONST.REPORT.VISIBILITY.RESTRICTED}
                         />
                     </View>
                     <Text style={[styles.textLabel, styles.colorMuted]}>
-                        {_.find(visibilityOptions, option => option.value === this.state.visibility).description}
+                        {this.state.visibilityDescription}
                     </Text>
                 </Form>
             </ScreenWrapper>
