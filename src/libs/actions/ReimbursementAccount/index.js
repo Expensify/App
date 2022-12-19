@@ -2,7 +2,6 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
 import resetFreePlanBankAccount from './resetFreePlanBankAccount';
 import deleteFromBankAccountList from './deleteFromBankAccountList';
-import * as PlaidDataProps from '../../../pages/ReimbursementAccount/plaidDataPropTypes';
 
 export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute} from './navigation';
 export {
@@ -22,10 +21,6 @@ export {
  */
 function setBankAccountSubStep(subStep) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
-
-    // When going back to the bank account view, let's remove Plaid data so they can try to connect again
-    Onyx.set(ONYXKEYS.PLAID_DATA, PlaidDataProps.plaidDataDefaultProps);
-    Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
 }
 
 function hideBankAccountErrors() {

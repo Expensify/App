@@ -189,7 +189,8 @@ class ReimbursementAccountPage extends React.Component {
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
                 if (hasInProgressVBBA) {
                     this.setState({shouldHideContinueSetupButton: false});
-                } else if (subStep) {
+                }
+                if (subStep) {
                     BankAccounts.setBankAccountSubStep(null);
                 } else {
                     Navigation.goBack();
@@ -236,16 +237,18 @@ class ReimbursementAccountPage extends React.Component {
             );
         }
 
-        const hasInProgressVBBA = Boolean(achData.bankAccountID) && achData.state !== BankAccount.STATE.OPEN && achData.state !== BankAccount.STATE.LOCKED;
-
-        if (this.props.reimbursementAccount.shouldShowResetModal && hasInProgressVBBA) {
+        if (this.props.reimbursementAccount.shouldShowResetModal && Boolean(achData.bankAccountID)) {
             return (
                 <WorkspaceResetBankAccountModal reimbursementAccount={this.props.reimbursementAccount} />
             );
         }
 
         // Show the "Continue with setup" button if a bank account setup is already in progress and no specific further step was passed in the url
-        if (!this.state.shouldHideContinueSetupButton && hasInProgressVBBA && _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''], this.getStepToOpenFromRouteParams())) {
+        if (!this.state.shouldHideContinueSetupButton
+            && Boolean(achData.bankAccountID)
+            && achData.state !== BankAccount.STATE.OPEN
+            && achData.state !== BankAccount.STATE.LOCKED
+            && _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''], this.getStepToOpenFromRouteParams())) {
             return (
                 <ContinueBankAccountSetup continue={this.continue} />
             );
