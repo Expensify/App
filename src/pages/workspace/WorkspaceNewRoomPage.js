@@ -71,22 +71,18 @@ class WorkspaceNewRoomPage extends React.Component {
         super(props);
 
         this.state = {
-            roomName: '',
             policyID: '',
             visibilityDescription: this.props.translate('newRoomPage.restrictedDescription'),
             errors: {},
         };
 
         this.validate = this.validate.bind(this);
-        this.validateAndAddPolicyReport = this.validateAndAddPolicyReport.bind(this);
+        this.submit = this.submit.bind(this);
     }
 
-    validateAndAddPolicyReport() {
-        if (!this.validate()) {
-            return;
-        }
-        const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.state.policyID}`];
-        Report.addPolicyReport(policy, this.state.roomName, this.state.visibility);
+    submit(values) {
+        const policyID = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${values.policyID}`];
+        Report.addPolicyReport(policyID, values.roomName, values.visibility);
     }
 
     /**
@@ -172,7 +168,7 @@ class WorkspaceNewRoomPage extends React.Component {
                     submitButtonText={this.props.translate('newRoomPage.createRoom')}
                     style={[styles.mh5, styles.mt5, styles.flexGrow1]}
                     validate={this.validate}
-                    onSubmit={this.validateAndAddPolicyReport}
+                    onSubmit={this.submit}
                     enabledWhenOffline
                 >
                     <View style={styles.mb5}>
