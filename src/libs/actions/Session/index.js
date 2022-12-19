@@ -10,7 +10,7 @@ import Log from '../../Log';
 import PushNotification from '../../Notification/PushNotification';
 import Timing from '../Timing';
 import CONST from '../../../CONST';
-import Localize from '../../Localize';
+import * as Localize from '../../Localize';
 import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
 import Timers from '../../Timers';
 import * as Pusher from '../../Pusher/pusher';

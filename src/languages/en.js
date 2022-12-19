@@ -1072,7 +1072,7 @@ export default {
             message: 'Expensify does not have access to save attachments. To enable access, go to Settings and allow access',
         },
     },
-    systemContextMenu: {
+    desktopApplicationMenu: {
         aboutExpensify: 'About New Expensify',
         updateExpensify: 'Update New Expensify',
         checkForUpdates: 'Check For Updates',

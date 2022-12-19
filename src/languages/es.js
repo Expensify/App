@@ -1074,7 +1074,7 @@ export default {
             message: 'Expensify no tiene acceso para guardar archivos. Para habilitar la descarga de archivos, entra en Settings y habilita el accesso',
         },
     },
-    systemContextMenu: {
+    desktopApplicationMenu: {
         aboutExpensify: 'Sobre Nuevo Expensify',
         updateExpensify: 'Actualizar Nuevo Expensify',
         checkForUpdates: 'Buscar Actualizaciones',

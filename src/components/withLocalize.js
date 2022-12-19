@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
-import Localize from '../libs/Localize';
+import * as Localize from '../libs/Localize';
 import DateUtils from '../libs/DateUtils';
 import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
 import * as NumberFormatUtils from '../libs/NumberFormatUtils';

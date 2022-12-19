@@ -1,7 +1,7 @@
 import {Alert, Linking} from 'react-native';
 import moment from 'moment';
 import CONST from '../../CONST';
-import Localize from '../Localize';
+import * as Localize from '../Localize';
 
 /**
  * Show alert on successful attachment download

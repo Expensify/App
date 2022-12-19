@@ -16,7 +16,7 @@ const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
 const checkForUpdates = require('../src/libs/checkForUpdates');
 const CONFIG = require('../src/CONFIG').default;
 const CONST = require('../src/CONST');
-const Localize = require('../src/libs/Localize').default;
+const Localize = require('../src/libs/Localize');
 
 const port = process.env.PORT || 8080;
 
@@ -178,7 +178,7 @@ const localizeMenuItems = (browserWindow, systemMenu) => {
     // List the Expensify Chat instance under the Window menu, even when it's hidden
     systemMenu.insert(4, new MenuItem({
         id: `historyMenuItem-${preferredLocale}`,
-        label: Localize.translate(preferredLocale, 'systemContextMenu.history'),
+        label: Localize.translate(preferredLocale, 'desktopApplicationMenu.history'),
         submenu: [{
             id: `backMenuItem-${preferredLocale}`,
             label: Localize.translate(preferredLocale, 'historyMenu.back'),
@@ -197,7 +197,7 @@ const localizeMenuItems = (browserWindow, systemMenu) => {
     // This menu item should become visible after an update is downloaded and ready to be applied
     const updateAppMenuItem = new MenuItem({
         id: `updateAppMenuItem-${preferredLocale}`,
-        label: Localize.translate(preferredLocale, 'systemContextMenu.updateExpensify'),
+        label: Localize.translate(preferredLocale, 'desktopApplicationMenu.updateExpensify'),
         visible: false,
         click: quitAndInstallWithUpdate,
     });
@@ -205,7 +205,7 @@ const localizeMenuItems = (browserWindow, systemMenu) => {
     // System-level menu item to manually check for App updates
     const checkForUpdateMenuItem = new MenuItem({
         id: `checkForUpdateMenuItem-${preferredLocale}`,
-        label: Localize.translate(preferredLocale, 'systemContextMenu.checkForUpdates'),
+        label: Localize.translate(preferredLocale, 'desktopApplicationMenu.checkForUpdates'),
         visible: true,
         click: manuallyCheckForUpdates,
     });

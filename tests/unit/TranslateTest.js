@@ -1,6 +1,6 @@
 const _ = require('underscore');
 const {error: AnnotationError} = require('@actions/core');
-const Localize = require('../../src/libs/Localize').default;
+const Localize = require('../../src/libs/Localize');
 const CONFIG = require('../../src/CONFIG');
 const translations = require('../../src/languages/translations');
 

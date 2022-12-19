@@ -88,10 +88,8 @@ function arrayToString(anArray) {
     return aString;
 }
 
-const Localize = {
+export {
     translate,
     translateLocal,
     arrayToString,
 };
-
-export default Localize;
