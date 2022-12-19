@@ -178,10 +178,9 @@ class WorkspaceNewRoomPage extends React.Component {
                     <View style={styles.mb5}>
                         <RoomNameInput
                             inputID="roomName"
+                            defaultValue=""
+                            autoFocus
                             policyID={this.state.policyID}
-                            errorText={this.state.errors.roomName}
-                            onChangeText={roomName => this.clearErrorAndSetValue('roomName', roomName)}
-                            value={this.state.roomName}
                         />
                     </View>
                     <View style={styles.mb5}>
