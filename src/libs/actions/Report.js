@@ -906,6 +906,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     // https://github.com/Expensify/App/issues/9090
     const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')};
     const htmlForNewComment = parser.replace(textForNewComment, autolinkFilter);
+    const originalCommentHTML = lodashGet(originalReportAction, 'message[0].html');
     const parsedOriginalCommentHTML = parser.replace(parser.htmlToMarkdown(originalCommentHTML), autolinkFilter);
 
     //  Delete the comment if it's empty
