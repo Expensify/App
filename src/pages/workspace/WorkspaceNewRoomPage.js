@@ -73,7 +73,6 @@ class WorkspaceNewRoomPage extends React.Component {
         this.state = {
             policyID: '',
             visibilityDescription: this.props.translate('newRoomPage.restrictedDescription'),
-            errors: {},
         };
 
         this.validate = this.validate.bind(this);
@@ -126,20 +125,6 @@ class WorkspaceNewRoomPage extends React.Component {
         }
 
         return errors;
-    }
-
-    /**
-     * @param {String} inputKey
-     * @param {String} value
-     */
-    clearErrorAndSetValue(inputKey, value) {
-        this.setState(prevState => ({
-            [inputKey]: value,
-            errors: {
-                ...prevState.errors,
-                [inputKey]: '',
-            },
-        }));
     }
 
     render() {
