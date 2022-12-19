@@ -109,8 +109,6 @@ const propTypes = {
     /** Id to use for this button */
     nativeID: PropTypes.string,
 
-    /** Whether to use a rounded border on tab selection */
-    useRoundedFocusBorder: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -142,7 +140,6 @@ const defaultProps = {
     shouldRemoveLeftBorderRadius: false,
     shouldEnableHapticFeedback: false,
     nativeID: '',
-    useRoundedFocusBorder: true,
 };
 
 class Button extends Component {
@@ -259,8 +256,10 @@ class Button extends Component {
                 disabled={this.props.isLoading || this.props.isDisabled}
                 style={[
                     this.props.isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
+                    styles.buttonContainer,
+                    this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : [],
+                    this.props.shouldRemoveLeftBorderRadius ? styles.shouldRemoveLeftBorderRadius : [],
                     ...StyleUtils.parseStyleAsArray(this.props.style),
-                    this.props.useRoundedFocusBorder ? styles.buttonContainer : [],
                 ]}
                 nativeID={this.props.nativeID}
             >
