@@ -1,5 +1,5 @@
 import React from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -15,11 +15,10 @@ import Picker from '../../components/Picker';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import Text from '../../components/Text';
-import Button from '../../components/Button';
-import FixedFooter from '../../components/FixedFooter';
 import Permissions from '../../libs/Permissions';
 import Log from '../../libs/Log';
 import * as ValidationUtils from '../../libs/ValidationUtils';
+import Form from '../../components/Form';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -155,7 +154,14 @@ class WorkspaceNewRoomPage extends React.Component {
                     title={this.props.translate('newRoomPage.newRoom')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
-                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
+                <Form
+                    formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
+                    submitButtonText={this.props.translate('newRoomPage.createRoom')}
+                    style={[styles.mh5, styles.mt5, styles.flexGrow1]}
+                    validate={this.validate}
+                    onSubmit={this.validateAndAddPolicyReport}
+                    enabledWhenOffline
+                >
                     <View style={styles.mb5}>
                         <RoomNameInput
                             ref={el => this.roomNameInputRef = el}
@@ -186,16 +192,7 @@ class WorkspaceNewRoomPage extends React.Component {
                     <Text style={[styles.textLabel, styles.colorMuted]}>
                         {_.find(visibilityOptions, option => option.value === this.state.visibility).description}
                     </Text>
-                </ScrollView>
-                <FixedFooter>
-                    <Button
-                        success
-                        pressOnEnter
-                        onPress={this.validateAndAddPolicyReport}
-                        style={[styles.w100]}
-                        text={this.props.translate('newRoomPage.createRoom')}
-                    />
-                </FixedFooter>
+                </Form>
             </ScreenWrapper>
         );
     }
