@@ -16,6 +16,8 @@ import {withNetwork} from './OnyxProvider';
 const propTypes = {
     /** Whether the user is submitting verifications data */
     isSubmittingVerificationsData: PropTypes.bool.isRequired,
+
+    /** Method to trigger when pressing back button of the header */
     onBackButtonPress: PropTypes.func.isRequired,
     ...withLocalizePropTypes,
 };
