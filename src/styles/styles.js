@@ -2828,6 +2828,11 @@ const styles = {
         marginBottom: 0,
     },
 
+    archivedReportFooter: {
+        borderRadius: variables.componentBorderRadius,
+        ...wordBreak.breakWord,
+    },
+
     saveButtonPadding: {
         paddingLeft: 18,
         paddingRight: 18,
