@@ -635,9 +635,9 @@ const styles = {
 
     headerText: {
         color: themeColors.heading,
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
         fontSize: variables.fontSizeNormal,
-        fontWeight: fontWeightBold,
+        fontWeight: '500',
     },
 
     headerGap: {
