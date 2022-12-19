@@ -20,6 +20,17 @@ import Log from '../../libs/Log';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import Form from '../../components/Form';
 
+/**
+ * Workspaces are policies with type === 'free'
+ * @param {Object} [policy]
+ * @returns {Object|undefined}
+ */
+const workspaceOptionsSelector = policy => policy && policy.type === CONST.POLICY.TYPE.FREE && ({
+    label: policy.name,
+    key: policy.id,
+    value: policy.id,
+});
+
 const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.shape({
@@ -33,6 +44,18 @@ const propTypes = {
         policyID: PropTypes.string,
     }).isRequired,
 
+    /** All Workspaces */
+    workspaceOptions: PropTypes.shape({
+        /** The workspace label */
+        label: PropTypes.string,
+
+        /** The workspace id */
+        key: PropTypes.string,
+
+        /** ID of the workspace */
+        value: PropTypes.string,
+    }),
+
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
@@ -40,6 +63,7 @@ const propTypes = {
 };
 const defaultProps = {
     betas: [],
+    workspaceOptions: [],
 };
 
 class WorkspaceNewRoomPage extends React.Component {
@@ -51,30 +75,11 @@ class WorkspaceNewRoomPage extends React.Component {
             policyID: '',
             visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
             errors: {},
-            workspaceOptions: [],
         };
 
         this.validate = this.validate.bind(this);
         this.validateAndAddPolicyReport = this.validateAndAddPolicyReport.bind(this);
         this.focusRoomNameInput = this.focusRoomNameInput.bind(this);
-    }
-
-    componentDidMount() {
-        // Workspaces are policies with type === 'free'
-        const workspaces = _.filter(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE);
-        this.setState({workspaceOptions: _.map(workspaces, policy => ({label: policy.name, key: policy.id, value: policy.id}))});
-    }
-
-    componentDidUpdate(prevProps) {
-        if (this.props.policies.length === prevProps.policies.length) {
-            return;
-        }
-
-        // Workspaces are policies with type === 'free'
-        const workspaces = _.filter(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE);
-
-        // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({workspaceOptions: _.map(workspaces, policy => ({label: policy.name, key: policy.id, value: policy.id}))});
     }
 
     validateAndAddPolicyReport() {
@@ -143,6 +148,8 @@ class WorkspaceNewRoomPage extends React.Component {
             return null;
         }
 
+        const workspaceOptions = _.filter(this.props.workspaceOptions, policy => !!policy);
+
         const visibilityOptions = _.map(_.values(CONST.REPORT.VISIBILITY), visibilityOption => ({
             label: this.props.translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
             value: visibilityOption,
@@ -176,12 +183,9 @@ class WorkspaceNewRoomPage extends React.Component {
                     <View style={styles.mb5}>
                         <Picker
                             inputID="policyID"
-                            value={this.state.policyID}
                             label={this.props.translate('workspace.common.workspace')}
                             placeholder={{value: '', label: this.props.translate('newRoomPage.selectAWorkspace')}}
-                            items={this.state.workspaceOptions}
-                            errorText={this.state.errors.policyID}
-                            onInputChange={policyID => this.clearErrorAndSetValue('policyID', policyID)}
+                            items={workspaceOptions}
                         />
                     </View>
                     <View style={styles.mb2}>
@@ -212,6 +216,10 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        workspaceOptions: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+            selector: workspaceOptionsSelector,
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
