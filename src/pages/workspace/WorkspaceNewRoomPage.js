@@ -54,6 +54,7 @@ class WorkspaceNewRoomPage extends React.Component {
             workspaceOptions: [],
         };
 
+        this.validate = this.validate.bind(this);
         this.validateAndAddPolicyReport = this.validateAndAddPolicyReport.bind(this);
         this.focusRoomNameInput = this.focusRoomNameInput.bind(this);
     }
@@ -85,32 +86,32 @@ class WorkspaceNewRoomPage extends React.Component {
     }
 
     /**
+     * @param {Object} values - form input values passed by the Form component
      * @returns {Boolean}
      */
-    validate() {
+    validate(values) {
         const errors = {};
 
         // We error if the user doesn't enter a room name or left blank
-        if (!this.state.roomName || this.state.roomName === CONST.POLICY.ROOM_PREFIX) {
+        if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
             errors.roomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
         }
 
         // We error if the room name already exists.
-        if (ValidationUtils.isExistingRoomName(this.state.roomName, this.props.reports, this.state.policyID)) {
+        if (ValidationUtils.isExistingRoomName(values.roomName, this.props.reports, values.policyID)) {
             errors.roomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
         }
 
         // Certain names are reserved for default rooms and should not be used for policy rooms.
-        if (ValidationUtils.isReservedRoomName(this.state.roomName)) {
+        if (ValidationUtils.isReservedRoomName(values.roomName)) {
             errors.roomName = this.props.translate('newRoomPage.roomNameReservedError');
         }
 
-        if (!this.state.policyID) {
+        if (!values.policyID) {
             errors.policyID = this.props.translate('newRoomPage.pleaseSelectWorkspace');
         }
 
-        this.setState({errors});
-        return _.isEmpty(errors);
+        return errors;
     }
 
     /**
@@ -164,6 +165,7 @@ class WorkspaceNewRoomPage extends React.Component {
                 >
                     <View style={styles.mb5}>
                         <RoomNameInput
+                            inputID="roomName"
                             ref={el => this.roomNameInputRef = el}
                             policyID={this.state.policyID}
                             errorText={this.state.errors.roomName}
@@ -173,6 +175,7 @@ class WorkspaceNewRoomPage extends React.Component {
                     </View>
                     <View style={styles.mb5}>
                         <Picker
+                            inputID="policyID"
                             value={this.state.policyID}
                             label={this.props.translate('workspace.common.workspace')}
                             placeholder={{value: '', label: this.props.translate('newRoomPage.selectAWorkspace')}}
@@ -183,6 +186,7 @@ class WorkspaceNewRoomPage extends React.Component {
                     </View>
                     <View style={styles.mb2}>
                         <Picker
+                            inputID="visibility"
                             value={this.state.visibility}
                             label={this.props.translate('newRoomPage.visibility')}
                             items={visibilityOptions}
