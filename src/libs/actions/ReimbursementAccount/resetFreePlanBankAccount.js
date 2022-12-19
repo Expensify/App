@@ -34,7 +34,7 @@ function resetFreePlanBankAccount(bankAccountID) {
                     value: PlaidDataProps.plaidDataDefaultProps,
                 },
                 {
-                    onyxMethod: 'set',
+                    onyxMethod: CONST.ONYX.METHOD.SET,
                     key: ONYXKEYS.PLAID_LINK_TOKEN,
                     value: '',
                 },
