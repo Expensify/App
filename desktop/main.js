@@ -15,7 +15,7 @@ const log = require('electron-log');
 const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
 const checkForUpdates = require('../src/libs/checkForUpdates');
 const CONFIG = require('../src/CONFIG').default;
-const BaseLocaleListener = require('../src/libs/Localize/LocaleListener/BaseLocaleListener').default;
+const CONST = require('../src/CONST');
 const Localize = require('../src/libs/Localize').default;
 
 const port = process.env.PORT || 8080;
@@ -75,7 +75,9 @@ for (let i = 0; i < process.argv.length; i++) {
 let hasUpdate = false;
 let downloadedVersion;
 
-// Current locale being used for translating menu items
+// Note that we have to subscribe to this separately and cannot use Localize.translateLocal,
+// because the only way code can be shared between the main and renderer processes at runtime is via the context bridge
+// So we track preferredLocale separately via ELECTRON_EVENTS.LOCALE_UPDATED
 let preferredLocale = CONST.DEFAULT_LOCALE;
 
 const quitAndInstallWithUpdate = () => {
