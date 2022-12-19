@@ -67,13 +67,15 @@ const ReportActionItemCreated = (props) => {
 
                 }}
                 />
-                <View style={[styles.flex1]}>
+                <View>
                     <Pressable onPress={() => ReportUtils.navigateToDetailsPage(props.report)}>
                         <RoomHeaderAvatars
                             icons={icons}
                             shouldShowLargeAvatars={isPolicyExpenseChat}
                         />
                     </Pressable>
+                </View>
+                <View>
                     <ReportWelcomeText report={props.report} />
                 </View>
             </View>

@@ -2824,7 +2824,7 @@ const styles = {
 
     welcomeTextHeader: {
         fontSize: variables.fontSizeHero,
-        marginTop: 4,
+        marginTop: 8,
     },
 };
 
