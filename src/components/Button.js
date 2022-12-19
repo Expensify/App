@@ -256,6 +256,7 @@ class Button extends Component {
                 style={[
                     this.props.isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
                     ...StyleUtils.parseStyleAsArray(this.props.style),
+                    styles.buttonContainer,
                 ]}
                 nativeID={this.props.nativeID}
             >

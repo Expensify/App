@@ -2,7 +2,6 @@ import React from 'react';
 import {
     View,
     ActivityIndicator,
-    TouchableOpacity,
     TouchableWithoutFeedback,
 } from 'react-native';
 import PropTypes from 'prop-types';
@@ -25,6 +24,7 @@ import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import walletTermsPropTypes from '../../pages/EnablePayments/walletTermsPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
+import Button from '../Button';
 
 const propTypes = {
     /** Additional logic for displaying the pay button */
@@ -192,19 +192,13 @@ const IOUPreview = (props) => {
                                 {(isCurrentUserManager
                                     && !props.shouldHidePayButton
                                     && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
-                                    <TouchableOpacity
-                                        style={[styles.buttonMedium, styles.buttonSuccess, styles.mt4]}
-                                        onPress={props.onPayButtonPressed}
-                                    >
-                                        <Text
-                                            style={[
-                                                styles.buttonMediumText,
-                                                styles.buttonSuccessText,
-                                            ]}
-                                        >
-                                            {props.translate('iou.pay')}
-                                        </Text>
-                                    </TouchableOpacity>
+                                        <Button
+                                            style={styles.mt4}
+                                            onPress={props.onPayButtonPressed}
+                                            text={props.translate('iou.pay')}
+                                            success
+                                            medium
+                                        />
                                 ))}
                             </View>
                         </OfflineWithFeedback>
