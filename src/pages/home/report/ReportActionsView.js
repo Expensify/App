@@ -278,7 +278,7 @@ class ReportActionsView extends React.Component {
 
     /**
      * @returns {String|null}
-    */
+     */
     computeNewMarkerReportActionID() {
         if (!ReportUtils.isUnread(this.props.report)) {
             return null;

@@ -138,8 +138,8 @@ function signInAndGetAppWithUnreadChat() {
                 reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                 maxSequenceNumber: 9,
                 lastReadSequenceNumber: 1,
-                lastMessageTimestamp: moment(reportAction9CreatedDate).utc().valueOf(),
-                lastReadTimestamp: moment(reportAction3CreatedDate).utc().valueOf(),
+                lastMessageTimestamp: moment.utc(reportAction9CreatedDate).valueOf(),
+                lastReadTimestamp: moment.utc(reportAction3CreatedDate).valueOf(),
                 lastActionCreated: DateUtils.getDBTime(MOMENT_TEN_MINUTES_AGO.clone().utc().valueOf()),
                 lastMessageText: 'Test',
                 participants: [USER_B_EMAIL],
@@ -150,7 +150,7 @@ function signInAndGetAppWithUnreadChat() {
                     automatic: false,
                     sequenceNumber: 0,
                     created: MOMENT_TEN_MINUTES_AGO.clone().format(MOMENT_FORMAT),
-                    reportActionTimestamp: moment(MOMENT_TEN_MINUTES_AGO.clone().format(MOMENT_FORMAT)).utc().valueOf(),
+                    reportActionTimestamp: moment.utc(MOMENT_TEN_MINUTES_AGO.clone().format(MOMENT_FORMAT)).valueOf(),
                     reportActionID: NumberUtils.rand64(),
                     message: [
                         {

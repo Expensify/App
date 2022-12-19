@@ -127,6 +127,7 @@ class ReportActionsList extends React.Component {
         item: reportAction,
         index,
     }) {
+        // When the new indicator should not be displayed we explicitly set it to null
         const shouldDisplayNewIndicator = !_.isNull(this.props.newMarkerReportActionID)
             && reportAction.reportActionID === this.props.newMarkerReportActionID
             && !ReportActionsUtils.isDeletedAction(reportAction);
