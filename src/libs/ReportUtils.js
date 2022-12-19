@@ -1013,6 +1013,10 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
  * @returns {Boolean}
  */
 function isUnread(report) {
+    if (!report) {
+        return false;
+    }
+
     const lastReadSequenceNumber = report.lastReadSequenceNumber || 0;
     const maxSequenceNumber = report.maxSequenceNumber || 0;
     return lastReadSequenceNumber < maxSequenceNumber;
