@@ -1180,6 +1180,26 @@ function chatIncludesChronos(report) {
                 && _.contains(report.participants, CONST.EMAIL.CHRONOS);
 }
 
+/**
+ * @param {Object} report
+ * @param {Array} sortedAndFilteredReportActions - reportActions for the report, sorted newest to oldest, and filtered for only those that should be visible
+ *
+ * @returns {String|null}
+ */
+function getNewMarkerReportActionID(report, sortedAndFilteredReportActions) {
+    if (!isUnread(report)) {
+        return null;
+    }
+
+    const newMarkerIndex = _.findLastIndex(sortedAndFilteredReportActions, reportAction => (
+        (reportAction.reportActionTimestamp || 0) > report.lastReadTimestamp
+    ));
+
+    return _.has(sortedAndFilteredReportActions[newMarkerIndex], 'reportActionID')
+        ? sortedAndFilteredReportActions[newMarkerIndex].reportActionID
+        : null;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1227,4 +1247,5 @@ export {
     getDisplayNameForParticipant,
     isIOUReport,
     chatIncludesChronos,
+    getNewMarkerReportActionID,
 };

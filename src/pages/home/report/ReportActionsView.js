@@ -62,13 +62,14 @@ class ReportActionsView extends React.Component {
 
         this.didLayout = false;
         this.didSubscribeToReportTypingEvents = false;
-
         this.unsubscribeVisibilityListener = null;
-        this.sortedReportActions = this.getSortedReportActionsForDisplay(props.reportActions);
+
+        // We need this.sortedAndFilteredReportActions to be set before this.state is initialized because the function to calculate the newMarkerReportActionID uses the sorted report actions
+        this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(props.reportActions);
 
         this.state = {
             isFloatingMessageCounterVisible: false,
-            newMarkerReportActionID: this.computeNewMarkerReportActionID(),
+            newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions),
         };
 
         this.currentScrollOffset = 0;
@@ -129,7 +130,7 @@ class ReportActionsView extends React.Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
-            this.sortedReportActions = this.getSortedReportActionsForDisplay(nextProps.reportActions);
+            this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(nextProps.reportActions);
             this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(nextProps.reportActions);
             return true;
         }
@@ -201,7 +202,7 @@ class ReportActionsView extends React.Component {
             this.setState({
                 newMarkerReportActionID: !ReportUtils.isUnread(this.props.report)
                     ? null
-                    : this.computeNewMarkerReportActionID(),
+                    : ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions),
             });
             this.openReportIfNecessary();
         }
@@ -219,7 +220,7 @@ class ReportActionsView extends React.Component {
         const didManuallyMarkReportAsUnread = (prevProps.report.lastReadTimestamp !== this.props.report.lastReadTimestamp)
             && ReportUtils.isUnread(this.props.report);
         if (didManuallyMarkReportAsUnread) {
-            this.setState({newMarkerReportActionID: this.computeNewMarkerReportActionID()});
+            this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions)});
         }
 
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
@@ -274,23 +275,6 @@ class ReportActionsView extends React.Component {
         }
 
         Report.openReport(this.props.report.reportID);
-    }
-
-    /**
-     * @returns {String|null}
-     */
-    computeNewMarkerReportActionID() {
-        if (!ReportUtils.isUnread(this.props.report)) {
-            return null;
-        }
-
-        const newMarkerIndex = _.findLastIndex(this.sortedReportActions, reportAction => (
-            (reportAction.reportActionTimestamp || 0) > this.props.report.lastReadTimestamp
-        ));
-
-        return _.has(this.sortedReportActions[newMarkerIndex], 'reportActionID')
-            ? this.sortedReportActions[newMarkerIndex].reportActionID
-            : null;
     }
 
     /**
@@ -384,7 +368,7 @@ class ReportActionsView extends React.Component {
                             report={this.props.report}
                             onScroll={this.trackScroll}
                             onLayout={this.recordTimeToMeasureItemLayout}
-                            sortedReportActions={this.sortedReportActions}
+                            sortedReportActions={this.sortedAndFilteredReportActions}
                             mostRecentIOUReportActionID={this.mostRecentIOUReportActionID}
                             isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
                             loadMoreChats={this.loadMoreChats}
