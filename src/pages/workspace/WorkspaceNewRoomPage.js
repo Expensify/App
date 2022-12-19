@@ -79,6 +79,9 @@ class WorkspaceNewRoomPage extends React.Component {
         this.submit = this.submit.bind(this);
     }
 
+    /**
+     * @param {Object} values - form input values passed by the Form component
+     */
     submit(values) {
         const policyID = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${values.policyID}`];
         Report.addPolicyReport(policyID, values.roomName, values.visibility);
