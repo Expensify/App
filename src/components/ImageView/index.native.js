@@ -74,7 +74,7 @@ class ImageView extends PureComponent {
 
             // On specific Android devices, the dimensions are sometimes returned to us flipped here, with `rotation` set to 90 degrees.
             // Swap them back to make sure the image fits nicely in the container. On iOS, the rotation is always undefined, so this does not apply.
-            if ((rotation === 90 || rotation === 270) && imageWidth > imageHeight) {
+            if ((rotation === 90 || rotation === 270)) {
                 [imageWidth, imageHeight] = [imageHeight, imageWidth];
             }
 
