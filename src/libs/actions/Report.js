@@ -916,7 +916,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     }
 
     // Skip the Edit if message is not changed
-    if (originalMessageHTML === htmlForNewComment.trim()) {
+    if (parsedOriginalCommentHTML === htmlForNewComment.trim()) {
         return;
     }
 
