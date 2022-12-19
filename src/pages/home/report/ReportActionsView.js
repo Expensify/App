@@ -33,7 +33,7 @@ const propTypes = {
     report: reportPropTypes.isRequired,
 
     /** Array of report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)).isRequired,
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** The session of the logged in person */
     session: PropTypes.shape({
@@ -53,6 +53,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    reportActions: {},
     session: {},
 };
 
