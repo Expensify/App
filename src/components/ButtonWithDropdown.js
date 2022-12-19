@@ -41,6 +41,7 @@ const ButtonWithDropdown = props => (
             isLoading={props.isLoading}
             shouldRemoveRightBorderRadius
             style={[styles.flex1]}
+            useRoundedFocusBorder={false}
             pressOnEnter
         />
         <Button
@@ -49,6 +50,7 @@ const ButtonWithDropdown = props => (
             style={[styles.buttonDropdown]}
             onPress={props.onDropdownPress}
             shouldRemoveLeftBorderRadius
+            useRoundedFocusBorder={false}
             ContentComponent={() => (
                 <Icon src={Expensicons.DownArrow} fill={themeColors.textLight} />
             )}
