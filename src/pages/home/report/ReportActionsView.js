@@ -100,7 +100,7 @@ class ReportActionsView extends React.Component {
 
         // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
         // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
-        this.unsubscribeFromNewActionEvent = Report.subscribeToNewActionEvent(this.props.report.reportID, (isFromCurrentUser, currentLastReportActionID) => {
+        this.unsubscribeFromNewActionEvent = Report.subscribeToNewActionEvent(this.props.report.reportID, (isFromCurrentUser, newActionID) => {
             const isNewMarkerReportActionIDSet = !_.isNull(this.state.newMarkerReportActionID);
 
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
@@ -118,12 +118,12 @@ class ReportActionsView extends React.Component {
                     Report.readNewestAction(this.props.report.reportID, _.last(_.toArray(this.props.reportActions)).created);
                     this.setState({newMarkerReportActionID: null});
                 } else if (!isNewMarkerReportActionIDSet) {
-                    this.setState({newMarkerReportActionID: currentLastReportActionID});
+                    this.setState({newMarkerReportActionID: newActionID});
                 }
             } else if (!isNewMarkerReportActionIDSet) {
                 // The report is not in view and we received a comment from another user while the new marker is not set
                 // so we will set the new marker now.
-                this.setState({newMarkerReportActionID: currentLastReportActionID});
+                this.setState({newMarkerReportActionID: newActionID});
             }
         });
     }

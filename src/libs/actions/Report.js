@@ -1220,28 +1220,17 @@ function subscribeToNewActionEvent(reportID, callback) {
 }
 
 /**
- * This is called whenever a new report action is inserted in Onyx.
- * Typically, this will be called with the latest report action on the report. However, because we cannot
- * guarantee the order that messages are sent from the server, it is not safe to assume that it is the latest report action.
+ * Handles callbacks and notifications for new report actions.
  *
  * @param {String} reportID
  * @param {Object} action
  */
-function viewNewReportAction(reportID, action) {
-    const report = allReports[reportID];
+function handleNewReportAction(reportID, action) {
     const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
-    const updatedReportObject = {};
-
-    updatedReportObject.lastMessageTimestamp = report.lastMessageTimestamp < action.reportActionTimestamp ? action.reportActionTimestamp : report.lastMessageTimestamp;
-    if (isFromCurrentUser) {
-        updatedReportObject.lastReadTimestamp = Date.now();
-    }
 
     if (reportID === newActionSubscriber.reportID) {
-        newActionSubscriber.callback(isFromCurrentUser, updatedReportObject.lastMessageTimestamp);
+        newActionSubscriber.callback(isFromCurrentUser, action.reportActionID);
     }
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
 
     const notificationPreference = lodashGet(allReports, [reportID, 'notificationPreference'], CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
     if (!ActiveClientManager.isClientTheLeader()) {
@@ -1329,7 +1318,7 @@ Onyx.connect({
                 return;
             }
 
-            viewNewReportAction(reportID, action);
+            handleNewReportAction(reportID, action);
             handledReportActions[reportID] = handledReportActions[reportID] || {};
             handledReportActions[reportID][action.sequenceNumber] = true;
         });
