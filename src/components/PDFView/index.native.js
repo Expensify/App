@@ -45,7 +45,7 @@ class PDFView extends Component {
     }
 
     componentDidUpdate() {
-        this.props.onToggleKeyboard(this.props.isShown);
+        this.props.onToggleKeyboard(this.props.isKeyboardShown);
     }
 
     handleFailureToLoadPDF(error) {
