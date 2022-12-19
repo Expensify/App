@@ -44,7 +44,7 @@ function resetFreePlanBankAccount(bankAccountID) {
                     value: ReimbursementAccountProps.reimbursementAccountDefaultProps,
                 },
                 {
-                    onyxMethod: 'set',
+                    onyxMethod: CONST.ONYX.METHOD.SET,
                     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
                     value: {},
                 },
