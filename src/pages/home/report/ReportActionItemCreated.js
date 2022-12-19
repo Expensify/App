@@ -1,5 +1,5 @@
 import React from 'react';
-import {Pressable, Image, View} from 'react-native';
+import {Pressable, Image, View, Dimensions} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -12,6 +12,7 @@ import styles from '../../../styles/styles';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as Report from '../../../libs/actions/Report';
 import reportPropTypes from '../../reportPropTypes';
+import EmptyStateBackgroundImage from '../../../../assets/images/empty-state_background-fade.png';
 
 const propTypes = {
     /** The id of the report */
@@ -46,8 +47,13 @@ const ReportActionItemCreated = (props) => {
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
         >
             <Image
-                source={require('../../../../assets/images/empty-state_background-fade.png')}
-                style={{position: 'absolute', bottom: '80%', width: '100%', height: '80%'}}
+                source={EmptyStateBackgroundImage}
+                style={{
+                    height: '80%',
+                    width: '100%',
+                    position: 'absolute',
+                    bottom: '60%',
+                }}
             />
             <View
                 accessibilityLabel="Chat welcome message"
@@ -56,6 +62,11 @@ const ReportActionItemCreated = (props) => {
                     styles.p5,
                 ]}
             >
+                <View style={{
+                    height: Dimensions.get('screen').height / 10,
+
+                }}
+                />
                 <View style={[styles.flex1]}>
                     <Pressable onPress={() => ReportUtils.navigateToDetailsPage(props.report)}>
                         <RoomHeaderAvatars
