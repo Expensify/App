@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    View, TouchableOpacity, InteractionManager, LayoutAnimation,
+    View, InteractionManager, LayoutAnimation,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -32,6 +32,7 @@ import {withNetwork} from '../../../../components/OnyxProvider';
 import * as PaymentUtils from '../../../../libs/PaymentUtils';
 import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import ConfirmContent from '../../../../components/ConfirmContent';
+import Button from '../../../../components/Button';
 
 class BasePaymentsPage extends React.Component {
     constructor(props) {
@@ -380,7 +381,7 @@ class BasePaymentsPage extends React.Component {
                             />
                             )}
                             {shouldShowMakeDefaultButton && (
-                            <TouchableOpacity
+                            <Button
                                 onPress={() => {
                                     this.setState({
                                         shouldShowDefaultDeleteMenu: false,
@@ -396,31 +397,19 @@ class BasePaymentsPage extends React.Component {
                                         });
                                     });
                                 }}
-                                style={[styles.button, styles.alignSelfCenter, styles.w100]}
-                            >
-                                <Text style={[styles.buttonText]}>
-                                    {this.props.translate('paymentsPage.setDefaultConfirmation')}
-                                </Text>
-                            </TouchableOpacity>
+                                text={this.props.translate('paymentsPage.setDefaultConfirmation')}
+                            />
                             )}
-                            <TouchableOpacity
+                            <Button
                                 onPress={() => {
                                     this.setState({
                                         showConfirmDeleteContent: true,
                                     });
                                 }}
-                                style={[
-                                    styles.button,
-                                    styles.buttonDanger,
-                                    shouldShowMakeDefaultButton && styles.mt4,
-                                    styles.alignSelfCenter,
-                                    styles.w100,
-                                ]}
-                            >
-                                <Text style={[styles.buttonText, styles.textWhite]}>
-                                    {this.props.translate('common.delete')}
-                                </Text>
-                            </TouchableOpacity>
+                                style={[shouldShowMakeDefaultButton && styles.mt4]}
+                                text={this.props.translate('common.delete')}
+                                danger
+                            />
                         </View>
                     ) : (
                         <ConfirmContent
