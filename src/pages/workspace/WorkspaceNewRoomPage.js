@@ -79,7 +79,6 @@ class WorkspaceNewRoomPage extends React.Component {
 
         this.validate = this.validate.bind(this);
         this.validateAndAddPolicyReport = this.validateAndAddPolicyReport.bind(this);
-        this.focusRoomNameInput = this.focusRoomNameInput.bind(this);
     }
 
     validateAndAddPolicyReport() {
@@ -171,7 +170,7 @@ class WorkspaceNewRoomPage extends React.Component {
         }));
 
         return (
-            <ScreenWrapper onTransitionEnd={this.focusRoomNameInput}>
+            <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={this.props.translate('newRoomPage.newRoom')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
@@ -187,7 +186,6 @@ class WorkspaceNewRoomPage extends React.Component {
                     <View style={styles.mb5}>
                         <RoomNameInput
                             inputID="roomName"
-                            ref={el => this.roomNameInputRef = el}
                             policyID={this.state.policyID}
                             errorText={this.state.errors.roomName}
                             onChangeText={roomName => this.clearErrorAndSetValue('roomName', roomName)}
