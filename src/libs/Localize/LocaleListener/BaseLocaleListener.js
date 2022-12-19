@@ -5,7 +5,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 let preferredLocale = CONST.DEFAULT_LOCALE;
 
 /**
- * Adds event listener for changes to the locale so Onyx gets updated accordingly
+ * Adds event listener for changes to the locale. Callbacks are executed when the locale changes in Onyx.
  *
  * @param {Function} callbackAfterChange
  */
