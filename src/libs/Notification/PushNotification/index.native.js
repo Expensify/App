@@ -70,6 +70,12 @@ function init() {
     UrbanAirship.addListener(EventType.NotificationResponse, (event) => {
         pushNotificationEventCallback(EventType.NotificationResponse, event.notification);
     });
+
+    UrbanAirship.setForegroundPresentationOptions({
+        alert: true,
+        sound: true,
+        badge: true
+    });
 }
 
 /**
