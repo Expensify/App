@@ -146,14 +146,6 @@ class WorkspaceNewRoomPage extends React.Component {
         }));
     }
 
-    focusRoomNameInput() {
-        if (!this.roomNameInputRef) {
-            return;
-        }
-
-        this.roomNameInputRef.focus();
-    }
-
     render() {
         if (!Permissions.canUsePolicyRooms(this.props.betas)) {
             Log.info('Not showing create Policy Room page since user is not on policy rooms beta');
