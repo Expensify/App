@@ -57,48 +57,35 @@ class ACHContractStep extends React.Component {
     validate(values) {
         const errors = {};
 
+        const errorKeys = {
+            street: 'address',
+            city: 'addressCity',
+            state: 'addressState',
+        };
+        const requiredFields = ['firstName', 'lastName', 'dob', 'ssnLast4', 'street', 'city', 'zipCode', 'state'];
         if (this.state.hasOtherBeneficialOwners) {
             _.each(this.state.beneficialOwners, (ownerKey) => {
-                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerKey}.firstName`])) {
-                    errors[`beneficialOwner.${ownerKey}.firstName`] = this.props.translate('bankAccount.error.firstName');
-                }
-
-                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerKey}.lastName`])) {
-                    errors[`beneficialOwner.${ownerKey}.lastName`] = this.props.translate('bankAccount.error.lastName');
-                }
-
-                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerKey}.dob`])) {
-                    errors[`beneficialOwner.${ownerKey}.dob`] = this.props.translate('bankAccount.error.dob');
-                }
+                // eslint-disable-next-line rulesdir/prefer-early-return
+                _.each(requiredFields, (inputKey) => {
+                    if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerKey}.${inputKey}`])) {
+                        const errorKey = errorKeys[inputKey] || inputKey;
+                        errors[`beneficialOwner.${ownerKey}.${inputKey}`] = this.props.translate(`bankAccount.error.${errorKey}`);
+                    }
+                });
 
                 if (values[`beneficialOwner.${ownerKey}.dob`] && !ValidationUtils.meetsAgeRequirements(values[`beneficialOwner.${ownerKey}.dob`])) {
                     errors[`beneficialOwner.${ownerKey}.dob`] = this.props.translate('bankAccount.error.age');
                 }
 
-                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerKey}.ssnLast4`])
-                    || !ValidationUtils.isValidSSNLastFour(values[`beneficialOwner.${ownerKey}.ssnLast4`])) {
+                if (values[`beneficialOwner.${ownerKey}.ssnLast4`] && !ValidationUtils.isValidSSNLastFour(values[`beneficialOwner.${ownerKey}.ssnLast4`])) {
                     errors[`beneficialOwner.${ownerKey}.ssnLast4`] = this.props.translate('bankAccount.error.ssnLast4');
                 }
 
-                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerKey}.street`])) {
-                    errors[`beneficialOwner.${ownerKey}.street`] = this.props.translate('bankAccount.error.address');
-                }
-
-                if (values[`beneficialOwner.${ownerKey}.street`]
-                    && !ValidationUtils.isValidAddress(values[`beneficialOwner.${ownerKey}.street`])) {
+                if (values[`beneficialOwner.${ownerKey}.street`] && !ValidationUtils.isValidAddress(values[`beneficialOwner.${ownerKey}.street`])) {
                     errors[`beneficialOwner.${ownerKey}.street`] = this.props.translate('bankAccount.error.addressStreet');
                 }
 
-                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerKey}.city`])) {
-                    errors[`beneficialOwner.${ownerKey}.city`] = this.props.translate('bankAccount.error.addressCity');
-                }
-
-                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerKey}.state`])) {
-                    errors[`beneficialOwner.${ownerKey}.state`] = this.props.translate('bankAccount.error.addressState');
-                }
-
-                if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner.${ownerKey}.zipCode`])
-                    || !ValidationUtils.isValidZipCode(values[`beneficialOwner.${ownerKey}.zipCode`])) {
+                if (values[`beneficialOwner.${ownerKey}.zipCode`] && !ValidationUtils.isValidZipCode(values[`beneficialOwner.${ownerKey}.zipCode`])) {
                     errors[`beneficialOwner.${ownerKey}.zipCode`] = this.props.translate('bankAccount.error.zipCode');
                 }
             });
@@ -130,8 +117,8 @@ class ACHContractStep extends React.Component {
 
     addBeneficialOwner() {
         this.setState((prevState) => {
-            // Each beneficial owner is assigned a unique key to connect to the correct Identity Form.
-            // This is because each Identity form is dynamically rendered by retrieving stored form values for each ownerKey.
+            // Each beneficial owner is assigned a unique key that will connect it to an Identity Form.
+            // That way we can dynamically render each Identity Form based on which keys are present in the beneficial owners array.
             const beneficialOwners = [...prevState.beneficialOwners, NumberUtils.rand64()];
 
             FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners});
