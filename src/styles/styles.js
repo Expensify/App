@@ -350,6 +350,11 @@ const styles = {
         ...spacing.ph3,
     },
 
+    buttonContainer: {
+        padding: 1,
+        borderRadius: variables.buttonBorderRadius,
+    },
+
     buttonText: {
         color: themeColors.text,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
@@ -385,7 +390,7 @@ const styles = {
         borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeLarge,
         paddingTop: 8,
-        paddingRight: 18,
+        paddingRight: 10,
         paddingBottom: 8,
         paddingLeft: 18,
         backgroundColor: themeColors.buttonDefaultBG,
@@ -734,7 +739,7 @@ const styles = {
     baseTextInput: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeNormal,
-        lineHeight: variables.fontSizeNormalHeight,
+        lineHeight: variables.lineHeightNormal,
         color: themeColors.text,
         paddingTop: 23,
         paddingBottom: 8,
@@ -998,13 +1003,19 @@ const styles = {
         },
     },
 
+    floatingActionButtonContainer: {
+        position: 'absolute',
+        right: 20,
+
+        // The bottom of the floating action button should align with the bottom of the compose box.
+        // The value should be equal to the height + marginBottom + marginTop of chatItemComposeSecondaryRow
+        bottom: 25,
+    },
+
     floatingActionButton: {
         backgroundColor: themeColors.success,
-        position: 'absolute',
         height: variables.componentSizeLarge,
         width: variables.componentSizeLarge,
-        right: 20,
-        bottom: 34,
         borderRadius: 999,
         alignItems: 'center',
         justifyContent: 'center',
@@ -1734,7 +1745,6 @@ const styles = {
         width: 28,
         borderWidth: 2,
         borderStyle: 'solid',
-        backgroundColor: themeColors.opaqueAvatar,
         borderRadius: 24,
         zIndex: 6,
     },
@@ -1908,7 +1918,7 @@ const styles = {
         ...spacing.p1,
         ...spacing.mv1,
         ...spacing.mh1,
-        ...{borderRadius: variables.componentBorderRadiusSmall},
+        ...{borderRadius: variables.buttonBorderRadius},
     },
 
     reportActionSystemMessageContainer: {
@@ -1972,14 +1982,14 @@ const styles = {
         marginLeft: -16,
     },
 
-    screenBlur: {
+    roomHeaderAvatarOverlay: {
         position: 'absolute',
         top: 0,
         right: 0,
         bottom: 0,
         left: 0,
-        backgroundColor: themeColors.inverse,
-        opacity: 0.5,
+        backgroundColor: themeColors.overlay,
+        opacity: variables.overlayOpacity,
     },
 
     avatarInnerTextChat: {
@@ -2140,6 +2150,7 @@ const styles = {
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
+        lineHeight: variables.inputHeight,
     },
 
     iouAmountTextInput: addOutlineWidth({
@@ -2486,7 +2497,6 @@ const styles = {
 
     dotIndicatorMessage: {
         display: 'flex',
-        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
     },
@@ -2496,13 +2506,13 @@ const styles = {
     },
 
     cardOverlay: {
-        backgroundColor: themeColors.modalBackdrop,
+        backgroundColor: themeColors.overlay,
         position: 'absolute',
         top: 0,
         left: 0,
         width: '100%',
         height: '100%',
-        opacity: 0.5,
+        opacity: variables.overlayOpacity,
     },
 
     communicationsLinkIcon: {
@@ -2803,9 +2813,11 @@ const styles = {
     },
 
     cardMenuItem: {
-        paddingHorizontal: 0,
-        borderRadius: variables.componentBorderRadiusNormal,
-        paddingVertical: 12,
+        paddingLeft: 8,
+        paddingRight: 0,
+        borderRadius: variables.buttonBorderRadius,
+        height: variables.componentSizeLarge,
+        alignItems: 'center',
     },
 
     callRequestSection: {
@@ -2814,6 +2826,11 @@ const styles = {
         paddingBottom: 0,
         marginHorizontal: 0,
         marginBottom: 0,
+    },
+
+    saveButtonPadding: {
+        paddingLeft: 18,
+        paddingRight: 18,
     },
 };
 

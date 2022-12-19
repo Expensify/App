@@ -78,11 +78,13 @@ function getNavigationDrawerStyle(isSmallScreenWidth) {
             width: '100%',
             height: '100%',
             borderColor: themeColors.border,
+            backgroundColor: themeColors.appBG,
         }
         : {
             height: '100%',
             width: variables.sideBarWidth,
             borderRightColor: themeColors.border,
+            backgroundColor: themeColors.appBG,
         };
 }
 
@@ -171,7 +173,7 @@ function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerH
  * @param {Number} width
  * @return {Object}
  */
-function getAutoGrowTextInputStyle(width) {
+function getWidthStyle(width) {
     return {
         width,
     };
@@ -308,13 +310,13 @@ function getAnimatedFABStyle(rotate, backgroundColor) {
 
 /**
  * @param {Number} width
- * @param {Number} height
+ * @param {Number | null} height
  * @returns {Object}
  */
-function getWidthAndHeightStyle(width, height) {
+function getWidthAndHeightStyle(width, height = null) {
     return {
         width,
-        height,
+        height: height != null ? height : width,
     };
 }
 
@@ -651,7 +653,7 @@ export {
     getNavigationDrawerType,
     getZoomCursorStyle,
     getZoomSizingStyle,
-    getAutoGrowTextInputStyle,
+    getWidthStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,

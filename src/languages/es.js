@@ -418,7 +418,7 @@ export default {
         nameOnCard: 'Nombre en la tarjeta',
         debitCardNumber: 'Numero de la tarjeta de débito',
         expiration: 'Fecha de vencimiento',
-        expirationDate: 'MM/AA',
+        expirationDate: 'MMAA',
         cvv: 'CVV',
         billingAddress: 'Dirección de envio',
         expensifyTermsOfService: 'Expensify Términos de servicio',
@@ -632,6 +632,7 @@ export default {
         unknownFilename: 'Archivo desconocido',
         passwordRequired: 'Por favor introduce tu contraseña',
         passwordIncorrect: 'Contraseña incorrecta. Por favor intenta de nuevo.',
+        failedToLoadPDF: 'Hubo un error al intentar cargar el PDF.',
         pdfPasswordForm: {
             title: 'PDF protegido con contraseña',
             infoText: 'Este PDF esta protegido con contraseña.',
