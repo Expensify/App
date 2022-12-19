@@ -1,7 +1,6 @@
 import React from 'react';
 import {
     View,
-    TouchableOpacity,
     TouchableWithoutFeedback,
 } from 'react-native';
 import PropTypes from 'prop-types';
@@ -23,6 +22,8 @@ import Text from '../Text';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import walletTermsPropTypes from '../../pages/EnablePayments/walletTermsPropTypes';
+import * as ReportUtils from '../../libs/ReportUtils';
+import Button from '../Button';
 
 const propTypes = {
     /** Additional logic for displaying the pay button */
@@ -120,8 +121,8 @@ const IOUPreview = (props) => {
     const managerName = lodashGet(props.personalDetails, [managerEmail, 'firstName'], '')
                         || Str.removeSMSDomain(managerEmail);
     const ownerName = lodashGet(props.personalDetails, [ownerEmail, 'firstName'], '') || Str.removeSMSDomain(ownerEmail);
-    const managerAvatar = lodashGet(props.personalDetails, [managerEmail, 'avatar'], '');
-    const ownerAvatar = lodashGet(props.personalDetails, [ownerEmail, 'avatar'], '');
+    const managerAvatar = lodashGet(props.personalDetails, [managerEmail, 'avatar']) || ReportUtils.getDefaultAvatar(managerEmail);
+    const ownerAvatar = lodashGet(props.personalDetails, [ownerEmail, 'avatar']) || ReportUtils.getDefaultAvatar(ownerEmail);
     const cachedTotal = props.iouReport.total && props.iouReport.currency
         ? props.numberFormat(
             Math.abs(props.iouReport.total) / 100,
@@ -183,19 +184,13 @@ const IOUPreview = (props) => {
                         {(isCurrentUserManager
                             && !props.shouldHidePayButton
                             && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
-                            <TouchableOpacity
-                                style={[styles.buttonMedium, styles.buttonSuccess, styles.mt4]}
-                                onPress={props.onPayButtonPressed}
-                            >
-                                <Text
-                                    style={[
-                                        styles.buttonMediumText,
-                                        styles.buttonSuccessText,
-                                    ]}
-                                >
-                                    {props.translate('iou.pay')}
-                                </Text>
-                            </TouchableOpacity>
+                                <Button
+                                    style={styles.mt4}
+                                    onPress={props.onPayButtonPressed}
+                                    text={props.translate('iou.pay')}
+                                    success
+                                    medium
+                                />
                         ))}
                     </View>
                 </OfflineWithFeedback>
