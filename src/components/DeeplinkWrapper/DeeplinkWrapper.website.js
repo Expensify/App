@@ -12,7 +12,6 @@ import Text from '../Text';
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
-import * as FontFamily from '../../styles/fontFamily';
 import Icon from '../Icon';
 import colors from '../../styles/colors';
 import * as Browser from '../../libs/Browser';
@@ -122,7 +121,7 @@ class DeeplinkWrapper extends PureComponent {
                                 src={Illustrations.RocketBlue}
                             />
                         </View>
-                        <Text style={[styles.textXXLarge, {fontFamily: FontFamily.fontFamily.NEW_KANSAS_MEDIUM}]}>
+                        <Text style={styles.textXXLarge}>
                             {this.props.translate('deeplinkWrapper.launching')}
                         </Text>
                         <View style={styles.mt2}>
