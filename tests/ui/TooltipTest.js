@@ -2,8 +2,11 @@ import React from 'react';
 import {screen, render, fireEvent} from '@testing-library/react-native';
 import {PortalProvider} from '@gorhom/portal';
 import Text from '../../src/components/Text';
+
+// Note: manually importing the web version for the sake of this test, because Tooltip is a no-op on iOS/Android
+// and jest will try to grab index.native.js by default
 // eslint-disable-next-line import/extensions
-import Tooltip from '../../src/components/Tooltip/index.js'; // Note: manually importing the web version for the sake of this test
+import Tooltip from '../../src/components/Tooltip/index.js';
 import * as DeviceCapabilities from '../../src/libs/DeviceCapabilities';
 
 jest.mock('../../src/libs/DeviceCapabilities');
