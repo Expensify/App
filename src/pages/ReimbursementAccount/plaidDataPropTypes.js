@@ -10,7 +10,7 @@ const plaidDataPropTypes = PropTypes.shape({
     /** Name of the bank */
     bankName: PropTypes.string,
 
-    /** Access token returned by Plaid once the user logged to their bank, that can be used along with internal credentials to query for Plaid Balance or Assets */
+    /** Access token returned by Plaid once the user has logged into their bank. This token can be used along with internal credentials to query for Plaid Balance or Assets */
     plaidAccessToken: PropTypes.string,
 
     /** List of plaid bank accounts */
