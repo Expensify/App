@@ -76,7 +76,7 @@ let hasUpdate = false;
 let downloadedVersion;
 
 // Current locale being used for translating menu items
-let preferredLocale = BaseLocaleListener.getPreferredLocale();
+let preferredLocale = CONST.DEFAULT_LOCALE;
 
 const quitAndInstallWithUpdate = () => {
     if (!downloadedVersion) {
