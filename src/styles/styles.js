@@ -635,7 +635,7 @@ const styles = {
 
     headerText: {
         color: themeColors.heading,
-        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeNormal,
         fontWeight: '500',
     },
@@ -2154,8 +2154,8 @@ const styles = {
     },
 
     iouAmountTextInput: addOutlineWidth({
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        fontWeight: '500',
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
         padding: 0,
