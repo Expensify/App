@@ -461,7 +461,7 @@ const styles = {
     buttonDivider: {
         width: 1,
         alignSelf: 'stretch',
-        backgroundColor: themeColors.textLight,
+        backgroundColor: themeColors.appBG,
         marginVertical: 1,
     },
 
