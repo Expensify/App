@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.2.40-3",
+  "version": "1.2.42-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -100,7 +100,7 @@
     "react-native-image-picker": "^4.10.2",
     "react-native-image-size": "git+https://github.com/Expensify/react-native-image-size#6b5ab5110dc3ed554f8eafbc38d7d87c17147972",
     "react-native-modal": "^13.0.0",
-    "react-native-onyx": "1.0.29",
+    "react-native-onyx": "1.0.31",
     "react-native-pdf": "^6.6.2",
     "react-native-performance": "^2.0.0",
     "react-native-permissions": "^3.0.1",
@@ -116,6 +116,7 @@
     "react-plaid-link": "3.3.2",
     "react-web-config": "^1.0.0",
     "save": "^2.4.0",
+    "semver": "^7.3.8",
     "shim-keyboard-event-key": "^1.0.3",
     "underscore": "^1.13.1",
     "urbanairship-react-native": "^14.3.1"
@@ -184,7 +185,6 @@
     "react-native-performance-flipper-reporter": "^2.0.0",
     "react-native-svg-transformer": "^1.0.0",
     "react-test-renderer": "18.1.0",
-    "semver": "^7.3.4",
     "shellcheck": "^1.1.0",
     "style-loader": "^2.0.0",
     "time-analytics-webpack-plugin": "^0.1.17",
