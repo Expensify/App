@@ -458,12 +458,18 @@ class IOUModal extends Component {
                                             {this.renderHeader()}
                                             <IOUConfirmPage
                                                 onConfirm={(selectedParticipants) => {
-                                                    if (this.creatingIOUTransaction) { return; }
+                                                    if (this.creatingIOUTransaction) {
+                                                        // Prevent creating multiple transactions if the button is pressed repeatedly
+                                                        return;
+                                                    }
                                                     this.creatingIOUTransaction = true;
                                                     this.createTransaction(selectedParticipants);
                                                 }}
                                                 onSendMoney={(paymentMethodType) => {
-                                                    if (this.creatingIOUTransaction) { return; }
+                                                    if (this.creatingIOUTransaction) {
+                                                        // Prevent creating multiple transactions if the button is pressed repeatedly
+                                                        return;
+                                                    }
                                                     this.creatingIOUTransaction = true;
                                                     this.sendMoney(paymentMethodType);
                                                 }}
