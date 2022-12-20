@@ -2008,8 +2008,8 @@ const styles = {
 
     displayName: {
         fontSize: variables.fontSizeLarge,
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        fontWeight: '500',
         color: themeColors.heading,
     },
 
