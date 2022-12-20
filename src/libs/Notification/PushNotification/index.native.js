@@ -70,9 +70,9 @@ function init() {
     UrbanAirship.addListener(EventType.NotificationResponse, (event) => {
         pushNotificationEventCallback(EventType.NotificationResponse, event.notification);
     });
-    
-    // This statement has effect on iOS only. 
-    // It enables the App to display push notifications when the App is in foreground. 
+
+    // This statement has effect on iOS only.
+    // It enables the App to display push notifications when the App is in foreground.
     // By default, the push notifications are silenced on iOS if the App is in foreground.
     // More info here https://developer.apple.com/documentation/usernotifications/unusernotificationcenterdelegate/1649518-usernotificationcenter
     UrbanAirship.setForegroundPresentationOptions({
