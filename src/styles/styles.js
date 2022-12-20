@@ -1890,10 +1890,12 @@ const styles = {
     },
 
     notFoundTextHeader: {
-        color: themeColors.link,
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
-        fontSize: 150,
+        color: themeColors.heading,
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        fontWeight: '500',
+        fontSize: variables.fontSizeLarge,
+        marginTop: 20,
+        marginBottom: 8,
     },
 
     notFoundTextBody: {
