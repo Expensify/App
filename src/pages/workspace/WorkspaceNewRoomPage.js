@@ -52,6 +52,7 @@ class WorkspaceNewRoomPage extends React.Component {
 
         this.validate = this.validate.bind(this);
         this.submit = this.submit.bind(this);
+        this.updateVisibilityDescription = this.updateVisibilityDescription.bind(this);
     }
 
     /**
@@ -79,9 +80,6 @@ class WorkspaceNewRoomPage extends React.Component {
      */
     validate(values) {
         const errors = {};
-
-        // update visibility
-        this.updateVisibilityDescription(values.visibility);
 
         // We error if the user doesn't enter a room name or left blank
         if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
@@ -158,6 +156,7 @@ class WorkspaceNewRoomPage extends React.Component {
                             inputID="visibility"
                             label={this.props.translate('newRoomPage.visibility')}
                             items={visibilityOptions}
+                            onValueChange={this.updateVisibilityDescription}
                             defaultValue={CONST.REPORT.VISIBILITY.RESTRICTED}
                         />
                     </View>
