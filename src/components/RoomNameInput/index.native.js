@@ -45,7 +45,6 @@ class RoomNameInput extends Component {
                 keyboardType={keyboardType} // this is a bit hacky solution to a RN issue https://github.com/facebook/react-native/issues/27449
                 onBlur={this.props.onBlur}
                 autoFocus={this.props.autoFocus}
-                defaultValue={this.props.defaultValue}
             />
         );
     }

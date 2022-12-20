@@ -25,9 +25,6 @@ const propTypes = {
     /** Callback that is called when the text input is blurred */
     onBlur: PropTypes.func,
 
-    /** The value to set the field to initially */
-    defaultValue: PropTypes.string,
-
     /** AutoFocus */
     autoFocus: PropTypes.bool,
 };
@@ -41,7 +38,6 @@ const defaultProps = {
 
     inputID: undefined,
     onBlur: () => {},
-    defaultValue: undefined,
     autoFocus: false,
 };
 
