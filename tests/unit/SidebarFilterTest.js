@@ -313,12 +313,8 @@ describe('Sidebar', () => {
         it('hides unread chats', () => {
             // Given the sidebar is rendered in #focus mode (hides read chats)
             // with report 1 and 2 having unread actions
-            const report1 = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 0, true),
-            };
-            const report2 = {
-                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 0, true),
-            };
+            const report1 = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 0, true);
+            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 0, true);
             const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com']);
             let sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
 
