@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import Text from '../../components/Text';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
@@ -42,7 +41,6 @@ const ChangeExpensifyLoginLink = props => (
         <TouchableOpacity
             style={[styles.link]}
             onPress={props.onPress}
-            underlayColor={themeColors.componentBG}
         >
             <Text style={[styles.link]}>
                 {props.translate('common.goBack')}
