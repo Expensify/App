@@ -162,7 +162,7 @@ class WorkspaceNewRoomPage extends React.Component {
                     <View style={styles.mb5}>
                         <RoomNameInput
                             inputID="roomName"
-                            defaultValue=""
+                            defaultValue={CONST.POLICY.ROOM_PREFIX}
                             autoFocus
                             policyID={this.state.policyID}
                         />

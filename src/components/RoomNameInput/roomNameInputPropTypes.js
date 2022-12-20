@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import {withLocalizePropTypes} from '../withLocalize';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Callback to execute when the text input is modified correctly */
@@ -41,7 +42,7 @@ const defaultProps = {
 
     inputID: undefined,
     onBlur: () => {},
-    defaultValue: '',
+    defaultValue: CONST.POLICY.ROOM_PREFIX,
     autoFocus: false,
 };
 
