@@ -196,8 +196,8 @@ class ProfilePage extends Component {
         );
         if (firstNameHasInvalidCharacters || lastNameHasInvalidCharacters) {
             const invalidCharactersError = 'Your name cannot contain commas, please enter a name without them';
-            errors.firstName = firstNameHasInvalidCharacters ? invalidCharactersError : '';
-            errors.lastName = lastNameHasInvalidCharacters ? invalidCharactersError : '';
+            this.assignError(errors, 'firstName', firstNameHasInvalidCharacters, invalidCharactersError);
+            this.assignError(errors, 'firstName', lastNameHasInvalidCharacters, invalidCharactersError);
             return errors;
         }
 
@@ -206,9 +206,22 @@ class ProfilePage extends Component {
             CONST.FORM_CHARACTER_LIMIT,
             [values.firstName, values.lastName],
         );
-        errors.firstName = hasFirstNameError ? characterLimitError : '';
-        errors.lastName = hasLastNameError ? characterLimitError : '';
+        this.assignError(errors, 'firstName', hasFirstNameError, characterLimitError);
+        this.assignError(errors, 'lastName', hasLastNameError, characterLimitError);
 
+        return errors;
+    }
+    /**
+     * @param {Object} errors
+     * @param {String} errorKey
+     * @param {Boolean} hasError
+     * @param {String} errorCopy
+     * @returns {Object} - An object containing the errors for each inputID
+     */
+    assignError(errors, errorKey, hasError, errorCopy) {
+        if (hasError) {
+            errors[errorKey] = errorCopy;
+        }
         return errors;
     }
 
