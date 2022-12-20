@@ -57,7 +57,7 @@ const ActivateStep = (props) => {
                         fill={defaultTheme.iconSuccessFill}
                     />
                     <View style={[styles.ph5]}>
-                        <Text style={[styles.mt5, styles.h1, styles.textAlignCenter]}>
+                        <Text style={[styles.mt5, styles.h1, styles.textAlignCenter, styles.textNewKansas]}>
                             {props.translate(`activateStep.${isGoldWallet ? 'activated' : 'checkBackLater'}Title`)}
                         </Text>
                         <Text style={[styles.mt3, styles.textAlignCenter]}>
