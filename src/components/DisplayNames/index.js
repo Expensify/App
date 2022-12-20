@@ -100,7 +100,7 @@ class DisplayNames extends PureComponent {
                             >
                                 {/*  // We need to get the refs to all the names which will be used to correct
                                     the horizontal position of the tooltip */}
-                                <Text ref={el => this.childRefs[index] = el}>
+                                <Text ref={el => this.childRefs[index] = el} style={this.props.textStyles}>
                                     {displayName}
                                 </Text>
                             </Tooltip>

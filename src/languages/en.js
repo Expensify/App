@@ -166,10 +166,10 @@ export default {
     },
     reportActionCompose: {
         addAction: 'Actions',
+        dropToUpload: 'Drop to upload',
         sendAttachment: 'Send attachment',
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
-        sayHello: 'Say hello!',
         conciergePlaceholderOptions: [
             'Ask for help!',
             'Ask me anything!',
@@ -334,6 +334,11 @@ export default {
         john: 'John',
         doe: 'Doe',
     },
+    timezonePage: {
+        timezone: 'Timezone',
+        isShownOnProfile: 'Your timezone is shown on your profile.',
+        getLocationAutomatically: 'Automatically determine your location.',
+    },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add phone number',
         addEmailAddress: 'Add email address',
@@ -413,7 +418,7 @@ export default {
         nameOnCard: 'Name on card',
         debitCardNumber: 'Debit card number',
         expiration: 'Expiration date',
-        expirationDate: 'MM/YY',
+        expirationDate: 'MMYY',
         cvv: 'CVV',
         billingAddress: 'Billing address',
         expensifyTermsOfService: 'Expensify Terms of Service',
@@ -598,6 +603,7 @@ export default {
             addressStreet: 'Please enter a valid street address that is not a PO Box',
             addressState: 'Please select a valid state',
             incorporationDate: 'Please enter a valid date',
+            incorporationDateFuture: 'Incorporation date cannot be in the future',
             incorporationState: 'Please enter a valid state',
             industryCode: 'Please enter a valid industry classification code. Must be 6 digits.',
             restrictedBusiness: 'Please confirm company is not on the list of restricted businesses',
@@ -626,6 +632,7 @@ export default {
         unknownFilename: 'Unknown filename',
         passwordRequired: 'Please enter a password',
         passwordIncorrect: 'Incorrect password. Please try again.',
+        failedToLoadPDF: 'Failed to load PDF file.',
         pdfPasswordForm: {
             title: 'Password protected PDF',
             infoText: 'This PDF is password protected.',
@@ -819,7 +826,7 @@ export default {
             card: 'Issue cards',
             workspace: 'Workspace',
             edit: 'Edit workspace',
-            delete: 'Delete Workspace',
+            delete: 'Delete workspace',
             settings: 'General settings',
             reimburse: 'Reimburse expenses',
             bills: 'Pay bills',

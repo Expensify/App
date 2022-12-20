@@ -196,6 +196,12 @@ const mainWindow = (() => {
         app.setName('New Expensify');
     }
 
+    /*
+    * Starting from Electron 20, it shall be required to set sandbox option to false explicitly.
+    * Running a preload script contextBridge.js require access to nodeJS modules from the javascript code.
+    * This was not a concern earlier as sandbox used to be false by default for Electron <= 20.
+    * Refer https://www.electronjs.org/docs/latest/tutorial/sandbox#disabling-the-sandbox-for-a-single-process
+    * */
     return app.whenReady()
         .then(() => {
             const browserWindow = new BrowserWindow({
@@ -205,6 +211,7 @@ const mainWindow = (() => {
                 webPreferences: {
                     preload: `${__dirname}/contextBridge.js`,
                     contextIsolation: true,
+                    sandbox: false,
                 },
                 titleBarStyle: 'hidden',
             });

@@ -102,7 +102,7 @@ class PDFPasswordForm extends Component {
                     <ScrollView
                         keyboardShouldPersistTaps="handled"
                         style={containerStyle}
-                        contentContainerStyle={[styles.ph5, styles.flex1, styles.justifyContentCenter]}
+                        contentContainerStyle={styles.p5}
                     >
                         <View style={styles.mb4}>
                             <Text>

@@ -9,6 +9,7 @@ import themeColors from '../../styles/themes/default';
 import {propTypes as modalPropTypes, defaultProps as modalDefaultProps} from './modalPropTypes';
 import * as Modal from '../../libs/actions/Modal';
 import getModalStyles from '../../styles/getModalStyles';
+import variables from '../../styles/variables';
 
 const propTypes = {
     ...modalPropTypes,
@@ -100,8 +101,8 @@ class BaseModal extends PureComponent {
                 onSwipeComplete={this.props.onClose}
                 swipeDirection={swipeDirection}
                 isVisible={this.props.isVisible}
-                backdropColor={themeColors.modalBackdrop}
-                backdropOpacity={hideBackdrop ? 0 : 0.5}
+                backdropColor={themeColors.overlay}
+                backdropOpacity={hideBackdrop ? 0 : variables.overlayOpacity}
                 backdropTransitionOutTiming={0}
                 hasBackdrop={this.props.fullscreen}
                 coverScreen={this.props.fullscreen}
