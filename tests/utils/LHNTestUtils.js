@@ -71,15 +71,19 @@ let lastFakeReportID = 0;
 /**
  * @param {String[]} participants
  * @param {Number} millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
+ * @param {boolean} isUnread
  * @returns {Object}
  */
-function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], millisecondsInThePast = 0) {
+function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], millisecondsInThePast = 0, isUnread = false) {
+    const lastActionTimestamp = Date.now() - millisecondsInThePast;
     return {
         reportID: `${++lastFakeReportID}`,
         reportName: 'Report',
         maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
-        lastActionCreated: DateUtils.getDBTime(Date.now() - millisecondsInThePast),
+        lastActionCreated: DateUtils.getDBTime(lastActionTimestamp),
+        lastReadTimestamp: isUnread ? lastActionTimestamp - 1 : lastActionTimestamp,
+        lastMessageTimestamp: lastActionTimestamp,
         participants,
     };
 }
@@ -97,6 +101,7 @@ function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], mi
  * @returns {Object}
  */
 function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft) {
+    const currentTimestamp = Date.now();
     return {
         ...getFakeReport(),
         chatType: isUserCreatedPolicyRoom ? CONST.REPORT.CHAT_TYPE.POLICY_ROOM : CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
@@ -104,6 +109,8 @@ function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorksp
         stateNum: isArchived ? CONST.REPORT.STATE_NUM.SUBMITTED : 0,
         errorFields: hasAddWorkspaceError ? {addWorkspaceRoom: 'blah'} : null,
         lastReadSequenceNumber: isUnread ? TEST_MAX_SEQUENCE_NUMBER - 1 : TEST_MAX_SEQUENCE_NUMBER,
+        lastMessageTimestamp: currentTimestamp,
+        lastReadTimestamp: isUnread ? currentTimestamp - 1 : currentTimestamp,
         isPinned,
         hasDraft,
     };
