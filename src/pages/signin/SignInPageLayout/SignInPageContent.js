@@ -10,7 +10,7 @@ import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import SignInPageForm from '../../../components/SignInPageForm';
 import compose from '../../../libs/compose';
-import withKeyboardState from '../../../components/withKeyboardState';
+import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 
@@ -27,12 +27,12 @@ const propTypes = {
 
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
+    ...keyboardStatePropTypes,
 };
 
 const SignInPageContent = (props) => {
     const dismissKeyboardWhenTappedOutsideOfInput = () => {
-        // This prop comes from withKeyboardState
-        if (!props.isShown) {
+        if (!props.isKeyboardShown) {
             return;
         }
         Keyboard.dismiss();

@@ -9,14 +9,14 @@ import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Tooltip from './Tooltip';
-import ThreeDotsMenu, {ThreeDotsMenuItemPropTypes} from './ThreeDotsMenu';
-import VirtualKeyboard from '../libs/VirtualKeyboard';
 import getButtonState from '../libs/getButtonState';
 import * as StyleUtils from '../styles/StyleUtils';
-import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from './withDelayToggleButtonState';
 import compose from '../libs/compose';
+import ThreeDotsMenu, {ThreeDotsMenuItemPropTypes} from './ThreeDotsMenu';
+import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from './withDelayToggleButtonState';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import withKeyboardState, {keyboardStatePropTypes} from './withKeyboardState';
 
 const propTypes = {
     /** Title of the Header */
@@ -79,8 +79,8 @@ const propTypes = {
     }),
 
     ...withLocalizePropTypes,
-
     ...withDelayToggleButtonStatePropTypes,
+    ...keyboardStatePropTypes,
 };
 
 const defaultProps = {
@@ -142,7 +142,7 @@ class HeaderWithCloseButton extends Component {
                         <Tooltip text={this.props.translate('common.back')}>
                             <Pressable
                                 onPress={() => {
-                                    if (VirtualKeyboard.isOpen()) {
+                                    if (this.props.isKeyboardShown) {
                                         Keyboard.dismiss();
                                     }
                                     this.props.onBackButtonPress();
@@ -224,4 +224,5 @@ HeaderWithCloseButton.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withDelayToggleButtonState,
+    withKeyboardState,
 )(HeaderWithCloseButton);
