@@ -265,7 +265,9 @@ class Composer extends React.Component {
             return;
         }
 
-        const plainText = event.clipboardData.getData('text/plain');
+        // The regex replace is there because when doing a "paste without formatting", there are extra line breaks added to the content (I do not know why). To fix the problem, anytime
+        // there is a double set of newline characters, they are replaced with a single newline. This preserves the same number of newlines between pasting with and without formatting.
+        const plainText = event.clipboardData.getData('text/plain').replace(/\n\n/g, '\n');
         this.paste(Str.htmlDecode(plainText));
     }
 
