@@ -339,6 +339,7 @@ class IOUModal extends Component {
                 this.state.comment,
                 this.props.iou.selectedCurrencyCode,
                 this.props.preferredLocale,
+                reportID,
             );
             return;
         }
