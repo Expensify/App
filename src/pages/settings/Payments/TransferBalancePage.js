@@ -208,7 +208,7 @@ class TransferBalancePage extends React.Component {
                     onBackButtonPress={() => Navigation.goBack()}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                <View style={[styles.flex1, styles.flexBasisAuto, styles.justifyContentCenter]}>
+                <View style={[styles.flexGrow1, styles.flexBasisAuto, styles.justifyContentCenter]}>
                     <CurrentWalletBalance balanceStyles={[styles.transferBalanceBalance]} />
                 </View>
                 <ScrollView style={styles.flexGrow0} contentContainerStyle={styles.pv5}>
