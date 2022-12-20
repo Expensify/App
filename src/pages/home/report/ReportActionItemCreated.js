@@ -1,5 +1,7 @@
 import React from 'react';
-import {Pressable, Image, View, Dimensions} from 'react-native';
+import {
+    Pressable, Image, View, Dimensions,
+} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -55,6 +57,8 @@ const ReportActionItemCreated = (props) => {
                 style={[
                     styles.chatContent,
                     styles.p5,
+                    styles.pb8,
+                    styles.pt5,
                 ]}
             >
                 {/* This spacer view is required to show the full Image above, otherwise it is cut off by the bounding box. */}
@@ -62,7 +66,7 @@ const ReportActionItemCreated = (props) => {
                     height: Dimensions.get('screen').height / 9,
                 }}
                 />
-                <View>
+                <View style={[styles.ph5, styles.pb3]}>
                     <Pressable onPress={() => ReportUtils.navigateToDetailsPage(props.report)}>
                         <RoomHeaderAvatars
                             icons={icons}
@@ -70,7 +74,7 @@ const ReportActionItemCreated = (props) => {
                         />
                     </Pressable>
                 </View>
-                <View>
+                <View style={[styles.ph5]}>
                     <ReportWelcomeText report={props.report} />
                 </View>
             </View>

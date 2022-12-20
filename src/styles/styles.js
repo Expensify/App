@@ -2830,7 +2830,7 @@ const styles = {
         height: '100%',
         width: '100%',
         position: 'absolute',
-        bottom: '60%',
+        bottom: '40%',
     },
 };
 
