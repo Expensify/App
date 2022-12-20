@@ -521,7 +521,6 @@ export default {
         twoFactorCode: 'Two factor code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         error: {
-            pleaseFillOutAllFields: 'Please fill out all fields',
             pleaseFillMagicCode: 'Please enter your magic code',
             incorrectMagicCode: 'Incorrect magic code. Please try again.',
             pleaseFillTwoFactorAuth: 'Please enter your two factor code',

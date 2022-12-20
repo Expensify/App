@@ -521,7 +521,6 @@ export default {
         twoFactorCode: 'Autenticación de 2 factores',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
         error: {
-            pleaseFillOutAllFields: 'Please fill out all fields',
             pleaseFillMagicCode: '',
             incorrectMagicCode: '',
             pleaseFillTwoFactorAuth: 'Por favor, introduce tu código 2 factores',
