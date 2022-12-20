@@ -1220,12 +1220,12 @@ function subscribeToNewActionEvent(reportID, callback) {
 }
 
 /**
- * Handles callbacks and notifications for new report actions.
+ * Sends callbacks and notifications for new report actions.
  *
  * @param {String} reportID
  * @param {Object} action
  */
-function handleNewReportAction(reportID, action) {
+function sendNewReportActionNotification(reportID, action) {
     const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
 
     if (reportID === newActionSubscriber.reportID) {
@@ -1318,7 +1318,7 @@ Onyx.connect({
                 return;
             }
 
-            handleNewReportAction(reportID, action);
+            sendNewReportActionNotification(reportID, action);
             handledReportActions[reportID] = handledReportActions[reportID] || {};
             handledReportActions[reportID][action.sequenceNumber] = true;
         });
