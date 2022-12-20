@@ -12,15 +12,12 @@ import Navigation from '../Navigation/Navigation';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
-import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import Log from '../Log';
 import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../ReportUtils';
-import Growl from '../Growl';
-import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
@@ -179,76 +176,6 @@ function getSimplifiedIOUReport(reportData, chatReportID) {
         submitterPhoneNumbers: reportData.submitterPhoneNumbers,
         hasOutstandingIOU: reportData.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && reportData.total !== 0,
     };
-}
-
-/**
- * Given IOU and chat report ID fetches most recent IOU data from DeprecatedAPI.
- *
- * @param {Number} iouReportID
- * @param {Number} chatReportID
- * @returns {Promise}
- */
-function fetchIOUReport(iouReportID, chatReportID) {
-    return DeprecatedAPI.Get({
-        returnValueList: 'reportStuff',
-        reportIDList: iouReportID,
-        shouldLoadOptionalKeys: true,
-        includePinnedReports: true,
-    }).then((response) => {
-        if (!response) {
-            return;
-        }
-        if (response.jsonCode !== 200) {
-            console.error(response.message);
-            return;
-        }
-        const iouReportData = response.reports[iouReportID];
-        if (!iouReportData) {
-            // IOU data for a report will be missing when the IOU report has already been paid.
-            // This is expected and we return early as no further processing can be done.
-            return;
-        }
-        return getSimplifiedIOUReport(iouReportData, chatReportID);
-    }).catch((error) => {
-        Log.hmmm('[Report] Failed to populate IOU Collection:', error.message);
-    });
-}
-
-/**
- * Given IOU object, save the data to Onyx.
- *
- * @param {Object} iouReportObject
- * @param {Number} iouReportObject.stateNum
- * @param {Number} iouReportObject.total
- * @param {Number} iouReportObject.reportID
- */
-function setLocalIOUReportData(iouReportObject) {
-    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReportObject.reportID}`;
-    Onyx.merge(iouReportKey, iouReportObject);
-}
-
-/**
- * Fetch the iouReport and persist the data to Onyx.
- *
- * @param {Number} iouReportID - ID of the report we are fetching
- * @param {Number} chatReportID - associated chatReportID, set as an iouReport field
- * @param {Boolean} [shouldRedirectIfEmpty=false] - Whether to redirect to Active Report Screen if IOUReport is empty
- * @returns {Promise}
- */
-function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = false) {
-    return fetchIOUReport(iouReportID, chatReportID)
-        .then((iouReportObject) => {
-            if (!iouReportObject && shouldRedirectIfEmpty) {
-                Growl.error(Localize.translateLocal('notFound.iouReportNotFound'));
-                Navigation.navigate(ROUTES.REPORT);
-                return;
-            }
-            if (!iouReportObject) {
-                return;
-            }
-            setLocalIOUReportData(iouReportObject);
-            return iouReportObject;
-        });
 }
 
 /**
@@ -1416,7 +1343,6 @@ Onyx.connect({
 });
 
 export {
-    fetchIOUReportByID,
     addComment,
     addAttachment,
     reconnect,
@@ -1431,7 +1357,6 @@ export {
     handleUserDeletedLinks,
     saveReportActionDraft,
     deleteReportComment,
-    getSimplifiedIOUReport,
     syncChatAndIOUReports,
     navigateToConciergeChat,
     setReportWithDraft,
