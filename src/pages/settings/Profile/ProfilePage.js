@@ -191,20 +191,21 @@ class ProfilePage extends Component {
      */
     validate(values) {
         const errors = {};
-        let firstNameHasInvalidCharacters = false;
-        let lastNameHasInvalidCharacters = false;
-
+        const [firstNameHasInvalidCharacters, lastNameHasInvalidCharacters] = ValidationUtils.doesFailCommaRemoval(
+            [values.firstName, values.lastName],
+        );
         if (firstNameHasInvalidCharacters || lastNameHasInvalidCharacters) {
+            const invalidCharactersError = '';
+            errors.firstName = firstNameHasInvalidCharacters ? invalidCharactersError : '';
+            errors.lastName = lastNameHasInvalidCharacters ? invalidCharactersError : '';
             return errors;
         }
 
+        const characterLimitError = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
         const [hasFirstNameError, hasLastNameError] = ValidationUtils.doesFailCharacterLimitAfterTrim(
             CONST.FORM_CHARACTER_LIMIT,
             [values.firstName, values.lastName],
         );
-
-        const characterLimitError = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
-
         errors.firstName = hasFirstNameError ? characterLimitError : '';
         errors.lastName = hasLastNameError ? characterLimitError : '';
 
