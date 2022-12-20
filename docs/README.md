@@ -46,6 +46,8 @@ ln -sf universal-darwin22 universal-darwin21
 ### Android Chrome emulator
 To visit the site on the Android emulator, go to `10.0.2.2:4000`.
 
+If you're getting an error page that says "Refused to connect", try running `adb reverse tcp:4000 tcp:4000` with your emulator open. 
+
 
 # How the project is structured
 
