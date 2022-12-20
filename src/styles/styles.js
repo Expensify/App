@@ -2395,7 +2395,7 @@ const styles = {
 
     smallEditIcon: {
         alignItems: 'center',
-        backgroundColor: themeColors.icon,
+        backgroundColor: themeColors.buttonHoveredBG,
         borderColor: themeColors.textReversed,
         borderRadius: 14,
         borderWidth: 3,
