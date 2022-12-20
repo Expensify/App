@@ -18,6 +18,7 @@ import * as Link from './Link';
 import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
 import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
+import * as LoginUtils from '../LoginUtils';
 
 let currentUserAccountID = '';
 Onyx.connect({
@@ -74,14 +75,14 @@ function closeAccount(message) {
         optimisticData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.CLOSE_ACCOUNT,
+                key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM,
                 value: {isLoading: true},
             },
         ],
         failureData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.CLOSE_ACCOUNT,
+                key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM,
                 value: {isLoading: false},
             },
         ],
@@ -103,10 +104,12 @@ function getUserDetails() {
     })
         .then((response) => {
             // Update the User onyx key
-            const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             const isSubscribedToNewsletter = lodashGet(response, 'account.subscribed', true);
             const validatedStatus = lodashGet(response, 'account.validated', false);
             Onyx.merge(ONYXKEYS.USER, {isSubscribedToNewsletter: !!isSubscribedToNewsletter, validated: !!validatedStatus});
+
+            // Update login list
+            const loginList = LoginUtils.cleanLoginListServerResponse(response.loginList);
             Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
 
             // Update the nvp_payPalMeAddress NVP
@@ -176,7 +179,7 @@ function setSecondaryLoginAndNavigate(login, password) {
         password,
     }).then((response) => {
         if (response.jsonCode === 200) {
-            const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
+            const loginList = LoginUtils.cleanLoginListServerResponse(response.loginList);
             Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
             Navigation.navigate(ROUTES.SETTINGS_PROFILE);
             return;

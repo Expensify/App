@@ -4,18 +4,13 @@ description: Set up Node
 runs:
   using: composite
   steps:
-    # Version: 3.0.2
-    - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
-      with:
-        fetch-depth: 0
-
-    - uses: actions/setup-node@09ba51f18e18a3756fea1f54d09c6745c064491d
+    - uses: actions/setup-node@8c91899e586c5b171469028077307d293428b516
       with:
         node-version-file: '.nvmrc'
         cache: npm
 
     - name: Install node packages
-      uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
+      uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
       with:
         timeout_minutes: 10
         max_attempts: 5

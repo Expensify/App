@@ -17,6 +17,9 @@ import * as NumberUtils from '../../src/libs/NumberUtils';
 import LocalNotification from '../../src/libs/Notification/LocalNotification';
 import * as Report from '../../src/libs/actions/Report';
 import * as CollectionUtils from '../../src/libs/CollectionUtils';
+import DateUtils from '../../src/libs/DateUtils';
+
+jest.mock('../../src/libs/Notification/LocalNotification');
 
 beforeAll(() => {
     // In this test, we are generically mocking the responses of all API requests by mocking fetch() and having it
@@ -98,13 +101,16 @@ function isDrawerOpen(renderedApp) {
     return !lodashGet(sidebarLinks, [0, 'props', 'accessibilityElementsHidden']);
 }
 
-const REPORT_ID = 1;
+const REPORT_ID = '1';
 const USER_A_ACCOUNT_ID = 1;
 const USER_A_EMAIL = 'user_a@test.com';
 const USER_B_ACCOUNT_ID = 2;
 const USER_B_EMAIL = 'user_b@test.com';
 const USER_C_ACCOUNT_ID = 3;
 const USER_C_EMAIL = 'user_c@test.com';
+const MOMENT_FORMAT = 'YYYY-MM-DD HH:mm:ss.SSS';
+let reportAction3CreatedDate;
+let reportAction9CreatedDate;
 
 /**
  * Sets up a test with a logged in user that has one unread chat from another user. Returns the <App/> test instance.
@@ -123,14 +129,16 @@ function signInAndGetAppWithUnreadChat() {
         })
         .then(() => {
             const MOMENT_TEN_MINUTES_AGO = moment().subtract(10, 'minutes');
+            reportAction3CreatedDate = MOMENT_TEN_MINUTES_AGO.clone().add(30, 'seconds').format(MOMENT_FORMAT);
+            reportAction9CreatedDate = MOMENT_TEN_MINUTES_AGO.clone().add(90, 'seconds').format(MOMENT_FORMAT);
 
             // Simulate setting an unread report and personal details
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                 reportID: REPORT_ID,
-                reportName: 'Chat Report',
+                reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                 maxSequenceNumber: 9,
                 lastReadSequenceNumber: 1,
-                lastMessageTimestamp: MOMENT_TEN_MINUTES_AGO.utc(),
+                lastActionCreated: DateUtils.getDBTime(MOMENT_TEN_MINUTES_AGO.clone().utc().valueOf()),
                 lastMessageText: 'Test',
                 participants: [USER_B_EMAIL],
             });
@@ -139,18 +147,30 @@ function signInAndGetAppWithUnreadChat() {
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     automatic: false,
                     sequenceNumber: 0,
-                    timestamp: MOMENT_TEN_MINUTES_AGO.unix(),
+                    created: MOMENT_TEN_MINUTES_AGO.clone().format(MOMENT_FORMAT),
                     reportActionID: NumberUtils.rand64(),
+                    message: [
+                        {
+                            style: 'strong',
+                            text: '__FAKE__',
+                            type: 'TEXT',
+                        },
+                        {
+                            style: 'normal',
+                            text: 'created this report',
+                            type: 'TEXT',
+                        },
+                    ],
                 },
-                1: TestHelper.buildTestReportComment(USER_B_EMAIL, 1, MOMENT_TEN_MINUTES_AGO.add(10, 'seconds').unix()),
-                2: TestHelper.buildTestReportComment(USER_B_EMAIL, 2, MOMENT_TEN_MINUTES_AGO.add(20, 'seconds').unix()),
-                3: TestHelper.buildTestReportComment(USER_B_EMAIL, 3, MOMENT_TEN_MINUTES_AGO.add(30, 'seconds').unix()),
-                4: TestHelper.buildTestReportComment(USER_B_EMAIL, 4, MOMENT_TEN_MINUTES_AGO.add(40, 'seconds').unix()),
-                5: TestHelper.buildTestReportComment(USER_B_EMAIL, 5, MOMENT_TEN_MINUTES_AGO.add(50, 'seconds').unix()),
-                6: TestHelper.buildTestReportComment(USER_B_EMAIL, 6, MOMENT_TEN_MINUTES_AGO.add(60, 'seconds').unix()),
-                7: TestHelper.buildTestReportComment(USER_B_EMAIL, 7, MOMENT_TEN_MINUTES_AGO.add(70, 'seconds').unix()),
-                8: TestHelper.buildTestReportComment(USER_B_EMAIL, 8, MOMENT_TEN_MINUTES_AGO.add(80, 'seconds').unix()),
-                9: TestHelper.buildTestReportComment(USER_B_EMAIL, 9, MOMENT_TEN_MINUTES_AGO.add(90, 'seconds').unix()),
+                1: TestHelper.buildTestReportComment(USER_B_EMAIL, 1, MOMENT_TEN_MINUTES_AGO.clone().add(10, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
+                2: TestHelper.buildTestReportComment(USER_B_EMAIL, 2, MOMENT_TEN_MINUTES_AGO.clone().add(20, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
+                3: TestHelper.buildTestReportComment(USER_B_EMAIL, 3, reportAction3CreatedDate, USER_B_ACCOUNT_ID),
+                4: TestHelper.buildTestReportComment(USER_B_EMAIL, 4, MOMENT_TEN_MINUTES_AGO.clone().add(40, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
+                5: TestHelper.buildTestReportComment(USER_B_EMAIL, 5, MOMENT_TEN_MINUTES_AGO.clone().add(50, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
+                6: TestHelper.buildTestReportComment(USER_B_EMAIL, 6, MOMENT_TEN_MINUTES_AGO.clone().add(60, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
+                7: TestHelper.buildTestReportComment(USER_B_EMAIL, 7, MOMENT_TEN_MINUTES_AGO.clone().add(70, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
+                8: TestHelper.buildTestReportComment(USER_B_EMAIL, 8, MOMENT_TEN_MINUTES_AGO.clone().add(80, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
+                9: TestHelper.buildTestReportComment(USER_B_EMAIL, 9, reportAction9CreatedDate, USER_B_ACCOUNT_ID),
             });
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
                 [USER_B_EMAIL]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
@@ -164,7 +184,7 @@ function signInAndGetAppWithUnreadChat() {
 }
 
 describe('Unread Indicators', () => {
-    afterEach(Onyx.clear);
+    afterEach(() => Onyx.clear());
 
     it('Display bold in the LHN for unread chat and new line indicator above the chat message when we navigate to it', () => {
         let renderedApp;
@@ -258,14 +278,14 @@ describe('Unread Indicators', () => {
                 renderedApp = testInstance;
 
                 // Simulate a new report arriving via Pusher along with reportActions and personalDetails for the other participant
-                const NEW_REPORT_ID = 2;
+                const NEW_REPORT_ID = '2';
                 const NEW_REPORT_CREATED_MOMENT = moment();
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${NEW_REPORT_ID}`, {
                     reportID: NEW_REPORT_ID,
-                    reportName: 'Chat Report',
+                    reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                     maxSequenceNumber: 1,
                     lastReadSequenceNumber: 0,
-                    lastMessageTimestamp: NEW_REPORT_CREATED_MOMENT.utc(),
+                    lastActionCreated: DateUtils.getDBTime(NEW_REPORT_CREATED_MOMENT.utc().valueOf()),
                     lastMessageText: 'Comment 1',
                     participants: [USER_C_EMAIL],
                 });
@@ -274,15 +294,16 @@ describe('Unread Indicators', () => {
                         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                         automatic: false,
                         sequenceNumber: 0,
-                        timestamp: NEW_REPORT_CREATED_MOMENT.unix(),
+                        created: NEW_REPORT_CREATED_MOMENT.format(MOMENT_FORMAT),
                         reportActionID: NumberUtils.rand64(),
                     },
                     1: {
                         actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
                         actorEmail: USER_C_EMAIL,
+                        actorAccountID: USER_C_ACCOUNT_ID,
                         person: [{type: 'TEXT', style: 'strong', text: 'User C'}],
                         sequenceNumber: 1,
-                        timestamp: NEW_REPORT_CREATED_MOMENT.add(5, 'seconds').unix(),
+                        created: NEW_REPORT_CREATED_MOMENT.add(5, 'seconds').format(MOMENT_FORMAT),
                         message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
                         reportActionID: NumberUtils.rand64(),
                     },
@@ -341,7 +362,7 @@ describe('Unread Indicators', () => {
             .then(() => {
                 // It's difficult to trigger marking a report comment as unread since we would have to mock the long press event and then
                 // another press on the context menu item so we will do it via the action directly and then test if the UI has updated properly
-                Report.markCommentAsUnread(REPORT_ID, 3);
+                Report.markCommentAsUnread(REPORT_ID, reportAction3CreatedDate, 3);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -450,7 +471,7 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(0);
 
                 // Mark a previous comment as unread and verify the unread action indicator returns
-                Report.markCommentAsUnread(REPORT_ID, 9);
+                Report.markCommentAsUnread(REPORT_ID, reportAction9CreatedDate, 9);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -493,7 +514,7 @@ describe('Unread Indicators', () => {
                 delete lastReportAction[lastReportAction.clientID];
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                     lastMessageText: lastReportAction.message[0].text,
-                    lastMessageTimestamp: lastReportAction.timestamp,
+                    lastActionCreated: DateUtils.getDBTime(lastReportAction.timestamp),
                     lastActorEmail: lastReportAction.actorEmail,
                     maxSequenceNumber: lastReportAction.sequenceNumber,
                     reportID: REPORT_ID,

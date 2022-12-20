@@ -12,7 +12,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import compose from '../../libs/compose';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 import TextInput from '../../components/TextInput';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as LoginUtils from '../../libs/LoginUtils';
@@ -22,6 +21,9 @@ import OfflineIndicator from '../../components/OfflineIndicator';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import * as ErrorUtils from '../../libs/ErrorUtils';
+import DotIndicatorMessage from '../../components/DotIndicatorMessage';
+import * as CloseAccount from '../../libs/actions/CloseAccount';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -41,6 +43,11 @@ const propTypes = {
         isLoading: PropTypes.bool,
     }),
 
+    closeAccount: PropTypes.shape({
+        /** Message to display when user successfully closed their account */
+        success: PropTypes.string,
+    }),
+
     /** Props to detect online status */
     network: networkPropTypes.isRequired,
 
@@ -53,6 +60,7 @@ const propTypes = {
 
 const defaultProps = {
     account: {},
+    closeAccount: {},
     blurOnSubmit: false,
 };
 
@@ -87,10 +95,6 @@ class LoginForm extends React.Component {
             return;
         }
         this.input.focus();
-
-        if (this.state.login) {
-            this.clearLogin();
-        }
     }
 
     /**
@@ -107,6 +111,11 @@ class LoginForm extends React.Component {
         if (this.props.account.errors) {
             Session.clearAccountMessages();
         }
+
+        // Clear the "Account successfully closed" message when the user starts typing
+        if (this.props.closeAccount.success) {
+            CloseAccount.setDefaultData();
+        }
     }
 
     /**
@@ -122,6 +131,11 @@ class LoginForm extends React.Component {
     validateAndSubmitForm() {
         if (this.props.network.isOffline) {
             return;
+        }
+
+        // If account was closed and have success message in Onyx, we clear it here
+        if (!_.isEmpty(this.props.closeAccount.success)) {
+            CloseAccount.setDefaultData();
         }
 
         const login = this.state.login.trim();
@@ -168,13 +182,18 @@ class LoginForm extends React.Component {
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
                         autoCorrect={false}
-                        keyboardType={getEmailKeyboardType()}
+                        keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
                     />
                 </View>
                 {!_.isEmpty(this.props.account.success) && (
                     <Text style={[styles.formSuccess]}>
                         {this.props.account.success}
                     </Text>
+                )}
+                {!_.isEmpty(this.props.closeAccount.success) && (
+
+                    // DotIndicatorMessage mostly expects onyxData errors, so we need to mock an object so that the messages looks similar to prop.account.errors
+                    <DotIndicatorMessage style={[styles.mv2]} type="success" messages={{0: this.props.closeAccount.success}} />
                 )}
                 { // We need to unmount the submit button when the component is not visible so that the Enter button
                   // key handler gets unsubscribed and does not conflict with the Password Form
@@ -203,6 +222,7 @@ LoginForm.defaultProps = defaultProps;
 export default compose(
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
+        closeAccount: {key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM},
     }),
     withWindowDimensions,
     withLocalize,

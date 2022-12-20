@@ -1,7 +1,6 @@
 @import 'breakpoints';
 @import 'colors';
 @import 'fonts';
-@import 'mixins';
 
 * {
     margin: 0;
@@ -15,6 +14,10 @@
 
 html {
     line-height: 1;
+
+    @include maxBreakpoint($breakpoint-tablet) {
+        scroll-padding-top: 80px;        
+    }
 }
 
 table {
@@ -61,7 +64,6 @@ body {
     height: 100%;
     min-height: 100%;
     background: $color-white;
-    overflow: auto;
 }
 
 hr {
@@ -199,27 +201,27 @@ button {
 
     #lhn-content {
         overflow: auto;
-        -ms-overflow-style: none;
-        /* IE and Edge */
-        scrollbar-width: none;
-        /* Firefox */
-        &::-webkit-scrollbar {
-            display: none;
-        }
+        display: none;
+        height: calc(100% - 100px);
+        padding: 0 24px 24px 24px;
 
         .in-this-article {
             padding-top: 40px;
             display: block;
         }
 
-        display: none;
-        height: calc(100% - 100px);
-        padding: 0 24px 24px 24px;
-
         @include breakpoint($breakpoint-tablet) {
             display: block;
             height: calc(100% - 150px);
             padding: 0 44px 44px 44px;
+            -ms-overflow-style: none;
+            /* IE and Edge */
+            scrollbar-width: none;
+            /* Firefox */
+            &::-webkit-scrollbar {
+                display: none;
+            }
+
         }
 
         &.expanded {
@@ -281,6 +283,9 @@ button {
 }
 
 #content-area {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
     margin-left: 0;
     padding: 80px 24px 24px 24px;
 
@@ -313,6 +318,34 @@ button {
             font-size: 2.25em;
         }
     }
+
+    .article {
+        img {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            padding-bottom: 20px;
+
+            @include maxBreakpoint($breakpoint-tablet) {
+                width: 100%;
+                height: 100%;
+                max-width: auto;
+                max-height: auto;
+            }
+
+            @include breakpoint($breakpoint-tablet) {
+                max-width: -webkit-fill-available;
+                max-height: -webkit-fill-available;
+            }
+        }
+
+        .img-wrap {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+    }
+
 }
 
 .link {
@@ -361,12 +394,12 @@ button {
 .cards-group {
     display: grid;
     grid-template-columns: auto;
-    row-gap: 12px;
-    column-gap: 4%;
+    row-gap: 20px;
+    column-gap: 20px;
     padding-bottom: 20px;
 
     @include breakpoint($breakpoint-desktop) {
-        grid-template-columns: 48% 48%;
+        grid-template-columns: auto auto;
     }
 }
 
@@ -378,19 +411,10 @@ button {
     font-weight: bold;
     cursor: pointer;
     color: $color-dark;
+    background-color: $color-gray1;
 
-    @include card-border($color-gray2, 1px);
-
-    &.send-money {
-        @include card-border($color-blue);
-    }
-
-    &.request-money {
-        @include card-border($color-green);
-    }
-
-    &.get-help {
-        @include card-border($color-pink);
+    &:hover {
+        background-color: darken($color-gray1, 1%);
     }
 
     .row {
@@ -436,12 +460,26 @@ button {
     h3.title {
         padding: 0;
         margin: 0;
+
+        &.with-margin {
+            margin: 0 0 4px 0;
+        }
     }
+
+
 
     p.description {
         padding: 0;
-        margin: 16px 0 0 0;
+        margin: 0;
         font-weight: normal;
+
+        &.with-min-height {
+            min-height: 68px;
+
+            @include breakpoint($breakpoint-tablet) {
+                min-height: 48px;
+            }
+        }
     }
 }
 
@@ -534,6 +572,10 @@ button {
     }
 }
 
+.get-help {
+    margin-top: auto;
+}
+
 .floating-concierge-button {
     bottom: 2rem;
     right: 2rem;
@@ -545,5 +587,11 @@ button {
         &:hover {
             filter: saturate(2);
         }
+    }
+}
+
+.disable-scrollbar {
+    @media screen and (max-width: $breakpoint-tablet) {
+        overflow: hidden;
     }
 }

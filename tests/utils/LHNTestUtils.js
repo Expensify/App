@@ -1,8 +1,11 @@
 import React from 'react';
 import {render} from '@testing-library/react-native';
+import ComposeProviders from '../../src/components/ComposeProviders';
+import OnyxProvider from '../../src/components/OnyxProvider';
 import {LocaleContextProvider} from '../../src/components/withLocalize';
 import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
 import CONST from '../../src/CONST';
+import DateUtils from '../../src/libs/DateUtils';
 
 const TEST_MAX_SEQUENCE_NUMBER = 10;
 
@@ -76,7 +79,7 @@ function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], mi
         reportName: 'Report',
         maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
-        lastMessageTimestamp: Date.now() - millisecondsInThePast,
+        lastActionCreated: DateUtils.getDBTime(Date.now() - millisecondsInThePast),
         participants,
     };
 }
@@ -138,7 +141,12 @@ function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
     // and there are a lot of render warnings. It needs to be done like this because normally in
     // our app (App.js) is when the react application is wrapped in the context providers
     return render((
-        <LocaleContextProvider>
+        <ComposeProviders
+            components={[
+                OnyxProvider,
+                LocaleContextProvider,
+            ]}
+        >
             <ErrorBoundary>
                 <SidebarLinks
                     onLinkClick={() => {}}
@@ -148,12 +156,11 @@ function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
                         right: 0,
                         bottom: 0,
                     }}
-                    onAvatarClick={() => {}}
                     isSmallScreenWidth={false}
                     reportIDFromRoute={reportIDFromRoute}
                 />
             </ErrorBoundary>
-        </LocaleContextProvider>
+        </ComposeProviders>
     ));
 }
 

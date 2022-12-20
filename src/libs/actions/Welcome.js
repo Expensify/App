@@ -17,7 +17,6 @@ let isReadyPromise = new Promise((resolve) => {
 
 let isFirstTimeNewExpensifyUser;
 let isLoadingReportData = true;
-let isLoadingPolicyData = true;
 let email = '';
 
 /**
@@ -28,7 +27,7 @@ let email = '';
  * - Whether we have loaded all reports the server knows about
  */
 function checkOnReady() {
-    if (!_.isBoolean(isFirstTimeNewExpensifyUser) || isLoadingPolicyData || isLoadingReportData) {
+    if (!_.isBoolean(isFirstTimeNewExpensifyUser) || isLoadingReportData) {
         return;
     }
 
@@ -53,15 +52,6 @@ Onyx.connect({
     },
 });
 
-Onyx.connect({
-    key: ONYXKEYS.IS_LOADING_POLICY_DATA,
-    initWithStoredValues: false,
-    callback: (val) => {
-        isLoadingPolicyData = val;
-        checkOnReady();
-    },
-});
-
 const allReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -77,7 +67,7 @@ Onyx.connect({
 
 const allPolicies = {};
 Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
+    key: ONYXKEYS.COLLECTION.POLICY,
     callback: (val, key) => {
         if (!val || !key) {
             return;

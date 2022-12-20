@@ -39,7 +39,7 @@ class DatePicker extends React.Component {
     }
 
     render() {
-        const dateAsText = this.props.defaultValue ? moment(this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
+        const dateAsText = this.props.value || this.props.defaultValue ? moment(this.props.value || this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
 
         return (
             <>
@@ -62,10 +62,9 @@ class DatePicker extends React.Component {
                 />
                 {this.state.isPickerVisible && (
                     <RNDatePicker
-                        value={this.props.defaultValue ? moment(this.props.defaultValue).toDate() : new Date()}
+                        value={this.props.value || this.props.defaultValue ? moment(this.props.value || this.props.defaultValue).toDate() : new Date()}
                         mode="date"
                         onChange={this.setDate}
-                        maximumDate={this.props.maximumDate}
                     />
                 )}
             </>

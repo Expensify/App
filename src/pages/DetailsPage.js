@@ -20,7 +20,6 @@ import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
 import DateUtils from '../libs/DateUtils';
 import * as Expensicons from '../components/Icon/Expensicons';
-import FullscreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import MenuItem from '../components/MenuItem';
 import AttachmentModal from '../components/AttachmentModal';
 import PressableWithoutFocus from '../components/PressableWithoutFocus';
@@ -40,12 +39,17 @@ const propTypes = {
     /* Onyx Props */
 
     /** The personal details of the person who is logged in */
-    personalDetails: personalDetailsPropType.isRequired,
+    personalDetails: personalDetailsPropType,
 
     /** Route params */
     route: matchType.isRequired,
 
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    // When opening someone else's profile (via deep link) before login, this is empty
+    personalDetails: {},
 };
 
 /**
@@ -77,19 +81,23 @@ class DetailsPage extends React.PureComponent {
     }
 
     render() {
-        const details = this.props.personalDetails[lodashGet(this.props.route.params, 'login')];
+        let details = lodashGet(this.props.personalDetails, lodashGet(this.props.route.params, 'login'));
         if (!details) {
-            // Personal details have not loaded yet
-            return <FullscreenLoadingIndicator />;
+            const login = lodashGet(this.props.route.params, 'login');
+            details = {
+                login,
+                displayName: ReportUtils.getDisplayNameForParticipant(login),
+                avatar: ReportUtils.getDefaultAvatar(),
+            };
         }
         const isSMSLogin = Str.isSMSLogin(details.login);
 
         // If we have a reportID param this means that we
         // arrived here via the ParticipantsPage and should be allowed to navigate back to it
         const shouldShowBackButton = Boolean(this.props.route.params.reportID);
-        const timezone = DateUtils.getLocalMomentFromTimestamp(this.props.preferredLocale, null, details.timezone.selected);
-        const GMTTime = `${timezone.toString().split(/[+-]/)[0].slice(-3)} ${timezone.zoneAbbr()}`;
-        const currentTime = Number.isNaN(Number(timezone.zoneAbbr())) ? timezone.zoneAbbr() : GMTTime;
+        const timezone = details.timezone ? DateUtils.getLocalMomentFromDatetime(this.props.preferredLocale, null, details.timezone.selected) : null;
+        const GMTTime = timezone ? `${timezone.toString().split(/[+-]/)[0].slice(-3)} ${timezone.zoneAbbr()}` : '';
+        const currentTime = (timezone && Number.isNaN(Number(timezone.zoneAbbr()))) ? timezone.zoneAbbr() : GMTTime;
         const shouldShowLocalTime = !ReportUtils.hasExpensifyEmails([details.login]);
 
         let pronouns = details.pronouns;
@@ -147,10 +155,7 @@ class DetailsPage extends React.PureComponent {
                                                 ? 'common.phoneNumber'
                                                 : 'common.email')}
                                         </Text>
-                                        <CommunicationsLink
-                                            type={isSMSLogin ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL}
-                                            value={isSMSLogin ? getPhoneNumber(details) : details.login}
-                                        >
+                                        <CommunicationsLink value={isSMSLogin ? getPhoneNumber(details) : details.login}>
                                             <Tooltip text={isSMSLogin ? getPhoneNumber(details) : details.login}>
                                                 <Text numberOfLines={1}>
                                                     {isSMSLogin
@@ -188,7 +193,7 @@ class DetailsPage extends React.PureComponent {
                                 <MenuItem
                                     title={`${this.props.translate('common.message')}${details.displayName}`}
                                     icon={Expensicons.ChatBubble}
-                                    onPress={() => Report.fetchOrCreateChatReport([this.props.session.email, details.login])}
+                                    onPress={() => Report.navigateToAndOpenReport([details.login])}
                                     wrapperStyle={styles.breakAll}
                                     shouldShowRightIcon
                                 />
@@ -202,6 +207,7 @@ class DetailsPage extends React.PureComponent {
 }
 
 DetailsPage.propTypes = propTypes;
+DetailsPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,

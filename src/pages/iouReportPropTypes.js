@@ -5,7 +5,7 @@ export default PropTypes.shape({
     reportID: PropTypes.string,
 
     /** The report ID of the chat associated with the IOU */
-    chatReportID: PropTypes.number,
+    chatReportID: PropTypes.string,
 
     /** The total amount in cents */
     total: PropTypes.number,

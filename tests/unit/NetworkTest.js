@@ -19,13 +19,6 @@ import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
 import * as MainQueue from '../../src/libs/Network/MainQueue';
 import * as Request from '../../src/libs/Request';
 
-// Set up manual mocks for methods used in the actions so our test does not fail.
-jest.mock('../../src/libs/Notification/PushNotification', () => ({
-    // There is no need for a jest.fn() since we don't need to make assertions against it.
-    register: () => {},
-    deregister: () => {},
-}));
-
 jest.useFakeTimers();
 
 Onyx.init({
@@ -43,7 +36,7 @@ beforeEach(() => {
     // Wait for any Log command to finish and Onyx to fully clear
     jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
     return waitForPromisesToResolve()
-        .then(Onyx.clear)
+        .then(() => Onyx.clear())
         .then(waitForPromisesToResolve);
 });
 

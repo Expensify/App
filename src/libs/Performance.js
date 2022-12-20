@@ -6,6 +6,7 @@ import {Alert, InteractionManager} from 'react-native';
 import * as Metrics from './Metrics';
 import getComponentDisplayName from './getComponentDisplayName';
 import CONST from '../CONST';
+import isE2ETestSession from './E2E/isE2ETestSession';
 
 /** @type {import('react-native-performance').Performance} */
 let rnPerformance;
@@ -38,14 +39,49 @@ const Performance = {
     // When performance monitoring is disabled the implementations are blank
     diffObject,
     setupPerformanceObserver: () => {},
+    getPerformanceMetrics: () => [],
     printPerformanceMetrics: () => {},
     markStart: () => {},
     markEnd: () => {},
+    measureFailSafe: () => {},
+    measureTTI: () => {},
     traceRender: () => {},
     withRenderTrace: () => Component => Component,
+    subscribeToMeasurements: () => {},
 };
 
 if (Metrics.canCapturePerformanceMetrics()) {
+    const perfModule = require('react-native-performance');
+    perfModule.setResourceLoggingEnabled(true);
+    rnPerformance = perfModule.default;
+
+    Performance.measureFailSafe = (measureName, startOrMeasureOptions, endMark) => {
+        try {
+            rnPerformance.measure(measureName, startOrMeasureOptions, endMark);
+        } catch (error) {
+            // Sometimes there might be no start mark recorded and the measure will fail with an error
+            console.debug(error.message);
+        }
+    };
+
+    /**
+     * Measures the TTI time. To be called when the app is considered to be interactive.
+     * @param {String} [endMark] Optional end mark name
+     */
+    Performance.measureTTI = (endMark) => {
+        // Make sure TTI is captured when the app is really usable
+        InteractionManager.runAfterInteractions(() => {
+            requestAnimationFrame(() => {
+                Performance.measureFailSafe('TTI', 'nativeLaunchStart', endMark);
+
+                // we don't want the alert to show on a e2e test sessio
+                if (!isE2ETestSession()) {
+                    Performance.printPerformanceMetrics();
+                }
+            });
+        });
+    };
+
     /**
      * Sets up an observer to capture events recorded in the native layer before the app fully initializes.
      */
@@ -53,31 +89,18 @@ if (Metrics.canCapturePerformanceMetrics()) {
         const performanceReported = require('react-native-performance-flipper-reporter');
         performanceReported.setupDefaultFlipperReporter();
 
-        const perfModule = require('react-native-performance');
-        perfModule.setResourceLoggingEnabled(true);
-        rnPerformance = perfModule.default;
-
-        const measureFailSafe = (measureName, startOrMeasureOptions, endMark) => {
-            try {
-                rnPerformance.measure(measureName, startOrMeasureOptions, endMark);
-            } catch (error) {
-                // Sometimes there might be no start mark recorded and the measure will fail with an error
-                console.debug(error.message);
-            }
-        };
-
         // Monitor some native marks that we want to put on the timeline
         new perfModule.PerformanceObserver((list, observer) => {
             list.getEntries()
                 .forEach((entry) => {
                     if (entry.name === 'nativeLaunchEnd') {
-                        measureFailSafe('nativeLaunch', 'nativeLaunchStart', 'nativeLaunchEnd');
+                        Performance.measureFailSafe('nativeLaunch', 'nativeLaunchStart', 'nativeLaunchEnd');
                     }
                     if (entry.name === 'downloadEnd') {
-                        measureFailSafe('jsBundleDownload', 'downloadStart', 'downloadEnd');
+                        Performance.measureFailSafe('jsBundleDownload', 'downloadStart', 'downloadEnd');
                     }
                     if (entry.name === 'runJsBundleEnd') {
-                        measureFailSafe('runJsBundle', 'runJsBundleStart', 'runJsBundleEnd');
+                        Performance.measureFailSafe('runJsBundle', 'runJsBundleStart', 'runJsBundleEnd');
                     }
 
                     // We don't need to keep the observer past this point
@@ -95,40 +118,45 @@ if (Metrics.canCapturePerformanceMetrics()) {
                         const end = mark.name;
                         const name = end.replace(/_end$/, '');
                         const start = `${name}_start`;
-                        measureFailSafe(name, start, end);
+                        Performance.measureFailSafe(name, start, end);
                     }
 
                     // Capture any custom measures or metrics below
                     if (mark.name === `${CONST.TIMING.SIDEBAR_LOADED}_end`) {
-                        // Make sure TTI is captured when the app is really usable
-                        InteractionManager.runAfterInteractions(() => {
-                            requestAnimationFrame(() => {
-                                measureFailSafe('TTI', 'nativeLaunchStart', mark.name);
-                                Performance.printPerformanceMetrics();
-                            });
-                        });
+                        Performance.measureTTI(mark.name);
                     }
                 });
         }).observe({type: 'mark', buffered: true});
     };
 
+    Performance.getPerformanceMetrics = () => _.chain([
+        ...rnPerformance.getEntriesByName('nativeLaunch'),
+        ...rnPerformance.getEntriesByName('runJsBundle'),
+        ...rnPerformance.getEntriesByName('jsBundleDownload'),
+        ...rnPerformance.getEntriesByName('TTI'),
+        ...rnPerformance.getEntriesByName('regularAppStart'),
+        ...rnPerformance.getEntriesByName('appStartedToReady'),
+    ])
+        .filter(entry => entry.duration > 0)
+        .value();
+
     /**
      * Outputs performance stats. We alert these so that they are easy to access in release builds.
      */
     Performance.printPerformanceMetrics = () => {
-        const stats = _.chain([
-            ...rnPerformance.getEntriesByName('nativeLaunch'),
-            ...rnPerformance.getEntriesByName('runJsBundle'),
-            ...rnPerformance.getEntriesByName('jsBundleDownload'),
-            ...rnPerformance.getEntriesByName('TTI'),
-        ])
-            .filter(entry => entry.duration > 0)
-            .map(entry => `\u2022 ${entry.name}: ${entry.duration.toFixed(1)}ms`)
-            .value();
+        const stats = Performance.getPerformanceMetrics();
+        const statsAsText = _.map(stats, entry => `\u2022 ${entry.name}: ${entry.duration.toFixed(1)}ms`)
+            .join('\n');
 
         if (stats.length > 0) {
-            Alert.alert('Performance', stats.join('\n'));
+            Alert.alert('Performance', statsAsText);
         }
+    };
+
+    Performance.subscribeToMeasurements = (callback) => {
+        new perfModule.PerformanceObserver((list) => {
+            list.getEntriesByType('measure').forEach(callback);
+        }).observe({type: 'measure', buffered: true});
     };
 
     /**

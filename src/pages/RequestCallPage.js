@@ -36,11 +36,10 @@ const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
 
     /** Login list for the user that is signed in */
-    loginList: PropTypes.arrayOf(PropTypes.shape({
-
-        /** Phone/Email associated with user */
+    loginList: PropTypes.shape({
+        /** Phone/Emails associated with user */
         partnerUserID: PropTypes.string,
-    })),
+    }),
 
     /** The policies which the user has access to */
     policies: PropTypes.shape({
@@ -76,9 +75,9 @@ const propTypes = {
     /** The policyID of the last workspace whose settings the user accessed */
     lastAccessedWorkspacePolicyID: PropTypes.string,
 
-    // The NVP describing a user's block status
+    /** The NVP describing a user's block status */
     blockedFromConcierge: PropTypes.shape({
-        // The date that the user will be unblocked
+        /** The date that the user will be unblocked */
         expiresAt: PropTypes.string,
     }),
 
@@ -93,7 +92,7 @@ const defaultProps = {
     inboxCallUserWaitTime: null,
     lastAccessedWorkspacePolicyID: '',
     blockedFromConcierge: {},
-    loginList: [],
+    loginList: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -155,14 +154,13 @@ class RequestCallPage extends Component {
     }
 
     /**
-     * Gets the user's phone number from their secondary login.
-     * Returns null if it doesn't exist.
-     * @param {Array<Object>} loginList
+     * Gets the user's phone number from their secondary logins.
+     * Returns empty string if it doesn't exist.
      *
-     * @returns {String|null}
+     * @returns {String}
      */
-    getPhoneNumber(loginList) {
-        const secondaryLogin = _.find(loginList, login => Str.isSMSLogin(login.partnerUserID));
+    getPhoneNumber() {
+        const secondaryLogin = _.find(_.values(this.props.loginList), login => Str.isSMSLogin(login.partnerUserID));
         return secondaryLogin ? Str.removeSMSDomain(secondaryLogin.partnerUserID) : '';
     }
 
@@ -213,11 +211,11 @@ class RequestCallPage extends Component {
     validate(values) {
         const errors = {};
 
-        if (_.isEmpty(values.firstName)) {
+        if (_.isEmpty(values.firstName.trim())) {
             errors.firstName = this.props.translate('requestCallPage.error.firstName');
         }
 
-        if (_.isEmpty(values.lastName)) {
+        if (_.isEmpty(values.lastName.trim())) {
             errors.lastName = this.props.translate('requestCallPage.error.lastName');
         }
 
@@ -267,41 +265,38 @@ class RequestCallPage extends Component {
                         >
                             <Section
                                 title={this.props.translate('requestCallPage.subtitle')}
-                                icon={Illustrations.ConciergeExclamation}
-                                containerStyles={[styles.p0]}
+                                icon={Illustrations.ConciergeBubble}
+                                containerStyles={[styles.callRequestSection]}
                             >
-                                <Text style={styles.mb4}>
+                                <Text style={[styles.mv3]}>
                                     {this.props.translate('requestCallPage.description')}
                                 </Text>
                             </Section>
-                            <View style={[styles.flexRow, styles.mb4]}>
-                                <View style={styles.flex1}>
-                                    <TextInput
-                                        inputID="firstName"
-                                        defaultValue={firstName}
-                                        label={this.props.translate('common.firstName')}
-                                        name="fname"
-                                        placeholder={this.props.translate('profilePage.john')}
-                                    />
-                                </View>
-                                <View style={[styles.flex1, styles.ml2]}>
-                                    <TextInput
-                                        inputID="lastName"
-                                        defaultValue={lastName}
-                                        label={this.props.translate('common.lastName')}
-                                        name="lname"
-                                        placeholder={this.props.translate('profilePage.doe')}
-                                    />
-                                </View>
-                            </View>
+                            <TextInput
+                                inputID="firstName"
+                                defaultValue={firstName}
+                                label={this.props.translate('common.firstName')}
+                                name="fname"
+                                placeholder={this.props.translate('profilePage.john')}
+                                containerStyles={[styles.mt4]}
+                            />
+                            <TextInput
+                                inputID="lastName"
+                                defaultValue={lastName}
+                                label={this.props.translate('common.lastName')}
+                                name="lname"
+                                placeholder={this.props.translate('profilePage.doe')}
+                                containerStyles={[styles.mt4]}
+                            />
                             <TextInput
                                 inputID="phoneNumber"
-                                defaultValue={this.getPhoneNumber(this.props.loginList)}
+                                defaultValue={this.getPhoneNumber()}
                                 label={this.props.translate('common.phoneNumber')}
                                 name="phone"
                                 keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                                 autoCorrect={false}
                                 placeholder="2109400803"
+                                containerStyles={[styles.mt4]}
                             />
                             <TextInput
                                 inputID="phoneNumberExtension"

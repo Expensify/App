@@ -28,13 +28,16 @@ const propTypes = {
     message: PropTypes.string,
 
     /** Callback fired when the "fix the errors" link is pressed */
-    onFixTheErrorsPressed: PropTypes.func,
+    onFixTheErrorsLinkPressed: PropTypes.func,
 
     /** Submit function */
     onSubmit: PropTypes.func.isRequired,
 
     /** Should the button be enabled when offline */
     enabledWhenOffline: PropTypes.bool,
+
+    /** Whether the action is dangerous */
+    isDangerousAction: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -43,17 +46,18 @@ const defaultProps = {
     isMessageHtml: false,
     containerStyles: [],
     isLoading: false,
-    onFixTheErrorsPressed: () => {},
+    onFixTheErrorsLinkPressed: () => {},
     enabledWhenOffline: false,
+    isDangerousAction: false,
 };
 
 const FormAlertWithSubmitButton = props => (
     <FormAlertWrapper
-        containerStyles={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd, ...props.containerStyles]}
+        containerStyles={[styles.mh5, styles.mb5, styles.justifyContentEnd, ...props.containerStyles]}
         isAlertVisible={props.isAlertVisible}
         isMessageHtml={props.isMessageHtml}
         message={props.message}
-        onFixTheErrorsPressed={props.onFixTheErrorsPressed}
+        onFixTheErrorsLinkPressed={props.onFixTheErrorsLinkPressed}
     >
         {isOffline => ((isOffline && !props.enabledWhenOffline) ? (
             <Button
@@ -61,6 +65,7 @@ const FormAlertWithSubmitButton = props => (
                 isDisabled
                 text={props.buttonText}
                 style={[styles.mb3]}
+                danger={props.isDangerousAction}
             />
         ) : (
             <Button
@@ -70,6 +75,7 @@ const FormAlertWithSubmitButton = props => (
                 onPress={props.onSubmit}
                 isDisabled={props.isDisabled}
                 isLoading={props.isLoading}
+                danger={props.isDangerousAction}
             />
         ))}
     </FormAlertWrapper>

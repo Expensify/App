@@ -49,6 +49,8 @@ class WorkspaceInitialPage extends React.Component {
         this.openEditor = this.openEditor.bind(this);
         this.toggleDeleteModal = this.toggleDeleteModal.bind(this);
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
+        this.hasPolicyCreationError = this.hasPolicyCreationError.bind(this);
+        this.dismissError = this.dismissError.bind(this);
 
         this.state = {
             isDeleteModalOpen: false,
@@ -77,7 +79,19 @@ class WorkspaceInitialPage extends React.Component {
         const policyReports = _.filter(this.props.reports, report => report && report.policyID === this.props.policy.id);
         Policy.deleteWorkspace(this.props.policy.id, policyReports);
         this.toggleDeleteModal(false);
-        Navigation.navigate(ROUTES.SETTINGS);
+        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+    }
+
+    /**
+     * @returns {Boolean}
+     */
+    hasPolicyCreationError() {
+        return Boolean(this.props.policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && this.props.policy.errors);
+    }
+
+    dismissError() {
+        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+        Policy.removeWorkspace(this.props.policy.id);
     }
 
     render() {
@@ -134,21 +148,20 @@ class WorkspaceInitialPage extends React.Component {
 
         return (
             <ScreenWrapper>
-                <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)}>
+                <FullPageNotFoundView
+                    shouldShow={_.isEmpty(this.props.policy)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                >
                     <HeaderWithCloseButton
                         title={this.props.translate('workspace.common.workspace')}
                         shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                         onCloseButtonPress={() => Navigation.dismissModal()}
                         shouldShowThreeDotsButton
                         shouldShowGetAssistanceButton
                         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INITIAL}
                         threeDotsMenuItems={[
                             {
-                                icon: Expensicons.Plus,
-                                text: this.props.translate('workspace.new.newWorkspace'),
-                                onSelected: () => Policy.createWorkspace(),
-                            }, {
                                 icon: Expensicons.Trashcan,
                                 text: this.props.translate('workspace.common.delete'),
                                 onSelected: () => this.setState({isDeleteModalOpen: true}),
@@ -163,11 +176,17 @@ class WorkspaceInitialPage extends React.Component {
                             styles.justifyContentBetween,
                         ]}
                     >
-                        <OfflineWithFeedback pendingAction={this.props.policy.pendingAction}>
+                        <OfflineWithFeedback
+                            pendingAction={this.props.policy.pendingAction}
+                            onClose={this.dismissError}
+                            errors={this.props.policy.errors}
+                            errorRowStyles={[styles.ph6, styles.pv2]}
+                        >
                             <View style={[styles.flex1]}>
                                 <View style={styles.pageWrapper}>
                                     <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
                                         <Pressable
+                                            disabled={this.hasPolicyCreationError()}
                                             style={[styles.pRelative, styles.avatarLarge]}
                                             onPress={this.openEditor}
                                         >
@@ -192,6 +211,7 @@ class WorkspaceInitialPage extends React.Component {
                                         </Pressable>
                                         {!_.isEmpty(this.props.policy.name) && (
                                             <Pressable
+                                                disabled={this.hasPolicyCreationError()}
                                                 style={[
                                                     styles.alignSelfCenter,
                                                     styles.mt4,
@@ -218,6 +238,8 @@ class WorkspaceInitialPage extends React.Component {
                                 {_.map(menuItems, item => (
                                     <MenuItem
                                         key={item.translationKey}
+                                        disabled={this.hasPolicyCreationError()}
+                                        interactive={!this.hasPolicyCreationError()}
                                         title={this.props.translate(item.translationKey)}
                                         icon={item.icon}
                                         iconRight={item.iconRight}

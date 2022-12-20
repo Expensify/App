@@ -5,6 +5,7 @@ import {
 import lodashGet from 'lodash/get';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
+import SCREENS from '../../SCREENS';
 
 /**
  * @returns {Object}
@@ -121,12 +122,22 @@ function pushDrawerRoute(route) {
             });
         }
 
+        const routes = [{
+            name: newScreenName,
+            params: newScreenParams,
+        }];
+
+        // Keep the same key so the ReportScreen does not completely re-mount
+        if (newScreenName === SCREENS.REPORT) {
+            const prevReportRoute = getRouteFromState(getActiveState());
+            if (prevReportRoute.key) {
+                routes[0].key = prevReportRoute.key;
+            }
+        }
+
         return CommonActions.reset({
             ...state,
-            routes: [{
-                name: newScreenName,
-                params: newScreenParams,
-            }],
+            routes,
             history,
         });
     };

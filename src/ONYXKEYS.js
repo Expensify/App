@@ -92,7 +92,6 @@ export default {
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
-        REPORT_IOUS: 'reportIOUs_',
         POLICY: 'policy_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         POLICY_MEMBER_LIST: 'policyMemberList_',
@@ -155,14 +154,8 @@ export default {
     // Is report data loading?
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
 
-    // Is policy data loading?
-    IS_LOADING_POLICY_DATA: 'isLoadingPolicyData',
-
     // Is Keyboard shortcuts modal open?
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
-
-    // Data related to user closing their account (loading status and error message)
-    CLOSE_ACCOUNT: 'closeAccount',
 
     // Stores information about active wallet transfer amount, selectedAccountID, status, etc
     WALLET_TRANSFER: 'walletTransfer',
@@ -175,6 +168,10 @@ export default {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
         REQUEST_CALL_FORM: 'requestCallForm',
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
+        WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
+        CLOSE_ACCOUNT_FORM: 'closeAccount',
+        PROFILE_SETTINGS_FORM: 'profileSettingsForm',
+        DISPLAY_NAME_FORM: 'displayNameForm',
     },
 
     // Whether we should show the compose input or not

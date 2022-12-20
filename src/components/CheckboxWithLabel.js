@@ -1,11 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View, TouchableOpacity} from 'react-native';
-import _ from 'underscore';
 import styles from '../styles/styles';
 import Checkbox from './Checkbox';
 import Text from './Text';
-import InlineErrorText from './InlineErrorText';
+import FormHelpMessage from './FormHelpMessage';
 
 const requiredPropsCheck = (props) => {
     if (!props.label && !props.LabelComponent) {
@@ -40,6 +39,9 @@ const propTypes = {
     /** Error text to display */
     errorText: PropTypes.string,
 
+    /** Value for checkbox. This prop is intended to be set by Form.js only */
+    value: PropTypes.bool,
+
     /** The default value for the checkbox */
     defaultValue: PropTypes.bool,
 
@@ -47,9 +49,11 @@ const propTypes = {
     forwardedRef: PropTypes.func,
 
     /** The ID used to uniquely identify the input in a Form */
+    /* eslint-disable-next-line react/no-unused-prop-types */
     inputID: PropTypes.string,
 
     /** Saves a draft of the input value when used in a form */
+    /* eslint-disable-next-line react/no-unused-prop-types */
     shouldSaveDraft: PropTypes.bool,
 };
 
@@ -61,6 +65,7 @@ const defaultProps = {
     errorText: '',
     shouldSaveDraft: false,
     isChecked: false,
+    value: false,
     defaultValue: false,
     forwardedRef: () => {},
 };
@@ -69,10 +74,8 @@ class CheckboxWithLabel extends React.Component {
     constructor(props) {
         super(props);
 
-        this.isChecked = props.defaultValue || props.isChecked;
+        this.isChecked = props.value || props.defaultValue || props.isChecked;
         this.LabelComponent = props.LabelComponent;
-        this.defaultStyles = [styles.flexRow, styles.alignItemsCenter];
-        this.wrapperStyles = _.isArray(props.style) ? [...this.defaultStyles, ...props.style] : [...this.defaultStyles, props.style];
 
         this.toggleCheckbox = this.toggleCheckbox.bind(this);
     }
@@ -84,16 +87,14 @@ class CheckboxWithLabel extends React.Component {
 
     render() {
         return (
-            <>
-                <View style={this.wrapperStyles}>
+            <View style={this.props.style}>
+                <View style={[styles.flexRow, styles.alignItemsCenter]}>
                     <Checkbox
                         isChecked={this.isChecked}
                         onPress={this.toggleCheckbox}
                         label={this.props.label}
                         hasError={Boolean(this.props.errorText)}
                         forwardedRef={this.props.forwardedRef}
-                        inputID={this.props.inputID}
-                        shouldSaveDraft={this.props.shouldSaveDraft}
                     />
                     <TouchableOpacity
                         focusable={false}
@@ -117,10 +118,8 @@ class CheckboxWithLabel extends React.Component {
                         {this.LabelComponent && (<this.LabelComponent />)}
                     </TouchableOpacity>
                 </View>
-                <InlineErrorText styles={[styles.ml8]}>
-                    {this.props.errorText}
-                </InlineErrorText>
-            </>
+                <FormHelpMessage message={this.props.errorText} />
+            </View>
         );
     }
 }

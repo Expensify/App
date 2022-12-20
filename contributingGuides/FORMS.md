@@ -88,7 +88,7 @@ To give a slightly more detailed example of how this would work with phone numbe
 
 ### Form Drafts
 
-Form inputs will NOT store draft values by default. This is to avoid accidentely storing any sensitive information like passwords, SSN or bank account information. We need to explicitly tell each form input to save draft values by passing the shouldSaveDraft prop to the input. Saving draft values is highly desireable and we should always try to save draft values. This way when a user continues a given flow they can easily pick up right where they left off if they accidentally exited a flow. Inputs with saved draft values [will be cleared when a user logs out](https://github.com/Expensify/App/blob/aa1f0f34eeba5d761657168255a1ae9aebdbd95e/src/libs/actions/SignInRedirect.js#L52) (like most data). Additionally we should clear draft data once the form is successfully submitted by calling `Onyx.set(ONYXKEY.FORM_ID, null)` in the onSubmit callback passed to Form.
+Form inputs will NOT store draft values by default. This is to avoid accidentally storing any sensitive information like passwords, SSN or bank account information. We need to explicitly tell each form input to save draft values by passing the shouldSaveDraft prop to the input. Saving draft values is highly desirable and we should always try to save draft values. This way when a user continues a given flow they can easily pick up right where they left off if they accidentally exited a flow. Inputs with saved draft values [will be cleared when a user logs out](https://github.com/Expensify/App/blob/aa1f0f34eeba5d761657168255a1ae9aebdbd95e/src/libs/actions/SignInRedirect.js#L52) (like most data). Additionally, we should clear draft data once the form is successfully submitted by calling `Onyx.set(ONYXKEY.FORM_ID, null)` in the onSubmit callback passed to Form.
 
 ```jsx
 <TextInput
@@ -195,6 +195,38 @@ function onSubmit(values) {
         inputID="accountNumber"
         containerStyles={[styles.mt4]}
     />
+</Form>
+```
+
+`Form.js` also works with inputs nested in a custom component, e.g. [AddressForm](https://github.com/Expensify/App/blob/86579225ff30b21dea507347735259637a2df461/src/pages/ReimbursementAccount/AddressForm.js). The only exception is that the nested component shouldn't be wrapped around any HoC.
+
+```jsx
+const BankAccountForm = () => (
+    <>
+        <View>
+            <TextInput
+                label="Routing number"
+                inputID="routingNumber"
+                maxLength={8}
+                shouldSaveDraft
+            />
+        </View>
+        <TextInput
+            label="Account number"
+            inputID="accountNumber"
+            containerStyles={[styles.mt4]}
+        />
+    </>
+);
+
+// ...
+<Form
+    formID="testForm"
+    submitButtonText="Submit"
+    validate={this.validate}
+    onSubmit={this.onSubmit}
+>
+    <BankAccountForm />
 </Form>
 ```
 

@@ -25,7 +25,7 @@ import Form from '../../../components/Form';
 const propTypes = {
     /* Onyx Props */
     formData: PropTypes.shape({
-        setupComplete: PropTypes.boolean,
+        setupComplete: PropTypes.bool,
     }),
 
     ...withLocalizePropTypes,
@@ -42,6 +42,7 @@ class DebitCardPage extends Component {
         super(props);
 
         this.validate = this.validate.bind(this);
+        PaymentMethods.clearDebitCardFormErrorAndSubmit();
     }
 
     componentDidUpdate(prevProps) {
@@ -138,6 +139,7 @@ class DebitCardPage extends Component {
                                 label={this.props.translate('addDebitCardPage.expiration')}
                                 placeholder={this.props.translate('addDebitCardPage.expirationDate')}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                                maxLength={4}
                             />
                         </View>
                         <View style={[styles.flex1]}>
@@ -163,6 +165,7 @@ class DebitCardPage extends Component {
                                 label={this.props.translate('common.zip')}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
+                                hint={this.props.translate('common.zipCodeExample')}
                             />
                         </View>
                         <View style={[styles.flex1]}>
@@ -191,7 +194,6 @@ class DebitCardPage extends Component {
                             </>
                         )}
                         style={[styles.mt4]}
-                        shouldSaveDraft
                     />
                 </Form>
             </ScreenWrapper>

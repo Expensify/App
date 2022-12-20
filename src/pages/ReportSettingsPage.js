@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View, ScrollView} from 'react-native';
+import {View, ScrollView, Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -21,6 +21,7 @@ import Picker from '../components/Picker';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import reportPropTypes from './reportPropTypes';
+import withReportOrNavigateHome from './home/report/withReportOrNavigateHome';
 
 const propTypes = {
     /** Route params */
@@ -90,6 +91,7 @@ class ReportSettingsPage extends Component {
         if (!this.validate()) {
             return;
         }
+        Keyboard.dismiss();
         Report.updatePolicyRoomName(this.props.report, this.state.newRoomName);
     }
 
@@ -99,6 +101,11 @@ class ReportSettingsPage extends Component {
         // When the report name is not changed, skip the form submission. Added check here to keep the code clean
         if (this.state.newRoomName === this.props.report.reportName) {
             return false;
+        }
+
+        // Show error if the room name already exists
+        if (ValidationUtils.isExistingRoomName(this.state.newRoomName, this.props.reports, this.props.report.policyID)) {
+            errors.newRoomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
         }
 
         // We error if the user doesn't enter a room name or left blank
@@ -140,15 +147,19 @@ class ReportSettingsPage extends Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('common.settings')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack()}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
+                    onBackButtonPress={Navigation.goBack}
+                    onCloseButtonPress={Navigation.dismissModal}
                 />
-                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
+                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5} keyboardShouldPersistTaps="handled">
                     <View>
                         <View style={[styles.mt2]}>
                             <Picker
                                 label={this.props.translate('notificationPreferences.label')}
                                 onInputChange={(notificationPreference) => {
+                                    if (this.props.report.notificationPreference === notificationPreference) {
+                                        return;
+                                    }
+
                                     Report.updateNotificationPreference(
                                         this.props.report.reportID,
                                         this.props.report.notificationPreference,
@@ -196,9 +207,9 @@ class ReportSettingsPage extends Component {
                                             success={!shouldDisableRename}
                                             text={this.props.translate('common.save')}
                                             onPress={this.validateAndUpdatePolicyRoomName}
-                                            style={[styles.ml2, styles.flex1]}
+                                            style={[styles.ml2, styles.mnw25]}
                                             textStyles={[styles.label]}
-                                            innerStyles={[styles.ph5]}
+                                            innerStyles={[styles.saveButtonPadding]}
                                             isDisabled={shouldDisableRename}
                                         />
                                     )}
@@ -243,12 +254,13 @@ ReportSettingsPage.propTypes = propTypes;
 
 export default compose(
     withLocalize,
+    withReportOrNavigateHome,
     withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-        },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
         },
     }),
 )(ReportSettingsPage);

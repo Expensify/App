@@ -13,6 +13,7 @@ import LoginForm from './LoginForm';
 import PasswordForm from './PasswordForm';
 import ResendValidationForm from './ResendValidationForm';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import Performance from '../../libs/Performance';
 
 const propTypes = {
     /* Onyx Props */
@@ -46,6 +47,7 @@ class SignInPage extends Component {
         // Always reset the unread counter to zero on this page
         // NOTE: We need to wait for the next tick to ensure that the unread indicator is updated
         setTimeout(() => updateUnread(0), 0);
+        Performance.measureTTI();
     }
 
     render() {
@@ -81,7 +83,7 @@ class SignInPage extends Component {
                 >
                     {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
                     so that password managers can access the values. Conditionally rendering these components will break this feature. */}
-                    <LoginForm isVisible={showLoginForm} blurOnSubmit={shouldShowResendValidationLinkForm} />
+                    <LoginForm isVisible={showLoginForm} blurOnSubmit={this.props.account.validated === false} />
                     <PasswordForm isVisible={showPasswordForm} />
                     {shouldShowResendValidationLinkForm && <ResendValidationForm />}
                 </SignInPageLayout>

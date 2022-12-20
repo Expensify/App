@@ -30,7 +30,7 @@ const propTypes = {
 const defaultProps = {
     color: themeColors.text,
     fontSize: variables.fontSizeNormal,
-    family: 'GTA',
+    family: 'EXP_NEUE',
     textAlign: 'left',
     children: null,
     style: {},
@@ -64,7 +64,7 @@ const Text = React.forwardRef(({
 
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <RNText ref={ref} style={[componentStyle]} {...props}>{children}</RNText>
+        <RNText allowFontScaling={false} ref={ref} style={[componentStyle]} {...props}>{children}</RNText>
     );
 });
 

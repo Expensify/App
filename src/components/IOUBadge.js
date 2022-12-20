@@ -24,8 +24,8 @@ const propTypes = {
 
 const defaultProps = {
     iouReport: {
-        reportID: 0,
-        chatReportID: 0,
+        reportID: '',
+        chatReportID: '',
         total: 0,
         ownerEmail: null,
         currency: CONST.CURRENCY.USD,
@@ -57,7 +57,7 @@ export default compose(
     withLocalize,
     withOnyx({
         iouReport: {
-            key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
+            key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
         },
         session: {
             key: ONYXKEYS.SESSION,

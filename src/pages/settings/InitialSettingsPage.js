@@ -4,11 +4,10 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
+import {withNetwork} from '../../components/OnyxProvider';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
-import * as Policy from '../../libs/actions/Policy';
 import ONYXKEYS from '../../ONYXKEYS';
 import Tooltip from '../../components/Tooltip';
 import Avatar from '../../components/Avatar';
@@ -24,14 +23,13 @@ import CONST from '../../CONST';
 import Permissions from '../../libs/Permissions';
 import * as App from '../../libs/actions/App';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import policyMemberPropType from '../policyMemberPropType';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import cardPropTypes from '../../components/cardPropTypes';
 import * as Wallet from '../../libs/actions/Wallet';
-import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import walletTermsPropTypes from '../EnablePayments/walletTermsPropTypes';
+import * as PolicyUtils from '../../libs/PolicyUtils';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const propTypes = {
     /* Onyx Props */
@@ -59,9 +57,6 @@ const propTypes = {
         /** The current action that is waiting to happen on the policy */
         pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
     })),
-
-    /** List of policy members */
-    policyMembers: PropTypes.objectOf(policyMemberPropType),
 
     /** The user's wallet account */
     userWallet: PropTypes.shape({
@@ -92,24 +87,9 @@ const defaultProps = {
         currentBalance: 0,
     },
     betas: [],
-    policyMembers: {},
     walletTerms: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
-
-/**
- * Dismisses the errors on one item
- *
- * @param {string} policyID
- * @param {string} pendingAction
- */
-function dismissWorkspaceError(policyID, pendingAction) {
-    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-        Policy.clearDeleteWorkspaceError(policyID);
-        return;
-    }
-    throw new Error('Not implemented');
-}
 
 class InitialSettingsPage extends React.Component {
     constructor(props) {
@@ -117,8 +97,13 @@ class InitialSettingsPage extends React.Component {
 
         this.getWalletBalance = this.getWalletBalance.bind(this);
         this.getDefaultMenuItems = this.getDefaultMenuItems.bind(this);
-        this.getMenuItemsList = this.getMenuItemsList.bind(this);
         this.getMenuItem = this.getMenuItem.bind(this);
+        this.toggleSignoutConfirmModal = this.toggleSignoutConfirmModal.bind(this);
+        this.signout = this.signOut.bind(this);
+
+        this.state = {
+            shouldShowSignoutConfirmModal: false,
+        };
     }
 
     componentDidMount() {
@@ -142,7 +127,28 @@ class InitialSettingsPage extends React.Component {
      * @returns {Array} the default menu items
      */
     getDefaultMenuItems() {
+        const policiesAvatars = _.chain(this.props.policies)
+            .filter(policy => policy
+                && policy.type === CONST.POLICY.TYPE.FREE
+                && policy.role === CONST.POLICY.ROLE.ADMIN
+                && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .sortBy(policy => policy.name)
+            .pluck('avatar')
+            .value();
+        const policyBrickRoadIndicator = _.chain(this.props.policies)
+            .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
+            .find(policy => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers))
+            .value() ? 'error' : null;
+
         return ([
+            {
+                translationKey: 'common.workspaces',
+                icon: Expensicons.Building,
+                action: () => { Navigation.navigate(ROUTES.SETTINGS_WORKSPACES); },
+                floatRightAvatars: policiesAvatars,
+                shouldStackHorizontally: true,
+                brickRoadIndicator: policyBrickRoadIndicator,
+            },
             {
                 translationKey: 'common.profile',
                 icon: Expensicons.Profile,
@@ -173,68 +179,14 @@ class InitialSettingsPage extends React.Component {
             {
                 translationKey: 'initialSettingsPage.signOut',
                 icon: Expensicons.Exit,
-                action: Session.signOutAndRedirectToSignIn,
+                action: () => { this.signout(false); },
             },
         ]);
-    }
-
-    /**
-     * Add free policies (workspaces) to the list of menu items and returns the list of menu items
-     * @returns {Array} the menu item list
-     */
-    getMenuItemsList() {
-        const menuItems = _.chain(this.props.policies)
-            .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
-            .map(policy => ({
-                title: policy.name,
-                icon: policy.avatar ? policy.avatar : Expensicons.Building,
-                iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
-                iconStyles: policy.avatar ? [] : [styles.popoverMenuIconEmphasized],
-                iconFill: themeColors.iconReversed,
-                fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                brickRoadIndicator: PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
-                pendingAction: policy.pendingAction,
-                isPolicy: true,
-                errors: policy.errors,
-                dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
-                disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            }))
-            .value();
-        menuItems.push(...this.getDefaultMenuItems());
-
-        return menuItems;
     }
 
     getMenuItem(item, index) {
         const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
         const isPaymentItem = item.translationKey === 'common.payments';
-
-        if (item.isPolicy) {
-            return (
-                <OfflineWithFeedback
-                    key={`${keyTitle}_${index}`}
-                    pendingAction={item.pendingAction}
-                    errorRowStyles={styles.offlineFeedback.menuItemErrorPadding}
-                    onClose={item.dismissError}
-                    errors={item.errors}
-                >
-                    <MenuItem
-                        title={keyTitle}
-                        icon={item.icon}
-                        iconType={item.iconType}
-                        onPress={item.action}
-                        iconStyles={item.iconStyles}
-                        iconFill={item.iconFill}
-                        shouldShowRightIcon
-                        badgeText={this.getWalletBalance(isPaymentItem)}
-                        fallbackIcon={item.fallbackIcon}
-                        brickRoadIndicator={item.brickRoadIndicator}
-                        disabled={item.disabled}
-                    />
-                </OfflineWithFeedback>
-            );
-        }
 
         return (
             <MenuItem
@@ -249,8 +201,24 @@ class InitialSettingsPage extends React.Component {
                 badgeText={this.getWalletBalance(isPaymentItem)}
                 fallbackIcon={item.fallbackIcon}
                 brickRoadIndicator={item.brickRoadIndicator}
+                floatRightAvatars={item.floatRightAvatars}
+                shouldStackHorizontally={item.shouldStackHorizontally}
             />
         );
+    }
+
+    toggleSignoutConfirmModal(value) {
+        this.setState({shouldShowSignoutConfirmModal: value});
+    }
+
+    signOut(shouldForceSignout = false) {
+        if (!this.props.network.isOffline || shouldForceSignout) {
+            Session.signOutAndRedirectToSignIn();
+            return;
+        }
+
+        // When offline, warn the user that any actions they took while offline will be lost if they sign out
+        this.toggleSignoutConfirmModal(true);
     }
 
     openProfileSettings() {
@@ -300,7 +268,18 @@ class InitialSettingsPage extends React.Component {
                                 </Text>
                             )}
                         </View>
-                        {_.map(this.getMenuItemsList(), (item, index) => this.getMenuItem(item, index))}
+                        {_.map(this.getDefaultMenuItems(), (item, index) => this.getMenuItem(item, index))}
+
+                        <ConfirmModal
+                            danger
+                            title={this.props.translate('common.areYouSure')}
+                            prompt={this.props.translate('initialSettingsPage.signOutConfirmationText')}
+                            confirmText={this.props.translate('initialSettingsPage.signOut')}
+                            cancelText={this.props.translate('common.cancel')}
+                            isVisible={this.state.shouldShowSignoutConfirmModal}
+                            onConfirm={() => this.signOut(true)}
+                            onCancel={() => this.toggleSignoutConfirmModal(false)}
+                        />
                     </View>
                 </ScrollView>
             </ScreenWrapper>
@@ -340,4 +319,5 @@ export default compose(
             key: ONYXKEYS.WALLET_TERMS,
         },
     }),
+    withNetwork(),
 )(InitialSettingsPage);

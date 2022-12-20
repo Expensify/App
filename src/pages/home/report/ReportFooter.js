@@ -32,12 +32,12 @@ const propTypes = {
     /** Callback fired when the comment is submitted */
     onSubmitComment: PropTypes.func.isRequired,
 
-    /** Any errors associated with an attempt to create a workspace room */
+    /** Any errors associated with an attempt to create a chat */
     // eslint-disable-next-line react/forbid-prop-types
-    addWorkspaceRoomErrors: PropTypes.object,
+    errors: PropTypes.object,
 
-    /** The pending action when we are adding a workspace room */
-    addWorkspaceRoomPendingAction: PropTypes.string,
+    /** The pending action when we are adding a chat */
+    pendingAction: PropTypes.string,
 
     /** Whether the composer input should be shown */
     shouldShowComposeInput: PropTypes.bool,
@@ -47,8 +47,8 @@ const propTypes = {
 
 const defaultProps = {
     shouldShowComposeInput: true,
-    addWorkspaceRoomErrors: {},
-    addWorkspaceRoomPendingAction: null,
+    errors: {},
+    pendingAction: null,
 };
 
 class ReportFooter extends React.Component {
@@ -65,11 +65,11 @@ class ReportFooter extends React.Component {
         if (isArchivedRoom) {
             reportClosedAction = lodashFindLast(this.props.reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
         }
-        const hideComposer = isArchivedRoom || !_.isEmpty(this.props.addWorkspaceRoomErrors);
+        const hideComposer = isArchivedRoom || !_.isEmpty(this.props.errors);
         return (
             <>
                 {(isArchivedRoom || hideComposer) && (
-                    <View style={[styles.chatFooter]}>
+                    <View style={[styles.chatFooter, this.props.isSmallScreenWidth ? styles.mb5 : null]}>
                         {isArchivedRoom && (
                             <ArchivedReportFooter
                                 reportClosedAction={reportClosedAction}
@@ -89,7 +89,9 @@ class ReportFooter extends React.Component {
                     <View style={[this.getChatFooterStyles(), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
                         <SwipeableView onSwipeDown={Keyboard.dismiss}>
                             <OfflineWithFeedback
-                                pendingAction={this.props.addWorkspaceRoomPendingAction}
+                                pendingAction={this.props.pendingAction}
+                                style={this.props.isComposerFullSize ? styles.chatItemFullComposeRow : {}}
+                                contentContainerStyle={this.props.isComposerFullSize ? styles.flex1 : {}}
                             >
                                 <ReportActionCompose
                                     onSubmit={this.props.onSubmitComment}

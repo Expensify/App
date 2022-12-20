@@ -31,10 +31,11 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
+import * as Expensicons from '../../components/Icon/Expensicons';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
-    personalDetails: personalDetailsPropType.isRequired,
+    personalDetails: personalDetailsPropType,
 
     /** URL Route params */
     route: PropTypes.shape({
@@ -48,7 +49,7 @@ const propTypes = {
     ...policyPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
-    ...networkPropTypes,
+    network: networkPropTypes.isRequired,
 };
 
 const defaultProps = policyDefaultProps;
@@ -72,8 +73,7 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     componentDidMount() {
-        const clientMemberEmails = _.keys(this.props.policyMemberList);
-        Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
+        this.getWorkspaceMembers();
     }
 
     componentDidUpdate(prevProps) {
@@ -82,7 +82,20 @@ class WorkspaceMembersPage extends React.Component {
             return;
         }
 
-        const clientMemberEmails = _.keys(this.props.policyMemberList);
+        this.getWorkspaceMembers();
+    }
+
+    /**
+     * Get members for the current workspace
+     */
+    getWorkspaceMembers() {
+        /**
+         * clientMemberEmails should be filtered to only pass valid members, failure to do so
+         * will remove all non-existing members that should be displayed (e.g. non-existing members that should display an error).
+         * This is due to how calling `Onyx::merge` on array fields overwrites the array.
+         * see https://github.com/Expensify/App/issues/12265#issuecomment-1307889721 for more context
+         */
+        const clientMemberEmails = _.keys(_.pick(this.props.policyMemberList, member => member.role));
         Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
     }
 
@@ -125,7 +138,8 @@ class WorkspaceMembersPage extends React.Component {
      */
     toggleAllUsers() {
         this.setState({showTooltipForLogin: ''});
-        const policyMemberList = _.keys(lodashGet(this.props, 'policyMemberList', {}));
+        let policyMemberList = lodashGet(this.props, 'policyMemberList', {});
+        policyMemberList = _.filter(_.keys(policyMemberList), policyMember => policyMemberList[policyMember].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const removableMembers = _.without(policyMemberList, this.props.session.email, this.props.policy.owner);
         this.setState(prevState => ({
             selectedEmployees: removableMembers.length !== prevState.selectedEmployees.length
@@ -138,9 +152,11 @@ class WorkspaceMembersPage extends React.Component {
      * Toggle user from the selectedEmployees list
      *
      * @param {String} login
+     * @param {String} pendingAction
+     *
      */
-    toggleUser(login) {
-        if (this.willTooltipShowForLogin(login)) {
+    toggleUser(login, pendingAction) {
+        if (this.willTooltipShowForLogin(login) || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
 
@@ -236,27 +252,27 @@ class WorkspaceMembersPage extends React.Component {
     renderItem({
         item,
     }) {
-        const canBeRemoved = this.props.policy.owner !== item.login && this.props.session.email !== item.login;
+        const canBeRemoved = this.props.policy.owner !== item.login && this.props.session.email !== item.login && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         return (
             <OfflineWithFeedback errorRowStyles={[styles.peopleRowBorderBottom]} onClose={() => this.dismissError(item)} pendingAction={item.pendingAction} errors={item.errors}>
                 <Hoverable onHoverIn={() => this.willTooltipShowForLogin(item.login, true)} onHoverOut={() => this.setState({showTooltipForLogin: ''})}>
                     <TouchableOpacity
                         style={[styles.peopleRow, !item.errors && styles.peopleRowBorderBottom, !canBeRemoved && styles.cursorDisabled]}
-                        onPress={() => this.toggleUser(item.login)}
+                        onPress={() => this.toggleUser(item.login, item.pendingAction)}
                         activeOpacity={0.7}
                     >
                         <CheckboxWithTooltip
                             style={[styles.peopleRowCell]}
                             isChecked={_.contains(this.state.selectedEmployees, item.login)}
                             disabled={!canBeRemoved}
-                            onPress={() => this.toggleUser(item.login)}
+                            onPress={() => this.toggleUser(item.login, item.pendingAction)}
                             toggleTooltip={this.state.showTooltipForLogin === item.login}
                             text={this.props.translate('workspace.people.error.cannotRemove')}
                         />
                         <View style={styles.flex1}>
                             <OptionRow
-                                onSelectRow={() => this.toggleUser(item.login)}
-                                forceTextUnreadStyle
+                                onSelectRow={() => this.toggleUser(item.login, item.pendingAction)}
+                                boldStyle
                                 isDisabled={!canBeRemoved}
                                 option={{
                                     text: Str.removeSMSDomain(item.displayName),
@@ -287,10 +303,10 @@ class WorkspaceMembersPage extends React.Component {
         const removableMembers = [];
         let data = [];
         _.each(policyMemberList, (policyMember, email) => {
-            if (email !== this.props.session.email && email !== this.props.policy.owner) {
+            if (email !== this.props.session.email && email !== this.props.policy.owner && policyMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 removableMembers.push(email);
             }
-            const details = this.props.personalDetails[email] || {displayName: email, login: email};
+            const details = lodashGet(this.props.personalDetails, email, {displayName: email, login: email, avatar: Expensicons.FallbackAvatar});
             data.push({
                 ...policyMember,
                 ...details,
@@ -302,7 +318,10 @@ class WorkspaceMembersPage extends React.Component {
 
         return (
             <ScreenWrapper style={[styles.defaultModalContainer]}>
-                <FullPageNotFoundView shouldShow={_.isEmpty(this.props.policy)}>
+                <FullPageNotFoundView
+                    shouldShow={_.isEmpty(this.props.policy)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                >
                     <HeaderWithCloseButton
                         title={this.props.translate('workspace.common.members')}
                         subtitle={policyName}
@@ -322,8 +341,8 @@ class WorkspaceMembersPage extends React.Component {
                         confirmText={this.props.translate('common.remove')}
                         cancelText={this.props.translate('common.cancel')}
                     />
-                    <View style={[styles.pageWrapper, styles.flex1]}>
-                        <View style={[styles.w100, styles.flexRow]}>
+                    <View style={[styles.w100, styles.alignItemsCenter, styles.flex1]}>
+                        <View style={[styles.w100, styles.flexRow, styles.pt5, styles.ph5]}>
                             <Button
                                 medium
                                 success
@@ -340,7 +359,7 @@ class WorkspaceMembersPage extends React.Component {
                             />
                         </View>
                         <View style={[styles.w100, styles.mt4, styles.flex1]}>
-                            <View style={[styles.peopleRow]}>
+                            <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
                                 <View style={[styles.peopleRowCell]}>
                                     <Checkbox
                                         isChecked={this.state.selectedEmployees.length === removableMembers.length && removableMembers.length !== 0}
@@ -357,7 +376,8 @@ class WorkspaceMembersPage extends React.Component {
                                 renderItem={this.renderItem}
                                 data={data}
                                 keyExtractor={item => item.login}
-                                showsVerticalScrollIndicator={false}
+                                showsVerticalScrollIndicator
+                                style={[styles.ph5, styles.pb5]}
                             />
                         </View>
                     </View>

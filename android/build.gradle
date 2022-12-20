@@ -2,10 +2,9 @@
 
 buildscript {
     ext {
-        buildToolsVersion = "31.0.0"
         minSdkVersion = 21
-        compileSdkVersion = 31
-        targetSdkVersion = 31
+        compileSdkVersion = 32
+        targetSdkVersion = 32
 
         if (System.properties['os.arch'] == "aarch64") {
             // For M1 Users we need to use the NDK 24 which added support for aarch64
@@ -22,7 +21,6 @@ buildscript {
     }
     repositories {
         google()
-        jcenter()
         mavenCentral()
     }
     dependencies {
@@ -43,10 +41,14 @@ allprojects {
     configurations.all {
         resolutionStrategy {
             force 'org.xerial:sqlite-jdbc:3.34.0'
+
+            // Manually set the react-native version to resolve this upstream issue: https://github.com/facebook/react-native/issues/35210
+            def REACT_NATIVE_VERSION = new File(['node', '--print',"JSON.parse(require('fs').readFileSync(require.resolve('react-native/package.json'), 'utf-8')).version"].execute(null, rootDir).text.trim())
+            force "com.facebook.react:react-native:" + REACT_NATIVE_VERSION
+            force "com.facebook.react:hermes-engine:" + REACT_NATIVE_VERSION
         }
     }
     repositories {
-        jcenter()
         maven {
             // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
             url("$rootDir/../node_modules/react-native/android")

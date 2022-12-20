@@ -69,14 +69,15 @@ class IOUAmountPage extends React.Component {
 
     componentDidMount() {
         this.focusTextInput();
+
+        // Focus automatically after navigating back from currency selector
+        this.unsubscribeNavFocus = this.props.navigation.addListener('focus', () => {
+            this.focusTextInput();
+        });
     }
 
-    componentDidUpdate(prevProps) {
-        if (this.props.iou.selectedCurrencyCode === prevProps.iou.selectedCurrencyCode) {
-            return;
-        }
-
-        this.focusTextInput();
+    componentWillUnmount() {
+        this.unsubscribeNavFocus();
     }
 
     /**
@@ -269,7 +270,7 @@ class IOUAmountPage extends React.Component {
                         }}
                     />
                 </View>
-                <View style={[styles.w100, styles.justifyContentEnd]}>
+                <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}>
                     {canUseTouchScreen()
                         ? (
                             <BigNumberPad

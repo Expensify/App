@@ -28,6 +28,9 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     errors: PropTypes.object,
 
+    /** Whether we should show the error messages */
+    shouldShowErrorMessages: PropTypes.bool,
+
     /** A function to run when the X button next to the error is clicked */
     onClose: PropTypes.func,
 
@@ -40,6 +43,9 @@ const propTypes = {
     /** Additional styles to add after local styles. Applied to the parent container */
     style: stylePropTypes,
 
+    /** Additional styles to add after local styles. Applied to the children wrapper container */
+    contentContainerStyle: stylePropTypes,
+
     /** Additional style object for the error row */
     errorRowStyles: stylePropTypes,
 
@@ -49,8 +55,10 @@ const propTypes = {
 const defaultProps = {
     pendingAction: null,
     errors: null,
+    shouldShowErrorMessages: true,
     onClose: () => {},
     style: [],
+    contentContainerStyle: [],
     errorRowStyles: [],
 };
 
@@ -89,13 +97,13 @@ const OfflineWithFeedback = (props) => {
     return (
         <View style={props.style}>
             {!hideChildren && (
-                <View style={needsOpacity ? styles.offlineFeedback.pending : {}}>
+                <View style={[needsOpacity ? styles.offlineFeedback.pending : {}, props.contentContainerStyle]}>
                     {children}
                 </View>
             )}
-            {hasErrors && (
+            {(props.shouldShowErrorMessages && hasErrors) && (
                 <View style={StyleUtils.combineStyles(styles.offlineFeedback.error, props.errorRowStyles)}>
-                    <DotIndicatorMessage messages={props.errors} type="error" />
+                    <DotIndicatorMessage style={[styles.flex1]} messages={props.errors} type="error" />
                     <Tooltip text={props.translate('common.close')}>
                         <Pressable
                             onPress={props.onClose}

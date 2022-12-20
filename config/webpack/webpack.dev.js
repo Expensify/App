@@ -2,6 +2,7 @@ const path = require('path');
 const portfinder = require('portfinder');
 const {DefinePlugin} = require('webpack');
 const {merge} = require('webpack-merge');
+const {TimeAnalyticsPlugin} = require('time-analytics-webpack-plugin');
 const getCommonConfig = require('./webpack.common');
 
 const BASE_PORT = 8080;
@@ -26,12 +27,15 @@ module.exports = (env = {}) => portfinder.getPortPromise({port: BASE_PORT})
 
         const baseConfig = getCommonConfig(env);
 
-        return merge(baseConfig, {
+        const config = merge(baseConfig, {
             mode: 'development',
             devtool: 'eval-source-map',
             devServer: {
                 static: {
                     directory: path.join(__dirname, '../../dist'),
+                },
+                client: {
+                    overlay: false,
                 },
                 hot: true,
                 ...proxySettings,
@@ -43,5 +47,16 @@ module.exports = (env = {}) => portfinder.getPortPromise({port: BASE_PORT})
                     'process.env.PORT': port,
                 }),
             ],
+            cache: {
+                type: 'filesystem',
+                name: env.platform || 'default',
+                buildDependencies: {
+                    // By default, webpack and loaders are build dependencies
+                    // This (also) makes all dependencies of this config file - build dependencies
+                    config: [__filename],
+                },
+            },
         });
+
+        return TimeAnalyticsPlugin.wrap(config);
     });

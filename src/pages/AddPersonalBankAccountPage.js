@@ -21,8 +21,6 @@ import defaultTheme from '../styles/themes/default';
 import Button from '../components/Button';
 import FixedFooter from '../components/FixedFooter';
 import Form from '../components/Form';
-import TextInput from '../components/TextInput';
-import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus/index.native';
 import ROUTES from '../ROUTES';
 
 const propTypes = {
@@ -61,7 +59,7 @@ class AddPersonalBankAccountPage extends React.Component {
         this.submit = this.submit.bind(this);
 
         this.state = {
-            selectedPlaidAccountID: this.props.personalBankAccount.plaidAccountID,
+            selectedPlaidAccountID: '',
         };
     }
 
@@ -70,30 +68,18 @@ class AddPersonalBankAccountPage extends React.Component {
     }
 
     /**
-     * @param {Object} values - form input values passed by the Form component
-     * @param {Object} values.password The password of the user adding the bank account, for security.
      * @returns {Object}
      */
-    validate(values) {
-        const errors = {};
-
-        if (_.isEmpty(values.password)) {
-            errors.password = `${this.props.translate('common.password')} ${this.props.translate('common.isRequiredField')}.`;
-        }
-
-        return errors;
+    validate() {
+        return {};
     }
 
-    /**
-     * @param {Object} values - form input values passed by the Form component
-     * @param {Object} values.password The password of the user adding the bank account, for security.
-     */
-    submit(values) {
+    submit() {
         const selectedPlaidBankAccount = _.findWhere(lodashGet(this.props.plaidData, 'bankAccounts', []), {
             plaidAccountID: this.state.selectedPlaidAccountID,
         });
 
-        BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount, values.password);
+        BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount);
     }
 
     render() {
@@ -103,7 +89,7 @@ class AddPersonalBankAccountPage extends React.Component {
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={this.props.translate('bankAccount.addBankAccount')}
-                    onCloseButtonPress={Navigation.goBack}
+                    onCloseButtonPress={Navigation.dismissModal}
                     shouldShowBackButton
                     onBackButtonPress={Navigation.goBack}
                 />
@@ -153,17 +139,6 @@ class AddPersonalBankAccountPage extends React.Component {
                                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                                 selectedPlaidAccountID={this.state.selectedPlaidAccountID}
                             />
-                            {Boolean(this.state.selectedPlaidAccountID) && (
-                            <TextInput
-                                inputID="password"
-                                label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
-                                secureTextEntry
-                                autoCompleteType="password"
-                                textContentType="password"
-                                autoCapitalize="none"
-                                autoFocus={canFocusInputOnScreenFocus()}
-                            />
-                            )}
                         </>
                     </Form>
                 )}

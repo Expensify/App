@@ -26,7 +26,7 @@ Onyx.connect({
 let loginList;
 Onyx.connect({
     key: ONYXKEYS.LOGIN_LIST,
-    callback: val => loginList = _.isEmpty(val) ? [] : val,
+    callback: val => loginList = _.isEmpty(val) ? {} : val,
 });
 
 let countryCodeByIP;
@@ -55,12 +55,11 @@ Onyx.connect({
 
 const iouReports = {};
 Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_IOUS,
+    key: ONYXKEYS.COLLECTION.REPORT,
     callback: (iouReport, key) => {
-        if (!iouReport || !key || !iouReport.ownerEmail) {
+        if (!iouReport || !key || !iouReport.ownerEmail || !ReportUtils.isIOUReport(iouReport)) {
             return;
         }
-
         iouReports[key] = iouReport;
     },
 });
@@ -112,6 +111,11 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
                 avatar: ReportUtils.getDefaultAvatar(login),
             };
         }
+
+        if (login === CONST.EMAIL.CONCIERGE) {
+            personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
+        }
+
         personalDetailsForLogins[login] = personalDetail;
     });
     return personalDetailsForLogins;
@@ -146,7 +150,7 @@ function getParticipantNames(personalDetailList) {
 }
 
 /**
- * A very optimized method to remove unique items from an array.
+ * A very optimized method to remove duplicates from an array.
  * Taken from https://stackoverflow.com/a/9229821/9114791
  *
  * @param {Array} items
@@ -186,7 +190,11 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
     if (!isChatRoomOrPolicyExpenseChat) {
         for (let i = 0; i < personalDetailList.length; i++) {
             const personalDetail = personalDetailList[i];
-            searchTerms = searchTerms.concat([personalDetail.displayName, personalDetail.login.replace(/\./g, '')]);
+
+            // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
+            // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
+            // More info https://github.com/Expensify/App/issues/8007
+            searchTerms = searchTerms.concat([personalDetail.displayName, personalDetail.login, personalDetail.login.replace(/\.(?=[^\s@]*@)/g, '')]);
         }
     }
     if (report) {
@@ -195,11 +203,7 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
         if (isChatRoomOrPolicyExpenseChat) {
             const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report, policies);
 
-            // When running tests, chatRoomSubtitle can be undefined due to the Localize() stuff being mocked in the tests.
-            // It's OK to ignore this and just add a null check in here to keep code from crashing.
-            if (chatRoomSubtitle) {
-                Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
-            }
+            Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
         } else {
             searchTerms = searchTerms.concat(report.participants);
         }
@@ -209,26 +213,37 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
 }
 
 /**
- * If the report or the report actions have errors, return
- * CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, otherwise an empty string.
- *
+ * Get an object of error messages keyed by microtime by combining all error objects related to the report.
  * @param {Object} report
  * @param {Object} reportActions
- * @returns {String}
+ * @returns {Object}
  */
-function getBrickRoadIndicatorStatusForReport(report, reportActions) {
+function getAllReportErrors(report, reportActions) {
     const reportErrors = report.errors || {};
     const reportErrorFields = report.errorFields || {};
     const reportID = report.reportID;
     const reportsActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] || {};
+    const reportActionErrors = _.reduce(
+        reportsActions,
+        (prevReportActionErrors, action) => (_.isEmpty(action.errors) ? prevReportActionErrors : _.extend(prevReportActionErrors, action.errors)),
+        {},
+    );
 
-    const hasReportFieldErrors = _.some(reportErrorFields, fieldErrors => !_.isEmpty(fieldErrors));
-    const hasReportActionErrors = _.some(reportsActions, action => !_.isEmpty(action.errors));
+    // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
+    const errorSources = {
+        reportErrors,
+        ...reportErrorFields,
+        reportActionErrors,
+    };
 
-    if (_.isEmpty(reportErrors) && !hasReportFieldErrors && !hasReportActionErrors) {
-        return '';
-    }
-    return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    // Combine all error messages keyed by microtime into one object
+    const allReportErrors = _.reduce(
+        errorSources,
+        (prevReportErrors, errors) => (_.isEmpty(errors) ? prevReportErrors : _.extend(prevReportErrors, errors)),
+        {},
+    );
+
+    return allReportErrors;
 }
 
 /**
@@ -250,6 +265,8 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
     const result = {
         text: null,
         alternateText: null,
+        pendingAction: null,
+        allReportErrors: null,
         brickRoadIndicator: null,
         icons: null,
         tooltipText: null,
@@ -260,7 +277,6 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         reportID: null,
         phoneNumber: null,
         payPalMeAddress: null,
-        isUnread: null,
         hasDraftComment: false,
         keyForList: null,
         searchText: null,
@@ -281,6 +297,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
     const personalDetail = personalDetailList[0] || {};
     let hasMultipleParticipants = personalDetailList.length > 1;
     let subtitle;
+    let reportName;
 
     result.participantsList = personalDetailList;
 
@@ -290,7 +307,9 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
         result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
-        result.brickRoadIndicator = getBrickRoadIndicatorStatusForReport(report, reportActions);
+        result.allReportErrors = getAllReportErrors(report, reportActions);
+        result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+        result.pendingAction = report.pendingFields ? (report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat) : null;
         result.ownerEmail = report.ownerEmail;
         result.reportID = report.reportID;
         result.isUnread = ReportUtils.isUnread(report);
@@ -312,7 +331,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         }
 
         const lastActorDetails = personalDetailMap[report.lastActorEmail] || null;
-        let lastMessageText = hasMultipleParticipants && lastActorDetails
+        let lastMessageText = hasMultipleParticipants && lastActorDetails && (lastActorDetails.login !== currentUserLogin)
             ? `${lastActorDetails.displayName}: `
             : '';
         lastMessageText += report ? lastMessageTextFromReport : '';
@@ -335,18 +354,15 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
                 ? lastMessageText
                 : Str.removeSMSDomain(personalDetail.login);
         }
+        reportName = ReportUtils.getReportName(report, policies);
     } else {
+        reportName = ReportUtils.getDisplayNameForParticipant(logins[0]);
         result.keyForList = personalDetail.login;
         result.alternateText = Str.removeSMSDomain(personalDetail.login);
     }
 
-    if (result.hasOutstandingIOU) {
-        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`] || null;
-        if (iouReport) {
-            result.isIOUReportOwner = iouReport.ownerEmail === currentUserLogin;
-            result.iouReportAmount = iouReport.total;
-        }
-    }
+    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, currentUserLogin, iouReports);
+    result.iouReportAmount = ReportUtils.getIOUTotal(result, iouReports);
 
     if (!hasMultipleParticipants) {
         result.login = personalDetail.login;
@@ -354,7 +370,6 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
         result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
 
-    const reportName = ReportUtils.getReportName(report, personalDetailMap, policies);
     result.text = reportName;
     result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
     result.icons = ReportUtils.getIcons(report, personalDetails, policies, personalDetail.avatar);
@@ -373,47 +388,37 @@ function createOption(logins, personalDetails, report, reportActions = {}, {
  * @returns {Boolean}
  */
 function isSearchStringMatch(searchValue, searchText, participantNames = new Set(), isChatRoom = false) {
-    const searchWords = _.map(
-        searchValue
-            .replace(/\./g, '')
-            .replace(/,/g, ' ')
-            .split(' '),
-        word => word.trim(),
-    );
-    return _.every(searchWords, (word) => {
+    const searchWords = _.compact(uniqFast([
+        searchValue,
+        ..._.map(searchValue.replace(/,/g, ' ').split(' '), word => word.trim()),
+    ]));
+    const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
+    return _.some(searchWords, (word) => {
         const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
-        const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
         return matchRegex.test(valueToSearch) || (!isChatRoom && participantNames.has(word));
     });
 }
 
 /**
- * Returns the given userDetails is currentUser or not.
+ * Checks if the given userDetails is currentUser or not.
+ *
  * @param {Object} userDetails
  * @returns {Boolean}
  */
-
 function isCurrentUser(userDetails) {
     if (!userDetails) {
-        // If userDetails is null or undefined
         return false;
     }
 
-    // If user login is mobile number, append sms domain if not appended already.
+    // If user login is a mobile number, append sms domain if not appended already.
     const userDetailsLogin = addSMSDomainIfPhoneNumber(userDetails.login);
 
-    // Initial check with currentUserLogin
-    let result = currentUserLogin.toLowerCase() === userDetailsLogin.toLowerCase();
-    let index = 0;
-
-    // Checking userDetailsLogin against to current user login options.
-    while (index < loginList.length && !result) {
-        if (loginList[index].partnerUserID.toLowerCase() === userDetailsLogin.toLowerCase()) {
-            result = true;
-        }
-        index++;
+    if (currentUserLogin.toLowerCase() === userDetailsLogin.toLowerCase()) {
+        return true;
     }
-    return result;
+
+    // Check if userDetails login exists in loginList
+    return _.some(_.keys(loginList), login => login.toLowerCase() === userDetailsLogin.toLowerCase());
 }
 
 /**
@@ -434,7 +439,6 @@ function getOptions(reports, personalDetails, {
     includeMultipleParticipantReports = false,
     includePersonalDetails = false,
     includeRecentReports = false,
-    prioritizeDefaultRoomsInSearch = false,
 
     // When sortByReportTypeInSearch flag is true, recentReports will include the personalDetails options as well.
     sortByReportTypeInSearch = false,
@@ -463,10 +467,10 @@ function getOptions(reports, personalDetails, {
     // - All archived reports should remain at the bottom
     const orderedReports = _.sortBy(filteredReports, (report) => {
         if (ReportUtils.isArchivedRoom(report)) {
-            return -Infinity;
+            return CONST.DATE.UNIX_EPOCH;
         }
 
-        return report.lastMessageTimestamp;
+        return report.lastActionCreated;
     });
     orderedReports.reverse();
 
@@ -549,12 +553,6 @@ function getOptions(reports, personalDetails, {
                 loginOptionsToExclude.push({login: reportOption.login});
             }
         }
-    }
-
-    // If we are prioritizing default rooms in search, do it only once we started something
-    if (prioritizeDefaultRoomsInSearch && searchValue !== '') {
-        const reportsSplitByDefaultChatRoom = _.partition(recentReportOptions, option => option.isChatRoom);
-        recentReportOptions = reportsSplitByDefaultChatRoom[0].concat(reportsSplitByDefaultChatRoom[1]);
     }
 
     if (includePersonalDetails) {
@@ -644,11 +642,8 @@ function getSearchOptions(
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
-        prioritizePinnedReports: false,
-        prioritizeDefaultRoomsInSearch: false,
         sortByReportTypeInSearch: true,
         showChatPreviewLine: true,
-        showReportsWithNoComments: true,
         includePersonalDetails: true,
         forcePolicyNamePreview: true,
     });
@@ -773,23 +768,6 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
     return '';
 }
 
-/**
- * Returns the currency list for sections display
- *
- * @param {Object} currencyOptions
- * @param {String} searchValue
- * @returns {Array}
- */
-function getCurrencyListForSections(currencyOptions, searchValue) {
-    const filteredOptions = _.filter(currencyOptions, currencyOption => (
-        isSearchStringMatch(searchValue, currencyOption.text)));
-
-    return {
-        // returns filtered options i.e. options with string match if search text is entered
-        currencyOptions: filteredOptions,
-    };
-}
-
 export {
     addSMSDomainIfPhoneNumber,
     isCurrentUser,
@@ -798,9 +776,8 @@ export {
     getMemberInviteOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,
-    getCurrencyListForSections,
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
     getSearchText,
-    getBrickRoadIndicatorStatusForReport,
+    getAllReportErrors,
 };

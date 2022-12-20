@@ -4,30 +4,27 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import compose from '../../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import reportActionPropTypes from '../home/report/reportActionPropTypes';
 import ReportTransaction from '../../components/ReportTransaction';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Actions from the ChatReport */
     reportActions: PropTypes.shape(reportActionPropTypes),
 
     /** ReportID for the associated chat report */
-    chatReportID: PropTypes.number.isRequired,
+    chatReportID: PropTypes.string.isRequired,
 
     /** ReportID for the associated IOU report */
-    iouReportID: PropTypes.number.isRequired,
+    iouReportID: PropTypes.string.isRequired,
 
     /** Email for the authenticated user */
     userEmail: PropTypes.string.isRequired,
 
     /** Is the associated IOU settled? */
     isIOUSettled: PropTypes.bool,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -54,8 +51,9 @@ class IOUTransactions extends Component {
             return [];
         }
 
+        // iouReportIDs should be strings, but we still have places that send them as ints so we convert them both to Numbers for comparison
         const actionsForIOUReport = _.filter(this.props.reportActions, action => action.originalMessage
-            && action.originalMessage.type && action.originalMessage.IOUReportID === this.props.iouReportID);
+            && action.originalMessage.type && Number(action.originalMessage.IOUReportID) === Number(this.props.iouReportID));
 
         const rejectedTransactionIDs = _.chain(actionsForIOUReport)
             .filter(action => _.contains(['cancel', 'decline'], action.originalMessage.type))
@@ -75,7 +73,8 @@ class IOUTransactions extends Component {
         return (
             <View style={[styles.mt3]}>
                 {_.map(this.props.reportActions, (reportAction) => {
-                    if (!reportAction.originalMessage || reportAction.originalMessage.IOUReportID !== this.props.iouReportID) {
+                    // iouReportIDs should be strings, but we still have places that send them as ints so we convert them both to Numbers for comparison
+                    if (!reportAction.originalMessage || Number(reportAction.originalMessage.IOUReportID) !== Number(this.props.iouReportID)) {
                         return;
                     }
 
@@ -88,11 +87,9 @@ class IOUTransactions extends Component {
                             chatReportID={this.props.chatReportID}
                             iouReportID={this.props.iouReportID}
                             action={reportAction}
-                            key={reportAction.sequenceNumber}
+                            key={reportAction.reportActionID}
                             canBeRejected={canBeRejected}
-                            rejectButtonLabelText={isCurrentUserTransactionCreator
-                                ? this.props.translate('common.cancel')
-                                : this.props.translate('common.decline')}
+                            rejectButtonType={isCurrentUserTransactionCreator ? CONST.IOU.REPORT_ACTION_TYPE.CANCEL : CONST.IOU.REPORT_ACTION_TYPE.DECLINE}
                         />
                     );
                 })}
@@ -103,12 +100,9 @@ class IOUTransactions extends Component {
 
 IOUTransactions.defaultProps = defaultProps;
 IOUTransactions.propTypes = propTypes;
-export default compose(
-    withLocalize,
-    withOnyx({
-        reportActions: {
-            key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
-            canEvict: false,
-        },
-    }),
-)(IOUTransactions);
+export default withOnyx({
+    reportActions: {
+        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+        canEvict: false,
+    },
+})(IOUTransactions);

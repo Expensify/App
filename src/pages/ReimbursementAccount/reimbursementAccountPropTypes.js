@@ -28,7 +28,7 @@ export default PropTypes.shape({
     error: PropTypes.string,
 
     /** Which field needs attention? */
-    errorFields: PropTypes.objectOf(PropTypes.bool),
+    errorFields: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.bool, PropTypes.array])),
 
     /** Any additional error message to show */
     errors: PropTypes.objectOf(PropTypes.string),

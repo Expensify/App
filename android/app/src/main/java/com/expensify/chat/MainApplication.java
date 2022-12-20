@@ -2,27 +2,23 @@ package com.expensify.chat;
 
 import android.content.Context;
 import android.database.CursorWindow;
+
 import androidx.multidex.MultiDexApplication;
+
 import com.expensify.chat.bootsplash.BootSplashPackage;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
-import com.reactnativecommunity.webview.RNCWebViewPackage;
-import com.reactnativecommunity.webview.RNCWebViewPackage;
-import com.reactnativecommunity.webview.RNCWebViewPackage;
-import com.existfragger.rnimagesize.RNImageSizePackage;
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.config.ReactFeatureFlags;
-import com.facebook.soloader.SoLoader;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Field;
-import java.util.List;
 import com.facebook.react.modules.i18nmanager.I18nUtil;
+import com.facebook.soloader.SoLoader;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
-import com.facebook.react.bridge.JSIModulePackage;
-import com.swmansion.reanimated.ReanimatedJSIModulePackage;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 public class MainApplication extends MultiDexApplication implements ReactApplication {
 
@@ -48,11 +44,6 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
         @Override
         protected String getJSMainModuleName() {
           return "index";
-        }
-
-        @Override
-        protected JSIModulePackage getJSIModulePackage() {
-          return new ReanimatedJSIModulePackage();
         }
       };
 
@@ -119,13 +110,7 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
         aClass
             .getMethod("initializeFlipper", Context.class, ReactInstanceManager.class)
             .invoke(null, context, reactInstanceManager);
-      } catch (ClassNotFoundException e) {
-        e.printStackTrace();
-      } catch (NoSuchMethodException e) {
-        e.printStackTrace();
-      } catch (IllegalAccessException e) {
-        e.printStackTrace();
-      } catch (InvocationTargetException e) {
+      } catch (Exception e) {
         e.printStackTrace();
       }
     }

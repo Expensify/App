@@ -108,9 +108,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                         {
                             onyxMethod: CONST.ONYX.METHOD.MERGE,
                             key: ONYXKEYS.BETAS,
-                            value: {
-                                betas: ['all'],
-                            },
+                            value: ['all'],
                         },
                     ],
                     jsonCode: 200,
@@ -159,18 +157,20 @@ function setPersonalDetails(login, accountID) {
 /**
  * @param {String} actorEmail
  * @param {Number} sequenceNumber
- * @param {Number} timestamp
+ * @param {String} created
+ * @param {Number} actorAccountID
  * @returns {Object}
  */
-function buildTestReportComment(actorEmail, sequenceNumber, timestamp) {
+function buildTestReportComment(actorEmail, sequenceNumber, created, actorAccountID) {
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
         actorEmail,
         person: [{type: 'TEXT', style: 'strong', text: 'User B'}],
         sequenceNumber,
-        timestamp,
+        created,
         message: [{type: 'COMMENT', html: `Comment ${sequenceNumber}`, text: `Comment ${sequenceNumber}`}],
         reportActionID: NumberUtils.rand64(),
+        actorAccountID,
     };
 }
 

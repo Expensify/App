@@ -1,7 +1,18 @@
+title: Expensify Help
+tagline: Expensify Help - all your Expensify questions answered in one place.
+description: Got a question about receipts, expenses, corporate cards, or anything else in the spend management universe? Get answers at help.expensify.com.
+url: help.expensify.com
+author: Expensify
+logo: /assets/images/expensify-help.svg
+open_url: true
 
 defaults:
   - scope:
       path: "" # an empty string here means all files in the project
     values:
       layout: "default"
+
 exclude: [README.md, TEMPLATE.md]
+
+plugins:
+  - jekyll-seo-tag

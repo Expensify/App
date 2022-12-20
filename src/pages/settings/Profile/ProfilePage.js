@@ -33,8 +33,7 @@ const propTypes = {
     /* Onyx Props */
 
     /** Login list for the user that is signed in */
-    loginList: PropTypes.arrayOf(PropTypes.shape({
-
+    loginList: PropTypes.shape({
         /** Value of partner name */
         partnerName: PropTypes.string,
 
@@ -43,13 +42,14 @@ const propTypes = {
 
         /** Date of when login was validated */
         validatedDate: PropTypes.string,
-    })),
+    }),
+
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
-    loginList: [],
+    loginList: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -69,7 +69,7 @@ class ProfilePage extends Component {
         this.avatar = {uri: lodashGet(this.props.currentUserPersonalDetails, 'avatar') || this.defaultAvatar};
         this.pronouns = props.currentUserPersonalDetails.pronouns;
         this.state = {
-            logins: this.getLogins(props.loginList),
+            logins: this.getLogins(),
             selectedTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
             isAutomaticTimezone: lodashGet(props.currentUserPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
             hasSelfSelectedPronouns: !_.isEmpty(props.currentUserPersonalDetails.pronouns) && !props.currentUserPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
@@ -86,8 +86,8 @@ class ProfilePage extends Component {
         let stateToUpdate = {};
 
         // Recalculate logins if loginList has changed
-        if (this.props.loginList !== prevProps.loginList) {
-            stateToUpdate = {...stateToUpdate, logins: this.getLogins(this.props.loginList)};
+        if (_.keys(this.props.loginList).length !== _.keys(prevProps.loginList).length) {
+            stateToUpdate = {...stateToUpdate, logins: this.getLogins()};
         }
 
         if (_.isEmpty(stateToUpdate)) {
@@ -131,11 +131,10 @@ class ProfilePage extends Component {
     /**
      * Get the most validated login of each type
      *
-     * @param {Array} loginList
      * @returns {Object}
      */
-    getLogins(loginList) {
-        return _.reduce(loginList, (logins, currentLogin) => {
+    getLogins() {
+        return _.reduce(_.values(this.props.loginList), (logins, currentLogin) => {
             const type = Str.isSMSLogin(currentLogin.partnerUserID) ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL;
             const login = Str.removeSMSDomain(currentLogin.partnerUserID);
 
@@ -231,7 +230,7 @@ class ProfilePage extends Component {
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
-                    formID={CONST.PROFILE_SETTINGS_FORM}
+                    formID={ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM}
                     validate={this.validate}
                     onSubmit={this.updatePersonalDetails}
                     submitButtonText={this.props.translate('common.save')}

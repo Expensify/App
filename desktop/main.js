@@ -1,5 +1,6 @@
 const {
     app,
+    dialog,
     BrowserWindow,
     Menu,
     MenuItem,
@@ -81,6 +82,55 @@ const quitAndInstallWithUpdate = () => {
 };
 
 /**
+ * Menu Item callback to triggers an update check
+ * @param {MenuItem} menuItem
+ * @param {BrowserWindow} browserWindow
+ */
+const manuallyCheckForUpdates = (menuItem, browserWindow) => {
+    // Disable item until the check (and download) is complete
+    // eslint: menu item flags like enabled or visible can be dynamically toggled by mutating the object
+    // eslint-disable-next-line no-param-reassign
+    menuItem.enabled = false;
+
+    autoUpdater.checkForUpdates()
+        .catch(error => ({error}))
+        .then((result) => {
+            const downloadPromise = result && result.downloadPromise;
+
+            if (downloadPromise) {
+                dialog.showMessageBox(browserWindow, {
+                    type: 'info',
+                    message: 'Update Available',
+                    detail: 'The new version will be available shortly. We’ll notify you when we’re ready to update.',
+                    buttons: ['Sounds good'],
+                });
+            } else if (result && result.error) {
+                dialog.showMessageBox(browserWindow, {
+                    type: 'error',
+                    message: 'Update Check Failed',
+                    detail: 'We couldn’t look for an update. Please check again in a bit!',
+                    buttons: ['Okay'],
+                });
+            } else {
+                dialog.showMessageBox(browserWindow, {
+                    type: 'info',
+                    message: 'Update Not Available',
+                    detail: 'There is no update available as of now! Check again at a later time.',
+                    buttons: ['Okay'],
+                    cancelId: 2,
+                });
+            }
+
+            // By returning the `downloadPromise` we keep "check for updates" disabled if any updates are being downloaded
+            return downloadPromise;
+        })
+        .finally(() => {
+            // eslint-disable-next-line no-param-reassign
+            menuItem.enabled = true;
+        });
+};
+
+/**
  * Trigger event to show keyboard shortcuts
  * @param {BrowserWindow} browserWindow
  */
@@ -91,11 +141,19 @@ const showKeyboardShortcutsModal = (browserWindow) => {
     browserWindow.webContents.send(ELECTRON_EVENTS.SHOW_KEYBOARD_SHORTCUTS_MODAL);
 };
 
-// Defines the system-level menu item for manually triggering an update after
+// Defines the system-level menu item to manually apply an update
+// This menu item should become visible after an update is downloaded and ready to be applied
 const updateAppMenuItem = new MenuItem({
     label: 'Update New Expensify',
-    enabled: false,
+    visible: false,
     click: quitAndInstallWithUpdate,
+});
+
+// System-level menu item to manually check for App updates
+const checkForUpdateMenuItem = new MenuItem({
+    label: 'Check For Updates',
+    visible: true,
+    click: manuallyCheckForUpdates,
 });
 
 // Defines the system-level menu item for opening keyboard shortcuts modal
@@ -109,7 +167,8 @@ const electronUpdater = browserWindow => ({
     init: () => {
         autoUpdater.on(ELECTRON_EVENTS.UPDATE_DOWNLOADED, (info) => {
             downloadedVersion = info.version;
-            updateAppMenuItem.enabled = true;
+            updateAppMenuItem.visible = true;
+            checkForUpdateMenuItem.visible = false;
             if (browserWindow.isVisible()) {
                 browserWindow.webContents.send(ELECTRON_EVENTS.UPDATE_DOWNLOADED, info.version);
             } else {
@@ -137,6 +196,12 @@ const mainWindow = (() => {
         app.setName('New Expensify');
     }
 
+    /*
+    * Starting from Electron 20, it shall be required to set sandbox option to false explicitly.
+    * Running a preload script contextBridge.js require access to nodeJS modules from the javascript code.
+    * This was not a concern earlier as sandbox used to be false by default for Electron <= 20.
+    * Refer https://www.electronjs.org/docs/latest/tutorial/sandbox#disabling-the-sandbox-for-a-single-process
+    * */
     return app.whenReady()
         .then(() => {
             const browserWindow = new BrowserWindow({
@@ -146,6 +211,7 @@ const mainWindow = (() => {
                 webPreferences: {
                     preload: `${__dirname}/contextBridge.js`,
                     contextIsolation: true,
+                    sandbox: false,
                 },
                 titleBarStyle: 'hidden',
             });
@@ -221,7 +287,8 @@ const mainWindow = (() => {
 
             const appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');
             appMenu.submenu.insert(1, updateAppMenuItem);
-            appMenu.submenu.insert(2, keyboardShortcutsMenu);
+            appMenu.submenu.insert(2, checkForUpdateMenuItem);
+            appMenu.submenu.insert(3, keyboardShortcutsMenu);
 
             // On mac, pressing cmd++ actually sends a cmd+=. cmd++ is generally the zoom in shortcut, but this is
             // not properly listened for by electron. Adding in an invisible cmd+= listener fixes this.
@@ -265,7 +332,14 @@ const mainWindow = (() => {
                 }
 
                 evt.preventDefault();
-                browserWindow.hide();
+
+                // Check if window is fullscreen and exit fullscreen before hiding
+                if (browserWindow.isFullScreen()) {
+                    browserWindow.once('leave-full-screen', () => browserWindow.hide());
+                    browserWindow.setFullScreen(false);
+                } else {
+                    browserWindow.hide();
+                }
             });
 
             // Initiating a browser-back or browser-forward with mouse buttons should navigate history.
@@ -276,6 +350,13 @@ const mainWindow = (() => {
                 if (cmd === 'browser-forward') {
                     browserWindow.webContents.goForward();
                 }
+            });
+
+            browserWindow.on(ELECTRON_EVENTS.FOCUS, () => {
+                browserWindow.webContents.send(ELECTRON_EVENTS.FOCUS);
+            });
+            browserWindow.on(ELECTRON_EVENTS.BLUR, () => {
+                browserWindow.webContents.send(ELECTRON_EVENTS.BLUR);
             });
 
             app.on('before-quit', () => quitting = true);

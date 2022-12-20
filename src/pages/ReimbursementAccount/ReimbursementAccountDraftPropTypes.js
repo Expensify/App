@@ -33,7 +33,7 @@ export default PropTypes.shape({
     requestorAddressZipCode: PropTypes.string,
     dob: PropTypes.string,
     ssnLast4: PropTypes.string,
-    isControllingOfficer: PropTypes.string,
+    isControllingOfficer: PropTypes.bool,
     isOnfidoSetupComplete: PropTypes.bool,
 
     /** Props needed for ACHContractStep */
