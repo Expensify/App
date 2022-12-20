@@ -20,11 +20,6 @@ hubs:
         articles:
           - href: Request-and-Send-Money
             title: Request and Send Money
-      - href: chat
-        title: Chat
-        articles:
-          - href: Everything-About-Chat
-            title: Everything About Chat
 
   - href: request-money
     title: Request money
@@ -39,5 +34,7 @@ hubs:
     description: Everything else you're looking for is right here.
     icon: /assets/images/users.svg
     articles:
-      - href: Account-Management
-        title: Account Management
+      - href: Your-Expensify-Account-Manager
+        title: Your Expensify Account Manager
+      - href: Everything-About-Chat
+        title: Everything About Chat
