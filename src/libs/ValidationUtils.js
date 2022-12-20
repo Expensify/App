@@ -337,6 +337,16 @@ function doesFailCharacterLimitAfterTrim(maxLength, valuesToBeValidated) {
 }
 
 /**
+ * Checks if the values have commas as this are removed in some values and are not accepted
+ *
+ * @param {String[]} valuesToBeValidated
+ * @returns {Boolean[]}
+ */
+function doesFailCommaRemoval(valuesToBeValidated) {
+    return _.map(valuesToBeValidated, value => value && value.replace(/[, ]+/g, '') !== value);
+}
+
+/**
  * Checks if is one of the certain names which are reserved for default rooms
  * and should not be used for policy rooms.
  *
