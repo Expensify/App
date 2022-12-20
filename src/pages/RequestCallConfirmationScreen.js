@@ -21,7 +21,7 @@ const RequestCallConfirmationScreen = props => (
             />
             <Text
                 style={[
-                    styles.textStrong,
+                    styles.textNewKansas,
                     styles.textLarge,
                     styles.mb2,
                 ]}

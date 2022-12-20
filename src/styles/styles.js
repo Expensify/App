@@ -282,6 +282,11 @@ const styles = {
         fontStyle: 'italic',
     },
 
+    textNewKansas: {
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        fontWeight: '500',
+    },
+
     textDecorationNoLine: {
         textDecorationLine: 'none',
     },
@@ -1251,11 +1256,6 @@ const styles = {
     LHNToggleIcon: {
         height: 15,
         width: 18,
-    },
-
-    LHNHeaderText: {
-        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
-        fontWeight: '500',
     },
 
     chatContent: {
