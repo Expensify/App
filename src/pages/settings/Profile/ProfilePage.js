@@ -211,6 +211,7 @@ class ProfilePage extends Component {
 
         return errors;
     }
+
     /**
      * @param {Object} errors
      * @param {String} errorKey
@@ -219,10 +220,11 @@ class ProfilePage extends Component {
      * @returns {Object} - An object containing the errors for each inputID
      */
     assignError(errors, errorKey, hasError, errorCopy) {
+        let validateErrors = errors;
         if (hasError) {
-            errors[errorKey] = errorCopy;
+            validateErrors[errorKey] = errorCopy;
         }
-        return errors;
+        return validateErrors;
     }
 
     render() {
