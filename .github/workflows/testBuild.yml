@@ -8,7 +8,7 @@ on:
         required: true
   pull_request_target:
     types: [opened, synchronize, labeled]
-    branches: ['main']
+    branches: ['*ci-test/**']
 
 env:
   DEVELOPER_DIR: /Applications/Xcode_14.0.1.app/Contents/Developer
