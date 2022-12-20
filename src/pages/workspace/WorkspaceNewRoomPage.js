@@ -47,7 +47,6 @@ class WorkspaceNewRoomPage extends React.Component {
         super(props);
 
         this.state = {
-            policyID: '',
             visibilityDescription: this.props.translate('newRoomPage.restrictedDescription'),
         };
 
@@ -144,7 +143,6 @@ class WorkspaceNewRoomPage extends React.Component {
                             inputID="roomName"
                             defaultValue={CONST.POLICY.ROOM_PREFIX}
                             autoFocus
-                            policyID={this.state.policyID}
                         />
                     </View>
                     <View style={styles.mb5}>
