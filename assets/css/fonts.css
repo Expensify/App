@@ -48,7 +48,7 @@
 }
 
 @font-face {
-    font-family: ExpensifyNewKansas-MediumItalic;
+    font-family: ExpensifyNewKansas-Medium;
     font-weight: 500;
     font-style: italic;
     src: url('/fonts/ExpensifyNewKansas-MediumItalic.woff2') format('woff2'),  url('/fonts/ExpensifyNewKansas-MediumItalic.woff') format('woff');
