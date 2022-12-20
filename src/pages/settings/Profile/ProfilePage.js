@@ -195,7 +195,7 @@ class ProfilePage extends Component {
             [values.firstName, values.lastName],
         );
         if (firstNameHasInvalidCharacters || lastNameHasInvalidCharacters) {
-            const invalidCharactersError = '';
+            const invalidCharactersError = 'Your name cannot contain commas, please enter a name without them';
             errors.firstName = firstNameHasInvalidCharacters ? invalidCharactersError : '';
             errors.lastName = lastNameHasInvalidCharacters ? invalidCharactersError : '';
             return errors;

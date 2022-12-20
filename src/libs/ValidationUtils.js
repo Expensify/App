@@ -410,4 +410,5 @@ export {
     isReservedRoomName,
     isExistingRoomName,
     isValidTaxID,
+    doesFailCommaRemoval,
 };
