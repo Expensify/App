@@ -2433,6 +2433,13 @@ const styles = {
         minHeight: 115,
     },
 
+    workspaceSectionHeader: {
+        color: themeColors.heading,
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        fontSize: variables.fontSizeh1,
+        fontWeight: '500',
+    },
+
     peopleRow: {
         width: '100%',
         flexDirection: 'row',
