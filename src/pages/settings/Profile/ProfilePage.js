@@ -220,7 +220,7 @@ class ProfilePage extends Component {
      * @returns {Object} - An object containing the errors for each inputID
      */
     assignError(errors, errorKey, hasError, errorCopy) {
-        let validateErrors = errors;
+        const validateErrors = errors;
         if (hasError) {
             validateErrors[errorKey] = errorCopy;
         }
