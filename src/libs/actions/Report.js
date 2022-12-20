@@ -145,40 +145,6 @@ function getSimplifiedReportObject(report) {
 }
 
 /**
- * Get a simplified version of an IOU report
- *
- * @param {Object} reportData
- * @param {String} reportData.transactionID
- * @param {Number} reportData.amount
- * @param {String} reportData.currency
- * @param {String} reportData.created
- * @param {String} reportData.comment
- * @param {Object[]} reportData.transactionList
- * @param {String} reportData.ownerEmail
- * @param {String} reportData.managerEmail
- * @param {Number} reportData.reportID
- * @param {Number|String} chatReportID
- * @returns {Object}
- */
-function getSimplifiedIOUReport(reportData, chatReportID) {
-    return {
-        reportID: reportData.reportID,
-        ownerEmail: reportData.ownerEmail,
-        managerEmail: reportData.managerEmail,
-        currency: reportData.currency,
-        chatReportID: Number(chatReportID),
-        state: reportData.state,
-        cachedTotal: reportData.cachedTotal,
-        total: reportData.total,
-        status: reportData.status,
-        stateNum: reportData.stateNum,
-        submitterPayPalMeAddress: reportData.submitterPayPalMeAddress,
-        submitterPhoneNumbers: reportData.submitterPhoneNumbers,
-        hasOutstandingIOU: reportData.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && reportData.total !== 0,
-    };
-}
-
-/**
  * Get the private pusher channel name for a Report.
  *
  * @param {String} reportID
@@ -1007,7 +973,6 @@ function syncChatAndIOUReports(chatReport, iouReport) {
     simplifiedReport[chatReportKey] = getSimplifiedReportObject(chatReport);
     simplifiedReport[chatReportKey].hasOutstandingIOU = iouReport.stateNum
         === CONST.REPORT.STATE_NUM.PROCESSING && iouReport.total !== 0;
-    simplifiedIouReport[iouReportKey] = getSimplifiedIOUReport(iouReport, chatReport.reportID);
     Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedIouReport);
     Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReport);
 }
@@ -1357,7 +1322,6 @@ export {
     handleUserDeletedLinks,
     saveReportActionDraft,
     deleteReportComment,
-    syncChatAndIOUReports,
     navigateToConciergeChat,
     setReportWithDraft,
     addPolicyReport,
