@@ -16,7 +16,6 @@ import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import Log from '../Log';
-import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../ReportUtils';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
@@ -55,21 +54,6 @@ function getLastReadSequenceNumber(reportID) {
  */
 function getMaxSequenceNumber(reportID) {
     return lodashGet(allReports, [reportID, 'maxSequenceNumber'], 0);
-}
-
-/**
- * Only store the minimal amount of data in Onyx that needs to be stored
- * because space is limited.
- *
- * @param {Object} report
- * @param {Number} report.reportID
- * @param {String} report.reportName
- * @param {Object} report.reportNameValuePairs
- * @returns {Object}
- */
-function getSimplifiedReportObject(report) {
-        participants: getParticipantEmailsFromReport(report),
-    };
 }
 
 /**
@@ -871,38 +855,6 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
  */
 function saveReportActionDraft(reportID, reportActionID, draftMessage) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
-}
-
-/**
- * Syncs up a chat report and an IOU report in Onyx after an IOU transaction has been made
- * by setting the iouReportID and hasOutstandingIOU for the chat report.
- * Even though both reports are updated in the back-end, the API doesn't handle syncing their reportIDs.
- * If we didn't sync these reportIDs, the paid IOU would still be shown to users as unpaid.
- * The iouReport being fetched here must be open, because only an open iouReport can be paid.
- *
- * @param {Object} chatReport
- * @param {Object} iouReport
- */
-function syncChatAndIOUReports(chatReport, iouReport) {
-    // Return early in case there's a back-end issue preventing the IOU command from returning the report objects.
-    if (!chatReport || !iouReport) {
-        return;
-    }
-
-    const simplifiedIouReport = {};
-    const simplifiedReport = {};
-    const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`;
-    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`;
-
-    // We don't want to sync an iou report that's already been reimbursed with its chat report.
-    if (!iouReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED) {
-        simplifiedReport[chatReportKey].iouReportID = iouReport.reportID;
-    }
-    simplifiedReport[chatReportKey] = getSimplifiedReportObject(chatReport);
-    simplifiedReport[chatReportKey].hasOutstandingIOU = iouReport.stateNum
-        === CONST.REPORT.STATE_NUM.PROCESSING && iouReport.total !== 0;
-    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedIouReport);
-    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReport);
 }
 
 /**
