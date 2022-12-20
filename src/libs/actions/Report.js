@@ -893,6 +893,68 @@ function deleteReportComment(reportID, reportAction) {
 }
 
 /**
+ * @param {String} comment
+ * @returns {Array}
+ */
+const extractLinksInMarkdownComment = (comment) => {
+    const regex = /\[[^[\]]*\]\(([^()]*)\)/gm;
+    const matches = [...comment.matchAll(regex)];
+
+    // Element 1 from match is the regex group if it exists which contains the link URLs
+    const links = _.map(matches, match => match[1]);
+    return links;
+};
+
+/**
+ * Compares two markdown comments and returns a list of the links removed in a new comment.
+ *
+ * @param {String} oldComment
+ * @param {String} newComment
+ * @returns {Array}
+ */
+const getRemovedMarkdownLinks = (oldComment, newComment) => {
+    const linksInOld = extractLinksInMarkdownComment(oldComment);
+    const linksInNew = extractLinksInMarkdownComment(newComment);
+    return _.difference(linksInOld, linksInNew);
+};
+
+/**
+ * Removes the links in a markdown comment.
+ * example:
+ *      comment="test [link](https://www.google.com) test",
+ *      links=["https://www.google.com"]
+ * returns: "test link test"
+ * @param {String} comment
+ * @param {Array} links
+ * @returns {String}
+ */
+const removeLinks = (comment, links) => {
+    let commentCopy = comment.slice();
+    _.forEach(links, (link) => {
+        const regex = new RegExp(`\\[([^\\[\\]]*)\\]\\(${link}\\)`, 'gm');
+        const linkMatch = regex.exec(commentCopy);
+        const linkText = linkMatch && linkMatch[1];
+        commentCopy = commentCopy.replace(`[${linkText}](${link})`, linkText);
+    });
+    return commentCopy;
+};
+
+/**
+ * This function will handle removing only links that were purposely removed by the user while editing.
+ * @param {String} newCommentText text of the comment after editing.
+ * @param {Array} originalHtml original html of the comment before editing
+ * @returns {String}
+ */
+const handleUserDeletedLinks = (newCommentText, originalHtml) => {
+    const parser = new ExpensiMark();
+    const htmlWithAutoLinks = parser.replace(newCommentText);
+    const markdownWithAutoLinks = parser.htmlToMarkdown(htmlWithAutoLinks);
+    const markdownOriginalComment = parser.htmlToMarkdown(originalHtml);
+    const removedLinks = getRemovedMarkdownLinks(markdownOriginalComment, newCommentText);
+    return removeLinks(markdownWithAutoLinks, removedLinks);
+};
+
+/**
  * Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI.
  *
  * @param {String} reportID
@@ -904,9 +966,13 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 
     // Do not autolink if someone explicitly tries to remove a link from message.
     // https://github.com/Expensify/App/issues/9090
+    // https://github.com/Expensify/App/issues/13221
+    const originalCommentHTML = lodashGet(originalReportAction, 'message[0].html');
+    const markdownForNewComment = handleUserDeletedLinks(textForNewComment, originalCommentHTML);
+
     const autolinkFilter = {filterRules: _.filter(_.pluck(parser.rules, 'name'), name => name !== 'autolink')};
-    const htmlForNewComment = parser.replace(textForNewComment, autolinkFilter);
-    const originalMessageHTML = parser.replace(originalReportAction.message[0].html, autolinkFilter);
+    const htmlForNewComment = parser.replace(markdownForNewComment, autolinkFilter);
+    const parsedOriginalCommentHTML = parser.replace(parser.htmlToMarkdown(originalCommentHTML), autolinkFilter);
 
     //  Delete the comment if it's empty
     if (_.isEmpty(htmlForNewComment)) {
@@ -915,7 +981,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     }
 
     // Skip the Edit if message is not changed
-    if (originalMessageHTML === htmlForNewComment.trim()) {
+    if (parsedOriginalCommentHTML === htmlForNewComment.trim()) {
         return;
     }
 
@@ -927,7 +993,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
             message: [{
                 isEdited: true,
                 html: htmlForNewComment,
-                text: textForNewComment,
+                text: markdownForNewComment,
                 type: originalReportAction.message[0].type,
             }],
         },
@@ -1362,6 +1428,7 @@ export {
     broadcastUserIsTyping,
     togglePinnedState,
     editReportComment,
+    handleUserDeletedLinks,
     saveReportActionDraft,
     deleteReportComment,
     getSimplifiedIOUReport,
