@@ -73,6 +73,7 @@ class RoomNameInput extends Component {
                 autoCapitalize="none"
                 onBlur={this.props.onBlur}
                 autoFocus={this.props.autoFocus}
+                defaultValue={this.props.defaultValue}
             />
         );
     }
