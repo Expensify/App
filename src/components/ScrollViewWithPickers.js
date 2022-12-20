@@ -23,7 +23,7 @@ class ScrollViewWithPickers extends React.Component {
         };
         this.scrollViewRef = React.createRef(null);
 
-        this.handleScroll = this.setContextScrollPosition.bind(this);
+        this.setContextScrollPosition = this.setContextScrollPosition.bind(this);
     }
 
     setContextScrollPosition(event) {
