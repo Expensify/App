@@ -160,10 +160,12 @@ export default {
     hello: 'Hello',
     phoneCountryCode: '1',
     welcomeText: {
-        welcome: 'Welcome to the New Expensify! Enter your phone number or email to continue.',
+        welcome: 'Welcome to New Expensify! Enter your phone number or email to continue.',
+        welcomeEnterMagicCode: ({login}) => `It's always great to see a new face around here! Please enter the magic code sent to ${login}`,
         phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
         welcomeBack: 'Welcome back to the New Expensify! Please enter your password.',
+        welcomeBackEnterMagicCode: ({login}) => `Welcome back! Please enter the magic code sent to ${login}`,
     },
     reportActionCompose: {
         addAction: 'Actions',
@@ -515,6 +517,15 @@ export default {
     validateCodeForm: {
         magicCodeNotReceived: "Didn't receive a magic code?",
         fillTwoFactorAuthOrRecoveryCode: 'Please enter your two factor code or recovery code',
+        enterTwoFactorOrRecoveryCode: 'Enter your two factor code or recovery code',
+        twoFactorCode: 'Two factor code',
+        requiredWhen2FAEnabled: 'Required when 2FA is enabled',
+        error: {
+            pleaseFillOutAllFields: 'Please fill out all fields',
+            pleaseFillMagicCode: 'Please enter your magic code',
+            incorrectMagicCode: 'Incorrect magic code. Please try again.',
+            pleaseFillTwoFactorAuth: 'Please enter your two factor code',
+        },
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Please fill out all fields',

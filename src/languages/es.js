@@ -161,9 +161,11 @@ export default {
     phoneCountryCode: '34',
     welcomeText: {
         welcome: 'Con el Nuevo Expensify, chat y pagos son lo mismo.',
+        welcomeEnterMagicCode: ({login}) => ` ${login}`,
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
         welcomeBack: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, introduce tu contraseña.',
+        welcomeBackEnterMagicCode: ({login}) => '',
     },
     reportActionCompose: {
         addAction: 'Acción',
@@ -515,6 +517,15 @@ export default {
     validateCodeForm: {
         magicCodeNotReceived: '',
         fillTwoFactorAuthOrRecoveryCode: '',
+        enterTwoFactorOrRecoveryCode: '',
+        twoFactorCode: 'Autenticación de 2 factores',
+        requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
+        error: {
+            pleaseFillOutAllFields: 'Please fill out all fields',
+            pleaseFillMagicCode: '',
+            incorrectMagicCode: '',
+            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código 2 factores',
+        },
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Por favor completa todos los campos',
