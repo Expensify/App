@@ -635,9 +635,9 @@ const styles = {
 
     headerText: {
         color: themeColors.heading,
-        fontFamily: fontFamily.EXP_NEUE,
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontSize: variables.fontSizeNormal,
-        fontWeight: '500',
+        fontWeight: fontWeightBold,
     },
 
     headerGap: {
@@ -1251,6 +1251,11 @@ const styles = {
     LHNToggleIcon: {
         height: 15,
         width: 18,
+    },
+
+    LHNHeaderText: {
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        fontWeight: '500',
     },
 
     chatContent: {
