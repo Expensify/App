@@ -58,25 +58,6 @@ function getMaxSequenceNumber(reportID) {
 }
 
 /**
- * @param {Object} report
- * @return {String[]}
- */
-function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs, ownerEmail}) {
-    const emailArray = _.map(sharedReportList, participant => participant.email);
-    if (ReportUtils.isChatRoom(reportNameValuePairs)) {
-        return emailArray;
-    }
-    if (ReportUtils.isPolicyExpenseChat(reportNameValuePairs)) {
-        // The owner of the policyExpenseChat isn't in the sharedReportsList so they need to be explicitly included.
-        return [ownerEmail, ...emailArray];
-    }
-
-    // The current user is excluded from the participants array in DMs/Group DMs because their participation is implied
-    // by the chat being shared to them. This also prevents the user's own avatar from being a part of the chat avatar.
-    return _.without(emailArray, currentUserEmail);
-}
-
-/**
  * Only store the minimal amount of data in Onyx that needs to be stored
  * because space is limited.
  *
@@ -87,60 +68,7 @@ function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs,
  * @returns {Object}
  */
 function getSimplifiedReportObject(report) {
-    const lastActionCreated = lodashGet(report, 'lastActionCreated', 0);
-    const lastActionMessage = lodashGet(report, ['lastActionMessage', 'html'], '');
-    const isLastMessageAttachment = new RegExp(`<img|a\\s[^>]*${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}\\s*=\\s*"[^"]*"[^>]*>`, 'gi').test(lastActionMessage);
-    const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
-
-    let lastMessageText = null;
-    if (report.reportActionCount > 0) {
-        // We are removing any html tags from the message html since we cannot access the text version of any comments as
-        // the report only has the raw reportActionList and not the processed version returned by Report_GetHistory
-        const parser = new ExpensiMark();
-        lastMessageText = parser.htmlToText(lastActionMessage);
-        lastMessageText = ReportUtils.formatReportLastMessageText(lastMessageText);
-    }
-
-    // Used for archived rooms, will store the policy name that the room used to belong to.
-    const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '').toString();
-
-    const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
-    const notificationPreference = lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY);
-
-    // Used for User Created Policy Rooms, will denote how access to a chat room is given among workspace members
-    const visibility = lodashGet(report, ['reportNameValuePairs', 'visibility']);
-    const lastReadSequenceNumber = lodashGet(report, [
-        'reportNameValuePairs',
-        `lastRead_${currentUserAccountID}`,
-        'sequenceNumber',
-    ]);
-
-    return {
-        // This needs to be cast to a string until the IOU API has been fully migrated to OfflineFirst API
-        reportID: report.reportID.toString(),
-        reportName: report.reportName,
-        chatType,
-        ownerEmail: LoginUtils.getEmailWithoutMergedAccountPrefix(lodashGet(report, ['ownerEmail'], '')),
-        policyID: lodashGet(report, ['reportNameValuePairs', 'expensify_policyID'], ''),
-        maxSequenceNumber: lodashGet(report, 'reportActionCount', 0),
         participants: getParticipantEmailsFromReport(report),
-        isPinned: report.isPinned,
-        lastReadTimestamp: lodashGet(report, [
-            'reportNameValuePairs',
-            `lastRead_${currentUserAccountID}`,
-            'timestamp',
-        ], 0),
-        lastReadSequenceNumber,
-        lastActionCreated,
-        lastMessageText: isLastMessageAttachment ? '[Attachment]' : lastMessageText,
-        lastActorEmail,
-        notificationPreference,
-        stateNum: report.state,
-        statusNum: report.status,
-        oldPolicyName,
-        visibility,
-        isOwnPolicyExpenseChat: lodashGet(report, ['isOwnPolicyExpenseChat'], false),
-        lastMessageHtml: lastActionMessage,
     };
 }
 
