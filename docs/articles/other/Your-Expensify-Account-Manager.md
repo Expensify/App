@@ -1,5 +1,5 @@
 ---
-title: Account Management
+title: Your Expensify Account Manager
 description: Everything you need to know about Having an Expensify account manager
 ---
 

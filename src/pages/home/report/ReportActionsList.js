@@ -9,7 +9,7 @@ import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import styles from '../../../styles/styles';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import {withPersonalDetails, withNetwork} from '../../../components/OnyxProvider';
+import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import ReportActionItem from './ReportActionItem';
 import ReportActionsSkeletonView from '../../../components/ReportActionsSkeletonView';
 import variables from '../../../styles/variables';
@@ -18,8 +18,8 @@ import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportActionPropTypes from './reportActionPropTypes';
 import CONST from '../../../CONST';
 import * as StyleUtils from '../../../styles/StyleUtils';
-import networkPropTypes from '../../../components/networkPropTypes';
 import reportPropTypes from '../../reportPropTypes';
+import networkPropTypes from '../../../components/networkPropTypes';
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -145,10 +145,9 @@ class ReportActionsList extends React.Component {
     }
 
     render() {
-        // While offline if there is at least one non-pending action or if this is a new chat then we don't need to show the non-animating skeleton UI
         // Non-animating skeleton UI represents that chat history exists but is not loaded locally in Onyx.
+        // While offline if there is at least one non-pending action or if this is a new chat then we don't need to show the non-animating skeleton UI.
         const shouldShowNonAnimatingSkeleton = !(_.some(this.props.sortedReportActions, action => !action.pendingAction || action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED));
-        const skeletonHeight = shouldShowNonAnimatingSkeleton ? this.state.skeletonViewHeight : CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3;
 
         // Native mobile does not render updates flatlist the changes even though component did update called.
         // To notify there something changes we can use extraData prop to flatlist
@@ -170,14 +169,31 @@ class ReportActionsList extends React.Component {
                     initialNumToRender={this.calculateInitialNumToRender()}
                     onEndReached={() => !this.props.network.isOffline && this.props.loadMoreChats()}
                     onEndReachedThreshold={0.75}
-                    ListFooterComponent={this.props.isLoadingMoreReportActions || shouldShowNonAnimatingSkeleton
-                        ? (
-                            <ReportActionsSkeletonView
-                                containerHeight={skeletonHeight}
-                                animate={!shouldShowNonAnimatingSkeleton}
-                            />
-                        )
-                        : null}
+                    ListFooterComponent={() => {
+                        if (this.props.report.isLoadingMoreReportActions) {
+                            return (
+                                <ReportActionsSkeletonView
+                                    containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3}
+                                />
+                            );
+                        }
+
+                        // Make sure the oldest report action loaded is not the first. This is so we do not show the
+                        // skeleton view above the created action in a newly generated optimistic chat or one with not
+                        // that many comments.
+                        // We will show non-animating skeleton UI if we are offline and chat history is not loaded in ONYX.
+                        const lastReportAction = _.last(this.props.sortedReportActions);
+                        if ((this.props.report.isLoadingReportActions && lastReportAction.sequenceNumber > 0) || (shouldShowNonAnimatingSkeleton)) {
+                            return (
+                                <ReportActionsSkeletonView
+                                    containerHeight={this.state.skeletonViewHeight}
+                                    animate={!shouldShowNonAnimatingSkeleton}
+                                />
+                            );
+                        }
+
+                        return null;
+                    }}
                     keyboardShouldPersistTaps="handled"
                     onLayout={(event) => {
                         this.setState({
