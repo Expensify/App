@@ -308,6 +308,18 @@ class IOUModal extends Component {
                 this.props.currentUserPersonalDetails.login,
                 participant,
             );
+            return;
+        }
+
+        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+            IOU.sendMoneyWithWallet(
+                this.props.report,
+                amount,
+                currency,
+                comment,
+                this.props.currentUserPersonalDetails.login,
+                participant,
+            );
         }
     }
 
@@ -327,6 +339,7 @@ class IOUModal extends Component {
                 this.state.comment,
                 this.props.iou.selectedCurrencyCode,
                 this.props.preferredLocale,
+                reportID,
             );
             return;
         }
