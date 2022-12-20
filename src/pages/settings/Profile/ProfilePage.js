@@ -198,16 +198,15 @@ class ProfilePage extends Component {
             return errors;
         }
 
-        const [hasFirstNameError, hasLastNameError, hasPronounError] = ValidationUtils.doesFailCharacterLimitAfterTrim(
+        const [hasFirstNameError, hasLastNameError] = ValidationUtils.doesFailCharacterLimitAfterTrim(
             CONST.FORM_CHARACTER_LIMIT,
-            [values.firstName, values.lastName, values.pronouns],
+            [values.firstName, values.lastName],
         );
 
         const characterLimitError = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
 
         errors.firstName = hasFirstNameError ? characterLimitError : '';
         errors.lastName = hasLastNameError ? characterLimitError : '';
-        errors.pronouns = hasPronounError ? characterLimitError : '';
 
         return errors;
     }
