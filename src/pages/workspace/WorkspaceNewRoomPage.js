@@ -20,17 +20,6 @@ import Log from '../../libs/Log';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import Form from '../../components/Form';
 
-/**
- * Workspaces are policies with type === 'free'
- * @param {Object} [policy]
- * @returns {Object|undefined}
- */
-const workspaceOptionsSelector = policy => policy && policy.type === CONST.POLICY.TYPE.FREE && ({
-    label: policy.name,
-    key: policy.id,
-    value: policy.id,
-});
-
 const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.shape({
@@ -44,18 +33,6 @@ const propTypes = {
         policyID: PropTypes.string,
     }).isRequired,
 
-    /** All Workspaces */
-    workspaceOptions: PropTypes.shape({
-        /** The workspace label */
-        label: PropTypes.string,
-
-        /** The workspace id */
-        key: PropTypes.string,
-
-        /** ID of the workspace */
-        value: PropTypes.string,
-    }),
-
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
@@ -63,7 +40,6 @@ const propTypes = {
 };
 const defaultProps = {
     betas: [],
-    workspaceOptions: [],
 };
 
 class WorkspaceNewRoomPage extends React.Component {
@@ -137,7 +113,11 @@ class WorkspaceNewRoomPage extends React.Component {
             return null;
         }
 
-        const workspaceOptions = _.filter(this.props.workspaceOptions, policy => !!policy);
+        // Workspaces are policies with type === 'free'
+        const workspaceOptions = _.map(
+            _.filter(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE),
+            policy => ({label: policy.name, key: policy.id, value: policy.id}),
+        );
 
         const visibilityOptions = _.map(_.values(CONST.REPORT.VISIBILITY), visibilityOption => ({
             label: this.props.translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
@@ -202,10 +182,6 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        workspaceOptions: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-            selector: workspaceOptionsSelector,
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
