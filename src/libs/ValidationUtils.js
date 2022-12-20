@@ -274,6 +274,14 @@ function isValidPassword(password) {
 }
 
 /**
+ * @param {string} validateCode
+ * @returns {Boolean}
+ */
+function isValidValidateCode(validateCode) {
+    return validateCode.match(CONST.VALIDATE_CODE_REGEX_STRING);
+}
+
+/**
  * @param {String} input
  * @returns {Boolean}
  */
@@ -400,4 +408,5 @@ export {
     isReservedRoomName,
     isExistingRoomName,
     isValidTaxID,
+    isValidValidateCode,
 };
