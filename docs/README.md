@@ -41,6 +41,12 @@ ln -sf universal-darwin22 universal-darwin21
     - _Note: If you see an error like `Unable to load the EventMachine C Extension...`, try running `gem uninstall eventmachine && bundle install`. If that doesn't work just removing the `--livereload` flag should work._
 1. Modify a `.html` or `.md` file and save your changes, and the browser should quickly auto-refresh.
 
+## Troubleshooting
+
+### Android Chrome emulator
+To visit the site on the Android emulator, go to `10.0.2.2:4000`.
+
+
 # How the project is structured
 
 The [docs](https://github.com/Expensify/App/tree/main/docs) folder will contain the following main folders:
