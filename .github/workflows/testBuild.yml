@@ -17,34 +17,32 @@ jobs:
   validateActor:
     runs-on: ubuntu-latest
     outputs:
-      IS_TEAM_MEMBER: ${{ fromJSON(steps.isUserDeployer.outputs.isTeamMember) }}
+      CAN_BE_BUILD: ${{steps.canBeBuild.outputs.CAN_BE_BUILD}}
     steps:
-      - id: isUserDeployer
+      - id: isUserTeamMember
         uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           username: ${{ github.actor }}
           team: expensify-expensify
-
-  validateLabel:
-    runs-on: ubuntu-latest
-    needs: validateActor
-    outputs:
-      CAN_BE_BUILD: ${{steps.canBeBuild.outputs.CAN_BE_BUILD}}
-    steps:
-      - name: Remove label
-        if: ${{ !fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) && github.event.label.name == 'Ready To Build'}}
+      - name: Remove label if it was added by an unauthorized user
+        if: ${{ !fromJSON(steps.isUserTeamMember.outputs.isTeamMember) && github.event.label.name == 'Ready To Build' }}
         uses: actions-ecosystem/action-remove-labels@v1
         with:
           labels: 'Ready To Build'
+      - name: Throw exception if label was added by an unauthorized user
+        if: ${{ !fromJSON(steps.isUserTeamMember.outputs.isTeamMember) && github.event.label.name == 'Ready To Build' }}
+        run: |
+          echo "The 'Ready To Build' label was added by an unauthorized user"
+          exit 1
       - id: canBeBuild
-        if: ${{ fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) || contains(github.event.pull_request.labels.*.name, 'Ready To Build') }}
-        run: echo "CAN_BE_BUILD=true" >> "$GITHUB_OUTPUT"
+        name: Set CAN_BE_BUILD flag
+        run: echo "CAN_BE_BUILD=${{ fromJSON(steps.isUserTeamMember.outputs.isTeamMember) || contains(github.event.pull_request.labels.*.name, 'Ready To Build') }}" >> "$GITHUB_OUTPUT"
 
   getBranchRef:
     runs-on: ubuntu-latest
-    needs: validateLabel
-    if: ${{ needs.validateLabel.outputs.CAN_BE_BUILD }}
+    needs: validateActor
+    if: ${{ needs.validateActor.outputs.CAN_BE_BUILD == 'true' }}
     outputs:
       REF: ${{steps.getHeadRef.outputs.REF}}
     steps:
@@ -63,8 +61,8 @@ jobs:
 
   android:
     name: Build and deploy Android for testing
-    needs: [validateLabel, getBranchRef]
-    if: ${{ needs.validateLabel.outputs.CAN_BE_BUILD }}
+    needs: [validateActor, getBranchRef]
+    if: ${{ needs.validateActor.outputs.CAN_BE_BUILD == 'true' }}
     runs-on: ubuntu-latest
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
@@ -113,8 +111,8 @@ jobs:
 
   iOS:
     name: Build and deploy iOS for testing
-    needs: [validateLabel, getBranchRef]
-    if: ${{ needs.validateLabel.outputs.CAN_BE_BUILD }}
+    needs: [validateActor, getBranchRef]
+    if: ${{ needs.validateActor.outputs.CAN_BE_BUILD == 'true' }}
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: macos-12
@@ -169,8 +167,8 @@ jobs:
 
   desktop:
     name: Build and deploy Desktop for testing
-    needs: [validateLabel, getBranchRef]
-    if: ${{ needs.validateLabel.outputs.CAN_BE_BUILD }}
+    needs: [validateActor, getBranchRef]
+    if: ${{ needs.validateActor.outputs.CAN_BE_BUILD == 'true' }}
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: macos-12
@@ -206,8 +204,8 @@ jobs:
 
   web:
     name: Build and deploy Web
-    needs: [validateLabel, getBranchRef]
-    if: ${{ needs.validateLabel.outputs.CAN_BE_BUILD }}
+    needs: [validateActor, getBranchRef]
+    if: ${{ needs.validateActor.outputs.CAN_BE_BUILD == 'true' }}
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: ubuntu-latest
