@@ -63,7 +63,7 @@ html,
 body {
     height: 100%;
     min-height: 100%;
-    background: $color-super-dark-green;
+    background: $color-darker-green;
 }
 
 hr {
@@ -288,6 +288,7 @@ button {
 #content-area {
     display: flex;
     flex-direction: column;
+    background-color: $color-super-dark-green;
     min-height: 100vh;
     margin-left: 0;
     padding: 80px 24px 24px 24px;
