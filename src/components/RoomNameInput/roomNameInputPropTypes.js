@@ -41,7 +41,7 @@ const defaultProps = {
 
     inputID: undefined,
     onBlur: () => {},
-    defaultValue: undefined,
+    defaultValue: '',
     autoFocus: false,
 };
 
