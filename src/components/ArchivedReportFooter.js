@@ -10,6 +10,7 @@ import personalDetailsPropType from '../pages/personalDetailsPropType';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportUtils from '../libs/ReportUtils';
 import reportPropTypes from '../pages/reportPropTypes';
+import styles from '../styles/styles';
 
 const propTypes = {
     /** The reason this report was archived */
@@ -64,6 +65,7 @@ const ArchivedReportFooter = (props) => {
 
     return (
         <Banner
+            containerStyles={[styles.archivedReportFooter]}
             text={props.translate(`reportArchiveReasons.${archiveReason}`, {
                 displayName: `<strong>${displayName}</strong>`,
                 oldDisplayName: `<strong>${oldDisplayName}</strong>`,
