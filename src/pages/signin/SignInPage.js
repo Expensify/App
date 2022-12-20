@@ -27,9 +27,6 @@ const propTypes = {
 
         /** Whether the account is validated */
         validated: PropTypes.bool,
-
-        /** Whether the account is on the passwordless beta or not */
-        isPasswordless: PropTypes.bool,
     }),
 
     /** List of betas available to current user */
@@ -93,12 +90,10 @@ class SignInPage extends Component {
                     {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
                     so that password managers can access the values. Conditionally rendering these components will break this feature. */}
                     <LoginForm isVisible={showLoginForm} blurOnSubmit={this.props.account.validated === false} />
-                    {/* TODO: if unauthenticated, check GetAccountStatus data */}
-                    {/* If authenticated, check beta flag */}
-                    {this.props.account.isPasswordless ? (
-                        <PasswordForm isVisible={showPasswordForm} />
-                    ) : (
+                    {Permissions.canUsePasswordlessLogins(this.props.betas) ? (
                         <ValidateCodeForm />
+                    ) : (
+                        <PasswordForm isVisible={showPasswordForm} />
                     )}
                     {shouldShowResendValidationLinkForm && <ResendValidationForm />}
                 </SignInPageLayout>
