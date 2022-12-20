@@ -11,9 +11,11 @@ import compose from '../../libs/compose';
 import SignInPageLayout from './SignInPageLayout';
 import LoginForm from './LoginForm';
 import PasswordForm from './PasswordForm';
+import ValidateCodeForm from './ValidateCodeForm';
 import ResendValidationForm from './ResendValidationForm';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Performance from '../../libs/Performance';
+import Permissions from '../../libs/Permissions';
 
 const propTypes = {
     /* Onyx Props */
@@ -25,7 +27,13 @@ const propTypes = {
 
         /** Whether the account is validated */
         validated: PropTypes.bool,
+
+        /** Whether the account is on the passwordless beta or not */
+        isPasswordless: PropTypes.bool,
     }),
+
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** The credentials of the person signing in */
     credentials: PropTypes.shape({
@@ -39,6 +47,7 @@ const propTypes = {
 
 const defaultProps = {
     account: {},
+    betas: [],
     credentials: {},
 };
 
@@ -105,6 +114,7 @@ export default compose(
     withLocalize,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
+        betas: {key: ONYXKEYS.BETAS},
         credentials: {key: ONYXKEYS.CREDENTIALS},
     }),
 )(SignInPage);
