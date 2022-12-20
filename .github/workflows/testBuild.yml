@@ -7,8 +7,8 @@ on:
         description: Pull Request number for correct placement of apps
         required: true
   pull_request_target:
-    types: [opened, synchronize]
-    branches: ['*ci-test/**']
+    types: [opened, synchronize, labeled]
+    branches: ['main']
 
 env:
   DEVELOPER_DIR: /Applications/Xcode_14.0.1.app/Contents/Developer
@@ -24,12 +24,27 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           username: ${{ github.actor }}
-          team: mobile-deployers
+          team: expensify-expensify
+
+  validateLabel:
+    runs-on: ubuntu-latest
+    needs: validateActor
+    outputs:
+      CAN_BE_BUILD: ${{steps.canBeBuild.outputs.CAN_BE_BUILD}}
+    steps:
+      - name: Remove label
+        if: ${{ !fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) && github.event.label.name == 'Ready To Build'}}
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          labels: 'Ready To Build'
+      - id: canBeBuild
+        if: ${{ fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) || contains(github.event.pull_request.labels.*.name, 'Ready To Build') }}
+        run: echo "CAN_BE_BUILD=true" >> "$GITHUB_OUTPUT"
 
   getBranchRef:
     runs-on: ubuntu-latest
-    needs: validateActor
-    if: ${{ fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) }}
+    needs: validateLabel
+    if: ${{ needs.validateLabel.outputs.CAN_BE_BUILD }}
     outputs:
       REF: ${{steps.getHeadRef.outputs.REF}}
     steps:
@@ -48,8 +63,8 @@ jobs:
 
   android:
     name: Build and deploy Android for testing
-    needs: [validateActor, getBranchRef]
-    if: ${{ fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) }}
+    needs: [validateLabel, getBranchRef]
+    if: ${{ needs.validateLabel.outputs.CAN_BE_BUILD }}
     runs-on: ubuntu-latest
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
@@ -98,8 +113,8 @@ jobs:
 
   iOS:
     name: Build and deploy iOS for testing
-    needs: [validateActor, getBranchRef]
-    if: ${{ fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) }}
+    needs: [validateLabel, getBranchRef]
+    if: ${{ needs.validateLabel.outputs.CAN_BE_BUILD }}
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: macos-12
@@ -154,8 +169,8 @@ jobs:
 
   desktop:
     name: Build and deploy Desktop for testing
-    needs: [validateActor, getBranchRef]
-    if: ${{ fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) }}
+    needs: [validateLabel, getBranchRef]
+    if: ${{ needs.validateLabel.outputs.CAN_BE_BUILD }}
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: macos-12
@@ -191,8 +206,8 @@ jobs:
 
   web:
     name: Build and deploy Web
-    needs: [validateActor, getBranchRef]
-    if: ${{ fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) }}
+    needs: [validateLabel, getBranchRef]
+    if: ${{ needs.validateLabel.outputs.CAN_BE_BUILD }}
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: ubuntu-latest
