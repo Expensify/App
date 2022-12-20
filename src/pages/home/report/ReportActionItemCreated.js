@@ -57,8 +57,6 @@ const ReportActionItemCreated = (props) => {
                 style={[
                     styles.chatContent,
                     styles.p5,
-                    styles.pb8,
-                    styles.pt5,
                 ]}
             >
                 {/* This spacer view is required to show the full Image above, otherwise it is cut off by the bounding box. */}
