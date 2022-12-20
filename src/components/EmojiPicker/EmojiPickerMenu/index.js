@@ -101,6 +101,7 @@ class EmojiPickerMenu extends Component {
                 end: 0,
             },
             isFocused: false,
+            isUsingKeyboardMovement: false,
         };
     }
 
@@ -245,7 +246,10 @@ class EmojiPickerMenu extends Component {
             ) {
                 return;
             }
+
+            // Blur the input and change the highlight type to keyboard
             this.searchInput.blur();
+            this.setState({isUsingKeyboardMovement: true});
 
             // We only want to hightlight the Emoji if none was highlighted already
             // If we already have a highlighted Emoji, lets just skip the first navigation
@@ -313,9 +317,9 @@ class EmojiPickerMenu extends Component {
                 break;
         }
 
-        // Actually highlight the new emoji and scroll to it if the index was changed
+        // Actually highlight the new emoji, apply keyboard movement styles, and scroll to it if the index was changed
         if (newIndex !== this.state.highlightedIndex) {
-            this.setState({highlightedIndex: newIndex});
+            this.setState({highlightedIndex: newIndex, isUsingKeyboardMovement: true});
             this.scrollToHighlightedIndex();
         }
     }
@@ -440,7 +444,7 @@ class EmojiPickerMenu extends Component {
         return (
             <EmojiPickerMenuItem
                 onPress={emoji => this.addToFrequentAndSelectEmoji(emoji, item)}
-                onHoverIn={() => this.setState({highlightedIndex: index})}
+                onHoverIn={() => this.setState({highlightedIndex: index, isUsingKeyboardMovement: false})}
                 onHoverOut={() => {
                     if (this.state.arePointerEventsDisabled) {
                         return;
@@ -449,6 +453,7 @@ class EmojiPickerMenu extends Component {
                 }}
                 emoji={emojiCode}
                 isHighlighted={index === this.state.highlightedIndex}
+                isUsingKeyboardMovement={this.state.isUsingKeyboardMovement}
             />
         );
     }
@@ -472,7 +477,7 @@ class EmojiPickerMenu extends Component {
                             autoFocus
                             selectTextOnFocus={this.state.selectTextOnFocus}
                             onSelectionChange={this.onSelectionChange}
-                            onFocus={() => this.setState({isFocused: true})}
+                            onFocus={() => this.setState({isFocused: true, highlightedIndex: -1, isUsingKeyboardMovement: false})}
                             onBlur={() => this.setState({isFocused: false})}
                         />
                     </View>
