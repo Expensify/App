@@ -110,18 +110,6 @@ class AdditionalDetailsStep extends React.Component {
         };
     }
 
-    getFirstName() {
-        return PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails).firstName;
-    }
-
-    getLastName() {
-        return PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails).lastName;
-    }
-
-    getPhoneNumber() {
-        return this.props.currentUserPersonalDetails.phoneNumber;
-    }
-
     /**
      * @param {Object} values The values object is passed from Form.js and contains info for each form element that has an inputID
      * @returns {Object}
@@ -246,14 +234,14 @@ class AdditionalDetailsStep extends React.Component {
                                     inputID={INPUT_IDS.LEGAL_FIRST_NAME}
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.legalFirstName)}
-                                    defaultValue={this.getFirstName()}
+                                    defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails).firstName}
                                     shouldSaveDraft
                                 />
                                 <TextInput
                                     inputID={INPUT_IDS.LEGAL_LAST_NAME}
                                     containerStyles={[styles.mt4]}
                                     label={this.props.translate(this.fieldNameTranslationKeys.legalLastName)}
-                                    defaultValue={this.getLastName()}
+                                    defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails).lastName}
                                     shouldSaveDraft
                                 />
                                 <AddressForm
@@ -268,7 +256,7 @@ class AdditionalDetailsStep extends React.Component {
                                 containerStyles={[styles.mt4]}
                                 keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                                 label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
-                                defaultValue={this.getPhoneNumber()}
+                                defaultValue={this.props.currentUserPersonalDetails.phoneNumber}
                                 placeholder={this.props.translate('common.phoneNumberPlaceholder')}
                                 shouldSaveDraft
                             />
