@@ -99,6 +99,7 @@ class CheckboxWithLabel extends React.Component {
                     <TouchableOpacity
                         focusable={false}
                         onPress={this.toggleCheckbox}
+                        activeOpacity={0.7}
                         style={[
                             styles.ml3,
                             styles.pr2,
