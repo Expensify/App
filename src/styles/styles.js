@@ -1493,16 +1493,20 @@ const styles = {
     },
 
     chatItemAttachButton: {
-        alignItems: 'center',
         alignSelf: 'flex-end',
+        borderRadius: variables.componentBorderRadiusRounded,
+        backgroundColor: themeColors.transparent,
+        height: 32,
+        padding: 6,
+        marginLeft: 3,
+        marginRight: 3,
+        justifyContent: 'center',
+    },
+
+    chatItemAttachBorder: {
         borderRightColor: themeColors.border,
         borderRightWidth: 1,
-        height: 32,
-        width: 32,
         marginBottom: 4,
-        marginTop: 4,
-        marginLeft: 7,
-        justifyContent: 'center',
     },
 
     composerSizeButton: {
@@ -1511,6 +1515,7 @@ const styles = {
         height: 26,
         marginBottom: 6,
         marginTop: 6,
+        marginRight: 4,
         justifyContent: 'center',
         width: 32,
     },
