@@ -224,10 +224,11 @@ function createTemporaryLogin(authToken, email) {
  * then it will create a temporary login for them which is used when re-authenticating
  * after an authToken expires.
  *
- * @param {String} password
+ * @param {String} password This will be removed after passwordless beta ends
+ * @param {String} [validateCode] Code for passwordless login
  * @param {String} [twoFactorAuthCode]
  */
-function signIn(password, twoFactorAuthCode) {
+function signIn(password, validateCode, twoFactorAuthCode) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -259,7 +260,16 @@ function signIn(password, twoFactorAuthCode) {
         },
     ];
 
-    API.write('SigninUser', {email: credentials.login, password, twoFactorAuthCode}, {optimisticData, successData, failureData});
+    // Conditionally pass a password or validateCode to command since we temporarily
+    // will allow both flows
+    const params = {email: credentials.login, twoFactorAuthCode};
+    if (validateCode) {
+        params.validateCode = validateCode;
+    } else {
+        params.password = password;
+    }
+
+    API.write('SigninUser', params, {optimisticData, successData, failureData});
 }
 
 /**

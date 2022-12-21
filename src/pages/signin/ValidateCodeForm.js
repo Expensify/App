@@ -139,7 +139,7 @@ class ValidateCodeForm extends React.Component {
             formError: null,
         });
 
-        Session.signIn(this.state.validateCode, this.state.twoFactorAuthCode);
+        Session.signIn('', this.state.validateCode, this.state.twoFactorAuthCode);
     }
 
     render() {
