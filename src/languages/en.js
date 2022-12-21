@@ -542,7 +542,7 @@ export default {
             firstNameLength: 'First name shouldn\'t be longer than 50 characters',
             lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
             characterLimit: ({limit}) => `Exceeds the max length of ${limit} characters`,
-            hasCommas: 'Your names cannot contain commas, please enter a valid value.',
+            hasCommas: 'Please remove the comma from the name field.',
         },
     },
     resendValidationForm: {
