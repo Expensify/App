@@ -3,9 +3,9 @@ import {Image, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Text from './Text';
 import styles from '../styles/styles';
-import fireworks from '../../assets/images/fireworks.gif';
 import Button from './Button';
 import FixedFooter from './FixedFooter';
+import CONST from '../CONST';
 
 const propTypes = {
     /** The asset to render */
@@ -28,7 +28,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    illustration: fireworks,
+    illustration: `${CONST.CLOUDFRONT_URL}/images/animations/animation__fireworks.gif`,
     heading: '',
     description: '',
     buttonText: '',
