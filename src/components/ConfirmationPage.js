@@ -40,7 +40,7 @@ const ConfirmationPage = props => (
     <>
         <View style={[styles.screenCenteredContainer, styles.alignItemsCenter]}>
             <Image
-                source={props.illustration}
+                source={{uri: props.illustration}}
                 style={styles.confirmationAnimation}
             />
             <Text
