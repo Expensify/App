@@ -9,16 +9,16 @@ const propTypes = {
     route: PropTypes.shape({
         /** Each parameter passed via the URL */
         params: PropTypes.shape({
-            /** Short lived token to sign in a user */
-            shortLivedToken: PropTypes.string,
+            /** Short lived authToken to sign in a user */
+            shortLivedAuthToken: PropTypes.string,
         }),
     }).isRequired,
 };
 
-class LogInWithShortLivedTokenPage extends Component {
+class LogInWithShortLivedAuthTokenPage extends Component {
     componentDidMount() {
-        const shortLivedToken = lodashGet(this.props, 'route.params.shortLivedToken', '');
-        Session.signInWithShortLivedAuthToken(shortLivedToken);
+        const shortLivedAuthToken = lodashGet(this.props, 'route.params.shortLivedAuthToken', '');
+        Session.signInWithShortLivedAuthToken(shortLivedAuthToken);
     }
 
     render() {
@@ -26,6 +26,6 @@ class LogInWithShortLivedTokenPage extends Component {
     }
 }
 
-LogInWithShortLivedTokenPage.propTypes = propTypes;
+LogInWithShortLivedAuthTokenPage.propTypes = propTypes;
 
-export default LogInWithShortLivedTokenPage;
+export default LogInWithShortLivedAuthTokenPage;
