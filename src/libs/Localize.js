@@ -59,7 +59,7 @@ function translate(desiredLanguage = CONST.DEFAULT_LOCALE, phraseKey, phrasePara
     // Phrase is not found in default language, on production log an alert to server
     // on development throw an error
     if (Config.IS_IN_PRODUCTION) {
-        const phraseString = _.isArray(phraseKey) ? phrase.join('.') : phraseKey;
+        const phraseString = _.isArray(phraseKey) ? phraseKey.join('.') : phraseKey;
         Log.alert(`${phraseString} was not found in the en locale`);
         return phraseString;
     }
