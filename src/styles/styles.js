@@ -2854,6 +2854,12 @@ const styles = {
         paddingLeft: 18,
         paddingRight: 18,
     },
+
+    pushToPageEmptyItemLabel: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeNormal,
+        maxWidth: 240,
+    },
 };
 
 export default styles;
