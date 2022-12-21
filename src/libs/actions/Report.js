@@ -579,7 +579,7 @@ function readOldestAction(reportID, oldestActionSequenceNumber) {
 /**
  * Gets the IOUReport and the associated report actions.
  *
- * @param {Number} chatReportID
+ * @param {String} chatReportID
  * @param {Number} iouReportID
  */
 function openPaymentDetailsPage(chatReportID, iouReportID) {
