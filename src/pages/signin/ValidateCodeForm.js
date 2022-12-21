@@ -16,7 +16,6 @@ import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import TextInput from '../../components/TextInput';
-import * as ComponentUtils from '../../libs/ComponentUtils';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
@@ -24,6 +23,7 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import OfflineIndicator from '../../components/OfflineIndicator';
+import * as User from '../../libs/actions/User';
 
 const propTypes = {
     /* Onyx Props */
@@ -92,14 +92,14 @@ class ValidateCodeForm extends React.Component {
     }
 
     /**
-     * Trigger the reset password flow and ensure the 2FA input field is reset to avoid it being permanently hidden
+     * Trigger the reset validate code flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
     resetValidateCode() {
         if (this.input2FA) {
             this.setState({twoFactorAuthCode: ''}, this.input2FA.clear);
         }
         this.setState({formError: false});
-        Session.sendValidateCode();
+        User.resendValidateCode(login);
     }
 
     /**
@@ -119,11 +119,10 @@ class ValidateCodeForm extends React.Component {
             return;
         }
 
-        // Commenting on so I can use normal password here instead of a magic code which isn't built yet I think?
-        // if (!ValidationUtils.isValidValidateCode(this.state.validateCode)) {
-        //     this.setState({formError: 'validateCodeForm.error.incorrectMagicCode'});
-        //     return;
-        // }
+        if (!ValidationUtils.isValidValidateCode(this.state.validateCode)) {
+            this.setState({formError: 'validateCodeForm.error.incorrectMagicCode'});
+            return;
+        }
 
         if (this.props.account.requiresTwoFactorAuth && !this.state.twoFactorAuthCode.trim()) {
             this.setState({formError: 'validateCodeForm.error.pleaseFillTwoFactorAuth'});
