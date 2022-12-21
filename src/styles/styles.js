@@ -283,7 +283,7 @@ const styles = {
     },
 
     textNewKansas: {
-        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        fontFamily: fontFamily.EXP_NEW_KANSAS,
         fontWeight: '500',
     },
 
@@ -1891,7 +1891,7 @@ const styles = {
 
     notFoundTextHeader: {
         color: themeColors.heading,
-        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        fontFamily: fontFamily.EXP_NEW_KANSAS,
         fontWeight: '500',
         fontSize: variables.fontSizeLarge,
         marginTop: 20,
@@ -2010,7 +2010,7 @@ const styles = {
 
     displayName: {
         fontSize: variables.fontSizeLarge,
-        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        fontFamily: fontFamily.EXP_NEW_KANSAS,
         fontWeight: '500',
         color: themeColors.heading,
     },
@@ -2161,7 +2161,7 @@ const styles = {
     },
 
     iouAmountTextInput: addOutlineWidth({
-        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        fontFamily: fontFamily.EXP_NEW_KANSAS,
         fontWeight: '500',
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
@@ -2442,7 +2442,7 @@ const styles = {
 
     workspaceSectionHeader: {
         color: themeColors.heading,
-        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        fontFamily: fontFamily.EXP_NEW_KANSAS,
         fontSize: variables.fontSizeh1,
         fontWeight: '500',
     },
