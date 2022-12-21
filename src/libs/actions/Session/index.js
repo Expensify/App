@@ -21,7 +21,7 @@ import DateUtils from '../../DateUtils';
 let credentials = {};
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
-    callback: val => credentials = val,
+    callback: val => credentials = val || {},
 });
 
 /**
