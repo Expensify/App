@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import DateUtils from '../libs/DateUtils';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import Timers from '../libs/Timers';
 import Text from './Text';
 
 const propTypes = {
@@ -40,9 +39,13 @@ class AutoUpdateTime extends PureComponent {
     }
 
     componentWillUnmount() {
-        clearInterval(this.timer);
+        // clearInterval(this.timer);
+        clearTimeout(this.timer);
     }
 
+    /**
+     * @returns {moment} Returns the locale moment object
+     */
     getCurrentUserLocalTime() {
         return DateUtils.getLocalMomentFromDatetime(
             this.props.preferredLocale,
@@ -51,6 +54,9 @@ class AutoUpdateTime extends PureComponent {
         );
     }
 
+    /**
+     * @returns {string} Returns the timezone name in string, ie: GMT +07
+     */
     getTimezoneName() {
         // With non-GMT timezone, moment.zoneAbbr() will return the name of that timezone, so we can use it directly.
         if (Number.isNaN(Number(this.state.timezone.zoneAbbr()))) {
@@ -66,17 +72,15 @@ class AutoUpdateTime extends PureComponent {
      */
     updateCurrentTime() {
         if (this.timer) {
-            clearInterval(this.timer);
+            clearTimeout(this.timer);
             this.timer = null;
         }
-        const secondsUntilNextMinute = (60 - this.state.timezone.seconds()) * 1000;
-        this.timer = Timers.register(
-            setInterval(() => {
-                this.setState({
-                    timezone: this.getCurrentUserLocalTime(),
-                });
-            }, secondsUntilNextMinute),
-        );
+        const millisecondsUntilNextMinute = (60 - this.state.timezone.seconds()) * 1000;
+        this.timer = setTimeout(() => {
+            this.setState({
+                timezone: this.getCurrentUserLocalTime(),
+            });
+        }, millisecondsUntilNextMinute);
     }
 
     render() {
