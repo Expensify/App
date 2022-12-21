@@ -215,8 +215,8 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! 🎉 Este es el lugar donde chatear, pedir dinero y pagar.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
-        sayHello: 'Say hello!',
-        usePlusButton: 'You can also use the + button below to send or request money. Try it, it\'s super easy!',
+        sayHello: '¡Saluda!',
+        usePlusButton: '\n\n¡También puedes usar el botón + de abajo para enviar o pedir dinero!',
     },
     newMessages: 'Mensajes nuevos',
     reportTypingIndicator: {
