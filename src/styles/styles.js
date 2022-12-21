@@ -1508,6 +1508,7 @@ const styles = {
         borderRadius: variables.buttonBorderRadius,
         height: 32,
         marginVertical: 4,
+        marginLeft: 3,
         paddingHorizontal: 6,
         justifyContent: 'center',
     },
@@ -2882,6 +2883,12 @@ const styles = {
     saveButtonPadding: {
         paddingLeft: 18,
         paddingRight: 18,
+    },
+
+    pushToPageEmptyItemLabel: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeNormal,
+        maxWidth: 240,
     },
 };
 
