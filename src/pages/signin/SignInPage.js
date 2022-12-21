@@ -88,18 +88,24 @@ class SignInPage extends Component {
             && !Permissions.canUsePasswordlessLogins(this.props.betas);
 
         let welcomeText;
-        if (showSendValidateCodeForm) {
-            welcomeText = '';
-        } else if (showValidateCodeForm && this.props.account.requiresTwoFactorAuth) {
-            welcomeText = this.props.translate('validateCodeForm.enterTwoFactorOrRecoveryCode');
-        } else if (showValidateCodeForm && this.props.account.validated) {
-            welcomeText = this.props.translate('welcomeText.welcomeBackEnterMagicCode', {login: this.props.credentials.login});
-        } else if (showValidateCodeForm && !this.props.account.validated) {
-            welcomeText = this.props.translate('welcomeText.welcomeEnterMagicCode', {login: this.props.credentials.login});
-        } else if (showPasswordForm) {
-            welcomeText = this.props.translate('welcomeText.welcomeBack');
+        if (showValidateCodeForm) {
+            if (this.props.account.requiresTwoFactorAuth) {
+                // We will only know this after a user signs in successfully, without their 2FA code
+                welcomeText = this.props.translate('validateCodeForm.enterTwoFactorOrRecoveryCode');
+            } else if (this.props.account.validated) {
+                welcomeText = this.props.translate('welcomeText.welcomeBackEnterMagicCode', {login: this.props.credentials.login});
+            } else if (!this.props.account.validated) {
+                welcomeText = this.props.translate('welcomeText.welcomeEnterMagicCode', {login: this.props.credentials.login});
+            }
         } else {
-            welcomeText = this.props.translate('welcomeText.welcome');
+            // All of this will go away when we get rid of password flows
+            if (showSendValidateCodeForm) {
+                welcomeText = '';
+            } else if (showPasswordForm) {
+                welcomeText = this.props.translate('welcomeText.welcomeBack');
+            } else {
+                welcomeText = this.props.translate('welcomeText.welcome');
+            }
         }
 
         return (
