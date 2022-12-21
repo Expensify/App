@@ -75,7 +75,6 @@ class CloseAccountPage extends Component {
                     submitButtonText={this.props.translate('closeAccountPage.closeAccount')}
                     style={[styles.flexGrow1, styles.mh5]}
                     isDangerousAction
-                    includeSafeAreaPaddingBottom
                 >
                     <View style={[styles.flexGrow1]}>
                         <Text>{this.props.translate('closeAccountPage.reasonForLeavingPrompt')}</Text>

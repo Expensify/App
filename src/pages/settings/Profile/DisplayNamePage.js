@@ -91,7 +91,6 @@ class DisplayNamePage extends Component {
                     onSubmit={this.updateDisplayName}
                     submitButtonText={this.props.translate('common.save')}
                     enabledWhenOffline
-                    includeSafeAreaPaddingBottom
                 >
                     <Text style={[styles.mb6]}>
                         {this.props.translate('displayNamePage.isShownOnProfile')}

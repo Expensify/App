@@ -82,7 +82,6 @@ class BankAccountPlaidStep extends React.Component {
                     submitButtonText={this.props.translate('common.saveAndContinue')}
                     style={[styles.mh5, styles.flexGrow1]}
                     isSubmitButtonVisible={Boolean(selectedPlaidAccountID)}
-                    includeSafeAreaPaddingBottom
                 >
                     <AddPlaidBankAccount
                         text={this.props.translate('bankAccount.plaidBodyCopy')}

@@ -262,7 +262,6 @@ class RequestCallPage extends Component {
                             onSubmit={this.onSubmit}
                             submitButtonText={this.props.translate('requestCallPage.callMe')}
                             style={[styles.flexGrow1, styles.mh5]}
-                            includeSafeAreaPaddingBottom
                         >
                             <Section
                                 title={this.props.translate('requestCallPage.subtitle')}

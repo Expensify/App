@@ -129,7 +129,6 @@ class AddPersonalBankAccountPage extends React.Component {
                         onSubmit={this.submit}
                         validate={this.validate}
                         style={[styles.mh5, styles.flex1]}
-                        includeSafeAreaPaddingBottom
                     >
                         <>
                             <AddPlaidBankAccount

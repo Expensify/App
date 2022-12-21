@@ -89,7 +89,6 @@ class BankAccountManualStep extends React.Component {
                     validate={this.validate}
                     submitButtonText={this.props.translate('common.saveAndContinue')}
                     style={[styles.mh5, styles.flexGrow1]}
-                    includeSafeAreaPaddingBottom
                 >
                     <Text style={[styles.mb5]}>
                         {this.props.translate('bankAccount.checkHelpLine')}

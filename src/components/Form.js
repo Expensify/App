@@ -257,7 +257,7 @@ class Form extends React.Component {
                         keyboardShouldPersistTaps="handled"
                         ref={el => this.form = el}
                     >
-                        <View style={[this.props.style, this.props.includeSafeAreaPaddingBottom ? safeAreaPaddingBottomStyle : {}]}>
+                        <View style={[this.props.style, safeAreaPaddingBottomStyle]}>
                             {this.childrenWrapperWithProps(this.props.children)}
                             {this.props.isSubmitButtonVisible && (
                             <FormAlertWithSubmitButton
