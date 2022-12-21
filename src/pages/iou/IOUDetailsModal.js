@@ -22,6 +22,7 @@ import SettlementButton from '../../components/SettlementButton';
 import ROUTES from '../../ROUTES';
 import FixedFooter from '../../components/FixedFooter';
 import networkPropTypes from '../../components/networkPropTypes';
+import * as StyleUtils from '../../styles/StyleUtils';
 
 const propTypes = {
     /** URL Route params */
@@ -144,11 +145,13 @@ class IOUDetailsModal extends Component {
                 {reportIsLoading ? <ActivityIndicator color={themeColors.text} /> : (
                     <View style={[styles.flex1, styles.justifyContentBetween]}>
                         <ScrollView contentContainerStyle={styles.iouDetailsContainer}>
-                            <IOUPreview
-                                chatReportID={this.props.route.params.chatReportID}
-                                iouReportID={this.props.route.params.iouReportID}
-                                shouldHidePayButton
-                            />
+                            <View style={StyleUtils.getIOUPreviewLoadingItemStyle(isLoading)} >
+                                <IOUPreview
+                                    chatReportID={this.props.route.params.chatReportID}
+                                    iouReportID={this.props.route.params.iouReportID}
+                                    shouldHidePayButton
+                                />
+                            </View>
                             <IOUTransactions
                                 chatReportID={this.props.route.params.chatReportID}
                                 iouReportID={this.props.route.params.iouReportID}
