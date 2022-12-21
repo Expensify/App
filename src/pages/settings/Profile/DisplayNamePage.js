@@ -60,7 +60,7 @@ class DisplayNamePage extends Component {
             [values.firstName, values.lastName],
         );
         if (firstNameHasInvalidCharacters || lastNameHasInvalidCharacters) {
-            const invalidCharactersError = 'Your names cannot contain commas, please enter a valid value.';
+            const invalidCharactersError = Localize.translateLocal('personalDetails.error.hasCommas');
             this.assignError(errors, 'firstName', firstNameHasInvalidCharacters, invalidCharactersError);
             this.assignError(errors, 'firstName', lastNameHasInvalidCharacters, invalidCharactersError);
             return errors;

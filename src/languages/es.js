@@ -542,6 +542,7 @@ export default {
             firstNameLength: 'El nombre no debe tener más de 50 caracteres',
             lastNameLength: 'El apellido no debe tener más de 50 caracteres',
             characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
+            hasCommas: 'Your names cannot contain commas, please enter a valid value.',
         },
     },
     resendValidationForm: {
