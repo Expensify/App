@@ -339,6 +339,14 @@ const styles = {
         opacity: 1,
     },
 
+    pr0: {
+        paddingRight: 0,
+    },
+
+    pl0: {
+        paddingLeft: 0,
+    },
+
     textDanger: {
         color: themeColors.danger,
     },
@@ -455,9 +463,11 @@ const styles = {
         borderWidth: 0,
     },
 
-    buttonDropdown: {
-        borderLeftWidth: 1,
-        borderColor: themeColors.textLight,
+    buttonDivider: {
+        width: 1,
+        alignSelf: 'stretch',
+        backgroundColor: themeColors.textLight,
+        marginVertical: 1,
     },
 
     noRightBorderRadius: {
@@ -1491,11 +1501,19 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
+    emojiItemKeyboardHighlighted: {
+        transition: '0.2s ease',
+        borderWidth: 1,
+        borderColor: themeColors.link,
+        borderRadius: variables.buttonBorderRadius,
+    },
+
     chatItemEmojiButton: {
         alignSelf: 'flex-end',
         borderRadius: variables.buttonBorderRadius,
         height: 32,
         marginVertical: 4,
+        marginLeft: 3,
         paddingHorizontal: 6,
         justifyContent: 'center',
     },
@@ -2850,6 +2868,12 @@ const styles = {
     saveButtonPadding: {
         paddingLeft: 18,
         paddingRight: 18,
+    },
+
+    pushToPageEmptyItemLabel: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeNormal,
+        maxWidth: 240,
     },
 };
 

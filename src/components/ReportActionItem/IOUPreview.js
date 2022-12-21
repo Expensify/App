@@ -1,7 +1,6 @@
 import React from 'react';
 import {
     View,
-    ActivityIndicator,
     TouchableWithoutFeedback,
 } from 'react-native';
 import PropTypes from 'prop-types';
@@ -34,6 +33,7 @@ const propTypes = {
     onPayButtonPressed: PropTypes.func,
 
     /** The active IOUReport, used for Onyx subscription */
+    // eslint-disable-next-line react/no-unused-prop-types
     iouReportID: PropTypes.string.isRequired,
 
     /** The associated chatReport */
@@ -117,11 +117,6 @@ const IOUPreview = (props) => {
 
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerEmail === sessionEmail;
-    const reportIsLoading = _.isEmpty(props.iouReport);
-
-    if (reportIsLoading) {
-        Report.fetchIOUReportByID(props.iouReportID, props.chatReportID);
-    }
 
     const managerName = lodashGet(props.personalDetails, [managerEmail, 'firstName'], '')
                         || Str.removeSMSDomain(managerEmail);
@@ -137,72 +132,68 @@ const IOUPreview = (props) => {
     return (
         <TouchableWithoutFeedback onPress={props.onPreviewPressed}>
             <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
-                {reportIsLoading
-                    ? <ActivityIndicator style={styles.iouPreviewBoxLoading} color={themeColors.text} />
-                    : (
-                        <OfflineWithFeedback
-                            pendingAction={props.pendingAction}
-                            errors={props.walletTerms.errors}
-                            onClose={() => {
-                                PaymentMethods.clearWalletTermsError();
-                                Report.clearIOUError(props.chatReportID);
-                            }}
-                            errorRowStyles={[styles.mbn1]}
-                        >
-                            <View>
-                                <View style={[styles.flexRow]}>
-                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                        <Text style={styles.h1}>
-                                            {cachedTotal}
-                                        </Text>
-                                        {!props.iouReport.hasOutstandingIOU && (
-                                            <View style={styles.iouPreviewBoxCheckmark}>
-                                                <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
-                                            </View>
-                                        )}
+                <OfflineWithFeedback
+                    pendingAction={props.pendingAction}
+                    errors={props.walletTerms.errors}
+                    onClose={() => {
+                        PaymentMethods.clearWalletTermsError();
+                        Report.clearIOUError(props.chatReportID);
+                    }}
+                    errorRowStyles={[styles.mbn1]}
+                >
+                    <View>
+                        <View style={[styles.flexRow]}>
+                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                <Text style={styles.h1}>
+                                    {cachedTotal}
+                                </Text>
+                                {!props.iouReport.hasOutstandingIOU && (
+                                    <View style={styles.iouPreviewBoxCheckmark}>
+                                        <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
                                     </View>
-                                    <View style={styles.iouPreviewBoxAvatar}>
-                                        <MultipleAvatars
-                                            icons={[managerAvatar, ownerAvatar]}
-                                            secondAvatarStyle={[
-                                                styles.secondAvatarInline,
-                                                props.isHovered
-                                                    ? styles.iouPreviewBoxAvatarHover
-                                                    : undefined,
-                                            ]}
-                                            avatarTooltips={avatarTooltip}
-                                        />
-                                    </View>
-                                </View>
-                                {isCurrentUserManager
-                                    ? (
-                                        <Text>
-                                            {props.iouReport.hasOutstandingIOU
-                                                ? props.translate('iou.youowe', {owner: ownerName})
-                                                : props.translate('iou.youpaid', {owner: ownerName})}
-                                        </Text>
-                                    )
-                                    : (
-                                        <Text>
-                                            {props.iouReport.hasOutstandingIOU
-                                                ? props.translate('iou.owesyou', {manager: managerName})
-                                                : props.translate('iou.paidyou', {manager: managerName})}
-                                        </Text>
-                                    )}
-                                {(isCurrentUserManager
-                                    && !props.shouldHidePayButton
-                                    && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
-                                        <Button
-                                            style={styles.mt4}
-                                            onPress={props.onPayButtonPressed}
-                                            text={props.translate('iou.pay')}
-                                            success
-                                            medium
-                                        />
-                                ))}
+                                )}
                             </View>
-                        </OfflineWithFeedback>
-                    )}
+                            <View style={styles.iouPreviewBoxAvatar}>
+                                <MultipleAvatars
+                                    icons={[managerAvatar, ownerAvatar]}
+                                    secondAvatarStyle={[
+                                        styles.secondAvatarInline,
+                                        props.isHovered
+                                            ? styles.iouPreviewBoxAvatarHover
+                                            : undefined,
+                                    ]}
+                                    avatarTooltips={avatarTooltip}
+                                />
+                            </View>
+                        </View>
+                        {isCurrentUserManager
+                            ? (
+                                <Text>
+                                    {props.iouReport.hasOutstandingIOU
+                                        ? props.translate('iou.youowe', {owner: ownerName})
+                                        : props.translate('iou.youpaid', {owner: ownerName})}
+                                </Text>
+                            )
+                            : (
+                                <Text>
+                                    {props.iouReport.hasOutstandingIOU
+                                        ? props.translate('iou.owesyou', {manager: managerName})
+                                        : props.translate('iou.paidyou', {manager: managerName})}
+                                </Text>
+                            )}
+                        {(isCurrentUserManager
+                            && !props.shouldHidePayButton
+                            && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
+                                <Button
+                                    style={styles.mt4}
+                                    onPress={props.onPayButtonPressed}
+                                    text={props.translate('iou.pay')}
+                                    success
+                                    medium
+                                />
+                        ))}
+                    </View>
+                </OfflineWithFeedback>
             </View>
         </TouchableWithoutFeedback>
     );

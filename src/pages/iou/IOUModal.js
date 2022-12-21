@@ -164,6 +164,7 @@ class IOUModal extends Component {
             // Navigating to Enter Amount Page
             // eslint-disable-next-line react/no-did-update-set-state
             this.setState({currentStepIndex: 0});
+            this.creatingIOUTransaction = false;
         }
 
         const currentSelectedCurrencyCode = lodashGet(this.props, 'iou.selectedCurrencyCode');
@@ -339,6 +340,7 @@ class IOUModal extends Component {
                 this.state.comment,
                 this.props.iou.selectedCurrencyCode,
                 this.props.preferredLocale,
+                reportID,
             );
             return;
         }
@@ -455,8 +457,21 @@ class IOUModal extends Component {
                                         >
                                             {this.renderHeader()}
                                             <IOUConfirmPage
-                                                onConfirm={this.createTransaction}
-                                                onSendMoney={this.sendMoney}
+                                                onConfirm={(selectedParticipants) => {
+                                                    // Prevent creating multiple transactions if the button is pressed repeatedly
+                                                    if (this.creatingIOUTransaction) {
+                                                        return;
+                                                    }
+                                                    this.creatingIOUTransaction = true;
+                                                    this.createTransaction(selectedParticipants);
+                                                }}
+                                                onSendMoney={(paymentMethodType) => {
+                                                    if (this.creatingIOUTransaction) {
+                                                        return;
+                                                    }
+                                                    this.creatingIOUTransaction = true;
+                                                    this.sendMoney(paymentMethodType);
+                                                }}
                                                 hasMultipleParticipants={this.props.hasMultipleParticipants}
                                                 participants={_.filter(this.state.participants, email => this.props.currentUserPersonalDetails.login !== email.login)}
                                                 iouAmount={this.state.amount}
