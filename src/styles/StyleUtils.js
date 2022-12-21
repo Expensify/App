@@ -438,6 +438,18 @@ function getReportActionItemStyle(isHovered = false, isLoading = false) {
 }
 
 /**
+ * Generate the styles for the ReportActionItem wrapper view.
+ *
+ * @param {Boolean} [isLoading]
+ * @returns {Object}
+ */
+function getIOUPreviewLoadingItemStyle(isLoading = false) {
+    return {
+        opacity: isLoading ? 0.5 : 1,
+    };
+}
+
+/**
  * Generate the wrapper styles for the mini ReportActionContextMenu.
  *
  * @param {Boolean} isReportActionItemGrouped
@@ -679,4 +691,5 @@ export {
     getHeight,
     fade,
     getHorizontalStackedAvatarBorderStyle,
+    getIOUPreviewLoadingItemStyle,
 };
