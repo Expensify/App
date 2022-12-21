@@ -44,7 +44,7 @@ const defaultProps = {
 
 const IOUAction = (props) => {
     const launchDetailsModal = () => {
-        Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
+        Navigation.navigate(ROUTES.getIouDetailsWithActionRoute(props.chatReportID, props.action.originalMessage.IOUReportID, props.action));
     };
 
     const shouldShowIOUPreview = (
