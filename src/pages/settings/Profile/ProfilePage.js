@@ -114,13 +114,24 @@ class ProfilePage extends Component {
     }
 
     render() {
-        const pronounsList = _.map(this.props.translate('pronouns'), (value, key) => ({
-            label: value,
-            value: `${CONST.PRONOUNS.PREFIX}${key}`,
-        }));
         const currentUserDetails = this.props.currentUserPersonalDetails || {};
-        const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.pronouns;
-
+        const profileSettingsOptions = [
+            {
+                description: this.props.translate('displayNamePage.headerTitle'),
+                title: lodashGet(currentUserDetails, 'displayName', ''),
+                pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
+            },
+            {
+                description: this.props.translate('pronounsPage.pronouns'),
+                title: this.getPronouns(),
+                pageRoute: ROUTES.SETTINGS_PRONOUNS,
+            },
+            {
+                description: this.props.translate('timezonePage.timezone'),
+                title: `${lodashGet(currentUserDetails, 'timezone.selected', '')}`,
+                pageRoute: ROUTES.SETTINGS_TIMEZONE,
+            },
+        ];
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton

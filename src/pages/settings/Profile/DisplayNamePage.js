@@ -49,7 +49,7 @@ class DisplayNamePage extends Component {
     }
 
     /**
-     * @param {Object} values - An object containing the value of each inputID
+     * @param {Object} values
      * @param {String} values.firstName
      * @param {String} values.lastName
      * @returns {Object} - An object containing the errors for each inputID
