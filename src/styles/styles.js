@@ -1414,7 +1414,7 @@ const styles = {
         backgroundColor: themeColors.transparent,
         height: 32,
         padding: 6,
-        margin: 4,
+        margin: 3,
         justifyContent: 'center',
     },
 
@@ -1479,7 +1479,7 @@ const styles = {
         alignSelf: 'flex-end',
         borderRadius: variables.buttonBorderRadius,
         height: 32,
-        marginVertical: 4,
+        marginVertical: 3,
         paddingHorizontal: 6,
         justifyContent: 'center',
     },
@@ -1506,7 +1506,9 @@ const styles = {
     chatItemAttachBorder: {
         borderRightColor: themeColors.border,
         borderRightWidth: 1,
-        marginBottom: 4,
+        marginBottom: 3,
+        marginTop: 3,
+
     },
 
     composerSizeButton: {
