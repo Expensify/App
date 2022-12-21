@@ -283,7 +283,7 @@ class ReportActionsView extends React.Component {
      */
     loadMoreChats() {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (this.props.report.isLoadingMoreReportActions) {
+        if (this.props.report.isLoadingMoreReportActions || this.props.network.isOffline) {
             return;
         }
 

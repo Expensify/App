@@ -9,7 +9,7 @@ import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import styles from '../../../styles/styles';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
+import {withPersonalDetails} from '../../../components/OnyxProvider';
 import ReportActionItem from './ReportActionItem';
 import ReportActionsSkeletonView from '../../../components/ReportActionsSkeletonView';
 import variables from '../../../styles/variables';
@@ -19,7 +19,6 @@ import reportActionPropTypes from './reportActionPropTypes';
 import CONST from '../../../CONST';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import reportPropTypes from '../../reportPropTypes';
-import networkPropTypes from '../../../components/networkPropTypes';
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -48,9 +47,6 @@ const propTypes = {
 
     /** Function to load more chats */
     loadMoreChats: PropTypes.func.isRequired,
-
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
 
     ...withDrawerPropTypes,
     ...windowDimensionsPropTypes,
@@ -147,7 +143,7 @@ class ReportActionsList extends React.Component {
     render() {
         // Non-animating skeleton UI represents that chat history exists but is not loaded locally in Onyx.
         // While offline if there is at least one non-pending action or if this is a new chat then we don't need to show the non-animating skeleton UI.
-        const shouldShowNonAnimatingSkeleton = !(_.some(this.props.sortedReportActions, action => !action.pendingAction || action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED));
+        const shouldShowNonAnimatingSkeleton = !this.props.report.isOptimisticReport && _.every(this.props.sortedReportActions, action => action.pendingAction);
 
         // Native mobile does not render updates flatlist the changes even though component did update called.
         // To notify there something changes we can use extraData prop to flatlist
@@ -167,7 +163,7 @@ class ReportActionsList extends React.Component {
                     keyExtractor={this.keyExtractor}
                     initialRowHeight={32}
                     initialNumToRender={this.calculateInitialNumToRender()}
-                    onEndReached={() => !this.props.network.isOffline && this.props.loadMoreChats()}
+                    onEndReached={this.props.loadMoreChats}
                     onEndReachedThreshold={0.75}
                     ListFooterComponent={() => {
                         if (this.props.report.isLoadingMoreReportActions) {
@@ -183,7 +179,7 @@ class ReportActionsList extends React.Component {
                         // that many comments.
                         // We will show non-animating skeleton UI if we are offline and chat history is not loaded in ONYX.
                         const lastReportAction = _.last(this.props.sortedReportActions);
-                        if ((this.props.report.isLoadingReportActions && lastReportAction.sequenceNumber > 0) || (shouldShowNonAnimatingSkeleton)) {
+                        if ((this.props.report.isLoadingReportActions && lastReportAction.sequenceNumber > 0) || shouldShowNonAnimatingSkeleton) {
                             return (
                                 <ReportActionsSkeletonView
                                     containerHeight={this.state.skeletonViewHeight}
@@ -216,5 +212,4 @@ export default compose(
     withDrawerState,
     withWindowDimensions,
     withPersonalDetails(),
-    withNetwork(),
 )(ReportActionsList);
