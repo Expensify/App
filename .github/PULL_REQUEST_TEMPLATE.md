@@ -70,11 +70,11 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
     - [ ] I tested this PR with a [High Traffic account](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#high-traffic-accounts) against the staging or production API to ensure there are no regressions (e.g. long loading states that impact usability).
 - [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I ran the tests on **all platforms** & verified they passed on:
-    - [ ] iOS / native
     - [ ] Android / native
-    - [ ] iOS / Safari
     - [ ] Android / Chrome
-    - [ ] MacOS / Chrome
+    - [ ] iOS / native
+    - [ ] iOS / Safari
+    - [ ] MacOS / Chrome / Safari
     - [ ] MacOS / Desktop
 - [ ] I verified there are no console errors (if there's a console error not related to the PR, report it or open an issue for it to be fixed)
 - [ ] I followed proper code patterns (see [Reviewing the code](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
