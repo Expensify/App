@@ -24,25 +24,26 @@ Onyx.connect({
  * Return translated string for given locale and phrase
  *
  * @param {String} [desiredLanguage] eg 'en', 'es-ES'
- * @param {String|Array} phrase
+ * @param {String|Array} phraseKey
  * @param {Object} [phraseParameters] Parameters to supply if the phrase is a template literal.
  * @returns {String}
  */
-function translate(desiredLanguage = CONST.DEFAULT_LOCALE, phrase, phraseParameters = {}) {
-    const languageAbbreviation = desiredLanguage.substring(0, 2);
-    const allTranslatedCopy = lodashGet(languageList, desiredLanguage, {});
-    const language = lodashGet(languageList, languageAbbreviation, {});
-    const defaultLanguage = lodashGet(languageList, 'en', {});
-
+function translate(desiredLanguage = CONST.DEFAULT_LOCALE, phraseKey, phraseParameters = {}) {
     let translatedPhrase;
 
-    // Search phrase in full locale
-    translatedPhrase = lodashGet(allTranslatedCopy, phrase);
+    // Search phrase in full locale e.g. es-ES
+    const desiredLanguageDictionary = lodashGet(languageList, desiredLanguage);
+    translatedPhrase = lodashGet(desiredLanguageDictionary, phraseKey);
     if (translatedPhrase) {
         return Str.result(translatedPhrase, phraseParameters);
     }
+    
+    const language = lodashGet(languageList, languageAbbreviation, {});
+    const defaultLanguage = lodashGet(languageList, 'en', {});
 
-    // Phrase is not found in full locale, search it in language
+
+    // Phrase is not found in full locale, search it in fallback language e.g. es
+    const fallbackLanguageDictionary = lodashGet(languageList, desiredLanguage.substring(0,2));
     translationValue = lodashGet(language, phrase);
     if (translationValue) {
         return Str.result(translationValue, phraseParameters);
