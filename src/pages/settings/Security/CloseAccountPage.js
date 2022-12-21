@@ -57,7 +57,7 @@ class CloseAccountPage extends Component {
     }
 
     showConfirmModal() {
-        const prompt = 'If you proceed with closing your account, any outstanding money requests will be cancelled or declined.';
+        const prompt = this.props.translate('closeAccountPage.iouConfirmation');
         this.setState({isConfirmModalVisible: true, confirmModalPrompt: prompt});
     }
 

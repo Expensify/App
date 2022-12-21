@@ -386,6 +386,7 @@ export default {
         enterDefaultContact: 'Tu método de contacto predeterminado',
         defaultContact: 'Método de contacto predeterminado:',
         enterYourDefaultContactMethod: 'Por favor ingresa tu método de contacto predeterminado para cerrar tu cuenta.',
+        iouConfirmation: 'Si cierras tu cuenta todas las solicitudes de dinero serán canceladas o rechazadas.',
     },
     passwordPage: {
         changePassword: 'Cambiar contraseña',

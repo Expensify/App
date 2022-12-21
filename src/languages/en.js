@@ -386,6 +386,7 @@ export default {
         enterDefaultContact: 'Enter your default contact method',
         defaultContact: 'Default contact method:',
         enterYourDefaultContactMethod: 'Please enter your default contact method to close your account.',
+        iouConfirmation: 'If you proceed with closing your account, any outstanding money requests will be cancelled or declined.',
     },
     passwordPage: {
         changePassword: 'Change password',
