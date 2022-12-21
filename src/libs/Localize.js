@@ -4,7 +4,7 @@ import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import Log from './Log';
 import Config from '../CONFIG';
-import translations from '../languages/translations';
+import languageList from '../languages/languageList';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 
@@ -23,16 +23,16 @@ Onyx.connect({
 /**
  * Return translated string for given locale and phrase
  *
- * @param {String} [abreviatedDialect] eg 'en', 'es-ES'
+ * @param {String} [dialectAbbreviation] eg 'en', 'es-ES'
  * @param {String|Array} phrase
  * @param {Object} [phraseParameters] Parameters to supply if the phrase is a template literal.
  * @returns {String}
  */
-function translate(abreviatedDialect = CONST.DEFAULT_LOCALE, phrase, phraseParameters = {}) {
-    const abreviatedLanguage = abreviatedDialect.substring(0, 2);
-    const allTranslatedCopy = lodashGet(translations, abreviatedDialect, {});
-    const language = lodashGet(translations, abreviatedLanguage, {});
-    const defaultLanguage = lodashGet(translations, 'en', {});
+function translate(dialectAbbreviation = CONST.DEFAULT_LOCALE, phrase, phraseParameters = {}) {
+    const languageAbbreviation = dialectAbbreviation.substring(0, 2);
+    const allTranslatedCopy = lodashGet(languageList, dialectAbbreviation, {});
+    const language = lodashGet(languageList, languageAbbreviation, {});
+    const defaultLanguage = lodashGet(languageList, 'en', {});
 
     let translatedPhrase;
 
@@ -47,8 +47,8 @@ function translate(abreviatedDialect = CONST.DEFAULT_LOCALE, phrase, phraseParam
     if (translationValue) {
         return Str.result(translationValue, phraseParameters);
     }
-    if (abreviatedLanguage !== 'en') {
-        Log.alert(`${phrase} was not found in the ${abreviatedLanguage} locale`);
+    if (languageAbbreviation !== 'en') {
+        Log.alert(`${phrase} was not found in the ${languageAbbreviation} locale`);
     }
 
     // Phrase is not translated, search it in default language (en)
