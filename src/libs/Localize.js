@@ -25,27 +25,27 @@ Onyx.connect({
  *
  * @param {String} [abreviatedDialect] eg 'en', 'es-ES'
  * @param {String|Array} phrase
- * @param {Object} [variables]
+ * @param {Object} [phraseParameters] Parameters to supply if the phrase is a template literal.
  * @returns {String}
  */
-function translate(abreviatedDialect = CONST.DEFAULT_LOCALE, phrase, variables = {}) {
+function translate(abreviatedDialect = CONST.DEFAULT_LOCALE, phrase, phraseParameters = {}) {
     const abreviatedLanguage = abreviatedDialect.substring(0, 2);
     const allTranslatedCopy = lodashGet(translations, abreviatedDialect, {});
     const language = lodashGet(translations, abreviatedLanguage, {});
     const defaultLanguage = lodashGet(translations, 'en', {});
 
-    let translationValue;
+    let translatedPhrase;
 
     // Search phrase in full locale
-    translationValue = lodashGet(allTranslatedCopy, phrase);
-    if (translationValue) {
-        return Str.result(translationValue, variables);
+    translatedPhrase = lodashGet(allTranslatedCopy, phrase);
+    if (translatedPhrase) {
+        return Str.result(translatedPhrase, phraseParameters);
     }
 
     // Phrase is not found in full locale, search it in language
     translationValue = lodashGet(language, phrase);
     if (translationValue) {
-        return Str.result(translationValue, variables);
+        return Str.result(translationValue, phraseParameters);
     }
     if (abreviatedLanguage !== 'en') {
         Log.alert(`${phrase} was not found in the ${abreviatedLanguage} locale`);
@@ -54,7 +54,7 @@ function translate(abreviatedDialect = CONST.DEFAULT_LOCALE, phrase, variables =
     // Phrase is not translated, search it in default language (en)
     translationValue = lodashGet(defaultLanguage, phrase);
     if (translationValue) {
-        return Str.result(translationValue, variables);
+        return Str.result(translationValue, phraseParameters);
     }
 
     // Phrase is not found in default language, on production log an alert to server
