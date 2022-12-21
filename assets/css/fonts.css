@@ -41,14 +41,14 @@
 }
 
 @font-face {
-    font-family: Expensify New Kansas;
+    font-family: 'Expensify New Kansas';
     font-weight: 500;
     font-style: normal;
     src: url('/fonts/ExpensifyNewKansas-Medium.woff2') format('woff2'),  url('/fonts/ExpensifyNewKansas-Medium.woff') format('woff');
 }
 
 @font-face {
-    font-family: Expensify New Kansas;
+    font-family: 'Expensify New Kansas';
     font-weight: 500;
     font-style: italic;
     src: url('/fonts/ExpensifyNewKansas-MediumItalic.woff2') format('woff2'),  url('/fonts/ExpensifyNewKansas-MediumItalic.woff') format('woff');

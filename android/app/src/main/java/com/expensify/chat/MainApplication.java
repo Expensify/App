@@ -11,6 +11,7 @@ import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
+import com.facebook.react.views.text.ReactFontManager;
 import com.facebook.react.config.ReactFeatureFlags;
 import com.facebook.react.modules.i18nmanager.I18nUtil;
 import com.facebook.soloader.SoLoader;
@@ -66,6 +67,7 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
       super.onCreate();
       // If you opted-in for the New Architecture, we enable the TurboModule system
       ReactFeatureFlags.useTurboModules = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
+      ReactFontManager.getInstance().addCustomFont(this, "Expensify New Kansas", R.font.expensifynewkansas);
       SoLoader.init(this, /* native exopackage */ false);
       initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
       if (BuildConfig.DEBUG) {
