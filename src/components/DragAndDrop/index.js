@@ -43,11 +43,6 @@ export default class DragAndDrop extends React.Component {
     constructor(props) {
         super(props);
 
-        if (props.disabled) {
-            this.isDisabled = true;
-            return;
-        }
-
         this.throttledDragOverHandler = _.throttle(this.dragOverHandler.bind(this), 100);
         this.throttledDragNDropWindowResizeListener = _.throttle(this.dragNDropWindowResizeListener.bind(this), 100);
         this.dropZoneDragHandler = this.dropZoneDragHandler.bind(this);
@@ -61,10 +56,32 @@ export default class DragAndDrop extends React.Component {
     }
 
     componentDidMount() {
-        if (this.isDisabled) {
+        if (this.props.disabled) {
             return;
         }
+        this.addEventListeners();
+    }
 
+    componentDidUpdate(prevProps) {
+        const isDisabled = this.props.disabled;
+        if (isDisabled === prevProps.disabled) {
+            return;
+        }
+        if (isDisabled) {
+            this.removeEventListeners();
+        } else {
+            this.addEventListeners();
+        }
+    }
+
+    componentWillUnmount() {
+        if (this.props.disabled) {
+            return;
+        }
+        this.removeEventListeners();
+    }
+
+    addEventListeners() {
         this.dropZone = document.getElementById(this.props.dropZoneId);
         this.dropZoneRect = this.calculateDropZoneClientReact();
         document.addEventListener('dragover', this.dropZoneDragListener);
@@ -74,11 +91,7 @@ export default class DragAndDrop extends React.Component {
         window.addEventListener('resize', this.throttledDragNDropWindowResizeListener);
     }
 
-    componentWillUnmount() {
-        if (this.isDisabled) {
-            return;
-        }
-
+    removeEventListeners() {
         document.removeEventListener('dragover', this.dropZoneDragListener);
         document.removeEventListener('dragenter', this.dropZoneDragListener);
         document.removeEventListener('dragleave', this.dropZoneDragListener);
