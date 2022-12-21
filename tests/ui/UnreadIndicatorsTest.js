@@ -281,9 +281,10 @@ describe('Unread Indicators', () => {
                 renderedApp = testInstance;
 
                 // Simulate a new report arriving via Pusher along with reportActions and personalDetails for the other participant
+                // We set the created moment 5 seconds in the past to ensure that time has passed when we open the report
                 const NEW_REPORT_ID = '2';
-                const NEW_REPORT_CREATED_MOMENT = moment();
-                const NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT = NEW_REPORT_CREATED_MOMENT.add(5, 'seconds');
+                const NEW_REPORT_CREATED_MOMENT = moment().subtract(5, 'seconds');
+                const NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT = NEW_REPORT_CREATED_MOMENT.add(1, 'seconds');
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${NEW_REPORT_ID}`, {
                     reportID: NEW_REPORT_ID,
                     reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
@@ -358,7 +359,7 @@ describe('Unread Indicators', () => {
             });
     });
 
-    it('Manually marking a chat message as read shows the new line indicator and updates the LHN', () => {
+    it('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () => {
         let renderedApp;
         return signInAndGetAppWithUnreadChat()
             .then((testInstance) => {
