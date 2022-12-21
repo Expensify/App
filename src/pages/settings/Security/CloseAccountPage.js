@@ -43,6 +43,7 @@ class CloseAccountPage extends Component {
         CloseAccount.clearError();
         this.state = {
             isConfirmModalVisible: false,
+            confirmModalPrompt: '',
         };
     }
 
@@ -52,10 +53,12 @@ class CloseAccountPage extends Component {
 
     onSubmit(values) {
         User.closeAccount(values.reasonForLeaving);
+        this.hideConfirmModal();
     }
 
     showConfirmModal() {
-        this.setState({isConfirmModalVisible: true});
+        const prompt = 'If you proceed with closing your account, any outstanding money requests will be cancelled or declined.';
+        this.setState({isConfirmModalVisible: true, confirmModalPrompt: prompt});
     }
 
     hideConfirmModal() {
@@ -127,7 +130,7 @@ class CloseAccountPage extends Component {
                             onConfirm={this.hideConfirmModal}
                             onCancel={this.hideConfirmModal}
                             isVisible={this.state.isConfirmModalVisible}
-                            prompt="Foo!"
+                            prompt={this.state.confirmModalPrompt}
                             confirmText={this.props.translate('common.close')}
                             shouldShowCancelButton
                         />
