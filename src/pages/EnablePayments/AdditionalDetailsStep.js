@@ -265,7 +265,6 @@ class AdditionalDetailsStep extends React.Component {
                                 containerStyles={[styles.mt4]}
                                 label={this.props.translate(this.fieldNameTranslationKeys.dob)}
                                 placeholder={this.props.translate('common.dob')}
-                                maximumDate={new Date()}
                                 shouldSaveDraft
                             />
                             <TextInput
