@@ -48,6 +48,11 @@ const baseCodeTagStyles = {
     backgroundColor: themeColors.textBackground,
 };
 
+const headlineFont = {
+    fontFamily: fontFamily.EXP_NEW_KANSAS,
+    fontWeight: '500',
+};
+
 const webViewStyles = {
     // As of react-native-render-html v6, don't declare distinct styles for
     // custom renderers, the API for custom renderers has changed. Declare the
@@ -283,8 +288,7 @@ const styles = {
     },
 
     headlineFont: {
-        fontFamily: fontFamily.EXP_NEW_KANSAS,
-        fontWeight: '500',
+        ...headlineFont,
     },
 
     textDecorationNoLine: {
@@ -1908,9 +1912,8 @@ const styles = {
     },
 
     notFoundTextHeader: {
+        ...headlineFont,
         color: themeColors.heading,
-        fontFamily: fontFamily.EXP_NEW_KANSAS,
-        fontWeight: '500',
         fontSize: variables.fontSizeLarge,
         marginTop: 20,
         marginBottom: 8,
@@ -2027,9 +2030,8 @@ const styles = {
     },
 
     displayName: {
+        ...headlineFont,
         fontSize: variables.fontSizeLarge,
-        fontFamily: fontFamily.EXP_NEW_KANSAS,
-        fontWeight: '500',
         color: themeColors.heading,
     },
 
@@ -2179,8 +2181,7 @@ const styles = {
     },
 
     iouAmountTextInput: addOutlineWidth({
-        fontFamily: fontFamily.EXP_NEW_KANSAS,
-        fontWeight: '500',
+        ...headlineFont,
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
         padding: 0,
@@ -2459,10 +2460,9 @@ const styles = {
     },
 
     workspaceSectionHeader: {
+        ...headlineFont,
         color: themeColors.heading,
-        fontFamily: fontFamily.EXP_NEW_KANSAS,
         fontSize: variables.fontSizeh1,
-        fontWeight: '500',
     },
 
     peopleRow: {
