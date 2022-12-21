@@ -23,7 +23,7 @@ import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
 import * as User from './libs/actions/User';
 import NetworkConnection from './libs/NetworkConnection';
 import Navigation from './libs/Navigation/Navigation';
-import DeeplinkWrapper from './components/DeeplinkWrapper/DeeplinkWrapper';
+import DeeplinkWrapper from './components/DeeplinkWrapper';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
