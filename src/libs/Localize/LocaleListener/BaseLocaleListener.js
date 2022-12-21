@@ -9,7 +9,7 @@ let preferredLocale = CONST.DEFAULT_LOCALE;
  *
  * @param {Function} callbackAfterChange
  */
-const connect = (callbackAfterChange) => {
+const connect = (callbackAfterChange = () => {}) => {
     Onyx.connect({
         key: ONYXKEYS.NVP_PREFERRED_LOCALE,
         callback: (val) => {
