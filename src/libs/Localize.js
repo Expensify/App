@@ -4,7 +4,7 @@ import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import Log from './Log';
 import Config from '../CONFIG';
-import languageList from '../languages/languageList';
+import translations from '../languages/translations';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 
@@ -33,7 +33,7 @@ function translate(desiredLanguage = CONST.DEFAULT_LOCALE, phraseKey, phrasePara
     let translatedPhrase;
 
     // Search phrase in full locale e.g. es-ES
-    const desiredLanguageDictionary = lodashGet(languageList, desiredLanguage);
+    const desiredLanguageDictionary = lodashGet(translations, desiredLanguage);
     translatedPhrase = lodashGet(desiredLanguageDictionary, phraseKey);
     if (translatedPhrase) {
         return Str.result(translatedPhrase, phraseParameters);
@@ -41,7 +41,7 @@ function translate(desiredLanguage = CONST.DEFAULT_LOCALE, phraseKey, phrasePara
     
     
     // Phrase is not found in full locale, search it in fallback language e.g. es
-    const fallbackLanguageDictionary = lodashGet(languageList, languageAbbreviation);
+    const fallbackLanguageDictionary = lodashGet(translations, languageAbbreviation);
     translationValue = lodashGet(fallbackLanguageDictionary, phraseKey);
     if (translationValue) {
         return Str.result(translationValue, phraseParameters);
@@ -51,7 +51,7 @@ function translate(desiredLanguage = CONST.DEFAULT_LOCALE, phraseKey, phrasePara
     }
     
     // Phrase is not translated, search it in default language (en)
-    const defaultLanguageDictionary = lodashGet(languageList, 'en', {});
+    const defaultLanguageDictionary = lodashGet(translations, 'en', {});
     translationValue = lodashGet(defaultLanguageDictionary, phraseKey);
     if (translationValue) {
         return Str.result(translationValue, phraseParameters);
