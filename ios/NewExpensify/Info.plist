@@ -30,7 +30,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1.2.42.0</string>
+	<string>1.2.42.1</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationQueriesSchemes</key>
@@ -65,8 +65,8 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>Your camera is used to create chat attachments, documents, and facial capture.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Your location is used to determine your default currency.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Your location is used to determine your default currency and timezone.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Required for video capture</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
