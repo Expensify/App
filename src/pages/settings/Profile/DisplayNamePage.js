@@ -49,28 +49,51 @@ class DisplayNamePage extends Component {
     }
 
     /**
-     * @param {Object} values
+     * @param {Object} values - An object containing the value of each inputID
      * @param {String} values.firstName
      * @param {String} values.lastName
+     * @param {String} values.pronouns
+     * @param {Boolean} values.isAutomaticTimezone
+     * @param {String} values.timezone
+     * @param {String} values.selfSelectedPronoun
      * @returns {Object} - An object containing the errors for each inputID
      */
     validate(values) {
         const errors = {};
+        const [firstNameHasInvalidCharacters, lastNameHasInvalidCharacters] = ValidationUtils.doesFailCommaRemoval(
+            [values.firstName, values.lastName],
+        );
+        if (firstNameHasInvalidCharacters || lastNameHasInvalidCharacters) {
+            const invalidCharactersError = 'Your name cannot contain commas, please enter a name without them';
+            this.assignError(errors, 'firstName', firstNameHasInvalidCharacters, invalidCharactersError);
+            this.assignError(errors, 'firstName', lastNameHasInvalidCharacters, invalidCharactersError);
+            return errors;
+        }
 
+        const characterLimitError = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
         const [hasFirstNameError, hasLastNameError] = ValidationUtils.doesFailCharacterLimitAfterTrim(
             CONST.FORM_CHARACTER_LIMIT,
             [values.firstName, values.lastName],
         );
-
-        if (hasFirstNameError) {
-            errors.firstName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
-        }
-
-        if (hasLastNameError) {
-            errors.lastName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
-        }
+        this.assignError(errors, 'firstName', hasFirstNameError, characterLimitError);
+        this.assignError(errors, 'lastName', hasLastNameError, characterLimitError);
 
         return errors;
+    }
+
+    /**
+     * @param {Object} errors
+     * @param {String} errorKey
+     * @param {Boolean} hasError
+     * @param {String} errorCopy
+     * @returns {Object} - An object containing the errors for each inputID
+     */
+    assignError(errors, errorKey, hasError, errorCopy) {
+        const validateErrors = errors;
+        if (hasError) {
+            validateErrors[errorKey] = errorCopy;
+        }
+        return validateErrors;
     }
 
     render() {
