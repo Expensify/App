@@ -282,7 +282,7 @@ const styles = {
         fontStyle: 'italic',
     },
 
-    textNewKansas: {
+    headlineFont: {
         fontFamily: fontFamily.EXP_NEW_KANSAS,
         fontWeight: '500',
     },

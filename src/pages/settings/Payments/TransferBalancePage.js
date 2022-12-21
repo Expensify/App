@@ -167,7 +167,7 @@ class TransferBalancePage extends React.Component {
                             fill={defaultTheme.iconSuccessFill}
                         />
                         <View style={[styles.ph5]}>
-                            <Text style={[styles.mt5, styles.h1, styles.textAlignCenter, styles.textNewKansas]}>
+                            <Text style={[styles.mt5, styles.h1, styles.textAlignCenter, styles.headlineFont]}>
                                 {this.props.translate('transferAmountPage.transferSuccess')}
                             </Text>
                             <Text style={[styles.mt3, styles.textAlignCenter]}>
