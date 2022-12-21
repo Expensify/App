@@ -23,14 +23,14 @@ Onyx.connect({
 /**
  * Return translated string for given locale and phrase
  *
- * @param {String} [dialectAbbreviation] eg 'en', 'es-ES'
+ * @param {String} [desiredLanguage] eg 'en', 'es-ES'
  * @param {String|Array} phrase
  * @param {Object} [phraseParameters] Parameters to supply if the phrase is a template literal.
  * @returns {String}
  */
-function translate(dialectAbbreviation = CONST.DEFAULT_LOCALE, phrase, phraseParameters = {}) {
-    const languageAbbreviation = dialectAbbreviation.substring(0, 2);
-    const allTranslatedCopy = lodashGet(languageList, dialectAbbreviation, {});
+function translate(desiredLanguage = CONST.DEFAULT_LOCALE, phrase, phraseParameters = {}) {
+    const languageAbbreviation = desiredLanguage.substring(0, 2);
+    const allTranslatedCopy = lodashGet(languageList, desiredLanguage, {});
     const language = lodashGet(languageList, languageAbbreviation, {});
     const defaultLanguage = lodashGet(languageList, 'en', {});
 
