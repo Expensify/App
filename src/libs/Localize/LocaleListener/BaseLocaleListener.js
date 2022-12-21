@@ -7,7 +7,7 @@ let preferredLocale = CONST.DEFAULT_LOCALE;
 /**
  * Adds event listener for changes to the locale. Callbacks are executed when the locale changes in Onyx.
  *
- * @param {Function} callbackAfterChange
+ * @param {Function} [callbackAfterChange]
  */
 const connect = (callbackAfterChange = () => {}) => {
     Onyx.connect({
