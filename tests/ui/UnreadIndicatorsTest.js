@@ -371,7 +371,7 @@ describe('Unread Indicators', () => {
             .then(() => {
                 // It's difficult to trigger marking a report comment as unread since we would have to mock the long press event and then
                 // another press on the context menu item so we will do it via the action directly and then test if the UI has updated properly
-                Report.markCommentAsUnread(REPORT_ID, reportAction3CreatedDate);
+                Report.markCommentAsUnread(REPORT_ID, moment.utc(reportAction3CreatedDate).valueOf());
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -480,7 +480,7 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(0);
 
                 // Mark a previous comment as unread and verify the unread action indicator returns
-                Report.markCommentAsUnread(REPORT_ID, reportAction9CreatedDate);
+                Report.markCommentAsUnread(REPORT_ID, moment.utc(reportAction9CreatedDate).valueOf());
                 return waitForPromisesToResolve();
             })
             .then(() => {

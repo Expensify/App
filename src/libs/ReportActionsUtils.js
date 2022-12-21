@@ -153,11 +153,9 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
 }
 
 /**
- * Get the reportActionTimestamp of the last visible (non-deleted) comment on a report
- *
  * @param {String} reportID
  * @param {Object} [actionsToMerge]
- * @returns {String}
+ * @returns {Number}
  */
 function getLastVisibleMessageTimestamp(reportID, actionsToMerge = {}) {
     const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));

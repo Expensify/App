@@ -201,9 +201,9 @@ class ReportActionsView extends React.Component {
         const didReportBecomeVisible = isReportFullyVisible && (didSidebarClose || didScreenSizeIncrease);
         if (didReportBecomeVisible) {
             this.setState({
-                newMarkerReportActionID: !ReportUtils.isUnread(this.props.report)
-                    ? null
-                    : ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions),
+                newMarkerReportActionID: ReportUtils.isUnread(this.props.report)
+                    ? ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions)
+                    : null,
             });
             this.openReportIfNecessary();
         }

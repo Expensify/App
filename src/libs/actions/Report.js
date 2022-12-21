@@ -685,13 +685,13 @@ function readNewestAction(reportID, createdDate) {
  * Sets the last read timestamp on a report
  *
  * @param {String} reportID
- * @param {String} created
+ * @param {Number} reportActionTimestamp
  */
-function markCommentAsUnread(reportID, created) {
+function markCommentAsUnread(reportID, reportActionTimestamp) {
     // We subtract 1 millisecond so that the lastReadTimestamp is updated to just before a given reportAction's created date
     // For example, if we want to mark a report action with timestamp 1000 unread, we set the lastReadTimestamp to 999
     // Since the report action with timestamp 1000 will be the first with a timestamp above 999, it's the first one that will be shown as unread
-    const lastReadTimestamp = moment.utc(created).valueOf() - 1;
+    const lastReadTimestamp = reportActionTimestamp - 1;
     API.write('MarkAsUnread',
         {
             reportID,
