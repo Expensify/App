@@ -37,6 +37,12 @@ const propTypes = {
         isLoading: PropTypes.bool,
     }),
 
+    /** The credentials of the person signing in */
+    credentials: PropTypes.shape({
+        /** The login of the person signing in */
+        login: PropTypes.string,
+    }),
+
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
@@ -99,7 +105,7 @@ class ValidateCodeForm extends React.Component {
             this.setState({twoFactorAuthCode: ''}, this.input2FA.clear);
         }
         this.setState({formError: false});
-        User.resendValidateCode(login);
+        User.resendValidateCode(this.props.credentials.login);
     }
 
     /**
@@ -216,6 +222,7 @@ export default compose(
     withLocalize,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
+        credentials: {key: ONYXKEYS.CREDENTIALS},
     }),
     withToggleVisibilityView,
     withNetwork(),
