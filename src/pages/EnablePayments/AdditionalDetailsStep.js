@@ -238,7 +238,7 @@ class AdditionalDetailsStep extends React.Component {
                         validate={this.validate}
                         onSubmit={this.activateWallet}
                         submitButtonText={this.props.translate('common.saveAndContinue')}
-                        style={[styles.flexGrow1]}
+                        style={[styles.mh5, styles.flexGrow1]}
                     >
                         <View style={[styles.mh5, styles.mb5]}>
                             <View style={styles.mt4}>
