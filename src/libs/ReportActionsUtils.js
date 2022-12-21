@@ -52,6 +52,11 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
     }
     const invertedMultiplier = shouldSortInDescendingOrder ? -1 : 1;
     reportActions.sort((first, second) => {
+        // If only one action is a report created action, return the created action first.
+        if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || second.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) && first.actionName !== second.actionName) {
+            return ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) ? -1 : 1) * invertedMultiplier;
+        }
+
         if (first.created !== second.created) {
             return (first.created < second.created ? -1 : 1) * invertedMultiplier;
         }

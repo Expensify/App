@@ -37,7 +37,7 @@ const PronounsPage = (props) => {
             keyForList: key,
 
             // Include the green checkmark icon to indicate the currently selected value
-            customIcon: fullPronounKey === currentPronouns && greenCheckmark,
+            customIcon: fullPronounKey === currentPronouns ? greenCheckmark : undefined,
 
             // This property will make the currently selected value have bold text
             boldStyle: fullPronounKey === currentPronouns,
