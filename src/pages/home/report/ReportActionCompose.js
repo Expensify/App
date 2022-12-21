@@ -21,11 +21,8 @@ import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
 import PopoverMenu from '../../../components/PopoverMenu';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import withDrawerState from '../../../components/withDrawerState';
 import CONST from '../../../CONST';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -39,7 +36,6 @@ import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
-import VirtualKeyboard from '../../../libs/VirtualKeyboard';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
 import OfflineIndicator from '../../../components/OfflineIndicator';
@@ -49,6 +45,10 @@ import * as EmojiUtils from '../../../libs/EmojiUtils';
 import reportPropTypes from '../../reportPropTypes';
 import ReportDropUI from './ReportDropUI';
 import DragAndDrop from '../../../components/DragAndDrop';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withDrawerState from '../../../components/withDrawerState';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 
 const propTypes = {
     /** Beta features list */
@@ -102,6 +102,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
+    ...keyboardStatePropTypes,
 };
 
 const defaultProps = {
@@ -433,7 +434,8 @@ class ReportActionCompose extends React.Component {
      * @param {Object} e
      */
     triggerHotkeyActions(e) {
-        if (!e || VirtualKeyboard.shouldAssumeIsOpen()) {
+        // Do not trigger actions for mobileWeb or native clients that have the keyboard open because for those devices, we want the return key to insert newlines rather than submit the form
+        if (!e || this.props.isSmallScreenWidth || this.props.isKeyboardShown) {
             return;
         }
 
@@ -574,7 +576,6 @@ class ReportActionCompose extends React.Component {
                                                             // Keep focus on the composer when Collapse button is clicked.
                                                             onMouseDown={e => e.preventDefault()}
                                                             style={styles.composerSizeButton}
-                                                            underlayColor={themeColors.componentBG}
                                                             disabled={isBlockedFromConcierge || this.props.disabled}
                                                         >
                                                             <Icon src={Expensicons.Collapse} />
@@ -593,7 +594,6 @@ class ReportActionCompose extends React.Component {
                                                             // Keep focus on the composer when Expand button is clicked.
                                                             onMouseDown={e => e.preventDefault()}
                                                             style={styles.composerSizeButton}
-                                                            underlayColor={themeColors.componentBG}
                                                             disabled={isBlockedFromConcierge || this.props.disabled}
                                                         >
                                                             <Icon src={Expensicons.Expand} />
@@ -611,7 +611,6 @@ class ReportActionCompose extends React.Component {
                                                             this.setMenuVisibility(true);
                                                         }}
                                                         style={styles.chatItemAttachButton}
-                                                        underlayColor={themeColors.componentBG}
                                                         disabled={isBlockedFromConcierge || this.props.disabled}
                                                     >
                                                         <Icon src={Expensicons.Plus} />
@@ -703,7 +702,6 @@ class ReportActionCompose extends React.Component {
                                     (this.state.isCommentEmpty || hasExceededMaxCommentLength) ? undefined : styles.buttonSuccess,
                                 ]}
                                 onPress={this.submitForm}
-                                underlayColor={themeColors.componentBG}
 
                                 // Keep focus on the composer when Send message is clicked.
                                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
@@ -745,6 +743,7 @@ export default compose(
     withNetwork(),
     withPersonalDetails(),
     withCurrentUserPersonalDetails,
+    withKeyboardState,
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
