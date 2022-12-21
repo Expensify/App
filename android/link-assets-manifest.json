@@ -24,6 +24,14 @@
     {
       "path": "assets/fonts/native/ExpensifyNeue-Regular.otf",
       "sha1": "57b2cdd2f4adea3fad34464248502cd4edcaadd7"
+    },
+    {
+      "path": "assets/fonts/native/ExpensifyNewKansas-Medium.otf",
+      "sha1": "6c670679ccb67975edba5e8dd59dc883ff402b25"
+    },
+    {
+      "path": "assets/fonts/native/ExpensifyNewKansas-MediumItalic.otf",
+      "sha1": "42b8a320808e1f0aed6b65fd06edd51f6cf5515c"
     }
   ]
 }

@@ -49,7 +49,7 @@ const baseCodeTagStyles = {
 };
 
 const headlineFont = {
-    fontFamily: fontFamily.EXP_NEW_KANSAS,
+    fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
     fontWeight: '500',
 };
 
