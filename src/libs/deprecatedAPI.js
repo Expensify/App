@@ -77,18 +77,6 @@ function Get(parameters, shouldUseSecure = false) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.reportID
- * @param {Object} [parameters.newIOUReportDetails]
- * @returns {Promise}
- */
-function PayWithWallet(parameters) {
-    const commandName = 'PayWithWallet';
-    requireParameters(['reportID'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {Object} parameters.details
  * @returns {Promise}
  */
@@ -150,7 +138,6 @@ export {
     DeleteLogin,
     Get,
     GetStatementPDF,
-    PayWithWallet,
     PersonalDetails_Update,
     ResendValidateCode,
     SetNameValuePair,

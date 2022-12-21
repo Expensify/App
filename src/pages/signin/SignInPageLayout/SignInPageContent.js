@@ -10,8 +10,9 @@ import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import SignInPageForm from '../../../components/SignInPageForm';
 import compose from '../../../libs/compose';
-import withKeyboardState from '../../../components/withKeyboardState';
+import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -26,12 +27,12 @@ const propTypes = {
 
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
+    ...keyboardStatePropTypes,
 };
 
 const SignInPageContent = (props) => {
     const dismissKeyboardWhenTappedOutsideOfInput = () => {
-        // This prop comes from withKeyboardState
-        if (!props.isShown) {
+        if (!props.isKeyboardShown) {
             return;
         }
         Keyboard.dismiss();
@@ -46,7 +47,13 @@ const SignInPageContent = (props) => {
                     !props.isSmallScreenWidth && styles.signInPageLeftContainerWide,
                 ]}
             >
-                <View style={[styles.flex1, styles.alignSelfCenter, styles.signInPageWelcomeFormContainer]}>
+                <KeyboardAvoidingView
+                    behavior="padding"
+                    style={[styles.flex1, styles.alignSelfCenter, styles.signInPageWelcomeFormContainer]}
+
+                    // This vertical offset is here to add some more margin above the keyboard. Without it, the TOS and footer stuff still hides behind the keyboard by a few pixels.
+                    keyboardVerticalOffset={50}
+                >
                     {/* This empty view creates margin on the top of the sign in form which will shrink and grow depending on if the keyboard is open or not */}
                     <View style={[styles.flexGrow1, styles.signInPageContentTopSpacer]} />
 
@@ -75,7 +82,7 @@ const SignInPageContent = (props) => {
                     <View style={[styles.mv5]}>
                         <TermsAndLicenses />
                     </View>
-                </View>
+                </KeyboardAvoidingView>
             </View>
         </TouchableWithoutFeedback>
     );

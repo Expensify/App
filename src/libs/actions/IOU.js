@@ -5,10 +5,8 @@ import Str from 'expensify-common/lib/str';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
-import * as DeprecatedAPI from '../deprecatedAPI';
 import * as Report from './Report';
 import Navigation from '../Navigation/Navigation';
-import Growl from '../Growl';
 import * as Localize from '../Localize';
 import asyncOpenURL from '../asyncOpenURL';
 import * as API from '../API';
@@ -242,13 +240,16 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
  * @param {String} comment
  * @param {String} currency
  * @param {String} locale
+ * @param {String} existingGroupChatReportID
  *
  * @return {Object}
  */
-function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale) {
+function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale, existingGroupChatReportID = '') {
     const currentUserEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantLogins = _.map(participants, participant => OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase());
-    const existingGroupChatReport = ReportUtils.getChatByParticipants(participantLogins);
+    const existingGroupChatReport = existingGroupChatReportID
+        ? chatReports[`${ONYXKEYS.COLLECTION.REPORT}${existingGroupChatReportID}`]
+        : ReportUtils.getChatByParticipants(participantLogins);
     const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(participantLogins);
     const groupCreatedReportAction = existingGroupChatReport ? {} : ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
     const groupChatReportMaxSequenceNumber = lodashGet(groupChatReport, 'maxSequenceNumber', 0);
@@ -266,9 +267,13 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     groupChatReport.lastReadTimestamp = Date.now();
     groupChatReport.lastMessageText = groupIOUReportAction.message[0].text;
     groupChatReport.lastMessageHtml = groupIOUReportAction.message[0].html;
-    groupChatReport.pendingFields = {
-        createChat: existingGroupChatReport ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-    };
+
+    // If we have an existing groupChatReport use it's pending fields, otherwise indicate that we are adding a chat
+    if (!existingGroupChatReport) {
+        groupChatReport.pendingFields = {
+            createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        };
+    }
 
     const optimisticData = [
         {
@@ -333,8 +338,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             return;
         }
 
-        // If we only have one participant, the oneOnOneChatReport is the groupChatReport
-        const existingOneOnOneChatReport = hasMultipleParticipants ? ReportUtils.getChatByParticipants([email]) : groupChatReport;
+        // If we only have one participant and the request was initiated from the global create menu, i.e. !existingGroupChatReportID, the oneOnOneChatReport is the groupChatReport
+        const existingOneOnOneChatReport = (!hasMultipleParticipants && !existingGroupChatReportID) ? groupChatReport : ReportUtils.getChatByParticipants([email]);
         const oneOnOneChatReport = existingOneOnOneChatReport || ReportUtils.buildOptimisticChatReport([email]);
         let oneOnOneIOUReport;
         let existingIOUReport = null;
@@ -378,81 +383,65 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         oneOnOneChatReport.lastReadSequenceNumber = oneOnOneChatReportMaxSequenceNumber + 1;
         oneOnOneChatReport.lastMessageText = oneOnOneIOUReportAction.message[0].text;
         oneOnOneChatReport.lastMessageHtml = oneOnOneIOUReportAction.message[0].html;
-        oneOnOneChatReport.pendingFields = {
-            createChat: existingOneOnOneChatReport ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        };
-
-        // If we only have one other participant, we just need to update onyxData for the groupChatReport and add an iouReportAction of type = create
-        // If we have more participants, we need to push the new oneOnOneChaReport, the create reportAction and iouReportAction of type = create to onyxData
-        if (!hasMultipleParticipants) {
-            optimisticData[0].value = oneOnOneChatReport;
-            optimisticData[1].value = {
-                ...optimisticData[1].value,
-                [oneOnOneIOUReportAction.sequenceNumber]: oneOnOneIOUReportAction,
+        if (!existingOneOnOneChatReport) {
+            oneOnOneChatReport.pendingFields = {
+                createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             };
-            successData[1].value = {
-                ...successData[1].value,
-                [oneOnOneIOUReportAction.sequenceNumber]: {pendingAction: null},
-            };
-            failureData[1].value = {
-                ...failureData[1].value,
-                [oneOnOneIOUReportAction.sequenceNumber]: {pendingAction: null},
-            };
-        } else {
-            optimisticData.push(
-                {
-                    onyxMethod: existingOneOnOneChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
-                    value: oneOnOneChatReport,
-                },
-                {
-                    onyxMethod: existingOneOnOneChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
-                    value: {
-                        ...oneOnOneCreatedReportAction,
-                        [oneOnOneIOUReportAction.sequenceNumber]: oneOnOneIOUReportAction,
-                    },
-                },
-            );
-
-            successData.push(
-                {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
-                    value: {pendingFields: {createChat: null}},
-                },
-                {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
-                    value: {
-                        0: {pendingAction: null},
-                        [oneOnOneIOUReportAction.sequenceNumber]: {pendingAction: null},
-                    },
-                },
-            );
-
-            failureData.push(
-                {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
-                    value: {
-                        pendingFields: {createChat: null},
-                        hasOutstandingIOU: existingOneOnOneChatReport ? existingOneOnOneChatReport.hasOutstandingIOU : false,
-                        iouReportID: existingOneOnOneChatReport ? existingOneOnOneChatReport.iouReportID : null,
-                        maxSequenceNumber: oneOnOneChatReportMaxSequenceNumber,
-                        lastReadSequenceNumber: oneOnOneChatReportMaxSequenceNumber,
-                    },
-                },
-                {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
-                    value: {
-                        0: {pendingAction: null},
-                        [oneOnOneIOUReportAction.sequenceNumber]: {pendingAction: null},
-                    },
-                },
-            );
         }
+
+        optimisticData.push(
+            {
+                onyxMethod: existingOneOnOneChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
+                value: oneOnOneChatReport,
+            },
+            {
+                onyxMethod: existingOneOnOneChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
+                value: {
+                    ...oneOnOneCreatedReportAction,
+                    [oneOnOneIOUReportAction.sequenceNumber]: oneOnOneIOUReportAction,
+                },
+            },
+        );
+
+        successData.push(
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
+                value: {pendingFields: {createChat: null}},
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
+                value: {
+                    0: {pendingAction: null},
+                    [oneOnOneIOUReportAction.sequenceNumber]: {pendingAction: null},
+                },
+            },
+        );
+
+        failureData.push(
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.reportID}`,
+                value: {
+                    pendingFields: {createChat: null},
+                    hasOutstandingIOU: existingOneOnOneChatReport ? existingOneOnOneChatReport.hasOutstandingIOU : false,
+                    iouReportID: existingOneOnOneChatReport ? existingOneOnOneChatReport.iouReportID : null,
+                    maxSequenceNumber: oneOnOneChatReportMaxSequenceNumber,
+                    lastReadSequenceNumber: oneOnOneChatReportMaxSequenceNumber,
+                },
+            },
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
+                value: {
+                    0: {pendingAction: null},
+                    [oneOnOneIOUReportAction.sequenceNumber]: {pendingAction: null},
+                },
+            },
+        );
 
         // Regardless of the number of participants, we always want to push the iouReport update to onyxData
         optimisticData.push({
@@ -500,9 +489,10 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
  * @param {String} comment
  * @param {String} currency
  * @param {String} locale
+ * @param {String} existingGroupChatReportID
  */
-function splitBill(participants, currentUserLogin, amount, comment, currency, locale) {
-    const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale);
+function splitBill(participants, currentUserLogin, amount, comment, currency, locale, existingGroupChatReportID = '') {
+    const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, locale, existingGroupChatReportID);
 
     API.write('SplitBill', {
         reportID: groupData.chatReportID,
@@ -659,65 +649,6 @@ function setIOUSelectedCurrency(selectedCurrencyCode) {
  */
 function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
     return `https://paypal.me/${submitterPayPalMeAddress}/${(amount / 100)}${currency}`;
-}
-
-/**
- * Pays an IOU Report and then retrieves the iou and chat reports to trigger updates to the UI.
- *
- * @param {Object} params
- * @param {Number} params.chatReportID
- * @param {String} params.reportID
- * @param {String} params.paymentMethodType - one of CONST.IOU.PAYMENT_TYPE
- * @param {Number} params.amount
- * @param {String} params.currency
- * @param {String} [params.requestorPayPalMeAddress]
- * @param {String} [params.newIOUReportDetails] - Extra details required only for send money flow
- *
- * @return {Promise}
- */
-function payIOUReport({
-    chatReportID,
-    reportID,
-    paymentMethodType,
-    amount,
-    currency,
-    requestorPayPalMeAddress,
-    newIOUReportDetails,
-}) {
-    Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
-
-    // Build the url for Paypal.me if they have selected it instead of a manual settlement or Expensify Wallet
-    let url;
-    if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-        url = buildPayPalPaymentUrl(amount, requestorPayPalMeAddress, currency);
-    }
-
-    const promiseWithHandlers = DeprecatedAPI.PayWithWallet({reportID, newIOUReportDetails})
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                switch (response.message) {
-                    case 'You cannot pay via Expensify Wallet until you have either a verified deposit bank account or debit card.':
-                        Growl.error(Localize.translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'), 5000);
-                        break;
-                    case 'This report doesn\'t have reimbursable expenses.':
-                        Growl.error(Localize.translateLocal('iou.noReimbursableExpenses'), 5000);
-                        break;
-                    default:
-                        Growl.error(response.message, 5000);
-                }
-                Onyx.merge(ONYXKEYS.IOU, {error: true});
-                return;
-            }
-
-            const chatReportStuff = response.reports[chatReportID];
-            const iouReportStuff = response.reports[reportID];
-            Report.syncChatAndIOUReports(chatReportStuff, iouReportStuff);
-        })
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.IOU, {loading: false});
-        });
-    asyncOpenURL(promiseWithHandlers, url);
-    return promiseWithHandlers;
 }
 
 /**
@@ -950,6 +881,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
     return {
         params: {
             iouReportID: iouReport.reportID,
+            chatReportID: chatReport.reportID,
             reportActionID: optimisticIOUReportAction.reportActionID,
             paymentMethodType,
             clientID: optimisticIOUReportAction.sequenceNumber,
@@ -974,6 +906,24 @@ function sendMoneyElsewhere(report, amount, currency, comment, managerEmail, rec
     } = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.ELSEWHERE, managerEmail, recipient);
 
     API.write('SendMoneyElsewhere', params, {optimisticData, successData, failureData});
+
+    Navigation.navigate(ROUTES.getReportRoute(params.chatReportID));
+}
+
+/**
+ * @param {Object} report
+ * @param {Number} amount
+ * @param {String} currency
+ * @param {String} comment
+ * @param {String} managerEmail - Email of the person sending the money
+ * @param {Object} recipient - The user receiving the money
+ */
+function sendMoneyWithWallet(report, amount, currency, comment, managerEmail, recipient) {
+    const {
+        params, optimisticData, successData, failureData,
+    } = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.EXPENSIFY, managerEmail, recipient);
+
+    API.write('SendMoneyWithWallet', params, {optimisticData, successData, failureData});
 
     Navigation.navigate(ROUTES.getReportRoute(params.chatReportID));
 }
@@ -1018,6 +968,21 @@ function payMoneyRequestElsewhere(chatReport, iouReport, recipient) {
  * @param {Object} iouReport
  * @param {Object} recipient
  */
+function payMoneyRequestWithWallet(chatReport, iouReport, recipient) {
+    const {
+        params, optimisticData, successData, failureData,
+    } = getPayMoneyRequestParams(chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
+
+    API.write('PayMoneyRequestWithWallet', params, {optimisticData, successData, failureData});
+
+    Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
+}
+
+/**
+ * @param {Object} chatReport
+ * @param {Object} iouReport
+ * @param {Object} recipient
+ */
 function payMoneyRequestViaPaypal(chatReport, iouReport, recipient) {
     const {
         params, optimisticData, successData, failureData,
@@ -1035,10 +1000,11 @@ export {
     splitBill,
     splitBillAndOpenReport,
     requestMoney,
-    payIOUReport,
     sendMoneyElsewhere,
     sendMoneyViaPaypal,
     payMoneyRequestElsewhere,
     payMoneyRequestViaPaypal,
     setIOUSelectedCurrency,
+    sendMoneyWithWallet,
+    payMoneyRequestWithWallet,
 };
