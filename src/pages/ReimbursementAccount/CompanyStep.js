@@ -219,7 +219,6 @@ class CompanyStep extends React.Component {
                             inputID="incorporationDate"
                             label={this.props.translate('companyStep.incorporationDate')}
                             placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
-                            maximumDate={new Date()}
                             defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'incorporationDate')}
                             shouldSaveDraft
                         />

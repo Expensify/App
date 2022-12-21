@@ -355,7 +355,6 @@ class AdditionalDetailsStep extends React.Component {
                                 defaultValue={this.props.walletAdditionalDetailsDraft.dob || ''}
                                 placeholder={this.props.translate('common.dob')}
                                 errorText={this.getErrorText('dob') || this.getErrorText('age')}
-                                maximumDate={new Date()}
                             />
                             <TextInput
                                 containerStyles={[styles.mt4]}
