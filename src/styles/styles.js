@@ -2865,12 +2865,16 @@ const styles = {
         fontSize: variables.fontSizeHero,
     },
 
-    emptyStateBackground: {
-        height: '100%',
+    emptyStateBackgroundContainer: {
         width: '100%',
         position: 'absolute',
-        bottom: '40%',
+        bottom: '75%',
     },
+
+    emptyStateBackgroundImage: {
+        width: '100%',
+        height: '100%',
+    }
 };
 
 export default styles;

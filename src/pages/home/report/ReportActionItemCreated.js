@@ -41,6 +41,12 @@ const defaultProps = {
 const ReportActionItemCreated = (props) => {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
+
+    // The image handling depends on how large the chat window is
+    const backgroundImageHeight = Dimensions.get('window').height < Dimensions.get('window').width
+        ? Dimensions.get('window').height / 2
+        : Dimensions.get('window').height / 3.5;
+
     return (
         <OfflineWithFeedback
             pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}
@@ -48,10 +54,16 @@ const ReportActionItemCreated = (props) => {
             errorRowStyles={styles.addWorkspaceRoomErrorRow}
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
         >
-            <Image
-                source={EmptyStateBackgroundImage}
-                style={[styles.emptyStateBackground]}
-            />
+            <View style={[styles.emptyStateBackgroundContainer, {
+                // since height is dynamically set it needs to be updated here, not in styles.js
+                height: backgroundImageHeight,
+            }]}
+            >
+                <Image
+                    source={EmptyStateBackgroundImage}
+                    style={[styles.emptyStateBackgroundImage]}
+                />
+            </View>
             <View
                 accessibilityLabel="Chat welcome message"
                 style={[
@@ -60,10 +72,10 @@ const ReportActionItemCreated = (props) => {
                 ]}
             >
                 {/* This spacer view is required to show the full Image above, otherwise it is cut off by the bounding box. */}
-                <View style={{
-                    height: Dimensions.get('screen').height / 9,
+                {/* <View style={{
+                    height: 300,
                 }}
-                />
+                /> */}
                 <View style={[styles.ph5, styles.pb3]}>
                     <Pressable onPress={() => ReportUtils.navigateToDetailsPage(props.report)}>
                         <RoomHeaderAvatars
