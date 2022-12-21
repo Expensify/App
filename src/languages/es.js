@@ -351,7 +351,7 @@ export default {
         aboutPage: {
             description: 'La nueva Expensify está creada por una comunidad de desarrolladores de código abierto de todo el mundo. Ayúdanos a construir el futuro de Expensify.',
             appDownloadLinks: 'Enlaces para descargar la App',
-            viewKeyboardShortcuts: 'Ver Atajos de Teclado',
+            viewKeyboardShortcuts: 'Ver atajos de teclado',
             viewTheCode: 'Ver codigo',
             viewOpenJobs: 'Ver trabajos disponibles',
             reportABug: 'Reporta un error',
@@ -1077,7 +1077,7 @@ export default {
     desktopApplicationMenu: {
         aboutExpensify: 'Sobre Nuevo Expensify',
         updateExpensify: 'Actualizar Nuevo Expensify',
-        checkForUpdates: 'Buscar Actualizaciones',
+        checkForUpdates: 'Buscar actualizaciones',
         history: 'Historial',
     },
     historyMenu: {
@@ -1086,12 +1086,12 @@ export default {
     },
     checkForUpdatesModal: {
         available: {
-            title: 'Actualización Disponible',
+            title: 'Actualización disponible',
             message: 'La nueva versión estará disponible dentro de poco. Te notificaremos cuando esté lista.',
             soundsGood: 'Suena bien',
         },
         notAvailable: {
-            title: 'Actualización No Disponible',
+            title: 'Actualización no disponible',
             message: 'No existe ninguna actualización disponible! Inténtalo de nuevo más tarde.',
             okay: 'Vale',
         },

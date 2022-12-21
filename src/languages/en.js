@@ -351,7 +351,7 @@ export default {
         aboutPage: {
             description: 'The New Expensify App is built by a community of open source developers from around the world. Help us build the future of Expensify.',
             appDownloadLinks: 'App download links',
-            viewKeyboardShortcuts: 'View Keyboard Shortcuts',
+            viewKeyboardShortcuts: 'View keyboard shortcuts',
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
             reportABug: 'Report a bug',
@@ -1075,7 +1075,7 @@ export default {
     desktopApplicationMenu: {
         aboutExpensify: 'About New Expensify',
         updateExpensify: 'Update New Expensify',
-        checkForUpdates: 'Check For Updates',
+        checkForUpdates: 'Check for updates',
         history: 'History',
     },
     historyMenu: {
