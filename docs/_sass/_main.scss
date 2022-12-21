@@ -306,9 +306,8 @@ button {
 
     @include breakpoint($breakpoint-wide) {
         /* Center content area for bigger screens */
-        margin-left: calc(420px + (100vw - 1000px - 420px)/2);
-        padding: 52px 0;
-        max-width: 1000px;
+        margin-left: 420px;
+        padding: 52px calc((100vw - 1000px - 420px)/2);
     }
 
     ul,
