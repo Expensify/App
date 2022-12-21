@@ -3,7 +3,7 @@ import lodashTrim from 'lodash/trim';
 import lodashIncludes from 'lodash/includes';
 import lodashStartsWith from 'lodash/startsWith';
 import Str from 'expensify-common/lib/str';
-import languageList from '../languages/languageList';
+import translations from '../languages/translations';
 
 /**
  * Returns a locally converted phone number without the country code
@@ -15,7 +15,7 @@ import languageList from '../languages/languageList';
 function toLocalPhone(locale, number) {
     const numString = lodashTrim(number);
     const withoutPlusNum = lodashIncludes(numString, '+') ? Str.cutBefore(numString, '+') : numString;
-    const country = lodashGet(languageList, [locale, 'phoneCountryCode']);
+    const country = lodashGet(translations, [locale, 'phoneCountryCode']);
 
     if (country) {
         if (lodashStartsWith(withoutPlusNum, country)) {
@@ -36,7 +36,7 @@ function toLocalPhone(locale, number) {
 function fromLocalPhone(locale, number) {
     const numString = lodashTrim(number);
     const withoutPlusNum = lodashIncludes(numString, '+') ? Str.cutBefore(numString, '+') : numString;
-    const country = lodashGet(languageList, [locale, 'phoneCountryCode']);
+    const country = lodashGet(translations, [locale, 'phoneCountryCode']);
 
     if (country) {
         if (lodashStartsWith(withoutPlusNum, country)) {
