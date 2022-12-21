@@ -25,7 +25,7 @@ class AutoUpdateTime extends PureComponent {
         this.updateCurrentTime = this.updateCurrentTime.bind(this);
         this.getTimezoneName = this.getTimezoneName.bind(this);
         this.state = {
-            timezone: this.getCurrentUserLocalTime(),
+            currentUserLocalTime: this.getCurrentUserLocalTime(),
         };
     }
 
@@ -59,12 +59,12 @@ class AutoUpdateTime extends PureComponent {
      */
     getTimezoneName() {
         // With non-GMT timezone, moment.zoneAbbr() will return the name of that timezone, so we can use it directly.
-        if (Number.isNaN(Number(this.state.timezone.zoneAbbr()))) {
-            return this.state.timezone.zoneAbbr();
+        if (Number.isNaN(Number(this.state.currentUserLocalTime.zoneAbbr()))) {
+            return this.state.currentUserLocalTime.zoneAbbr();
         }
 
         // With GMT timezone, moment.zoneAbbr() will return a number, so we need to display it as GMT {abbreviations} format, ie: GMT +07
-        return `GMT ${this.state.timezone.zoneAbbr()}`;
+        return `GMT ${this.state.currentUserLocalTime.zoneAbbr()}`;
     }
 
     /**
@@ -75,10 +75,11 @@ class AutoUpdateTime extends PureComponent {
             clearTimeout(this.timer);
             this.timer = null;
         }
-        const millisecondsUntilNextMinute = (60 - this.state.timezone.seconds()) * 1000;
+        const millisecondsUntilNextMinute =
+          (60 - this.state.currentUserLocalTime.seconds()) * 1000;
         this.timer = setTimeout(() => {
             this.setState({
-                timezone: this.getCurrentUserLocalTime(),
+                currentUserLocalTime: this.getCurrentUserLocalTime(),
             });
         }, millisecondsUntilNextMinute);
     }
@@ -90,7 +91,7 @@ class AutoUpdateTime extends PureComponent {
                     {this.props.translate('detailsPage.localTime')}
                 </Text>
                 <Text numberOfLines={1}>
-                    {this.state.timezone.format('LT')}
+                    {this.state.currentUserLocalTime.format('LT')}
                     {' '}
                     {this.getTimezoneName()}
                 </Text>
