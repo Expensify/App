@@ -19,6 +19,7 @@ import * as CloseAccount from '../../../libs/actions/CloseAccount';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Form from '../../../components/Form';
 import CONST from '../../../CONST';
+import ConfirmModal from '../../../components/ConfirmModal';
 
 const propTypes = {
 
@@ -37,7 +38,12 @@ class CloseAccountPage extends Component {
 
         this.onSubmit = this.onSubmit.bind(this);
         this.validate = this.validate.bind(this);
+        this.hideConfirmModal = this.hideConfirmModal.bind(this);
+        this.showConfirmModal = this.showConfirmModal.bind(this);
         CloseAccount.clearError();
+        this.state = {
+            isConfirmModalVisible: false,
+        };
     }
 
     componentWillUnmount() {
@@ -46,6 +52,14 @@ class CloseAccountPage extends Component {
 
     onSubmit(values) {
         User.closeAccount(values.reasonForLeaving);
+    }
+
+    showConfirmModal() {
+        this.setState({isConfirmModalVisible: true});
+    }
+
+    hideConfirmModal() {
+        this.setState({isConfirmModalVisible: false});
     }
 
     validate(values) {
@@ -71,7 +85,7 @@ class CloseAccountPage extends Component {
                 <Form
                     formID={ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM}
                     validate={this.validate}
-                    onSubmit={this.onSubmit}
+                    onSubmit={this.showConfirmModal}
                     submitButtonText={this.props.translate('closeAccountPage.closeAccount')}
                     style={[styles.flexGrow1, styles.mh5]}
                     isDangerousAction
@@ -107,6 +121,15 @@ class CloseAccountPage extends Component {
                             containerStyles={[styles.mt5]}
                             autoCorrect={false}
                             keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
+                        />
+                        <ConfirmModal
+                            title="Are you sure?"
+                            onConfirm={this.hideConfirmModal}
+                            onCancel={this.hideConfirmModal}
+                            isVisible={this.state.isConfirmModalVisible}
+                            prompt="Foo!"
+                            confirmText={this.props.translate('common.close')}
+                            shouldShowCancelButton
                         />
                     </View>
                 </Form>
