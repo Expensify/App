@@ -142,38 +142,6 @@ function setPersonalDetails(details, shouldGrowl) {
 }
 
 /**
- * @param {String} firstName
- * @param {String} lastName
- * @param {String} pronouns
- * @param {Object} timezone
- */
-function updateProfile(firstName, lastName, pronouns, timezone) {
-    API.write('UpdateProfile', {
-        firstName,
-        lastName,
-        pronouns,
-        timezone: JSON.stringify(timezone),
-    }, {
-        optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
-            value: {
-                [currentUserEmail]: {
-                    firstName,
-                    lastName,
-                    pronouns,
-                    timezone,
-                    displayName: getDisplayName(currentUserEmail, {
-                        firstName,
-                        lastName,
-                    }),
-                },
-            },
-        }],
-    });
-}
-
-/**
  * @param {String} pronouns
  */
 function updatePronouns(pronouns) {
@@ -374,7 +342,6 @@ export {
     openIOUModalPage,
     getMaxCharacterError,
     extractFirstAndLastNameFromAvailableDetails,
-    updateProfile,
     updateDisplayName,
     updatePronouns,
     clearAvatarErrors,
