@@ -334,6 +334,14 @@ const styles = {
         opacity: 1,
     },
 
+    pr0: {
+        paddingRight: 0,
+    },
+
+    pl0: {
+        paddingLeft: 0,
+    },
+
     textDanger: {
         color: themeColors.danger,
     },
@@ -450,9 +458,11 @@ const styles = {
         borderWidth: 0,
     },
 
-    buttonDropdown: {
-        borderLeftWidth: 1,
-        borderColor: themeColors.textLight,
+    buttonDivider: {
+        width: 1,
+        alignSelf: 'stretch',
+        backgroundColor: themeColors.textLight,
+        marginVertical: 1,
     },
 
     noRightBorderRadius: {
@@ -1484,6 +1494,13 @@ const styles = {
     emojiItemHighlighted: {
         transition: '0.2s ease',
         backgroundColor: themeColors.buttonDefaultBG,
+    },
+
+    emojiItemKeyboardHighlighted: {
+        transition: '0.2s ease',
+        borderWidth: 1,
+        borderColor: themeColors.link,
+        borderRadius: variables.buttonBorderRadius,
     },
 
     chatItemEmojiButton: {
@@ -2828,9 +2845,20 @@ const styles = {
         marginBottom: 0,
     },
 
+    archivedReportFooter: {
+        borderRadius: variables.componentBorderRadius,
+        ...wordBreak.breakWord,
+    },
+
     saveButtonPadding: {
         paddingLeft: 18,
         paddingRight: 18,
+    },
+
+    pushToPageEmptyItemLabel: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeNormal,
+        maxWidth: 240,
     },
 };
 

@@ -267,6 +267,6 @@ jobs:
           | ![Android](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.android_paths).html_path}}) | ![iOS](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.ios_paths).html_path}}) |
           | desktop :computer: | web :spider_web: |
           | https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/$PULL_REQUEST_NUMBER/NewExpensify.dmg | https://$PULL_REQUEST_NUMBER.pr-testing.expensify.com |
-          | ![desktop](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/$PULL_REQUEST_NUMBER/NewExpensify.dmg) | ![web](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://$(PULL_REQUEST_NUMBER).pr-testing.expensify.com) |"
+          | ![desktop](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/$PULL_REQUEST_NUMBER/NewExpensify.dmg) | ![web](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://$PULL_REQUEST_NUMBER.pr-testing.expensify.com) |"
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
