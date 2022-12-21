@@ -75,10 +75,10 @@ const INPUT_IDS = {
     DOB: 'dob',
     SSN: 'ssn',
     ADDRESS: {
-        street: 'addressStreet',
-        city: 'addressCity',
-        state: 'addressState',
-        zipCode: 'addressZip',
+        STREET: 'addressStreet',
+        CITY: 'addressCity',
+        STATE: 'addressState',
+        ZIPCODE: 'addressZip',
     },
 };
 
@@ -133,20 +133,20 @@ class AdditionalDetailsStep extends React.Component {
             errors[INPUT_IDS.DOB] = this.props.translate(this.errorTranslationKeys.age);
         }
 
-        if (!ValidationUtils.isValidAddress(values[INPUT_IDS.ADDRESS.street])) {
-            errors[INPUT_IDS.ADDRESS.street] = this.props.translate('bankAccount.error.addressStreet');
+        if (!ValidationUtils.isValidAddress(values[INPUT_IDS.ADDRESS.STREET])) {
+            errors[INPUT_IDS.ADDRESS.STREET] = this.props.translate('bankAccount.error.addressStreet');
         }
 
-        if (_.isEmpty(values[INPUT_IDS.ADDRESS.city])) {
-            errors[INPUT_IDS.ADDRESS.city] = this.props.translate('bankAccount.error.addressCity');
+        if (_.isEmpty(values[INPUT_IDS.ADDRESS.CITY])) {
+            errors[INPUT_IDS.ADDRESS.CITY] = this.props.translate('bankAccount.error.addressCity');
         }
 
-        if (_.isEmpty(values[INPUT_IDS.ADDRESS.state])) {
-            errors[INPUT_IDS.ADDRESS.state] = this.props.translate('bankAccount.error.addressState');
+        if (_.isEmpty(values[INPUT_IDS.ADDRESS.STATE])) {
+            errors[INPUT_IDS.ADDRESS.STATE] = this.props.translate('bankAccount.error.addressState');
         }
 
-        if (!ValidationUtils.isValidZipCode(values[INPUT_IDS.ADDRESS.zipCode])) {
-            errors[INPUT_IDS.ADDRESS.zipCode] = this.props.translate('bankAccount.error.zipCode');
+        if (!ValidationUtils.isValidZipCode(values[INPUT_IDS.ADDRESS.ZIPCODE])) {
+            errors[INPUT_IDS.ADDRESS.ZIPCODE] = this.props.translate('bankAccount.error.zipCode');
         }
 
         if (!ValidationUtils.isValidUSPhone(values[INPUT_IDS.PHONE_NUMBER], true)) {
@@ -174,10 +174,10 @@ class AdditionalDetailsStep extends React.Component {
             phoneNumber: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(values[INPUT_IDS.PHONE_NUMBER]),
             legalFirstName: values[INPUT_IDS.LEGAL_FIRST_NAME],
             legalLastName: values[INPUT_IDS.LEGAL_LAST_NAME],
-            addressStreet: values[INPUT_IDS.ADDRESS.street],
-            addressCity: values[INPUT_IDS.ADDRESS.city],
-            addressState: values[INPUT_IDS.ADDRESS.state],
-            addressZip: values[INPUT_IDS.ADDRESS.zipCode],
+            addressStreet: values[INPUT_IDS.ADDRESS.STREET],
+            addressCity: values[INPUT_IDS.ADDRESS.CITY],
+            addressState: values[INPUT_IDS.ADDRESS.STATE],
+            addressZip: values[INPUT_IDS.ADDRESS.ZIPCODE],
             dob: moment(values[INPUT_IDS.DOB]).format(CONST.DATE.MOMENT_FORMAT_STRING),
             ssn: values[INPUT_IDS.SSN],
         };
