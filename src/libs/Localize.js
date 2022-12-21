@@ -29,6 +29,7 @@ Onyx.connect({
  * @returns {String}
  */
 function translate(desiredLanguage = CONST.DEFAULT_LOCALE, phraseKey, phraseParameters = {}) {
+    const languageAbbreviation = desiredLanguage.substring(0, 2);
     let translatedPhrase;
 
     // Search phrase in full locale e.g. es-ES
@@ -38,22 +39,20 @@ function translate(desiredLanguage = CONST.DEFAULT_LOCALE, phraseKey, phrasePara
         return Str.result(translatedPhrase, phraseParameters);
     }
     
-    const language = lodashGet(languageList, languageAbbreviation, {});
-    const defaultLanguage = lodashGet(languageList, 'en', {});
-
-
+    
     // Phrase is not found in full locale, search it in fallback language e.g. es
-    const fallbackLanguageDictionary = lodashGet(languageList, desiredLanguage.substring(0,2));
-    translationValue = lodashGet(language, phrase);
+    const fallbackLanguageDictionary = lodashGet(languageList, languageAbbreviation);
+    translationValue = lodashGet(fallbackLanguageDictionary, phraseKey);
     if (translationValue) {
         return Str.result(translationValue, phraseParameters);
     }
     if (languageAbbreviation !== 'en') {
-        Log.alert(`${phrase} was not found in the ${languageAbbreviation} locale`);
+        Log.alert(`${phraseKey} was not found in the ${languageAbbreviation} locale`);
     }
-
+    
     // Phrase is not translated, search it in default language (en)
-    translationValue = lodashGet(defaultLanguage, phrase);
+    const defaultLanguageDictionary = lodashGet(languageList, 'en', {});
+    translationValue = lodashGet(defaultLanguageDictionary, phraseKey);
     if (translationValue) {
         return Str.result(translationValue, phraseParameters);
     }
