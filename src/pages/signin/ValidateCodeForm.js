@@ -52,6 +52,7 @@ const propTypes = {
 
 const defaultProps = {
     account: {},
+    credentials: {},
 };
 
 class ValidateCodeForm extends React.Component {

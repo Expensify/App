@@ -439,7 +439,7 @@ const CONST = {
     PASSWORD_COMPLEXITY_REGEX_STRING: '^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z]).{8,}$',
 
     // 6 numeric digits
-    VALIDATE_CODE_REGEX_STRING: '^\d{6}$',
+    VALIDATE_CODE_REGEX_STRING: /^\d{6}$/,
 
     PASSWORD_PAGE: {
         ERROR: {
