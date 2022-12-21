@@ -42,9 +42,9 @@ function translate(desiredLanguage = CONST.DEFAULT_LOCALE, phraseKey, phrasePara
     
     // Phrase is not found in full locale, search it in fallback language e.g. es
     const fallbackLanguageDictionary = lodashGet(translations, languageAbbreviation);
-    translationValue = lodashGet(fallbackLanguageDictionary, phraseKey);
-    if (translationValue) {
-        return Str.result(translationValue, phraseParameters);
+    translatedPhrase = lodashGet(fallbackLanguageDictionary, phraseKey);
+    if (translatedPhrase) {
+        return Str.result(translatedPhrase, phraseParameters);
     }
     if (languageAbbreviation !== 'en') {
         Log.alert(`${phraseKey} was not found in the ${languageAbbreviation} locale`);
@@ -52,9 +52,9 @@ function translate(desiredLanguage = CONST.DEFAULT_LOCALE, phraseKey, phrasePara
     
     // Phrase is not translated, search it in default language (en)
     const defaultLanguageDictionary = lodashGet(translations, 'en', {});
-    translationValue = lodashGet(defaultLanguageDictionary, phraseKey);
-    if (translationValue) {
-        return Str.result(translationValue, phraseParameters);
+    translatedPhrase = lodashGet(defaultLanguageDictionary, phraseKey);
+    if (translatedPhrase) {
+        return Str.result(translatedPhrase, phraseParameters);
     }
 
     // Phrase is not found in default language, on production log an alert to server
