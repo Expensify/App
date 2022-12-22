@@ -543,6 +543,8 @@ export default {
             lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
             characterLimit: ({limit}) => `Exceeds the max length of ${limit} characters`,
             hasCommas: ({invalidCharacter}) => `Please remove the ${invalidCharacter} from the name field.`,
+            comma: 'comma',
+            semicolon: 'semicolon',
         },
     },
     resendValidationForm: {
