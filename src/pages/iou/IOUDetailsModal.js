@@ -23,6 +23,7 @@ import ROUTES from '../../ROUTES';
 import FixedFooter from '../../components/FixedFooter';
 import networkPropTypes from '../../components/networkPropTypes';
 import * as StyleUtils from '../../styles/StyleUtils';
+import reportActionPropTypes from "../home/report/reportActionPropTypes";
 
 const propTypes = {
     /** URL Route params */
@@ -68,6 +69,9 @@ const propTypes = {
         email: PropTypes.string,
     }).isRequired,
 
+    /** Actions from the ChatReport */
+    reportActions: PropTypes.shape(reportActionPropTypes),
+
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
@@ -76,6 +80,7 @@ const propTypes = {
 
 const defaultProps = {
     iou: {},
+    reportActions: {},
     iouReport: undefined,
 };
 
@@ -199,6 +204,10 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        reportActions: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.chatReportID}`,
+            canEvict: false,
         },
     }),
 )(IOUDetailsModal);
