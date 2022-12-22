@@ -5,10 +5,10 @@ const EventType = {
 
 const iOS = {
     ForegroundPresentationOption: {
-        Alert: "alert",
-        Sound: "sound",
-        Badge: "badge",
-    }
+        Alert: 'alert',
+        Sound: 'sound',
+        Badge: 'badge',
+    },
 };
 
 const UrbanAirship = {
