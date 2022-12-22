@@ -513,6 +513,9 @@ class EmojiPickerMenu extends Component {
                             }
                             stickyHeaderIndices={this.state.headerIndices}
                             onScroll={e => this.currentScrollOffset = e.nativeEvent.contentOffset.y}
+                            getItemLayout={(data, index) => (
+                                {length: CONST.EMOJI_PICKER_ITEM_HEIGHT, offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index, index}
+                            )}
                         />
                     )}
                 <EmojiSkinToneList

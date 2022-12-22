@@ -1444,7 +1444,7 @@ const styles = {
     },
 
     emojiPickerList: {
-        height: 300,
+        height: 288,
         width: '100%',
         ...spacing.ph4,
     },
@@ -1455,7 +1455,9 @@ const styles = {
     emojiHeaderStyle: {
         backgroundColor: themeColors.componentBG,
         width: '100%',
-        ...spacing.pv3,
+        height: 32,
+        display: 'flex',
+        alignItems: 'center',
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
