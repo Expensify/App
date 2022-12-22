@@ -68,8 +68,8 @@ class DisplayNamePage extends Component {
             !_.isEmpty(firstNameInvalidCharacter),
             Localize.translateLocal(
                 'personalDetails.error.hasCommas',
-                {invalidCharacter: firstNameInvalidCharacter}
-            )
+                {invalidCharacter: firstNameInvalidCharacter},
+            ),
         );
         this.assignError(
             errors,
@@ -77,8 +77,8 @@ class DisplayNamePage extends Component {
             !_.isEmpty(lastNameInvalidCharacter),
             Localize.translateLocal(
                 'personalDetails.error.hasCommas',
-                {invalidCharacter: lastNameInvalidCharacter}
-            )
+                {invalidCharacter: lastNameInvalidCharacter},
+            ),
         );
         if (!_.isEmpty(errors)) {
             return errors;
