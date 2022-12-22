@@ -22,7 +22,6 @@ import SettlementButton from '../../components/SettlementButton';
 import ROUTES from '../../ROUTES';
 import FixedFooter from '../../components/FixedFooter';
 import networkPropTypes from '../../components/networkPropTypes';
-import * as StyleUtils from '../../styles/StyleUtils';
 import reportActionPropTypes from '../home/report/reportActionPropTypes';
 
 const propTypes = {
@@ -141,18 +140,17 @@ class IOUDetailsModal extends Component {
     // Finds the if there is a reportAction pending for this IOU
     findPendingAction() {
         return _.find(this.props.reportActions, (reportAction) => {
-                if (Number(reportAction.originalMessage.IOUReportID) === this.props.iouReportID) {
-                    return !_.isEmpty(reportAction.pendingAction);
-                }
-                return false;
+            if (Number(reportAction.originalMessage.IOUReportID) === this.props.iouReportID) {
+                return !_.isEmpty(reportAction.pendingAction);
             }
-        );
+            return false;
+        });
     }
 
     render() {
         const sessionEmail = lodashGet(this.props.session, 'email', null);
         const reportIsLoading = _.isUndefined(this.props.iouReport);
-        const pendingAction = findPendingAction();
+        const pendingAction = this.findPendingAction();
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
