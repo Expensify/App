@@ -75,7 +75,6 @@ export default {
     IOU_DETAILS_ENABLE_PAYMENTS: `${IOU_DETAILS}/enable-payments`,
     IOU_DETAILS_WITH_IOU_REPORT_ID: `${IOU_DETAILS}/:chatReportID/:iouReportID/`,
     getIouDetailsRoute: (chatReportID, iouReportID) => `iou/details/${chatReportID}/${iouReportID}/`,
-    getIouDetailsWithActionRoute: (chatReportID, iouReportID, iouReportAction) => `iou/details/${chatReportID}/${iouReportID}/${encodeURIComponent(iouReportAction)}/`,
     SEARCH: 'search',
     SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:accountID/:validateCode',
     DETAILS: 'details',
