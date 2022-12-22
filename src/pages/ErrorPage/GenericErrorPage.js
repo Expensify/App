@@ -35,7 +35,7 @@ const GenericErrorPage = props => (
                     />
                 </View>
                 <View style={styles.mb5}>
-                    <Text style={[styles.headerText, styles.textXXLarge]}>
+                    <Text style={[styles.headerText, styles.headlineFont, styles.textXXLarge]}>
                         {props.translate('genericErrorPage.title')}
                     </Text>
                 </View>
