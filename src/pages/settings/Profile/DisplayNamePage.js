@@ -58,7 +58,7 @@ class DisplayNamePage extends Component {
     validate(values) {
         const errors = {};
 
-        // Checking is the any of the names has an invalid character (commas and semicolon atm)
+        // Check for invalid characters in first and last name
         const [firstNameInvalidCharacter, lastNameInvalidCharacter] = ValidationUtils.findInvalidSymbols(
             [values.firstName, values.lastName],
         );
