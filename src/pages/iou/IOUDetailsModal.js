@@ -138,6 +138,17 @@ class IOUDetailsModal extends Component {
         }
     }
 
+    // Finds the if there is a reportAction pending for this IOU
+    findPendingAction() {
+        return _.find(this.props.reportActions, (reportAction) => {
+                if (Number(reportAction.originalMessage.IOUReportID) === this.props.iouReportID) {
+                    return !_.isEmpty(reportAction.pendingAction);
+                }
+                return false;
+            }
+        );
+    }
+
     render() {
         const sessionEmail = lodashGet(this.props.session, 'email', null);
         const reportIsLoading = _.isUndefined(this.props.iouReport);
