@@ -39,7 +39,6 @@ class AutoUpdateTime extends PureComponent {
     }
 
     componentWillUnmount() {
-        // clearInterval(this.timer);
         clearTimeout(this.timer);
     }
 
@@ -55,7 +54,7 @@ class AutoUpdateTime extends PureComponent {
     }
 
     /**
-     * @returns {string} Returns the timezone name in string, ie: GMT +07
+     * @returns {string} Returns the timezone name in string, e.g.: GMT +07
      */
     getTimezoneName() {
         // With non-GMT timezone, moment.zoneAbbr() will return the name of that timezone, so we can use it directly.
@@ -63,7 +62,7 @@ class AutoUpdateTime extends PureComponent {
             return this.state.currentUserLocalTime.zoneAbbr();
         }
 
-        // With GMT timezone, moment.zoneAbbr() will return a number, so we need to display it as GMT {abbreviations} format, ie: GMT +07
+        // With GMT timezone, moment.zoneAbbr() will return a number, so we need to display it as GMT {abbreviations} format, e.g.: GMT +07
         return `GMT ${this.state.currentUserLocalTime.zoneAbbr()}`;
     }
 
