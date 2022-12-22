@@ -84,7 +84,7 @@ class DisplayNamePage extends Component {
             return errors;
         }
 
-        // Checking is the any of the names goes over the character limit
+        // Check the character limit for first and last name
         const characterLimitError = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
         const [hasFirstNameError, hasLastNameError] = ValidationUtils.doesFailCharacterLimitAfterTrim(
             CONST.FORM_CHARACTER_LIMIT,
