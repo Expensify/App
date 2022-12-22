@@ -344,10 +344,7 @@ function doesFailCharacterLimitAfterTrim(maxLength, valuesToBeValidated) {
  * @returns {String[]}
  */
 function findInvalidSymbols(valuesToBeValidated) {
-    return _.map(valuesToBeValidated, value => {
-            return value && (value.replace(/[, ]+/g, '') !== value ? Localize.translateLocal('comma') : value.replace(/[; ]+/g, '') !== value ? Localize.translateLocal('semi-comma') : '');
-        }
-    );
+    return _.map(valuesToBeValidated, value => value && (value.replace(/[, ]+/g, '') !== value ? Localize.translateLocal('comma') : value.replace(/[; ]+/g, '') !== value ? Localize.translateLocal('semi-comma') : ''));
 }
 
 /**
