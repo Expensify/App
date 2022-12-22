@@ -1,4 +1,3 @@
-
 /**
  * Visual Viewport is not available on native, so return an empty function.
  *
@@ -8,4 +7,16 @@ function addViewportResizeListener() {
     return () => {};
 }
 
-export default addViewportResizeListener;
+/**
+ * Visual Viewport is not available on native, so return an empty function.
+ *
+ * @returns {Function}
+ */
+function addViewportScrollListener() {
+    return () => {};
+}
+
+export default {
+    addViewportResizeListener,
+    addViewportScrollListener,
+};

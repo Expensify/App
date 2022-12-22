@@ -13,4 +13,22 @@ function addViewportResizeListener(onViewportResize) {
     return () => window.visualViewport.removeEventListener('resize', onViewportResize);
 }
 
-export default addViewportResizeListener;
+/**
+ * Add a visual viewport scroll listener if available. Return a function to remove the listener.
+ *
+ * @param {Function} onViewportScroll
+ * @returns {Function}
+ */
+function addViewportScrollListener(onViewportScroll) {
+    if (!window.visualViewport) {
+        return () => {};
+    }
+
+    window.visualViewport.addEventListener('scroll', onViewportScroll);
+    return () => window.visualViewport.removeEventListener('scroll', onViewportScroll);
+}
+
+export default {
+    addViewportResizeListener,
+    addViewportScrollListener,
+};

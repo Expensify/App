@@ -20,7 +20,7 @@ import CONST from '../../CONST';
 import ReportActionsSkeletonView from '../../components/ReportActionsSkeletonView';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import toggleReportActionComposeView from '../../libs/toggleReportActionComposeView';
-import addViewportResizeListener from '../../libs/VisualViewport';
+import VisualViewport from '../../libs/VisualViewport';
 import {withNetwork} from '../../components/OnyxProvider';
 import compose from '../../libs/compose';
 import networkPropTypes from '../../components/networkPropTypes';
@@ -112,6 +112,7 @@ class ReportScreen extends React.Component {
         this.chatWithAccountManager = this.chatWithAccountManager.bind(this);
         this.dismissBanner = this.dismissBanner.bind(this);
         this.removeViewportResizeListener = () => {};
+        this.removeViewportScrollListener = () => {};
 
         this.state = {
             skeletonViewContainerHeight: reportActionsListViewHeight,
@@ -123,7 +124,13 @@ class ReportScreen extends React.Component {
     componentDidMount() {
         this.fetchReportIfNeeded();
         toggleReportActionComposeView(true);
-        this.removeViewportResizeListener = addViewportResizeListener(this.updateViewportOffsetTop);
+
+        // In order to keep the header always at the top
+        // we add two events listeners to detect the change in the visual viewport and apply marginTop = offsetTop
+        // Usually the resize event would be enough however on Chrome the offsetTop is changed after resize i.e. on scroll
+        // More info: https://github.com/Expensify/App/issues/13491
+        this.removeViewportResizeListener = VisualViewport.addViewportResizeListener(this.updateViewportOffsetTop);
+        this.removeViewportScrollListener = VisualViewport.addViewportScrollListener(this.updateViewportOffsetTop);
     }
 
     componentDidUpdate(prevProps) {
@@ -137,6 +144,7 @@ class ReportScreen extends React.Component {
 
     componentWillUnmount() {
         this.removeViewportResizeListener();
+        this.removeViewportScrollListener();
     }
 
     /**
