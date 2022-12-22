@@ -152,6 +152,7 @@ class IOUDetailsModal extends Component {
     render() {
         const sessionEmail = lodashGet(this.props.session, 'email', null);
         const reportIsLoading = _.isUndefined(this.props.iouReport);
+        const pendingAction = findPendingAction();
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -164,6 +165,7 @@ class IOUDetailsModal extends Component {
                             <IOUPreview
                                 chatReportID={this.props.route.params.chatReportID}
                                 iouReportID={this.props.route.params.iouReportID}
+                                pendingAction={pendingAction}
                                 shouldHidePayButton
                             />
                             <IOUTransactions
