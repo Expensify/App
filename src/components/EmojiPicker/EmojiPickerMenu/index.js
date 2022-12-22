@@ -192,6 +192,15 @@ class EmojiPickerMenu extends Component {
     }
 
     /**
+     * @param {*} data
+     * @param {Number} index
+     * @returns {Object}
+     */
+    getItemLayout(data, index) {
+        return {length: CONST.EMOJI_PICKER_ITEM_HEIGHT, offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index, index};
+    }
+
+    /**
      * Cleanup all mouse/keydown event listeners that we've set up
      */
     cleanupEventHandlers() {
@@ -413,15 +422,6 @@ class EmojiPickerMenu extends Component {
         }
 
         User.updatePreferredSkinTone(skinTone);
-    }
-
-    /**
-     * @param {*} data
-     * @param {Number} index
-     * @returns {Object}
-     */
-    getItemLayout(data, index) {
-        return {length: CONST.EMOJI_PICKER_ITEM_HEIGHT, offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index, index};
     }
 
     /**
