@@ -3,6 +3,7 @@ import _ from 'underscore';
 import CONST from '../CONST';
 import * as CardUtils from './CardUtils';
 import * as LoginUtils from './LoginUtils';
+import * as Localize from "./Localize";
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -344,7 +345,7 @@ function doesFailCharacterLimitAfterTrim(maxLength, valuesToBeValidated) {
  */
 function findInvalidSymbols(valuesToBeValidated) {
     return _.map(valuesToBeValidated, value => {
-            return value && (value.replace(/[, ]+/g, '') !== value ? 'comma' : value.replace(/[; ]+/g, '') !== value ? 'semi-comma' : '');
+            return value && (value.replace(/[, ]+/g, '') !== value ? Localize.translateLocal('comma') : value.replace(/[; ]+/g, '') !== value ? Localize.translateLocal('semi-comma') : '');
         }
     );
 }
