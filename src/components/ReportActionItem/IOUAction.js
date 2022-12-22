@@ -61,7 +61,6 @@ const IOUAction = (props) => {
             />
             {shouldShowIOUPreview && (
                 <IOUPreview
-                    pendingAction={lodashGet(props.action, 'pendingAction', null)}
                     iouReportID={props.action.originalMessage.IOUReportID.toString()}
                     chatReportID={props.chatReportID}
                     onPayButtonPressed={launchDetailsModal}
