@@ -67,7 +67,7 @@ class DisplayNamePage extends Component {
             'firstName',
             !_.isEmpty(firstNameInvalidCharacter),
             Localize.translateLocal(
-                'personalDetails.error.hasCommas',
+                'personalDetails.error.hasInvalidCharacter',
                 {invalidCharacter: firstNameInvalidCharacter},
             ),
         );
@@ -76,7 +76,7 @@ class DisplayNamePage extends Component {
             'lastName',
             !_.isEmpty(lastNameInvalidCharacter),
             Localize.translateLocal(
-                'personalDetails.error.hasCommas',
+                'personalDetails.error.hasInvalidCharacter',
                 {invalidCharacter: lastNameInvalidCharacter},
             ),
         );
