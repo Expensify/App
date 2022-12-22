@@ -39,9 +39,6 @@ const propTypes = {
     /** Whether the add Payment button be shown on the list */
     shouldShowAddPaymentMethodButton: PropTypes.bool,
 
-    /** Are we loading payment methods? */
-    isLoadingPaymentMethods: PropTypes.bool,
-
     /** Type to filter the payment Method list */
     filterType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT, '']),
 
