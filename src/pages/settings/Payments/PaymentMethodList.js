@@ -22,6 +22,7 @@ import * as PaymentUtils from '../../../libs/PaymentUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import Log from '../../../libs/Log';
+import FormAlertWrapper from '../../../components/FormAlertWrapper';
 
 const propTypes = {
     /** What to do when a menu item is pressed */
@@ -38,6 +39,9 @@ const propTypes = {
 
     /** Whether the add Payment button be shown on the list */
     shouldShowAddPaymentMethodButton: PropTypes.bool,
+
+    /** Are we loading payment methods? */
+    isLoadingPaymentMethods: PropTypes.bool,
 
     /** Type to filter the payment Method list */
     filterType: PropTypes.oneOf([CONST.PAYMENT_METHODS.DEBIT_CARD, CONST.PAYMENT_METHODS.BANK_ACCOUNT, '']),
@@ -223,18 +227,24 @@ class PaymentMethodList extends Component {
                     ListHeaderComponent={this.props.listHeaderComponent}
                 />
                 {this.props.shouldShowAddPaymentMethodButton && (
-                    <Button
-                        text={this.props.translate('paymentMethodList.addPaymentMethod')}
-                        icon={Expensicons.CreditCard}
-                        onPress={e => this.props.onPress(e)}
-                        isDisabled={this.props.network.isOffline}
-                        style={[styles.mh4, styles.buttonCTA]}
-                        iconStyles={[styles.buttonCTAIcon]}
-                        key="addPaymentMethodButton"
-                        success
-                        shouldShowRightIcon
-                        large
-                    />
+                    <FormAlertWrapper>
+                        {
+                            isOffline => (
+                                <Button
+                                    text={this.props.translate('paymentMethodList.addPaymentMethod')}
+                                    icon={Expensicons.CreditCard}
+                                    onPress={e => this.props.onPress(e)}
+                                    isDisabled={this.props.isLoadingPaymentMethods || isOffline}
+                                    style={[styles.mh4, styles.buttonCTA]}
+                                    iconStyles={[styles.buttonCTAIcon]}
+                                    key="addPaymentMethodButton"
+                                    success
+                                    shouldShowRightIcon
+                                    large
+                                />
+                            )
+                        }
+                    </FormAlertWrapper>
                 )}
             </>
         );
