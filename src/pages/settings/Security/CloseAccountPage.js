@@ -43,7 +43,6 @@ class CloseAccountPage extends Component {
         CloseAccount.clearError();
         this.state = {
             isConfirmModalVisible: false,
-            confirmModalPrompt: '',
         };
     }
 
@@ -57,8 +56,7 @@ class CloseAccountPage extends Component {
     }
 
     showConfirmModal() {
-        const prompt = this.props.translate('closeAccountPage.iouConfirmation');
-        this.setState({isConfirmModalVisible: true, confirmModalPrompt: prompt});
+        this.setState({isConfirmModalVisible: true});
     }
 
     hideConfirmModal() {
@@ -104,18 +102,7 @@ class CloseAccountPage extends Component {
                             containerStyles={[styles.mt5, styles.closeAccountMessageInput]}
                         />
                         <Text style={[styles.mt5]}>
-                            <Text style={[styles.textStrong]}>
-                                {this.props.translate('closeAccountPage.closeAccountWarning')}
-                            </Text>
-                            {' '}
-                            {this.props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
-                        </Text>
-                        <Text textBreakStrategy="simple" style={[styles.mt5]}>
-                            <Text style={[styles.textStrong]}>
-                                {this.props.translate('closeAccountPage.defaultContact')}
-                            </Text>
-                            {' '}
-                            {userEmailOrPhone}
+                            {this.props.translate('closeAccountPage.enterDefaultContactToConfirm', {userEmailOrPhone})}
                         </Text>
                         <TextInput
                             inputID="phoneOrEmail"
@@ -126,11 +113,11 @@ class CloseAccountPage extends Component {
                             keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
                         />
                         <ConfirmModal
-                            title="Are you sure?"
+                            title={this.props.translate('closeAccountPage.closeAccountWarning')}
                             onConfirm={this.hideConfirmModal}
                             onCancel={this.hideConfirmModal}
                             isVisible={this.state.isConfirmModalVisible}
-                            prompt={this.state.confirmModalPrompt}
+                            prompt={this.props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
                             confirmText={this.props.translate('common.close')}
                             shouldShowCancelButton
                         />

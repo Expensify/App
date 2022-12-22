@@ -382,11 +382,11 @@ export default {
         reasonForLeavingPrompt: 'We’d hate to see you go! Would you kindly tell us why, so we can improve?',
         enterMessageHere: 'Enter message here',
         closeAccountWarning: 'Closing your account cannot be undone.',
-        closeAccountPermanentlyDeleteData: 'This will permanently delete all of your unsubmitted expense data. Type your phone number or email address to confirm.',
+        closeAccountPermanentlyDeleteData: 'This will permanently delete all of your unsubmitted expense data and cancel or decline any outstanding money requests. Are you sure you want to continue?',
+        enterDefaultContactToConfirm: ({userEmailOrPhone}) => `Please type your default contact method (${userEmailOrPhone}) to confirm you wish to close your account.`,
         enterDefaultContact: 'Enter your default contact method',
         defaultContact: 'Default contact method:',
         enterYourDefaultContactMethod: 'Please enter your default contact method to close your account.',
-        iouConfirmation: 'If you proceed with closing your account, any outstanding money requests will be cancelled or declined.',
     },
     passwordPage: {
         changePassword: 'Change password',
