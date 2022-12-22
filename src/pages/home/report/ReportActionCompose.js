@@ -604,15 +604,17 @@ class ReportActionCompose extends React.Component {
                                                             onPress={(e) => {
                                                                 e.preventDefault();
 
-                                                            // Drop focus to avoid blue focus ring.
-                                                            this.actionButton.blur();
-                                                            this.setMenuVisibility(true);
-                                                        }}
-                                                        style={styles.chatItemAttachButton}
-                                                        disabled={isBlockedFromConcierge}
-                                                    >
-                                                        <Icon src={Expensicons.Plus} />
-                                                    </TouchableOpacity>
+                                                                // Drop focus to avoid blue focus ring.
+                                                                this.actionButton.blur();
+                                                                this.setMenuVisibility(true);
+                                                            }}
+                                                            style={styles.chatItemAttachButton}
+                                                            underlayColor={themeColors.componentBG}
+                                                            disabled={isBlockedFromConcierge}
+                                                        >
+                                                            <Icon src={Expensicons.Plus} />
+                                                        </TouchableOpacity>
+                                                    </View>
                                                 </Tooltip>
                                             </View>
                                             <PopoverMenu
