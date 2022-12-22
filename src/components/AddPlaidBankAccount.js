@@ -63,7 +63,6 @@ const defaultProps = {
         bankAccounts: [],
         isLoading: false,
         error: '',
-        errors: {},
     },
     selectedPlaidAccountID: '',
     plaidLinkToken: '',
@@ -113,7 +112,6 @@ class AddPlaidBankAccount extends React.Component {
             label: `${account.addressName} ${account.mask}`,
         }));
         const {icon, iconSize} = getBankIcon();
-        const plaidDataErrorMessage = !_.isEmpty(this.props.plaidData.errors) ? _.chain(this.props.plaidData.errors).values().first().value() : this.props.plaidData.error;
 
         // Plaid Link view
         if (!plaidBankAccounts.length) {
@@ -125,9 +123,9 @@ class AddPlaidBankAccount extends React.Component {
                             <ActivityIndicator color={themeColors.spinner} size="large" />
                         </View>
                     )}
-                    {Boolean(plaidDataErrorMessage) && (
+                    {Boolean(this.props.plaidData.error) && (
                         <Text style={[styles.formError, styles.mh5]}>
-                            {plaidDataErrorMessage}
+                            {this.props.plaidData.error}
                         </Text>
                     )}
                     {Boolean(token) && (
