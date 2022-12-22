@@ -348,9 +348,9 @@ function findInvalidSymbols(valuesToBeValidated) {
         if (!value) {
             return '';
         }
-        let inValidSymbol = value.replace(/[, ]+/g, '') !== value ? Localize.translateLocal('personalDetails.error.comma') : '';
+        let inValidSymbol = value.replace(/[,]+/g, '') !== value ? Localize.translateLocal('personalDetails.error.comma') : '';
         if (_.isEmpty(inValidSymbol)) {
-            inValidSymbol = value.replace(/[; ]+/g, '') !== value ? Localize.translateLocal('personalDetails.error.semicolon') : '';
+            inValidSymbol = value.replace(/[;]+/g, '') !== value ? Localize.translateLocal('personalDetails.error.semicolon') : '';
         }
         return inValidSymbol;
     });
