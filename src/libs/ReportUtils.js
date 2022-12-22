@@ -436,7 +436,7 @@ function getDefaultAvatar(login = '') {
  * @returns {Array<*>}
  */
 function getIcons(report, personalDetails, policies, defaultIcon = null) {
-    if (!report) {
+    if (_.isEmpty(report)) {
         return [defaultIcon || getDefaultAvatar()];
     }
     if (isArchivedRoom(report)) {
@@ -752,13 +752,13 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
     let paymentMethodMessage;
     switch (paymentType) {
         case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
-            paymentMethodMessage = 'using wallet';
+            paymentMethodMessage = '!';
             break;
         case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
-            paymentMethodMessage = 'elsewhere';
+            paymentMethodMessage = ' elsewhere';
             break;
         case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
-            paymentMethodMessage = 'using PayPal.me';
+            paymentMethodMessage = ' using PayPal.me';
             break;
         default:
             break;
@@ -781,7 +781,7 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
             iouMessage = isSettlingUp
                 ? `Settled up ${paymentMethodMessage}`
-                : `Sent ${amount}${comment && ` for ${comment}`} ${paymentMethodMessage}`;
+                : `Sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
             break;
         default:
             break;
@@ -894,7 +894,7 @@ function buildOptimisticChatReport(
         lastMessageHtml: '',
         lastMessageText: null,
         lastReadSequenceNumber: 0,
-        lastActionCreated: '',
+        lastActionCreated: DateUtils.getDBTime(),
         lastReadTimestamp: 0,
         maxSequenceNumber: 0,
         notificationPreference,
@@ -919,6 +919,7 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
     return {
         0: {
             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            reportActionID: NumberUtils.rand64(),
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             actorAccountID: currentUserAccountID,
             message: [

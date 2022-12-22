@@ -409,4 +409,51 @@ describe('actions/Report', () => {
                 expect(report.lastMessageText).toBe('Current User Comment 2');
             });
     });
+
+    it('Should properly update comment with links', () => {
+        /* This tests a variety of scenarios when a user edits a comment.
+         * We should generate a link when editing a message unless the link was
+         * already in the comment and the user deleted it on purpose.
+         */
+
+        // User edits comment to add link
+        // We should generate link
+        let originalCommentHTML = 'Original Comment';
+        let afterEditCommentText = 'Original Comment www.google.com';
+        let newCommentMarkdown = Report.handleUserDeletedLinks(afterEditCommentText, originalCommentHTML);
+        let expectedOutput = 'Original Comment [www.google.com](https://www.google.com)';
+        expect(newCommentMarkdown).toBe(expectedOutput);
+
+        // User deletes www.google.com link from comment but keeps link text
+        // We should not generate link
+        originalCommentHTML = 'Comment <a href="https://www.google.com" target="_blank">www.google.com</a>';
+        afterEditCommentText = 'Comment www.google.com';
+        newCommentMarkdown = Report.handleUserDeletedLinks(afterEditCommentText, originalCommentHTML);
+        expectedOutput = 'Comment www.google.com';
+        expect(newCommentMarkdown).toBe(expectedOutput);
+
+        // User Delete only () part of link but leaves the []
+        // We should not generate link
+        originalCommentHTML = 'Comment <a href="https://www.google.com" target="_blank">www.google.com</a>';
+        afterEditCommentText = 'Comment [www.google.com]';
+        newCommentMarkdown = Report.handleUserDeletedLinks(afterEditCommentText, originalCommentHTML);
+        expectedOutput = 'Comment [www.google.com]';
+        expect(newCommentMarkdown).toBe(expectedOutput);
+
+        // User Generates multiple links in one edit
+        // We should generate both links
+        originalCommentHTML = 'Comment';
+        afterEditCommentText = 'Comment www.google.com www.facebook.com';
+        newCommentMarkdown = Report.handleUserDeletedLinks(afterEditCommentText, originalCommentHTML);
+        expectedOutput = 'Comment [www.google.com](https://www.google.com) [www.facebook.com](https://www.facebook.com)';
+        expect(newCommentMarkdown).toBe(expectedOutput);
+
+        // Comment has two links but user deletes only one of them
+        // Should not generate link again for the deleted one
+        originalCommentHTML = 'Comment <a href="https://www.google.com" target="_blank">www.google.com</a>  <a href="https://www.facebook.com" target="_blank">www.facebook.com</a>';
+        afterEditCommentText = 'Comment www.google.com  [www.facebook.com](https://www.facebook.com)';
+        newCommentMarkdown = Report.handleUserDeletedLinks(afterEditCommentText, originalCommentHTML);
+        expectedOutput = 'Comment www.google.com  [www.facebook.com](https://www.facebook.com)';
+        expect(newCommentMarkdown).toBe(expectedOutput);
+    });
 });
