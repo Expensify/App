@@ -23,12 +23,15 @@ const propTypes = {
     /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
     plaidLinkOAuthToken: PropTypes.string,
 
+    onBack: PropTypes.func,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     receivedRedirectURI: null,
     plaidLinkOAuthToken: '',
+    onBack: () => {},
 };
 
 class BankAccountPlaidStep extends React.Component {
@@ -69,7 +72,7 @@ class BankAccountPlaidStep extends React.Component {
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
-                    onBackButtonPress={() => BankAccounts.setBankAccountSubStep(null)}
+                    onBackButtonPress={this.props.onBack}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 <Form

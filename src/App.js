@@ -4,6 +4,7 @@ import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import Onyx from 'react-native-onyx';
+import {PortalProvider} from '@gorhom/portal';
 import CustomStatusBar from './components/CustomStatusBar';
 import ErrorBoundary from './components/ErrorBoundary';
 import Expensify from './Expensify';
@@ -14,6 +15,7 @@ import ComposeProviders from './components/ComposeProviders';
 import SafeArea from './components/SafeArea';
 import * as Environment from './libs/Environment/Environment';
 import {WindowDimensionsProvider} from './components/withWindowDimensions';
+import {KeyboardStateProvider} from './components/withKeyboardState';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
@@ -35,10 +37,12 @@ const App = () => (
             components={[
                 OnyxProvider,
                 SafeAreaProvider,
+                PortalProvider,
                 SafeArea,
                 LocaleContextProvider,
                 HTMLEngineProvider,
                 WindowDimensionsProvider,
+                KeyboardStateProvider,
             ]}
         >
             <CustomStatusBar />

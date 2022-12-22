@@ -105,6 +105,10 @@ const replaceNodes = (dom) => {
         if (htmlEngineUtils.isCommentTag(dom.attribs[tagAttribute])) {
             dom.children.push(new Element('br', {}));
         }
+    } else if (dom.name === 'div' && dom.children.length === 1 && dom.children[0].type !== 'text') {
+        // We are excluding divs that have only one child and no text nodes and don't have a tagAttribute to prevent
+        // additional newlines from being added in the HTML to Markdown conversion process.
+        return replaceNodes(dom.children[0]);
     }
 
     // We need to preserve href attribute in order to copy links.
@@ -133,7 +137,7 @@ const getCurrentSelection = () => {
     const domRepresentation = parseDocument(getHTMLOfSelection());
     domRepresentation.children = _.map(domRepresentation.children, replaceNodes);
 
-    const newHtml = Str.htmlDecode(render(domRepresentation));
+    const newHtml = render(domRepresentation);
     return newHtml || '';
 };
 

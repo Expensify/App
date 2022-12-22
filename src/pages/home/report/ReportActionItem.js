@@ -34,6 +34,7 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ReportActions from '../../../libs/actions/ReportActions';
 import reportPropTypes from '../../reportPropTypes';
 import {ShowContextMenuContext} from '../../../components/ShowContextMenuContext';
+import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
 
 const propTypes = {
     /** Report for this action */
@@ -96,7 +97,9 @@ class ReportActionItem extends Component {
         }
 
         // Only focus the input when user edits a message, skip it for existing drafts being edited of the report.
-        this.textInput.focus();
+        // There is an animation when the comment is hidden and the edit form is shown, and there can be bugs on different mobile platforms
+        // if the input is given focus in the middle of that animation which can prevent the keyboard from opening.
+        focusTextInputAfterAnimation(this.textInput, 100);
     }
 
     checkIfContextMenuActive() {
@@ -113,6 +116,8 @@ class ReportActionItem extends Component {
         if (this.props.draftMessage) {
             return;
         }
+
+        this.setState({isContextMenuActive: true});
         const selection = SelectionScraper.getCurrentSelection();
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
@@ -122,7 +127,7 @@ class ReportActionItem extends Component {
             this.props.report.reportID,
             this.props.action,
             this.props.draftMessage,
-            this.checkIfContextMenuActive,
+            undefined,
             this.checkIfContextMenuActive,
         );
     }
@@ -210,7 +215,12 @@ class ReportActionItem extends Component {
                                 <OfflineWithFeedback
                                     onClose={() => {
                                         if (this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                                            ReportActions.deleteOptimisticReportAction(this.props.report.reportID, this.props.action.clientID);
+                                            const sequenceNumber = this.props.action.actionName
+                                              === CONST.REPORT.ACTIONS.TYPE.IOU
+                                                ? this.props.action
+                                                    .sequenceNumber
+                                                : this.props.action.clientID;
+                                            ReportActions.deleteOptimisticReportAction(this.props.report.reportID, sequenceNumber);
                                         } else {
                                             ReportActions.clearReportActionErrors(this.props.report.reportID, this.props.action.sequenceNumber);
                                         }

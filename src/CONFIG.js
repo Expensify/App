@@ -1,9 +1,13 @@
-import lodashGet from 'lodash/get';
+import get from 'lodash/get';
 import {Platform} from 'react-native';
 import Config from 'react-native-config';
 import getPlatform from './libs/getPlatform/index';
 import * as Url from './libs/Url';
 import CONST from './CONST';
+
+// react-native-config doesn't trim whitespace on iOS for some reason so we
+// add a trim() call to lodashGet here to prevent headaches
+const lodashGet = (config, key, defaultValue) => get(config, key, defaultValue).trim();
 
 // Set default values to contributor friendly values to make development work out of the box without an .env file
 const ENVIRONMENT = lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV);
@@ -19,7 +23,6 @@ const secureExpensifyUrl = Url.addTrailingForwardSlash(lodashGet(
 const useNgrok = lodashGet(Config, 'USE_NGROK', 'false') === 'true';
 const useWebProxy = lodashGet(Config, 'USE_WEB_PROXY', 'true') === 'true';
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : expensifyURL;
-const conciergeUrl = `${expensifyURL}concierge/`;
 
 // Throw errors on dev if config variables are not set correctly
 if (ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
@@ -53,7 +56,8 @@ export default {
         PARTNER_NAME: lodashGet(Config, 'EXPENSIFY_PARTNER_NAME', 'chat-expensify-com'),
         PARTNER_PASSWORD: lodashGet(Config, 'EXPENSIFY_PARTNER_PASSWORD', 'e21965746fd75f82bb66'),
         EXPENSIFY_CASH_REFERER: 'ecash',
-        CONCIERGE_URL: conciergeUrl,
+        CONCIERGE_URL_PATHNAME: 'concierge/',
+        CONCIERGE_URL: `${expensifyURL}concierge/`,
     },
     IS_IN_PRODUCTION: Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__,
     IS_IN_STAGING: ENVIRONMENT === CONST.ENVIRONMENT.STAGING,

@@ -1,5 +1,5 @@
 import React from 'react';
-import {ScrollView, View, KeyboardAvoidingView} from 'react-native';
+import {View, TouchableWithoutFeedback, Keyboard} from 'react-native';
 import PropTypes from 'prop-types';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import styles from '../../../styles/styles';
@@ -10,10 +10,9 @@ import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import SignInPageForm from '../../../components/SignInPageForm';
 import compose from '../../../libs/compose';
-import scrollViewContentContainerStyles from './signInPageStyles';
-import withKeyboardState from '../../../components/withKeyboardState';
+import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import * as StyleUtils from '../../../styles/StyleUtils';
+import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -28,73 +27,66 @@ const propTypes = {
 
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
+    ...keyboardStatePropTypes,
 };
 
-const SignInPageContent = props => (
-    <ScrollView
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-        style={[
-            styles.h100,
-            !props.isSmallScreenWidth && styles.alignSelfCenter,
-            !props.isSmallScreenWidth && styles.signInPageWideLeftContainer,
-        ]}
-        contentContainerStyle={[
-            scrollViewContentContainerStyles,
-            styles.alignItemsCenter,
-            !props.isSmallScreenWidth && styles.ph6,
-        ]}
-    >
-        <View style={[styles.flex1, styles.flexRow]}>
-            <View style={[
-                styles.flex1,
-                styles.signInPageNarrowContentContainer,
-            ]}
-            >
-                <SignInPageForm style={[
+const SignInPageContent = (props) => {
+    const dismissKeyboardWhenTappedOutsideOfInput = () => {
+        if (!props.isKeyboardShown) {
+            return;
+        }
+        Keyboard.dismiss();
+    };
+
+    return (
+        <TouchableWithoutFeedback onPress={dismissKeyboardWhenTappedOutsideOfInput}>
+            <View
+                style={[
                     styles.flex1,
-                    styles.alignSelfStretch,
-                    props.isSmallScreenWidth ? styles.ph5 : styles.ph4,
+                    styles.signInPageLeftContainer,
+                    !props.isSmallScreenWidth && styles.signInPageLeftContainerWide,
                 ]}
+            >
+                <KeyboardAvoidingView
+                    behavior="padding"
+                    style={[styles.flex1, styles.alignSelfCenter, styles.signInPageWelcomeFormContainer]}
+
+                    // This vertical offset is here to add some more margin above the keyboard. Without it, the TOS and footer stuff still hides behind the keyboard by a few pixels.
+                    keyboardVerticalOffset={50}
                 >
-                    <KeyboardAvoidingView
-                        behavior="position"
-                        style={[
-                            StyleUtils.getModalPaddingStyles({
-                                shouldAddBottomSafeAreaPadding: true,
-                                modalContainerStylePaddingBottom: 20,
-                                safeAreaPaddingBottom: props.insets.bottom,
-                            }),
-                            props.isSmallScreenWidth ? styles.signInPageNarrowContentMargin : {},
-                            !props.isMediumScreenWidth || (props.isMediumScreenWidth && props.windowHeight < variables.minHeightToShowGraphics) ? styles.signInPageWideLeftContentMargin : {},
-                            styles.mb3,
-                        ]}
-                    >
-                        <View style={[
-                            styles.componentHeightLarge,
-                            ...(props.isSmallScreenWidth ? [styles.mb2] : [styles.mt6, styles.mb5]),
-                        ]}
-                        >
-                            <ExpensifyCashLogo
-                                width={variables.componentSizeLarge}
-                                height={variables.componentSizeLarge}
-                            />
-                        </View>
-                        {props.shouldShowWelcomeText && (
-                            <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
-                                {props.welcomeText}
-                            </Text>
-                        )}
-                        {props.children}
-                    </KeyboardAvoidingView>
-                </SignInPageForm>
-                <View style={[styles.mb5, styles.alignSelfCenter, styles.ph5]}>
-                    <TermsAndLicenses />
-                </View>
+                    {/* This empty view creates margin on the top of the sign in form which will shrink and grow depending on if the keyboard is open or not */}
+                    <View style={[styles.flexGrow1, styles.signInPageContentTopSpacer]} />
+
+                    <View style={[styles.flexGrow2]}>
+                        <SignInPageForm style={[styles.alignSelfStretch]}>
+                            <View style={[
+                                styles.componentHeightLarge,
+                                ...(props.isSmallScreenWidth ? [styles.mb2] : [styles.mt6, styles.mb5]),
+                            ]}
+                            >
+                                <ExpensifyCashLogo
+                                    width={variables.componentSizeLarge}
+                                    height={variables.componentSizeLarge}
+                                />
+                            </View>
+                            {props.shouldShowWelcomeText && (
+                                <View style={[styles.signInPageWelcomeTextContainer]}>
+                                    <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
+                                        {props.welcomeText}
+                                    </Text>
+                                </View>
+                            )}
+                            {props.children}
+                        </SignInPageForm>
+                    </View>
+                    <View style={[styles.mv5]}>
+                        <TermsAndLicenses />
+                    </View>
+                </KeyboardAvoidingView>
             </View>
-        </View>
-    </ScrollView>
-);
+        </TouchableWithoutFeedback>
+    );
+};
 
 SignInPageContent.propTypes = propTypes;
 SignInPageContent.displayName = 'SignInPageContent';
