@@ -350,7 +350,7 @@ export default {
         aboutPage: {
             description: 'The New Expensify App is built by a community of open source developers from around the world. Help us build the future of Expensify.',
             appDownloadLinks: 'App download links',
-            viewKeyboardShortcuts: 'View Keyboard Shortcuts',
+            viewKeyboardShortcuts: 'View keyboard shortcuts',
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
             reportABug: 'Report a bug',
@@ -1069,6 +1069,32 @@ export default {
         permissionError: {
             title: 'Access needed',
             message: 'Expensify does not have access to save attachments. To enable access, go to Settings and allow access',
+        },
+    },
+    desktopApplicationMenu: {
+        aboutExpensify: 'About New Expensify',
+        updateExpensify: 'Update New Expensify',
+        checkForUpdates: 'Check for updates',
+        history: 'History',
+    },
+    historyMenu: {
+        forward: 'Forward',
+        back: 'Back',
+    },
+    checkForUpdatesModal: {
+        available: {
+            title: 'Update Available',
+            message: 'The new version will be available shortly. We\'ll notify you when we\'re ready to update.',
+            soundsGood: 'Sounds good',
+        },
+        notAvailable: {
+            title: 'Update Not Available',
+            message: 'There is no update available as of now! Check again at a later time.',
+            okay: 'Okay',
+        },
+        error: {
+            title: 'Update Check Failed',
+            message: 'We couldn\'t look for an update. Please check again in a bit!',
         },
     },
 };
