@@ -1,4 +1,5 @@
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';

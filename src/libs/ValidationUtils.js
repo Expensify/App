@@ -345,7 +345,7 @@ function doesFailCharacterLimitAfterTrim(maxLength, valuesToBeValidated) {
  */
 function findInvalidSymbols(valuesToBeValidated) {
     return _.map(valuesToBeValidated, (value) => {
-        if (!value){
+        if (!value) {
             return '';
         }
         let inValidSymbol = value.replace(/[, ]+/g, '') !== value ? Localize.translateLocal('comma') : '';
