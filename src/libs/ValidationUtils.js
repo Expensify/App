@@ -340,10 +340,13 @@ function doesFailCharacterLimitAfterTrim(maxLength, valuesToBeValidated) {
  * Checks if the values have commas as this are removed in some values and are not accepted
  *
  * @param {String[]} valuesToBeValidated
- * @returns {Boolean[]}
+ * @returns {String[]}
  */
-function doesFailCommaRemoval(valuesToBeValidated) {
-    return _.map(valuesToBeValidated, value => value && value.replace(/[, ]+/g, '') !== value);
+function doesFailInvalidSymbols(valuesToBeValidated) {
+    return _.map(valuesToBeValidated, value => {
+            return value && (value.replace(/[, ]+/g, '') !== value ? 'comma' : value.replace(/[; ]+/g, '') !== value ? 'semi-comma' : '');
+        }
+    );
 }
 
 /**
