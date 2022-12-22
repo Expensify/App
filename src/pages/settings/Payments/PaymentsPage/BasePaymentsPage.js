@@ -272,7 +272,14 @@ class BasePaymentsPage extends React.Component {
                             {this.props.isLoadingPaymentMethods && !this.props.network.isOffline ? (
                                 <ActivityIndicator color={themeColors.spinner} size="large" />
                             ) : (
-                                <CurrentWalletBalance />
+                                <OfflineWithFeedback
+                                    pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
+                                    errors={this.props.walletTerms.errors}
+                                    onClose={PaymentMethods.clearWalletTermsError}
+                                    errorRowStyles={[styles.ml10, styles.mr2]}
+                                >
+                                    <CurrentWalletBalance />
+                                </OfflineWithFeedback>
                             )}
                         </View>
                         {this.props.userWallet.currentBalance > 0 && (
