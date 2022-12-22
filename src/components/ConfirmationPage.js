@@ -57,15 +57,15 @@ const ConfirmationPage = props => (
             </Text>
         </View>
         {props.shouldShowButton && (
-        <FixedFooter>
-            <Button
-                success
-                text={props.buttonText}
-                style={styles.mt6}
-                pressOnEnter
-                onPress={props.onButtonPress}
-            />
-        </FixedFooter>
+            <FixedFooter>
+                <Button
+                    success
+                    text={props.buttonText}
+                    style={styles.mt6}
+                    pressOnEnter
+                    onPress={props.onButtonPress}
+                />
+            </FixedFooter>
         )}
     </>
 );
