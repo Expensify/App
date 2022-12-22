@@ -87,6 +87,7 @@ class EmojiPickerMenu extends Component {
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.updatePreferredSkinTone = this.updatePreferredSkinTone.bind(this);
         this.setFirstNonHeaderIndex = this.setFirstNonHeaderIndex.bind(this);
+        this.getItemLayout = this.getItemLayout.bind(this);
 
         this.currentScrollOffset = 0;
         this.firstNonHeaderIndex = 0;
@@ -415,6 +416,15 @@ class EmojiPickerMenu extends Component {
     }
 
     /**
+     * @param {*} data
+     * @param {Number} index
+     * @returns {Object}
+     */
+    getItemLayout(data, index) {
+        return {length: CONST.EMOJI_PICKER_ITEM_HEIGHT, offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index, index};
+    }
+
+    /**
      * Given an emoji item object, render a component based on its type.
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
      * so that the sticky headers function properly.
@@ -513,9 +523,7 @@ class EmojiPickerMenu extends Component {
                             }
                             stickyHeaderIndices={this.state.headerIndices}
                             onScroll={e => this.currentScrollOffset = e.nativeEvent.contentOffset.y}
-                            getItemLayout={(data, index) => (
-                                {length: CONST.EMOJI_PICKER_ITEM_HEIGHT, offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index, index}
-                            )}
+                            getItemLayout={this.getItemLayout}
                         />
                     )}
                 <EmojiSkinToneList
