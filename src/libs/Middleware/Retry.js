@@ -18,8 +18,11 @@ function Retry(response, request, isFromSequentialQueue) {
 
             if (isFromSequentialQueue) {
                 const retryCount = PersistedRequests.incrementRetries(request);
-                Log.info('Persisted request failed', false, {retryCount, command: request.command, error: error.message});
-                if (retryCount >= CONST.NETWORK.MAX_REQUEST_RETRIES) {
+                console.log('Persisted request failed', false, {retryCount, command: request.command, error: error});
+                if (error.message === CONST.ERROR.THROTTLED) {
+                    Log.info('Request is being throttled. Halting this request.', false, {retryCount, command: request.command, error: error.message});
+                    PersistedRequests.remove(request);
+                } else if (retryCount >= CONST.NETWORK.MAX_REQUEST_RETRIES) {
                     Log.info('Request failed too many times, removing from storage', false, {retryCount, command: request.command, error: error.message});
                     PersistedRequests.remove(request);
                 }

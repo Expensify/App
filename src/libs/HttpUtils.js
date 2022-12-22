@@ -59,9 +59,9 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
 
             if (!response.ok) {
                 // Expensify site is down or something temporary like a Bad Gateway or unknown error occurred
-                if (response.status === 504 || response.status === 502 || response.status === 520) {
+                if (response.status === 429 || response.status === 504 || response.status === 502 || response.status === 520) {
                     throw new HttpsError({
-                        message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
+                        message: response.status === 429 ? CONST.ERROR.THROTTLED : CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
                         status: response.status,
                         title: 'Issue connecting to Expensify site',
                     });
