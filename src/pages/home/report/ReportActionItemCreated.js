@@ -71,11 +71,6 @@ const ReportActionItemCreated = (props) => {
                     styles.p5,
                 ]}
             >
-                {/* This spacer view is required to show the full Image above, otherwise it is cut off by the bounding box. */}
-                {/* <View style={{
-                    height: 300,
-                }}
-                /> */}
                 <View style={[styles.ph5, styles.pb3]}>
                     <Pressable onPress={() => ReportUtils.navigateToDetailsPage(props.report)}>
                         <RoomHeaderAvatars
