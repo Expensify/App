@@ -144,7 +144,7 @@ class CloseAccountPage extends Component {
                         </Text>
                     )}
                     onConfirm={CloseAccount.clearError}
-                    isVisible={Boolean(this.props.closeAccount.error) || Boolean(!_isEmpty(this.props.closeAccount.errors))}
+                    isVisible={Boolean(this.props.closeAccount.error) || !_.isEmpty(this.props.closeAccount.errors)}
                     shouldShowCancelButton={false}
                 />
             </ScreenWrapper>
