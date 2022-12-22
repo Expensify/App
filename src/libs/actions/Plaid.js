@@ -32,6 +32,7 @@ function openPlaidBankAccountSelector(publicToken, bankName, allowDebit) {
             key: ONYXKEYS.PLAID_DATA,
             value: {
                 isLoading: true,
+                error: '',
                 errors: null,
                 bankName,
             },
@@ -41,6 +42,7 @@ function openPlaidBankAccountSelector(publicToken, bankName, allowDebit) {
             key: ONYXKEYS.PLAID_DATA,
             value: {
                 isLoading: false,
+                error: '',
                 errors: null,
             },
         }],
