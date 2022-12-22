@@ -23,7 +23,7 @@ import ROUTES from '../../ROUTES';
 import FixedFooter from '../../components/FixedFooter';
 import networkPropTypes from '../../components/networkPropTypes';
 import * as StyleUtils from '../../styles/StyleUtils';
-import reportActionPropTypes from "../home/report/reportActionPropTypes";
+import reportActionPropTypes from '../home/report/reportActionPropTypes';
 
 const propTypes = {
     /** URL Route params */
