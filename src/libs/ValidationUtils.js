@@ -342,7 +342,7 @@ function doesFailCharacterLimitAfterTrim(maxLength, valuesToBeValidated) {
  * @param {String[]} valuesToBeValidated
  * @returns {String[]}
  */
-function doesFailInvalidSymbols(valuesToBeValidated) {
+function findInvalidSymbols(valuesToBeValidated) {
     return _.map(valuesToBeValidated, value => {
             return value && (value.replace(/[, ]+/g, '') !== value ? 'comma' : value.replace(/[; ]+/g, '') !== value ? 'semi-comma' : '');
         }
@@ -413,5 +413,5 @@ export {
     isReservedRoomName,
     isExistingRoomName,
     isValidTaxID,
-    doesFailCommaRemoval,
+    findInvalidSymbols,
 };

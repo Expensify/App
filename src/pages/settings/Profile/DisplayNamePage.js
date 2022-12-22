@@ -56,10 +56,10 @@ class DisplayNamePage extends Component {
      */
     validate(values) {
         const errors = {};
-        const [firstNameHasInvalidCharacters, lastNameHasInvalidCharacters] = ValidationUtils.doesFailCommaRemoval(
+        const [firstNameInvalidCharacter, lastNameInvalidCharacter] = ValidationUtils.findInvalidSymbols(
             [values.firstName, values.lastName],
         );
-        if (firstNameHasInvalidCharacters || lastNameHasInvalidCharacters) {
+        if (!_.isEmpty(firstNameInvalidCharacter) || !_.isEmpty(lastNameInvalidCharacter)) {
             const invalidCharactersError = Localize.translateLocal('personalDetails.error.hasCommas');
             this.assignError(errors, 'firstName', firstNameHasInvalidCharacters, invalidCharactersError);
             this.assignError(errors, 'firstName', lastNameHasInvalidCharacters, invalidCharactersError);
