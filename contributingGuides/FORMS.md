@@ -247,3 +247,12 @@ Form.js will automatically provide the following props to any input with the inp
 - errorText: The translated error text that is returned by validate for that specific input.
 - onBlur: An onBlur handler that calls validate.
 - onInputChange: An onChange handler that saves draft values and calls validate for that input (inputA). Passing an inputID as a second param allows inputA to manipulate the input value of the provided inputID (inputB).
+
+## Dynamic Form Inputs
+
+It's possible to conditionally render inputs (or more complex components with multiple inputs) inside a form. For example, an IdentityForm might be nested as input for a Form component.
+In order for Form to track the nested values properly, each field must have a unique identifier. It's not safe to use an index because adding or removing fields from the child Form component will not update these internal keys. Therefore, we will need to define keys and dynamically access the correlating child form data for validation/submission.
+
+To generate these unique keys, use `Str.guid()`.
+
+An example of this can be seen in the [ACHContractStep](https://github.com/Expensify/App/blob/f2973f88cfc0d36c0dbe285201d3ed5e12f29d87/src/pages/ReimbursementAccount/ACHContractStep.js), where each key is stored in an array in state, and IdentityForms are dynamically rendered based on which keys are present in the array.

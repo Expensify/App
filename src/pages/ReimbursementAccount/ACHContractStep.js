@@ -4,6 +4,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import * as store from '../../libs/actions/ReimbursementAccount/store';
 import Text from '../../components/Text';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -22,7 +23,6 @@ import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import Form from '../../components/Form';
 import * as FormActions from '../../libs/actions/FormActions';
-import * as NumberUtils from '../../libs/NumberUtils';
 
 const propTypes = {
     /** Name of the company */
@@ -119,7 +119,7 @@ class ACHContractStep extends React.Component {
         this.setState((prevState) => {
             // Each beneficial owner is assigned a unique key that will connect it to an Identity Form.
             // That way we can dynamically render each Identity Form based on which keys are present in the beneficial owners array.
-            const beneficialOwners = [...prevState.beneficialOwners, NumberUtils.rand64()];
+            const beneficialOwners = [...prevState.beneficialOwners, Str.guid()];
 
             FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners});
             return {beneficialOwners};
@@ -218,7 +218,6 @@ class ACHContractStep extends React.Component {
                         onValueChange={(value) => {
                             this.setState({hasOtherBeneficialOwners: value});
                             if (value && this.state.beneficialOwners.length === 0) {
-                                // if hasOtherBeneficialOwners is true and no working IdentityForms, add one
                                 this.addBeneficialOwner();
                             }
                         }}
