@@ -226,26 +226,29 @@ class PaymentMethodList extends Component {
                     ListEmptyComponent={this.renderListEmptyComponent()}
                     ListHeaderComponent={this.props.listHeaderComponent}
                 />
-                {this.props.shouldShowAddPaymentMethodButton && (
-                    <FormAlertWrapper>
-                        {
-                            isOffline => (
-                                <Button
-                                    text={this.props.translate('paymentMethodList.addPaymentMethod')}
-                                    icon={Expensicons.CreditCard}
-                                    onPress={e => this.props.onPress(e)}
-                                    isDisabled={this.props.isLoadingPaymentMethods || isOffline}
-                                    style={[styles.mh4, styles.buttonCTA]}
-                                    iconStyles={[styles.buttonCTAIcon]}
-                                    key="addPaymentMethodButton"
-                                    success
-                                    shouldShowRightIcon
-                                    large
-                                />
-                            )
-                        }
-                    </FormAlertWrapper>
-                )}
+                {
+                    this.props.shouldShowAddPaymentMethodButton
+                    && (
+                        <FormAlertWrapper>
+                            {
+                                isOffline => (
+                                    <Button
+                                        text={this.props.translate('paymentMethodList.addPaymentMethod')}
+                                        icon={Expensicons.CreditCard}
+                                        onPress={e => this.props.onPress(e)}
+                                        isDisabled={this.props.isLoadingPaymentMethods || isOffline}
+                                        style={[styles.mh4, styles.buttonCTA]}
+                                        iconStyles={[styles.buttonCTAIcon]}
+                                        key="addPaymentMethodButton"
+                                        success
+                                        shouldShowRightIcon
+                                        large
+                                    />
+                                )
+                            }
+                        </FormAlertWrapper>
+                    )
+                }
             </>
         );
     }
