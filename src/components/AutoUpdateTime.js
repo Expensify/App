@@ -75,8 +75,7 @@ class AutoUpdateTime extends PureComponent {
             clearTimeout(this.timer);
             this.timer = null;
         }
-        const millisecondsUntilNextMinute =
-          (60 - this.state.currentUserLocalTime.seconds()) * 1000;
+        const millisecondsUntilNextMinute = (60 - this.state.currentUserLocalTime.seconds()) * 1000;
         this.timer = setTimeout(() => {
             this.setState({
                 currentUserLocalTime: this.getCurrentUserLocalTime(),
