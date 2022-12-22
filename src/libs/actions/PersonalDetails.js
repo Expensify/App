@@ -50,16 +50,6 @@ function getDisplayName(login, personalDetail) {
 }
 
 /**
- * Returns max character error text if true.
- *
- * @param {Boolean} isError
- * @returns {String}
- */
-function getMaxCharacterError(isError) {
-    return isError ? Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT}) : '';
-}
-
-/**
  * Gets the first and last name from the user's personal details.
  * If the login is the same as the displayName, then they don't exist,
  * so we return empty strings instead.
@@ -340,7 +330,6 @@ export {
     updateAvatar,
     deleteAvatar,
     openIOUModalPage,
-    getMaxCharacterError,
     extractFirstAndLastNameFromAvailableDetails,
     updateDisplayName,
     updatePronouns,
