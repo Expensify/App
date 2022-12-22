@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {ActivityIndicator, FlatList, ScrollView} from 'react-native';
+import {FlatList} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
@@ -22,7 +22,6 @@ import * as PaymentUtils from '../../../libs/PaymentUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import Log from '../../../libs/Log';
-import themeColors from '../../../styles/themes/default';
 
 const propTypes = {
     /** What to do when a menu item is pressed */
@@ -219,19 +218,13 @@ class PaymentMethodList extends Component {
     render() {
         return (
             <>
-                {this.props.isLoadingPaymentMethods && !this.props.network.isOffline ? (
-                    <ScrollView>
-                        <ActivityIndicator color={themeColors.spinner} size="large" />
-                    </ScrollView>
-                ) : (
-                    <FlatList
-                        data={this.getFilteredPaymentMethods()}
-                        renderItem={this.renderItem}
-                        keyExtractor={item => item.key}
-                        ListEmptyComponent={this.renderListEmptyComponent()}
-                        ListHeaderComponent={this.props.listHeaderComponent}
-                    />
-                )}
+                <FlatList
+                    data={this.getFilteredPaymentMethods()}
+                    renderItem={this.renderItem}
+                    keyExtractor={item => item.key}
+                    ListEmptyComponent={this.renderListEmptyComponent()}
+                    ListHeaderComponent={this.props.listHeaderComponent}
+                />
                 {this.props.shouldShowAddPaymentMethodButton && (
                     <Button
                         text={this.props.translate('paymentMethodList.addPaymentMethod')}

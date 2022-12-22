@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    View, InteractionManager, LayoutAnimation,
+    ActivityIndicator, View, InteractionManager, LayoutAnimation,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -33,6 +33,7 @@ import * as PaymentUtils from '../../../../libs/PaymentUtils';
 import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import ConfirmContent from '../../../../components/ConfirmContent';
 import Button from '../../../../components/Button';
+import themeColors from '../../../../styles/themes/default';
 
 class BasePaymentsPage extends React.Component {
     constructor(props) {
@@ -268,14 +269,11 @@ class BasePaymentsPage extends React.Component {
                 {Permissions.canUseWallet(this.props.betas) && (
                     <>
                         <View style={[styles.mv5]}>
-                            <OfflineWithFeedback
-                                pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
-                                errors={this.props.walletTerms.errors}
-                                onClose={PaymentMethods.clearWalletTermsError}
-                                errorRowStyles={[styles.ml10, styles.mr2]}
-                            >
+                            {this.props.isLoadingPaymentMethods && !this.props.network.isOffline ? (
+                                <ActivityIndicator color={themeColors.spinner} size="large" />
+                            ) : (
                                 <CurrentWalletBalance />
-                            </OfflineWithFeedback>
+                            )}
                         </View>
                         {this.props.userWallet.currentBalance > 0 && (
                             <KYCWall
@@ -479,23 +477,26 @@ export default compose(
     withLocalize,
     withNetwork(),
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        walletTransfer: {
-            key: ONYXKEYS.WALLET_TRANSFER,
-        },
-        userWallet: {
-            key: ONYXKEYS.USER_WALLET,
-        },
         bankAccountList: {
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
         },
+        isLoadingPaymentMethods: {
+            key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
+        },
+        userWallet: {
+            key: ONYXKEYS.USER_WALLET,
+        },
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,
+        },
+        walletTransfer: {
+            key: ONYXKEYS.WALLET_TRANSFER,
         },
     }),
 )(BasePaymentsPage);
