@@ -56,16 +56,18 @@ class DisplayNamePage extends Component {
      */
     validate(values) {
         const errors = {};
+
+        // Checking is the any of the names has an invalid character (commas and semicolon atm)
         const [firstNameInvalidCharacter, lastNameInvalidCharacter] = ValidationUtils.findInvalidSymbols(
             [values.firstName, values.lastName],
         );
-        if (!_.isEmpty(firstNameInvalidCharacter) || !_.isEmpty(lastNameInvalidCharacter)) {
-            const invalidCharactersError = Localize.translateLocal('personalDetails.error.hasCommas');
-            this.assignError(errors, 'firstName', firstNameHasInvalidCharacters, invalidCharactersError);
-            this.assignError(errors, 'firstName', lastNameHasInvalidCharacters, invalidCharactersError);
+        this.assignError(errors, 'firstName', !_.isEmpty(firstNameInvalidCharacter), Localize.translateLocal('personalDetails.error.hasCommas', firstNameInvalidCharacter));
+        this.assignError(errors, 'lastName', !_.isEmpty(lastNameInvalidCharacter), Localize.translateLocal('personalDetails.error.hasCommas', lastNameInvalidCharacter));
+        if (!_.isEmpty(errors)) {
             return errors;
         }
 
+        // Checking is the any of the names goes over the character limit
         const characterLimitError = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
         const [hasFirstNameError, hasLastNameError] = ValidationUtils.doesFailCharacterLimitAfterTrim(
             CONST.FORM_CHARACTER_LIMIT,
