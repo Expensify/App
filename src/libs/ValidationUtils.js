@@ -338,7 +338,7 @@ function doesFailCharacterLimitAfterTrim(maxLength, valuesToBeValidated) {
 }
 
 /**
- * Checks if the values have commas as this are removed in some values and are not accepted
+ * Checks if input value includes comma or semicolon which are not accepted
  *
  * @param {String[]} valuesToBeValidated
  * @returns {String[]}
