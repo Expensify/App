@@ -142,12 +142,11 @@ class SidebarLinks extends React.Component {
                     nativeID="drag-area"
                 >
                     <Header
-                        textSize="large"
                         title={this.props.translate('sidebarScreen.headerChat')}
                         accessibilityLabel={this.props.translate('sidebarScreen.headerChat')}
                         accessibilityRole="text"
                         shouldShowEnvironmentBadge
-                        textStyles={[styles.headlineFont]}
+                        textStyles={[styles.headlineFont, styles.textXLarge]}
                     />
                     <Tooltip text={this.props.translate('common.search')}>
                         <TouchableOpacity

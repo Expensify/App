@@ -22,7 +22,7 @@ const PasswordConfirmationScreen = props => (
             <Text
                 style={[
                     styles.headlineFont,
-                    styles.textLarge,
+                    styles.textXLarge,
                     styles.mb2,
                 ]}
             >

@@ -266,6 +266,10 @@ const styles = {
         fontSize: variables.fontSizeLarge,
     },
 
+    textXLarge: {
+        fontSize: variables.fontSizeXLarge,
+    },
+
     textXXLarge: {
         fontSize: variables.fontSizeXXLarge,
     },
@@ -1914,7 +1918,7 @@ const styles = {
     notFoundTextHeader: {
         ...headlineFont,
         color: themeColors.heading,
-        fontSize: variables.fontSizeLarge,
+        fontSize: variables.fontSizeXLarge,
         marginTop: 20,
         marginBottom: 8,
     },
@@ -2031,7 +2035,7 @@ const styles = {
 
     displayName: {
         ...headlineFont,
-        fontSize: variables.fontSizeLarge,
+        fontSize: variables.fontSizeXLarge,
         color: themeColors.heading,
     },
 
@@ -2461,7 +2465,7 @@ const styles = {
     workspaceSectionHeader: {
         ...headlineFont,
         color: themeColors.heading,
-        fontSize: variables.fontSizeh1,
+        fontSize: variables.fontSizeXLarge,
     },
 
     peopleRow: {
