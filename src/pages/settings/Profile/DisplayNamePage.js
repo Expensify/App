@@ -62,8 +62,8 @@ class DisplayNamePage extends Component {
         const [firstNameInvalidCharacter, lastNameInvalidCharacter] = ValidationUtils.findInvalidSymbols(
             [values.firstName, values.lastName],
         );
-        this.assignError(errors, 'firstName', !_.isEmpty(firstNameInvalidCharacter), Localize.translateLocal('personalDetails.error.hasCommas', firstNameInvalidCharacter));
-        this.assignError(errors, 'lastName', !_.isEmpty(lastNameInvalidCharacter), Localize.translateLocal('personalDetails.error.hasCommas', lastNameInvalidCharacter));
+        this.assignError(errors, 'firstName', !_.isEmpty(firstNameInvalidCharacter), Localize.translateLocal('personalDetails.error.hasCommas', {invalidCharacter: firstNameInvalidCharacter}));
+        this.assignError(errors, 'lastName', !_.isEmpty(lastNameInvalidCharacter), Localize.translateLocal('personalDetails.error.hasCommas', {invalidCharacter: lastNameInvalidCharacter}));
         if (!_.isEmpty(errors)) {
             return errors;
         }
