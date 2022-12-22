@@ -44,8 +44,8 @@ const ReportActionItemCreated = (props) => {
 
     // The image handling depends on how large the chat window is
     const backgroundImageHeight = Dimensions.get('window').height < Dimensions.get('window').width
-        ? Dimensions.get('window').height / 2
-        : Dimensions.get('window').height / 3.5;
+        ? 450
+        : 300;
 
     return (
         <OfflineWithFeedback
@@ -55,8 +55,9 @@ const ReportActionItemCreated = (props) => {
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
         >
             <View style={[styles.emptyStateBackgroundContainer, {
-                // since height is dynamically set it needs to be updated here, not in styles.js
+                // since height and top are dynamically set they needs to be updated here, not in styles.js
                 height: backgroundImageHeight,
+                top: -backgroundImageHeight,
             }]}
             >
                 <Image

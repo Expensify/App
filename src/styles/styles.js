@@ -2868,12 +2868,12 @@ const styles = {
     emptyStateBackgroundContainer: {
         width: '100%',
         position: 'absolute',
-        bottom: '75%',
     },
 
     emptyStateBackgroundImage: {
         width: '100%',
-        height: '100%',
+        height: '80%',
+        bottom: '-40%',
     },
 };
 
