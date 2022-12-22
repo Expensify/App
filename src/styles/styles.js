@@ -1508,6 +1508,7 @@ const styles = {
         borderRadius: variables.buttonBorderRadius,
         height: 32,
         marginVertical: 4,
+        marginLeft: 3,
         paddingHorizontal: 6,
         justifyContent: 'center',
     },

@@ -36,7 +36,7 @@ beforeEach(() => {
     // Wait for any Log command to finish and Onyx to fully clear
     jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
     return waitForPromisesToResolve()
-        .then(() => Onyx.clear())
+        .then(Onyx.clear)
         .then(waitForPromisesToResolve);
 });
 
