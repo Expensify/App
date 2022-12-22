@@ -679,5 +679,4 @@ export {
     getHeight,
     fade,
     getHorizontalStackedAvatarBorderStyle,
-    getIOUPreviewLoadingItemStyle,
 };
