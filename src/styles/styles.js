@@ -2173,8 +2173,7 @@ const styles = {
     },
 
     iouAmountText: {
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
+        ...headlineFont,
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
         lineHeight: variables.inputHeight,
