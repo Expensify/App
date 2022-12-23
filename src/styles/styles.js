@@ -461,7 +461,7 @@ const styles = {
     buttonDivider: {
         width: 1,
         alignSelf: 'stretch',
-        backgroundColor: themeColors.textLight,
+        backgroundColor: themeColors.appBG,
         marginVertical: 1,
     },
 
@@ -2396,7 +2396,7 @@ const styles = {
 
     smallEditIcon: {
         alignItems: 'center',
-        backgroundColor: themeColors.icon,
+        backgroundColor: themeColors.buttonHoveredBG,
         borderColor: themeColors.textReversed,
         borderRadius: 14,
         borderWidth: 3,
