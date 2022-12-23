@@ -1,3 +1,7 @@
+/**
+ * Displays the user's local time and updates it every minute. 
+ * The time auto-update logic is extracted to this component to avoid re-rendering a more complex component, e.g. DetailsPage.
+ */
 import {View} from 'react-native';
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
