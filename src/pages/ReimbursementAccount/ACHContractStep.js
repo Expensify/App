@@ -44,6 +44,7 @@ class ACHContractStep extends React.Component {
         this.submit = this.submit.bind(this);
 
         this.state = {
+            // These variables determine how many Identity Forms will be rendered
             ownsMoreThan25Percent: ReimbursementAccountUtils.getDefaultStateForField(props, 'ownsMoreThan25Percent', false),
             hasOtherBeneficialOwners: ReimbursementAccountUtils.getDefaultStateForField(props, 'hasOtherBeneficialOwners', false),
             beneficialOwners: ReimbursementAccountUtils.getDefaultStateForField(props, 'beneficialOwners', []),
@@ -103,7 +104,7 @@ class ACHContractStep extends React.Component {
     }
 
     /**
-     * @param {int} ownerKey - ID connected to the beneficial owner identity form
+     * @param {Number} ownerKey - ID connected to the beneficial owner identity form
      */
     removeBeneficialOwner(ownerKey) {
         this.setState((prevState) => {
@@ -196,9 +197,9 @@ class ACHContractStep extends React.Component {
                                 <Text style={[styles.textStrong]}>{this.props.companyName}</Text>
                             </Text>
                         )}
-                        onValueChange={(value) => {
-                            this.setState({ownsMoreThan25Percent: value});
-                            if (value && this.state.beneficialOwners.length > 3) {
+                        onValueChange={(ownsMoreThan25Percent) => {
+                            this.setState({ownsMoreThan25Percent});
+                            if (ownsMoreThan25Percent && this.state.beneficialOwners.length > 3) {
                                 // If the user owns more than 25% of the company, then there can only be a maximum of 3 other beneficial owners who owns more than 25%.
                                 // We have to remove the 4th beneficial owner if the checkbox is checked.
                                 this.setState(prevState => ({beneficialOwners: prevState.beneficialOwners.slice(0, -1)}));
@@ -215,9 +216,9 @@ class ACHContractStep extends React.Component {
                                 <Text style={[styles.textStrong]}>{this.props.companyName}</Text>
                             </Text>
                         )}
-                        onValueChange={(value) => {
-                            this.setState({hasOtherBeneficialOwners: value});
-                            if (value && this.state.beneficialOwners.length === 0) {
+                        onValueChange={(hasOtherBeneficialOwners) => {
+                            this.setState({hasOtherBeneficialOwners});
+                            if (hasOtherBeneficialOwners && this.state.beneficialOwners.length === 0) {
                                 this.addBeneficialOwner();
                             }
                         }}
