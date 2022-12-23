@@ -474,7 +474,7 @@ const styles = {
     buttonDivider: {
         width: 1,
         alignSelf: 'stretch',
-        backgroundColor: themeColors.textLight,
+        backgroundColor: themeColors.appBG,
         marginVertical: 1,
     },
 
@@ -551,8 +551,8 @@ const styles = {
     },
 
     loadingVBAAnimation: {
-        width: 160,
-        height: 160,
+        width: 140,
+        height: 140,
     },
 
     pickerSmall: {
@@ -2407,7 +2407,7 @@ const styles = {
 
     smallEditIcon: {
         alignItems: 'center',
-        backgroundColor: themeColors.icon,
+        backgroundColor: themeColors.buttonHoveredBG,
         borderColor: themeColors.textReversed,
         borderRadius: 14,
         borderWidth: 3,
@@ -2637,9 +2637,9 @@ const styles = {
         ],
     }),
 
-    confettiIcon: {
-        height: 100,
-        width: 100,
+    confirmationAnimation: {
+        height: 180,
+        width: 180,
         marginBottom: 20,
     },
 

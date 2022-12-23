@@ -11,15 +11,10 @@ import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import * as Expensicons from '../../../components/Icon/Expensicons';
-import * as Illustrations from '../../../components/Icon/Illustrations';
-import Icon from '../../../components/Icon';
-import defaultTheme from '../../../styles/themes/default';
 import MenuItem from '../../../components/MenuItem';
 import CONST from '../../../CONST';
 import variables from '../../../styles/variables';
 import Text from '../../../components/Text';
-import Button from '../../../components/Button';
-import FixedFooter from '../../../components/FixedFooter';
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
 import walletTransferPropTypes from './walletTransferPropTypes';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
@@ -29,6 +24,7 @@ import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
 import ROUTES from '../../../ROUTES';
 import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
 import {withNetwork} from '../../../components/OnyxProvider';
+import ConfirmationPage from '../../../components/ConfirmationPage';
 
 const propTypes = {
     /** User's wallet information */
@@ -159,33 +155,15 @@ class TransferBalancePage extends React.Component {
                         title={this.props.translate('common.transferBalance')}
                         onCloseButtonPress={PaymentMethods.dismissSuccessfulTransferBalancePage}
                     />
-                    <View style={[styles.pageWrapper, styles.flex1, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        <Icon
-                            src={Illustrations.TadaBlue}
-                            height={100}
-                            width={100}
-                            fill={defaultTheme.iconSuccessFill}
-                        />
-                        <View style={[styles.ph5]}>
-                            <Text style={[styles.mt5, styles.textAlignCenter, styles.headlineFont, styles.textXLarge]}>
-                                {this.props.translate('transferAmountPage.transferSuccess')}
-                            </Text>
-                            <Text style={[styles.mt3, styles.textAlignCenter]}>
-                                {this.props.walletTransfer.paymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
-                                    ? this.props.translate('transferAmountPage.transferDetailBankAccount')
-                                    : this.props.translate('transferAmountPage.transferDetailDebitCard')}
-                            </Text>
-                        </View>
-                    </View>
-                    <FixedFooter>
-                        <Button
-                            text={this.props.translate('common.done')}
-                            onPress={() => PaymentMethods.dismissSuccessfulTransferBalancePage()}
-                            style={[styles.mt4]}
-                            iconStyles={[styles.mr5]}
-                            success
-                        />
-                    </FixedFooter>
+                    <ConfirmationPage
+                        heading={this.props.translate('transferAmountPage.transferSuccess')}
+                        description={this.props.walletTransfer.paymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT
+                            ? this.props.translate('transferAmountPage.transferDetailBankAccount')
+                            : this.props.translate('transferAmountPage.transferDetailDebitCard')}
+                        shouldShowButton
+                        buttonText={this.props.translate('common.done')}
+                        onButtonPress={PaymentMethods.dismissSuccessfulTransferBalancePage}
+                    />
                 </ScreenWrapper>
             );
         }
