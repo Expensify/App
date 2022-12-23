@@ -43,12 +43,6 @@ Onyx.connect({
     },
 });
 
-let isNetworkOffline = false;
-Onyx.connect({
-    key: ONYXKEYS.NETWORK,
-    callback: val => isNetworkOffline = lodashGet(val, 'isOffline', false),
-});
-
 /**
  * Request money from another user
  *
@@ -547,9 +541,8 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
  * @param {String} iouReportID
  * @param {String} type - cancel|decline
  * @param {Object} moneyRequestAction - the create IOU reportAction we are cancelling
- * @param {Array} reportActions - the chat report's reportActions
  */
-function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction, reportActions) {
+function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction) {
     const chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
     const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     const transactionID = moneyRequestAction.originalMessage.IOUTransactionID;
@@ -570,11 +563,7 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction,
     );
 
     const currentUserEmail = optimisticReportAction.actorEmail;
-
-    // Do not make changes to the IOU report locally if we're waiting for conversion from the backend
-    const updatedIOUReport = isNetworkOffline && IOUUtils.isIOUReportPendingCurrencyConversion(reportActions, iouReport)
-        ? iouReport
-        : IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, moneyRequestAction.originalMessage.currency, type);
+    const updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, moneyRequestAction.originalMessage.currency, type);
 
     chatReport.maxSequenceNumber = newSequenceNumber;
     chatReport.lastReadSequenceNumber = newSequenceNumber;
