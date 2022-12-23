@@ -183,9 +183,9 @@ const IOUPreview = (props) => {
                                             : props.translate('iou.paidyou', {manager: managerName})}
                                     </Text>
                                     {props.shouldShowPendingConversionMessage && (
-                                    <Text style={[styles.textLabel, styles.colorMuted]}>
-                                        {pendingConversionMessage}
-                                    </Text>
+                                        <Text style={[styles.textLabel, styles.colorMuted]}>
+                                            {pendingConversionMessage}
+                                        </Text>
                                     )}
                                 </>
                             )}
