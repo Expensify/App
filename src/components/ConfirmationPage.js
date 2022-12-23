@@ -45,7 +45,6 @@ const ConfirmationPage = props => (
             />
             <Text
                 style={[
-                    styles.textStrong,
                     styles.textXLarge,
                     styles.headlineFont,
                     styles.mv2,
