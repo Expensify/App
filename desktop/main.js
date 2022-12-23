@@ -207,6 +207,7 @@ const mainWindow = (() => {
 
             if (browserWindow) {
                 browserWindow.loadURL(deeplinkUrl);
+                browserWindow.show();
             }
         });
     });
@@ -431,6 +432,7 @@ const mainWindow = (() => {
             loadURL(browserWindow).then(() => {
                 if (deeplinkUrl) {
                     browserWindow.loadURL(deeplinkUrl);
+                    browserWindow.show();
                 }
 
                 return undefined;
