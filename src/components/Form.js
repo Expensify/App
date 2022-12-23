@@ -89,6 +89,8 @@ class Form extends React.Component {
         if (prevProps.preferredLocale === this.props.preferredLocale) {
             return;
         }
+
+        // Update the error messages if the language changes
         this.validate(this.state.inputValues);
     }
 
