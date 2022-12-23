@@ -192,8 +192,13 @@ class EmojiPickerMenu extends Component {
     }
 
     /**
-     * @param {*} data
-     * @param {Number} index
+     * This function will be used with FlatList getItemLayout property for optimization purpose that allows skipping
+     * the measurement of dynamic content if we know the size (height or width) of items ahead of time.
+     * Generate and return an object with properties length(height of each individual row),
+     * offset(distance of the current row from the top of the FlatList), index(current row index)
+     *
+     * @param {*} data FlatList item
+     * @param {Number} index row index
      * @returns {Object}
      */
     getItemLayout(data, index) {
