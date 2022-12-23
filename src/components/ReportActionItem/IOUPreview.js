@@ -129,7 +129,6 @@ const IOUPreview = (props) => {
             {style: 'currency', currency: props.iouReport.currency},
         ) : '';
     const avatarTooltip = [Str.removeSMSDomain(managerEmail), Str.removeSMSDomain(ownerEmail)];
-    const pendingConversionMessage = 'Total will be updated when connection is restored';
     return (
         <TouchableWithoutFeedback onPress={props.onPreviewPressed}>
             <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
@@ -184,7 +183,7 @@ const IOUPreview = (props) => {
                                     </Text>
                                     {props.shouldShowPendingConversionMessage && (
                                         <Text style={[styles.textLabel, styles.colorMuted]}>
-                                            {pendingConversionMessage}
+                                            {props.translate('iou.pendingConversionMessage')}
                                         </Text>
                                     )}
                                 </>
