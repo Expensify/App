@@ -104,7 +104,7 @@ class DisplayNames extends PureComponent {
                                     {displayName}
                                 </Text>
                             </Tooltip>
-                            {index < this.props.displayNamesWithTooltips.length - 1 && <Text>,&nbsp;</Text>}
+                            {index < this.props.displayNamesWithTooltips.length - 1 && <Text style={this.props.textStyles}>,&nbsp;</Text>}
                         </Fragment>
                     ))}
                 {this.props.displayNamesWithTooltips.length > 1 && this.state.isEllipsisActive

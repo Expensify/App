@@ -1,16 +1,6 @@
 import CONST from '../CONST';
 
 /**
- * Remove the MERGED_0@ prefix from merged account emails.
- *
- * @param {String} email
- * @returns {String}
- */
-function getEmailWithoutMergedAccountPrefix(email) {
-    return email.replace(/^MERGED_\d@/, '');
-}
-
-/**
  * Remove the special chars from the phone number
  *
  * @param {String} phone
@@ -31,7 +21,6 @@ function getPhoneNumberWithoutUSCountryCodeAndSpecialChars(phone) {
 }
 
 export {
-    getEmailWithoutMergedAccountPrefix,
     getPhoneNumberWithoutSpecialChars,
     getPhoneNumberWithoutUSCountryCodeAndSpecialChars,
 };
