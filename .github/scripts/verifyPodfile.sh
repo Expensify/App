@@ -20,6 +20,12 @@ else
     exit 1
 fi
 
+# If packages were not changed on the feature branch we can skip the remaining checks
+if [ -z "$(git diff --name-only .."$1" package-lock.json package.json)" ]; then
+  echo -e "${GREEN}No changes to node packages were detected."
+  exit 0;
+fi
+
 # Maps a list of podspec paths to formatted `Pod (version)` format
 _formatted_pods() {
     jq --raw-output --slurp 'map((.name + " (" + .version + ")")) | .[]' <<< "$( \
@@ -76,7 +82,7 @@ done <<< "$(_formatted_pods "$feature_branch_specs")"
 # Validate deletions (check whether the subtractions _are_ in Podfile.lock)
 while read -r SPEC; do
   if [ ! -z "$SPEC" ] && _in_podlock "$SPEC"; then
-    echo -e "${RED} ERROR: Podspec $SPEC was found in Podfile.lock and not part of project. Did you forget to run \`pod install\` after removing the package?"
+    echo -e "${RED}ERROR: Podspec $SPEC was found in Podfile.lock and not part of project. Did you forget to run \`pod install\` after removing the package?"
     failed=1
   fi
 done <<< "$formatted_subtractions"
