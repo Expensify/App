@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# First argument is the branch to compare against for deletions
-# Second argument is optionally `-v` which will output the branch podspecs and the subtractions if they exist
+# This script accepts two arguments:
+# First argument (required): the branch to compare against for removals
+# Second argument (optional): `-v` which will output each branches podspecs and the removals if they exist
 
 declare -r GREEN='\033[0;32m'
 declare -r RED='\033[0;31m'
@@ -20,74 +21,76 @@ else
     exit 1
 fi
 
-# If packages were not changed on the feature branch we can skip the remaining checks
+# If npm packages were not modified on the feature branch we can skip the remaining checks
 if [ -z "$(git diff --name-only .."$1" package-lock.json package.json)" ]; then
-  echo -e "${GREEN}No changes to node packages were detected."
+  echo -e "${GREEN}No changes to node packages were detected.${NC}"
   exit 0;
 fi
 
-# Maps a list of podspec paths to formatted `Pod (version)` format
-_formatted_pods() {
+# Extracts an array of podspec paths from the config command
+_grab_specs() {
+  npx react-native config | jq '[.dependencies[].platforms.ios.podspecPath | select( . != null )]'
+}
+
+# Maps an array of podspec paths to a raw list of formatted `Pod (version)`s
+_formatted_pod_list() {
     jq --raw-output --slurp 'map((.name + " (" + .version + ")")) | .[]' <<< "$( \
-      echo "$1" | \
+      jq -n '$specs | .[]' --argjson specs "$1" | \
       xargs -L 1 pod ipc spec --silent
     )"
 }
 
-# Checks whether a formatted version of the Pod (version) exists in the Podfile.lock
-_in_podlock() {
-  grep -q "$1" ./ios/Podfile.lock
-}
+# Stores an array of the feature branch's podspecs
+feature_branch_specs="$(_grab_specs)"
 
-# Extracts a list of podspec paths from react-native command
-_get_specs() {
-  npx react-native config | jq '.dependencies[].platforms.ios.podspecPath | select( . != null )'
-}
-
-# Store the feature branch's podspecs in a variable so we can compare against main branch (for determining removals)
-feature_branch_specs="$(_get_specs)"
-
-## Verbosity
+## Verbose output
 [ "$2" == "-v" ] && echo "Feature branch specs:" && echo "$feature_branch_specs"
 
-# Grab the podspecs from the main branch by checking out npm package and lockfile
+# Grab the podspecs from the main branch by checking out the diffed npm packages
 git checkout --quiet "$1" -- {package,package-lock}.json
 npm i --silent
-main_branch_specs="$(_get_specs)"
+main_branch_specs="$(_grab_specs)"
 
-# Verbosity
+# Verbose output
 [ "$2" == "-v" ] && echo "Main branch specs:" && echo "$main_branch_specs"
 
-# Perform an array subtraction to determine which pods were removed
-# Store the formatted version here as we won't have the chance after switching back to feature branch
-formatted_subtractions="$(_formatted_pods "$(jq -n --args '$ARGS.positional | map(. / "\n" | map(fromjson)) | first - last | .[]' -- \
-"$main_branch_specs" "$feature_branch_specs")")"
+# Perform an array subtraction to determine which pods were removed (main_branch - feature_branch)
+removed_specs=$(jq -n --jsonargs '$ARGS.positional | first - last | .' -- "$main_branch_specs" "$feature_branch_specs")
 
-# Verbosity
-[ "$2" == "-v" ] && echo "Subtractions:" && echo "$formatted_subtractions"
+# Store the formatted list here as we won't have the chance after switching back to feature branch
+formatted_removals="$(_formatted_pod_list "$removed_specs")"
 
-# Switch back to feature branch
+# Verbose output
+[ "$2" == "-v" ] && \
+[ -n "$formatted_removals" ] && \
+echo "Removals:" && echo "$formatted_removals" || echo "No package removals found."
+
+# Revert back to feature branch npm state
 git reset --quiet HEAD {package,package-lock}.json
 git checkout --quiet -- {package,package-lock}.json
 npm i --silent
 
-# Validate additions and updates to Podfile.lock (check whether feature branch specs _are not_ in Podfile.lock)
+# Initialize failed variable as it may be already set by the environment
+failed=0
+
+# Validate additions and updates to Podfile.lock
 while read -r SPEC; do
-  if ! _in_podlock "$SPEC"; then
-    echo -e "${RED}ERROR: Podspec $SPEC not found in Podfile.lock. Did you forget to run \`pod install\`?"
+  if ! grep -q "$SPEC" ./ios/Podfile.lock; then
+    echo -e "${RED}ERROR: Podspec $SPEC not found in Podfile.lock. Did you forget to run \`npx pod-install\`?${NC}"
     failed=1
   fi
-done <<< "$(_formatted_pods "$feature_branch_specs")"
+done <<< "$(_formatted_pod_list "$feature_branch_specs")"
 
-# Validate deletions (check whether the subtractions _are_ in Podfile.lock)
+# Validate deletions from Podfile.lock
 while read -r SPEC; do
-  if [ ! -z "$SPEC" ] && _in_podlock "$SPEC"; then
-    echo -e "${RED}ERROR: Podspec $SPEC was found in Podfile.lock and not part of project. Did you forget to run \`pod install\` after removing the package?"
+  if [ -n "$SPEC" ] && grep -q "$SPEC" ./ios/Podfile.lock; then
+    echo -e "${RED}ERROR: Podspec $SPEC was found in Podfile.lock but not in node modules. \
+    Did you forget to run \`npx pod-install\` after removing the package?${NC}" | xargs
     failed=1
   fi
-done <<< "$formatted_subtractions"
+done <<< "$formatted_removals"
 
-[ "$failed" != "" ] && exit 1
+[ "$failed" -eq 1 ] && exit 1
 
-echo -e "${GREEN}Podfile.lock is synced with podspecs."
+echo -e "${GREEN}Podfile.lock is synced with npm packages.${NC}"
 exit 0
