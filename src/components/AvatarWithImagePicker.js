@@ -90,6 +90,7 @@ class AvatarWithImagePicker extends React.Component {
             isAvatarCropModalOpen: false,
             imageName: '',
             imageUri: '',
+            imageType: '',
         };
     }
 
@@ -194,7 +195,12 @@ class AvatarWithImagePicker extends React.Component {
                     return;
                 }
 
-                this.setState({isAvatarCropModalOpen: true, imageUri: image.uri, imageName: image.name});
+                this.setState({
+                    isAvatarCropModalOpen: true,
+                    imageUri: image.uri,
+                    imageName: image.name,
+                    imageType: image.type,
+                });
             });
     }
 
@@ -266,7 +272,7 @@ class AvatarWithImagePicker extends React.Component {
                                                 src={Expensicons.Camera}
                                                 width={variables.iconSizeSmall}
                                                 height={variables.iconSizeSmall}
-                                                fill={themeColors.iconReversed}
+                                                fill={themeColors.textLight}
                                             />
                                         </View>
                                     </Tooltip>
@@ -297,6 +303,7 @@ class AvatarWithImagePicker extends React.Component {
                     onSave={this.props.onImageSelected}
                     imageUri={this.state.imageUri}
                     imageName={this.state.imageName}
+                    imageType={this.state.imageType}
                 />
             </View>
         );

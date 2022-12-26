@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {Freeze} from 'react-freeze';
+import {PortalHost} from '@gorhom/portal';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
@@ -195,10 +196,12 @@ class ReportScreen extends React.Component {
         // We create policy rooms for all policies, however we don't show them unless
         // - It's a free plan workspace
         // - The report includes guides participants (@team.expensify.com) for 1:1 Assigned
+        // - It's an archived room
         if (!Permissions.canUseDefaultRooms(this.props.betas)
             && ReportUtils.isDefaultRoom(this.props.report)
             && ReportUtils.getPolicyType(this.props.report, this.props.policies) !== CONST.POLICY.TYPE.FREE
             && !ReportUtils.hasExpensifyGuidesEmails(lodashGet(this.props.report, ['participants'], []))
+            && !ReportUtils.isArchivedRoom(this.props.report)
         ) {
             return null;
         }
@@ -225,19 +228,17 @@ class ReportScreen extends React.Component {
         const animatePlaceholder = !freeze;
 
         return (
-            <Freeze
-                freeze={freeze}
-                placeholder={(
-                    <ScreenWrapper
-                        style={screenWrapperStyle}
-                    >
-                        <ReportHeaderSkeletonView animate={animatePlaceholder} />
-                        <ReportActionsSkeletonView animate={animatePlaceholder} containerHeight={this.state.skeletonViewContainerHeight} />
-                    </ScreenWrapper>
-                )}
+            <ScreenWrapper
+                style={screenWrapperStyle}
             >
-                <ScreenWrapper
-                    style={screenWrapperStyle}
+                <Freeze
+                    freeze={freeze}
+                    placeholder={(
+                        <>
+                            <ReportHeaderSkeletonView animate={animatePlaceholder} />
+                            <ReportActionsSkeletonView animate={animatePlaceholder} containerHeight={this.state.skeletonViewContainerHeight} />
+                        </>
+                    )}
                 >
                     <FullPageNotFoundView
                         shouldShow={!this.props.report.reportID}
@@ -282,7 +283,6 @@ class ReportScreen extends React.Component {
                                 if (skeletonViewContainerHeight === 0) {
                                     return;
                                 }
-
                                 reportActionsListViewHeight = skeletonViewContainerHeight;
                                 this.setState({skeletonViewContainerHeight});
                             }}
@@ -316,10 +316,11 @@ class ReportScreen extends React.Component {
                                     containerHeight={this.state.skeletonViewContainerHeight}
                                 />
                             )}
+                            <PortalHost name={CONST.REPORT.DROP_HOST_NAME} />
                         </View>
                     </FullPageNotFoundView>
-                </ScreenWrapper>
-            </Freeze>
+                </Freeze>
+            </ScreenWrapper>
         );
     }
 }

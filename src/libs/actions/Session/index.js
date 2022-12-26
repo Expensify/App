@@ -10,8 +10,6 @@ import Log from '../../Log';
 import PushNotification from '../../Notification/PushNotification';
 import Timing from '../Timing';
 import CONST from '../../../CONST';
-import Navigation from '../../Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 import * as Localize from '../../Localize';
 import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
 import Timers from '../../Timers';
@@ -268,13 +266,13 @@ function signIn(password, twoFactorAuthCode) {
  * Uses a short lived authToken to continue a user's session from OldDot
  *
  * @param {String} email
- * @param {String} shortLivedToken
+ * @param {String} shortLivedAuthToken
  * @param {String} exitTo
  */
-function signInWithShortLivedToken(email, shortLivedToken) {
+function signInWithShortLivedAuthToken(email, shortLivedAuthToken) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
 
-    createTemporaryLogin(shortLivedToken, email)
+    createTemporaryLogin(shortLivedAuthToken, email)
         .then((response) => {
             if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                 return;
@@ -390,40 +388,6 @@ function clearAccountMessages() {
 }
 
 /**
- * Calls change password and signs if successful. Otherwise, we request a new magic link
- * if we know the account email. Otherwise or finally we redirect to the root of the nav.
- * @param {String} authToken
- * @param {String} password
- */
-function changePasswordAndSignIn(authToken, password) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {validateSessionExpired: false});
-    DeprecatedAPI.ChangePassword({
-        authToken,
-        password,
-    })
-        .then((responsePassword) => {
-            if (responsePassword.jsonCode === 200) {
-                signIn(password);
-                return;
-            }
-            if (responsePassword.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED && !credentials.login) {
-                // authToken has expired, and we don't have the email set to request a new magic link.
-                // send user to login page to enter email.
-                Navigation.navigate(ROUTES.HOME);
-                return;
-            }
-            if (responsePassword.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
-                // authToken has expired, and we have the account email, so we request a new magic link.
-                Onyx.merge(ONYXKEYS.ACCOUNT, {errors: null});
-                resetPassword();
-                Navigation.navigate(ROUTES.HOME);
-                return;
-            }
-            Onyx.merge(ONYXKEYS.SESSION, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('setPasswordPage.passwordNotSet')}});
-        });
-}
-
-/**
  * Updates a password and authenticates them
  * @param {Number} accountID
  * @param {String} validateCode
@@ -479,32 +443,6 @@ function updatePasswordAndSignin(accountID, validateCode, password) {
     API.write('UpdatePasswordAndSignin', {
         accountID, validateCode, password,
     }, {optimisticData, successData, failureData});
-}
-
-/**
- * @param {Number} accountID
- * @param {String} validateCode
- * @param {String} login
- * @param {String} authToken
- */
-function validateEmail(accountID, validateCode) {
-    Onyx.merge(ONYXKEYS.SESSION, {errors: null});
-    DeprecatedAPI.ValidateEmail({
-        accountID,
-        validateCode,
-    })
-        .then((responseValidate) => {
-            if (responseValidate.jsonCode === 200) {
-                Onyx.merge(ONYXKEYS.CREDENTIALS, {login: responseValidate.email, authToken: responseValidate.authToken});
-                return;
-            }
-            if (responseValidate.jsonCode === 666) {
-                Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true});
-            }
-            if (responseValidate.jsonCode === 401) {
-                Onyx.merge(ONYXKEYS.SESSION, {errors: {[DateUtils.getMicroseconds()]: Localize.translate('setPasswordPage.setPasswordLinkInvalid')}});
-            }
-        });
 }
 
 // It's necessary to throttle requests to reauthenticate since calling this multiple times will cause Pusher to
@@ -569,7 +507,7 @@ export {
     beginSignIn,
     updatePasswordAndSignin,
     signIn,
-    signInWithShortLivedToken,
+    signInWithShortLivedAuthToken,
     signOut,
     signOutAndRedirectToSignIn,
     resendValidationLink,
@@ -578,10 +516,8 @@ export {
     clearSignInData,
     cleanupSession,
     clearAccountMessages,
-    validateEmail,
     authenticatePusher,
     reauthenticatePusher,
-    changePasswordAndSignIn,
     invalidateCredentials,
     invalidateAuthToken,
 };

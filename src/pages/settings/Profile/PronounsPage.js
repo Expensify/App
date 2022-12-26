@@ -16,6 +16,8 @@ import themeColors from '../../../styles/themes/default';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import CONST from '../../../CONST';
 
+const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
+
 const propTypes = {
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -34,11 +36,11 @@ const PronounsPage = (props) => {
             value: fullPronounKey,
             keyForList: key,
 
-            // Add green checkmark icon & bold the timezone text
-            customIcon: fullPronounKey === currentPronouns
-                ? {src: Expensicons.Checkmark, color: themeColors.success}
-                : null,
-            isUnread: fullPronounKey === currentPronouns,
+            // Include the green checkmark icon to indicate the currently selected value
+            customIcon: fullPronounKey === currentPronouns ? greenCheckmark : undefined,
+
+            // This property will make the currently selected value have bold text
+            boldStyle: fullPronounKey === currentPronouns,
         };
     });
 

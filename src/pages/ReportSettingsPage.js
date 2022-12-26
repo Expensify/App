@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View, ScrollView} from 'react-native';
+import {View, ScrollView, Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -52,20 +52,6 @@ const propTypes = {
 class ReportSettingsPage extends Component {
     constructor(props) {
         super(props);
-        this.notificationPreferencesOptions = {
-            default: {
-                value: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                label: this.props.translate('notificationPreferences.immediately'),
-            },
-            daily: {
-                value: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
-                label: this.props.translate('notificationPreferences.daily'),
-            },
-            mute: {
-                value: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE,
-                label: this.props.translate('notificationPreferences.mute'),
-            },
-        };
 
         this.roomNameInputRef = null;
 
@@ -76,6 +62,14 @@ class ReportSettingsPage extends Component {
 
         this.resetToPreviousName = this.resetToPreviousName.bind(this);
         this.validateAndUpdatePolicyRoomName = this.validateAndUpdatePolicyRoomName.bind(this);
+    }
+
+    getNotificationPreferenceOptions() {
+        return [
+            {value: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, label: this.props.translate('notificationPreferences.immediately')},
+            {value: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY, label: this.props.translate('notificationPreferences.daily')},
+            {value: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE, label: this.props.translate('notificationPreferences.mute')},
+        ];
     }
 
     /**
@@ -91,6 +85,7 @@ class ReportSettingsPage extends Component {
         if (!this.validate()) {
             return;
         }
+        Keyboard.dismiss();
         Report.updatePolicyRoomName(this.props.report, this.state.newRoomName);
     }
 
@@ -149,7 +144,7 @@ class ReportSettingsPage extends Component {
                     onBackButtonPress={Navigation.goBack}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
+                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5} keyboardShouldPersistTaps="handled">
                     <View>
                         <View style={[styles.mt2]}>
                             <Picker
@@ -165,7 +160,7 @@ class ReportSettingsPage extends Component {
                                         notificationPreference,
                                     );
                                 }}
-                                items={_.values(this.notificationPreferencesOptions)}
+                                items={this.getNotificationPreferenceOptions()}
                                 value={this.props.report.notificationPreference}
                             />
                         </View>
@@ -208,7 +203,7 @@ class ReportSettingsPage extends Component {
                                             onPress={this.validateAndUpdatePolicyRoomName}
                                             style={[styles.ml2, styles.mnw25]}
                                             textStyles={[styles.label]}
-                                            innerStyles={[styles.ph5]}
+                                            innerStyles={[styles.saveButtonPadding]}
                                             isDisabled={shouldDisableRename}
                                         />
                                     )}

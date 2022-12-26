@@ -57,7 +57,7 @@ const defaultProps = {
 
 const FormAlertWithSubmitButton = props => (
     <FormAlertWrapper
-        containerStyles={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd, ...props.containerStyles]}
+        containerStyles={[styles.mh5, styles.mb5, styles.justifyContentEnd, ...props.containerStyles]}
         isAlertVisible={props.isAlertVisible}
         isMessageHtml={props.isMessageHtml}
         message={props.message}

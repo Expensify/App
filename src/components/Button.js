@@ -144,7 +144,6 @@ const defaultProps = {
 class Button extends Component {
     constructor(props) {
         super(props);
-        this.additionalStyles = StyleUtils.parseStyleAsArray(this.props.style);
 
         this.renderContent = this.renderContent.bind(this);
     }
@@ -217,7 +216,7 @@ class Button extends Component {
                         {textComponent}
                     </View>
                     {this.props.shouldShowRightIcon && (
-                        <View>
+                        <View style={styles.justifyContentCenter}>
                             <Icon
                                 src={this.props.iconRight}
                                 fill={this.props.iconFill}
@@ -256,7 +255,10 @@ class Button extends Component {
                 disabled={this.props.isLoading || this.props.isDisabled}
                 style={[
                     this.props.isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
-                    ...this.additionalStyles,
+                    styles.buttonContainer,
+                    this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
+                    this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+                    ...StyleUtils.parseStyleAsArray(this.props.style),
                 ]}
                 nativeID={this.props.nativeID}
             >

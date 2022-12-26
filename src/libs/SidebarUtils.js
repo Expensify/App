@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportUtils from './ReportUtils';
@@ -16,11 +17,20 @@ import * as CollectionUtils from './CollectionUtils';
 // Session also can remain stale because the only way for the current user to change is to sign out and sign in, which would clear out all the Onyx
 // data anyway and cause SidebarLinks to rerender.
 
-let reports;
+const chatReports = {};
+const iouReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: val => reports = val,
+    callback: (report, key) => {
+        if (!report) {
+            delete iouReports[key];
+            delete chatReports[key];
+        } else if (ReportUtils.isIOUReport(report)) {
+            iouReports[key] = report;
+        } else {
+            chatReports[key] = report;
+        }
+    },
 });
 
 let personalDetails;
@@ -62,18 +72,6 @@ Onyx.connect({
     callback: val => policies = val,
 });
 
-let iouReports = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_IOUS,
-    waitForCollectionCallback: true,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-        iouReports = val;
-    },
-});
-
 let currentUserLogin;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -95,7 +93,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
     const isInDefaultMode = !isInGSDMode;
 
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = _.filter(reports, report => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies));
+    const reportsToDisplay = _.filter(chatReports, report => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies));
 
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     _.each(reportsToDisplay, (report) => {
@@ -151,14 +149,15 @@ function getOrderedReportIDs(reportIDFromRoute) {
 
     // Sort each group of reports accordingly
     pinnedReports = _.sortBy(pinnedReports, report => report.displayName.toLowerCase());
-    outstandingIOUReports = _.sortBy(outstandingIOUReports, 'iouReportAmount').reverse();
+    outstandingIOUReports = lodashOrderBy(outstandingIOUReports, ['iouReportAmount', report => report.displayName.toLowerCase()], ['desc', 'asc']);
     draftReports = _.sortBy(draftReports, report => report.displayName.toLowerCase());
-    nonArchivedReports = _.sortBy(nonArchivedReports, report => (isInDefaultMode ? report.lastActionCreated : report.displayName.toLowerCase()));
+    nonArchivedReports = isInDefaultMode
+        ? lodashOrderBy(nonArchivedReports, ['lastActionCreated', report => report.displayName.toLowerCase()], ['desc', 'asc'])
+        : lodashOrderBy(nonArchivedReports, [report => report.displayName.toLowerCase()], ['asc']);
     archivedReports = _.sortBy(archivedReports, report => (isInDefaultMode ? report.lastActionCreated : report.displayName.toLowerCase()));
 
-    // For archived and non-archived reports, ensure that most recent reports are at the top by reversing the order of the arrays because underscore will only sort them in ascending order
+    // For archived reports ensure that most recent reports are at the top by reversing the order of the arrays because underscore will only sort them in ascending order
     if (isInDefaultMode) {
-        nonArchivedReports.reverse();
         archivedReports.reverse();
     }
 
@@ -179,7 +178,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
  * @returns {Object}
  */
 function getOptionData(reportID) {
-    const report = reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const report = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -252,7 +251,7 @@ function getOptionData(reportID) {
     }
 
     const lastActorDetails = personalDetailMap[report.lastActorEmail] || null;
-    let lastMessageText = hasMultipleParticipants && lastActorDetails
+    let lastMessageText = hasMultipleParticipants && lastActorDetails && (lastActorDetails.login !== currentUserLogin.email)
         ? `${lastActorDetails.displayName}: `
         : '';
     lastMessageText += report ? lastMessageTextFromReport : '';
