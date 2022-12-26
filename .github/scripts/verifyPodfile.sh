@@ -21,6 +21,12 @@ else
     exit 1
 fi
 
+# Make sure package.json and package-lock.json are committed to avoid testing issues
+if [ -n "$(git diff --name-only HEAD -- package.json package-lock.json)" ]; then
+  echo -e "${RED}Error: Uncommitted changes to package.json or package-lock.json.  Commit these before continuing!${NC}"
+  exit 1
+fi
+
 # Make sure valid branch ref was passed for removal check
 (git cat-file -e "$1":package-lock.json 2> /dev/null && [ -n "$1" ]) || \
 { echo -e "${RED}Error: Must specify valid branch name to compare with for Pod removal check.${NC}"; exit 1; }
@@ -44,7 +50,7 @@ _formatted_pod_list() {
     )"
 }
 
-# Stores an array of the feature branch's podspecs
+# Store an array of the feature branch's podspecs
 feature_branch_specs="$(_grab_specs)"
 
 ## Verbose output
@@ -65,9 +71,10 @@ removed_specs=$(jq -n --jsonargs '$ARGS.positional | first - last | .' -- "$main
 formatted_removals="$(_formatted_pod_list "$removed_specs")"
 
 # Verbose output
-[ "$2" == "-v" ] && \
-[ -n "$formatted_removals" ] && \
-echo "Removals:" && echo "$formatted_removals" || echo "No package removals found."
+([ "$2" == "-v" ]) && \
+([ -n "$formatted_removals" ] && \
+echo -e "Removals:\n$formatted_removals" || \
+echo "No package removals")
 
 # Revert back to feature branch npm state
 git reset --quiet HEAD {package,package-lock}.json
