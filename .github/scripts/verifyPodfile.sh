@@ -58,7 +58,7 @@ feature_branch_specs="$(_grab_specs)"
 
 # Grab the podspecs from the main branch by checking out the diffed npm packages
 git checkout --quiet "$1" -- {package,package-lock}.json
-npm i --silent
+npm i --loglevel silent
 main_branch_specs="$(_grab_specs)"
 
 # Verbose output
@@ -79,10 +79,12 @@ echo "No package removals")
 # Revert back to feature branch npm state
 git reset --quiet HEAD {package,package-lock}.json
 git checkout --quiet -- {package,package-lock}.json
-npm i --silent
+npm i --loglevel silent
 
 # Initialize failed variable as it may be already set by the environment
 failed=0
+
+echo "Comparing.  This may take a moment..."
 
 # Validate additions and updates to Podfile.lock
 while read -r SPEC; do
