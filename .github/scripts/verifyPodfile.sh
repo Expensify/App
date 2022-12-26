@@ -21,9 +21,13 @@ else
     exit 1
 fi
 
-# If npm packages were not modified on the feature branch we can skip the remaining checks
+# Make sure valid branch ref was passed for removal check
+(git cat-file -e "$1":package-lock.json 2> /dev/null && [ -n "$1" ]) || \
+{ echo -e "${RED}Error: Must specify valid branch name to compare with for Pod removal check.${NC}"; exit 1; }
+
+# If npm packages were not modified in the feature branch we can skip the remaining checks
 if [ -z "$(git diff --name-only .."$1" package-lock.json package.json)" ]; then
-  echo -e "${GREEN}No changes to node packages were detected.${NC}"
+  echo -e "${GREEN}No changes to npm packages were detected.${NC}"
   exit 0;
 fi
 
@@ -44,7 +48,7 @@ _formatted_pod_list() {
 feature_branch_specs="$(_grab_specs)"
 
 ## Verbose output
-[ "$2" == "-v" ] && echo "Feature branch specs:" && echo "$feature_branch_specs"
+[ "$2" == "-v" ] && echo -e "Feature branch specs:\n$feature_branch_specs"
 
 # Grab the podspecs from the main branch by checking out the diffed npm packages
 git checkout --quiet "$1" -- {package,package-lock}.json
@@ -52,7 +56,7 @@ npm i --silent
 main_branch_specs="$(_grab_specs)"
 
 # Verbose output
-[ "$2" == "-v" ] && echo "Main branch specs:" && echo "$main_branch_specs"
+[ "$2" == "-v" ] && echo -e "Main branch specs:\n$main_branch_specs"
 
 # Perform an array subtraction to determine which pods were removed (main_branch - feature_branch)
 removed_specs=$(jq -n --jsonargs '$ARGS.positional | first - last | .' -- "$main_branch_specs" "$feature_branch_specs")
