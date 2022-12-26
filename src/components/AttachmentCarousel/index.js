@@ -15,6 +15,7 @@ import AttachmentView from '../AttachmentView';
 import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
 import CONST from '../../CONST';
+import Config from '../../CONFIG';
 import ONYXKEYS from '../../ONYXKEYS';
 import reportPropTypes from '../../pages/reportPropTypes';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
@@ -83,8 +84,12 @@ class AttachmentCarousel extends React.Component {
      * @returns {Object}
      */
     getAttachment(attachmentItem) {
-        const sourceURL = _.get(attachmentItem, 'sourceURL', '');
         const file = _.get(attachmentItem, 'file', {name: ''});
+        const originalSourceURL = _.get(attachmentItem, 'sourceURL', '');
+        const sourceURL = originalSourceURL.replace(
+            Config.EXPENSIFY.EXPENSIFY_URL,
+            Config.EXPENSIFY.URL_API_ROOT,
+        );
         this.props.onNavigate({sourceURL: addEncryptedAuthTokenToURL(sourceURL), file});
 
         return {
