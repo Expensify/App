@@ -15,10 +15,8 @@ import NetworkConnection from '../NetworkConnection';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import * as Link from './Link';
-import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
 import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
-import * as LoginUtils from '../LoginUtils';
 
 let currentUserAccountID = '';
 Onyx.connect({
@@ -90,46 +88,6 @@ function closeAccount(message) {
 }
 
 /**
- * Fetches the data needed for user settings
- */
-function getUserDetails() {
-    DeprecatedAPI.Get({
-        returnValueList: 'account, loginList, nameValuePairs',
-        nvpNames: [
-            CONST.NVP.PAYPAL_ME_ADDRESS,
-            CONST.NVP.PREFERRED_EMOJI_SKIN_TONE,
-            CONST.NVP.FREQUENTLY_USED_EMOJIS,
-            CONST.NVP.BLOCKED_FROM_CONCIERGE,
-        ].join(','),
-    })
-        .then((response) => {
-            // Update the User onyx key
-            const isSubscribedToNewsletter = lodashGet(response, 'account.subscribed', true);
-            const validatedStatus = lodashGet(response, 'account.validated', false);
-            Onyx.merge(ONYXKEYS.USER, {isSubscribedToNewsletter: !!isSubscribedToNewsletter, validated: !!validatedStatus});
-
-            // Update login list
-            const loginList = LoginUtils.cleanLoginListServerResponse(response.loginList);
-            Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
-
-            // Update the nvp_payPalMeAddress NVP
-            const payPalMeAddress = lodashGet(response, `nameValuePairs.${CONST.NVP.PAYPAL_ME_ADDRESS}`, '');
-            Onyx.merge(ONYXKEYS.NVP_PAYPAL_ME_ADDRESS, payPalMeAddress);
-
-            // Update the blockedFromConcierge NVP
-            const blockedFromConcierge = lodashGet(response, `nameValuePairs.${CONST.NVP.BLOCKED_FROM_CONCIERGE}`, {});
-            Onyx.merge(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, blockedFromConcierge);
-
-            const preferredSkinTone = lodashGet(response, `nameValuePairs.${CONST.NVP.PREFERRED_EMOJI_SKIN_TONE}`, {});
-            Onyx.merge(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-                getSkinToneEmojiFromIndex(preferredSkinTone).skinTone);
-
-            const frequentlyUsedEmojis = lodashGet(response, `nameValuePairs.${CONST.NVP.FREQUENTLY_USED_EMOJIS}`, []);
-            Onyx.set(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyUsedEmojis);
-        });
-}
-
-/**
  * Resends a validation link to a given login
  *
  * @param {String} login
@@ -179,8 +137,7 @@ function setSecondaryLoginAndNavigate(login, password) {
         password,
     }).then((response) => {
         if (response.jsonCode === 200) {
-            const loginList = LoginUtils.cleanLoginListServerResponse(response.loginList);
-            Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
+            Onyx.set(ONYXKEYS.LOGIN_LIST, response.loginList);
             Navigation.navigate(ROUTES.SETTINGS_PROFILE);
             return;
         }
@@ -481,7 +438,6 @@ function generateStatementPDF(period) {
 export {
     updatePassword,
     closeAccount,
-    getUserDetails,
     resendValidateCode,
     updateNewsletterSubscription,
     setSecondaryLoginAndNavigate,
