@@ -6,13 +6,13 @@ import deeplinkRoutes from './deeplinkRoutes';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import TextLink from '../TextLink';
 import * as Illustrations from '../Icon/Illustrations';
-import LogoWordmark from '../../../assets/images/expensify-wordmark.svg';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Text from '../Text';
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
 import Icon from '../Icon';
+import * as Expensicons from '../Icon/Expensicons';
 import colors from '../../styles/colors';
 import * as Browser from '../../libs/Browser';
 
@@ -137,10 +137,11 @@ class DeeplinkWrapper extends PureComponent {
                         </View>
                     </View>
                     <View style={styles.deeplinkWrapperFooter}>
-                        <LogoWordmark
+                        <Icon
                             width={154}
                             height={34}
                             fill={colors.green}
+                            src={Expensicons.ExpensifyWordmark}
                         />
                     </View>
                 </View>
