@@ -75,7 +75,7 @@ const MenuItem = (props) => {
             }}
             style={({hovered, pressed}) => ([
                 styles.popoverMenuItem,
-                StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive)),
+                StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true),
                 ..._.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle],
             ])}
             disabled={props.disabled}

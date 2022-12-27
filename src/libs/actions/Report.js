@@ -16,7 +16,6 @@ import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import Log from '../Log';
-import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../ReportUtils';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
@@ -55,127 +54,6 @@ function getLastReadSequenceNumber(reportID) {
  */
 function getMaxSequenceNumber(reportID) {
     return lodashGet(allReports, [reportID, 'maxSequenceNumber'], 0);
-}
-
-/**
- * @param {Object} report
- * @return {String[]}
- */
-function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs, ownerEmail}) {
-    const emailArray = _.map(sharedReportList, participant => participant.email);
-    if (ReportUtils.isChatRoom(reportNameValuePairs)) {
-        return emailArray;
-    }
-    if (ReportUtils.isPolicyExpenseChat(reportNameValuePairs)) {
-        // The owner of the policyExpenseChat isn't in the sharedReportsList so they need to be explicitly included.
-        return [ownerEmail, ...emailArray];
-    }
-
-    // The current user is excluded from the participants array in DMs/Group DMs because their participation is implied
-    // by the chat being shared to them. This also prevents the user's own avatar from being a part of the chat avatar.
-    return _.without(emailArray, currentUserEmail);
-}
-
-/**
- * Only store the minimal amount of data in Onyx that needs to be stored
- * because space is limited.
- *
- * @param {Object} report
- * @param {Number} report.reportID
- * @param {String} report.reportName
- * @param {Object} report.reportNameValuePairs
- * @returns {Object}
- */
-function getSimplifiedReportObject(report) {
-    const lastActionCreated = lodashGet(report, 'lastActionCreated', 0);
-    const lastActionMessage = lodashGet(report, ['lastActionMessage', 'html'], '');
-    const isLastMessageAttachment = new RegExp(`<img|a\\s[^>]*${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}\\s*=\\s*"[^"]*"[^>]*>`, 'gi').test(lastActionMessage);
-    const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
-
-    let lastMessageText = null;
-    if (report.reportActionCount > 0) {
-        // We are removing any html tags from the message html since we cannot access the text version of any comments as
-        // the report only has the raw reportActionList and not the processed version returned by Report_GetHistory
-        const parser = new ExpensiMark();
-        lastMessageText = parser.htmlToText(lastActionMessage);
-        lastMessageText = ReportUtils.formatReportLastMessageText(lastMessageText);
-    }
-
-    // Used for archived rooms, will store the policy name that the room used to belong to.
-    const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '').toString();
-
-    const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
-    const notificationPreference = lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY);
-
-    // Used for User Created Policy Rooms, will denote how access to a chat room is given among workspace members
-    const visibility = lodashGet(report, ['reportNameValuePairs', 'visibility']);
-    const lastReadSequenceNumber = lodashGet(report, [
-        'reportNameValuePairs',
-        `lastRead_${currentUserAccountID}`,
-        'sequenceNumber',
-    ]);
-
-    return {
-        // This needs to be cast to a string until the IOU API has been fully migrated to OfflineFirst API
-        reportID: report.reportID.toString(),
-        reportName: report.reportName,
-        chatType,
-        ownerEmail: LoginUtils.getEmailWithoutMergedAccountPrefix(lodashGet(report, ['ownerEmail'], '')),
-        policyID: lodashGet(report, ['reportNameValuePairs', 'expensify_policyID'], ''),
-        maxSequenceNumber: lodashGet(report, 'reportActionCount', 0),
-        participants: getParticipantEmailsFromReport(report),
-        isPinned: report.isPinned,
-        lastReadTimestamp: lodashGet(report, [
-            'reportNameValuePairs',
-            `lastRead_${currentUserAccountID}`,
-            'timestamp',
-        ], 0),
-        lastReadSequenceNumber,
-        lastActionCreated,
-        lastMessageText: isLastMessageAttachment ? '[Attachment]' : lastMessageText,
-        lastActorEmail,
-        notificationPreference,
-        stateNum: report.state,
-        statusNum: report.status,
-        oldPolicyName,
-        visibility,
-        isOwnPolicyExpenseChat: lodashGet(report, ['isOwnPolicyExpenseChat'], false),
-        lastMessageHtml: lastActionMessage,
-    };
-}
-
-/**
- * Get a simplified version of an IOU report
- *
- * @param {Object} reportData
- * @param {String} reportData.transactionID
- * @param {Number} reportData.amount
- * @param {String} reportData.currency
- * @param {String} reportData.created
- * @param {String} reportData.comment
- * @param {Object[]} reportData.transactionList
- * @param {String} reportData.ownerEmail
- * @param {String} reportData.managerEmail
- * @param {Number} reportData.reportID
- * @param {Number|String} chatReportID
- * @returns {Object}
- */
-function getSimplifiedIOUReport(reportData, chatReportID) {
-    return {
-        reportID: reportData.reportID,
-        ownerEmail: reportData.ownerEmail,
-        managerEmail: reportData.managerEmail,
-        currency: reportData.currency,
-        chatReportID: Number(chatReportID),
-        state: reportData.state,
-        cachedTotal: reportData.cachedTotal,
-        total: reportData.total,
-        status: reportData.status,
-        stateNum: reportData.stateNum,
-        submitterPayPalMeAddress: reportData.submitterPayPalMeAddress,
-        submitterPhoneNumbers: reportData.submitterPhoneNumbers,
-        hasOutstandingIOU: reportData.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && reportData.total !== 0,
-    };
 }
 
 /**
@@ -579,7 +457,7 @@ function readOldestAction(reportID, oldestActionSequenceNumber) {
 /**
  * Gets the IOUReport and the associated report actions.
  *
- * @param {Number} chatReportID
+ * @param {String} chatReportID
  * @param {Number} iouReportID
  */
 function openPaymentDetailsPage(chatReportID, iouReportID) {
@@ -980,39 +858,6 @@ function saveReportActionDraft(reportID, reportActionID, draftMessage) {
 }
 
 /**
- * Syncs up a chat report and an IOU report in Onyx after an IOU transaction has been made
- * by setting the iouReportID and hasOutstandingIOU for the chat report.
- * Even though both reports are updated in the back-end, the API doesn't handle syncing their reportIDs.
- * If we didn't sync these reportIDs, the paid IOU would still be shown to users as unpaid.
- * The iouReport being fetched here must be open, because only an open iouReport can be paid.
- *
- * @param {Object} chatReport
- * @param {Object} iouReport
- */
-function syncChatAndIOUReports(chatReport, iouReport) {
-    // Return early in case there's a back-end issue preventing the IOU command from returning the report objects.
-    if (!chatReport || !iouReport) {
-        return;
-    }
-
-    const simplifiedIouReport = {};
-    const simplifiedReport = {};
-    const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`;
-    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`;
-
-    // We don't want to sync an iou report that's already been reimbursed with its chat report.
-    if (!iouReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED) {
-        simplifiedReport[chatReportKey].iouReportID = iouReport.reportID;
-    }
-    simplifiedReport[chatReportKey] = getSimplifiedReportObject(chatReport);
-    simplifiedReport[chatReportKey].hasOutstandingIOU = iouReport.stateNum
-        === CONST.REPORT.STATE_NUM.PROCESSING && iouReport.total !== 0;
-    simplifiedIouReport[iouReportKey] = getSimplifiedIOUReport(iouReport, chatReport.reportID);
-    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedIouReport);
-    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReport);
-}
-
-/**
  * @param {String} reportID
  * @param {String} previousValue
  * @param {String} newValue
@@ -1357,7 +1202,6 @@ export {
     handleUserDeletedLinks,
     saveReportActionDraft,
     deleteReportComment,
-    syncChatAndIOUReports,
     navigateToConciergeChat,
     setReportWithDraft,
     addPolicyReport,
