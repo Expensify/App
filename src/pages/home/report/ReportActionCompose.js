@@ -573,7 +573,6 @@ class ReportActionCompose extends React.Component {
                                                             // Keep focus on the composer when Collapse button is clicked.
                                                             onMouseDown={e => e.preventDefault()}
                                                             style={styles.composerSizeButton}
-                                                            underlayColor={themeColors.componentBG}
                                                             disabled={isBlockedFromConcierge}
                                                         >
                                                             <Icon src={Expensicons.Collapse} />
@@ -592,7 +591,6 @@ class ReportActionCompose extends React.Component {
                                                             // Keep focus on the composer when Expand button is clicked.
                                                             onMouseDown={e => e.preventDefault()}
                                                             style={styles.composerSizeButton}
-                                                            underlayColor={themeColors.componentBG}
                                                             disabled={isBlockedFromConcierge}
                                                         >
                                                             <Icon src={Expensicons.Expand} />
@@ -610,7 +608,6 @@ class ReportActionCompose extends React.Component {
                                                             this.setMenuVisibility(true);
                                                         }}
                                                         style={styles.chatItemAttachButton}
-                                                        underlayColor={themeColors.componentBG}
                                                         disabled={isBlockedFromConcierge}
                                                     >
                                                         <Icon src={Expensicons.Plus} />
@@ -701,7 +698,6 @@ class ReportActionCompose extends React.Component {
                                     (this.state.isCommentEmpty || hasExceededMaxCommentLength) ? undefined : styles.buttonSuccess,
                                 ]}
                                 onPress={this.submitForm}
-                                underlayColor={themeColors.componentBG}
 
                                 // Keep focus on the composer when Send message is clicked.
                                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
