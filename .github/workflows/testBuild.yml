@@ -2,6 +2,10 @@ name: Build and deploy apps for testing
 
 on:
   workflow_dispatch:
+    inputs:
+      PULL_REQUEST_NUMBER:
+        description: Pull Request number for correct placement of apps
+        required: true
   pull_request_target:
     types: [opened, synchronize]
     branches: ['*ci-test/**']
@@ -22,16 +26,38 @@ jobs:
           username: ${{ github.actor }}
           team: mobile-deployers
 
-  android:
-    name: Build and deploy Android for testing
+  getBranchRef:
+    runs-on: ubuntu-latest
     needs: validateActor
     if: ${{ fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) }}
+    outputs:
+      REF: ${{steps.getHeadRef.outputs.REF}}
+    steps:
+      - name: Checkout
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - name: Check if pull request number is correct
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        id: getHeadRef
+        run: |
+          set -e
+          gh pr checkout ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
+          echo "REF=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  android:
+    name: Build and deploy Android for testing
+    needs: [validateActor, getBranchRef]
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) }}
     runs-on: ubuntu-latest
+    env:
+      PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     steps:
       # This action checks-out the repository, so the workflow can access it.
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
@@ -64,7 +90,6 @@ jobs:
           S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           S3_BUCKET: ad-hoc-expensify-cash
           S3_REGION: us-east-1
-          PULL_REQUEST_NUMBER: ${{ github.event.number }}
 
       - uses: actions/upload-artifact@v3
         with:
@@ -73,14 +98,16 @@ jobs:
 
   iOS:
     name: Build and deploy iOS for testing
-    needs: validateActor
+    needs: [validateActor, getBranchRef]
     if: ${{ fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) }}
+    env:
+      PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: macos-12
     steps:
       # This action checks-out the repository, so the workflow can access it.
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
@@ -119,7 +146,6 @@ jobs:
           S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           S3_BUCKET: ad-hoc-expensify-cash
           S3_REGION: us-east-1
-          PULL_REQUEST_NUMBER: ${{ github.event.number }}
 
       - uses: actions/upload-artifact@v3
         with:
@@ -128,13 +154,16 @@ jobs:
 
   desktop:
     name: Build and deploy Desktop for testing
-    needs: validateActor
+    needs: [validateActor, getBranchRef]
     if: ${{ fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) }}
+    env:
+      PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: macos-12
     steps:
       # This action checks-out the repository, so the workflow can access it.
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
+          ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
           fetch-depth: 0
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
@@ -159,17 +188,47 @@ jobs:
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          PULL_REQUEST_NUMBER: ${{ github.event.number }}
+
+  web:
+    name: Build and deploy Web
+    needs: [validateActor, getBranchRef]
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_TEAM_MEMBER) }}
+    env:
+      PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
+      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Configure AWS Credentials
+        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
+        with:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Build web for testing
+        run: npm run build-staging
+
+      - name: Build docs
+        run: npm run storybook-build
+        continue-on-error: true
+
+      - name: Deploy to S3 for internal testing
+        run: aws s3 cp --recursive --acl public-read "$GITHUB_WORKSPACE"/dist s3://ad-hoc-expensify-cash/web/"$PULL_REQUEST_NUMBER"
 
   postGithubComment:
     runs-on: ubuntu-latest
     name: Post a GitHub comment with app download links for testing
-    needs: [android, ios, desktop]
+    needs: [getBranchRef, android, ios, desktop, web]
+    env:
+      PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     steps:
       - name: Checkout
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
 
       - uses: actions/download-artifact@v3
 
@@ -187,13 +246,27 @@ jobs:
           content_ios="${content_ios//$'\r'/'%0D'}"
           echo "ios_paths=$content_ios" >> "$GITHUB_OUTPUT"
 
+      # This step removes previous comments with links connected to the PR
+      - name: maintain-comment
+        uses: actions-cool/maintain-one-comment@de04bd2a3750d86b324829a3ff34d47e48e16f4b
+        with:
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          body-include: 'Use the links below to test this build in android and iOS. Happy testing!'
+          number: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
+          delete: true
+
       - name: Publish links to apps for download
         run: |
+          set -e
+          gh pr checkout "$PULL_REQUEST_NUMBER"
           gh pr comment --body \
           ":test_tube::test_tube: Use the links below to test this build in android and iOS. Happy testing! :test_tube::test_tube:
-          | android :robot:  | iOS :apple: | desktop :computer: |
-          | ------------- | ------------- | ------------- | 
-          | ${{fromJson(steps.set_var.outputs.android_paths).html_path}}  | ${{fromJson(steps.set_var.outputs.ios_paths).html_path}}  | https://ad-hoc-expensify-cash.us-east-1.amazonaws.com/desktop/${{github.event.number}}/NewExpensify.dmg |
-          | ![Android](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.android_paths).html_path}}) | ![iOS](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.ios_paths).html_path}}) | ![desktop](https://ad-hoc-expensify-cash.us-east-1.amazonaws.com/desktop/${{github.event.number}}/NewExpensify.dmg) |"
+          | android :robot:  | iOS :apple: |
+          | ------------- | ------------- |
+          | ${{fromJson(steps.set_var.outputs.android_paths).html_path}}  | ${{fromJson(steps.set_var.outputs.ios_paths).html_path}}  | 
+          | ![Android](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.android_paths).html_path}}) | ![iOS](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${{fromJson(steps.set_var.outputs.ios_paths).html_path}}) |
+          | desktop :computer: | web :spider_web: |
+          | https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/$PULL_REQUEST_NUMBER/NewExpensify.dmg | https://$PULL_REQUEST_NUMBER.pr-testing.expensify.com |
+          | ![desktop](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/$PULL_REQUEST_NUMBER/NewExpensify.dmg) | ![web](https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://$PULL_REQUEST_NUMBER.pr-testing.expensify.com) |"
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}

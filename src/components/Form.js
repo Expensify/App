@@ -79,7 +79,6 @@ class Form extends React.Component {
 
         this.inputRefs = {};
         this.touchedInputs = {};
-        this.childPosition = {};
 
         this.setTouchedInput = this.setTouchedInput.bind(this);
         this.validate = this.validate.bind(this);
@@ -107,21 +106,6 @@ class Form extends React.Component {
         }
 
         return _.first(_.keys(hasStateErrors ? this.state.erorrs : this.props.formState.errorFields));
-    }
-
-    setPosition(element, position) {
-        // Some elements might not have props defined, e.g. Text
-        if (!element.props) {
-            return;
-        }
-
-        if (!element.props.inputID && element.props.children) {
-            _.forEach(element.props.children, (child) => {
-                this.setPosition(child, position);
-            });
-        } else {
-            this.childPosition[element.props.inputID] = position;
-        }
     }
 
     submit() {
@@ -190,15 +174,19 @@ class Form extends React.Component {
 
             // Look for any inputs nested in a custom component, e.g AddressForm or IdentityForm
             if (_.isFunction(child.type)) {
-                const nestedChildren = new child.type(child.props);
+                const childNode = new child.type(child.props);
 
-                if (!React.isValidElement(nestedChildren) || !lodashGet(nestedChildren, 'props.children')) {
-                    return child;
+                // If the custom component has a render method, use it to get the nested children
+                const nestedChildren = _.isFunction(childNode.render) ? childNode.render() : childNode;
+
+                // Render the custom component if it's a valid React element
+                // If the custom component has nested children, Loop over them and supply From props
+                if (React.isValidElement(nestedChildren) || lodashGet(nestedChildren, 'props.children')) {
+                    return this.childrenWrapperWithProps(nestedChildren);
                 }
 
-                return React.cloneElement(nestedChildren, {
-                    children: this.childrenWrapperWithProps(lodashGet(nestedChildren, 'props.children')),
-                });
+                // Just render the child if it's custom component not a valid React element, or if it hasn't children
+                return child;
             }
 
             // We check if the child has the inputID prop.
@@ -268,16 +256,7 @@ class Form extends React.Component {
                     ref={el => this.form = el}
                 >
                     <View style={[this.props.style]}>
-                        {_.map(this.childrenWrapperWithProps(this.props.children), child => (
-                            <View
-                                key={child.key}
-                                onLayout={(event) => {
-                                    this.setPosition(child, event.nativeEvent.layout.y);
-                                }}
-                            >
-                                {child}
-                            </View>
-                        ))}
+                        {this.childrenWrapperWithProps(this.props.children)}
                         {this.props.isSubmitButtonVisible && (
                         <FormAlertWithSubmitButton
                             buttonText={this.props.submitButtonText}
@@ -289,12 +268,16 @@ class Form extends React.Component {
                                 const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
                                 const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
                                 const focusInput = this.inputRefs[focusKey];
-                                this.form.scrollTo({y: this.childPosition[focusKey], animated: false});
                                 if (focusInput.focus && typeof focusInput.focus === 'function') {
                                     focusInput.focus();
                                 }
+
+                                // We substract 10 to scroll slightly above the input
+                                if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
+                                    focusInput.measureLayout(this.form, (x, y) => this.form.scrollTo({y: y - 10, animated: false}));
+                                }
                             }}
-                            containerStyles={[styles.mh0, styles.mt5]}
+                            containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
                             enabledWhenOffline={this.props.enabledWhenOffline}
                             isDangerousAction={this.props.isDangerousAction}
                         />

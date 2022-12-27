@@ -82,8 +82,8 @@ const OptionRow = (props) => {
         : styles.sidebarLinkText;
     const textUnreadStyle = (props.boldStyle)
         ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
-    const displayNameStyle = [styles.optionDisplayName, ...textUnreadStyle, props.style];
-    const alternateTextStyle = [textStyle, styles.optionAlternateText, styles.textLabelSupporting, props.style];
+    const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, textUnreadStyle, props.style);
+    const alternateTextStyle = StyleUtils.combineStyles(textStyle, styles.optionAlternateText, styles.textLabelSupporting, props.style);
     const contentContainerStyles = [styles.flex1];
     const sidebarInnerRowStyle = StyleSheet.flatten([
         styles.chatLinkRowPressable,
