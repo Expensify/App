@@ -268,16 +268,14 @@ class BasePaymentsPage extends React.Component {
                 {Permissions.canUseWallet(this.props.betas) && (
                     <>
                         <View style={[styles.mv5]}>
-                                <OfflineWithFeedback
-                                    pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
-                                    errors={this.props.walletTerms.errors}
-                                    onClose={PaymentMethods.clearWalletTermsError}
-                                    errorRowStyles={[styles.ml10, styles.mr2]}
-                                >
-                                    <CurrentWalletBalance
-                                        showActivityIndicator={this.props.isLoadingPaymentMethods && !this.props.network.isOffline}
-                                    />
-                                </OfflineWithFeedback>
+                            <OfflineWithFeedback
+                                pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
+                                errors={this.props.walletTerms.errors}
+                                onClose={PaymentMethods.clearWalletTermsError}
+                                errorRowStyles={[styles.ml10, styles.mr2]}
+                            >
+                                <CurrentWalletBalance />
+                            </OfflineWithFeedback>
                         </View>
                         {this.props.userWallet.currentBalance > 0 && (
                             <KYCWall
@@ -481,26 +479,23 @@ export default compose(
     withLocalize,
     withNetwork(),
     withOnyx({
-        bankAccountList: {
-            key: ONYXKEYS.BANK_ACCOUNT_LIST,
-        },
         betas: {
             key: ONYXKEYS.BETAS,
         },
-        cardList: {
-            key: ONYXKEYS.CARD_LIST,
-        },
-        isLoadingPaymentMethods: {
-            key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
+        walletTransfer: {
+            key: ONYXKEYS.WALLET_TRANSFER,
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
         },
+        bankAccountList: {
+            key: ONYXKEYS.BANK_ACCOUNT_LIST,
+        },
+        cardList: {
+            key: ONYXKEYS.CARD_LIST,
+        },
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,
-        },
-        walletTransfer: {
-            key: ONYXKEYS.WALLET_TRANSFER,
         },
     }),
 )(BasePaymentsPage);
