@@ -115,16 +115,18 @@ class Expensify extends PureComponent {
         this.appStateChangeListener = AppState.addEventListener('change', this.initializeClient);
     }
 
-    componentDidUpdate(prevProps) {
-        if (this.state.isNavigationReady && this.state.isSplashShown) {
-            const shouldHideSplash = !this.isAuthenticated() || this.props.isSidebarLoaded;
+    componentDidUpdate() {
+        if (!(this.state.isNavigationReady || this.state.isSplashShown)) {
+            return;
+        }
 
-            if (shouldHideSplash) {
-                BootSplash.hide();
+        const shouldHideSplash = !this.isAuthenticated() || this.props.isSidebarLoaded;
 
-                // eslint-disable-next-line react/no-did-update-set-state
-                this.setState({isSplashShown: false});
-            }
+        if (shouldHideSplash) {
+            BootSplash.hide();
+
+            // eslint-disable-next-line react/no-did-update-set-state
+            this.setState({isSplashShown: false});
         }
     }
 
