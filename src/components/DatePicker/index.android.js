@@ -5,6 +5,7 @@ import _ from 'underscore';
 import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './datepickerPropTypes';
+import styles from "../../styles/styles";
 
 class DatePicker extends React.Component {
     constructor(props) {
@@ -48,7 +49,7 @@ class DatePicker extends React.Component {
                     value={dateAsText}
                     placeholder={this.props.placeholder}
                     errorText={this.props.errorText}
-                    containerStyles={this.props.containerStyles}
+                    containerStyles={[...this.props.containerStyles, this.state.isPickerVisible ? styles.borderColorFocus : []]}
                     onPress={this.showPicker}
                     editable={false}
                     disabled={this.props.disabled}
