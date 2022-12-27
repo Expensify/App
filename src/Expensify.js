@@ -116,13 +116,6 @@ class Expensify extends PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        const previousAccountID = lodashGet(prevProps, 'session.accountID', null);
-        const currentAccountID = lodashGet(this.props, 'session.accountID', null);
-
-        if (currentAccountID && (currentAccountID !== previousAccountID)) {
-            PushNotification.register(currentAccountID);
-        }
-
         if (this.state.isNavigationReady && this.state.isSplashShown) {
             const shouldHideSplash = !this.isAuthenticated() || this.props.isSidebarLoaded;
 

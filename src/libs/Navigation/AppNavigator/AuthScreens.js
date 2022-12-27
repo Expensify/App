@@ -29,7 +29,7 @@ import * as ModalStackNavigators from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
-import * as Session from '../../actions/Session';
+import PushNotification from '../../Notification/PushNotification';
 
 let currentUserEmail;
 Onyx.connect({
@@ -100,6 +100,7 @@ class AuthScreens extends React.Component {
         }).then(() => {
             User.subscribeToUserEvents();
         });
+        PushNotification.register(lodashGet(this.props, 'session.accountID', null));
 
         // Listen for report changes and fetch some data we need on initialization
         UnreadIndicatorUpdater.listenForReportChanges();
