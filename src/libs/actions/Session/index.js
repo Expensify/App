@@ -51,6 +51,13 @@ function signOut() {
         shouldRetry: false,
     }, {optimisticData});
 
+    // We got signed out in this tab or another so clean up any subscriptions and timers
+    UnreadIndicatorUpdater.stopListeningForReportChanges();
+    PushNotification.deregister();
+    PushNotification.clearNotifications();
+    Pusher.disconnect();
+    Timers.clearAll();
+    Welcome.resetReadyCheck();
     Timing.clearData();
 }
 
@@ -306,19 +313,6 @@ function clearSignInData() {
     });
 }
 
-/**
- * Put any logic that needs to run when we are signed out here. This can be triggered when the current tab or another tab signs out.
- */
-function cleanupSession() {
-    // We got signed out in this tab or another so clean up any subscriptions and timers
-    UnreadIndicatorUpdater.stopListeningForReportChanges();
-    PushNotification.deregister();
-    PushNotification.clearNotifications();
-    Pusher.disconnect();
-    Timers.clearAll();
-    Welcome.resetReadyCheck();
-}
-
 function clearAccountMessages() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {
         success: '',
@@ -455,7 +449,6 @@ export {
     resetPassword,
     resendResetPassword,
     clearSignInData,
-    cleanupSession,
     clearAccountMessages,
     authenticatePusher,
     reauthenticatePusher,

@@ -132,7 +132,6 @@ class AuthScreens extends React.Component {
         if (this.unsubscribeGroupShortcut) {
             this.unsubscribeGroupShortcut();
         }
-        Session.cleanupSession();
         clearInterval(this.interval);
         this.interval = null;
     }
