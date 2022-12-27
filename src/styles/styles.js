@@ -485,6 +485,9 @@ const styles = {
 
     buttonCTAIcon: {
         marginRight: 22,
+
+        // Align vertically with the Button text
+        paddingBottom: 2,
     },
 
     buttonConfirm: {
