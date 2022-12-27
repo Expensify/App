@@ -373,6 +373,8 @@ const styles = {
         // It is needed to unset the Lineheight. We don't need it for buttons as button always contains single line of text.
         // It allows to vertically center the text.
         lineHeight: undefined,
+
+        // Add 1px to the Button text to give optical vertical alignment.
         paddingBottom: 1,
     },
 
