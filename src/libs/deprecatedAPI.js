@@ -77,31 +77,6 @@ function Get(parameters, shouldUseSecure = false) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.reportID
- * @param {String} parameters.paymentMethodType
- * @param {Object} [parameters.newIOUReportDetails]
- * @returns {Promise}
- */
-function PayIOU(parameters) {
-    const commandName = 'PayIOU';
-    requireParameters(['reportID', 'paymentMethodType'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {Number} parameters.reportID
- * @param {Object} [parameters.newIOUReportDetails]
- * @returns {Promise}
- */
-function PayWithWallet(parameters) {
-    const commandName = 'PayWithWallet';
-    requireParameters(['reportID'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {Object} parameters.details
  * @returns {Promise}
  */
@@ -163,8 +138,6 @@ export {
     DeleteLogin,
     Get,
     GetStatementPDF,
-    PayIOU,
-    PayWithWallet,
     PersonalDetails_Update,
     ResendValidateCode,
     SetNameValuePair,

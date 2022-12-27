@@ -3,7 +3,7 @@
 # Used to precompile all Github Action node.js scripts using ncc.
 # This bundles them with their dependencies into a single executable node.js script.
 
-# In order for this script to be safely run from anywhere, we cannot use the raw relative path '../actions'
+# In order for this script to be safely run from anywhere, we cannot use the raw relative path '../actions'.
 declare ACTIONS_DIR
 ACTIONS_DIR="$(dirname "$(dirname "$0")")/actions/javascript"
 
@@ -42,7 +42,7 @@ for ((i=0; i < ${#GITHUB_ACTIONS[@]}; i++)); do
 
   # Build the action in the background
   ncc build "$ACTION" -o "$ACTION_DIR" &
-  ASYNC_BUILDS[$i]=$!
+  ASYNC_BUILDS[i]=$!
 done
 
 for ((i=0; i < ${#GITHUB_ACTIONS[@]}; i++)); do
@@ -50,7 +50,7 @@ for ((i=0; i < ${#GITHUB_ACTIONS[@]}; i++)); do
   ACTION_DIR=$(dirname "$ACTION")
 
   # Wait for the background build to finish
-  wait ${ASYNC_BUILDS[$i]}
+  wait "${ASYNC_BUILDS[$i]}"
 
   # Prepend the warning note to the top of the compiled file
   OUTPUT_FILE="$ACTION_DIR/index.js"

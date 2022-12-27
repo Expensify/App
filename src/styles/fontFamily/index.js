@@ -7,9 +7,9 @@ const fontFamily = {
     EXP_NEUE: 'ExpensifyNeue-Regular',
     SYSTEM: 'System',
     MONOSPACE: 'ExpensifyMono-Regular',
-    MONOSPACE_ITALIC: 'ExpensifyMono-Italic',
+    MONOSPACE_ITALIC: 'ExpensifyMono-Regular',
     MONOSPACE_BOLD: 'ExpensifyMono-Bold',
-    MONOSPACE_BOLD_ITALIC: 'ExpensifyMono-BoldItalic',
+    MONOSPACE_BOLD_ITALIC: 'ExpensifyMono-Bold',
     EMOJI_TEXT_FONT: emojiFont,
 };
 
