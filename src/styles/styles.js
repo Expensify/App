@@ -487,7 +487,7 @@ const styles = {
         marginRight: 22,
 
         // Align vertically with the Button text
-        paddingBottom: 2,
+        paddingBottom: 1,
     },
 
     buttonConfirm: {
