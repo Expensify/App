@@ -76,6 +76,8 @@ export default {
     // Contains the users's block expiration (if they have one)
     NVP_BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
 
+    NVP_PRIVATE_PUSH_NOTIFICATION_ID: 'private_pushNotificationID',
+
     // Plaid data (access tokens, bank accounts ...)
     PLAID_DATA: 'plaidData',
 
