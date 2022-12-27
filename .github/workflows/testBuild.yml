@@ -234,7 +234,7 @@ jobs:
   postGithubComment:
     runs-on: ubuntu-latest
     name: Post a GitHub comment with app download links for testing
-    needs: [getBranchRef, android, ios, desktop, web]
+    needs: [validateActor, getBranchRef, android, ios, desktop, web]
     if: ${{ always() }}
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
@@ -288,7 +288,7 @@ jobs:
           DESKTOP: ${{ needs.desktop.result }}
           IOS: ${{ needs.iOS.result }}
           WEB: ${{ needs.web.result }}
-          ANDROID_LINK: ${{fromJson(steps.set_var.outputs.android_paths).html_path}}
+          ANDROID_LINK: ${{fromJson(steps.get_android_path.outputs.android_paths).html_path}}
           DESKTOP_LINK: "https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/$PULL_REQUEST_NUMBER/NewExpensify.dmg"
-          IOS_LINK: ${{fromJson(steps.set_var.outputs.android_paths).html_path}}
+          IOS_LINK: ${{fromJson(steps.get_ios_path.outputs.ios_paths).html_path}}
           WEB_LINK: "https://$PULL_REQUEST_NUMBER.pr-testing.expensify.com"
