@@ -143,6 +143,10 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
+        if (nextProps.report.isLoadingReportActions !== this.props.report.isLoadingReportActions) {
+            return true;
+        }
+
         if (nextProps.report.lastReadSequenceNumber !== this.props.report.lastReadSequenceNumber) {
             return true;
         }
@@ -232,10 +236,6 @@ class ReportActionsView extends React.Component {
     }
 
     componentWillUnmount() {
-        if (this.keyboardEvent) {
-            this.keyboardEvent.remove();
-        }
-
         if (this.unsubscribeVisibilityListener) {
             this.unsubscribeVisibilityListener();
         }
