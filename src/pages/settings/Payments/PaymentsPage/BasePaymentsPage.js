@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    ActivityIndicator, View, InteractionManager, LayoutAnimation,
+    View, InteractionManager, LayoutAnimation,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -33,7 +33,6 @@ import * as PaymentUtils from '../../../../libs/PaymentUtils';
 import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import ConfirmContent from '../../../../components/ConfirmContent';
 import Button from '../../../../components/Button';
-import themeColors from '../../../../styles/themes/default';
 
 class BasePaymentsPage extends React.Component {
     constructor(props) {
