@@ -1,4 +1,5 @@
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
@@ -57,20 +58,57 @@ class DisplayNamePage extends Component {
     validate(values) {
         const errors = {};
 
+        // Check for invalid characters in first and last name
+        const [firstNameInvalidCharacter, lastNameInvalidCharacter] = ValidationUtils.findInvalidSymbols(
+            [values.firstName, values.lastName],
+        );
+        this.assignError(
+            errors,
+            'firstName',
+            !_.isEmpty(firstNameInvalidCharacter),
+            Localize.translateLocal(
+                'personalDetails.error.hasInvalidCharacter',
+                {invalidCharacter: firstNameInvalidCharacter},
+            ),
+        );
+        this.assignError(
+            errors,
+            'lastName',
+            !_.isEmpty(lastNameInvalidCharacter),
+            Localize.translateLocal(
+                'personalDetails.error.hasInvalidCharacter',
+                {invalidCharacter: lastNameInvalidCharacter},
+            ),
+        );
+        if (!_.isEmpty(errors)) {
+            return errors;
+        }
+
+        // Check the character limit for first and last name
+        const characterLimitError = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
         const [hasFirstNameError, hasLastNameError] = ValidationUtils.doesFailCharacterLimitAfterTrim(
             CONST.FORM_CHARACTER_LIMIT,
             [values.firstName, values.lastName],
         );
-
-        if (hasFirstNameError) {
-            errors.firstName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
-        }
-
-        if (hasLastNameError) {
-            errors.lastName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
-        }
+        this.assignError(errors, 'firstName', hasFirstNameError, characterLimitError);
+        this.assignError(errors, 'lastName', hasLastNameError, characterLimitError);
 
         return errors;
+    }
+
+    /**
+     * @param {Object} errors
+     * @param {String} errorKey
+     * @param {Boolean} hasError
+     * @param {String} errorCopy
+     * @returns {Object} - An object containing the errors for each inputID
+     */
+    assignError(errors, errorKey, hasError, errorCopy) {
+        const validateErrors = errors;
+        if (hasError) {
+            validateErrors[errorKey] = errorCopy;
+        }
+        return validateErrors;
     }
 
     render() {
