@@ -250,8 +250,9 @@ const runTests = async () => {
         require('node:child_process').execSync(`cat ${config.LOG_FILE}`);
         try {
             require('node:child_process').execSync(`cat ~/.android/avd/${process.env.AVD_NAME || 'test'}.avd/config.ini > ${config.OUTPUT_DIR}/emulator-config.ini`);
-        } catch (__) {
-            // the file might not exist
+        } catch (ignoredError) {
+            // the error is ignored, as the file might not exist if the test
+            // run wasn't started with an emulator
         }
         process.exit(1);
     }
