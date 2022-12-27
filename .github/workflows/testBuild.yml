@@ -17,7 +17,7 @@ jobs:
   validateActor:
     runs-on: ubuntu-latest
     outputs:
-      CAN_BE_BUILD: ${{steps.canBeBuild.outputs.CAN_BE_BUILD}}
+      READY_TO_BUILD: ${{steps.readyToBuild.outputs.READY_TO_BUILD}}
     steps:
       - id: isUserTeamMember
         uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
@@ -35,14 +35,14 @@ jobs:
         run: |
           echo "The 'Ready To Build' label was added by an unauthorized user"
           exit 1
-      - id: canBeBuild
-        name: Set CAN_BE_BUILD flag
-        run: echo "CAN_BE_BUILD=${{ fromJSON(steps.isUserTeamMember.outputs.isTeamMember) || contains(github.event.pull_request.labels.*.name, 'Ready To Build') }}" >> "$GITHUB_OUTPUT"
+      - id: readyToBuild
+        name: Set READY_TO_BUILD flag
+        run: echo "READY_TO_BUILD=${{ fromJSON(steps.isUserTeamMember.outputs.isTeamMember) || contains(github.event.pull_request.labels.*.name, 'Ready To Build') }}" >> "$GITHUB_OUTPUT"
 
   getBranchRef:
     runs-on: ubuntu-latest
     needs: validateActor
-    if: ${{ needs.validateActor.outputs.CAN_BE_BUILD == 'true' }}
+    if: ${{ needs.validateActor.outputs.READY_TO_BUILD == 'true' }}
     outputs:
       REF: ${{steps.getHeadRef.outputs.REF}}
     steps:
@@ -62,7 +62,7 @@ jobs:
   android:
     name: Build and deploy Android for testing
     needs: [validateActor, getBranchRef]
-    if: ${{ needs.validateActor.outputs.CAN_BE_BUILD == 'true' }}
+    if: ${{ needs.validateActor.outputs.READY_TO_BUILD == 'true' }}
     runs-on: ubuntu-latest
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
@@ -112,7 +112,7 @@ jobs:
   iOS:
     name: Build and deploy iOS for testing
     needs: [validateActor, getBranchRef]
-    if: ${{ needs.validateActor.outputs.CAN_BE_BUILD == 'true' }}
+    if: ${{ needs.validateActor.outputs.READY_TO_BUILD == 'true' }}
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: macos-12
@@ -168,7 +168,7 @@ jobs:
   desktop:
     name: Build and deploy Desktop for testing
     needs: [validateActor, getBranchRef]
-    if: ${{ needs.validateActor.outputs.CAN_BE_BUILD == 'true' }}
+    if: ${{ needs.validateActor.outputs.READY_TO_BUILD == 'true' }}
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: macos-12
@@ -205,7 +205,7 @@ jobs:
   web:
     name: Build and deploy Web
     needs: [validateActor, getBranchRef]
-    if: ${{ needs.validateActor.outputs.CAN_BE_BUILD == 'true' }}
+    if: ${{ needs.validateActor.outputs.READY_TO_BUILD == 'true' }}
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: ubuntu-latest
