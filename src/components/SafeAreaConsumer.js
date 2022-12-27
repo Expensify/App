@@ -1,3 +1,4 @@
+import React from 'react';
 import PropTypes from 'prop-types';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import * as StyleUtils from '../styles/StyleUtils';
