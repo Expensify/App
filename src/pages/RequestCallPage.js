@@ -245,7 +245,7 @@ class RequestCallPage extends Component {
         const {firstName, lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
 
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper includeSafeAreaPaddingBottom={this.props.requestCallForm.didRequestCallSucceed}>
                 <HeaderWithCloseButton
                     title={this.props.translate('requestCallPage.title')}
                     shouldShowBackButton
