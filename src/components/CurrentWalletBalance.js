@@ -21,16 +21,22 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     balanceStyles: PropTypes.arrayOf(PropTypes.object),
 
+    showActivityIndicator: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     userWallet: {},
     balanceStyles: [],
+    showActivityIndicator: null,
 };
 
 const CurrentWalletBalance = (props) => {
-    if (_.isEmpty(props.userWallet)) {
+    // Show spinner if we are still waiting on userWallet to load unless we are specifically dictating
+    // behavior with the prop showActivityIndicator
+    const isShowActivityIndicatorSet = props.showActivityIndicator !== null;
+    if ((isShowActivityIndicatorSet && props.showActivityIndicator) || (!isShowActivityIndicatorSet && _.isEmpty(props.userWallet))) {
         return (
             <ActivityIndicator
                 color={themeColors.text}
