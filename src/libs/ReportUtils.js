@@ -1013,7 +1013,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
  * @returns {Boolean}
  */
 function isUnread(report) {
-    const lastVisibleActionCreated = report.lastVisibleActionCreated || '';
+    const lastVisibleActionCreated = report.lastActionCreated || '';
     const lastReadTime = report.lastReadTime || '';
     return lastReadTime < lastVisibleActionCreated;
 }
