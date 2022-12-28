@@ -2,7 +2,7 @@
 
 # This script accepts two arguments:
 # First argument (required): the branch to compare against for removals
-# Second argument (optional): `-v` which will output each branches podspecs and the removals if they exist
+# Second argument (optional): `-v` which will output each branch's podspecs and the removals if they exist
 
 declare -r RED='\033[0;31m'
 declare -r YELLOW='\033[0;33m'
