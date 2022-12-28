@@ -155,18 +155,18 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
 /**
  * @param {String} reportID
  * @param {Object} [actionsToMerge]
- * @returns {Number}
+ * @returns {String}
  */
-function getLastVisibleMessageTimestamp(reportID, actionsToMerge = {}) {
+function getLastVisibleActionCreated(reportID, actionsToMerge = {}) {
     const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
     const actionsWithoutDeleted = _.filter(actions, action => (!isDeletedAction(action)));
-    return _.max(actionsWithoutDeleted, action => action.reportActionTimestamp).reportActionTimestamp;
+    return _.max(actionsWithoutDeleted, action => action.created).created;
 }
 
 export {
     getSortedReportActions,
     filterReportActionsForDisplay,
-    getLastVisibleMessageTimestamp,
+    getLastVisibleActionCreated,
     getLastVisibleMessageText,
     getMostRecentIOUReportActionID,
     isDeletedAction,

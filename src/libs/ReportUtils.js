@@ -1192,7 +1192,7 @@ function getNewMarkerReportActionID(report, sortedAndFilteredReportActions) {
     }
 
     const newMarkerIndex = _.findLastIndex(sortedAndFilteredReportActions, reportAction => (
-        (reportAction.reportActionTimestamp || 0) > report.lastReadTime
+        (reportAction.created || '') > report.lastReadTime
     ));
 
     return _.has(sortedAndFilteredReportActions[newMarkerIndex], 'reportActionID')
