@@ -109,7 +109,7 @@ function sortReportsByLastRead(reports) {
     return _.chain(reports)
         .toArray()
         .filter(report => report && report.reportID && !isIOUReport(report))
-        .sortBy('lastReadTimestamp')
+        .sortBy('lastReadTime')
         .value();
 }
 
@@ -244,7 +244,7 @@ function hasExpensifyGuidesEmails(emails) {
 /**
  * Given a collection of reports returns the most recently accessed one
  *
- * @param {Record<String, {lastReadTimestamp, reportID}>|Array<{lastReadTimestamp, reportID}>} reports
+ * @param {Record<String, {lastReadTime, reportID}>|Array<{lastReadTime, reportID}>} reports
  * @param {Boolean} [ignoreDefaultRooms]
  * @param {Object} policies
  * @returns {Object}
@@ -895,7 +895,7 @@ function buildOptimisticChatReport(
         lastMessageText: null,
         lastReadSequenceNumber: 0,
         lastActionCreated: DateUtils.getDBTime(),
-        lastReadTimestamp: 0,
+        lastReadTime: '',
         maxSequenceNumber: 0,
         notificationPreference,
         oldPolicyName,
@@ -1014,8 +1014,8 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
  */
 function isUnread(report) {
     const lastMessageTimestamp = report.lastMessageTimestamp || 0;
-    const lastReadTimestamp = report.lastReadTimestamp || 0;
-    return lastReadTimestamp < lastMessageTimestamp;
+    const lastReadTime = report.lastReadTime || '';
+    return lastReadTime < lastMessageTimestamp;
 }
 
 /**
@@ -1192,7 +1192,7 @@ function getNewMarkerReportActionID(report, sortedAndFilteredReportActions) {
     }
 
     const newMarkerIndex = _.findLastIndex(sortedAndFilteredReportActions, reportAction => (
-        (reportAction.reportActionTimestamp || 0) > report.lastReadTimestamp
+        (reportAction.reportActionTimestamp || 0) > report.lastReadTime
     ));
 
     return _.has(sortedAndFilteredReportActions[newMarkerIndex], 'reportActionID')

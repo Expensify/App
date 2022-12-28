@@ -120,11 +120,10 @@ function getSimplifiedReportObject(report) {
         maxSequenceNumber: lodashGet(report, 'reportActionCount', 0),
         participants: getParticipantEmailsFromReport(report),
         isPinned: report.isPinned,
-        lastReadTimestamp: lodashGet(report, [
+        lastReadTime: lodashGet(report, [
             'reportNameValuePairs',
-            `lastRead_${currentUserAccountID}`,
-            'timestamp',
-        ], 0),
+            `lastReadTime_${currentUserAccountID}`,
+        ], ''),
         lastReadSequenceNumber,
         lastActionCreated,
         lastMessageText: isLastMessageAttachment ? '[Attachment]' : lastMessageText,
@@ -401,15 +400,16 @@ function addActions(reportID, text = '', file) {
     // Our report needs a new maxSequenceNumber that is n larger than the current depending on how many actions we are adding.
     const actionCount = text && file ? 2 : 1;
     const newSequenceNumber = highestSequenceNumber + actionCount;
+    const currentTime = DateUtils.getDBTime();
 
     // Update the report in Onyx to have the new sequence number
     const optimisticReport = {
         maxSequenceNumber: newSequenceNumber,
-        lastActionCreated: DateUtils.getDBTime(),
+        lastActionCreated: currentTime,
         lastMessageText: ReportUtils.formatReportLastMessageText(lastAction.message[0].text),
         lastActorEmail: currentUserEmail,
         lastReadSequenceNumber: newSequenceNumber,
-        lastReadTimestamp: Date.now(),
+        lastReadTime: currentTime,
     };
 
     // Optimistically add the new actions to the store before waiting to save them to the server. We use the clientID
@@ -500,7 +500,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             value: {
                 isLoadingReportActions: true,
                 isLoadingMoreReportActions: false,
-                lastReadTimestamp: Date.now(),
+                lastReadTime: DateUtils.getDBTime(),
                 lastReadSequenceNumber: getMaxSequenceNumber(reportID),
                 reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
             },
@@ -675,7 +675,7 @@ function readNewestAction(reportID, isoTime) {
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
                     lastReadSequenceNumber: sequenceNumber,
-                    lastReadTimestamp: Date.now(),
+                    lastReadTime: DateUtils.getDBTime(),
                 },
             }],
         });
@@ -685,24 +685,24 @@ function readNewestAction(reportID, isoTime) {
  * Sets the last read timestamp on a report
  *
  * @param {String} reportID
- * @param {Number} reportActionTimestamp
+ * @param {String} reportActionCreated
  */
-function markCommentAsUnread(reportID, reportActionTimestamp) {
-    // We subtract 1 millisecond so that the lastReadTimestamp is updated to just before a given reportAction's created date
-    // For example, if we want to mark a report action with timestamp 1000 unread, we set the lastReadTimestamp to 999
-    // Since the report action with timestamp 1000 will be the first with a timestamp above 999, it's the first one that will be shown as unread
-    const lastReadTimestamp = reportActionTimestamp - 1;
+function markCommentAsUnread(reportID, reportActionCreated) {
+    // We subtract 1 millisecond so that the lastReadTime is updated to just before a given reportAction's created date
+    // For example, if we want to mark a report action with ID 100 and created date '2014-04-01 16:07:02.999' unread, we set the lastReadTime to '2014-04-01 16:07:02.998'
+    // Since the report action with ID 100 will be the first with a timestamp above '2014-04-01 16:07:02.998', it's the first one that will be shown as unread
+    const lastReadTime = DateUtils.oneMillisecondBefore(reportActionCreated);
     API.write('MarkAsUnread',
         {
             reportID,
-            isoTime: DateUtils.getDBTime(lastReadTimestamp),
+            isoTime: lastReadTime,
         },
         {
             optimisticData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
-                    lastReadTimestamp,
+                    lastReadTime,
                 },
             }],
         });

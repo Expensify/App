@@ -98,7 +98,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
                 ...chatReport,
-                lastReadTimestamp: Date.now(),
+                lastReadTime: DateUtils.getDBTime(),
                 lastReadSequenceNumber: newSequenceNumber,
                 maxSequenceNumber: newSequenceNumber,
                 lastMessageText: optimisticReportAction.message[0].text,
@@ -263,7 +263,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
 
     groupChatReport.maxSequenceNumber = groupChatReportMaxSequenceNumber + 1;
     groupChatReport.lastReadSequenceNumber = groupChatReportMaxSequenceNumber + 1;
-    groupChatReport.lastReadTimestamp = Date.now();
+    groupChatReport.lastReadTime = DateUtils.getDBTime();
     groupChatReport.lastMessageText = groupIOUReportAction.message[0].text;
     groupChatReport.lastMessageHtml = groupIOUReportAction.message[0].html;
     groupChatReport.pendingFields = {
