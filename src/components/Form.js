@@ -10,11 +10,8 @@ import * as FormActions from '../libs/actions/FormActions';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import styles from '../styles/styles';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
-<<<<<<< HEAD
 import SafeAreaConsumer from './SafeAreaConsumer';
-=======
 import ScrollViewWithContext from './ScrollViewWithContext';
->>>>>>> origin
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
