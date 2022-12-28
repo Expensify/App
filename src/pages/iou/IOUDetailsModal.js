@@ -98,15 +98,38 @@ class IOUDetailsModal extends Component {
     /**
      * @param {String} paymentMethodType
      */
-    performIOUPayment(paymentMethodType) {
-        IOU.payIOUReport({
-            chatReportID: this.props.route.params.chatReportID,
-            reportID: this.props.route.params.iouReportID,
-            paymentMethodType,
-            amount: this.props.iouReport.total,
-            currency: this.props.iouReport.currency,
-            requestorPayPalMeAddress: this.props.iouReport.submitterPayPalMeAddress,
-        });
+    payMoneyRequest(paymentMethodType) {
+        const recipient = {
+            login: this.props.iouReport.ownerEmail,
+            payPalMeAddress: this.props.iouReport.submitterPayPalMeAddress,
+        };
+
+        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            IOU.payMoneyRequestElsewhere(
+                this.props.chatReport,
+                this.props.iouReport,
+                recipient,
+            );
+            return;
+        }
+
+        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
+            IOU.payMoneyRequestViaPaypal(
+                this.props.chatReport,
+                this.props.iouReport,
+                recipient,
+            );
+            return;
+        }
+
+        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+            IOU.payMoneyRequestWithWallet(
+                this.props.chatReport,
+                this.props.iouReport,
+                recipient,
+            );
+            Navigation.navigate(ROUTES.getReportRoute(this.props.route.params.chatReportID));
+        }
     }
 
     render() {
@@ -122,7 +145,6 @@ class IOUDetailsModal extends Component {
                     <View style={[styles.flex1, styles.justifyContentBetween]}>
                         <ScrollView contentContainerStyle={styles.iouDetailsContainer}>
                             <IOUPreview
-                                iou={this.props.iouReport}
                                 chatReportID={this.props.route.params.chatReportID}
                                 iouReportID={this.props.route.params.iouReportID}
                                 shouldHidePayButton
@@ -139,7 +161,7 @@ class IOUDetailsModal extends Component {
                             <FixedFooter>
                                 <SettlementButton
                                     isLoading={this.props.iou.loading}
-                                    onPress={paymentMethodType => this.performIOUPayment(paymentMethodType)}
+                                    onPress={paymentMethodType => this.payMoneyRequest(paymentMethodType)}
                                     shouldShowPaypal={Boolean(lodashGet(this.props, 'iouReport.submitterPayPalMeAddress'))}
                                     currency={lodashGet(this.props, 'iouReport.currency')}
                                     enablePaymentsRoute={ROUTES.IOU_DETAILS_ENABLE_PAYMENTS}
@@ -165,6 +187,9 @@ export default compose(
     withOnyx({
         iou: {
             key: ONYXKEYS.IOU,
+        },
+        chatReport: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.chatReportID}`,
         },
         iouReport: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.iouReportID}`,
