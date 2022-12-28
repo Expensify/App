@@ -9,7 +9,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 import ConfirmModal from '../../../../components/ConfirmModal';
-import * as Localize from "../../../../libs/Localize";
+import * as Localize from '../../../../libs/Localize';
 
 const propTypes = {
     /** Flag to check if the chat participant is Chronos */
