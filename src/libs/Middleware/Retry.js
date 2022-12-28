@@ -17,21 +17,25 @@ function Retry(response, request, isFromSequentialQueue) {
             }
 
             if (isFromSequentialQueue) {
-                const logParams = {command: request.command, error: error.message};
+                const retryCount = PersistedRequests.incrementRetries(request);
+                const logParams = {retryCount, command: request.command, error: error.message};
+                Log.info('Persisted request failed', false, logParams);
+                let logMessage = '';
 
-                // If the backend is down don't retry the request
                 if (error.message === CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED) {
-                    Log.info('Request failed because the Expensify backend is not available, removing from storage', false, logParams);
-                    PersistedRequests.remove(request);
+                    logMessage = 'Request failed because the Expensify backend is not available';
+                } else if (error.message === CONST.ERROR.THROTTLED) {
+                    logMessage = 'Request is being throttled';
+                } else if (retryCount >= CONST.NETWORK.MAX_REQUEST_RETRIES) {
+                    logMessage = 'Request failed too many times';
+                } else {
+                    // We are ok to do nothing and allow the SequentialQueue to retry the request
                     return;
                 }
-                const retryCount = PersistedRequests.incrementRetries(request);
-                logParams.retryCount = retryCount;
-                Log.info('Persisted request failed', false, logParams);
-                if (retryCount >= CONST.NETWORK.MAX_REQUEST_RETRIES) {
-                    Log.info('Request failed too many times, removing from storage', false, logParams);
-                    PersistedRequests.remove(request);
-                }
+
+                // We shouldn't retry the request so log a message explaining why and remove the request from storage.
+                Log.info(`${logMessage}, removing from storage`, false, logParams);
+                PersistedRequests.remove(request);
                 return;
             }
 
