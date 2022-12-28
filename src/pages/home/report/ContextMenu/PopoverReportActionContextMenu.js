@@ -4,12 +4,12 @@ import {
 } from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import * as Report from '../../../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 import ConfirmModal from '../../../../components/ConfirmModal';
-import lodashGet from "lodash/get";
 
 const propTypes = {
     /** Flag to check if the chat participant is Chronos */
