@@ -75,7 +75,8 @@ class PopoverReportActionContextMenu extends React.Component {
     shouldComponentUpdate(nextProps, nextState) {
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
             || this.state.popoverAnchorPosition !== nextState.popoverAnchorPosition
-            || this.state.isDeleteCommentConfirmModalVisible !== nextState.isDeleteCommentConfirmModalVisible;
+            || this.state.isDeleteCommentConfirmModalVisible !== nextState.isDeleteCommentConfirmModalVisible
+            || this.props.preferredLocale !== this.nextProps.preferredLocale;
     }
 
     componentWillUnmount() {
