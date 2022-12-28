@@ -173,7 +173,6 @@ function buildTestReportComment(actorEmail, sequenceNumber, created, actorAccoun
         created,
         message: [{type: 'COMMENT', html: `Comment ${sequenceNumber}`, text: `Comment ${sequenceNumber}`}],
         reportActionID,
-        reportActionTimestamp: moment.utc(created).valueOf(),
         actorAccountID,
     };
 }

@@ -138,9 +138,8 @@ function signInAndGetAppWithUnreadChat() {
                 reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                 maxSequenceNumber: 9,
                 lastReadSequenceNumber: 1,
-                lastMessageTimestamp: moment.utc(reportAction9CreatedDate).valueOf(),
-                lastReadTimestamp: moment.utc(reportAction3CreatedDate).valueOf(),
-                lastActionCreated: DateUtils.getDBTime(MOMENT_TEN_MINUTES_AGO.clone().utc().valueOf()),
+                lastReadTime: reportAction3CreatedDate,
+                lastActionCreated: reportAction9CreatedDate,
                 lastMessageText: 'Test',
                 participants: [USER_B_EMAIL],
             });
@@ -150,7 +149,6 @@ function signInAndGetAppWithUnreadChat() {
                     automatic: false,
                     sequenceNumber: 0,
                     created: MOMENT_TEN_MINUTES_AGO.clone().format(MOMENT_FORMAT),
-                    reportActionTimestamp: moment.utc(MOMENT_TEN_MINUTES_AGO.clone().format(MOMENT_FORMAT)).valueOf(),
                     reportActionID: NumberUtils.rand64(),
                     message: [
                         {
@@ -290,9 +288,8 @@ describe('Unread Indicators', () => {
                     reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                     maxSequenceNumber: 1,
                     lastReadSequenceNumber: 0,
-                    lastReadTimestamp: null,
-                    lastMessageTimestamp: NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.utc().valueOf(),
-                    lastActionCreated: DateUtils.getDBTime(NEW_REPORT_CREATED_MOMENT.utc().valueOf()),
+                    lastReadTime: '',
+                    lastActionCreated: DateUtils.getDBTime(NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.utc().valueOf()),
                     lastMessageText: 'Comment 1',
                     participants: [USER_C_EMAIL],
                 });
@@ -302,7 +299,6 @@ describe('Unread Indicators', () => {
                         automatic: false,
                         sequenceNumber: 0,
                         created: NEW_REPORT_CREATED_MOMENT.format(MOMENT_FORMAT),
-                        reportActionTimestamp: NEW_REPORT_CREATED_MOMENT.utc().valueOf(),
                         reportActionID: NumberUtils.rand64(),
                     },
                     1: {
@@ -312,7 +308,6 @@ describe('Unread Indicators', () => {
                         person: [{type: 'TEXT', style: 'strong', text: 'User C'}],
                         sequenceNumber: 1,
                         created: NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.format(MOMENT_FORMAT),
-                        reportActionTimestamp: NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.utc().valueOf(),
                         message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
                         reportActionID: NumberUtils.rand64(),
                     },
@@ -371,7 +366,7 @@ describe('Unread Indicators', () => {
             .then(() => {
                 // It's difficult to trigger marking a report comment as unread since we would have to mock the long press event and then
                 // another press on the context menu item so we will do it via the action directly and then test if the UI has updated properly
-                Report.markCommentAsUnread(REPORT_ID, moment.utc(reportAction3CreatedDate).valueOf());
+                Report.markCommentAsUnread(REPORT_ID, reportAction3CreatedDate);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -480,7 +475,7 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(0);
 
                 // Mark a previous comment as unread and verify the unread action indicator returns
-                Report.markCommentAsUnread(REPORT_ID, moment.utc(reportAction9CreatedDate).valueOf());
+                Report.markCommentAsUnread(REPORT_ID, reportAction9CreatedDate);
                 return waitForPromisesToResolve();
             })
             .then(() => {
