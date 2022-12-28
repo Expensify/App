@@ -186,9 +186,10 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
 /**
  * Replace any emoji name in a text with the emoji icon
  * @param {String} text
+ * @param {Boolean} addSpace
  * @returns {String}
  */
-function replaceEmojis(text) {
+function replaceEmojis(text, addSpace = false) {
     let newText = text;
     const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
     if (!emojiData || emojiData.length === 0) {
@@ -201,7 +202,7 @@ function replaceEmojis(text) {
 
             // If this is the last emoji in the message and it's the end of the message so far,
             // add a space after it so the user can keep typing easily.
-            if (i === emojiData.length - 1 && text.endsWith(emojiData[i])) {
+            if (addSpace && i === emojiData.length - 1 && text.endsWith(emojiData[i])) {
                 emojiReplacement += ' ';
             }
             newText = newText.replace(emojiData[i], emojiReplacement);
