@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -10,7 +10,11 @@ import * as FormActions from '../libs/actions/FormActions';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import styles from '../styles/styles';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
+<<<<<<< HEAD
 import SafeAreaConsumer from './SafeAreaConsumer';
+=======
+import ScrollViewWithContext from './ScrollViewWithContext';
+>>>>>>> origin
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -251,7 +255,7 @@ class Form extends React.Component {
         return (
             <SafeAreaConsumer>
                 {({safeAreaPaddingBottomStyle}) => (
-                    <ScrollView
+                    <ScrollViewWithContext
                         style={[styles.w100, styles.flex1]}
                         contentContainerStyle={styles.flexGrow1}
                         keyboardShouldPersistTaps="handled"
@@ -274,7 +278,7 @@ class Form extends React.Component {
                                         focusInput.focus();
                                     }
 
-                                    // We substract 10 to scroll slightly above the input
+                                    // We subtract 10 to scroll slightly above the input
                                     if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
                                         focusInput.measureLayout(this.form, (x, y) => this.form.scrollTo({y: y - 10, animated: false}));
                                     }
@@ -285,7 +289,7 @@ class Form extends React.Component {
                             />
                             )}
                         </View>
-                    </ScrollView>
+                    </ScrollViewWithContext>
                 )}
             </SafeAreaConsumer>
         );
