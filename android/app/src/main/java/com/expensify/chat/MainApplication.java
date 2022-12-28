@@ -3,6 +3,7 @@ package com.expensify.chat;
 import android.content.Context;
 import android.database.CursorWindow;
 
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.multidex.MultiDexApplication;
 
 import com.expensify.chat.bootsplash.BootSplashPackage;
@@ -64,6 +65,7 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
   @Override
   public void onCreate() {
       super.onCreate();
+      AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
       // If you opted-in for the New Architecture, we enable the TurboModule system
       ReactFeatureFlags.useTurboModules = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
       SoLoader.init(this, /* native exopackage */ false);
