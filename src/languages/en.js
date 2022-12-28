@@ -132,7 +132,7 @@ export default {
         description: 'Drag, zoom, and rotate your image to your preferred specifications',
     },
     composer: {
-        noExtentionFoundForMimeType: 'No extension found for mime type',
+        noExtensionFoundForMimeType: 'No extension found for mime type',
         problemGettingImageYouPasted: 'There was a problem getting the image you pasted',
     },
     baseUpdateAppModal: {
