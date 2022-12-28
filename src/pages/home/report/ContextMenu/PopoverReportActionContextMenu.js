@@ -9,10 +9,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 import ConfirmModal from '../../../../components/ConfirmModal';
-import * as Localize from '../../../../libs/Localize';
-import {withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import compose from '../../../../libs/compose';
 import lodashGet from "lodash/get";
 
 const propTypes = {
@@ -323,7 +319,7 @@ class PopoverReportActionContextMenu extends React.Component {
                     />
                 </PopoverWithMeasuredContent>
                 <ConfirmModal
-                    title={Localize.translateLocal('reportActionContextMenu.deleteComment')}
+                    title={this.props.translate('reportActionContextMenu.deleteComment')}
                     isVisible={this.state.isDeleteCommentConfirmModalVisible}
                     shouldSetModalVisibility={this.state.shouldSetModalVisibilityForDeleteConfirmation}
                     onConfirm={this.confirmDeleteAndHideModal}
@@ -342,12 +338,4 @@ class PopoverReportActionContextMenu extends React.Component {
 PopoverReportActionContextMenu.propTypes = propTypes;
 PopoverReportActionContextMenu.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-            preferredLocale: {
-                key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-            },
-        },
-    )
-)(PopoverReportActionContextMenu);
+export default withLocalize(PopoverReportActionContextMenu);
