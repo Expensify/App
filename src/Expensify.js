@@ -120,8 +120,8 @@ class Expensify extends PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        const previousPushNotificationID = lodashGet(prevProps, 'private_pushNotificationID', null);
-        const currentPushNotificationID = lodashGet(this.props, 'private_pushNotificationID', null);
+        const previousPushNotificationID = prevProps.private_pushNotificationID;
+        const currentPushNotificationID = this.props.private_pushNotificationID;
 
         if (currentPushNotificationID && (currentPushNotificationID !== previousPushNotificationID)) {
             PushNotification.register(currentPushNotificationID);
@@ -227,7 +227,7 @@ export default compose(
             key: ONYXKEYS.SESSION,
         },
         private_pushNotificationID: {
-            key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID
+            key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
         },
         updateAvailable: {
             key: ONYXKEYS.UPDATE_AVAILABLE,
