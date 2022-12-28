@@ -47,6 +47,7 @@ const CurrentWalletBalance = (props) => {
     }
 
     const formattedBalance = props.numberFormat(
+
         // Divide by 100 because balance is in cents. Default to zero if userWallet and currentBalance is not set yet to avoid NaN
         (props.userWallet.currentBalance || 0) / 100,
         {style: 'currency', currency: 'USD'},
