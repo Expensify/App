@@ -274,7 +274,9 @@ class BasePaymentsPage extends React.Component {
                                 onClose={PaymentMethods.clearWalletTermsError}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                             >
-                                <CurrentWalletBalance />
+                                <CurrentWalletBalance
+                                    showActivityIndicator={this.props.isLoadingPaymentMethods && !this.props.network.isOffline}
+                                />
                             </OfflineWithFeedback>
                         </View>
                         {this.props.userWallet.currentBalance > 0 && (
@@ -496,6 +498,9 @@ export default compose(
         },
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,
+        },
+        isLoadingPaymentMethods: {
+            key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
         },
     }),
 )(BasePaymentsPage);
