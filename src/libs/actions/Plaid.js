@@ -1,7 +1,6 @@
 import getPlaidLinkTokenParameters from '../getPlaidLinkTokenParameters';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
-import * as Localize from '../Localize';
 import CONST from '../../CONST';
 
 /**
@@ -33,6 +32,7 @@ function openPlaidBankAccountSelector(publicToken, bankName, allowDebit) {
             value: {
                 isLoading: true,
                 error: '',
+                errors: null,
                 bankName,
             },
         }],
@@ -42,6 +42,7 @@ function openPlaidBankAccountSelector(publicToken, bankName, allowDebit) {
             value: {
                 isLoading: false,
                 error: '',
+                errors: null,
             },
         }],
         failureData: [{
@@ -49,7 +50,6 @@ function openPlaidBankAccountSelector(publicToken, bankName, allowDebit) {
             key: ONYXKEYS.PLAID_DATA,
             value: {
                 isLoading: false,
-                error: Localize.translateLocal('bankAccount.error.noBankAccountAvailable'),
             },
         }],
     });
