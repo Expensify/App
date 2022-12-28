@@ -10,6 +10,10 @@ import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasur
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 import ConfirmModal from '../../../../components/ConfirmModal';
 import * as Localize from '../../../../libs/Localize';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../../../../ONYXKEYS';
+import compose from '../../../../libs/compose';
+import lodashGet from "lodash/get";
 
 const propTypes = {
     /** Flag to check if the chat participant is Chronos */
@@ -73,10 +77,12 @@ class PopoverReportActionContextMenu extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
+        const previousLocale = lodashGet(this.props, 'preferredLocale', 'en');
+        const nextLocale = lodashGet(nextProps, 'preferredLocale', 'en');
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
             || this.state.popoverAnchorPosition !== nextState.popoverAnchorPosition
             || this.state.isDeleteCommentConfirmModalVisible !== nextState.isDeleteCommentConfirmModalVisible
-            || this.props.preferredLocale !== this.nextProps.preferredLocale;
+            || previousLocale !== nextLocale;
     }
 
     componentWillUnmount() {
@@ -336,4 +342,12 @@ class PopoverReportActionContextMenu extends React.Component {
 PopoverReportActionContextMenu.propTypes = propTypes;
 PopoverReportActionContextMenu.defaultProps = defaultProps;
 
-export default withLocalize(PopoverReportActionContextMenu);
+export default compose(
+    withLocalize,
+    withOnyx({
+            preferredLocale: {
+                key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+            },
+        },
+    )
+)(PopoverReportActionContextMenu);
