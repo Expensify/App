@@ -1,7 +1,5 @@
 import React from 'react';
-import {
-    Pressable, Image, View, Dimensions,
-} from 'react-native';
+import {Pressable, Image, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -15,6 +13,7 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as Report from '../../../libs/actions/Report';
 import reportPropTypes from '../../reportPropTypes';
 import EmptyStateBackgroundImage from '../../../../assets/images/empty-state_background-fade.png';
+import * as StyleUtils from '../../../styles/StyleUtils';
 
 const propTypes = {
     /** The id of the report */
@@ -25,6 +24,9 @@ const propTypes = {
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
+
+    /** The size of the screen - used for background image handling */
+    isSmallScreenWidth: PropTypes.bool.isRequired,
 
     /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({
@@ -42,11 +44,6 @@ const ReportActionItemCreated = (props) => {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
 
-    // The image handling depends on how large the chat window is
-    const backgroundImageHeight = Dimensions.get('window').height < Dimensions.get('window').width
-        ? 450
-        : 300;
-
     return (
         <OfflineWithFeedback
             pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}
@@ -54,12 +51,7 @@ const ReportActionItemCreated = (props) => {
             errorRowStyles={styles.addWorkspaceRoomErrorRow}
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
         >
-            <View style={[styles.emptyStateBackgroundContainer, {
-                // since height and top are dynamically set they needs to be updated here, not in styles.js
-                height: backgroundImageHeight,
-                top: -backgroundImageHeight,
-            }]}
-            >
+            <View style={[styles.emptyStateBackgroundContainer, StyleUtils.getBackgroundImageHeightStyle(props.isSmallScreenWidth)]}>
                 <Image
                     source={EmptyStateBackgroundImage}
                     style={[styles.emptyStateBackgroundImage]}

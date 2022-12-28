@@ -272,6 +272,10 @@ const styles = {
         fontWeight: fontWeightBold,
     },
 
+    textHeader: {
+        fontSize: variables.fontSizeHero,
+    },
+
     textStrong: {
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
@@ -2859,10 +2863,6 @@ const styles = {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeNormal,
         maxWidth: 240,
-    },
-
-    welcomeTextHeader: {
-        fontSize: variables.fontSizeHero,
     },
 
     emptyStateBackgroundContainer: {

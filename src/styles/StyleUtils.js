@@ -644,6 +644,20 @@ function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
     };
 }
 
+function getBackgroundImageHeightStyle(isSmallScreenWidth) {
+    if (isSmallScreenWidth) {
+        return {
+            height: 300,
+            top: -300,
+        };
+    }
+
+    return {
+        height: 450,
+        top: -450,
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -679,4 +693,5 @@ export {
     getHeight,
     fade,
     getHorizontalStackedAvatarBorderStyle,
+    getBackgroundImageHeightStyle,
 };
