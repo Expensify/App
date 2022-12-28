@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -10,6 +10,7 @@ import * as FormActions from '../libs/actions/FormActions';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import styles from '../styles/styles';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
+import ScrollViewWithContext from './ScrollViewWithContext';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -249,7 +250,7 @@ class Form extends React.Component {
     render() {
         return (
             <>
-                <ScrollView
+                <ScrollViewWithContext
                     style={[styles.w100, styles.flex1]}
                     contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
@@ -283,7 +284,7 @@ class Form extends React.Component {
                         />
                         )}
                     </View>
-                </ScrollView>
+                </ScrollViewWithContext>
             </>
         );
     }
