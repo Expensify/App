@@ -20,7 +20,7 @@ import withPolicy from './withPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import ScrollViewWithPickers from '../../components/ScrollViewWithPickers';
+import ScrollViewWithContext from '../../components/ScrollViewWithContext';
 
 const propTypes = {
     shouldSkipVBBACall: PropTypes.bool,
@@ -122,7 +122,7 @@ class WorkspacePageWithSections extends React.Component {
                     />
                     {this.props.shouldUseScrollView
                         ? (
-                            <ScrollViewWithPickers
+                            <ScrollViewWithContext
                                 keyboardShouldPersistTaps="handled"
                                 style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
                             >
@@ -131,7 +131,7 @@ class WorkspacePageWithSections extends React.Component {
                                     {this.props.children(hasVBA, policyID, isUsingECard)}
 
                                 </View>
-                            </ScrollViewWithPickers>
+                            </ScrollViewWithContext>
                         )
                         : this.props.children(hasVBA, policyID, isUsingECard)}
                     {this.props.footer}

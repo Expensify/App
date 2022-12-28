@@ -10,7 +10,7 @@ import Text from '../Text';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import pickerStyles from './pickerStyles';
-import {ScrollViewWithPickersContext} from '../ScrollViewWithPickers';
+import {ScrollContext} from '../ScrollViewWithContext';
 
 const propTypes = {
     /** Picker label */
@@ -205,7 +205,7 @@ class Picker extends PureComponent {
 
 Picker.propTypes = propTypes;
 Picker.defaultProps = defaultProps;
-Picker.contextType = ScrollViewWithPickersContext;
+Picker.contextType = ScrollContext;
 
 // eslint-disable-next-line react/jsx-props-no-spreading
 export default React.forwardRef((props, ref) => <Picker {...props} innerRef={ref} key={props.inputID} />);

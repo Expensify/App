@@ -10,7 +10,7 @@ import * as FormActions from '../libs/actions/FormActions';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import styles from '../styles/styles';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
-import ScrollViewWithPickers from './ScrollViewWithPickers';
+import ScrollViewWithContext from './ScrollViewWithContext';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -250,7 +250,7 @@ class Form extends React.Component {
     render() {
         return (
             <>
-                <ScrollViewWithPickers
+                <ScrollViewWithContext
                     style={[styles.w100, styles.flex1]}
                     contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
@@ -284,7 +284,7 @@ class Form extends React.Component {
                         />
                         )}
                     </View>
-                </ScrollViewWithPickers>
+                </ScrollViewWithContext>
             </>
         );
     }
