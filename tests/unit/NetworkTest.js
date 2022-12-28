@@ -829,4 +829,26 @@ describe('NetworkTests', () => {
                 expect(xhr.mock.calls.length).toBe(1);
             });
     });
+
+    test('API.write requests that return a 429 throttled response should not be retried', () => {
+        expect.assertions(1);
+        const xhr = jest.spyOn(HttpUtils, 'xhr');
+
+        // GIVEN a mock that will return a response with a status of 429
+        global.fetch = jest.fn(() => Promise.resolve({
+            ok: false,
+            status: 429,
+            json: () => Promise.resolve({error: 'Too many requests'}),
+        }));
+
+        // WHEN we make an API.write request
+        // eslint-disable-next-line rulesdir/no-multiple-api-calls
+        API.write('DeleteUserAvatar', {}, {});
+
+        // Then the request should not be retried
+        return waitForPromisesToResolve()
+            .then(() => {
+                expect(xhr.mock.calls.length).toBe(1);
+            });
+    });
 });
