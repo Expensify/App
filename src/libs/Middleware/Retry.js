@@ -17,10 +17,19 @@ function Retry(response, request, isFromSequentialQueue) {
             }
 
             if (isFromSequentialQueue) {
+                const logParams = {command: request.command, error: error.message};
+
+                // If the backend is down don't retry the request
+                if (error.message === CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED) {
+                    Log.info('Request failed because the Expensify backend is not available, removing from storage', false, logParams);
+                    PersistedRequests.remove(request);
+                    return;
+                }
                 const retryCount = PersistedRequests.incrementRetries(request);
-                Log.info('Persisted request failed', false, {retryCount, command: request.command, error: error.message});
+                logParams.retryCount = retryCount;
+                Log.info('Persisted request failed', false, logParams);
                 if (retryCount >= CONST.NETWORK.MAX_REQUEST_RETRIES) {
-                    Log.info('Request failed too many times, removing from storage', false, {retryCount, command: request.command, error: error.message});
+                    Log.info('Request failed too many times, removing from storage', false, logParams);
                     PersistedRequests.remove(request);
                 }
                 return;
