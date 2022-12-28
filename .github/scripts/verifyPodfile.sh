@@ -74,7 +74,7 @@ removed_specs=$(jq -n --jsonargs '$ARGS.positional | first - last | .' -- "$main
 formatted_removals="$(_formatted_pod_list "$removed_specs")"
 
 # Verbose output
-([ "$2" == "-v" ]) && \
+[ "$2" == "-v" ] && \
 ([ -n "$formatted_removals" ] && \
 echo -e "Removals:\n$formatted_removals" || \
 echo "No package removals")
