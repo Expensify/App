@@ -3,6 +3,7 @@ import _ from 'underscore';
 import CONST from '../CONST';
 import * as CardUtils from './CardUtils';
 import * as LoginUtils from './LoginUtils';
+import * as Localize from './Localize';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -337,6 +338,25 @@ function doesFailCharacterLimitAfterTrim(maxLength, valuesToBeValidated) {
 }
 
 /**
+ * Checks if input value includes comma or semicolon which are not accepted
+ *
+ * @param {String[]} valuesToBeValidated
+ * @returns {String[]}
+ */
+function findInvalidSymbols(valuesToBeValidated) {
+    return _.map(valuesToBeValidated, (value) => {
+        if (!value) {
+            return '';
+        }
+        let inValidSymbol = value.replace(/[,]+/g, '') !== value ? Localize.translateLocal('personalDetails.error.comma') : '';
+        if (_.isEmpty(inValidSymbol)) {
+            inValidSymbol = value.replace(/[;]+/g, '') !== value ? Localize.translateLocal('personalDetails.error.semicolon') : '';
+        }
+        return inValidSymbol;
+    });
+}
+
+/**
  * Checks if is one of the certain names which are reserved for default rooms
  * and should not be used for policy rooms.
  *
@@ -400,4 +420,5 @@ export {
     isReservedRoomName,
     isExistingRoomName,
     isValidTaxID,
+    findInvalidSymbols,
 };
