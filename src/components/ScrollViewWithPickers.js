@@ -1,8 +1,9 @@
 import React from 'react';
 import {ScrollView} from 'react-native';
 
-// eslint-disable-next-line rulesdir/no-inline-named-export
-export const ScrollViewWithPickersContext = React.createContext();
+const MIN_SMOOTH_SCROLL_EVENT_THROTTLE = 16;
+
+const ScrollContext = React.createContext();
 
 // eslint-disable-next-line react/forbid-foreign-prop-types
 const propTypes = ScrollView.propTypes;
@@ -14,7 +15,7 @@ const propTypes = ScrollView.propTypes;
 * Using this wrapper will automatically handle scrolling to the picker's <TextInput />
 * when the picker modal is opened
 */
-class ScrollViewWithPickers extends React.Component {
+class ScrollViewWithScrollContext extends React.Component {
     constructor(props) {
         super(props);
 
@@ -34,29 +35,28 @@ class ScrollViewWithPickers extends React.Component {
     }
 
     render() {
-        // eslint-disable-next-line react/destructuring-assignment
-        const {children, scrollEventThrottle, ...propsWithoutChildrenAndScrollEventThrottle} = this.props;
         return (
             <ScrollView
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...propsWithoutChildrenAndScrollEventThrottle}
+                {...this.props}
                 ref={this.scrollViewRef}
                 onScroll={this.setContextScrollPosition}
-                scrollEventThrottle={scrollEventThrottle || 16}
+                scrollEventThrottle={this.props.scrollEventThrottle || MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 scrollToOverflowEnabled
             >
-                <ScrollViewWithPickersContext.Provider
+                <ScrollContext.Provider
                     value={{
                         scrollViewRef: this.scrollViewRef,
                         contentOffsetY: this.state.contentOffsetY,
                     }}
                 >
-                    {children}
-                </ScrollViewWithPickersContext.Provider>
+                    {this.props.children}
+                </ScrollContext.Provider>
             </ScrollView>
         );
     }
 }
-ScrollViewWithPickers.propTypes = propTypes;
+ScrollViewWithScrollContext.propTypes = propTypes;
 
-export default ScrollViewWithPickers;
+export default ScrollViewWithScrollContext;
+module.exports.ScrollViewWithPickersContext = ScrollContext;
