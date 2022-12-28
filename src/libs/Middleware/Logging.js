@@ -66,6 +66,7 @@ function Logging(response, request) {
                 // Re-throw this error so the next handler can manage it
                 throw error;
             }
+
             const logParams = {
                 message: error.message,
                 status: error.status,
@@ -116,6 +117,8 @@ function Logging(response, request) {
                 // Expensify site is down completely OR
                 // Auth (database connection) is down / bedrock has timed out while making a request. We currently can't tell the difference between Auth down and bedrock timing out.
                 Log.hmmm('[Network] API request error: Expensify service interrupted or timed out', logParams);
+            } else if (error.message === CONST.ERROR.THROTTLED) {
+                Log.hmmm('[Network] API request error: Expensify API throttled', logParams);
                 throw error;
             } else {
                 // If we get any error that is not known log an alert so we can learn more about it and document it here.
