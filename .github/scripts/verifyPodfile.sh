@@ -4,8 +4,9 @@
 # First argument (required): the branch to compare against for removals
 # Second argument (optional): `-v` which will output each branches podspecs and the removals if they exist
 
-declare -r GREEN='\033[0;32m'
 declare -r RED='\033[0;31m'
+declare -r YELLOW='\033[0;33m'
+declare -r GREEN='\033[0;32m'
 declare -r NC='\033[0m'
 
 podfileSha=$(openssl sha1 ios/Podfile | awk '{print $2}')
@@ -36,6 +37,8 @@ if [ -z "$(git diff --name-only .."$1" package-lock.json package.json)" ]; then
   echo -e "${GREEN}No changes to npm packages were detected.${NC}"
   exit 0;
 fi
+
+echo -e "${YELLOW}Verifying that pods are synced...${NC}"
 
 # Extracts an array of podspec paths from the config command
 _grab_specs() {
@@ -84,7 +87,7 @@ npm i --loglevel silent
 # Initialize failed variable as it may be already set by the environment
 failed=0
 
-echo "Comparing.  This may take a moment..."
+echo -e "${YELLOW}Comparing pods.  This may take a moment.${NC}"
 
 # Validate additions and updates to Podfile.lock
 while read -r SPEC; do
