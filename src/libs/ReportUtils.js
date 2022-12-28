@@ -1013,9 +1013,9 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
  * @returns {Boolean}
  */
 function isUnread(report) {
-    const lastMessageTimestamp = report.lastMessageTimestamp || 0;
+    const lastVisibleActionCreated = report.lastVisibleActionCreated || '';
     const lastReadTime = report.lastReadTime || '';
-    return lastReadTime < lastMessageTimestamp;
+    return lastReadTime < lastVisibleActionCreated;
 }
 
 /**
