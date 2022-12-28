@@ -275,6 +275,14 @@ function isValidPassword(password) {
 }
 
 /**
+ * @param {String} code
+ * @returns {Boolean}
+ */
+function isValidTwoFactorCode(code) {
+    return code.match(CONST.REGEX.BASE64);
+}
+
+/**
  * @param {String} input
  * @returns {Boolean}
  */
@@ -409,6 +417,7 @@ export {
     isValidURL,
     validateIdentity,
     isValidPassword,
+    isValidTwoFactorCode,
     isPositiveInteger,
     isNumericWithSpecialChars,
     isValidPaypalUsername,
