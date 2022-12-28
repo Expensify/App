@@ -885,6 +885,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             reportActionID: optimisticIOUReportAction.reportActionID,
             paymentMethodType,
             clientID: optimisticIOUReportAction.sequenceNumber,
+            amount: iouReport.total,
         },
         optimisticData,
         successData,
