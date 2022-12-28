@@ -18,6 +18,7 @@ import Log from '../../src/libs/Log';
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
 import * as MainQueue from '../../src/libs/Network/MainQueue';
 import * as Request from '../../src/libs/Request';
+import * as API from '../../src/libs/API';
 
 jest.useFakeTimers();
 
@@ -805,6 +806,26 @@ describe('NetworkTests', () => {
                 // THEN expect our queue to be empty and for no requests to have been retried
                 expect(MainQueue.getAll().length).toBe(0);
                 expect(xhr.mock.calls.length).toBe(3);
+            });
+    });
+
+    test('API.write requests that return a 500 response should not be retried', () => {
+        expect.assertions(1);
+        const xhr = jest.spyOn(HttpUtils, 'xhr');
+
+        // GIVEN a mock that will return a response with a status of 500
+        global.fetch = jest.fn(() => Promise.resolve({
+            status: 500,
+            json: () => Promise.resolve({error: 'Internal server error'}),
+        }));
+
+        // WHEN we make an API.write request
+        API.write('DeleteUserAvatar', {}, {});
+
+        // Then the request should not be retried
+        return waitForPromisesToResolve()
+            .then(() => {
+                expect(xhr.mock.calls.length).toBe(1);
             });
     });
 });
