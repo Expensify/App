@@ -815,6 +815,7 @@ describe('NetworkTests', () => {
 
         // GIVEN a mock that will return a response with a status of 500
         global.fetch = jest.fn(() => Promise.resolve({
+            ok: false,
             status: 500,
             json: () => Promise.resolve({error: 'Internal server error'}),
         }));
