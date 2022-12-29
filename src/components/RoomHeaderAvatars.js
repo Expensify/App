@@ -40,7 +40,7 @@ const RoomHeaderAvatars = (props) => {
 
     if (props.shouldShowLargeAvatars) {
         return (
-            <View style={[styles.flexRow, styles.wAuto, styles.justifyContentCenter, styles.alignItemsCenter]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter]}>
                 <View style={styles.leftSideLargeAvatar}>
                     <Avatar
                         source={props.icons[1]}

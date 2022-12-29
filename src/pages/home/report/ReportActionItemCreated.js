@@ -51,7 +51,7 @@ const ReportActionItemCreated = (props) => {
             errorRowStyles={styles.addWorkspaceRoomErrorRow}
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
         >
-            <View style={[styles.emptyStateBackgroundContainer, StyleUtils.getBackgroundImageHeightStyle(props.isSmallScreenWidth)]}>
+            <View pointerEvents="none" style={[styles.emptyStateBackgroundContainer, StyleUtils.getBackgroundImageHeightStyle(props.isSmallScreenWidth)]}>
                 <Image
                     source={EmptyStateBackgroundImage}
                     style={[styles.emptyStateBackgroundImage]}
@@ -64,7 +64,7 @@ const ReportActionItemCreated = (props) => {
                     styles.p5,
                 ]}
             >
-                <View style={[styles.ph5, styles.pb3]}>
+                <View style={[styles.ph5, styles.pb3, styles.alignSelfStart]}>
                     <Pressable onPress={() => ReportUtils.navigateToDetailsPage(props.report)}>
                         <RoomHeaderAvatars
                             icons={icons}
