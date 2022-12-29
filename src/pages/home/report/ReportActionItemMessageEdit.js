@@ -99,7 +99,7 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} draft
      */
     updateDraft(draft) {
-        const newDraft = EmojiUtils.replaceEmojis(draft, this.props.isKeyboardShown);
+        const newDraft = EmojiUtils.replaceEmojis(draft, this.props.isSmallScreenWidth);
         this.setState((prevState) => {
             const newState = {draft: newDraft};
             if (draft !== newDraft) {
