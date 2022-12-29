@@ -1,8 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {
-    Pressable, View, Image,
-} from 'react-native';
+import {Pressable, View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import Avatar from './Avatar';
@@ -21,6 +19,7 @@ import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAni
 import Tooltip from './Tooltip';
 import stylePropTypes from '../styles/stylePropTypes';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
+import getImageResolution from '../libs/fileDownload/FileUtils';
 
 const propTypes = {
     /** Avatar URL to display */
@@ -159,11 +158,7 @@ class AvatarWithImagePicker extends React.Component {
             && (resolution.height <= CONST.AVATAR_MAX_HEIGHT_PX && resolution.width <= CONST.AVATAR_MAX_WIDTH_PX)
         );
 
-        if (image instanceof File) {
-            return FileUtils.getImageBlobResolution(image).then(isResolutionWithinRange);
-        }
-
-        return Promise.resolve(image).then(isResolutionWithinRange);
+        return getImageResolution(image).then(isResolutionWithinRange);
     }
 
     /**
