@@ -116,7 +116,7 @@ class PasswordForm extends React.Component {
     validateAndSubmitForm() {
         const password = this.state.password.trim();
         const twoFactorCode = this.state.twoFactorAuthCode.trim();
-        const {requiresTwoFactorAuth} = this.props.account;
+        const requiresTwoFactorAuth = this.props.account.requiresTwoFactorAuth;
 
         if (!password && requiresTwoFactorAuth && !twoFactorCode) {
             this.setState({formError: 'passwordForm.pleaseFillOutAllFields'});
