@@ -32,6 +32,11 @@ const CONST = {
     // Minimum width and height size in px for a selected image
     AVATAR_MIN_WIDTH_PX: 80,
     AVATAR_MIN_HEIGHT_PX: 80,
+
+    // Maximum width and height size in px for a selected image
+    AVATAR_MAX_WIDTH_PX: 400,
+    AVATAR_MAX_HEIGHT_PX: 400,
+
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
