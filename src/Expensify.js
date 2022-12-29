@@ -116,7 +116,7 @@ class Expensify extends PureComponent {
     }
 
     componentDidUpdate() {
-        if (!(this.state.isNavigationReady || this.state.isSplashShown)) {
+        if (!this.state.isNavigationReady || !this.state.isSplashShown) {
             return;
         }
 
