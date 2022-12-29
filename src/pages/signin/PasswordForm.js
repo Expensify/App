@@ -114,24 +114,25 @@ class PasswordForm extends React.Component {
      * Check that all the form fields are valid, then trigger the submit callback
      */
     validateAndSubmitForm() {
-        if (!this.state.password.trim() && this.props.account.requiresTwoFactorAuth && !this.state.twoFactorAuthCode.trim()) {
+        const password = this.state.password.trim();
+        const twoFactorCode = this.state.twoFactorAuthCode.trim();
+
+        if (!password && this.props.account.requiresTwoFactorAuth && !twoFactorCode) {
             this.setState({formError: 'passwordForm.pleaseFillOutAllFields'});
             return;
         }
 
-        if (!this.state.password.trim()) {
+        if (!password) {
             this.setState({formError: 'passwordForm.pleaseFillPassword'});
             return;
         }
 
-        if (!ValidationUtils.isValidPassword(this.state.password)) {
+        if (!ValidationUtils.isValidPassword(password)) {
             this.setState({formError: 'passwordForm.error.incorrectPassword'});
             return;
         }
 
         if (this.props.account.requiresTwoFactorAuth) {
-            const twoFactorCode = this.state.twoFactorAuthCode.trim();
-
             if (!twoFactorCode) {
                 this.setState({formError: 'passwordForm.pleaseFillTwoFactorAuth'});
                 return;
@@ -147,7 +148,7 @@ class PasswordForm extends React.Component {
             formError: null,
         });
 
-        Session.signIn(this.state.password, this.state.twoFactorAuthCode);
+        Session.signIn(password, twoFactorCode);
     }
 
     render() {
