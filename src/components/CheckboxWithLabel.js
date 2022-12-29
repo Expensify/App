@@ -5,6 +5,7 @@ import styles from '../styles/styles';
 import Checkbox from './Checkbox';
 import Text from './Text';
 import FormHelpMessage from './FormHelpMessage';
+import variables from '../styles/variables';
 
 const requiredPropsCheck = (props) => {
     if (!props.label && !props.LabelComponent) {
@@ -99,7 +100,7 @@ class CheckboxWithLabel extends React.Component {
                     <TouchableOpacity
                         focusable={false}
                         onPress={this.toggleCheckbox}
-                        activeOpacity={0.7}
+                        activeOpacity={variables.checkboxLabelActiveOpacity}
                         style={[
                             styles.ml3,
                             styles.pr2,
