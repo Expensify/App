@@ -8,6 +8,8 @@ import {withNetwork} from '../OnyxProvider';
 import compose from '../../libs/compose';
 import IOUQuote from './IOUQuote';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
+import networkPropTypes from '../networkPropTypes';
+import iouReportPropTypes from '../../pages/iouReportPropTypes';
 import IOUPreview from './IOUPreview';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -35,10 +37,7 @@ const propTypes = {
     }),
 
     /** IOU report data object */
-    iouReport: PropTypes.shape({
-        /** The currency of the iouReport */
-        currency: PropTypes.number,
-    }).isRequired,
+    iouReport: iouReportPropTypes.isRequired,
 
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)).isRequired,
@@ -46,9 +45,7 @@ const propTypes = {
     /** Whether the IOU is hovered so we can modify its style */
     isHovered: PropTypes.bool,
 
-    network: {
-        isOffline: PropTypes.bool,
-    }.isRequired,
+    network: networkPropTypes.isRequired,
 };
 
 const defaultProps = {

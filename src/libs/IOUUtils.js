@@ -81,7 +81,7 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = 
 function getIOUReportActions(reportActions, iouReport, type = '', pendingAction = '', filterRequestsInDifferentCurrency = false) {
     return _.chain(reportActions)
         .filter(action => action.originalMessage
-            && action.actionName === 'IOU'
+            && action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
             && action.originalMessage.IOUReportID.toString() === iouReport.reportID.toString())
         .filter(action => (!_.isEmpty(type) ? action.originalMessage.type === type : true))
         .filter(action => (!_.isEmpty(pendingAction) ? action.pendingAction === pendingAction : true))
