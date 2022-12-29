@@ -376,6 +376,7 @@ export default {
             phrase3: 'and',
             phrase4: 'privacy policy',
         },
+        help: 'Help',
     },
     closeAccountPage: {
         closeAccount: 'Close account',

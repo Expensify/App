@@ -376,6 +376,7 @@ export default {
             phrase3: 'y',
             phrase4: 'política de privacidad',
         },
+        help: 'Ayuda',
     },
     closeAccountPage: {
         closeAccount: 'Cerrar cuenta',
