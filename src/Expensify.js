@@ -47,7 +47,7 @@ const propTypes = {
     }),
 
     /** ID to use for push notifications */
-    private_pushNotificationID: PropTypes.string,
+    pushNotificationID: PropTypes.string,
 
     /** Whether a new update is available and ready to install. */
     updateAvailable: PropTypes.bool,
@@ -73,7 +73,7 @@ const defaultProps = {
         authToken: null,
         accountID: null,
     },
-    private_pushNotificationID: null,
+    pushNotificationID: null,
     updateAvailable: false,
     isSidebarLoaded: false,
     screenShareRequest: null,
@@ -120,8 +120,8 @@ class Expensify extends PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        const previousPushNotificationID = prevProps.private_pushNotificationID;
-        const currentPushNotificationID = this.props.private_pushNotificationID;
+        const previousPushNotificationID = prevProps.pushNotificationID;
+        const currentPushNotificationID = this.props.pushNotificationID;
 
         if (currentPushNotificationID && (currentPushNotificationID !== previousPushNotificationID)) {
             PushNotification.register(currentPushNotificationID);
@@ -226,7 +226,7 @@ export default compose(
         session: {
             key: ONYXKEYS.SESSION,
         },
-        private_pushNotificationID: {
+        pushNotificationID: {
             key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
         },
         updateAvailable: {
