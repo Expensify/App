@@ -760,7 +760,7 @@ const CONST = {
         EMOJI_NAME: /:[\w+-]+:/g,
         EMOJI_SUGGESTIONS: /:[a-zA-Z]{1,20}(\s[a-zA-Z]{0,20})?$/,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
-        BASE64: /[\w\d+/]+={0,2}/,
+        CODE_2FA: /[\w\d+/]+={0,2}/, // matches twoFactorAuthCode WAF rule
     },
 
     PRONOUNS: {

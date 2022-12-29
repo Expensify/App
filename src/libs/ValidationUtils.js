@@ -279,7 +279,7 @@ function isValidPassword(password) {
  * @returns {Boolean}
  */
 function isValidTwoFactorCode(code) {
-    const result = code.match(CONST.REGEX.BASE64);
+    const result = code.match(CONST.REGEX.CODE_2FA);
     return Boolean(result) && result[0].length === code.length; // ensure the whole code is base64
 }
 
