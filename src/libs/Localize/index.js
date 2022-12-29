@@ -1,24 +1,15 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
-import Onyx from 'react-native-onyx';
-import Log from './Log';
-import Config from '../CONFIG';
-import translations from '../languages/translations';
-import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
+import Log from '../Log';
+import Config from '../../CONFIG';
+import translations from '../../languages/translations';
+import CONST from '../../CONST';
+import LocaleListener from './LocaleListener';
+import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
 
-let preferredLocale = CONST.DEFAULT_LOCALE;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-
-        preferredLocale = val;
-    },
-});
+// Listener when an update in Onyx happens so we use the updated locale when translating/localizing items.
+LocaleListener.connect();
 
 /**
  * Return translated string for given locale and phrase
@@ -75,7 +66,7 @@ function translate(locale = CONST.DEFAULT_LOCALE, phrase, variables = {}) {
  * @returns {String}
  */
 function translateLocal(phrase, variables) {
-    return translate(preferredLocale, phrase, variables);
+    return translate(BaseLocaleListener.getPreferredLocale(), phrase, variables);
 }
 
 /**
