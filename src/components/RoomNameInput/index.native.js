@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import _ from 'underscore';
 import CONST from '../../CONST';
 import withLocalize from '../withLocalize';
 import TextInput from '../TextInput';
@@ -21,6 +22,11 @@ class RoomNameInput extends Component {
         const roomName = event.nativeEvent.text;
         const modifiedRoomName = RoomNameInputUtils.modifyRoomName(roomName);
         this.props.onChangeText(modifiedRoomName);
+
+        // if custom component has onInputChange, use it to trigger changes (Form input)
+        if (_.isFunction(this.props.onInputChange)) {
+            this.props.onInputChange(modifiedRoomName);
+        }
     }
 
     render() {
@@ -37,6 +43,8 @@ class RoomNameInput extends Component {
                 errorText={this.props.errorText}
                 maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
                 keyboardType={keyboardType} // this is a bit hacky solution to a RN issue https://github.com/facebook/react-native/issues/27449
+                onBlur={this.props.onBlur}
+                autoFocus={this.props.autoFocus}
             />
         );
     }

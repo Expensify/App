@@ -257,7 +257,7 @@ class WorkspaceMembersPage extends React.Component {
             <OfflineWithFeedback errorRowStyles={[styles.peopleRowBorderBottom]} onClose={() => this.dismissError(item)} pendingAction={item.pendingAction} errors={item.errors}>
                 <Hoverable onHoverIn={() => this.willTooltipShowForLogin(item.login, true)} onHoverOut={() => this.setState({showTooltipForLogin: ''})}>
                     <TouchableOpacity
-                        style={[styles.peopleRow, !item.errors && styles.peopleRowBorderBottom, !canBeRemoved && styles.cursorDisabled]}
+                        style={[styles.peopleRow, _.isEmpty(item.errors) && styles.peopleRowBorderBottom, !canBeRemoved && styles.cursorDisabled]}
                         onPress={() => this.toggleUser(item.login, item.pendingAction)}
                         activeOpacity={0.7}
                     >
