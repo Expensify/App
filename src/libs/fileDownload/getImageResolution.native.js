@@ -5,8 +5,8 @@
  * @param {*} file Picked file blob
  * @returns {Promise}
  */
-function getImageBlobResolution(file) {
+function getImageResolution(file) {
     return Promise.resolve({width: file.width, height: file.height});
 }
 
-export default getImageBlobResolution;
+export default getImageResolution;

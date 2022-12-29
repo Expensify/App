@@ -52,7 +52,7 @@ function serverLoggingCallback(logger, params) {
 const Log = new Logger({
     serverLoggingCallback,
     clientLoggingCallback: (message) => {
-        // console.debug(message);
+        console.debug(message);
     },
     isDebug: true,
 });

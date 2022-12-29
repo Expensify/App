@@ -5,7 +5,7 @@
  * @param {*} file Picked file blob
  * @returns {Promise}
  */
-function getImageBlobResolution(file) {
+function getImageResolution(file) {
     if (!(file instanceof File)) {
         return Promise.reject(new Error('Object is not an instance of File'));
     }
@@ -25,4 +25,4 @@ function getImageBlobResolution(file) {
     });
 }
 
-export default getImageBlobResolution;
+export default getImageResolution;
