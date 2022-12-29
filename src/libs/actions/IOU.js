@@ -873,11 +873,6 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
             },
         },
-        {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: chatReport,
-        },
     ];
 
     return {
