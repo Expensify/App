@@ -14,6 +14,7 @@ import * as Report from '../../libs/actions/Report';
 import AttachmentView from '../AttachmentView';
 import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
+import Config from '../../CONFIG';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import reportPropTypes from '../../pages/reportPropTypes';
@@ -100,6 +101,13 @@ class AttachmentCarousel extends React.Component {
         let page;
         const actions = ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions), true);
 
+        // this is used to match the initial image URL from props in a config environment.
+        // Eg: while using Ngrok the image path is from an Ngrok URL and not an Expensify URL.
+        const propsSourceURL = this.props.sourceURL.replace(
+            Config.EXPENSIFY.EXPENSIFY_URL,
+            Config.EXPENSIFY.URL_API_ROOT,
+        );
+
         /**
          * Calling reducer will filter out attachments,
          * determine the index of opened attachment,
@@ -113,11 +121,20 @@ class AttachmentCarousel extends React.Component {
 
                 // matchAll captured both source url and name of the attachment
                 if (matches.length === 2) {
-                    const [sourceURL, name] = _.map(matches, m => m[2]);
+                    const [originalSourceURL, name] = _.map(matches, m => m[2]);
+
+                    // Update the image URL so the images can be accessed depending on the config environment.
+                    // Eg: while using Ngrok the image path is from an Ngrok URL and not an Expensify URL.
+                    const sourceURL = originalSourceURL.replace(
+                        Config.EXPENSIFY.EXPENSIFY_URL,
+                        Config.EXPENSIFY.URL_API_ROOT,
+                    );
+
                     if ((this.state.sourceURL && sourceURL.includes(this.state.sourceURL))
-                        || (!this.state.sourceURL && sourceURL.includes(this.props.sourceURL))) {
+                        || (!this.state.sourceURL && sourceURL.includes(propsSourceURL))) {
                         page = attachments.length;
                     }
+
                     attachments.push({sourceURL, file: {name}});
                 }
             }
