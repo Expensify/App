@@ -77,11 +77,11 @@ describe('EmojiTest', () => {
         // Given an input when we check only multiple emojis with additional whitespace, then it should return false
         expect(EmojiUtils.containsOnlyEmojis('😄  👋')).toBe(true);
 
-        // Given an emoji with a LTR unicode, when when we check if it contains only emoji, then it should return true
+        // Given an emoji with an LTR unicode, when we check if it contains only emoji, then it should return true
         expect(EmojiUtils.containsOnlyEmojis('\u2066😄')).toBe(true);
     });
 
-    it('don\'t match for non emoji', () => {
+    it('will not match for non emoji', () => {
         // Given a non-emoji input, when we check if it contains only emoji, then it should return false
         expect(EmojiUtils.containsOnlyEmojis('1')).toBe(false);
         expect(EmojiUtils.containsOnlyEmojis('a')).toBe(false);
