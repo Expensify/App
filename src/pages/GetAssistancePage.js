@@ -13,6 +13,8 @@ import * as Expensicons from '../components/Icon/Expensicons';
 import * as Illustrations from '../components/Icon/Illustrations';
 import * as Report from '../libs/actions/Report';
 import ROUTES from '../ROUTES';
+import * as Link from '../libs/actions/Link';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Route object from navigation */
@@ -51,6 +53,14 @@ const GetAssistancePage = props => (
                         title: props.translate('getAssistancePage.requestSetupCall'),
                         onPress: () => Navigation.navigate(ROUTES.getRequestCallRoute(props.route.params.taskID)),
                         icon: Expensicons.Phone,
+                        shouldShowRightIcon: true,
+                        iconFill: themeColors.success,
+                        wrapperStyle: [styles.cardMenuItem],
+                    },
+                    {
+                        title: props.translate('initialSettingsPage.help'),
+                        onPress: () => Link.openExternalLink(CONST.NEWHELP_URL),
+                        icon: Expensicons.QuestionMark,
                         shouldShowRightIcon: true,
                         iconFill: themeColors.success,
                         wrapperStyle: [styles.cardMenuItem],
