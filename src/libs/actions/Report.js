@@ -465,22 +465,18 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
  * Marks the new report actions as read
  *
  * @param {String} reportID
- * @param {String} isoTime
  */
-function readNewestAction(reportID, isoTime) {
+function readNewestAction(reportID) {
     const sequenceNumber = getMaxSequenceNumber(reportID);
     API.write('ReadNewestAction',
         {
             reportID,
-            isoTime,
-            sequenceNumber,
         },
         {
             optimisticData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
-                    lastReadSequenceNumber: sequenceNumber,
                     lastReadTime: DateUtils.getDBTime(),
                 },
             }],
