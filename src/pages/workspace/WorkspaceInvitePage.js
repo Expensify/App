@@ -14,6 +14,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as Policy from '../../libs/actions/Policy';
 import TextInput from '../../components/TextInput';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
+import FormSubmit from '../../components/FormSubmit';
 import OptionsSelector from '../../components/OptionsSelector';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import CONST from '../../CONST';
@@ -285,7 +286,7 @@ class WorkspaceInvitePage extends React.Component {
                         shouldShow={_.isEmpty(this.props.policy)}
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                     >
-                        <>
+                        <FormSubmit style={[styles.flex1]} onSubmit={this.inviteUser}>
                             <HeaderWithCloseButton
                                 title={this.props.translate('workspace.invite.invitePeople')}
                                 subtitle={policyName}
@@ -338,6 +339,7 @@ class WorkspaceInvitePage extends React.Component {
                                     message={this.props.policy.alertMessage}
                                     containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                                     enabledWhenOffline
+                                    disablePressOnEnter
                                 />
                                 <Pressable
                                     onPress={this.openPrivacyURL}
@@ -356,7 +358,7 @@ class WorkspaceInvitePage extends React.Component {
                                     )}
                                 </Pressable>
                             </View>
-                        </>
+                        </FormSubmit>
                     </FullPageNotFoundView>
                 )}
             </ScreenWrapper>
