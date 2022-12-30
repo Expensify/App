@@ -64,8 +64,11 @@ const IOUAction = (props) => {
         <>
             <IOUQuote
                 action={props.action}
+                chatReportID={props.chatReportID}
+                contextMenuAnchor={props.contextMenuAnchor}
                 shouldAllowViewDetails={Boolean(props.action.originalMessage.IOUReportID)}
                 onViewDetailsPressed={launchDetailsModal}
+                checkIfContextMenuActive={props.checkIfContextMenuActive}
             />
             {shouldShowIOUPreview && (
                 <IOUPreview
