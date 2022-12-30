@@ -65,7 +65,10 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
   @Override
   public void onCreate() {
       super.onCreate();
+
+      // Use night (dark) mode so native UI defaults to dark theme.
       AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+      
       // If you opted-in for the New Architecture, we enable the TurboModule system
       ReactFeatureFlags.useTurboModules = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
       SoLoader.init(this, /* native exopackage */ false);
