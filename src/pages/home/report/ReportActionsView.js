@@ -237,10 +237,6 @@ class ReportActionsView extends React.Component {
     }
 
     componentWillUnmount() {
-        if (this.keyboardEvent) {
-            this.keyboardEvent.remove();
-        }
-
         if (this.unsubscribeVisibilityListener) {
             this.unsubscribeVisibilityListener();
         }

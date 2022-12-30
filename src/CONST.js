@@ -237,7 +237,7 @@ const CONST = {
     TERMS_URL: `${USE_EXPENSIFY_URL}/terms`,
     PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
     LICENSES_URL: `${USE_EXPENSIFY_URL}/licenses`,
-    PLAY_STORE_URL: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}&hl=en`,
+    GITHUB_RELEASE_URL: 'https://api.github.com/repos/expensify/app/releases/latest',
     ADD_SECONDARY_LOGIN_URL: encodeURI('settings?param={"section":"account","openModal":"secondaryLogin"}'),
     MANAGE_CARDS_URL: 'domain_companycards',
     FEES_URL: `${USE_EXPENSIFY_URL}/fees`,
@@ -496,11 +496,11 @@ const CONST = {
     ADD_PAYMENT_MENU_POSITION_X: 356,
     EMOJI_PICKER_SIZE: {
         WIDTH: 320,
-        HEIGHT: 400,
+        HEIGHT: 390,
     },
-    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 298,
+    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 288,
     EMOJI_PICKER_ITEM_HEIGHT: 32,
-    EMOJI_PICKER_HEADER_HEIGHT: 38,
+    EMOJI_PICKER_HEADER_HEIGHT: 32,
     COMPOSER_MAX_HEIGHT: 125,
     CHAT_FOOTER_MIN_HEIGHT: 65,
     CHAT_SKELETON_VIEW: {

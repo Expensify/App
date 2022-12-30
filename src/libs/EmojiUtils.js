@@ -184,11 +184,13 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
 }
 
 /**
- * Replace any emoji name in a text with the emoji icon
+ * Replace any emoji name in a text with the emoji icon.
+ * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  * @param {String} text
+ * @param {Boolean} isSmallScreenWidth
  * @returns {String}
  */
-function replaceEmojis(text) {
+function replaceEmojis(text, isSmallScreenWidth = false) {
     let newText = text;
     const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
     if (!emojiData || emojiData.length === 0) {
@@ -201,7 +203,7 @@ function replaceEmojis(text) {
 
             // If this is the last emoji in the message and it's the end of the message so far,
             // add a space after it so the user can keep typing easily.
-            if (i === emojiData.length - 1 && text.endsWith(emojiData[i])) {
+            if (isSmallScreenWidth && i === emojiData.length - 1 && text.endsWith(emojiData[i])) {
                 emojiReplacement += ' ';
             }
             newText = newText.replace(emojiData[i], emojiReplacement);

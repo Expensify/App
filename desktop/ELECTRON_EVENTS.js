@@ -7,6 +7,7 @@ const ELECTRON_EVENTS = {
     UPDATE_DOWNLOADED: 'update-downloaded',
     FOCUS: 'focus',
     BLUR: 'blur',
+    LOCALE_UPDATED: 'locale-updated',
 };
 
 module.exports = ELECTRON_EVENTS;
