@@ -286,7 +286,7 @@ export default {
         sizeExceeded: ({maxUploadSizeInMB}) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
         resolutionConstraints: ({
             minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx,
-        }) => `Por favor elige una imagen mas grande que ${minHeightInPx}x${minWidthInPx} píxeles y mas pequena que ${maxHeightInPx}x${maxWidthInPx}`,
+        }) => `Por favor elige una imagen mas grande que ${minHeightInPx}x${minWidthInPx} píxeles y mas pequena que ${maxHeightInPx}x${maxWidthInPx} píxeles`,
         notAllowedExtension: ({allowedExtensions}) => `La foto de perfil debe ser de uno de los siguientes tipos: ${allowedExtensions.join(', ')}.`,
     },
     profilePage: {
