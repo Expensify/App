@@ -19,7 +19,7 @@ import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAni
 import Tooltip from './Tooltip';
 import stylePropTypes from '../styles/stylePropTypes';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
-import getImageResolution from '../libs/fileDownload/FileUtils';
+import getImageResolution from '../libs/fileDownload/getImageResolution';
 
 const propTypes = {
     /** Avatar URL to display */
