@@ -31,6 +31,7 @@ import walletTermsPropTypes from '../EnablePayments/walletTermsPropTypes';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import ConfirmModal from '../../components/ConfirmModal';
 import * as Link from '../../libs/actions/Link';
+
 const propTypes = {
     /* Onyx Props */
 
