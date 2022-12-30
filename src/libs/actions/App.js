@@ -270,6 +270,11 @@ function openProfile() {
     Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
+function openTestToolModal() {
+    Log.info('Neil gesture');
+    console.log('Recognized gesture');
+}
+
 export {
     setLocale,
     setSidebarLoaded,
@@ -277,4 +282,5 @@ export {
     openProfile,
     openApp,
     reconnectApp,
+    openTestToolModal,
 };
