@@ -467,7 +467,6 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
  * @param {String} reportID
  */
 function readNewestAction(reportID) {
-    const sequenceNumber = getMaxSequenceNumber(reportID);
     API.write('ReadNewestAction',
         {
             reportID,
