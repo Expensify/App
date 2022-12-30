@@ -76,6 +76,21 @@ describe('EmojiTest', () => {
 
         // Given an input when we check only multiple emojis with additional whitespace, then it should return false
         expect(EmojiUtils.containsOnlyEmojis('😄  👋')).toBe(true);
+
+        // Given an emoji with an LTR unicode, when we check if it contains only emoji, then it should return true
+        expect(EmojiUtils.containsOnlyEmojis('\u2066😄')).toBe(true);
+    });
+
+    it('will not match for non emoji', () => {
+        // Given a non-emoji input, when we check if it contains only emoji, then it should return false
+        expect(EmojiUtils.containsOnlyEmojis('1')).toBe(false);
+        expect(EmojiUtils.containsOnlyEmojis('a')).toBe(false);
+        expect(EmojiUtils.containsOnlyEmojis('~')).toBe(false);
+        expect(EmojiUtils.containsOnlyEmojis('𝕥𝕖𝕤𝕥')).toBe(false);
+        expect(EmojiUtils.containsOnlyEmojis('𝓣𝓮𝓼𝓽')).toBe(false);
+        expect(EmojiUtils.containsOnlyEmojis('𝕿𝖊𝖘𝖙')).toBe(false);
+        expect(EmojiUtils.containsOnlyEmojis('🆃🅴🆂🆃')).toBe(false);
+        expect(EmojiUtils.containsOnlyEmojis('🅃🄴🅂🅃')).toBe(false);
     });
 
     it('replaces an emoji code with an emoji and a space on mobile', () => {
