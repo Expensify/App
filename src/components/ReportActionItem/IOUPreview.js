@@ -24,7 +24,6 @@ import OfflineWithFeedback from '../OfflineWithFeedback';
 import walletTermsPropTypes from '../../pages/EnablePayments/walletTermsPropTypes';
 import ControlSelection from '../../libs/ControlSelection';
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as ReportUtils from '../../libs/ReportUtils';
@@ -103,7 +102,6 @@ const propTypes = {
     pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
 
     ...withLocalizePropTypes,
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -167,7 +165,7 @@ const IOUPreview = (props) => {
     return (
         <TouchableWithoutFeedback
             onPress={props.onPreviewPressed}
-            onPressIn={() => props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
+            onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
             onLongPress={showContextMenu}
         >
@@ -245,7 +243,6 @@ IOUPreview.defaultProps = defaultProps;
 IOUPreview.displayName = 'IOUPreview';
 
 export default compose(
-    withWindowDimensions,
     withLocalize,
     withOnyx({
         personalDetails: {

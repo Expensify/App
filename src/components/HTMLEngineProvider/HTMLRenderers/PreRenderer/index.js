@@ -3,15 +3,8 @@ import _ from 'underscore';
 import withLocalize from '../../../withLocalize';
 import htmlRendererPropTypes from '../htmlRendererPropTypes';
 import BasePreRenderer from './BasePreRenderer';
-import compose from '../../../../libs/compose';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../withWindowDimensions';
 import canUseTouchScreen from '../../../../libs/canUseTouchscreen';
 import ControlSelection from '../../../../libs/ControlSelection';
-
-const propTypes = {
-    ...htmlRendererPropTypes,
-    ...windowDimensionsPropTypes,
-};
 
 class PreRenderer extends React.Component {
     constructor(props) {
@@ -67,13 +60,13 @@ class PreRenderer extends React.Component {
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
                 ref={el => this.ref = el}
-                onPressIn={() => this.props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
+                onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
             />
         );
     }
 }
 
-PreRenderer.propTypes = propTypes;
+PreRenderer.propTypes = htmlRendererPropTypes;
 
-export default compose(withLocalize, withWindowDimensions)(PreRenderer);
+export default withLocalize(PreRenderer);
