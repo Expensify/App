@@ -170,10 +170,6 @@ class ReportActionItem extends Component {
     }
 
     render() {
-        // Ignore closed action here since we're already displaying a footer that explains why the report was closed
-        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
-            return null;
-        }
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return <ReportActionItemCreated reportID={this.props.report.reportID} />;
         }

@@ -79,6 +79,11 @@ function filterReportActionsForDisplay(reportActions) {
             return false;
         }
 
+        // Ignore closed action here since we're already displaying a footer that explains why the report was closed
+        if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+            return false;
+        }
+
         // All other actions are displayed except deleted, non-pending actions
         const isDeleted = isDeletedAction(reportAction);
         const isPending = !_.isEmpty(reportAction.pendingAction);
