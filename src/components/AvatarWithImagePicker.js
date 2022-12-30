@@ -272,7 +272,7 @@ class AvatarWithImagePicker extends React.Component {
                                                 src={Expensicons.Camera}
                                                 width={variables.iconSizeSmall}
                                                 height={variables.iconSizeSmall}
-                                                fill={themeColors.iconReversed}
+                                                fill={themeColors.textLight}
                                             />
                                         </View>
                                     </Tooltip>

@@ -71,10 +71,17 @@ const warn = (...args) => {
     log(...lines);
 };
 
+const note = (...args) => {
+    const lines = [`\n💡${COLOR_DIM}`, ...args, `${COLOR_RESET}\n`];
+    console.debug(...lines);
+    log(...lines);
+};
+
 module.exports = {
     log,
     info,
     warn,
+    note,
     progressInfo,
     setLogLevelVerbose,
 };
