@@ -225,6 +225,8 @@ const IOUPreview = (props) => {
                                 <Button
                                     style={styles.mt4}
                                     onPress={props.onPayButtonPressed}
+                                    onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
+                                    onPressOut={() => ControlSelection.unblock()}
                                     onLongPress={showContextMenu}
                                     text={props.translate('iou.pay')}
                                     success
