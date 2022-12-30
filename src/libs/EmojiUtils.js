@@ -69,7 +69,7 @@ function containsOnlyEmojis(message) {
 
     const codes = [];
     _.map(match, emoji => _.map(getEmojiUnicode(emoji).split(' '), (code) => {
-        if (!CONST.EMOJI_INVISIBLE_CODEPOINTS.includes(code)) {
+        if (!CONST.INVISIBLE_CODEPOINTS.includes(code)) {
             codes.push(code);
         }
         return code;
@@ -77,7 +77,7 @@ function containsOnlyEmojis(message) {
 
     // Emojis are stored as multiple characters, so we're using spread operator
     // to iterate over the actual emojis, not just characters that compose them
-    const messageCodes = _.filter(_.map([...trimmedMessage], char => getEmojiUnicode(char)), string => string.length > 0 && !CONST.EMOJI_INVISIBLE_CODEPOINTS.includes(string));
+    const messageCodes = _.filter(_.map([...trimmedMessage], char => getEmojiUnicode(char)), string => string.length > 0 && !CONST.INVISIBLE_CODEPOINTS.includes(string));
     return codes.length === messageCodes.length;
 }
 
