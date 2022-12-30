@@ -185,6 +185,7 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
 
 /**
  * Replace any emoji name in a text with the emoji icon
+ * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  * @param {String} text
  * @param {Boolean} isSmallScreenWidth
  * @returns {String}
