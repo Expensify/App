@@ -237,7 +237,7 @@ const CONST = {
     TERMS_URL: `${USE_EXPENSIFY_URL}/terms`,
     PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
     LICENSES_URL: `${USE_EXPENSIFY_URL}/licenses`,
-    PLAY_STORE_URL: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}&hl=en`,
+    GITHUB_RELEASE_URL: 'https://api.github.com/repos/expensify/app/releases/latest',
     ADD_SECONDARY_LOGIN_URL: encodeURI('settings?param={"section":"account","openModal":"secondaryLogin"}'),
     MANAGE_CARDS_URL: 'domain_companycards',
     FEES_URL: `${USE_EXPENSIFY_URL}/fees`,
@@ -252,7 +252,9 @@ const CONST = {
         PERSONAL_DETAIL: 'personalDetail',
     },
     REPORT: {
+        DROP_HOST_NAME: 'ReportDropZone',
         DROP_NATIVE_ID: 'report-dropzone',
+        ACTIVE_DROP_NATIVE_ID: 'report-dropzone',
         MAXIMUM_PARTICIPANTS: 8,
         ACTIONS: {
             LIMIT: 50,
@@ -318,7 +320,7 @@ const CONST = {
         },
         RESERVED_ROOM_NAMES: ['#admins', '#announce'],
         MAX_PREVIEW_AVATARS: 4,
-        MAX_ROOM_NAME_LENGTH: 80,
+        MAX_ROOM_NAME_LENGTH: 79,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
         OWNER_EMAIL_FAKE: '__FAKE__',
         DEFAULT_REPORT_NAME: 'Chat Report',
@@ -359,6 +361,7 @@ const CONST = {
         SIDEBAR_LOADED: 'sidebar_loaded',
         COLD: 'cold',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
+        SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
         TOOLTIP_SENSE: 1000,
         SPINNER_TIMEOUT: 15 * 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
@@ -493,11 +496,11 @@ const CONST = {
     ADD_PAYMENT_MENU_POSITION_X: 356,
     EMOJI_PICKER_SIZE: {
         WIDTH: 320,
-        HEIGHT: 400,
+        HEIGHT: 390,
     },
-    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 298,
+    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 288,
     EMOJI_PICKER_ITEM_HEIGHT: 32,
-    EMOJI_PICKER_HEADER_HEIGHT: 38,
+    EMOJI_PICKER_HEADER_HEIGHT: 32,
     COMPOSER_MAX_HEIGHT: 125,
     CHAT_FOOTER_MIN_HEIGHT: 65,
     CHAT_SKELETON_VIEW: {
@@ -756,6 +759,7 @@ const CONST = {
         NON_NUMERIC: /\D/g,
         EMOJI_NAME: /:[\w+-]+:/g,
         EMOJI_SUGGESTIONS: /:[a-zA-Z]{1,20}(\s[a-zA-Z]{0,20})?$/,
+        AFTER_FIRST_LINE_BREAK: /\n.*/g,
     },
 
     PRONOUNS: {

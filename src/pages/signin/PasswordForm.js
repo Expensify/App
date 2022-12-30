@@ -162,7 +162,6 @@ class PasswordForm extends React.Component {
                         <TouchableOpacity
                             style={[styles.mt2]}
                             onPress={this.resetPassword}
-                            underlayColor={themeColors.componentBG}
                         >
                             <Text style={[styles.link]}>
                                 {this.props.translate('passwordForm.forgot')}

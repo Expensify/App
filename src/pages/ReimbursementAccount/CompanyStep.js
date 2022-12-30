@@ -101,10 +101,8 @@ class CompanyStep extends React.Component {
 
         if (!values.incorporationDate || !ValidationUtils.isValidDate(values.incorporationDate)) {
             errors.incorporationDate = this.props.translate('bankAccount.error.incorporationDate');
-        }
-
-        if (!values.incorporationDate || !ValidationUtils.isValidPastDate(values.incorporationDate)) {
-            errors.incorporationDateFuture = this.props.translate('bankAccount.error.incorporationDateFuture');
+        } else if (!values.incorporationDate || !ValidationUtils.isValidPastDate(values.incorporationDate)) {
+            errors.incorporationDate = this.props.translate('bankAccount.error.incorporationDateFuture');
         }
 
         if (!values.incorporationState) {
@@ -220,7 +218,6 @@ class CompanyStep extends React.Component {
                             inputID="incorporationDate"
                             label={this.props.translate('companyStep.incorporationDate')}
                             placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
-                            maximumDate={new Date()}
                             defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'incorporationDate')}
                             shouldSaveDraft
                         />

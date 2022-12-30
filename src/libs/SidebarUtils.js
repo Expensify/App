@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportUtils from './ReportUtils';
@@ -148,14 +149,15 @@ function getOrderedReportIDs(reportIDFromRoute) {
 
     // Sort each group of reports accordingly
     pinnedReports = _.sortBy(pinnedReports, report => report.displayName.toLowerCase());
-    outstandingIOUReports = _.sortBy(outstandingIOUReports, 'iouReportAmount').reverse();
+    outstandingIOUReports = lodashOrderBy(outstandingIOUReports, ['iouReportAmount', report => report.displayName.toLowerCase()], ['desc', 'asc']);
     draftReports = _.sortBy(draftReports, report => report.displayName.toLowerCase());
-    nonArchivedReports = _.sortBy(nonArchivedReports, report => (isInDefaultMode ? report.lastActionCreated : report.displayName.toLowerCase()));
+    nonArchivedReports = isInDefaultMode
+        ? lodashOrderBy(nonArchivedReports, ['lastActionCreated', report => report.displayName.toLowerCase()], ['desc', 'asc'])
+        : lodashOrderBy(nonArchivedReports, [report => report.displayName.toLowerCase()], ['asc']);
     archivedReports = _.sortBy(archivedReports, report => (isInDefaultMode ? report.lastActionCreated : report.displayName.toLowerCase()));
 
-    // For archived and non-archived reports, ensure that most recent reports are at the top by reversing the order of the arrays because underscore will only sort them in ascending order
+    // For archived reports ensure that most recent reports are at the top by reversing the order of the arrays because underscore will only sort them in ascending order
     if (isInDefaultMode) {
-        nonArchivedReports.reverse();
         archivedReports.reverse();
     }
 
@@ -249,7 +251,7 @@ function getOptionData(reportID) {
     }
 
     const lastActorDetails = personalDetailMap[report.lastActorEmail] || null;
-    let lastMessageText = hasMultipleParticipants && lastActorDetails
+    let lastMessageText = hasMultipleParticipants && lastActorDetails && (lastActorDetails.login !== currentUserLogin.email)
         ? `${lastActorDetails.displayName}: `
         : '';
     lastMessageText += report ? lastMessageTextFromReport : '';

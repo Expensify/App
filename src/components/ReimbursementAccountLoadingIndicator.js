@@ -28,7 +28,7 @@ const ReimbursementAccountLoadingIndicator = props => (
             {props.isSubmittingVerificationsData ? (
                 <View style={[styles.pageWrapper]}>
                     <Image
-                        source={{uri: `${CONST.CLOUDFRONT_URL}/images/icons/emptystates/emptystate_reviewing.gif`}}
+                        source={{uri: `${CONST.CLOUDFRONT_URL}/images/animations/animation_accountreview.gif`}}
                         style={[
                             styles.loadingVBAAnimation,
                         ]}

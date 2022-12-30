@@ -73,14 +73,14 @@ const ResendValidationForm = (props) => {
             {!_.isEmpty(props.account.message) && (
 
                 // DotIndicatorMessage mostly expects onyxData errors so we need to mock an object so that the messages looks similar to prop.account.errors
-                <DotIndicatorMessage style={[styles.mb5]} type="success" messages={{0: props.account.message}} />
+                <DotIndicatorMessage style={[styles.mb5, styles.flex0]} type="success" messages={{0: props.account.message}} />
             )}
             {!_.isEmpty(props.account.errors) && (
                 <DotIndicatorMessage style={[styles.mb5]} type="error" messages={props.account.errors} />
             )}
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <TouchableOpacity onPress={() => redirectToSignIn()}>
-                    <Text>
+                    <Text style={[styles.link]}>
                         {props.translate('common.back')}
                     </Text>
                 </TouchableOpacity>
