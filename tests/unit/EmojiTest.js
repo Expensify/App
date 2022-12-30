@@ -78,14 +78,24 @@ describe('EmojiTest', () => {
         expect(EmojiUtils.containsOnlyEmojis('😄  👋')).toBe(true);
     });
 
-    it('replaces an emoji code with an emoji and a space', () => {
+    it('replaces an emoji code with an emoji and a space on mobile', () => {
         const text = 'Hi :smile:';
-        expect(EmojiUtils.replaceEmojis(text)).toBe('Hi 😄 ');
+        expect(EmojiUtils.replaceEmojis(text, true)).toBe('Hi 😄 ');
     });
 
     it('will not add a space after the last emoji if there is text after it', () => {
         const text = 'Hi :smile::wave:no space after last emoji';
         expect(EmojiUtils.replaceEmojis(text)).toBe('Hi 😄👋no space after last emoji');
+    });
+
+    it('will not add a space after the last emoji when there is text after it on mobile', () => {
+        const text = 'Hi :smile::wave:no space after last emoji';
+        expect(EmojiUtils.replaceEmojis(text, true)).toBe('Hi 😄👋no space after last emoji');
+    });
+
+    it('will not add a space after the last emoji if we\'re not on mobile', () => {
+        const text = 'Hi :smile:';
+        expect(EmojiUtils.replaceEmojis(text)).toBe('Hi 😄');
     });
 
     it('suggests emojis when typing emojis prefix after colon', () => {
