@@ -4,7 +4,6 @@ import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import Icon from '../../components/Icon';
@@ -27,7 +26,7 @@ import Tooltip from '../../components/Tooltip';
 import variables from '../../styles/variables';
 import colors from '../../styles/colors';
 import reportPropTypes from '../reportPropTypes';
-import * as App from '../../libs/actions/App';
+import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -78,103 +77,98 @@ const HeaderView = (props) => {
     const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-    const quintupleTap = Gesture.Tap()
-        .numberOfTaps(5)
-        .onEnd(App.openTestToolModal)
     return (
-        <GestureDetector gesture={quintupleTap} >
-            <View style={[styles.appContentHeader]} nativeID="drag-area">
-                <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
-                    {props.isSmallScreenWidth && (
-                        <Tooltip text={props.translate('common.back')}>
-                            <Pressable
-                                onPress={props.onNavigationMenuButtonClicked}
-                                style={[styles.LHNToggle]}
-                                accessibilityHint="Navigate back to chats list"
-                            >
-                                <Icon src={Expensicons.BackArrow} />
-                            </Pressable>
+        <View style={[styles.appContentHeader]} nativeID="drag-area">
+            <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
+                {props.isSmallScreenWidth && (
+                    <Pressable
+                        onPress={props.onNavigationMenuButtonClicked}
+                        style={[styles.LHNToggle]}
+                        accessibilityHint="Navigate back to chats list"
+                    >
+                        <Tooltip text={props.translate('common.back')} shiftVertical={4}>
+                            <Icon src={Expensicons.BackArrow} />
                         </Tooltip>
-                    )}
-                    {Boolean(props.report && title) && (
-                        <View
-                            style={[
-                                styles.flex1,
-                                styles.flexRow,
-                                styles.alignItemsCenter,
-                                styles.justifyContentBetween,
-                            ]}
+                    </Pressable>
+                )}
+                {Boolean(props.report && title) && (
+                    <View
+                        style={[
+                            styles.flex1,
+                            styles.flexRow,
+                            styles.alignItemsCenter,
+                            styles.justifyContentBetween,
+                        ]}
+                    >
+                        <Pressable
+                            onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                         >
-                            <Pressable
-                                onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
-                                style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
-                            >
-                                {shouldShowSubscript ? (
-                                    <SubscriptAvatar
-                                        mainAvatar={icons[0]}
-                                        secondaryAvatar={icons[1]}
-                                        mainTooltip={props.report.ownerEmail}
-                                        secondaryTooltip={subtitle}
-                                    />
-                                ) : (
-                                    <MultipleAvatars
-                                        icons={icons}
-                                        avatarTooltips={avatarTooltip}
-                                    />
-                                )}
-                                <View style={[styles.flex1, styles.flexColumn]}>
-                                    <DisplayNames
-                                        fullTitle={title}
-                                        displayNamesWithTooltips={displayNamesWithTooltips}
-                                        tooltipEnabled
+                            {shouldShowSubscript ? (
+                                <SubscriptAvatar
+                                    mainAvatar={icons[0]}
+                                    secondaryAvatar={icons[1]}
+                                    mainTooltip={props.report.ownerEmail}
+                                    secondaryTooltip={subtitle}
+                                />
+                            ) : (
+                                <MultipleAvatars
+                                    icons={icons}
+                                    avatarTooltips={avatarTooltip}
+                                />
+                            )}
+                            <View style={[styles.flex1, styles.flexColumn]}>
+                                <DisplayNames
+                                    fullTitle={title}
+                                    displayNamesWithTooltips={displayNamesWithTooltips}
+                                    tooltipEnabled
+                                    numberOfLines={1}
+                                    textStyles={[styles.headerText, styles.textNoWrap]}
+                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
+                                />
+                                {(isChatRoom || isPolicyExpenseChat) && (
+                                    <Text
+                                        style={[
+                                            styles.sidebarLinkText,
+                                            styles.optionAlternateText,
+                                            styles.textLabelSupporting,
+                                        ]}
                                         numberOfLines={1}
-                                        textStyles={[styles.headerText, styles.textNoWrap]}
-                                        shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
-                                    />
-                                    {(isChatRoom || isPolicyExpenseChat) && (
-                                        <Text
-                                            style={[
-                                                styles.sidebarLinkText,
-                                                styles.optionAlternateText,
-                                                styles.textLabelSupporting,
-                                            ]}
-                                            numberOfLines={1}
-                                        >
-                                            {subtitle}
-                                        </Text>
-                                    )}
-                                </View>
-                                {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
-                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
-                                        <Icon
-                                            src={Expensicons.DotIndicator}
-                                            fill={colors.red}
-                                            height={variables.iconSizeSmall}
-                                            width={variables.iconSizeSmall}
-                                        />
-                                    </View>
-                                )}
-                            </Pressable>
-                            <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                                {props.report.hasOutstandingIOU && (
-                                    <IOUBadge iouReportID={props.report.iouReportID} />
-                                )}
-
-                                {shouldShowCallButton && <VideoChatButtonAndMenu isConcierge={isConcierge} />}
-                                <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
-                                    <Pressable
-                                        onPress={() => Report.togglePinnedState(props.report)}
-                                        style={[styles.touchableButtonImage, styles.mr0]}
                                     >
-                                        <Icon src={Expensicons.Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
-                                    </Pressable>
-                                </Tooltip>
+                                        {subtitle}
+                                    </Text>
+                                )}
                             </View>
+                            {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
+                                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                    <Icon
+                                        src={Expensicons.DotIndicator}
+                                        fill={colors.red}
+                                        height={variables.iconSizeSmall}
+                                        width={variables.iconSizeSmall}
+                                    />
+                                </View>
+                            )}
+                        </Pressable>
+                        <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
+                            {props.report.hasOutstandingIOU && (
+                                <IOUBadge iouReportID={props.report.iouReportID} />
+                            )}
+
+                            {shouldShowCallButton && <VideoChatButtonAndMenu isConcierge={isConcierge} guideCalendarLink={guideCalendarLink} />}
+                            <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
+                                <Pressable
+                                    onPress={() => Report.togglePinnedState(props.report)}
+                                    style={[styles.touchableButtonImage]}
+                                >
+                                    <Icon src={Expensicons.Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
+                                </Pressable>
+                            </Tooltip>
                         </View>
-                    )}
-                </View>
+                    </View>
+                )}
             </View>
-        </GestureDetector>
+        </View>
     );
 };
 HeaderView.propTypes = propTypes;

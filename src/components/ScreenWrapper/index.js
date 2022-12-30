@@ -16,7 +16,8 @@ import withWindowDimensions from '../withWindowDimensions';
 import ONYXKEYS from '../../ONYXKEYS';
 import {withNetwork} from '../OnyxProvider';
 import {propTypes, defaultProps} from './propTypes';
-import SafeAreaConsumer from '../SafeAreaConsumer';
+import {GestureDetector, Gesture} from 'react-native-gesture-handler';
+import * as App from '../../libs/actions/App';
 
 class ScreenWrapper extends React.Component {
     constructor(props) {
@@ -78,6 +79,9 @@ class ScreenWrapper extends React.Component {
     }
 
     render() {
+        const quintupleTap = Gesture.Tap()
+            .numberOfTaps(5)
+            .onEnd(App.openTestToolModal)
         return (
             <SafeAreaConsumer>
                 {({
@@ -95,29 +99,30 @@ class ScreenWrapper extends React.Component {
                     }
 
                     return (
-                        <View
-                            style={[
-                                ...this.props.style,
-                                styles.flex1,
-                                paddingStyle,
-                            ]}
-                        >
-                            <KeyboardAvoidingView style={[styles.w100, styles.h100, {maxHeight: this.props.windowHeight}]} behavior={this.props.keyboardAvoidingViewBehavior}>
-                                <HeaderGap />
-                                {// If props.children is a function, call it to provide the insets to the children.
-                                    _.isFunction(this.props.children)
-                                        ? this.props.children({
-                                            insets,
-                                            safeAreaPaddingBottomStyle,
-                                            didScreenTransitionEnd: this.state.didScreenTransitionEnd,
-                                        })
-                                        : this.props.children
-                                }
-                                {this.props.isSmallScreenWidth && (
-                                    <OfflineIndicator />
-                                )}
-                            </KeyboardAvoidingView>
-                        </View>
+                        <GestureDetector gesture={quintupleTap}>
+                            <View
+                                style={[
+                                    ...this.props.style,
+                                    styles.flex1,
+                                    paddingStyle,
+                                ]}
+                            >
+                                <KeyboardAvoidingView style={[styles.w100, styles.h100]} behavior={this.props.keyboardAvoidingViewBehavior}>
+                                    <HeaderGap />
+                                    {// If props.children is a function, call it to provide the insets to the children.
+                                        _.isFunction(this.props.children)
+                                            ? this.props.children({
+                                                insets,
+                                                didScreenTransitionEnd: this.state.didScreenTransitionEnd,
+                                            })
+                                            : this.props.children
+                                    }
+                                    {this.props.isSmallScreenWidth && (
+                                        <OfflineIndicator />
+                                    )}
+                                </KeyboardAvoidingView>
+                            </View>
+                        </GestureDetector>
                     );
                 }}
             </SafeAreaConsumer>
