@@ -128,7 +128,7 @@ class ReportActionsList extends React.Component {
         index,
     }) {
         // When the new indicator should not be displayed we explicitly set it to null
-        const shouldDisplayNewIndicator = !_.isNull(this.props.newMarkerReportActionID)
+        const shouldDisplayNewMarker = !_.isNull(this.props.newMarkerReportActionID)
             && reportAction.reportActionID === this.props.newMarkerReportActionID
             && !ReportActionsUtils.isDeletedAction(reportAction);
         return (
@@ -136,7 +136,7 @@ class ReportActionsList extends React.Component {
                 report={this.props.report}
                 action={reportAction}
                 displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.props.sortedReportActions, index)}
-                shouldDisplayNewIndicator={shouldDisplayNewIndicator}
+                shouldDisplayNewMarker={shouldDisplayNewMarker}
                 isMostRecentIOUReportAction={reportAction.reportActionID === this.props.mostRecentIOUReportActionID}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
