@@ -1054,32 +1054,24 @@ function subscribeToNewActionEvent(reportID, callback) {
 }
 
 /**
- * Sends callbacks and notifications for new report actions.
- *
  * @param {String} reportID
  * @param {Object} action
  */
-function sendNewReportActionNotification(reportID, action) {
-    const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
-
-    if (reportID === newActionSubscriber.reportID) {
-        newActionSubscriber.callback(isFromCurrentUser, action.reportActionID);
-    }
-
-    const notificationPreference = lodashGet(allReports, [reportID, 'notificationPreference'], CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
+function presentReportActionNotification(reportID, action) {
     if (!ActiveClientManager.isClientTheLeader()) {
         Log.info('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
         return;
     }
 
     // We don't want to send a local notification if the user preference is daily or mute
+    const notificationPreference = lodashGet(allReports, [reportID, 'notificationPreference'], CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
     if (notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY) {
         Log.info(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
         return;
     }
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
-    if (isFromCurrentUser) {
+    if (action.actorAccountID === currentUserAccountID) {
         Log.info('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
         return;
     }
@@ -1152,7 +1144,13 @@ Onyx.connect({
                 return;
             }
 
-            sendNewReportActionNotification(reportID, action);
+            // Notify the ReportActionsView that a new comment has arrived
+            if (reportID === newActionSubscriber.reportID) {
+                const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
+                newActionSubscriber.callback(isFromCurrentUser, action.reportActionID);
+            }
+
+            presentReportActionNotification(reportID, action);
             handledReportActions[reportID] = handledReportActions[reportID] || {};
             handledReportActions[reportID][action.sequenceNumber] = true;
         });
