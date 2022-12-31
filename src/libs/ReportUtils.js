@@ -1018,6 +1018,7 @@ function isUnread(report) {
         return false;
     }
 
+    // lastActionCreated and lastReadTime are both datetime strings and can be compared directly
     const lastActionCreated = report.lastActionCreated || '';
     const lastReadTime = report.lastReadTime || '';
     return lastReadTime < lastActionCreated;
