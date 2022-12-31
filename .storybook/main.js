@@ -10,7 +10,8 @@ module.exports = {
     ],
     staticDirs: [
         './public',
-        '../assets/css',
+        {from: '../assets/css', to: 'css'},
+        {from: '../assets/fonts/web', to: 'fonts'},
     ],
     core: {
         builder: 'webpack5',

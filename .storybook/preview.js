@@ -1,6 +1,6 @@
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import '../assets/css/fonts.css';
+import './fonts.css';
 import ComposeProviders from '../src/components/ComposeProviders';
 import HTMLEngineProvider from '../src/components/HTMLEngineProvider';
 import OnyxProvider from '../src/components/OnyxProvider';
