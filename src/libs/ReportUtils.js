@@ -242,8 +242,6 @@ function hasExpensifyGuidesEmails(emails) {
 }
 
 /**
- * Given a collection of reports returns the most recently accessed one
- *
  * @param {Record<String, {lastReadTime, reportID}>|Array<{lastReadTime, reportID}>} reports
  * @param {Boolean} [ignoreDefaultRooms]
  * @param {Object} policies
