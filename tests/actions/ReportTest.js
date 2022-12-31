@@ -248,7 +248,7 @@ describe('actions/Report', () => {
                             lastActorEmail: USER_2_LOGIN,
                             lastReadSequenceNumber: 0,
                             lastActionCreated: reportActionCreatedDate,
-                            lastReadTime: DateUtils.oneMillisecondBefore(reportActionCreatedDate),
+                            lastReadTime: DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1),
                         },
                     },
                     {
@@ -294,7 +294,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // Then the report will be unread
                 expect(ReportUtils.isUnread(report)).toBe(true);
-                expect(report.lastReadTime).toBe(DateUtils.oneMillisecondBefore(reportActionCreatedDate));
+                expect(report.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1));
 
                 // When a new comment is added by the current user
                 currentTime = DateUtils.getDBTime();
@@ -412,7 +412,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // Then we should expect the report to be to be unread
                 expect(ReportUtils.isUnread(report)).toBe(true);
-                expect(report.lastReadTime).toBe(DateUtils.oneMillisecondBefore(reportActionCreatedDate));
+                expect(report.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1));
 
                 // If the user deletes the last comment after the lastReadTime the lastMessageText will reflect the new last comment
                 Report.deleteReportComment(REPORT_ID, {...reportActions[4], sequenceNumber: 4, clientID: null});

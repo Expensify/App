@@ -179,11 +179,12 @@ function getDBTime(timestamp = '') {
  * Returns the datetime string one millisecond before a given datetime string
  *
  * @param {String} dateTimeString in the format expected by the database
+ * @param {Number} milliseconds
  * @returns {String} in the format expected by the database
  */
-function oneMillisecondBefore(dateTimeString) {
-    const oneMillisecondBeforeTimestamp = moment.utc(dateTimeString).subtract(1, 'millisecond').valueOf();
-    return getDBTime(oneMillisecondBeforeTimestamp);
+function subtractMillisecondsFromDateTime(dateTimeString, milliseconds) {
+    const newTimestamp = moment.utc(dateTimeString).subtract(milliseconds, 'milliseconds').valueOf();
+    return getDBTime(newTimestamp);
 }
 
 /**
@@ -199,7 +200,7 @@ const DateUtils = {
     setTimezoneUpdated,
     getMicroseconds,
     getDBTime,
-    oneMillisecondBefore,
+    subtractMillisecondsFromDateTime,
 };
 
 export default DateUtils;

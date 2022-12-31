@@ -82,7 +82,7 @@ function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], mi
         maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         lastActionCreated,
-        lastReadTime: isUnread ? DateUtils.oneMillisecondBefore(lastActionCreated) : lastActionCreated,
+        lastReadTime: isUnread ? DateUtils.subtractMillisecondsFromDateTime(lastActionCreated, 1) : lastActionCreated,
         participants,
     };
 }

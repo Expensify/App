@@ -492,7 +492,7 @@ function markCommentAsUnread(reportID, reportActionCreated) {
     // We subtract 1 millisecond so that the lastReadTime is updated to just before a given reportAction's created date
     // For example, if we want to mark a report action with ID 100 and created date '2014-04-01 16:07:02.999' unread, we set the lastReadTime to '2014-04-01 16:07:02.998'
     // Since the report action with ID 100 will be the first with a timestamp above '2014-04-01 16:07:02.998', it's the first one that will be shown as unread
-    const lastReadTime = DateUtils.oneMillisecondBefore(reportActionCreated);
+    const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(reportActionCreated, 1);
     API.write('MarkAsUnread',
         {
             reportID,
