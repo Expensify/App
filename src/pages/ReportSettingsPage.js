@@ -61,6 +61,7 @@ class ReportSettingsPage extends Component {
             errors: {},
         };
 
+        this.validate = this.validate.bind(this);
         this.resetToPreviousName = this.resetToPreviousName.bind(this);
         this.validateAndUpdatePolicyRoomName = this.validateAndUpdatePolicyRoomName.bind(this);
     }
