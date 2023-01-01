@@ -100,7 +100,7 @@ class ReportSettingsPage extends Component {
 
         // When the report name is not changed, skip the form submission. Added check here to keep the code clean
         if (values.newRoomName === this.props.report.reportName) {
-            return false;
+            return errors;
         }
 
         // Show error if the room name already exists
