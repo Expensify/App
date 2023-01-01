@@ -197,7 +197,6 @@ class ReportSettingsPage extends Component {
                                                 <RoomNameInput
                                                     inputID="newRoomName"
                                                     defaultValue={this.props.report.reportName}
-                                                    policyID={linkedWorkspace && linkedWorkspace.id}
                                                     disabled={shouldDisableRename}
                                                 />
                                             )}
