@@ -54,8 +54,6 @@ class ReportSettingsPage extends Component {
     constructor(props) {
         super(props);
 
-        this.roomNameInputRef = null;
-
         this.state = {
             newRoomName: this.props.report.reportName,
             errors: {},
@@ -197,11 +195,9 @@ class ReportSettingsPage extends Component {
                                         )
                                             : (
                                                 <RoomNameInput
-                                                    ref={el => this.roomNameInputRef = el}
-                                                    value={this.state.newRoomName}
+                                                    inputID="newRoomName"
+                                                    defaultValue={this.props.report.reportName}
                                                     policyID={linkedWorkspace && linkedWorkspace.id}
-                                                    errorText={this.state.errors.newRoomName}
-                                                    onChangeText={newRoomName => this.clearErrorAndSetValue('newRoomName', newRoomName)}
                                                     disabled={shouldDisableRename}
                                                 />
                                             )}
