@@ -15,7 +15,6 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import Text from '../components/Text';
-import Button from '../components/Button';
 import RoomNameInput from '../components/RoomNameInput';
 import Picker from '../components/Picker';
 import * as ValidationUtils from '../libs/ValidationUtils';
@@ -152,6 +151,7 @@ class ReportSettingsPage extends Component {
                     submitButtonText={this.props.translate('common.save')}
                     style={[styles.mh5, styles.mt5, styles.flexGrow1]}
                     validate={this.validate}
+                    isSubmitButtonVisible={shouldShowRoomName && !shouldDisableRename}
                     enabledWhenOffline
                 >
                     <View>
@@ -201,18 +201,6 @@ class ReportSettingsPage extends Component {
                                                 />
                                             )}
                                     </View>
-                                    {!shouldDisableRename && (
-                                        <Button
-                                            large
-                                            success={!shouldDisableRename}
-                                            text={this.props.translate('common.save')}
-                                            onPress={this.validateAndUpdatePolicyRoomName}
-                                            style={[styles.ml2, styles.mnw25]}
-                                            textStyles={[styles.label]}
-                                            innerStyles={[styles.saveButtonPadding]}
-                                            isDisabled={shouldDisableRename}
-                                        />
-                                    )}
                                 </View>
                             </OfflineWithFeedback>
                         </View>
