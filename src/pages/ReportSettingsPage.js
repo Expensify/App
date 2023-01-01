@@ -90,31 +90,34 @@ class ReportSettingsPage extends Component {
         Report.updatePolicyRoomName(this.props.report, this.state.newRoomName);
     }
 
-    validate() {
+    /**
+     * @param {Object} values - form input values passed by the Form component
+     * @returns {Boolean}
+     */
+    validate(values) {
         const errors = {};
 
         // When the report name is not changed, skip the form submission. Added check here to keep the code clean
-        if (this.state.newRoomName === this.props.report.reportName) {
+        if (values.newRoomName === this.props.report.reportName) {
             return false;
         }
 
         // Show error if the room name already exists
-        if (ValidationUtils.isExistingRoomName(this.state.newRoomName, this.props.reports, this.props.report.policyID)) {
+        if (ValidationUtils.isExistingRoomName(values.newRoomName, this.props.reports, this.props.report.policyID)) {
             errors.newRoomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
         }
 
         // We error if the user doesn't enter a room name or left blank
-        if (!this.state.newRoomName || this.state.newRoomName === CONST.POLICY.ROOM_PREFIX) {
+        if (!values.newRoomName || values.newRoomName === CONST.POLICY.ROOM_PREFIX) {
             errors.newRoomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
         }
 
         // Certain names are reserved for default rooms and should not be used for policy rooms.
-        if (ValidationUtils.isReservedRoomName(this.state.newRoomName)) {
+        if (ValidationUtils.isReservedRoomName(values.newRoomName)) {
             errors.newRoomName = this.props.translate('newRoomPage.roomNameReservedError');
         }
 
-        this.setState({errors});
-        return _.isEmpty(errors);
+        return errors;
     }
 
     /**
@@ -149,6 +152,7 @@ class ReportSettingsPage extends Component {
                     formID={ONYXKEYS.FORMS.ROOM_SETTINGS_FORM}
                     submitButtonText={this.props.translate('common.save')}
                     style={[styles.mh5, styles.mt5, styles.flexGrow1]}
+                    validate={this.validate}
                     enabledWhenOffline
                 >
                     <View>
