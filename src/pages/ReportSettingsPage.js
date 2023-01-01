@@ -55,7 +55,6 @@ class ReportSettingsPage extends Component {
 
         this.state = {
             newRoomName: this.props.report.reportName,
-            errors: {},
         };
 
         this.validate = this.validate.bind(this);
@@ -116,20 +115,6 @@ class ReportSettingsPage extends Component {
         }
 
         return errors;
-    }
-
-    /**
-     * @param {String} inputKey
-     * @param {String} value
-     */
-    clearErrorAndSetValue(inputKey, value) {
-        this.setState(prevState => ({
-            [inputKey]: value,
-            errors: {
-                ...prevState.errors,
-                [inputKey]: '',
-            },
-        }));
     }
 
     render() {
