@@ -60,7 +60,7 @@ class ReportSettingsPage extends Component {
 
         this.validate = this.validate.bind(this);
         this.resetToPreviousName = this.resetToPreviousName.bind(this);
-        this.validateAndUpdatePolicyRoomName = this.validateAndUpdatePolicyRoomName.bind(this);
+        this.submit = this.submit.bind(this);
     }
 
     getNotificationPreferenceOptions() {
@@ -80,12 +80,12 @@ class ReportSettingsPage extends Component {
         Report.clearPolicyRoomNameErrors(this.props.report.reportID);
     }
 
-    validateAndUpdatePolicyRoomName() {
-        if (!this.validate()) {
-            return;
-        }
+    /**
+     * @param {Object} values - form input values passed by the Form component
+     */
+    submit(values) {
         Keyboard.dismiss();
-        Report.updatePolicyRoomName(this.props.report, this.state.newRoomName);
+        Report.updatePolicyRoomName(this.props.report, values.newRoomName);
     }
 
     /**
@@ -151,6 +151,7 @@ class ReportSettingsPage extends Component {
                     submitButtonText={this.props.translate('common.save')}
                     style={[styles.mh5, styles.mt5, styles.flexGrow1]}
                     validate={this.validate}
+                    onSubmit={this.submit}
                     isSubmitButtonVisible={shouldShowRoomName && !shouldDisableRename}
                     enabledWhenOffline
                 >
