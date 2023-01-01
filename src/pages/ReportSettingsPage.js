@@ -58,7 +58,6 @@ class ReportSettingsPage extends Component {
         };
 
         this.validate = this.validate.bind(this);
-        this.resetToPreviousName = this.resetToPreviousName.bind(this);
         this.validateAndUpdatePolicyRoomName = this.validateAndUpdatePolicyRoomName.bind(this);
     }
 
@@ -68,15 +67,6 @@ class ReportSettingsPage extends Component {
             {value: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY, label: this.props.translate('notificationPreferences.daily')},
             {value: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE, label: this.props.translate('notificationPreferences.mute')},
         ];
-    }
-
-    /**
-     * When the user dismisses the error updating the policy room name,
-     * reset the report name to the previously saved name and clear errors.
-     */
-    resetToPreviousName() {
-        this.setState({newRoomName: this.props.report.reportName});
-        Report.clearPolicyRoomNameErrors(this.props.report.reportID);
     }
 
     /**
@@ -165,7 +155,7 @@ class ReportSettingsPage extends Component {
                             <OfflineWithFeedback
                                 pendingAction={lodashGet(this.props.report, 'pendingFields.reportName', null)}
                                 errors={lodashGet(this.props.report, 'errorFields.reportName', null)}
-                                onClose={this.resetToPreviousName}
+                                onClose={() => Report.clearPolicyRoomNameErrors(this.props.report.reportID)}
                             >
                                 <View style={[styles.flexRow]}>
                                     <View style={[styles.flex3]}>
