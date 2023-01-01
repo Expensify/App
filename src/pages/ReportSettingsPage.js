@@ -53,10 +53,6 @@ class ReportSettingsPage extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {
-            newRoomName: this.props.report.reportName,
-        };
-
         this.validate = this.validate.bind(this);
         this.validateAndUpdatePolicyRoomName = this.validateAndUpdatePolicyRoomName.bind(this);
     }
@@ -165,7 +161,7 @@ class ReportSettingsPage extends Component {
                                                     {this.props.translate('newRoomPage.roomName')}
                                                 </Text>
                                                 <Text numberOfLines={1} style={[styles.optionAlternateText]}>
-                                                    {this.state.newRoomName}
+                                                    {this.props.report.reportName}
                                                 </Text>
                                             </View>
                                         )
