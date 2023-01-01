@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View, ScrollView, Keyboard} from 'react-native';
+import {View, Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -22,6 +22,7 @@ import * as ValidationUtils from '../libs/ValidationUtils';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import reportPropTypes from './reportPropTypes';
 import withReportOrNavigateHome from './home/report/withReportOrNavigateHome';
+import Form from '../components/Form';
 
 const propTypes = {
     /** Route params */
@@ -144,7 +145,12 @@ class ReportSettingsPage extends Component {
                     onBackButtonPress={Navigation.goBack}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5} keyboardShouldPersistTaps="handled">
+                <Form
+                    formID={ONYXKEYS.FORMS.ROOM_SETTINGS_FORM}
+                    submitButtonText={this.props.translate('common.save')}
+                    style={[styles.mh5, styles.mt5, styles.flexGrow1]}
+                    enabledWhenOffline
+                >
                     <View>
                         <View style={[styles.mt2]}>
                             <Picker
@@ -238,7 +244,7 @@ class ReportSettingsPage extends Component {
                             </Text>
                         </View>
                     )}
-                </ScrollView>
+                </Form>
             </ScreenWrapper>
         );
     }
