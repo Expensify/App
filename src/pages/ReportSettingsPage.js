@@ -70,6 +70,11 @@ class ReportSettingsPage extends Component {
      */
     validateAndUpdatePolicyRoomName(values) {
         Keyboard.dismiss();
+
+        // When the room name has not changed, skip the Form submission
+        if (values.newRoomName === this.props.report.reportName) {
+            return;
+        }
         Report.updatePolicyRoomName(this.props.report, values.newRoomName);
     }
 
@@ -81,6 +86,7 @@ class ReportSettingsPage extends Component {
         const errors = {};
 
         // When the report name is not changed, skip the form submission. Added check here to keep the code clean
+        // We should skip validation hence we return an empty errors and we skip Form submission on the onSubmit method
         if (values.newRoomName === this.props.report.reportName) {
             return errors;
         }
