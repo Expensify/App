@@ -17,7 +17,7 @@ jobs:
   validateActor:
     runs-on: ubuntu-latest
     outputs:
-      READY_TO_BUILD: ${{steps.readyToBuild.outputs.READY_TO_BUILD}}
+      READY_TO_BUILD: ${{ fromJSON(steps.isUserTeamMember.outputs.isTeamMember) && fromJSON(steps.hasReadyToBuildLabel.outputs.HAS_READY_TO_BUILD_LABEL) }}
     steps:
       - id: isUserTeamMember
         uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
@@ -31,11 +31,7 @@ jobs:
         run: echo "HAS_READY_TO_BUILD_LABEL=$(gh pr view "$PULL_REQUEST_NUMBER" --json labels --jq '.labels[].name' | grep -q 'Ready To Build' && echo 'true')" >> "$GITHUB_OUTPUT"
         env:
           PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - id: readyToBuild
-        name: Set READY_TO_BUILD flag
-        run: echo "READY_TO_BUILD=${{ fromJSON(steps.isUserTeamMember.outputs.isTeamMember) && steps.hasReadyToBuildLabel.outputs.HAS_READY_TO_BUILD_LABEL == 'true' }}" >> "$GITHUB_OUTPUT"
+          GITHUB_TOKEN: ${{ github.token }}
 
   getBranchRef:
     runs-on: ubuntu-latest
