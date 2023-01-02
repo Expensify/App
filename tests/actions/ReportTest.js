@@ -208,7 +208,7 @@ describe('actions/Report', () => {
         const REPORT_ID = 1;
         let report;
         let reportActionCreatedDate;
-        let currentTime = DateUtils.getDBTime();
+        let currentTime;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
             callback: val => report = val,
