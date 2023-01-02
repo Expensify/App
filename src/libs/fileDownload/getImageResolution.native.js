@@ -1,6 +1,5 @@
 /**
- * Returns image dimensions for picked File object
- * File object is returned as a result of a user selecting files using the <input> element
+ * Returns image dimensions for image selected from react-native-image-picker
  *
  * @param {*} file Picked file blob
  * @returns {Promise}
