@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    View, InteractionManager, LayoutAnimation,
+    ActivityIndicator, View, InteractionManager, LayoutAnimation,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -33,6 +33,7 @@ import * as PaymentUtils from '../../../../libs/PaymentUtils';
 import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import ConfirmContent from '../../../../components/ConfirmContent';
 import Button from '../../../../components/Button';
+import themeColors from '../../../../styles/themes/default';
 
 class BasePaymentsPage extends React.Component {
     constructor(props) {
@@ -268,16 +269,20 @@ class BasePaymentsPage extends React.Component {
                 {Permissions.canUseWallet(this.props.betas) && (
                     <>
                         <View style={[styles.mv5]}>
-                            <OfflineWithFeedback
-                                pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
-                                errors={this.props.walletTerms.errors}
-                                onClose={PaymentMethods.clearWalletTermsError}
-                                errorRowStyles={[styles.ml10, styles.mr2]}
-                            >
-                                <CurrentWalletBalance
-                                    showActivityIndicator={this.props.isLoadingPaymentMethods && !this.props.network.isOffline}
-                                />
-                            </OfflineWithFeedback>
+                            {this.props.isLoadingPaymentMethods && !this.props.network.isOffline ? (
+                                <ActivityIndicator color={themeColors.spinner} size="large" />
+                            ) : (
+                                <OfflineWithFeedback
+                                    pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
+                                    errors={this.props.walletTerms.errors}
+                                    onClose={PaymentMethods.clearWalletTermsError}
+                                    errorRowStyles={[styles.ml10, styles.mr2]}
+                                >
+                                    <CurrentWalletBalance
+                                        showActivityIndicator={this.props.isLoadingPaymentMethods && !this.props.network.isOffline}
+                                    />
+                                </OfflineWithFeedback>
+                            )}
                         </View>
                         {this.props.userWallet.currentBalance > 0 && (
                             <KYCWall
