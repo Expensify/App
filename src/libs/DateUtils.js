@@ -176,14 +176,12 @@ function getDBTime(timestamp = '') {
 }
 
 /**
- * Returns the datetime string one millisecond before a given datetime string
- *
- * @param {String} dateTimeString in the format expected by the database
+ * @param {String} dateTime
  * @param {Number} milliseconds
- * @returns {String} in the format expected by the database
+ * @returns {String}
  */
-function subtractMillisecondsFromDateTime(dateTimeString, milliseconds) {
-    const newTimestamp = moment.utc(dateTimeString).subtract(milliseconds, 'milliseconds').valueOf();
+function subtractMillisecondsFromDateTime(dateTime, milliseconds) {
+    const newTimestamp = moment.utc(dateTime).subtract(milliseconds, 'milliseconds').valueOf();
     return getDBTime(newTimestamp);
 }
 
