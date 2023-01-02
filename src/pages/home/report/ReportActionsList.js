@@ -57,7 +57,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    newMarkerReportActionID: null,
+    newMarkerReportActionID: '',
     personalDetails: {},
     mostRecentIOUReportActionID: '',
     isLoadingMoreReportActions: false,
@@ -128,9 +128,7 @@ class ReportActionsList extends React.Component {
         index,
     }) {
         // When the new indicator should not be displayed we explicitly set it to null
-        const shouldDisplayNewMarker = !_.isNull(this.props.newMarkerReportActionID)
-            && reportAction.reportActionID === this.props.newMarkerReportActionID
-            && !ReportActionsUtils.isDeletedAction(reportAction);
+        const shouldDisplayNewMarker = reportAction.reportActionID === this.props.newMarkerReportActionID;
         return (
             <ReportActionItem
                 report={this.props.report}

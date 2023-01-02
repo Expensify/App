@@ -92,7 +92,7 @@ class ReportActionsView extends React.Component {
             // If the app user becomes active and they have no unread actions we clear the new marker to sync their device
             // e.g. they could have read these messages on another device and only just become active here
             this.openReportIfNecessary();
-            this.setState({newMarkerReportActionID: null});
+            this.setState({newMarkerReportActionID: ''});
         });
 
         if (this.getIsReportFullyVisible()) {
@@ -102,7 +102,7 @@ class ReportActionsView extends React.Component {
         // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
         // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
         this.unsubscribeFromNewActionEvent = Report.subscribeToNewActionEvent(this.props.report.reportID, (isFromCurrentUser, newActionID) => {
-            const isNewMarkerReportActionIDSet = !_.isNull(this.state.newMarkerReportActionID);
+            const isNewMarkerReportActionIDSet = !_.isEmpty(this.state.newMarkerReportActionID);
 
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
             // they are now in the list.
@@ -110,14 +110,14 @@ class ReportActionsView extends React.Component {
                 ReportScrollManager.scrollToBottom();
 
                 // If the current user sends a new message in the chat we clear the new marker since they have "read" the report
-                this.setState({newMarkerReportActionID: null});
+                this.setState({newMarkerReportActionID: ''});
             } else if (this.getIsReportFullyVisible()) {
                 // We use the scroll position to determine whether the report should be marked as read and the new line indicator reset.
                 // If the user is scrolled up and no new line marker is set we will set it otherwise we will do nothing so the new marker
                 // stays in it's previous position.
                 if (this.currentScrollOffset === 0) {
                     Report.readNewestAction(this.props.report.reportID);
-                    this.setState({newMarkerReportActionID: null});
+                    this.setState({newMarkerReportActionID: ''});
                 } else if (!isNewMarkerReportActionIDSet) {
                     this.setState({newMarkerReportActionID: newActionID});
                 }
@@ -203,7 +203,7 @@ class ReportActionsView extends React.Component {
             this.setState({
                 newMarkerReportActionID: ReportUtils.isUnread(this.props.report)
                     ? ReportUtils.getNewMarkerReportActionID(this.props.report, this.sortedAndFilteredReportActions)
-                    : null,
+                    : '',
             });
             this.openReportIfNecessary();
         }
@@ -213,7 +213,7 @@ class ReportActionsView extends React.Component {
         const didSidebarOpen = !prevProps.isDrawerOpen && this.props.isDrawerOpen;
         const didUserNavigateToSidebarAfterReadingReport = didSidebarOpen && !ReportUtils.isUnread(this.props.report);
         if (didUserNavigateToSidebarAfterReadingReport) {
-            this.setState({newMarkerReportActionID: null});
+            this.setState({newMarkerReportActionID: ''});
         }
 
         // Checks to see if a report comment has been manually "marked as unread". All other times when the lastReadTime
@@ -358,7 +358,7 @@ class ReportActionsView extends React.Component {
                 {!this.props.isComposerFullSize && (
                     <>
                         <FloatingMessageCounter
-                            isActive={this.state.isFloatingMessageCounterVisible && !_.isNull(this.state.newMarkerReportActionID)}
+                            isActive={this.state.isFloatingMessageCounterVisible && !_.isEmpty(this.state.newMarkerReportActionID)}
                             onClick={this.scrollToBottomAndMarkReportAsRead}
                         />
                         <ReportActionsList

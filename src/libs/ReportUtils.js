@@ -1192,7 +1192,7 @@ function chatIncludesChronos(report) {
  */
 function getNewMarkerReportActionID(report, sortedAndFilteredReportActions) {
     if (!isUnread(report)) {
-        return null;
+        return '';
     }
 
     const newMarkerIndex = _.findLastIndex(sortedAndFilteredReportActions, reportAction => (
@@ -1201,7 +1201,7 @@ function getNewMarkerReportActionID(report, sortedAndFilteredReportActions) {
 
     return _.has(sortedAndFilteredReportActions[newMarkerIndex], 'reportActionID')
         ? sortedAndFilteredReportActions[newMarkerIndex].reportActionID
-        : null;
+        : '';
 }
 
 export {
