@@ -17,7 +17,7 @@ jobs:
   validateActor:
     runs-on: ubuntu-latest
     outputs:
-      READY_TO_BUILD: ${{steps.readyToBuild.outputs.READY_TO_BUILD}}
+      READY_TO_BUILD: ${{ fromJSON(steps.isUserTeamMember.outputs.isTeamMember) && fromJSON(steps.hasReadyToBuildLabel.outputs.HAS_READY_TO_BUILD_LABEL) }}
     steps:
       - id: isUserTeamMember
         uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
@@ -25,30 +25,25 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           username: ${{ github.actor }}
           team: expensify-expensify
-      - name: Remove label if it was added by an unauthorized user
-        if: ${{ !fromJSON(steps.isUserTeamMember.outputs.isTeamMember) && github.event.label.name == 'Ready To Build' }}
-        uses: actions-ecosystem/action-remove-labels@v1
-        with:
-          labels: 'Ready To Build'
-      - name: Throw exception if label was added by an unauthorized user
-        if: ${{ !fromJSON(steps.isUserTeamMember.outputs.isTeamMember) && github.event.label.name == 'Ready To Build' }}
-        run: |
-          echo "The 'Ready To Build' label was added by an unauthorized user"
-          exit 1
-      - id: readyToBuild
-        name: Set READY_TO_BUILD flag
-        run: echo "READY_TO_BUILD=${{ fromJSON(steps.isUserTeamMember.outputs.isTeamMember) || contains(github.event.pull_request.labels.*.name, 'Ready To Build') }}" >> "$GITHUB_OUTPUT"
+
+      - id: hasReadyToBuildLabel
+        name: Set HAS_READY_TO_BUILD_LABEL flag
+        run: echo "HAS_READY_TO_BUILD_LABEL=$(gh pr view "${{ env.PULL_REQUEST_NUMBER }}" --json labels --jq '.labels[].name' | grep -q 'Ready To Build' && echo 'true')" >> "$GITHUB_OUTPUT"
+        env:
+          PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
+          GITHUB_TOKEN: ${{ github.token }}
 
   getBranchRef:
     runs-on: ubuntu-latest
     needs: validateActor
-    if: ${{ needs.validateActor.outputs.READY_TO_BUILD == 'true' }}
+    if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     outputs:
       REF: ${{steps.getHeadRef.outputs.REF}}
     steps:
       - name: Checkout
         if: ${{ github.event_name == 'workflow_dispatch' }}
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+
       - name: Check if pull request number is correct
         if: ${{ github.event_name == 'workflow_dispatch' }}
         id: getHeadRef
@@ -62,7 +57,7 @@ jobs:
   android:
     name: Build and deploy Android for testing
     needs: [validateActor, getBranchRef]
-    if: ${{ needs.validateActor.outputs.READY_TO_BUILD == 'true' }}
+    if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     runs-on: ubuntu-latest
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
@@ -112,7 +107,7 @@ jobs:
   iOS:
     name: Build and deploy iOS for testing
     needs: [validateActor, getBranchRef]
-    if: ${{ needs.validateActor.outputs.READY_TO_BUILD == 'true' }}
+    if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: macos-12
@@ -168,7 +163,7 @@ jobs:
   desktop:
     name: Build and deploy Desktop for testing
     needs: [validateActor, getBranchRef]
-    if: ${{ needs.validateActor.outputs.READY_TO_BUILD == 'true' }}
+    if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: macos-12
@@ -205,7 +200,7 @@ jobs:
   web:
     name: Build and deploy Web
     needs: [validateActor, getBranchRef]
-    if: ${{ needs.validateActor.outputs.READY_TO_BUILD == 'true' }}
+    if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
     env:
       PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
     runs-on: ubuntu-latest
@@ -214,7 +209,9 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
+
       - name: Configure AWS Credentials
         uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
         with:
