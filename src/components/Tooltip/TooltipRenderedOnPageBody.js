@@ -128,6 +128,8 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
                         <Text
                             style={tooltipTextStyle}
                             ref={(ref) => {
+                                // Once the text for the tooltip first renders, update the width of the tooltip dynamically to fit the width of the text.
+                                // Note that we can't have this code in componentDidMount because the ref for the text won't be set until after the first render
                                 if (this.textRef) {
                                     return;
                                 }
