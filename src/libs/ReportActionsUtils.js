@@ -139,39 +139,32 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
 /**
  * @param {String} reportID
  * @param {Object} [actionsToMerge]
- * @return {String}
+ * @return {Object}
  */
-function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
-    const parser = new ExpensiMark();
+function getLastVisibleAction(reportID, actionsToMerge = {}) {
     const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const sortedActions = getSortedReportActions(actions);
-    const lastMessageIndex = _.findLastIndex(sortedActions, action => (
-        !isDeletedAction(action)
-    ));
-    if (lastMessageIndex < 0) {
-        return '';
-    }
-
-    const htmlText = lodashGet(sortedActions, [lastMessageIndex, 'message', 0, 'html'], '');
-    const messageText = parser.htmlToText(htmlText);
-    return ReportUtils.formatReportLastMessageText(messageText);
+    const visibleActions = _.filter(actions, action => (!isDeletedAction(action)));
+    return _.max(visibleActions, action => moment.utc(action.created).valueOf());
 }
 
 /**
  * @param {String} reportID
  * @param {Object} [actionsToMerge]
- * @returns {String}
+ * @return {String}
  */
-function getLastVisibleActionCreated(reportID, actionsToMerge = {}) {
-    const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const visibleActions = _.filter(actions, action => (!isDeletedAction(action)));
-    return _.max(visibleActions, action => moment.utc(action.created).valueOf()).created;
+function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
+    const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
+    const htmlText = lodashGet(lastVisibleAction, 'message[0].html', '');
+
+    const parser = new ExpensiMark();
+    const messageText = parser.htmlToText(htmlText);
+    return ReportUtils.formatReportLastMessageText(messageText);
 }
 
 export {
     getSortedReportActions,
     filterReportActionsForDisplay,
-    getLastVisibleActionCreated,
+    getLastVisibleAction,
     getLastVisibleMessageText,
     getMostRecentIOUReportActionID,
     isDeletedAction,
