@@ -334,6 +334,14 @@ const styles = {
         opacity: 1,
     },
 
+    pr0: {
+        paddingRight: 0,
+    },
+
+    pl0: {
+        paddingLeft: 0,
+    },
+
     textDanger: {
         color: themeColors.danger,
     },
@@ -450,9 +458,11 @@ const styles = {
         borderWidth: 0,
     },
 
-    buttonDropdown: {
-        borderLeftWidth: 1,
-        borderColor: themeColors.textLight,
+    buttonDivider: {
+        width: 1,
+        alignSelf: 'stretch',
+        backgroundColor: themeColors.appBG,
+        marginVertical: 1,
     },
 
     noRightBorderRadius: {
@@ -528,8 +538,8 @@ const styles = {
     },
 
     loadingVBAAnimation: {
-        width: 160,
-        height: 160,
+        width: 140,
+        height: 140,
     },
 
     pickerSmall: {
@@ -1434,7 +1444,7 @@ const styles = {
     },
 
     emojiPickerList: {
-        height: 300,
+        height: 288,
         width: '100%',
         ...spacing.ph4,
     },
@@ -1445,7 +1455,9 @@ const styles = {
     emojiHeaderStyle: {
         backgroundColor: themeColors.componentBG,
         width: '100%',
-        ...spacing.pv3,
+        height: 32,
+        display: 'flex',
+        alignItems: 'center',
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
@@ -1486,11 +1498,19 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
+    emojiItemKeyboardHighlighted: {
+        transition: '0.2s ease',
+        borderWidth: 1,
+        borderColor: themeColors.link,
+        borderRadius: variables.buttonBorderRadius,
+    },
+
     chatItemEmojiButton: {
         alignSelf: 'flex-end',
         borderRadius: variables.buttonBorderRadius,
         height: 32,
         marginVertical: 4,
+        marginLeft: 3,
         paddingHorizontal: 6,
         justifyContent: 'center',
     },
@@ -2378,7 +2398,7 @@ const styles = {
 
     smallEditIcon: {
         alignItems: 'center',
-        backgroundColor: themeColors.icon,
+        backgroundColor: themeColors.buttonHoveredBG,
         borderColor: themeColors.textReversed,
         borderRadius: 14,
         borderWidth: 3,
@@ -2602,9 +2622,9 @@ const styles = {
         ],
     }),
 
-    confettiIcon: {
-        height: 100,
-        width: 100,
+    confirmationAnimation: {
+        height: 180,
+        width: 180,
         marginBottom: 20,
     },
 
@@ -2836,6 +2856,12 @@ const styles = {
     saveButtonPadding: {
         paddingLeft: 18,
         paddingRight: 18,
+    },
+
+    pushToPageEmptyItemLabel: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeNormal,
+        maxWidth: 240,
     },
 };
 

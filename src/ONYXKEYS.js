@@ -172,6 +172,7 @@ export default {
         CLOSE_ACCOUNT_FORM: 'closeAccount',
         PROFILE_SETTINGS_FORM: 'profileSettingsForm',
         DISPLAY_NAME_FORM: 'displayNameForm',
+        NEW_ROOM_FORM: 'newRoomForm',
     },
 
     // Whether we should show the compose input or not
