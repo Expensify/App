@@ -20,7 +20,7 @@ export default PropTypes.shape({
     website: PropTypes.string,
     companyTaxID: PropTypes.string,
     incorporationType: PropTypes.string,
-    incorporationDate: PropTypes.string,
+    incorporationDate: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
     incorporationState: PropTypes.string,
     hasNoConnectionToCannabis: PropTypes.bool,
 
