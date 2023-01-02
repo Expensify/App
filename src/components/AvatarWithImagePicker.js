@@ -153,12 +153,10 @@ class AvatarWithImagePicker extends React.Component {
      * @returns {Promise}
      */
     isValidResolution(image) {
-        const isResolutionWithinRange = resolution => (
+        return getImageResolution(image).then(resolution => (
             (resolution.height >= CONST.AVATAR_MIN_HEIGHT_PX && resolution.width >= CONST.AVATAR_MIN_WIDTH_PX)
             && (resolution.height <= CONST.AVATAR_MAX_HEIGHT_PX && resolution.width <= CONST.AVATAR_MAX_WIDTH_PX)
-        );
-
-        return getImageResolution(image).then(isResolutionWithinRange);
+        ));
     }
 
     /**
