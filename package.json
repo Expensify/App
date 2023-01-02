@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.2.45-0",
+  "version": "1.2.46-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -38,7 +38,7 @@
     "analyze-packages": "ANALYZE_BUNDLE=true webpack --config config/webpack/webpack.common.js --env envFile=.env.production",
     "symbolicate:android": "npx metro-symbolicate android/app/build/generated/sourcemaps/react/release/index.android.bundle.map",
     "symbolicate:ios": "npx metro-symbolicate main.jsbundle.map",
-    "test:e2e": "node tests/e2e/testRunner.js"
+    "test:e2e": "node tests/e2e/testRunner.js --development"
   },
   "dependencies": {
     "@expensify/react-native-web": "0.18.9",
