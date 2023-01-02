@@ -25,11 +25,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           username: ${{ github.actor }}
           team: expensify-expensify
+
       - id: hasReadyToBuildLabel
         name: Set HAS_READY_TO_BUILD_LABEL flag
+        run: echo "HAS_READY_TO_BUILD_LABEL=$(gh pr view "$PULL_REQUEST_NUMBER" --json labels --jq '.labels[].name' | grep -q 'Ready To Build' && echo 'true')" >> "$GITHUB_OUTPUT"
         env:
           PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
-        run: echo "HAS_READY_TO_BUILD_LABEL=$(gh pr view "$PULL_REQUEST_NUMBER" --json labels --jq '.labels[].name' | grep -q 'Ready To Build' && echo 'true')" >> "$GITHUB_OUTPUT"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - id: readyToBuild
         name: Set READY_TO_BUILD flag
         run: echo "READY_TO_BUILD=${{ fromJSON(steps.isUserTeamMember.outputs.isTeamMember) && steps.hasReadyToBuildLabel.outputs.HAS_READY_TO_BUILD_LABEL == 'true' }}" >> "$GITHUB_OUTPUT"
@@ -44,6 +47,7 @@ jobs:
       - name: Checkout
         if: ${{ github.event_name == 'workflow_dispatch' }}
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+
       - name: Check if pull request number is correct
         if: ${{ github.event_name == 'workflow_dispatch' }}
         id: getHeadRef
@@ -209,7 +213,9 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || needs.getBranchRef.outputs.REF }}
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
+
       - name: Configure AWS Credentials
         uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
         with:
