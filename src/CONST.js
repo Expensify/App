@@ -34,8 +34,8 @@ const CONST = {
     AVATAR_MIN_HEIGHT_PX: 80,
 
     // Maximum width and height size in px for a selected image
-    AVATAR_MAX_WIDTH_PX: 2048,
-    AVATAR_MAX_HEIGHT_PX: 2048,
+    AVATAR_MAX_WIDTH_PX: 4096,
+    AVATAR_MAX_HEIGHT_PX: 4096,
 
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
