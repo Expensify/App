@@ -44,7 +44,6 @@ beforeEach(() => {
     const amount = 1000;
     const currency = 'USD';
 
-    // Create an IOU report
     iouReport = ReportUtils.buildOptimisticIOUReport(
         ownerEmail,
         managerEmail,

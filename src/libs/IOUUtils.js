@@ -67,7 +67,7 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = 
 }
 
 /**
- * Returns the list of IOU actions depnding on the type and whehter or not they are pending.
+ * Returns the list of IOU actions depending on the type and whether or not they are pending.
  * Used below so that we can decide if an IOU report is pending currency conversion.
  *
  * @param {Array} reportActions
@@ -129,7 +129,7 @@ function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
         return false;
     }
 
-    // We don't have requests made offline that have all been cancelled
+    // Not all requests made offline had been cancelled,
     // simply return if we have any pending created or cancelled requests
     return hasPendingRequests;
 }
