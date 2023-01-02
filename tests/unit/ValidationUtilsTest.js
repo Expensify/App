@@ -6,8 +6,12 @@ describe('ValidationUtils', () => {
             expect(ValidationUtils.isValidTwoFactorCode('123456')).toBe(true);
         });
 
+        test('numeric two factor code with leading zeroes', () => {
+            expect(ValidationUtils.isValidTwoFactorCode('000001')).toBe(true);
+        });
+
         test('alphanumeric two factor code', () => {
-            expect(ValidationUtils.isValidTwoFactorCode('abc123')).toBe(true);
+            expect(ValidationUtils.isValidTwoFactorCode('abc123')).toBe(false);
         });
 
         test('special characters two factor code', () => {
@@ -15,7 +19,7 @@ describe('ValidationUtils', () => {
         });
 
         test('partial special characters two factor code', () => {
-            expect(ValidationUtils.isValidTwoFactorCode('abc!@#')).toBe(false);
+            expect(ValidationUtils.isValidTwoFactorCode('123$%^')).toBe(false);
         });
     });
 });
