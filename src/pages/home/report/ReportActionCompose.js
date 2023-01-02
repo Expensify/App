@@ -393,7 +393,7 @@ class ReportActionCompose extends React.Component {
         const newComment = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth);
         this.setState((prevState) => {
             const newState = {
-                isCommentEmpty: !!newComment.match(/^(\s|`)*$/),
+                isCommentEmpty: !!newComment.match(/^(\s)*$/),
                 value: newComment,
             };
             if (comment !== newComment) {
@@ -465,6 +465,7 @@ class ReportActionCompose extends React.Component {
      */
     prepareCommentAndResetComposer() {
         const trimmedComment = this.comment.trim();
+        console.log('!!!', trimmedComment, this.state.isCommentEmpty)
 
         // Don't submit empty comments or comments that exceed the character limit
         if (this.state.isCommentEmpty || trimmedComment.length > CONST.MAX_COMMENT_LENGTH) {
