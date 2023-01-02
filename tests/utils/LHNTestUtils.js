@@ -111,6 +111,7 @@ function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorksp
 
 /**
  * @param {String} [reportIDFromRoute]
+ * @returns {RenderAPI}
  */
 function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
     // An ErrorBoundary needs to be added to the rendering so that any errors that happen while the component
@@ -139,7 +140,7 @@ function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
     // are passed to the component. If this is not done, then all the locale props are missing
     // and there are a lot of render warnings. It needs to be done like this because normally in
     // our app (App.js) is when the react application is wrapped in the context providers
-    render((
+    return render((
         <ComposeProviders
             components={[
                 OnyxProvider,

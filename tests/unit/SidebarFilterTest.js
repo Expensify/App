@@ -1,4 +1,4 @@
-import {cleanup, screen} from '@testing-library/react-native';
+import {cleanup} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -39,7 +39,7 @@ describe('Sidebar', () => {
 
     describe('in default (most recent) mode', () => {
         it('excludes a report with no participants', () => {
-            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given a report with no participants
             const report = LHNTestUtils.getFakeReport([]);
@@ -53,13 +53,13 @@ describe('Sidebar', () => {
 
                 // Then no reports are rendered in the LHN
                 .then(() => {
-                    const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                    const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                     expect(optionRows).toHaveLength(0);
                 });
         });
 
         it('includes or excludes policy expense chats depending on the beta', () => {
-            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given a policy expense report
             // and the user not being in any betas
@@ -79,7 +79,7 @@ describe('Sidebar', () => {
 
                 // Then no reports are rendered in the LHN
                 .then(() => {
-                    const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                    const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                     expect(optionRows).toHaveLength(0);
                 })
 
@@ -90,13 +90,13 @@ describe('Sidebar', () => {
 
                 // Then there is one report rendered in the LHN
                 .then(() => {
-                    const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                    const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                     expect(optionRows).toHaveLength(1);
                 });
         });
 
         it('includes or excludes user created policy rooms depending on the beta', () => {
-            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given a user created policy room report
             // and the user not being in any betas
@@ -116,7 +116,7 @@ describe('Sidebar', () => {
 
                 // Then no reports are rendered in the LHN
                 .then(() => {
-                    const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                    const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                     expect(optionRows).toHaveLength(0);
                 })
 
@@ -127,13 +127,13 @@ describe('Sidebar', () => {
 
                 // Then there is one report rendered in the LHN
                 .then(() => {
-                    const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                    const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                     expect(optionRows).toHaveLength(1);
                 });
         });
 
         it('includes or excludes default policy rooms depending on the beta', () => {
-            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given three reports with the three different types of default policy rooms
             // and the user not being in any betas
@@ -163,7 +163,7 @@ describe('Sidebar', () => {
 
                 // Then no reports are rendered in the LHN
                 .then(() => {
-                    const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                    const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                     expect(optionRows).toHaveLength(0);
                 })
 
@@ -174,13 +174,13 @@ describe('Sidebar', () => {
 
                 // Then all three reports are showing in the LHN
                 .then(() => {
-                    const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                    const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                     expect(optionRows).toHaveLength(3);
                 });
         });
 
         it('includes default policy rooms for free policies, regardless of the beta', () => {
-            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given a default policy room report on a free policy
             // and the user not being in any betas
@@ -206,7 +206,7 @@ describe('Sidebar', () => {
 
                 // Then the report is rendered in the LHN
                 .then(() => {
-                    const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                    const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                     expect(optionRows).toHaveLength(1);
                 })
 
@@ -215,7 +215,7 @@ describe('Sidebar', () => {
 
                 // Then the report is not rendered in the LHN
                 .then(() => {
-                    const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                    const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                     expect(optionRows).toHaveLength(0);
                 });
         });
@@ -277,7 +277,7 @@ describe('Sidebar', () => {
                         ...LHNTestUtils.getAdvancedFakeReport(...boolArr),
                         policyID: policy.policyID,
                     };
-                    LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
+                    const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
 
                     return waitForPromisesToResolve()
 
@@ -295,13 +295,13 @@ describe('Sidebar', () => {
                         .then(() => {
                             if (booleansWhichRemovesActiveReport.indexOf(JSON.stringify(boolArr)) > -1) {
                                 // Only one report visible
-                                expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(1);
-                                expect(screen.queryAllByLabelText('Chat user display names')).toHaveLength(1);
-                                const displayNames = screen.queryAllByLabelText('Chat user display names');
+                                expect(sidebarLinks.queryAllByA11yHint('Navigates to a chat')).toHaveLength(1);
+                                expect(sidebarLinks.queryAllByA11yLabel('Chat user display names')).toHaveLength(1);
+                                const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
                                 expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
                             } else {
                                 // Both reports visible
-                                expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(2);
+                                expect(sidebarLinks.queryAllByA11yHint('Navigates to a chat')).toHaveLength(2);
                             }
                         });
                 });
@@ -322,7 +322,7 @@ describe('Sidebar', () => {
                 lastReadSequenceNumber: LHNTestUtils.TEST_MAX_SEQUENCE_NUMBER - 1,
             };
             const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com']);
-            LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
+            let sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
 
             return waitForPromisesToResolve()
 
@@ -337,7 +337,7 @@ describe('Sidebar', () => {
 
                 // Then the reports 1 and 2 are shown and 3 is not
                 .then(() => {
-                    const displayNames = screen.queryAllByLabelText('Chat user display names');
+                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
                     expect(displayNames).toHaveLength(2);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('One, Two');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('Three, Four');
@@ -348,7 +348,7 @@ describe('Sidebar', () => {
 
                 // Then all three chats are showing
                 .then(() => {
-                    expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(3);
+                    expect(sidebarLinks.queryAllByA11yHint('Navigates to a chat')).toHaveLength(3);
                 })
 
                 // When report 1 becomes read (it's the active report)
@@ -356,19 +356,19 @@ describe('Sidebar', () => {
 
                 // Then all three chats are still showing
                 .then(() => {
-                    expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(3);
+                    expect(sidebarLinks.queryAllByA11yHint('Navigates to a chat')).toHaveLength(3);
                 })
 
                 // When report 2 becomes the active report
                 .then(() => {
-                    LHNTestUtils.getDefaultRenderedSidebarLinks(report2.reportID);
+                    sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(report2.reportID);
                     return waitForPromisesToResolve();
                 })
 
                 // Then report 1 should now disappear
                 .then(() => {
-                    expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(2);
-                    expect(screen.queryAllByText(/One, Two/)).toHaveLength(0);
+                    expect(sidebarLinks.queryAllByA11yHint('Navigates to a chat')).toHaveLength(2);
+                    expect(sidebarLinks.queryAllByText(/One, Two/)).toHaveLength(0);
                 });
         });
 
@@ -382,7 +382,7 @@ describe('Sidebar', () => {
                 ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']),
                 isPinned: true,
             };
-            LHNTestUtils.getDefaultRenderedSidebarLinks(draftReport.reportID);
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(draftReport.reportID);
 
             return waitForPromisesToResolve()
 
@@ -396,7 +396,7 @@ describe('Sidebar', () => {
 
                 // Then both reports are visible
                 .then(() => {
-                    const displayNames = screen.queryAllByLabelText('Chat user display names');
+                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
                     expect(displayNames).toHaveLength(2);
                     expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
                     expect(lodashGet(displayNames, [1, 'props', 'children'])).toBe('One, Two');
@@ -422,7 +422,7 @@ describe('Sidebar', () => {
                 statusNum: CONST.REPORT.STATUS.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             };
-            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
 
@@ -437,7 +437,7 @@ describe('Sidebar', () => {
 
                 // Then neither reports are visible
                 .then(() => {
-                    const displayNames = screen.queryAllByLabelText('Chat user display names');
+                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
                     expect(displayNames).toHaveLength(0);
                 })
 
@@ -454,7 +454,7 @@ describe('Sidebar', () => {
 
                 // Then they are all visible
                 .then(() => {
-                    const displayNames = screen.queryAllByLabelText('Chat user display names');
+                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
                     expect(displayNames).toHaveLength(3);
                 });
         });
@@ -469,7 +469,7 @@ describe('Sidebar', () => {
                 ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
             };
-            LHNTestUtils.getDefaultRenderedSidebarLinks();
+            const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             return waitForPromisesToResolve()
 
@@ -483,7 +483,7 @@ describe('Sidebar', () => {
 
                 // Then neither reports are visible
                 .then(() => {
-                    const displayNames = screen.queryAllByLabelText('Chat user display names');
+                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
                     expect(displayNames).toHaveLength(0);
                 })
 
@@ -497,7 +497,7 @@ describe('Sidebar', () => {
 
                 // Then both rooms are visible
                 .then(() => {
-                    const displayNames = screen.queryAllByLabelText('Chat user display names');
+                    const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
                     expect(displayNames).toHaveLength(2);
                 });
         });
@@ -560,7 +560,7 @@ describe('Sidebar', () => {
                     ...LHNTestUtils.getAdvancedFakeReport(...boolArr),
                     policyID: policy.policyID,
                 };
-                LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
+                const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
 
                 return waitForPromisesToResolve()
 
@@ -578,13 +578,13 @@ describe('Sidebar', () => {
                     .then(() => {
                         if (booleansWhichRemovesActiveReport.indexOf(JSON.stringify(boolArr)) > -1) {
                             // Only one report visible
-                            expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(1);
-                            expect(screen.queryAllByLabelText('Chat user display names')).toHaveLength(1);
-                            const displayNames = screen.queryAllByLabelText('Chat user display names');
+                            expect(sidebarLinks.queryAllByA11yHint('Navigates to a chat')).toHaveLength(1);
+                            expect(sidebarLinks.queryAllByA11yLabel('Chat user display names')).toHaveLength(1);
+                            const displayNames = sidebarLinks.queryAllByA11yLabel('Chat user display names');
                             expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
                         } else {
                             // Both reports visible
-                            expect(screen.queryAllByAccessibilityHint('Navigates to a chat')).toHaveLength(2);
+                            expect(sidebarLinks.queryAllByA11yHint('Navigates to a chat')).toHaveLength(2);
                         }
                     });
             });
@@ -594,7 +594,7 @@ describe('Sidebar', () => {
     describe('Archived chat', () => {
         describe('in default (most recent) mode', () => {
             it('is shown regardless if it has comments or not', () => {
-                LHNTestUtils.getDefaultRenderedSidebarLinks();
+                const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
                 // Given an archived report with no comments
                 const report = {
@@ -623,7 +623,7 @@ describe('Sidebar', () => {
 
                     // Then the report is rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                        const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                         expect(optionRows).toHaveLength(1);
                     })
 
@@ -634,7 +634,7 @@ describe('Sidebar', () => {
 
                     // Then the report is rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                        const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                         expect(optionRows).toHaveLength(1);
                     });
             });
@@ -642,7 +642,7 @@ describe('Sidebar', () => {
 
         describe('in GSD (focus) mode', () => {
             it('is shown when it is unread', () => {
-                LHNTestUtils.getDefaultRenderedSidebarLinks();
+                const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
                 // Given an archived report that has all comments read
                 const report = {
@@ -671,7 +671,7 @@ describe('Sidebar', () => {
 
                     // Then the report is not rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                        const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                         expect(optionRows).toHaveLength(0);
                     })
 
@@ -680,13 +680,13 @@ describe('Sidebar', () => {
 
                     // Then the report is rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                        const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                         expect(optionRows).toHaveLength(1);
                     });
             });
 
             it('is shown when it is pinned', () => {
-                LHNTestUtils.getDefaultRenderedSidebarLinks();
+                const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
                 // Given an archived report that is not pinned
                 const report = {
@@ -715,7 +715,7 @@ describe('Sidebar', () => {
 
                     // Then the report is not rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                        const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                         expect(optionRows).toHaveLength(0);
                     })
 
@@ -724,13 +724,13 @@ describe('Sidebar', () => {
 
                     // Then the report is rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                        const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                         expect(optionRows).toHaveLength(1);
                     });
             });
 
             it('is shown when it is the active report', () => {
-                LHNTestUtils.getDefaultRenderedSidebarLinks();
+                let sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
                 // Given an archived report that is not the active report
                 const report = {
@@ -758,25 +758,25 @@ describe('Sidebar', () => {
 
                     // Then the report is not rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                        const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                         expect(optionRows).toHaveLength(0);
                     })
 
                     // When sidebar is rendered with the active report ID matching the archived report in Onyx
                     .then(() => {
-                        LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID);
+                        sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID);
                         return waitForPromisesToResolve();
                     })
 
                     // Then the report is rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                        const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                         expect(optionRows).toHaveLength(1);
                     });
             });
 
             it('is hidden regardless of how many comments it has', () => {
-                LHNTestUtils.getDefaultRenderedSidebarLinks();
+                const sidebarLinks = LHNTestUtils.getDefaultRenderedSidebarLinks();
 
                 // Given an archived report with no comments
                 const report = {
@@ -805,7 +805,7 @@ describe('Sidebar', () => {
 
                     // Then the report is not rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                        const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                         expect(optionRows).toHaveLength(0);
                     })
 
@@ -816,7 +816,7 @@ describe('Sidebar', () => {
 
                     // Then the report is not rendered in the LHN
                     .then(() => {
-                        const optionRows = screen.queryAllByAccessibilityHint('Navigates to a chat');
+                        const optionRows = sidebarLinks.queryAllByA11yHint('Navigates to a chat');
                         expect(optionRows).toHaveLength(0);
                     });
             });
