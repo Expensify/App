@@ -1,6 +1,11 @@
 /**
- * Returns image dimensions for picked File object
- * File object is returned as a result of a user selecting files using the <input> element
+ * Get image resolution
+ * File object is returned as a result of a user selecting image using the <input type="file" />
+ * We need to create a new Image object and get dimensions from it
+ * Opposite to native where we already have width and height properties coming from library
+ *
+ * new Image() is used specifically for performance reasons, opposed to using FileReader (5ms vs +100ms)
+ * because FileReader is slow and causes a noticeable delay in the UI when selecting an image.
  *
  * @param {*} file Picked file blob
  * @returns {Promise}
