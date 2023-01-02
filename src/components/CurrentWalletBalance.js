@@ -27,29 +27,18 @@ const propTypes = {
 };
 
 const defaultProps = {
-    userWallet: {},
+    userWallet: {
+
+        // Default to zero if userWallet and currentBalance is not set yet to avoid NaN
+        currentBalance: 0,
+    },
     balanceStyles: [],
     showActivityIndicator: null,
 };
 
 const CurrentWalletBalance = (props) => {
-    // Show spinner if we are still waiting on userWallet to load unless we are specifically dictating
-    // behavior with the prop showActivityIndicator
-    const isShowActivityIndicatorSet = props.showActivityIndicator !== null;
-    if ((isShowActivityIndicatorSet && props.showActivityIndicator) || (!isShowActivityIndicatorSet && _.isEmpty(props.userWallet))) {
-        return (
-            <ActivityIndicator
-                color={themeColors.text}
-                size="large"
-                style={styles.pv5}
-            />
-        );
-    }
-
     const formattedBalance = props.numberFormat(
-
-        // Divide by 100 because balance is in cents. Default to zero if userWallet and currentBalance is not set yet to avoid NaN
-        (props.userWallet.currentBalance || 0) / 100,
+        props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
         {style: 'currency', currency: 'USD'},
     );
     return (
