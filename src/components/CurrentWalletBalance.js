@@ -1,12 +1,9 @@
 import React from 'react';
-import {ActivityIndicator} from 'react-native';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../styles/styles';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
-import themeColors from '../styles/themes/default';
 import ONYXKEYS from '../ONYXKEYS';
 import Text from './Text';
 
@@ -21,8 +18,6 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     balanceStyles: PropTypes.arrayOf(PropTypes.object),
 
-    showActivityIndicator: PropTypes.bool,
-
     ...withLocalizePropTypes,
 };
 
@@ -33,7 +28,6 @@ const defaultProps = {
         currentBalance: 0,
     },
     balanceStyles: [],
-    showActivityIndicator: null,
 };
 
 const CurrentWalletBalance = (props) => {
