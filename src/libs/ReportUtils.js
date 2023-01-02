@@ -1186,6 +1186,7 @@ function chatIncludesChronos(report) {
 
 /**
  * @param {Object} report
+ * @param {String} report.lastReadTime
  * @param {Array} sortedAndFilteredReportActions - reportActions for the report, sorted newest to oldest, and filtered for only those that should be visible
  *
  * @returns {String|null}
