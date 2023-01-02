@@ -54,7 +54,7 @@ class ReportSettingsPage extends Component {
         super(props);
 
         this.validate = this.validate.bind(this);
-        this.validateAndUpdatePolicyRoomName = this.validateAndUpdatePolicyRoomName.bind(this);
+        this.updatePolicyRoomName = this.updatePolicyRoomName.bind(this);
     }
 
     getNotificationPreferenceOptions() {
@@ -68,7 +68,7 @@ class ReportSettingsPage extends Component {
     /**
      * @param {Object} values - form input values passed by the Form component
      */
-    validateAndUpdatePolicyRoomName(values) {
+    updatePolicyRoomName(values) {
         Keyboard.dismiss();
 
         // When the room name has not changed, skip the Form submission
@@ -128,7 +128,7 @@ class ReportSettingsPage extends Component {
                     submitButtonText={this.props.translate('common.save')}
                     style={[styles.mh5, styles.mt5, styles.flexGrow1]}
                     validate={this.validate}
-                    onSubmit={this.validateAndUpdatePolicyRoomName}
+                    onSubmit={this.updatePolicyRoomName}
                     isSubmitButtonVisible={shouldShowRoomName && !shouldDisableRename}
                     enabledWhenOffline
                 >
