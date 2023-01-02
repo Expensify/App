@@ -161,20 +161,15 @@ export default function getTooltipStyles(
         pointerWrapperStyle: {
             position: 'fixed',
 
-            // By default, the pointer's top-left will align with the top-left of the wrapped tooltip.
+            // By default, the pointer's top-left will align with the top-left of the tooltip wrapper.
             //
             // To align it vertically, we'll:
+            //   If the pointer should be below the tooltip wrapper, shift the pointer down (+) by the tooltip height,
+            //   so that the top of the pointer lines up with the bottom of the tooltip
             //
-            //   Shift the pointer up (-) by component's height, so that the bottom of the pointer lines up
-            //   with the top of the wrapped component.
-            //
-            //   OR if it should show below:
-            //
-            //   Shift the pointer down (+) by the component's height,
-            //      so that the top of the pointer aligns with the bottom of the component.
-            //
-            // Always add the manual vertical shift passed in as a parameter.
-            top: shouldShowBelow ? (manualShiftVertical - POINTER_HEIGHT) : (tooltipHeight + manualShiftVertical),
+            //   OR if the pointer should be above the tooltip wrapper, then the pointer up (-) by the pointer's height
+            //   so that the bottom of the pointer lines up with the top of the tooltip
+            top: shouldShowBelow ? -POINTER_HEIGHT : tooltipHeight,
 
             // To align it horizontally, we'll:
             //   1) Shift the pointer to the right (+) by the half the tooltipWidth's width,
