@@ -24,7 +24,7 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           username: ${{ github.actor }}
-          team: expensify-expensify
+          team: 'Expensify/expensify'
 
       - id: hasReadyToBuildLabel
         name: Set HAS_READY_TO_BUILD_LABEL flag
