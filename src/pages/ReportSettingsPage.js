@@ -174,7 +174,6 @@ class ReportSettingsPage extends Component {
                                                 <RoomNameInput
                                                     inputID="newRoomName"
                                                     defaultValue={this.props.report.reportName}
-                                                    disabled={shouldDisableRename}
                                                 />
                                             )}
                                     </View>
