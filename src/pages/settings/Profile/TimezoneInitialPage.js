@@ -49,6 +49,7 @@ const TimezoneInitialPage = (props) => {
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
+            <View style={styles.flex1} contentContainerStyle={styles.p5}>
             <View style={[styles.ph5]}>
                 <Text style={[styles.mb5]}>
                     {props.translate('timezonePage.isShownOnProfile')}
@@ -71,6 +72,7 @@ const TimezoneInitialPage = (props) => {
                 disabled={timezone.automatic}
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE_SELECT)}
             />
+            </View>
         </ScreenWrapper>
     );
 };
