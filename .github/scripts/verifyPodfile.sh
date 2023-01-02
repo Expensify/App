@@ -10,6 +10,14 @@ podfileLockSha=$(awk '/PODFILE CHECKSUM: /{print $3}' ios/Podfile.lock)
 echo "Podfile: $podfileSha"
 echo "Podfile.lock: $podfileLockSha"
 
+# Check Provisioning Style. If automatic signing is enabled, iOS builds will fail, so ensure we always have the proper profile specified
+if grep -q 'PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore' ios/NewExpensify.xcodeproj/project.pbxproj; then
+    exit 0
+else
+    echo "Error: Automatic provisioning style is not allowed!"
+    exit 1
+fi
+
 if [ "$podfileSha" == "$podfileLockSha" ]; then
     echo -e "${GREEN}Podfile verified!${NC}"
     exit 0
