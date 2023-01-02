@@ -6,45 +6,69 @@ on:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
 
+env:
+  # Number of parallel jobs for jest tests
+  CHUNKS: 3
 jobs:
-  jest:
+  config:
+    runs-on: ubuntu-latest
+    name: Define matrix parameters
+    outputs:
+      MATRIX: ${{ steps.set-matrix.outputs.MATRIX }}
+      JEST_CHUNKS: ${{ steps.set-matrix.outputs.JEST_CHUNKS }}
+    steps:
+      - name: Set Matrix
+        id: set-matrix
+        uses: actions/github-script@v6
+        with:
+          # Generate matrix array i.e. [0, 1, 2, ...., CHUNKS - 1] for test job
+          script: |
+            core.setOutput('MATRIX', Array.from({ length: Number(process.env.CHUNKS) }, (v, i) => i + 1));
+            core.setOutput('JEST_CHUNKS', Number(process.env.CHUNKS) - 1);
+
+  test:
+    needs: config
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
+    name: test (job ${{ fromJSON(matrix.chunk) }})
     env:
       CI: true
     strategy:
       fail-fast: false
       matrix:
-        chunk: [ 1, 2, 3 ]
-    name: test (job ${{ fromJSON(matrix.chunk) }})
+        chunk: ${{fromJson(needs.config.outputs.MATRIX)}}
+
     steps:
       # This action checks-out the repository, so the workflow can access it.
-      - uses: actions/checkout@885641592076c27bfb56c028cd5612cdad63e16d
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        with:
+          fetch-depth: 0
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
-      - name: Get number of CPU cores
-        id: cpu-cores
-        uses: SimenB/github-actions-cpu-cores@31e91de0f8654375a21e8e83078be625380e2b18
+      # If automatic signing is enabled, iOS builds will fail, so ensure we always have the proper profile specified
+      - name: Check Provisioning Style
+        run: |
+          if grep -q 'PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore' ios/NewExpensify.xcodeproj/project.pbxproj; then
+            exit 0
+          else
+            echo "Error: Automatic provisioning style is not allowed!"
+            exit 1
+          fi
 
       - name: Cache Jest cache
         id: cache-jest-cache
-        uses: actions/cache@ac25611caef967612169ab7e95533cf932c32270
+        uses: actions/cache@v1
         with:
           path: .jest-cache
           key: ${{ runner.os }}-jest
 
-      - name: Jest tests
-        run: npx jest --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --max-workers ${{ steps.cpu-cores.outputs.count }}
+      - name: All Unit Tests
+        if: ${{ fromJSON(matrix.chunk) < fromJSON(env.CHUNKS) }}
+        # Split the jest based test files in multiple chunks/groups and then execute them in parallel in different jobs/runners.
+        run: npx jest --listTests --json | jq -cM '[_nwise(length / ${{ fromJSON(needs.config.outputs.JEST_CHUNKS) }} | ceil)]' | jq '[[]] + .' | jq '.[${{ fromJSON(matrix.chunk) }}] | .[] | @text' | xargs npm test
 
-  shellTests:
-    if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
-    runs-on: ubuntu-latest
-    name: Run tests written as shell scripts
-    steps:
-      - uses: actions/checkout@885641592076c27bfb56c028cd5612cdad63e16d
-
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
-
-      - name: getPullRequestsMergedBetween
+      - name: Pull Request Tests
+        # Pull request related tests will be run in separate runner in parallel.
+        if: ${{ fromJSON(matrix.chunk) == fromJSON(env.CHUNKS) }}
         run: tests/unit/getPullRequestsMergedBetweenTest.sh

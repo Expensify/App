@@ -30,19 +30,9 @@ const webpack = {
 };
 
 const metro = {
-    presets: [
-        require('metro-react-native-babel-preset'),
-    ],
+    presets: [require('metro-react-native-babel-preset')],
     plugins: [
         'react-native-reanimated/plugin',
-
-        // This is needed due to a react-native bug: https://github.com/facebook/react-native/issues/29084#issuecomment-1030732709
-        // It is included in metro-react-native-babel-preset but needs to be before plugin-proposal-class-properties or FlatList will break
-        '@babel/plugin-transform-flow-strip-types',
-
-        ['@babel/plugin-proposal-class-properties', {loose: true}],
-        ['@babel/plugin-proposal-private-methods', {loose: true}],
-        ['@babel/plugin-proposal-private-property-in-object', {loose: true}],
     ],
 };
 
@@ -70,7 +60,6 @@ if (process.env.CAPTURE_METRICS === 'true') {
 module.exports = ({caller}) => {
     // For `react-native` (iOS/Android) caller will be "metro"
     // For `webpack` (Web) caller will be "@babel-loader"
-    // For jest, it will be babel-jest
     // For `storybook` there won't be any config at all so we must give default argument of an empty object
     const runningIn = caller((args = {}) => args.name);
     return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
