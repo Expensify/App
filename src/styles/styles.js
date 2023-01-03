@@ -814,6 +814,10 @@ const styles = {
         height: variables.inputHeight,
     },
 
+    pickerContainerSmall: {
+        height: variables.inputHeightSmall,
+    },
+
     pickerLabel: {
         position: 'absolute',
         left: 0,
@@ -1414,6 +1418,7 @@ const styles = {
     },
 
     editInputComposeSpacing: {
+        
         marginVertical: 6,
     },
 
