@@ -18,14 +18,6 @@
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		18D050E0262400AF000D658B /* BridgingFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18D050DF262400AF000D658B /* BridgingFile.swift */; };
 		374FB8D728A133FE000D84EF /* OriginImageRequestHandler.mm in Sources */ = {isa = PBXBuildFile; fileRef = 374FB8D628A133FE000D84EF /* OriginImageRequestHandler.mm */; };
-		597489DE2936B81100AE6F8B /* ExpensifyNeue-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 593541512915C8CF001E81A5 /* ExpensifyNeue-Bold.otf */; };
-		597489DF2936B81400AE6F8B /* ExpensifyMono-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 593541522915C8DF001E81A5 /* ExpensifyMono-Bold.otf */; };
-		597489E02936B81600AE6F8B /* ExpensifyMono-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 593541532915C8DF001E81A5 /* ExpensifyMono-Regular.otf */; };
-		597489E12936B81900AE6F8B /* ExpensifyNewKansas-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 593541542915C8ED001E81A5 /* ExpensifyNewKansas-Medium.otf */; };
-		597489E22936B81C00AE6F8B /* ExpensifyNewKansas-MediumItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 593541552915C8ED001E81A5 /* ExpensifyNewKansas-MediumItalic.otf */; };
-		597489E32936B81E00AE6F8B /* ExpensifyNeue-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 5935414F2915C8CF001E81A5 /* ExpensifyNeue-BoldItalic.otf */; };
-		597489E42936B82000AE6F8B /* ExpensifyNeue-Italic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 593541502915C8CF001E81A5 /* ExpensifyNeue-Italic.otf */; };
-		597489E52936B82200AE6F8B /* ExpensifyNeue-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 5935414E2915C8CF001E81A5 /* ExpensifyNeue-Regular.otf */; };
 		5E2EE3856BE7BC98F354B110 /* libPods-NewExpensify.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3EDF186626B8D2CBA203E08D /* libPods-NewExpensify.a */; };
 		7041848526A8E47D00E09F4D /* RCTStartupTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7041848426A8E47D00E09F4D /* RCTStartupTimer.m */; };
 		7041848626A8E47D00E09F4D /* RCTStartupTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7041848426A8E47D00E09F4D /* RCTStartupTimer.m */; };
@@ -34,6 +26,14 @@
 		E3B48DC1ED4CC64F660388A8 /* libPods-NewExpensify-NewExpensifyTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A2695CF895D81C31AFB4A074 /* libPods-NewExpensify-NewExpensifyTests.a */; };
 		E9DF872D2525201700607FDC /* AirshipConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = E9DF872C2525201700607FDC /* AirshipConfig.plist */; };
 		F0C450EA2705020500FD2970 /* colors.json in Resources */ = {isa = PBXBuildFile; fileRef = F0C450E92705020500FD2970 /* colors.json */; };
+		9316CFCA15184920AE24E3CC /* ExpensifyMono-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 177D06D4BF2346EB90E37D3D /* ExpensifyMono-Bold.otf */; };
+		1D9EC75069BF4FDB88DF2BA7 /* ExpensifyMono-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 1B3F09A4E4EA4CFFA5E4E7CD /* ExpensifyMono-Regular.otf */; };
+		A5158169CD604A77A22AE02A /* ExpensifyNeue-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = EDFC169F9D7A43BDB924151F /* ExpensifyNeue-Bold.otf */; };
+		95C1920F4FFC403E9C16013C /* ExpensifyNeue-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 38E61473EAA34C598CB6B345 /* ExpensifyNeue-BoldItalic.otf */; };
+		63D866D568A14A61AD27E20A /* ExpensifyNeue-Italic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 1977066010294D51AEB35F3B /* ExpensifyNeue-Italic.otf */; };
+		5E272EE622CC4C768F4EC64D /* ExpensifyNeue-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 6BEDED270C49437581EBE50D /* ExpensifyNeue-Regular.otf */; };
+		4FB4804CA0154A0382C7EAE1 /* ExpensifyNewKansas-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 2DEF941BCD3B464CA78A8188 /* ExpensifyNewKansas-Medium.otf */; };
+		07C7A32C41FC466C85598ADD /* ExpensifyNewKansas-MediumItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 71272DD3D80F4E56884B87CE /* ExpensifyNewKansas-MediumItalic.otf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -67,14 +67,6 @@
 		374FB8D528A133A7000D84EF /* OriginImageRequestHandler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = OriginImageRequestHandler.h; path = NewExpensify/OriginImageRequestHandler.h; sourceTree = "<group>"; };
 		374FB8D628A133FE000D84EF /* OriginImageRequestHandler.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = OriginImageRequestHandler.mm; path = NewExpensify/OriginImageRequestHandler.mm; sourceTree = "<group>"; };
 		3EDF186626B8D2CBA203E08D /* libPods-NewExpensify.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NewExpensify.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		5935414E2915C8CF001E81A5 /* ExpensifyNeue-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "ExpensifyNeue-Regular.otf"; path = "../assets/fonts/ExpensifyNeue-Regular.otf"; sourceTree = "<group>"; };
-		5935414F2915C8CF001E81A5 /* ExpensifyNeue-BoldItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "ExpensifyNeue-BoldItalic.otf"; path = "../assets/fonts/ExpensifyNeue-BoldItalic.otf"; sourceTree = "<group>"; };
-		593541502915C8CF001E81A5 /* ExpensifyNeue-Italic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "ExpensifyNeue-Italic.otf"; path = "../assets/fonts/ExpensifyNeue-Italic.otf"; sourceTree = "<group>"; };
-		593541512915C8CF001E81A5 /* ExpensifyNeue-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "ExpensifyNeue-Bold.otf"; path = "../assets/fonts/ExpensifyNeue-Bold.otf"; sourceTree = "<group>"; };
-		593541522915C8DF001E81A5 /* ExpensifyMono-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "ExpensifyMono-Bold.otf"; path = "../assets/fonts/ExpensifyMono-Bold.otf"; sourceTree = "<group>"; };
-		593541532915C8DF001E81A5 /* ExpensifyMono-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "ExpensifyMono-Regular.otf"; path = "../assets/fonts/ExpensifyMono-Regular.otf"; sourceTree = "<group>"; };
-		593541542915C8ED001E81A5 /* ExpensifyNewKansas-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "ExpensifyNewKansas-Medium.otf"; path = "../assets/fonts/ExpensifyNewKansas-Medium.otf"; sourceTree = "<group>"; };
-		593541552915C8ED001E81A5 /* ExpensifyNewKansas-MediumItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "ExpensifyNewKansas-MediumItalic.otf"; path = "../assets/fonts/ExpensifyNewKansas-MediumItalic.otf"; sourceTree = "<group>"; };
 		7041848326A8E40900E09F4D /* RCTStartupTimer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTStartupTimer.h; path = NewExpensify/RCTStartupTimer.h; sourceTree = "<group>"; };
 		7041848426A8E47D00E09F4D /* RCTStartupTimer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = RCTStartupTimer.m; path = NewExpensify/RCTStartupTimer.m; sourceTree = "<group>"; };
 		70CF6E81262E297300711ADC /* BootSplash.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = BootSplash.storyboard; path = NewExpensify/BootSplash.storyboard; sourceTree = "<group>"; };
@@ -86,6 +78,14 @@
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
 		F0C450E92705020500FD2970 /* colors.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = colors.json; path = ../colors.json; sourceTree = "<group>"; };
+		177D06D4BF2346EB90E37D3D /* ExpensifyMono-Bold.otf */ = {isa = PBXFileReference; name = "ExpensifyMono-Bold.otf"; path = "../assets/fonts/native/ExpensifyMono-Bold.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		1B3F09A4E4EA4CFFA5E4E7CD /* ExpensifyMono-Regular.otf */ = {isa = PBXFileReference; name = "ExpensifyMono-Regular.otf"; path = "../assets/fonts/native/ExpensifyMono-Regular.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		EDFC169F9D7A43BDB924151F /* ExpensifyNeue-Bold.otf */ = {isa = PBXFileReference; name = "ExpensifyNeue-Bold.otf"; path = "../assets/fonts/native/ExpensifyNeue-Bold.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		38E61473EAA34C598CB6B345 /* ExpensifyNeue-BoldItalic.otf */ = {isa = PBXFileReference; name = "ExpensifyNeue-BoldItalic.otf"; path = "../assets/fonts/native/ExpensifyNeue-BoldItalic.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		1977066010294D51AEB35F3B /* ExpensifyNeue-Italic.otf */ = {isa = PBXFileReference; name = "ExpensifyNeue-Italic.otf"; path = "../assets/fonts/native/ExpensifyNeue-Italic.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		6BEDED270C49437581EBE50D /* ExpensifyNeue-Regular.otf */ = {isa = PBXFileReference; name = "ExpensifyNeue-Regular.otf"; path = "../assets/fonts/native/ExpensifyNeue-Regular.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		2DEF941BCD3B464CA78A8188 /* ExpensifyNewKansas-Medium.otf */ = {isa = PBXFileReference; name = "ExpensifyNewKansas-Medium.otf"; path = "../assets/fonts/native/ExpensifyNewKansas-Medium.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		71272DD3D80F4E56884B87CE /* ExpensifyNewKansas-MediumItalic.otf */ = {isa = PBXFileReference; name = "ExpensifyNewKansas-MediumItalic.otf"; path = "../assets/fonts/native/ExpensifyNewKansas-MediumItalic.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -197,14 +197,14 @@
 		A9EA265D209D4558995C9BD4 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				593541512915C8CF001E81A5 /* ExpensifyNeue-Bold.otf */,
-				593541522915C8DF001E81A5 /* ExpensifyMono-Bold.otf */,
-				593541532915C8DF001E81A5 /* ExpensifyMono-Regular.otf */,
-				593541542915C8ED001E81A5 /* ExpensifyNewKansas-Medium.otf */,
-				593541552915C8ED001E81A5 /* ExpensifyNewKansas-MediumItalic.otf */,
-				5935414F2915C8CF001E81A5 /* ExpensifyNeue-BoldItalic.otf */,
-				593541502915C8CF001E81A5 /* ExpensifyNeue-Italic.otf */,
-				5935414E2915C8CF001E81A5 /* ExpensifyNeue-Regular.otf */,
+				177D06D4BF2346EB90E37D3D /* ExpensifyMono-Bold.otf */,
+				1B3F09A4E4EA4CFFA5E4E7CD /* ExpensifyMono-Regular.otf */,
+				EDFC169F9D7A43BDB924151F /* ExpensifyNeue-Bold.otf */,
+				38E61473EAA34C598CB6B345 /* ExpensifyNeue-BoldItalic.otf */,
+				1977066010294D51AEB35F3B /* ExpensifyNeue-Italic.otf */,
+				6BEDED270C49437581EBE50D /* ExpensifyNeue-Regular.otf */,
+				2DEF941BCD3B464CA78A8188 /* ExpensifyNewKansas-Medium.otf */,
+				71272DD3D80F4E56884B87CE /* ExpensifyNewKansas-MediumItalic.otf */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -320,19 +320,19 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				597489E52936B82200AE6F8B /* ExpensifyNeue-Regular.otf in Resources */,
-				597489E22936B81C00AE6F8B /* ExpensifyNewKansas-MediumItalic.otf in Resources */,
 				0F5BE0CE252686330097D869 /* GoogleService-Info.plist in Resources */,
-				597489E02936B81600AE6F8B /* ExpensifyMono-Regular.otf in Resources */,
 				E9DF872D2525201700607FDC /* AirshipConfig.plist in Resources */,
 				F0C450EA2705020500FD2970 /* colors.json in Resources */,
-				597489E32936B81E00AE6F8B /* ExpensifyNeue-BoldItalic.otf in Resources */,
-				597489DF2936B81400AE6F8B /* ExpensifyMono-Bold.otf in Resources */,
-				597489E12936B81900AE6F8B /* ExpensifyNewKansas-Medium.otf in Resources */,
-				597489E42936B82000AE6F8B /* ExpensifyNeue-Italic.otf in Resources */,
-				597489DE2936B81100AE6F8B /* ExpensifyNeue-Bold.otf in Resources */,
 				0CDA8E37287DD6A0004ECBEC /* Images.xcassets in Resources */,
 				70CF6E82262E297300711ADC /* BootSplash.storyboard in Resources */,
+				9316CFCA15184920AE24E3CC /* ExpensifyMono-Bold.otf in Resources */,
+				1D9EC75069BF4FDB88DF2BA7 /* ExpensifyMono-Regular.otf in Resources */,
+				A5158169CD604A77A22AE02A /* ExpensifyNeue-Bold.otf in Resources */,
+				95C1920F4FFC403E9C16013C /* ExpensifyNeue-BoldItalic.otf in Resources */,
+				63D866D568A14A61AD27E20A /* ExpensifyNeue-Italic.otf in Resources */,
+				5E272EE622CC4C768F4EC64D /* ExpensifyNeue-Regular.otf in Resources */,
+				4FB4804CA0154A0382C7EAE1 /* ExpensifyNewKansas-Medium.otf in Resources */,
+				07C7A32C41FC466C85598ADD /* ExpensifyNewKansas-MediumItalic.otf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

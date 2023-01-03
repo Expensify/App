@@ -8,8 +8,9 @@ import * as Expensicons from '../Icon/Expensicons';
 import FormHelpMessage from '../FormHelpMessage';
 import Text from '../Text';
 import styles from '../../styles/styles';
-import variables from '../../styles/variables';
+import themeColors from '../../styles/themes/default';
 import pickerStyles from './pickerStyles';
+import {ScrollContext} from '../ScrollViewWithContext';
 
 const propTypes = {
     /** Picker label */
@@ -108,14 +109,8 @@ class Picker extends PureComponent {
         // so we might need to color accordingly so it doesn't blend with the background.
         this.placeholder = _.isEmpty(this.props.placeholder) ? {} : {
             ...this.props.placeholder,
-            color: variables.pickerOptionsTextColor,
+            color: themeColors.pickerOptionsTextColor,
         };
-        this.items = _.map(this.props.items, item => (
-            {
-                ...item,
-                color: variables.pickerOptionsTextColor,
-            }
-        ));
     }
 
     componentDidMount() {
@@ -155,6 +150,7 @@ class Picker extends PureComponent {
 
     render() {
         const hasError = !_.isEmpty(this.props.errorText);
+
         return (
             <>
                 <View
@@ -171,7 +167,9 @@ class Picker extends PureComponent {
                     )}
                     <RNPickerSelect
                         onValueChange={this.onInputChange}
-                        items={this.items}
+
+                        // We add a text color to prevent white text on white background dropdown items on Windows
+                        items={_.map(this.props.items, item => ({...item, color: themeColors.pickerOptionsTextColor}))}
                         style={this.props.size === 'normal' ? pickerStyles(this.props.isDisabled) : styles.pickerSmall}
                         useNativeAndroidPickerStyle={false}
                         placeholder={this.placeholder}
@@ -195,6 +193,8 @@ class Picker extends PureComponent {
                             }
                             this.props.innerRef(el);
                         }}
+                        scrollViewRef={this.context && this.context.scrollViewRef}
+                        scrollViewContentOffsetY={this.context && this.context.contentOffsetY}
                     />
                 </View>
                 <FormHelpMessage message={this.props.errorText} />
@@ -205,6 +205,7 @@ class Picker extends PureComponent {
 
 Picker.propTypes = propTypes;
 Picker.defaultProps = defaultProps;
+Picker.contextType = ScrollContext;
 
 // eslint-disable-next-line react/jsx-props-no-spreading
 export default React.forwardRef((props, ref) => <Picker {...props} innerRef={ref} key={props.inputID} />);

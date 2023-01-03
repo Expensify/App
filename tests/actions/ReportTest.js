@@ -206,6 +206,7 @@ describe('actions/Report', () => {
     it('should be updated correctly when new comments are added, deleted or marked as unread', () => {
         const REPORT_ID = 1;
         let report;
+        let reportActionCreatedDate;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
             callback: val => report = val,
@@ -232,6 +233,7 @@ describe('actions/Report', () => {
             .then(() => TestHelper.setPersonalDetails(USER_1_LOGIN, USER_1_ACCOUNT_ID))
             .then(() => {
                 // When a Pusher event is handled for a new report comment
+                reportActionCreatedDate = DateUtils.getDBTime();
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
                     {
                         onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -260,7 +262,7 @@ describe('actions/Report', () => {
                                 person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
                                 sequenceNumber: 1,
                                 shouldShow: true,
-                                created: DateUtils.getDBTime(),
+                                created: reportActionCreatedDate,
                             },
                         },
                     },
@@ -280,7 +282,7 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnread(report)).toBe(false);
 
                 // When the user manually marks a message as "unread"
-                Report.markCommentAsUnread(REPORT_ID, 1);
+                Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate, 1);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -329,6 +331,36 @@ describe('actions/Report', () => {
                     reportActionID: 'derp',
                 };
 
+                const optimisticReportActions = {
+                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                    value: {
+                        [_.toArray(reportActions)[1].clientID]: null,
+                        [_.toArray(reportActions)[2].clientID]: null,
+                        [_.toArray(reportActions)[3].clientID]: null,
+                        2: {
+                            ...USER_1_BASE_ACTION,
+                            message: [{type: 'COMMENT', html: 'Current User Comment 1', text: 'Current User Comment 1'}],
+                            created: DateUtils.getDBTime(),
+                            sequenceNumber: 2,
+                        },
+                        3: {
+                            ...USER_1_BASE_ACTION,
+                            message: [{type: 'COMMENT', html: 'Current User Comment 2', text: 'Current User Comment 2'}],
+                            created: DateUtils.getDBTime(),
+                            sequenceNumber: 3,
+                        },
+                        4: {
+                            ...USER_1_BASE_ACTION,
+                            message: [{type: 'COMMENT', html: 'Current User Comment 3', text: 'Current User Comment 3'}],
+                            created: DateUtils.getDBTime(),
+                            sequenceNumber: 4,
+                        },
+                    },
+                };
+                reportActionCreatedDate = DateUtils.getDBTime();
+                optimisticReportActions.value[4].created = reportActionCreatedDate;
+
                 // When we emit the events for these pending created actions to update them to not pending
                 channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
                     {
@@ -344,30 +376,7 @@ describe('actions/Report', () => {
                             lastReadSequenceNumber: 4,
                         },
                     },
-                    {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-                        value: {
-                            [_.toArray(reportActions)[1].clientID]: null,
-                            [_.toArray(reportActions)[2].clientID]: null,
-                            [_.toArray(reportActions)[3].clientID]: null,
-                            2: {
-                                ...USER_1_BASE_ACTION,
-                                message: [{type: 'COMMENT', html: 'Current User Comment 1', text: 'Current User Comment 1'}],
-                                sequenceNumber: 2,
-                            },
-                            3: {
-                                ...USER_1_BASE_ACTION,
-                                message: [{type: 'COMMENT', html: 'Current User Comment 2', text: 'Current User Comment 2'}],
-                                sequenceNumber: 3,
-                            },
-                            4: {
-                                ...USER_1_BASE_ACTION,
-                                message: [{type: 'COMMENT', html: 'Current User Comment 3', text: 'Current User Comment 3'}],
-                                sequenceNumber: 4,
-                            },
-                        },
-                    },
+                    optimisticReportActions,
                 ]);
 
                 return waitForPromisesToResolve();
@@ -383,7 +392,7 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnread(report)).toBe(false);
 
                 // When the user manually marks a message as "unread"
-                Report.markCommentAsUnread(REPORT_ID, 3);
+                Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate, 3);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -399,5 +408,52 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnread(report)).toBe(false);
                 expect(report.lastMessageText).toBe('Current User Comment 2');
             });
+    });
+
+    it('Should properly update comment with links', () => {
+        /* This tests a variety of scenarios when a user edits a comment.
+         * We should generate a link when editing a message unless the link was
+         * already in the comment and the user deleted it on purpose.
+         */
+
+        // User edits comment to add link
+        // We should generate link
+        let originalCommentHTML = 'Original Comment';
+        let afterEditCommentText = 'Original Comment www.google.com';
+        let newCommentMarkdown = Report.handleUserDeletedLinks(afterEditCommentText, originalCommentHTML);
+        let expectedOutput = 'Original Comment [www.google.com](https://www.google.com)';
+        expect(newCommentMarkdown).toBe(expectedOutput);
+
+        // User deletes www.google.com link from comment but keeps link text
+        // We should not generate link
+        originalCommentHTML = 'Comment <a href="https://www.google.com" target="_blank">www.google.com</a>';
+        afterEditCommentText = 'Comment www.google.com';
+        newCommentMarkdown = Report.handleUserDeletedLinks(afterEditCommentText, originalCommentHTML);
+        expectedOutput = 'Comment www.google.com';
+        expect(newCommentMarkdown).toBe(expectedOutput);
+
+        // User Delete only () part of link but leaves the []
+        // We should not generate link
+        originalCommentHTML = 'Comment <a href="https://www.google.com" target="_blank">www.google.com</a>';
+        afterEditCommentText = 'Comment [www.google.com]';
+        newCommentMarkdown = Report.handleUserDeletedLinks(afterEditCommentText, originalCommentHTML);
+        expectedOutput = 'Comment [www.google.com]';
+        expect(newCommentMarkdown).toBe(expectedOutput);
+
+        // User Generates multiple links in one edit
+        // We should generate both links
+        originalCommentHTML = 'Comment';
+        afterEditCommentText = 'Comment www.google.com www.facebook.com';
+        newCommentMarkdown = Report.handleUserDeletedLinks(afterEditCommentText, originalCommentHTML);
+        expectedOutput = 'Comment [www.google.com](https://www.google.com) [www.facebook.com](https://www.facebook.com)';
+        expect(newCommentMarkdown).toBe(expectedOutput);
+
+        // Comment has two links but user deletes only one of them
+        // Should not generate link again for the deleted one
+        originalCommentHTML = 'Comment <a href="https://www.google.com" target="_blank">www.google.com</a>  <a href="https://www.facebook.com" target="_blank">www.facebook.com</a>';
+        afterEditCommentText = 'Comment www.google.com  [www.facebook.com](https://www.facebook.com)';
+        newCommentMarkdown = Report.handleUserDeletedLinks(afterEditCommentText, originalCommentHTML);
+        expectedOutput = 'Comment www.google.com  [www.facebook.com](https://www.facebook.com)';
+        expect(newCommentMarkdown).toBe(expectedOutput);
     });
 });

@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import IOUQuote from './IOUQuote';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
@@ -25,6 +24,9 @@ const propTypes = {
     chatReport: PropTypes.shape({
         /** The participants of this report */
         participants: PropTypes.arrayOf(PropTypes.string),
+
+        /** Whether the chat report has an outstanding IOU */
+        hasOutstandingIOU: PropTypes.bool.isRequired,
     }),
 
     /** Whether the IOU is hovered so we can modify its style */
@@ -43,6 +45,12 @@ const IOUAction = (props) => {
     const launchDetailsModal = () => {
         Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
     };
+
+    const shouldShowIOUPreview = (
+        props.isMostRecentIOUReportAction
+        && Boolean(props.action.originalMessage.IOUReportID)
+        && props.chatReport.hasOutstandingIOU) || props.action.originalMessage.type === 'pay';
+
     return (
         <>
             <IOUQuote
@@ -50,22 +58,20 @@ const IOUAction = (props) => {
                 shouldAllowViewDetails={Boolean(props.action.originalMessage.IOUReportID)}
                 onViewDetailsPressed={launchDetailsModal}
             />
-            {((props.isMostRecentIOUReportAction && Boolean(props.action.originalMessage.IOUReportID))
-                || (props.action.originalMessage.type === 'pay')) && (
-                    <IOUPreview
-                        pendingAction={lodashGet(props.action, 'pendingAction', null)}
-                        iouReportID={props.action.originalMessage.IOUReportID.toString()}
-                        chatReportID={props.chatReportID}
-                        onPayButtonPressed={launchDetailsModal}
-                        onPreviewPressed={launchDetailsModal}
-                        containerStyles={[
-                            styles.cursorPointer,
-                            props.isHovered
-                                ? styles.iouPreviewBoxHover
-                                : undefined,
-                        ]}
-                        isHovered={props.isHovered}
-                    />
+            {shouldShowIOUPreview && (
+                <IOUPreview
+                    iouReportID={props.action.originalMessage.IOUReportID.toString()}
+                    chatReportID={props.chatReportID}
+                    onPayButtonPressed={launchDetailsModal}
+                    onPreviewPressed={launchDetailsModal}
+                    containerStyles={[
+                        styles.cursorPointer,
+                        props.isHovered
+                            ? styles.iouPreviewBoxHover
+                            : undefined,
+                    ]}
+                    isHovered={props.isHovered}
+                />
             )}
         </>
     );
