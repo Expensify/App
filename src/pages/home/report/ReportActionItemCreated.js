@@ -27,9 +27,6 @@ const propTypes = {
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
-    /** The size of the screen - used for background image handling */
-    isSmallScreenWidth: PropTypes.bool.isRequired,
-
     /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({
         /** Name of the policy */
