@@ -81,17 +81,6 @@ class WorkspaceReimburseView extends React.Component {
             outputCurrency: lodashGet(props, 'policy.outputCurrency', ''),
         };
 
-        this.unitItems = [
-            {
-                label: this.props.translate('workspace.reimburse.kilometers'),
-                value: 'km',
-            },
-            {
-                label: this.props.translate('workspace.reimburse.miles'),
-                value: 'mi',
-            },
-        ];
-
         this.debounceUpdateOnCursorMove = this.debounceUpdateOnCursorMove.bind(this);
         this.updateRateValueDebounced = _.debounce(this.updateRateValue.bind(this), 1000);
         this.updatedValue = this.state.unitRateValue;
@@ -128,6 +117,13 @@ class WorkspaceReimburseView extends React.Component {
 
     getUnitRateValue(customUnitRate) {
         return this.getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET);
+    }
+
+    getUnitItems() {
+        return [
+            {label: this.props.translate('workspace.reimburse.kilometers'), value: 'km'},
+            {label: this.props.translate('workspace.reimburse.miles'), value: 'mi'},
+        ];
     }
 
     getRateDisplayValue(value) {
@@ -283,7 +279,7 @@ class WorkspaceReimburseView extends React.Component {
                             <View style={[styles.unitCol]}>
                                 <Picker
                                     label={this.props.translate('workspace.reimburse.trackDistanceUnit')}
-                                    items={this.unitItems}
+                                    items={this.getUnitItems()}
                                     value={this.state.unitValue}
                                     onInputChange={value => this.setUnit(value)}
                                 />

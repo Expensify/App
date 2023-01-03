@@ -9,14 +9,7 @@
 /* eslint-disable @lwc/lwc/no-async-await,no-restricted-syntax,no-await-in-loop */
 const fs = require('fs');
 const _ = require('underscore');
-const {
-    DEFAULT_BASELINE_BRANCH,
-    OUTPUT_DIR,
-    LOG_FILE,
-    RUNS,
-    WARM_UP_RUNS,
-    TESTS_CONFIG,
-} = require('./config');
+const defaultConfig = require('./config');
 const compare = require('./compare/compare');
 const Logger = require('./utils/logger');
 const execAsync = require('./utils/execAsync');
@@ -27,18 +20,55 @@ const installApp = require('./utils/installApp');
 const math = require('./measure/math');
 const writeTestStats = require('./measure/writeTestStats');
 const withFailTimeout = require('./utils/withFailTimeout');
+const reversePort = require('./utils/androidReversePort');
+const getCurrentBranchName = require('./utils/getCurrentBranchName');
 
 const args = process.argv.slice(2);
 
-const baselineBranch = process.env.baseline || DEFAULT_BASELINE_BRANCH;
+let config = defaultConfig;
+const setConfigPath = (configPathParam) => {
+    let configPath = configPathParam;
+    if (!configPath.startsWith('.')) {
+        configPath = `./${configPath}`;
+    }
+    const customConfig = require(configPath);
+    config = _.extend(defaultConfig, customConfig);
+};
+
+let baselineBranch = process.env.baseline || config.DEFAULT_BASELINE_BRANCH;
+
+// There are three build modes:
+// 1. full: rebuilds the full native app in (e2e) release mode
+// 2. js-only: only rebuilds the js bundle, and then re-packages
+//             the existing native app with the new package. If there
+//             is no existing native app, it will fallback to mode "full"
+// 3. skip: does not rebuild anything, and just runs the existing native app
+let buildMode = 'full';
+
+// When we are in dev mode we want to apply certain default params and configs
+const isDevMode = args.includes('--development');
+if (isDevMode) {
+    setConfigPath('config.local.js');
+    baselineBranch = getCurrentBranchName();
+    buildMode = 'js-only';
+}
+
+if (args.includes('--config')) {
+    const configPath = args[args.indexOf('--config') + 1];
+    setConfigPath(configPath);
+}
 
 // Clear all files from previous jobs
 try {
-    fs.rmSync(OUTPUT_DIR, {recursive: true, force: true});
-    fs.mkdirSync(OUTPUT_DIR);
+    fs.rmSync(config.OUTPUT_DIR, {recursive: true, force: true});
+    fs.mkdirSync(config.OUTPUT_DIR);
 } catch (error) {
     // Do nothing
     console.error(error);
+}
+
+if (isDevMode) {
+    Logger.note(`Running in development mode. Set baseline branch to same as current ${baselineBranch}`);
 }
 
 const restartApp = async () => {
@@ -49,11 +79,23 @@ const restartApp = async () => {
 };
 
 const runTestsOnBranch = async (branch, baselineOrCompare) => {
-    if (!args.includes('--skipInstallDeps') && !args.includes('--skipBuild')) {
-        // Switch branch and install dependencies
-        Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}'`);
-        await execAsync(`git checkout ${branch}`);
+    if (args.includes('--buildMode')) {
+        buildMode = args[args.indexOf('--buildMode') + 1];
     }
+    let appPath = baselineOrCompare === 'baseline' ? config.APP_PATHS.baseline : config.APP_PATHS.compare;
+
+    // check if using buildMode "js-only" or "none" is possible
+    if (buildMode !== 'full') {
+        const appExists = fs.existsSync(appPath);
+        if (!appExists) {
+            Logger.warn(`Build mode "${buildMode}" is not possible, because the app does not exist. Falling back to build mode "full".`);
+            buildMode = 'full';
+        }
+    }
+
+    // Switch branch
+    Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}'`);
+    await execAsync(`git checkout ${branch}`);
 
     if (!args.includes('--skipInstallDeps')) {
         Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}' - npm install`);
@@ -61,14 +103,28 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
     }
 
     // Build app
-    if (!args.includes('--skipBuild')) {
+    if (buildMode === 'full') {
         Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}' - building app`);
         await execAsync('npm run android-build-e2e');
+    } else if (buildMode === 'js-only') {
+        Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}' - building js bundle`);
+
+        // Build a new JS bundle
+        const tempDir = `${config.OUTPUT_DIR}/temp`;
+        const tempBundlePath = `${tempDir}/index.android.bundle`;
+        await execAsync(`rm -rf ${tempDir} && mkdir ${tempDir}`);
+        await execAsync(`npx react-native bundle --platform android --dev false --entry-file ${config.ENTRY_FILE} --bundle-output ${tempBundlePath}`);
+
+        // Repackage the existing native app with the new bundle
+        const tempApkPath = `${tempDir}/app-release.apk`;
+        await execAsync(`./scripts/android-repackage-app-bundle-and-sign.sh ${appPath} ${tempBundlePath} ${tempApkPath}`);
+        appPath = tempApkPath;
     }
 
-    // Install app
-    let progressLog = Logger.progressInfo('Installing app');
-    await installApp('android', baselineOrCompare);
+    // Install app and reverse port
+    let progressLog = Logger.progressInfo('Installing app and reversing port');
+    await installApp('android', appPath);
+    await reversePort();
     progressLog.done();
 
     // Start the HTTP server
@@ -92,14 +148,26 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
     });
 
     // Run the tests
-    const numOfTests = _.values(TESTS_CONFIG).length;
+    const numOfTests = _.values(config.TESTS_CONFIG).length;
     for (let testIndex = 0; testIndex < numOfTests; testIndex++) {
-        const config = _.values(TESTS_CONFIG)[testIndex];
-        server.setTestConfig(config);
+        const testConfig = _.values(config.TESTS_CONFIG)[testIndex];
 
-        const warmupLogs = Logger.progressInfo(`Running test '${config.name}'`);
-        for (let warmUpRuns = 0; warmUpRuns < WARM_UP_RUNS; warmUpRuns++) {
-            const progressText = `(${testIndex + 1}/${numOfTests}) Warmup for test '${config.name}' (iteration ${warmUpRuns + 1}/${WARM_UP_RUNS})`;
+        // check if we want to skip the text
+        if (args.includes('--includes')) {
+            const includes = args[args.indexOf('--includes') + 1];
+
+            // assume that "includes" is a regexp
+            if (!testConfig.name.match(includes)) {
+                // eslint-disable-next-line no-continue
+                continue;
+            }
+        }
+
+        server.setTestConfig(testConfig);
+
+        const warmupLogs = Logger.progressInfo(`Running test '${testConfig.name}'`);
+        for (let warmUpRuns = 0; warmUpRuns < config.WARM_UP_RUNS; warmUpRuns++) {
+            const progressText = `(${testIndex + 1}/${numOfTests}) Warmup for test '${testConfig.name}' (iteration ${warmUpRuns + 1}/${config.WARM_UP_RUNS})`;
             warmupLogs.updateText(progressText);
 
             await restartApp();
@@ -116,8 +184,8 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
 
         // We run each test multiple time to average out the results
         const testLog = Logger.progressInfo('');
-        for (let i = 0; i < RUNS; i++) {
-            const progressText = `(${testIndex + 1}/${numOfTests}) Running test '${config.name}' (iteration ${i + 1}/${RUNS})`;
+        for (let i = 0; i < config.RUNS; i++) {
+            const progressText = `(${testIndex + 1}/${numOfTests}) Running test '${testConfig.name}' (iteration ${i + 1}/${config.RUNS})`;
             testLog.updateText(progressText);
 
             await restartApp();
@@ -142,7 +210,7 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
 
     // Calculate statistics and write them to our work file
     progressLog = Logger.progressInfo('Calculating statics and writing results');
-    const outputFileName = `${OUTPUT_DIR}/${baselineOrCompare}.json`;
+    const outputFileName = `${config.OUTPUT_DIR}/${baselineOrCompare}.json`;
     for (const testName of _.keys(durationsByTestName)) {
         const stats = math.getStats(durationsByTestName[testName]);
         await writeTestStats(
@@ -175,12 +243,17 @@ const runTests = async () => {
         Logger.info('\n\nE2E test suite failed due to error:', e, '\nPrinting full logs:\n\n');
 
         // Write logcat, meminfo, emulator info to file as well:
-        require('node:child_process').execSync(`adb logcat -d > ${OUTPUT_DIR}/logcat.txt`);
-        require('node:child_process').execSync(`adb shell "cat /proc/meminfo" > ${OUTPUT_DIR}/meminfo.txt`);
-        require('node:child_process').execSync(`cat ~/.android/avd/${process.env.AVD_NAME || 'test'}.avd/config.ini > ${OUTPUT_DIR}/emulator-config.ini`);
-        require('node:child_process').execSync(`adb shell "getprop" > ${OUTPUT_DIR}/emulator-properties.txt`);
+        require('node:child_process').execSync(`adb logcat -d > ${config.OUTPUT_DIR}/logcat.txt`);
+        require('node:child_process').execSync(`adb shell "cat /proc/meminfo" > ${config.OUTPUT_DIR}/meminfo.txt`);
+        require('node:child_process').execSync(`adb shell "getprop" > ${config.OUTPUT_DIR}/emulator-properties.txt`);
 
-        require('node:child_process').execSync(`cat ${LOG_FILE}`);
+        require('node:child_process').execSync(`cat ${config.LOG_FILE}`);
+        try {
+            require('node:child_process').execSync(`cat ~/.android/avd/${process.env.AVD_NAME || 'test'}.avd/config.ini > ${config.OUTPUT_DIR}/emulator-config.ini`);
+        } catch (ignoredError) {
+            // the error is ignored, as the file might not exist if the test
+            // run wasn't started with an emulator
+        }
         process.exit(1);
     }
 };

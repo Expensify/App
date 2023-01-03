@@ -22,6 +22,7 @@ import SettlementButton from '../../components/SettlementButton';
 import ROUTES from '../../ROUTES';
 import FixedFooter from '../../components/FixedFooter';
 import networkPropTypes from '../../components/networkPropTypes';
+import reportActionPropTypes from '../home/report/reportActionPropTypes';
 
 const propTypes = {
     /** URL Route params */
@@ -67,6 +68,9 @@ const propTypes = {
         email: PropTypes.string,
     }).isRequired,
 
+    /** Actions from the ChatReport */
+    reportActions: PropTypes.shape(reportActionPropTypes),
+
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
@@ -75,6 +79,7 @@ const propTypes = {
 
 const defaultProps = {
     iou: {},
+    reportActions: {},
     iouReport: undefined,
 };
 
@@ -132,9 +137,17 @@ class IOUDetailsModal extends Component {
         }
     }
 
+    // Finds if there is a reportAction pending for this IOU
+    findPendingAction() {
+        return _.find(this.props.reportActions, reportAction => reportAction.originalMessage
+            && Number(reportAction.originalMessage.IOUReportID) === Number(this.props.route.params.iouReportID)
+            && !_.isEmpty(reportAction.pendingAction));
+    }
+
     render() {
         const sessionEmail = lodashGet(this.props.session, 'email', null);
         const reportIsLoading = _.isUndefined(this.props.iouReport);
+        const pendingAction = this.findPendingAction();
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -147,6 +160,7 @@ class IOUDetailsModal extends Component {
                             <IOUPreview
                                 chatReportID={this.props.route.params.chatReportID}
                                 iouReportID={this.props.route.params.iouReportID}
+                                pendingAction={pendingAction}
                                 shouldHidePayButton
                             />
                             <IOUTransactions
@@ -167,7 +181,7 @@ class IOUDetailsModal extends Component {
                                     enablePaymentsRoute={ROUTES.IOU_DETAILS_ENABLE_PAYMENTS}
                                     addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
                                     addDebitCardRoute={ROUTES.IOU_DETAILS_ADD_DEBIT_CARD}
-                                    chatReportID={Number(this.props.route.params.chatReportID)}
+                                    chatReportID={this.props.route.params.chatReportID}
                                 />
                             </FixedFooter>
                         ))}
@@ -196,6 +210,10 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        reportActions: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.chatReportID}`,
+            canEvict: false,
         },
     }),
 )(IOUDetailsModal);
