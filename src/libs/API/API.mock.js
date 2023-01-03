@@ -1,9 +1,9 @@
 /* eslint-disable rulesdir/no-api-in-views */
 import _ from 'underscore';
+import Onyx from 'react-native-onyx';
 import CONST from '../../CONST';
 import * as API from './API';
 import Log from '../Log';
-import Onyx from 'react-native-onyx';
 
 /**
  * A dictionary which has the name of a API command as key, and a function which
@@ -35,7 +35,6 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
     }
 
     Log.warn(`[API.write] for command ${command} is not mocked yet!`);
-    return API.write(command, apiCommandParameters, onyxData);
 }
 
 /**
@@ -83,7 +82,6 @@ function read(command, apiCommandParameters, onyxData) {
     }
 
     Log.warn(`[API.read] for command ${command} is not mocked yet!`);
-    return API.read(command, apiCommandParameters, onyxData);
 }
 
 export {
