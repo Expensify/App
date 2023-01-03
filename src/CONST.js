@@ -33,6 +33,10 @@ const CONST = {
     AVATAR_MIN_WIDTH_PX: 80,
     AVATAR_MIN_HEIGHT_PX: 80,
 
+    // Maximum width and height size in px for a selected image
+    AVATAR_MAX_WIDTH_PX: 4096,
+    AVATAR_MAX_HEIGHT_PX: 4096,
+
     // Background image sizes for report empty state
     WELCOME_BACKGROUND_IMAGE_HEIGHT: {
         SMALL_SCREEN: 300,
