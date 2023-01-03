@@ -9,7 +9,6 @@ import PushNotification from '../../Notification/PushNotification';
 import Timing from '../Timing';
 import CONST from '../../../CONST';
 import * as Localize from '../../Localize';
-import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
 import Timers from '../../Timers';
 import * as Pusher from '../../Pusher/pusher';
 import * as Authentication from '../../Authentication';
@@ -52,7 +51,6 @@ function signOut() {
     }, {optimisticData});
 
     // We got signed out in this tab or another so clean up any subscriptions and timers
-    UnreadIndicatorUpdater.stopListeningForReportChanges();
     PushNotification.deregister();
     PushNotification.clearNotifications();
     Pusher.disconnect();

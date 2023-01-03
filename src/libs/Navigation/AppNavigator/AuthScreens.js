@@ -10,7 +10,6 @@ import compose from '../../compose';
 import * as PersonalDetails from '../../actions/PersonalDetails';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
-import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Timing from '../../actions/Timing';
@@ -102,8 +101,6 @@ class AuthScreens extends React.Component {
         });
         PushNotification.register(lodashGet(this.props, 'session.accountID', null));
 
-        // Listen for report changes and fetch some data we need on initialization
-        UnreadIndicatorUpdater.listenForReportChanges();
         App.openApp();
         App.setUpPoliciesAndNavigate(this.props.session);
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
