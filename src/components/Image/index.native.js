@@ -1,5 +1,5 @@
 import React from 'react';
-import RNFastImage from '@pieter-pot/react-native-fast-image';
+import RNFastImage from 'react-native-fast-image';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import CONST from '../../CONST';
