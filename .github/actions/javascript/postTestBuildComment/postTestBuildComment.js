@@ -9,27 +9,23 @@ const desktopSuccess = core.getInput('DESKTOP', {required: true}) === 'success';
 const iOSSuccess = core.getInput('IOS', {required: true}) === 'success';
 const webSuccess = core.getInput('WEB', {required: true}) === 'success';
 
-const androidLink = androidSuccess
-    ? core.getInput('ANDROID_LINK')
-    : '❌ FAILED ❌';
-const desktopLink = desktopSuccess
-    ? core.getInput('DESKTOP_LINK')
-    : '❌ FAILED ❌';
+const androidLink = androidSuccess ? core.getInput('ANDROID_LINK') : '❌ FAILED ❌';
+const desktopLink = desktopSuccess ? core.getInput('DESKTOP_LINK') : '❌ FAILED ❌';
 const iOSLink = iOSSuccess ? core.getInput('IOS_LINK') : '❌ FAILED ❌';
 const webLink = webSuccess ? core.getInput('WEB_LINK') : '❌ FAILED ❌';
 
 const androidQRCode = androidSuccess
     ? `![Android](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${androidLink})`
-    : "The code can't be generated, because the android build failed";
+    : "The QR code can't be generated, because the android build failed";
 const desktopQRCode = desktopSuccess
     ? `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${desktopLink})`
-    : "The code can't be generated, because the iOS build failed";
+    : "The QR code can't be generated, because the iOS build failed";
 const iOSQRCode = iOSSuccess
     ? `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${iOSLink})`
-    : "The code can't be generated, because the desktop build failed";
+    : "The QR code can't be generated, because the desktop build failed";
 const webQRCode = webSuccess
     ? `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${webLink})`
-    : "The code can't be generated, because the web build failed";
+    : "The QR code can't be generated, because the web build failed";
 
 /**
  * @returns {String}
