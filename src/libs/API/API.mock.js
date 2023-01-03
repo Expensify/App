@@ -1,7 +1,19 @@
 /* eslint-disable rulesdir/no-api-in-views */
+import _ from 'underscore';
 import CONST from '../../CONST';
 import * as API from './API';
 import Log from '../Log';
+import Onyx from 'react-native-onyx';
+
+/**
+ * A dictionary which has the name of a API command as key, and a function which
+ * receives the api command parameters as value and is expected to return a response
+ * object.
+ */
+const mocks = {
+    BeginSignIn: () => require('../E2E/apiMocks/beginSignin.json'),
+    SigninUser: () => require('../E2E/apiMocks/signinUser.json'),
+};
 
 /**
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData.
@@ -17,7 +29,12 @@ import Log from '../Log';
  * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  */
 function write(command, apiCommandParameters = {}, onyxData = {}) {
-    Log.warn('API.write() is not implemented in the mock API. Please use API.createTransaction() instead.');
+    const mockResponse = mocks[command] && mocks[command](apiCommandParameters);
+    if (mockResponse && _.isArray(mockResponse.onyxData)) {
+        return Onyx.update(mockResponse.onyxData);
+    }
+
+    Log.warn(`[API.write] for command ${command} is not mocked yet!`);
     return API.write(command, apiCommandParameters, onyxData);
 }
 
@@ -60,6 +77,11 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
  * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  */
 function read(command, apiCommandParameters, onyxData) {
+    const mockResponse = mocks[command] && mocks[command](apiCommandParameters);
+    if (mockResponse && _.isArray(mockResponse.onyxData)) {
+        return Onyx.update(mockResponse.onyxData);
+    }
+
     Log.warn(`[API.read] for command ${command} is not mocked yet!`);
     return API.read(command, apiCommandParameters, onyxData);
 }
