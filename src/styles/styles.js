@@ -1418,7 +1418,7 @@ const styles = {
     },
 
     editInputComposeSpacing: {
-        
+        marginHorizontal: 8,
         marginVertical: 6,
     },
 
