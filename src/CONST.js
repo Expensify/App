@@ -32,6 +32,13 @@ const CONST = {
     // Minimum width and height size in px for a selected image
     AVATAR_MIN_WIDTH_PX: 80,
     AVATAR_MIN_HEIGHT_PX: 80,
+
+    // Background image sizes for report empty state
+    WELCOME_BACKGROUND_IMAGE_HEIGHT: {
+        SMALL_SCREEN: 300,
+        WIDE_SCREEN: 450,
+    },
+
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,

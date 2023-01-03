@@ -14,6 +14,8 @@ import * as Report from '../../../libs/actions/Report';
 import reportPropTypes from '../../reportPropTypes';
 import EmptyStateBackgroundImage from '../../../../assets/images/empty-state_background-fade.png';
 import * as StyleUtils from '../../../styles/StyleUtils';
+import withWindowDimensions from '../../../components/withWindowDimensions';
+import compose from '../../../libs/compose';
 
 const propTypes = {
     /** The id of the report */
@@ -51,7 +53,7 @@ const ReportActionItemCreated = (props) => {
             errorRowStyles={styles.addWorkspaceRoomErrorRow}
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
         >
-            <View pointerEvents="none" style={[styles.emptyStateBackgroundContainer, StyleUtils.getBackgroundImageHeightStyle(props.isSmallScreenWidth)]}>
+            <View pointerEvents="none" style={[styles.emptyStateBackgroundContainer, StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)]}>
                 <Image
                     source={EmptyStateBackgroundImage}
                     style={[styles.emptyStateBackgroundImage]}
@@ -64,14 +66,15 @@ const ReportActionItemCreated = (props) => {
                     styles.p5,
                 ]}
             >
-                <View style={[styles.ph5, styles.pb3, styles.alignSelfStart]}>
-                    <Pressable onPress={() => ReportUtils.navigateToDetailsPage(props.report)}>
-                        <RoomHeaderAvatars
-                            icons={icons}
-                            shouldShowLargeAvatars={isPolicyExpenseChat}
-                        />
-                    </Pressable>
-                </View>
+                <Pressable
+                    onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
+                    style={[styles.ph5, styles.pb3, styles.alignSelfStart]}
+                >
+                    <RoomHeaderAvatars
+                        icons={icons}
+                        shouldShowLargeAvatars={isPolicyExpenseChat}
+                    />
+                </Pressable>
                 <View style={[styles.ph5]}>
                     <ReportWelcomeText report={props.report} />
                 </View>
@@ -84,14 +87,17 @@ ReportActionItemCreated.defaultProps = defaultProps;
 ReportActionItemCreated.propTypes = propTypes;
 ReportActionItemCreated.displayName = 'ReportActionItemCreated';
 
-export default withOnyx({
-    report: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
-    },
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-})(ReportActionItemCreated);
+export default compose(
+    withWindowDimensions,
+    withOnyx({
+        report: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
+    }),
+)(ReportActionItemCreated);

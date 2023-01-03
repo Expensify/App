@@ -648,17 +648,17 @@ function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
     };
 }
 
-function getBackgroundImageHeightStyle(isSmallScreenWidth) {
+function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth) {
     if (isSmallScreenWidth) {
         return {
-            height: 300,
-            top: -300,
+            height: CONST.WELCOME_BACKGROUND_IMAGE_HEIGHT.SMALL_SCREEN,
+            top: -CONST.WELCOME_BACKGROUND_IMAGE_HEIGHT.SMALL_SCREEN,
         };
     }
 
     return {
-        height: 450,
-        top: -450,
+        height: CONST.WELCOME_BACKGROUND_IMAGE_HEIGHT.WIDE_SCREEN,
+        top: -CONST.WELCOME_BACKGROUND_IMAGE_HEIGHT.WIDE_SCREEN,
     };
 }
 
@@ -697,5 +697,5 @@ export {
     getHeight,
     fade,
     getHorizontalStackedAvatarBorderStyle,
-    getBackgroundImageHeightStyle,
+    getReportWelcomeBackgroundImageStyle,
 };
