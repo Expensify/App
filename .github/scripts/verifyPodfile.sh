@@ -1,13 +1,17 @@
 #!/bin/bash
 
-# This script accepts two arguments:
-# First argument (required): the branch to compare against for removals
-# Second argument (optional): `-v` which will output each branch's podspecs and the removals if they exist
+# This script requires passing the branch to compare against for removals.
+# ie. `./verifyPodfile.sh main`
 
-declare -r RED='\033[0;31m'
-declare -r YELLOW='\033[0;33m'
-declare -r GREEN='\033[0;32m'
-declare -r NC='\033[0m'
+START_DIR=$(pwd)
+ROOT_DIR=$(dirname "$(dirname "$(dirname "$(realpath "${BASH_SOURCE[0]}")")")")
+cd "$ROOT_DIR" || exit 1
+source scripts/shellUtils.sh
+
+function resetAndExit() {
+  cd "$START_DIR" || exit 1
+  exit "$1"
+}
 
 podfileSha=$(openssl sha1 ios/Podfile | awk '{print $2}')
 podfileLockSha=$(awk '/PODFILE CHECKSUM: /{print $3}' ios/Podfile.lock)
@@ -16,29 +20,29 @@ echo "Podfile: $podfileSha"
 echo "Podfile.lock: $podfileLockSha"
 
 if [ "$podfileSha" == "$podfileLockSha" ]; then
-    echo -e "${GREEN}Podfile checksum verified!${NC}"
+    success "Podfile checksum verified!"
 else
-    echo -e "${RED}Error: Podfile.lock checksum mismatch. Did you forget to run \`npx pod-install\`?${NC}"
-    exit 1
+    error "Podfile.lock checksum mismatch. Did you forget to run \`npx pod-install\`?"
+    resetAndExit 1
 fi
 
 # Make sure package.json and package-lock.json are committed to avoid testing issues
 if [ -n "$(git diff --name-only HEAD -- package.json package-lock.json)" ]; then
-  echo -e "${RED}Error: Uncommitted changes to package.json or package-lock.json.  Commit these before continuing!${NC}"
-  exit 1
+  error "Uncommitted changes to package.json or package-lock.json.  Commit these before continuing!"
+  resetAndExit 1
 fi
 
 # Make sure valid branch ref was passed for removal check
 (git cat-file -e "$1":package-lock.json 2> /dev/null && [ -n "$1" ]) || \
-{ echo -e "${RED}Error: Must specify valid branch name to compare with for Pod removal check.${NC}"; exit 1; }
+{ error "Must specify valid branch name to compare with for Pod removal check."; exit 1; }
 
 # If npm packages were not modified in the feature branch we can skip the remaining checks
 if [ -z "$(git diff --name-only .."$1" package-lock.json package.json)" ]; then
-  echo -e "${GREEN}No changes to npm packages were detected.${NC}"
-  exit 0;
+  success "No changes to npm packages were detected."
+  resetAndExit 0;
 fi
 
-echo -e "${YELLOW}Verifying that pods are synced...${NC}"
+info "Verifying that pods are synced..."
 
 # Extracts an array of podspec paths from the config command
 _grab_specs() {
@@ -56,16 +60,14 @@ _formatted_pod_list() {
 # Store an array of the feature branch's podspecs
 feature_branch_specs="$(_grab_specs)"
 
-## Verbose output
-[ "$2" == "-v" ] && echo -e "Feature branch specs:\n$feature_branch_specs"
+echo -e "Feature branch specs:\n$feature_branch_specs"
 
 # Grab the podspecs from the main branch by checking out the diffed npm packages
 git checkout --quiet "$1" -- {package,package-lock}.json
 npm i --loglevel silent
 main_branch_specs="$(_grab_specs)"
 
-# Verbose output
-[ "$2" == "-v" ] && echo -e "Main branch specs:\n$main_branch_specs"
+echo -e "Main branch specs:\n$main_branch_specs"
 
 # Perform an array subtraction to determine which pods were removed (main_branch - feature_branch)
 removed_specs=$(jq -n --jsonargs '$ARGS.positional | first - last | .' -- "$main_branch_specs" "$feature_branch_specs")
@@ -74,10 +76,9 @@ removed_specs=$(jq -n --jsonargs '$ARGS.positional | first - last | .' -- "$main
 formatted_removals="$(_formatted_pod_list "$removed_specs")"
 
 # Verbose output
-[ "$2" == "-v" ] && \
-([ -n "$formatted_removals" ] && \
+[ -n "$formatted_removals" ] && \
 echo -e "Removals:\n$formatted_removals" || \
-echo "No package removals")
+echo "No package removals"
 
 # Revert back to feature branch npm state
 git reset --quiet HEAD {package,package-lock}.json
@@ -87,12 +88,12 @@ npm i --loglevel silent
 # Initialize failed variable as it may be already set by the environment
 failed=0
 
-echo -e "${YELLOW}Comparing pods.  This may take a moment.${NC}"
+info "Comparing pods.  This may take a moment."
 
 # Validate additions and updates to Podfile.lock
 while read -r SPEC; do
   if ! grep -q "$SPEC" ./ios/Podfile.lock; then
-    echo -e "${RED}ERROR: Podspec $SPEC not found in Podfile.lock. Did you forget to run \`npx pod-install\`?${NC}"
+    error "Podspec $SPEC not found in Podfile.lock. Did you forget to run \`npx pod-install\`?"
     failed=1
   fi
 done <<< "$(_formatted_pod_list "$feature_branch_specs")"
@@ -100,13 +101,13 @@ done <<< "$(_formatted_pod_list "$feature_branch_specs")"
 # Validate deletions from Podfile.lock
 while read -r SPEC; do
   if [ -n "$SPEC" ] && grep -q "$SPEC" ./ios/Podfile.lock; then
-    echo -e "${RED}ERROR: Podspec $SPEC was found in Podfile.lock but not in node modules. \
-    Did you forget to run \`npx pod-install\` after removing the package?${NC}" | xargs
+    error "Podspec $SPEC was found in Podfile.lock but not in node modules. \
+    Did you forget to run \`npx pod-install\` after removing the package?" | xargs
     failed=1
   fi
 done <<< "$formatted_removals"
 
-[ "$failed" -eq 1 ] && exit 1
+[ "$failed" -eq 1 ] && resetAndExit 1
 
-echo -e "${GREEN}Podfile.lock is synced with npm packages.${NC}"
-exit 0
+success "Podfile.lock is synced with npm packages."
+resetAndExit 0
