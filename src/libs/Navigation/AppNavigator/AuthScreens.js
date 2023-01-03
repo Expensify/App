@@ -28,7 +28,7 @@ import * as ModalStackNavigators from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as App from '../../actions/App';
-import PushNotification from '../../Notification/PushNotification';
+import * as Session from '../../actions/Session';
 
 let currentUserEmail;
 Onyx.connect({
@@ -99,7 +99,6 @@ class AuthScreens extends React.Component {
         }).then(() => {
             User.subscribeToUserEvents();
         });
-        PushNotification.register(lodashGet(this.props, 'session.accountID', null));
 
         App.openApp();
         App.setUpPoliciesAndNavigate(this.props.session);
@@ -130,6 +129,7 @@ class AuthScreens extends React.Component {
         if (this.unsubscribeGroupShortcut) {
             this.unsubscribeGroupShortcut();
         }
+        Session.cleanupSession();
         clearInterval(this.interval);
         this.interval = null;
     }

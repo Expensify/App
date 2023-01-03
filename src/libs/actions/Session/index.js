@@ -24,6 +24,28 @@ Onyx.connect({
 });
 
 /**
+ * Manage push notification subscriptions on sign-in/sign-out
+ */
+let previousAccountID = '';
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        const accountID = lodashGet(session, 'accountID');
+
+        if (accountID && previousAccountID !== accountID) {
+            PushNotification.register(accountID);
+            previousAccountID = accountID;
+        }
+
+        if (!accountID && previousAccountID !== accountID) {
+            PushNotification.deregister();
+            PushNotification.clearNotifications();
+            previousAccountID = accountID;
+        }
+    },
+});
+
+/**
  * Clears the Onyx store and redirects user to the sign in page
  */
 function signOut() {
@@ -50,12 +72,6 @@ function signOut() {
         shouldRetry: false,
     }, {optimisticData});
 
-    // We got signed out in this tab or another so clean up any subscriptions and timers
-    PushNotification.deregister();
-    PushNotification.clearNotifications();
-    Pusher.disconnect();
-    Timers.clearAll();
-    Welcome.resetReadyCheck();
     Timing.clearData();
 }
 
@@ -311,6 +327,15 @@ function clearSignInData() {
     });
 }
 
+/**
+ * Put any logic that needs to run when we are signed out here. This can be triggered when the current tab or another tab signs out.
+ */
+function cleanupSession() {
+    Pusher.disconnect();
+    Timers.clearAll();
+    Welcome.resetReadyCheck();
+}
+
 function clearAccountMessages() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {
         success: '',
@@ -441,6 +466,7 @@ export {
     updatePasswordAndSignin,
     signIn,
     signInWithShortLivedAuthToken,
+    cleanupSession,
     signOut,
     signOutAndRedirectToSignIn,
     resendValidationLink,
