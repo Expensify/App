@@ -13,16 +13,16 @@ import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
-import {withNetwork} from '../../../components/OnyxProvider';
+import {} from '../../../components/OnyxProvider';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
 import paypalMeDataPropTypes from '../../../components/paypalMeDataPropTypes';
 import cardPropTypes from '../../../components/cardPropTypes';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
+import FormAlertWrapper from '../../../components/FormAlertWrapper';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import Log from '../../../libs/Log';
-import FormAlertWrapper from '../../../components/FormAlertWrapper';
 
 const propTypes = {
     /** What to do when a menu item is pressed */
@@ -258,7 +258,6 @@ PaymentMethodList.propTypes = propTypes;
 PaymentMethodList.defaultProps = defaultProps;
 
 export default compose(
-    withNetwork(),
     withLocalize,
     withOnyx({
         bankAccountList: {

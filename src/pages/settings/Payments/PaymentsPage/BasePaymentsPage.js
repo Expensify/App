@@ -278,9 +278,7 @@ class BasePaymentsPage extends React.Component {
                                     onClose={PaymentMethods.clearWalletTermsError}
                                     errorRowStyles={[styles.ml10, styles.mr2]}
                                 >
-                                    <CurrentWalletBalance
-                                        showActivityIndicator={this.props.isLoadingPaymentMethods && !this.props.network.isOffline}
-                                    />
+                                    <CurrentWalletBalance />
                                 </OfflineWithFeedback>
                             )}
                         </View>
