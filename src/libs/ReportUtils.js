@@ -752,13 +752,13 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
     let paymentMethodMessage;
     switch (paymentType) {
         case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
-            paymentMethodMessage = 'using wallet';
+            paymentMethodMessage = '!';
             break;
         case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
-            paymentMethodMessage = 'elsewhere';
+            paymentMethodMessage = ' elsewhere';
             break;
         case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
-            paymentMethodMessage = 'using PayPal.me';
+            paymentMethodMessage = ' using PayPal.me';
             break;
         default:
             break;
@@ -781,7 +781,7 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
             iouMessage = isSettlingUp
                 ? `Settled up ${paymentMethodMessage}`
-                : `Sent ${amount}${comment && ` for ${comment}`} ${paymentMethodMessage}`;
+                : `Sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
             break;
         default:
             break;
@@ -919,6 +919,7 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
     return {
         0: {
             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            reportActionID: NumberUtils.rand64(),
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             actorAccountID: currentUserAccountID,
             message: [
@@ -1013,6 +1014,10 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
  * @returns {Boolean}
  */
 function isUnread(report) {
+    if (!report) {
+        return false;
+    }
+
     const lastReadSequenceNumber = report.lastReadSequenceNumber || 0;
     const maxSequenceNumber = report.maxSequenceNumber || 0;
     return lastReadSequenceNumber < maxSequenceNumber;
