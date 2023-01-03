@@ -47,12 +47,12 @@ fi
 info "Verifying that pods are synced..."
 
 # Extracts an array of podspec paths from the config command
-_grab_specs() {
+function listPodspecPaths() {
   npx react-native config | jq '[.dependencies[].platforms.ios.podspecPath | select( . != null )]'
 }
 
 # Maps an array of podspec paths to a raw list of formatted `Pod (version)`s
-_formatted_pod_list() {
+function formatPodList() {
     jq --raw-output --slurp 'map((.name + " (" + .version + ")")) | .[]' <<< "$( \
       jq -n '$specs | .[]' --argjson specs "$1" | \
       xargs -L 1 pod ipc spec --silent
@@ -60,14 +60,14 @@ _formatted_pod_list() {
 }
 
 # Store an array of the feature branch's podspecs
-feature_branch_specs="$(_grab_specs)"
+feature_branch_specs="$(listPodspecPaths)"
 
 echo -e "Feature branch specs:\n$feature_branch_specs"
 
 # Grab the podspecs from the main branch by checking out the diffed npm packages
 git checkout --quiet "$1" -- {package,package-lock}.json
 npm i --loglevel silent
-main_branch_specs="$(_grab_specs)"
+main_branch_specs="$(listPodspecPaths)"
 
 echo -e "Main branch specs:\n$main_branch_specs"
 
@@ -75,7 +75,7 @@ echo -e "Main branch specs:\n$main_branch_specs"
 removed_specs=$(jq -n --jsonargs '$ARGS.positional | first - last | .' -- "$main_branch_specs" "$feature_branch_specs")
 
 # Store the formatted list here as we won't have the chance after switching back to feature branch
-formatted_removals="$(_formatted_pod_list "$removed_specs")"
+formatted_removals="$(formatPodList "$removed_specs")"
 
 # Verbose output
 [ -n "$formatted_removals" ] && \
@@ -98,7 +98,7 @@ while read -r SPEC; do
     error "Podspec $SPEC not found in Podfile.lock. Did you forget to run \`npx pod-install\`?"
     failed=1
   fi
-done <<< "$(_formatted_pod_list "$feature_branch_specs")"
+done <<< "$(formatPodList "$feature_branch_specs")"
 
 # Validate deletions from Podfile.lock
 while read -r SPEC; do
