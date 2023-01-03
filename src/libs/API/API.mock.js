@@ -1,6 +1,7 @@
 /* eslint-disable rulesdir/no-api-in-views */
 import CONST from '../../CONST';
 import * as API from './API';
+import Log from '../Log';
 
 /**
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData.
@@ -16,7 +17,8 @@ import * as API from './API';
  * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  */
 function write(command, apiCommandParameters = {}, onyxData = {}) {
-    throw new Error('API.write() is not implemented in the mock API. Please use API.createTransaction() instead.');
+    Log.warn('API.write() is not implemented in the mock API. Please use API.createTransaction() instead.');
+    return API.write(command, apiCommandParameters, onyxData);
 }
 
 /**
@@ -40,7 +42,9 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
  * @returns {Promise}
  */
 function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData = {}, apiRequestType = CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
-    throw new Error('API.makeRequestWithSideEffects() is not implemented in the mock API. Please use API.createTransaction() instead.');
+    Log.warn('API.makeRequestWithSideEffects() is not implemented in the mock API. Please use API.createTransaction() instead.');
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(command, apiCommandParameters, onyxData, apiRequestType);
 }
 
 /**
@@ -56,7 +60,7 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
  * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  */
 function read(command, apiCommandParameters, onyxData) {
-    console.warn('[API.read] for command', command, 'is not mocket yet!');
+    Log.warn('[API.read] for command', command, 'is not mocket yet!');
     return API.read(command, apiCommandParameters, onyxData);
 }
 
