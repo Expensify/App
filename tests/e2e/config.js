@@ -1,4 +1,4 @@
-const OUTPUT_DIR = process.env.WORKING_DIRECTORY || './results';
+const OUTPUT_DIR = process.env.WORKING_DIRECTORY || './tests/e2e/results';
 
 /**
  * @typedef TestConfig
@@ -10,8 +10,24 @@ const TEST_NAMES = {
     AppStartTime: 'App start time',
 };
 
+/**
+ * Default config, used by CI by default.
+ * You can modify these values for your test run by creating a
+ * separate config file and pass it to the test runner like this:
+ *
+ * ```bash
+ * npm run test:e2e -- --config ./path/to/your/config.js
+ * ```
+ */
 module.exports = {
     APP_PACKAGE: 'com.expensify.chat',
+
+    APP_PATHS: {
+        baseline: './app-e2eRelease-baseline.apk',
+        compare: './app-e2eRelease-compare.apk',
+    },
+
+    ENTRY_FILE: 'src/libs/E2E/reactNativeLaunchingTest.js',
 
     // The port of the testing server that communicates with the app
     SERVER_PORT: 4723,
@@ -20,9 +36,6 @@ module.exports = {
     RUNS: 30,
 
     DEFAULT_BASELINE_BRANCH: 'main',
-
-    // The amount of outliers to remove from a dataset before calculating the average
-    DROP_WORST: 8,
 
     // The amount of runs that should happen without counting test results
     WARM_UP_RUNS: 3,
