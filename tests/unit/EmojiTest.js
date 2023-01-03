@@ -107,14 +107,14 @@ describe('EmojiTest', () => {
         expect(EmojiUtils.replaceEmojis(text).newText).toBe('Hi 😄👋no space after last emoji');
     });
 
-    it('will not add a space after the last emoji when there is text after it on mobile', () => {
+    it('will not add a space after the last emoji when there is text after it', () => {
         const text = 'Hi :smile::wave:no space after last emoji';
-        expect(EmojiUtils.replaceEmojis(text, true)).toBe('Hi 😄👋no space after last emoji');
+        expect(EmojiUtils.replaceEmojis(text).newText).toBe('Hi 😄👋no space after last emoji');
     });
 
     it('will not add a space after the last emoji if we\'re not on mobile', () => {
         const text = 'Hi :smile:';
-        expect(EmojiUtils.replaceEmojis(text)).toBe('Hi 😄');
+        expect(EmojiUtils.replaceEmojis(text).newText).toBe('Hi 😄');
     });
 
     it('suggests emojis when typing emojis prefix after colon', () => {
