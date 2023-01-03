@@ -70,12 +70,7 @@ const setHtml = (html, text) => {
             // eslint-disable-next-line no-undef
             new ClipboardItem({
                 'text/html': new Blob([html], {type: 'text/html'}),
-
-                // Thanks to how browsers work, when text is highlighted and CTRL+c is pressed, browsers end up doubling the amount newlines. Since the code in this file is triggered from
-                // a context menu and not CTRL+c, the newlines need to be doubled so that the content that goes into the clipboard is consistent with CTRL+c behavior. The extra newlines
-                // are stripped when the contents are pasted into the compose input, but if the contents are pasted outside of the comment composer, it will contain extra newlines and that's
-                // OK because it is consistent with CTRL+c behavior.
-                'text/plain': new Blob([text.replace(/\n/g, '\n\n')], {type: 'text/plain'}),
+                'text/plain': new Blob([text], {type: 'text/plain'}),
             }),
         ]);
     }
