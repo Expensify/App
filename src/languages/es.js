@@ -140,7 +140,6 @@ export default {
         updatePrompt: 'Existe una nueva versión de esta aplicación.\nActualiza ahora or reinicia la aplicación más tarde para recibir la última versión.',
     },
     deeplinkWrapper: {
-        // TODO: translate to spanish
         launching: 'Cargando Expensify',
         redirectedToDesktopApp: 'Te hemos redirigido a la aplicación de escritorio.',
         youCanAlso: 'También puedes',

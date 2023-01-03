@@ -57,7 +57,6 @@ class DeeplinkWrapper extends PureComponent {
 
             if (matchedRoute) {
                 this.setState({deeplinkMatch: true});
-
                 this.openRouteInDesktopApp();
             } else {
                 this.setState({deeplinkMatch: false});

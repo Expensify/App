@@ -481,12 +481,12 @@ const mainWindow = (() => {
         // After initializing and configuring the browser window, load the compiled JavaScript
         .then((browserWindowRef) => {
             loadURL(browserWindow).then(() => {
-                if (deeplinkUrl) {
-                    browserWindow.loadURL(deeplinkUrl);
-                    browserWindow.show();
+                if (!deeplinkUrl) {
+                    return;
                 }
 
-                return undefined;
+                browserWindow.loadURL(deeplinkUrl);
+                browserWindow.show();
             });
 
             return browserWindowRef;
