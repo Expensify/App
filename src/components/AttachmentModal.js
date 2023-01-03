@@ -30,7 +30,7 @@ import HeaderGap from './HeaderGap';
 
 const propTypes = {
     /** Optional source URL for the image shown. If not passed in via props must be specified when modal is opened. */
-    sourceURL: PropTypes.string,
+    sourceURL: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
 
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm: PropTypes.func,

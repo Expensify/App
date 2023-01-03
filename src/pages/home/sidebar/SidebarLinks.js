@@ -53,7 +53,10 @@ const propTypes = {
         displayName: PropTypes.string,
 
         /** Avatar URL of the current user from their personal details */
-        avatar: PropTypes.string,
+        avatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+
+        // /** Login email of the current user from their personal details */
+        // login: PropTypes.string,
     }),
 
     /** Current reportID from the route in react navigation state object */
@@ -73,7 +76,7 @@ const defaultProps = {
     reportActions: {},
     personalDetails: {},
     currentUserPersonalDetails: {
-        avatar: ReportUtils.getDefaultAvatar(),
+        avatar: '',
     },
     reportIDFromRoute: '',
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,

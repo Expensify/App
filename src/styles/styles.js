@@ -1993,13 +1993,17 @@ const styles = {
         width: '100%',
     },
 
-    roomHeaderAvatar: {
+    roomHeaderAvatarSize: {
         height: variables.componentSizeLarge,
         width: variables.componentSizeLarge,
+    },
+
+    roomHeaderAvatar: {
+        backgroundColor: themeColors.appBG,
+        marginLeft: -16,
         borderRadius: 100,
         borderColor: themeColors.componentBG,
         borderWidth: 4,
-        marginLeft: -16,
     },
 
     roomHeaderAvatarOverlay: {
@@ -2015,10 +2019,15 @@ const styles = {
     avatarInnerTextChat: {
         color: themeColors.textLight,
         fontSize: variables.fontSizeNormal,
-        left: 1,
+        left: 2,
         textAlign: 'center',
         fontWeight: 'normal',
         position: 'absolute',
+    },
+
+    svgAvatarBorder: {
+        borderRadius: '50%',
+        overflow: 'hidden',
     },
 
     displayName: {

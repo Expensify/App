@@ -1,4 +1,4 @@
-import _ from 'underscore';
+import _, {isString} from 'underscore';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
@@ -15,6 +15,7 @@ import * as NumberUtils from './NumberUtils';
 import * as NumberFormatUtils from './NumberFormatUtils';
 import Permissions from './Permissions';
 import DateUtils from './DateUtils';
+import * as defaultAvatars from '../components/Icon/DefaultAvatars';
 
 let sessionEmail;
 Onyx.connect({
@@ -425,7 +426,57 @@ function getDefaultAvatar(login = '') {
         return CONST.CONCIERGE_ICON_URL;
     }
     const loginHashBucket = (Math.abs(hashCode(login.toLowerCase())) % 24) + 1;
-    return `${CONST.CLOUDFRONT_URL}/images/avatars/default-avatar_${loginHashBucket}.png`;
+
+    return defaultAvatars[`Avatar${loginHashBucket}`];
+}
+
+/**
+ * Helper method to return a default avatar
+ *
+ * @param {String} [login]
+ * @returns {String}
+ */
+function getDefaultAvatarPNG(login = '') {
+    // There are 24 possible default avatars, so we choose which one this user has based
+    // on a simple hash of their login
+    if (login === CONST.EMAIL.CONCIERGE) {
+        return CONST.CONCIERGE_ICON_URL;
+    }
+    const loginHashBucket = (Math.abs(hashCode(login.toLowerCase())) % 24) + 1;
+
+    return `${CONST.CLOUDFRONT_URL}/images/avatars/default-avatar_${loginHashBucket}`;
+}
+
+/**
+ * Helper method to link png avatar to svg
+ *
+ * @param {String} [avatarURL]
+ * @returns {String}
+ */
+function getSVGfromCloudflareURL(avatarURL) {
+    if (!isString(avatarURL)) {
+        return avatarURL;
+    }
+    if (avatarURL.includes('images/avatars/default')) {
+        const URLWithoutCloudFront = avatarURL.replace(CONST.CLOUDFRONT_URL, '');
+        const avatarNumber = URLWithoutCloudFront.replace(/[^0-9]/g, '');
+        return defaultAvatars[`Avatar${avatarNumber}`];
+    }
+    return avatarURL;
+}
+
+/**
+ * Returns true if avatar is default
+ *
+ * @param {String} [avatarURL]
+ * @returns {Boolean}
+ */
+function isDefaultAvatarURL(avatarURL) {
+    if (isString(avatarURL)
+            && (avatarURL.includes('images/avatars/avatar_') || (avatarURL.includes('images/avatars/default')))) {
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -441,6 +492,9 @@ function getDefaultAvatar(login = '') {
 function getIcons(report, personalDetails, policies, defaultIcon = null) {
     if (_.isEmpty(report)) {
         return [defaultIcon || getDefaultAvatar()];
+    }
+    if (isConciergeChatReport(report)) {
+        return [CONST.CONCIERGE_ICON_URL];
     }
     if (isArchivedRoom(report)) {
         return [Expensicons.DeletedRoomAvatar];
@@ -478,10 +532,15 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
     const participantDetails = [];
     for (let i = 0; i < report.participants.length; i++) {
         const login = report.participants[i];
+
+        let avatarURL = lodashGet(personalDetails, [login, 'avatar'], '');
+        if (avatarURL.includes('images/avatars/default')) {
+            avatarURL = getDefaultAvatar(login);
+        }
         participantDetails.push([
             login,
             lodashGet(personalDetails, [login, 'firstName'], ''),
-            lodashGet(personalDetails, [login, 'avatar']) || getDefaultAvatar(login),
+            avatarURL || getDefaultAvatar(login),
         ]);
     }
 
@@ -1231,4 +1290,7 @@ export {
     getDisplayNameForParticipant,
     isIOUReport,
     chatIncludesChronos,
+    getSVGfromCloudflareURL,
+    isDefaultAvatarURL,
+    getDefaultAvatarPNG,
 };

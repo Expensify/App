@@ -722,6 +722,7 @@ const CONST = {
         SMALLER: 'smaller',
         SUBSCRIPT: 'subscript',
         SMALL_SUBSCRIPT: 'small-subscript',
+        HEADER: 'header',
     },
     OPTION_MODE: {
         COMPACT: 'compact',

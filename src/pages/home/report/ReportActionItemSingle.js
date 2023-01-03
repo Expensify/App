@@ -17,6 +17,7 @@ import ROUTES from '../../../ROUTES';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
 import Tooltip from '../../../components/Tooltip';
 import ControlSelection from '../../../libs/ControlSelection';
+import * as ReportUtils from '../../../libs/ReportUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -54,7 +55,7 @@ const ReportActionItemSingle = (props) => {
         ? CONST.CONCIERGE_ICON_URL
 
         // Use avatar in personalDetails if we have one then fallback to avatar provided by the action
-        : (avatar || props.action.avatar);
+        : (ReportUtils.getSVGfromCloudflareURL(avatar) || ReportUtils.getDefaultAvatar(props.action.actorEmail));
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
@@ -75,6 +76,7 @@ const ReportActionItemSingle = (props) => {
                     <Avatar
                         containerStyles={[styles.actionAvatar]}
                         source={avatarUrl}
+                        login={props.action.actorEmail}
                     />
                 </Tooltip>
             </Pressable>

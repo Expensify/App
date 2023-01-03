@@ -1,6 +1,6 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
-import {Image, View} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import Text from './Text';
@@ -66,12 +66,17 @@ const RoomHeaderAvatars = (props) => {
             <View style={[styles.flexRow, styles.wAuto, styles.ml3]}>
                 {_.map(iconsToDisplay, (val, index) => (
                     <View key={`${val}${index}`} style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
-                        <Image source={{uri: val}} style={[styles.roomHeaderAvatar]} />
-
+                        <Avatar
+                            source={val}
+                            fill={themeColors.iconSuccessFill}
+                            size={CONST.AVATAR_SIZE.HEADER}
+                            containerStyles={[styles.roomHeaderAvatar]}
+                        />
                         {index === CONST.REPORT.MAX_PREVIEW_AVATARS - 1 && props.icons.length - CONST.REPORT.MAX_PREVIEW_AVATARS !== 0 && (
                             <>
                                 <View
                                     style={[
+                                        styles.roomHeaderAvatarSize,
                                         styles.roomHeaderAvatar,
                                         styles.roomHeaderAvatarOverlay,
                                     ]}

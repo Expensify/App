@@ -82,12 +82,13 @@ class DetailsPage extends React.PureComponent {
 
     render() {
         let details = lodashGet(this.props.personalDetails, lodashGet(this.props.route.params, 'login'));
+        const avatar = ReportUtils.getSVGfromCloudflareURL(lodashGet(details, 'avatar', ''));
         if (!details) {
             const login = lodashGet(this.props.route.params, 'login');
             details = {
                 login,
                 displayName: ReportUtils.getDisplayNameForParticipant(login),
-                avatar: ReportUtils.getDefaultAvatar(login),
+                avatar: avatar || ReportUtils.getDefaultAvatar(login),
             };
         }
         const isSMSLogin = Str.isSMSLogin(details.login);
@@ -139,6 +140,7 @@ class DetailsPage extends React.PureComponent {
                                                 imageStyles={[styles.avatarLarge]}
                                                 source={details.avatar}
                                                 size={CONST.AVATAR_SIZE.LARGE}
+                                                login={details.login}
                                             />
                                         </PressableWithoutFocus>
                                     )}

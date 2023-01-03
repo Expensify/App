@@ -284,9 +284,9 @@ function updateAvatar(file) {
  * Replaces the user's avatar image with a default avatar
  */
 function deleteAvatar() {
-    const defaultAvatar = ReportUtils.getDefaultAvatar(currentUserEmail);
+    const defaultAvatar = ReportUtils.getDefaultAvatarPNG(currentUserEmail);
 
-    API.write('DeleteUserAvatar', {}, {
+    API.write('DeleteUserAvatar', {forNewDot: true}, {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS,

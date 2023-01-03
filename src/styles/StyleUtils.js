@@ -20,6 +20,7 @@ function getAvatarSize(size) {
         [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.avatarSizeSubscript,
         [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
         [CONST.AVATAR_SIZE.SMALLER]: variables.avatarSizeSmaller,
+        [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
         [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
     };
     return AVATAR_SIZES[size];

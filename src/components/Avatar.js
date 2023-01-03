@@ -12,6 +12,7 @@ import getAvatarDefaultSource from '../libs/getAvatarDefaultSource';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
 import styles from '../styles/styles';
+import * as ReportUtils from '../libs/ReportUtils';
 
 const propTypes = {
     /** Source for the avatar. Can be a URL or an icon. */
@@ -35,6 +36,10 @@ const propTypes = {
 
     /** Props to detect online status */
     network: networkPropTypes.isRequired,
+
+    /** User Login Email */
+    // eslint-disable-next-line react/no-unused-prop-types
+    login: PropTypes.string,
 };
 
 const defaultProps = {
@@ -44,6 +49,7 @@ const defaultProps = {
     size: CONST.AVATAR_SIZE.DEFAULT,
     fill: themeColors.icon,
     fallbackIcon: Expensicons.FallbackAvatar,
+    login: '',
 };
 
 class Avatar extends PureComponent {
@@ -67,6 +73,8 @@ class Avatar extends PureComponent {
             return null;
         }
 
+        const avatarURL = ReportUtils.getSVGfromCloudflareURL(this.props.source);
+
         const imageStyle = [
             StyleUtils.getAvatarStyle(this.props.size),
             ...this.props.imageStyles,
@@ -81,14 +89,15 @@ class Avatar extends PureComponent {
 
         return (
             <View pointerEvents="none" style={this.props.containerStyles}>
-                {_.isFunction(this.props.source) || this.state.imageError
+                {_.isFunction(avatarURL) || this.state.imageError
                     ? (
-                        <View style={iconStyle}>
+                        <View style={[iconStyle]}>
                             <Icon
-                                src={this.state.imageError ? this.props.fallbackIcon : this.props.source}
+                                src={this.state.imageError ? this.props.fallbackIcon : avatarURL}
                                 height={iconSize}
                                 width={iconSize}
                                 fill={this.state.imageError ? themeColors.offline : this.props.fill}
+                                svgAvatar
                             />
                         </View>
                     )
