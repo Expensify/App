@@ -69,7 +69,7 @@ function containsOnlyEmojis(message) {
 
     const codes = [];
     _.map(match, emoji => _.map(getEmojiUnicode(emoji).split(' '), (code) => {
-        if (!CONST.EMOJI_INVISIBLE_CODEPOINTS.includes(code)) {
+        if (!CONST.INVISIBLE_CODEPOINTS.includes(code)) {
             codes.push(code);
         }
         return code;
@@ -77,7 +77,7 @@ function containsOnlyEmojis(message) {
 
     // Emojis are stored as multiple characters, so we're using spread operator
     // to iterate over the actual emojis, not just characters that compose them
-    const messageCodes = _.filter(_.map([...trimmedMessage], char => getEmojiUnicode(char)), string => string.length > 0 && !CONST.EMOJI_INVISIBLE_CODEPOINTS.includes(string));
+    const messageCodes = _.filter(_.map([...trimmedMessage], char => getEmojiUnicode(char)), string => string.length > 0 && !CONST.INVISIBLE_CODEPOINTS.includes(string));
     return codes.length === messageCodes.length;
 }
 
@@ -184,8 +184,10 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
 }
 
 /**
- * Replace any emoji name in a text with the emoji icon
+ * Replace any emoji name in a text with the emoji icon.
+ * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  * @param {String} text
+ * @param {Boolean} isSmallScreenWidth
  * @returns {Object} results
  * @returns {String} results.newText
  * @returns {Object} results.lastReplacedSelection
@@ -193,7 +195,7 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
  * @returns {Number} results.lastReplacedSelection.end
  * @returns {Number} results.lastReplacedSelection.newSelectionEnd
  */
-function replaceEmojis(text) {
+function replaceEmojis(text, isSmallScreenWidth = false) {
     let newText = text;
     const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
 
