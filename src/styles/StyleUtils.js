@@ -78,11 +78,13 @@ function getNavigationDrawerStyle(isSmallScreenWidth) {
             width: '100%',
             height: '100%',
             borderColor: themeColors.border,
+            backgroundColor: themeColors.appBG,
         }
         : {
             height: '100%',
             width: variables.sideBarWidth,
             borderRightColor: themeColors.border,
+            backgroundColor: themeColors.appBG,
         };
 }
 
@@ -255,11 +257,15 @@ function getBadgeColorStyle(success, error, isPressed = false) {
  * Generate a style for the background color of the button, based on its current state.
  *
  * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
+ * @param {Boolean} isMenuItem - whether this icon is apart of a list
  * @returns {Object}
  */
-function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
+function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT, isMenuItem = false) {
     switch (buttonState) {
         case CONST.BUTTON_STATES.ACTIVE:
+            if (isMenuItem) {
+                return {backgroundColor: themeColors.border};
+            }
             return {backgroundColor: themeColors.buttonHoveredBG};
         case CONST.BUTTON_STATES.PRESSED:
             return {backgroundColor: themeColors.buttonPressedBG};

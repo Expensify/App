@@ -1,5 +1,5 @@
 /**
- * Call the callback after screen transiton has ended
+ * Call the callback after screen transition has ended
  *
  * @param {Object} navigation Screen navigation prop
  * @param {Function} callback Method to call
