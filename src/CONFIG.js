@@ -23,6 +23,7 @@ const secureExpensifyUrl = Url.addTrailingForwardSlash(lodashGet(
 const useNgrok = lodashGet(Config, 'USE_NGROK', 'false') === 'true';
 const useWebProxy = lodashGet(Config, 'USE_WEB_PROXY', 'true') === 'true';
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : expensifyURL;
+const useMockAPI = lodashGet(Config, 'USE_MOCK_API', 'false') === 'true';
 
 // Throw errors on dev if config variables are not set correctly
 if (ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
@@ -62,6 +63,7 @@ export default {
     IS_IN_PRODUCTION: Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__,
     IS_IN_STAGING: ENVIRONMENT === CONST.ENVIRONMENT.STAGING,
     IS_USING_LOCAL_WEB: useNgrok || expensifyURLRoot.includes('dev'),
+    IS_MOCK_API: useMockAPI,
     PUSHER: {
         APP_KEY: lodashGet(Config, 'PUSHER_APP_KEY', '268df511a204fbb60884'),
         SUFFIX: lodashGet(Config, 'PUSHER_DEV_SUFFIX', ''),
