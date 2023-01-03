@@ -37,10 +37,8 @@ function clearStorageAndRedirect(errorMessage) {
         keysToPreserve.push(ONYXKEYS.NETWORK);
     }
 
-    Timing.start('clear');
     Onyx.clear(keysToPreserve)
         .then(() => {
-            Timing.end('clear');
             if (!errorMessage) {
                 return;
             }
