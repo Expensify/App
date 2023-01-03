@@ -13,6 +13,9 @@ import Log from '../Log';
 const mocks = {
     BeginSignIn: () => require('../E2E/apiMocks/beginSignin.json'),
     SigninUser: () => require('../E2E/apiMocks/signinUser.json'),
+    OpenApp: () => require('../E2E/apiMocks/openApp.json'),
+    OpenReport: () => require('../E2E/apiMocks/openReport.json'),
+    AuthenticatePusher: () => require('../E2E/apiMocks/authenticatePusher.json'),
 };
 
 /**
@@ -27,6 +30,7 @@ const mocks = {
 function write(command, apiCommandParameters = {}) {
     const mockResponse = mocks[command] && mocks[command](apiCommandParameters);
     if (mockResponse && _.isArray(mockResponse.onyxData)) {
+        Log.warn(`[API.read] for command ${command} is mocked!`);
         return Onyx.update(mockResponse.onyxData);
     }
 
@@ -70,6 +74,7 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
 function read(command, apiCommandParameters) {
     const mockResponse = mocks[command] && mocks[command](apiCommandParameters);
     if (mockResponse && _.isArray(mockResponse.onyxData)) {
+        Log.warn(`[API.read] for command ${command} is mocked!`);
         return Onyx.update(mockResponse.onyxData);
     }
 
