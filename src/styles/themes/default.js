@@ -60,6 +60,7 @@ const darkTheme = {
     dropTransparentOverlay: 'rgba(255,255,255,0)',
     checkBox: colors.green,
     pickerOptionsTextColor: colors.midnight,
+    imageCropBackgroundColor: colors.greenIcons,
 };
 
 const oldTheme = {
