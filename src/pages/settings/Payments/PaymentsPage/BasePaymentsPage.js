@@ -43,6 +43,7 @@ class BasePaymentsPage extends React.Component {
             shouldShowAddPaymentMenu: false,
             shouldShowDefaultDeleteMenu: false,
             shouldShowPasswordPrompt: false,
+            shouldShowLoadingSpinner: true,
             isSelectedPaymentMethodDefault: false,
             selectedPaymentMethod: {},
             formattedSelectedPaymentMethod: {
@@ -66,6 +67,8 @@ class BasePaymentsPage extends React.Component {
         this.navigateToTransferBalancePage = this.navigateToTransferBalancePage.bind(this);
         this.setMenuPosition = this.setMenuPosition.bind(this);
         this.listHeaderComponent = this.listHeaderComponent.bind(this);
+
+        this.debounceSetShouldShowLoadingSpinner = _.debounce(this.setShouldShowLoadingSpinner.bind(this), CONST.TIMING.SHOW_LOADING_SPINNER_DEBOUNCE_TIME);
     }
 
     componentDidMount() {
@@ -77,10 +80,23 @@ class BasePaymentsPage extends React.Component {
             this.setMenuPosition();
         }
 
+        // If the user was previously offline, skip debouncing showing the loader
+        if (prevProps.network.isOffline && !this.props.network.isOffline) {
+            this.setShouldShowLoadingSpinner();
+        } else {
+            this.debounceSetShouldShowLoadingSpinner();
+        }
+
+        // previously online OR currently offline, skip fetch
         if (!prevProps.network.isOffline || this.props.network.isOffline) {
             return;
         }
+
         this.fetchData();
+    }
+
+    setShouldShowLoadingSpinner() {
+        this.setState({shouldShowLoadingSpinner: this.props.isLoadingPaymentMethods && !this.props.network.isOffline});
     }
 
     setMenuPosition() {
@@ -269,7 +285,7 @@ class BasePaymentsPage extends React.Component {
                 {Permissions.canUseWallet(this.props.betas) && (
                     <>
                         <View style={[styles.mv5]}>
-                            {this.props.isLoadingPaymentMethods && !this.props.network.isOffline ? (
+                            {this.state.shouldShowLoadingSpinner ? (
                                 <ActivityIndicator color={themeColors.spinner} size="large" />
                             ) : (
                                 <OfflineWithFeedback
