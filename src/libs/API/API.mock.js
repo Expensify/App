@@ -21,14 +21,10 @@ const mocks = {
  *
  * @param {String} command - Name of API command to call.
  * @param {Object} apiCommandParameters - Parameters to send to the API.
- * @param {Object} onyxData  - Object containing errors, loading states, and optimistic UI data that will be merged
- *                             into Onyx before and after a request is made. Each nested object will be formatted in
- *                             the same way as an API response.
- * @param {Object} [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
- * @param {Object} [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
- * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
+ *
+ * @returns {Promise}
  */
-function write(command, apiCommandParameters = {}, onyxData = {}) {
+function write(command, apiCommandParameters = {}) {
     const mockResponse = mocks[command] && mocks[command](apiCommandParameters);
     if (mockResponse && _.isArray(mockResponse.onyxData)) {
         return Onyx.update(mockResponse.onyxData);
@@ -68,14 +64,10 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
  *
  * @param {String} command - Name of API command to call.
  * @param {Object} apiCommandParameters - Parameters to send to the API.
- * @param {Object} onyxData  - Object containing errors, loading states, and optimistic UI data that will be merged
- *                             into Onyx before and after a request is made. Each nested object will be formatted in
- *                             the same way as an API response.
- * @param {Object} [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
- * @param {Object} [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
- * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
+ *
+ * @returns {Promise}
  */
-function read(command, apiCommandParameters, onyxData) {
+function read(command, apiCommandParameters) {
     const mockResponse = mocks[command] && mocks[command](apiCommandParameters);
     if (mockResponse && _.isArray(mockResponse.onyxData)) {
         return Onyx.update(mockResponse.onyxData);
