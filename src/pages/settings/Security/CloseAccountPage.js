@@ -102,7 +102,12 @@ class CloseAccountPage extends Component {
                             containerStyles={[styles.mt5, styles.closeAccountMessageInput]}
                         />
                         <Text style={[styles.mt5]}>
-                            {this.props.translate('closeAccountPage.enterDefaultContactToConfirm', {userEmailOrPhone})}
+                            {this.props.translate('closeAccountPage.enterDefaultContactToConfirm')}
+                            {' '}
+                            <Text style={[styles.textStrong]}>
+                                {userEmailOrPhone}
+                            </Text>
+                            .
                         </Text>
                         <TextInput
                             inputID="phoneOrEmail"
@@ -118,7 +123,8 @@ class CloseAccountPage extends Component {
                             onCancel={this.hideConfirmModal}
                             isVisible={this.state.isConfirmModalVisible}
                             prompt={this.props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
-                            confirmText={this.props.translate('common.close')}
+                            confirmText={this.props.translate('common.yes')}
+                            cancelText={this.props.translate('common.cancel')}
                             shouldShowCancelButton
                         />
                     </View>
