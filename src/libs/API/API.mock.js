@@ -1,8 +1,6 @@
 /* eslint-disable rulesdir/no-api-in-views */
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import CONST from '../../CONST';
-import * as API from './API';
 import Log from '../Log';
 
 /**
@@ -18,6 +16,16 @@ const mocks = {
     AuthenticatePusher: () => require('../E2E/apiMocks/authenticatePusher.json'),
 };
 
+function mockCall(command, apiCommandParameters, tag) {
+    const mockResponse = mocks[command] && mocks[command](apiCommandParameters);
+    if (mockResponse && _.isArray(mockResponse.onyxData)) {
+        Log.warn(`[${tag}] for command ${command} is mocked!`);
+        return Onyx.update(mockResponse.onyxData);
+    }
+
+    Log.warn(`[${tag}] for command ${command} is not mocked yet!`);
+}
+
 /**
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData.
  * This is so that if the network is unavailable or the app is closed, we can send the WRITE request later.
@@ -28,13 +36,7 @@ const mocks = {
  * @returns {Promise}
  */
 function write(command, apiCommandParameters = {}) {
-    const mockResponse = mocks[command] && mocks[command](apiCommandParameters);
-    if (mockResponse && _.isArray(mockResponse.onyxData)) {
-        Log.warn(`[API.read] for command ${command} is mocked!`);
-        return Onyx.update(mockResponse.onyxData);
-    }
-
-    Log.warn(`[API.write] for command ${command} is not mocked yet!`);
+    return mockCall(command, apiCommandParameters, 'API.write');
 }
 
 /**
@@ -47,20 +49,11 @@ function write(command, apiCommandParameters = {}) {
  *
  * @param {String} command - Name of API command to call.
  * @param {Object} apiCommandParameters - Parameters to send to the API.
- * @param {Object} onyxData  - Object containing errors, loading states, and optimistic UI data that will be merged
- *                             into Onyx before and after a request is made. Each nested object will be formatted in
- *                             the same way as an API response.
- * @param {Object} [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
- * @param {Object} [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
- * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
- * @param {String} [apiRequestType] - Can be either 'read', 'write', or 'makeRequestWithSideEffects'. We use this to either return the chained
- *                                    response back to the caller or to trigger reconnection callbacks when re-authentication is required.
+ *
  * @returns {Promise}
  */
-function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData = {}, apiRequestType = CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
-    Log.warn('API.makeRequestWithSideEffects() is not implemented in the mock API. Please use API.createTransaction() instead.');
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(command, apiCommandParameters, onyxData, apiRequestType);
+function makeRequestWithSideEffects(command, apiCommandParameters = {}) {
+    return mockCall(command, apiCommandParameters, 'API.makeRequestWithSideEffects');
 }
 
 /**
@@ -72,13 +65,7 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
  * @returns {Promise}
  */
 function read(command, apiCommandParameters) {
-    const mockResponse = mocks[command] && mocks[command](apiCommandParameters);
-    if (mockResponse && _.isArray(mockResponse.onyxData)) {
-        Log.warn(`[API.read] for command ${command} is mocked!`);
-        return Onyx.update(mockResponse.onyxData);
-    }
-
-    Log.warn(`[API.read] for command ${command} is not mocked yet!`);
+    return mockCall(command, apiCommandParameters, 'API.read');
 }
 
 export {
