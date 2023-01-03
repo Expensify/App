@@ -17,4 +17,4 @@ jobs:
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
-      - run: ./.github/scripts/verifyPodfile.sh origin/main
+      - run: ./.github/scripts/verifyPodfile.sh
