@@ -5,6 +5,7 @@ import DateUtils from '../DateUtils';
 import * as Localize from '../Localize';
 import * as PersistedRequests from './PersistedRequests';
 import NetworkConnection from '../NetworkConnection';
+import Timing from './Timing';
 
 let currentIsOffline;
 let currentShouldForceOffline;
@@ -36,8 +37,10 @@ function clearStorageAndRedirect(errorMessage) {
         keysToPreserve.push(ONYXKEYS.NETWORK);
     }
 
+    Timing.start('clear');
     Onyx.clear(keysToPreserve)
         .then(() => {
+            Timing.end('clear');
             if (!errorMessage) {
                 return;
             }
