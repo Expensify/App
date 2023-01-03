@@ -1,3 +1,9 @@
+/**
+ * On iOS sometimes the keyboard doesn't dismiss itself
+ * when you tap outside of the input that pulled it up.
+ * Therefore this component is necessary to ensure users
+ * can still dismiss the keyboard on iOS.
+ */
 import React from 'react';
 import {TouchableWithoutFeedback, Keyboard} from 'react-native';
 import PropTypes from 'prop-types';
