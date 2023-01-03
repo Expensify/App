@@ -14,7 +14,7 @@ import * as Report from '../../../libs/actions/Report';
 import reportPropTypes from '../../reportPropTypes';
 import EmptyStateBackgroundImage from '../../../../assets/images/empty-state_background-fade.png';
 import * as StyleUtils from '../../../styles/StyleUtils';
-import withWindowDimensions from '../../../components/withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
 
 const propTypes = {
@@ -32,6 +32,8 @@ const propTypes = {
         /** Name of the policy */
         name: PropTypes.string,
     }),
+
+    ...windowDimensionsPropTypes,
 };
 const defaultProps = {
     report: {},
