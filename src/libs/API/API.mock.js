@@ -60,7 +60,7 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
  * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  */
 function read(command, apiCommandParameters, onyxData) {
-    Log.warn('[API.read] for command', command, 'is not mocket yet!');
+    Log.warn(`[API.read] for command ${command} is not mocked yet!`);
     return API.read(command, apiCommandParameters, onyxData);
 }
 
