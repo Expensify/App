@@ -1,9 +1,9 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import * as Request from '../Request';
-import * as SequentialQueue from '../Network/SequentialQueue';
-import pkg from '../../../package.json';
-import CONST from '../../CONST';
+import * as Request from './Request';
+import * as SequentialQueue from './Network/SequentialQueue';
+import pkg from '../../package.json';
+import CONST from '../CONST';
 
 /**
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData.
