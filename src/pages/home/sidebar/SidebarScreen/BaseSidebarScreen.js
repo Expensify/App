@@ -9,7 +9,6 @@ import Timing from '../../../../libs/actions/Timing';
 import CONST from '../../../../CONST';
 import Performance from '../../../../libs/Performance';
 import withDrawerState from '../../../../components/withDrawerState';
-import KeyboardShortcutsModal from '../../../../components/KeyboardShortcutsModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import compose from '../../../../libs/compose';
 import sidebarPropTypes from './sidebarPropTypes';
@@ -65,7 +64,6 @@ class BaseSidebarScreen extends Component {
                                 reportIDFromRoute={this.props.reportIDFromRoute}
                             />
                         </View>
-                        <KeyboardShortcutsModal />
                         {this.props.children}
                     </>
                 )}
