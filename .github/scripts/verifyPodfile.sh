@@ -33,8 +33,10 @@ if [ -n "$(git diff --name-only HEAD -- package.json package-lock.json)" ]; then
 fi
 
 # Make sure valid branch ref was passed for removal check
-(git cat-file -e "$1":package-lock.json 2> /dev/null && [ -n "$1" ]) || \
-{ error "Must specify valid branch name to compare with for Pod removal check."; exit 1; }
+if ! git rev-parse --quiet --verify "$1"; then
+  error 'Error: Must provide valid branch name as argument for verifyPodfile script.'
+  resetAndExit 1
+fi
 
 # If npm packages were not modified in the feature branch we can skip the remaining checks
 if [ -z "$(git diff --name-only .."$1" package-lock.json package.json)" ]; then
