@@ -23,7 +23,8 @@ const secureExpensifyUrl = Url.addTrailingForwardSlash(lodashGet(
 const useNgrok = lodashGet(Config, 'USE_NGROK', 'false') === 'true';
 const useWebProxy = lodashGet(Config, 'USE_WEB_PROXY', 'true') === 'true';
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : expensifyURL;
-const useMockAPI = lodashGet(Config, 'USE_MOCK_API', 'false') === 'true';
+const isE2ETesting = lodashGet(Config, 'E2E_TESTING', 'false') === 'true';
+const useMockAPI = isE2ETesting || lodashGet(Config, 'USE_MOCK_API', 'false') === 'true';
 
 // Throw errors on dev if config variables are not set correctly
 if (ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
@@ -77,6 +78,6 @@ export default {
     CAPTURE_METRICS: lodashGet(Config, 'CAPTURE_METRICS', 'false') === 'true',
     ONYX_METRICS: lodashGet(Config, 'ONYX_METRICS', 'false') === 'true',
     DEV_PORT: process.env.PORT || 8080,
-    E2E_TESTING: lodashGet(Config, 'E2E_TESTING', 'false') === 'true',
+    E2E_TESTING: isE2ETesting,
     SEND_CRASH_REPORTS: lodashGet(Config, 'SEND_CRASH_REPORTS', 'false') === 'true',
 };
