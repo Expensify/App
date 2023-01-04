@@ -291,9 +291,10 @@ const styles = {
         fontStyle: 'italic',
     },
 
-    headlineFont: {
+    textHeadline: {
         ...headlineFont,
         color: themeColors.heading,
+        fontSize: variables.fontSizeXLarge,
     },
 
     textDecorationNoLine: {

@@ -146,7 +146,7 @@ class SidebarLinks extends React.Component {
                         accessibilityLabel={this.props.translate('sidebarScreen.headerChat')}
                         accessibilityRole="text"
                         shouldShowEnvironmentBadge
-                        textStyles={[styles.headlineFont, styles.textXLarge]}
+                        textStyles={[styles.textHeadline]}
                     />
                     <Tooltip text={this.props.translate('common.search')}>
                         <TouchableOpacity

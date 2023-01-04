@@ -17,7 +17,7 @@ const ReportDropUI = props => (
         <View style={styles.mb3}>
             <Icon src={Expensicons.DragAndDrop} width={100} height={100} />
         </View>
-        <Text style={[styles.headlineFont, styles.textXLarge]}>
+        <Text style={[styles.textHeadline]}>
             {props.translate('reportActionCompose.dropToUpload')}
         </Text>
     </DropZone>

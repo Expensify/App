@@ -46,7 +46,7 @@ const CurrentWalletBalance = (props) => {
     );
     return (
         <Text
-            style={[styles.textXXXLarge, styles.pv5, styles.alignSelfCenter, styles.headlineFont, ...props.balanceStyles]}
+            style={[styles.pv5, styles.alignSelfCenter, styles.textHeadline, styles.textXXXLarge, ...props.balanceStyles]}
         >
             {`${formattedBalance}`}
         </Text>

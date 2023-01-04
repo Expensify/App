@@ -131,7 +131,7 @@ class ReportDetailsPage extends Component {
                                         displayNamesWithTooltips={displayNamesWithTooltips}
                                         tooltipEnabled
                                         numberOfLines={1}
-                                        textStyles={[styles.headlineFont, styles.textXLarge, styles.mb2, styles.textAlignCenter]}
+                                        textStyles={[styles.textHeadline, styles.mb2, styles.textAlignCenter]}
                                         shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
                                     />
                                 </View>
