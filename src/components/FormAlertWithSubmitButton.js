@@ -37,7 +37,7 @@ const propTypes = {
     enabledWhenOffline: PropTypes.bool,
 
     /** Whether the action is dangerous */
-    isDangerousAction: PropTypes.bool,
+    isSubmitActionDangerous: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -48,7 +48,7 @@ const defaultProps = {
     isLoading: false,
     onFixTheErrorsLinkPressed: () => {},
     enabledWhenOffline: false,
-    isDangerousAction: false,
+    isSubmitActionDangerous: false,
 };
 
 const FormAlertWithSubmitButton = props => (
@@ -65,7 +65,7 @@ const FormAlertWithSubmitButton = props => (
                 isDisabled
                 text={props.buttonText}
                 style={[styles.mb3]}
-                danger={props.isDangerousAction}
+                danger={props.isSubmitActionDangerous}
             />
         ) : (
             <Button
@@ -75,7 +75,7 @@ const FormAlertWithSubmitButton = props => (
                 onPress={props.onSubmit}
                 isDisabled={props.isDisabled}
                 isLoading={props.isLoading}
-                danger={props.isDangerousAction}
+                danger={props.isSubmitActionDangerous}
             />
         ))}
     </FormAlertWrapper>

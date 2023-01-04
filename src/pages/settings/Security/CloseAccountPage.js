@@ -74,7 +74,7 @@ class CloseAccountPage extends Component {
                     onSubmit={this.onSubmit}
                     submitButtonText={this.props.translate('closeAccountPage.closeAccount')}
                     style={[styles.flexGrow1, styles.mh5]}
-                    isDangerousAction
+                    isSubmitActionDangerous
                 >
                     <View style={[styles.flexGrow1]}>
                         <Text>{this.props.translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
