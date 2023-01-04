@@ -11,11 +11,11 @@
         "policyID": "_FAKE_",
         "maxSequenceNumber": 1,
         "participants": [
-          "alazutkinutest+0214@gmail.com",
-          "alazutkinutest+0213@gmail.com",
-          "andreylazutkinutest+123@gmail.com",
-          "andreylazutkinutest+111@gmail.com",
-          "andreylazutkinutest+qqq@gmail.com",
+          "fake1@gmail.com",
+          "fake2@gmail.com",
+          "fake3@gmail.com",
+          "fake4@gmail.com",
+          "fake5@gmail.com",
           "applausetester+perf1@applause.expensifail.com",
           "applausetester+perf3@applause.expensifail.com",
           "applausetester+perf4@applause.expensifail.com"
@@ -28,7 +28,7 @@
         "lastActionCreated": "2022-08-01 20:49:11",
         "lastMessageTimestamp": 1659386951000,
         "lastMessageText": "Say hello\ud83d\ude10",
-        "lastActorEmail": "andreylazutkinutest+123@gmail.com",
+        "lastActorEmail": "fake3@gmail.com",
         "notificationPreference": "always",
         "stateNum": 0,
         "statusNum": 0,
@@ -82,7 +82,7 @@
               "text": "123 Ios"
             }
           ],
-          "actorEmail": "andreylazutkinutest+123@gmail.com",
+          "actorEmail": "fake3@gmail.com",
           "actorAccountID": 10773236,
           "message": [
             {
