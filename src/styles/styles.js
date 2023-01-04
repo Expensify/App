@@ -2037,12 +2037,6 @@ const styles = {
         position: 'absolute',
     },
 
-    displayName: {
-        ...headlineFont,
-        fontSize: variables.fontSizeXLarge,
-        color: themeColors.heading,
-    },
-
     pageWrapper: {
         width: '100%',
         alignItems: 'center',
@@ -2464,12 +2458,6 @@ const styles = {
 
     workspaceInviteWelcome: {
         minHeight: 115,
-    },
-
-    sectionHeader: {
-        ...headlineFont,
-        color: themeColors.heading,
-        fontSize: variables.fontSizeXLarge,
     },
 
     peopleRow: {

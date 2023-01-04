@@ -43,7 +43,7 @@ const Section = (props) => {
             <View style={[styles.pageWrapper, styles.cardSection, ...props.containerStyles]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
                     <View style={[styles.flexShrink1]}>
-                        <Text style={[styles.sectionHeader]}>{props.title}</Text>
+                        <Text style={[styles.textHeadline]}>{props.title}</Text>
                     </View>
                     <View style={[styles.flexGrow1, styles.flexRow, styles.justifyContentEnd]}>
                         {props.icon && <Icon src={props.icon} height={68} width={68} />}

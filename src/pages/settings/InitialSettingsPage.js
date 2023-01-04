@@ -253,7 +253,7 @@ class InitialSettingsPage extends React.Component {
                             </Pressable>
 
                             <Pressable style={[styles.mt1, styles.mw100]} onPress={this.openProfileSettings}>
-                                <Text style={[styles.displayName]} numberOfLines={1}>
+                                <Text style={[styles.textHeadline]} numberOfLines={1}>
                                     {this.props.currentUserPersonalDetails.displayName
                                         ? this.props.currentUserPersonalDetails.displayName
                                         : Str.removeSMSDomain(this.props.session.email)}
