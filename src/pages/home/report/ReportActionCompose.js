@@ -398,7 +398,7 @@ class ReportActionCompose extends React.PureComponent {
      * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(comment, shouldDebounceSaveComment) {
-        const emojiReplaceResults = EmojiUtils.replaceEmojis(comment);
+        const emojiReplaceResults = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth);
         const newComment = emojiReplaceResults.newText;
 
         // When the comment has changed after replacing emojis we need to update the text in the input

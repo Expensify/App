@@ -110,7 +110,7 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} draft
      */
     updateDraft(draft) {
-        const emojiReplaceResults = EmojiUtils.replaceEmojis(draft);
+        const emojiReplaceResults = EmojiUtils.replaceEmojis(draft, this.props.isSmallScreenWidth);
         const newDraft = emojiReplaceResults.newText;
 
         // When the draft has changed after replacing emojis we need to update the text in the input

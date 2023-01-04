@@ -114,7 +114,12 @@ describe('EmojiTest', () => {
 
     it('will not add a space after the last emoji if we\'re not on mobile', () => {
         const text = 'Hi :smile:';
-        expect(EmojiUtils.replaceEmojis(text).newText).toBe('Hi 😄');
+        expect(EmojiUtils.replaceEmojis(text, false).newText).toBe('Hi 😄');
+    });
+
+    it('will add a space after the last emoji if we\'re on mobile', () => {
+        const text = 'Hi :smile:';
+        expect(EmojiUtils.replaceEmojis(text, true).newText).toBe('Hi 😄 ');
     });
 
     it('suggests emojis when typing emojis prefix after colon', () => {

@@ -187,7 +187,7 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
  * Replace any emoji name in a text with the emoji icon.
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  * @param {String} text
- * @param {Boolean} isSmallScreenWidth
+ * @param {Boolean} addSpaceAfterEmoji
  * @returns {Object} results
  * @returns {String} results.newText
  * @returns {Object} results.lastReplacedSelection
@@ -195,7 +195,7 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
  * @returns {Number} results.lastReplacedSelection.end
  * @returns {Number} results.lastReplacedSelection.newSelectionEnd
  */
-function replaceEmojis(text, isSmallScreenWidth = false) {
+function replaceEmojis(text, addSpaceAfterEmoji = false) {
     let newText = text;
     const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
 
@@ -212,7 +212,10 @@ function replaceEmojis(text, isSmallScreenWidth = false) {
         const match = emojiData[i];
         const checkEmoji = emojisTrie.search(match.slice(1, -1));
         if (checkEmoji && checkEmoji.metaData.code) {
-            const emojiCode = checkEmoji.metaData.code;
+            let emojiCode = checkEmoji.metaData.code;
+            if (addSpaceAfterEmoji) {
+                emojiCode += ' ';
+            }
 
             lastReplacedSelection.start = newText.indexOf(match);
             lastReplacedSelection.end = lastReplacedSelection.start + match.length;
