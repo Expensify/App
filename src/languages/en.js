@@ -1038,6 +1038,9 @@ export default {
             private: 'Private',
         },
     },
+    statementPage: {
+        generatingPDF: 'We\'re generating your PDF right now. Please come back later!',
+    },
     keyboardShortcutModal: {
         title: 'Keyboard Shortcuts',
         subtitle: 'Save time with these handy keyboard shortcuts:',
