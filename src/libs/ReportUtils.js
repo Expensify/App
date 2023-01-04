@@ -914,37 +914,36 @@ function buildOptimisticChatReport(
  * @returns {Object}
  */
 function buildOptimisticCreatedReportAction(ownerEmail) {
+    const reportActionID = NumberUtils.rand64();
     return {
-        0: {
-            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-            reportActionID: NumberUtils.rand64(),
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            actorAccountID: currentUserAccountID,
-            message: [
-                {
-                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                    style: 'strong',
-                    text: ownerEmail === currentUserEmail ? 'You' : ownerEmail,
-                },
-                {
-                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                    style: 'normal',
-                    text: ' created this report',
-                },
-            ],
-            person: [
-                {
-                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                    style: 'strong',
-                    text: lodashGet(allPersonalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
-                },
-            ],
-            automatic: false,
-            sequenceNumber: 0,
-            avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
-            created: DateUtils.getDBTime(),
-            shouldShow: true,
-        },
+        reportActionID,
+        actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID: currentUserAccountID,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: ownerEmail === currentUserEmail ? 'You' : ownerEmail,
+            },
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: ' created this report',
+            },
+        ],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: lodashGet(allPersonalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+            },
+        ],
+        automatic: false,
+        sequenceNumber: 0,
+        avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
+        created: DateUtils.getDBTime(),
+        shouldShow: true,
     };
 }
 
@@ -968,7 +967,10 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
     );
     const announceChatReportID = announceChatData.reportID;
-    const announceReportActionData = buildOptimisticCreatedReportAction(announceChatData.ownerEmail);
+    const announceCreatedAction = buildOptimisticCreatedReportAction(announceChatData.ownerEmail);
+    const announceReportActionData = {
+        [announceCreatedAction.reportActionID]: announceCreatedAction,
+    };
 
     const adminsChatData = buildOptimisticChatReport(
         [currentUserEmail],
@@ -980,7 +982,10 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         policyName,
     );
     const adminsChatReportID = adminsChatData.reportID;
-    const adminsReportActionData = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
+    const adminsCreatedAction = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
+    const adminsReportActionData = {
+        [adminsCreatedAction.reportActionID]: adminsCreatedAction,
+    };
 
     const expenseChatData = buildOptimisticChatReport(
         [currentUserEmail],
@@ -992,7 +997,10 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         policyName,
     );
     const expenseChatReportID = expenseChatData.reportID;
-    const expenseReportActionData = buildOptimisticCreatedReportAction(expenseChatData.ownerEmail);
+    const expenseReportCreatedAction = buildOptimisticCreatedReportAction(expenseChatData.ownerEmail);
+    const expenseReportActionData = {
+        [expenseReportCreatedAction.reportActionID]: expenseReportCreatedAction,
+    };
 
     return {
         announceChatReportID,

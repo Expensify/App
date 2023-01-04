@@ -109,7 +109,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimisticReportAction.sequenceNumber]: optimisticReportAction,
+                [optimisticReportAction.reportActionID]: optimisticReportAction,
             },
         },
         {
@@ -124,7 +124,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimisticReportAction.sequenceNumber]: {
+                [optimisticReportAction.reportActionID]: {
                     pendingAction: null,
                 },
             },
@@ -142,7 +142,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimisticReportAction.sequenceNumber]: {
+                [optimisticReportAction.reportActionID]: {
                     ...optimisticReportAction,
                     pendingAction: null,
                     errors: {
@@ -166,7 +166,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         };
         optimisticData[1].onyxMethod = CONST.ONYX.METHOD.SET;
         optimisticData[1].value = {
-            ...optimisticCreatedAction,
+            ...{[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
             ...optimisticData[1].value,
         };
         optimisticData[2].onyxMethod = CONST.ONYX.METHOD.SET;
@@ -251,7 +251,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         ? chatReports[`${ONYXKEYS.COLLECTION.REPORT}${existingGroupChatReportID}`]
         : ReportUtils.getChatByParticipants(participantLogins);
     const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(participantLogins);
-    const groupCreatedReportAction = existingGroupChatReport ? {} : ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
+    const groupCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
     const groupChatReportMaxSequenceNumber = lodashGet(groupChatReport, 'maxSequenceNumber', 0);
     const groupIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         groupChatReportMaxSequenceNumber + 1,
@@ -287,7 +287,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             onyxMethod: existingGroupChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChatReport.reportID}`,
             value: {
-                ...groupCreatedReportAction,
+                ...(existingGroupChatReport ? {} : {[groupCreatedReportAction.reportActionID]: groupCreatedReportAction}),
                 [groupIOUReportAction.sequenceNumber]: groupIOUReportAction,
             },
         },
@@ -365,7 +365,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             oneOnOneChatReport.iouReportID = oneOnOneIOUReport.reportID;
         }
 
-        const oneOnOneCreatedReportAction = existingOneOnOneChatReport ? {} : ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
+        const oneOnOneCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
         const oneOnOneChatReportMaxSequenceNumber = lodashGet(oneOnOneChatReport, 'maxSequenceNumber', 0);
         const oneOnOneIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
             oneOnOneChatReportMaxSequenceNumber + 1,
@@ -399,8 +399,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 onyxMethod: existingOneOnOneChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
                 value: {
-                    ...oneOnOneCreatedReportAction,
-                    [oneOnOneIOUReportAction.sequenceNumber]: oneOnOneIOUReportAction,
+                    ...(existingOneOnOneChatReport
+                        ? {}
+                        : {[oneOnOneCreatedReportAction.reportActionID]: oneOnOneCreatedReportAction}
+                    ),
+                    [oneOnOneIOUReportAction.reportActionID]: oneOnOneIOUReportAction,
                 },
             },
         );
@@ -415,8 +418,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
                 value: {
-                    0: {pendingAction: null},
-                    [oneOnOneIOUReportAction.sequenceNumber]: {pendingAction: null},
+                    ...(existingOneOnOneChatReport
+                        ? {}
+                        : {[oneOnOneCreatedReportAction.reportActionID]: {pendingAction: null}}
+                    ),
+                    [oneOnOneIOUReportAction.reportActionID]: {pendingAction: null},
                 },
             },
         );
@@ -437,8 +443,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
                 value: {
-                    0: {pendingAction: null},
-                    [oneOnOneIOUReportAction.sequenceNumber]: {pendingAction: null},
+                    ...(existingOneOnOneChatReport
+                        ? {}
+                        : {[oneOnOneCreatedReportAction.reportActionID]: {pendingAction: null}}
+                    ),
+                    [oneOnOneIOUReportAction.reportActionID]: {pendingAction: null},
                 },
             },
         );
@@ -769,7 +778,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         };
         optimisticData[1].onyxMethod = CONST.ONYX.METHOD.SET;
         optimisticData[1].value = {
-            ...optimisticCreatedAction,
+            ...{[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
             ...optimisticData[1].value,
         };
         optimisticData[2].onyxMethod = CONST.ONYX.METHOD.SET;

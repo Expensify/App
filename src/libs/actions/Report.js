@@ -327,6 +327,8 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
         }],
     };
 
+    let optimisticCreatedAction = {};
+
     // If we are creating a new report, we need to add the optimistic report data and a report action
     if (!_.isEmpty(newReportObject)) {
         onyxData.optimisticData[0].value = {
@@ -343,12 +345,19 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
         onyxData.optimisticData[0].onyxMethod = CONST.ONYX.METHOD.SET;
 
         // Also create a report action so that the page isn't endlessly loading
-        onyxData.optimisticData[1] = {
+        optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail);
+        onyxData.optimisticData.push({
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail),
-        };
+            value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
+        });
     }
+
+    const params = {reportID, emailList: participantList ? participantList.join(',') : ''};
+    if (optimisticCreatedAction) {
+        params.createdReportActionID = optimisticCreatedAction;
+    }
+
     API.write('OpenReport',
         {
             reportID,
@@ -895,6 +904,7 @@ function addPolicyReport(policy, reportName, visibility) {
         // The room might contain all policy members so notifying always should be opt-in only.
         CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
     );
+    const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(policyReport.ownerEmail);
 
     // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
     // fetchReportIfNeeded is called on the ReportScreen, so openReport is called which is unnecessary since the optimistic data will be stored in Onyx.
@@ -913,7 +923,7 @@ function addPolicyReport(policy, reportName, visibility) {
         {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyReport.reportID}`,
-            value: ReportUtils.buildOptimisticCreatedReportAction(policyReport.ownerEmail),
+            value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
         },
     ];
     const successData = [
@@ -930,7 +940,7 @@ function addPolicyReport(policy, reportName, visibility) {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyReport.reportID}`,
             value: {
-                0: {
+                [optimisticCreatedAction.reportActionID]: {
                     pendingAction: null,
                 },
             },
