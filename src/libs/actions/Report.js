@@ -946,7 +946,8 @@ function addPolicyReport(policy, reportName, visibility) {
             policyID: policyReport.policyID,
             reportName,
             visibility,
-            reportID: createdReportAction.reportActionID,
+            reportID: policyReport.reportID,
+            createdReportActionID: createdReportAction.reportActionID,
         },
         {optimisticData, successData},
     );
