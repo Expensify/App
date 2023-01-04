@@ -16,7 +16,7 @@ PODFILE_LOCK_SHA=$(awk '/PODFILE CHECKSUM: /{print $3}' ios/Podfile.lock)
 echo "Podfile: $PODFILE_SHA"
 echo "Podfile.lock: $PODFILE_LOCK_SHA"
 
-if [ "$PODFILE_SHA" == "$PODFILE_LOCK_SHA" ]; then
+if [[ "$PODFILE_SHA" == "$PODFILE_LOCK_SHA" ]]; then
     success "Podfile checksum verified!"
 else
     error "Podfile.lock checksum mismatch. Did you forget to run \`npx pod-install\`?"
@@ -40,7 +40,7 @@ FORMATTED_PODS=$( \
 # Check for uncommitted package removals
 # If they are listed in Podfile.lock but the directories don't exist they have been removed
 while read -r DIR; do
-  if [ ! -d "${DIR#../}" ]; then
+  if [[ ! -d "${DIR#../}" ]]; then
     error "Directory \`${DIR#../node_modules/}\` not found in node_modules. Did you forget to run \`npx pod-install\` after removing the package?"
     EXIT_CODE=1
   fi
