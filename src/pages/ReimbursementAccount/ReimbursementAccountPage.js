@@ -210,6 +210,13 @@ class ReimbursementAccountPage extends React.Component {
                 BankAccounts.clearOnfidoToken();
                 BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
                 break;
+            case CONST.BANK_ACCOUNT.STEP.VALIDATION:
+                if (_.contains([BankAccount.STATE.VERIFYING, BankAccount.STATE.SETUP], achData.state)) {
+                    BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT);
+                } else {
+                    Navigation.goBack();
+                }
+                break;
             default: Navigation.goBack();
         }
     }
@@ -335,7 +342,10 @@ class ReimbursementAccountPage extends React.Component {
 
         if (currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION) {
             return (
-                <ValidationStep reimbursementAccount={this.props.reimbursementAccount} />
+                <ValidationStep
+                    reimbursementAccount={this.props.reimbursementAccount}
+                    onBackButtonPress={this.goBack}
+                />
             );
         }
 

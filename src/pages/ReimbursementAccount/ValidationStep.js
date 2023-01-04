@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
+import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -31,6 +32,8 @@ const propTypes = {
 
     /** Bank account currently in setup */
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
+
+    onBackButtonPress: PropTypes.func.isRequired,
 };
 
 class ValidationStep extends React.Component {
@@ -114,7 +117,7 @@ class ValidationStep extends React.Component {
                     title={isVerifying ? this.props.translate('validationStep.headerTitle') : this.props.translate('workspace.common.testTransactions')}
                     stepCounter={{step: 5, total: 5}}
                     onCloseButtonPress={Navigation.dismissModal}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={this.props.onBackButtonPress}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
