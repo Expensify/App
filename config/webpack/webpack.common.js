@@ -227,7 +227,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 // After App update end users would download just the main source and resolve the rest from cache
                 // When dependencies do change cache is invalidated and users download everything - same as before
                 vendor: {
-                    test: /[\\/]node_modules[\\/]/,
+                    test: /[\\/]node_modules[\\/](?!react-native-onyx)/,
                     name: 'vendors',
 
                     // Capture only the scripts needed for the initial load, so any async imports
