@@ -228,49 +228,49 @@ class AdditionalDetailsStep extends React.Component {
                         submitButtonText={this.props.translate('common.saveAndContinue')}
                         style={[styles.mh5, styles.flexGrow1]}
                     >
-                                <TextInput
-                                    inputID={INPUT_IDS.LEGAL_FIRST_NAME}
-                                    containerStyles={[styles.mt4]}
-                                    label={this.props.translate(this.fieldNameTranslationKeys.legalFirstName)}
-                                    defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails).firstName}
-                                    shouldSaveDraft
-                                />
-                                <TextInput
-                                    inputID={INPUT_IDS.LEGAL_LAST_NAME}
-                                    containerStyles={[styles.mt4]}
-                                    label={this.props.translate(this.fieldNameTranslationKeys.legalLastName)}
-                                    defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails).lastName}
-                                    shouldSaveDraft
-                                />
-                                <AddressForm
-                                    inputKeys={INPUT_IDS.ADDRESS}
-                                    translate={this.props.translate}
-                                    streetTranslationKey={this.fieldNameTranslationKeys.addressStreet}
-                                    shouldSaveDraft
-                                />
-                            <TextInput
-                                inputID={INPUT_IDS.PHONE_NUMBER}
-                                containerStyles={[styles.mt4]}
-                                keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
-                                label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
-                                defaultValue={this.props.currentUserPersonalDetails.phoneNumber}
-                                placeholder={this.props.translate('common.phoneNumberPlaceholder')}
-                                shouldSaveDraft
-                            />
-                            <DatePicker
-                                inputID={INPUT_IDS.DOB}
-                                containerStyles={[styles.mt4]}
-                                label={this.props.translate(this.fieldNameTranslationKeys.dob)}
-                                placeholder={this.props.translate('common.dob')}
-                                shouldSaveDraft
-                            />
-                            <TextInput
-                                inputID={INPUT_IDS.SSN}
-                                containerStyles={[styles.mt4]}
-                                label={this.props.translate(this.fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
-                                maxLength={shouldAskForFullSSN ? 9 : 4}
-                                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                            />
+                        <TextInput
+                            inputID={INPUT_IDS.LEGAL_FIRST_NAME}
+                            containerStyles={[styles.mt4]}
+                            label={this.props.translate(this.fieldNameTranslationKeys.legalFirstName)}
+                            defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails).firstName}
+                            shouldSaveDraft
+                        />
+                        <TextInput
+                            inputID={INPUT_IDS.LEGAL_LAST_NAME}
+                            containerStyles={[styles.mt4]}
+                            label={this.props.translate(this.fieldNameTranslationKeys.legalLastName)}
+                            defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails).lastName}
+                            shouldSaveDraft
+                        />
+                        <AddressForm
+                            inputKeys={INPUT_IDS.ADDRESS}
+                            translate={this.props.translate}
+                            streetTranslationKey={this.fieldNameTranslationKeys.addressStreet}
+                            shouldSaveDraft
+                        />
+                        <TextInput
+                            inputID={INPUT_IDS.PHONE_NUMBER}
+                            containerStyles={[styles.mt4]}
+                            keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                            label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
+                            defaultValue={this.props.currentUserPersonalDetails.phoneNumber}
+                            placeholder={this.props.translate('common.phoneNumberPlaceholder')}
+                            shouldSaveDraft
+                        />
+                        <DatePicker
+                            inputID={INPUT_IDS.DOB}
+                            containerStyles={[styles.mt4]}
+                            label={this.props.translate(this.fieldNameTranslationKeys.dob)}
+                            placeholder={this.props.translate('common.dob')}
+                            shouldSaveDraft
+                        />
+                        <TextInput
+                            inputID={INPUT_IDS.SSN}
+                            containerStyles={[styles.mt4]}
+                            label={this.props.translate(this.fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
+                            maxLength={shouldAskForFullSSN ? 9 : 4}
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                        />
                         <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
                     </Form>
                 </View>
