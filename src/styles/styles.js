@@ -51,7 +51,6 @@ const baseCodeTagStyles = {
 const headlineFont = {
     fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
     fontWeight: '500',
-
 };
 
 const webViewStyles = {
