@@ -293,6 +293,7 @@ const AvatarCropModal = (props) => {
         if (!isPressableEnabled.value) {
             return;
         }
+        locationX = clamp(locationX, [0, sliderContainerSize]);
         const newScale = newScaleValue(locationX, sliderContainerSize);
         translateSlider.value = locationX;
         const differential = newScale / scale.value;
