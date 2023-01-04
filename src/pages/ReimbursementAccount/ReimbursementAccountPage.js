@@ -240,7 +240,7 @@ class ReimbursementAccountPage extends React.Component {
             );
         }
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && (
                     <BankAccountStep
                         receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}

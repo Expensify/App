@@ -141,7 +141,7 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
-     * Check if amount is a decimal upto 3 digits
+     * Check if amount is a decimal up to 3 digits
      *
      * @param {String} amount
      * @returns {Boolean}
