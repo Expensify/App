@@ -23,7 +23,7 @@ const PDFInfoMessage = props => (
             width={variables.iconSizeSuperLarge}
             height={variables.iconSizeSuperLarge}
         />
-        <Text style={[styles.h1, styles.mb3, styles.mt3]}>
+        <Text style={[styles.headlineFont, styles.textXLarge, styles.mb3, styles.mt3]}>
             {props.translate('attachmentView.pdfPasswordForm.title')}
         </Text>
         <Text>{props.translate('attachmentView.pdfPasswordForm.infoText')}</Text>
