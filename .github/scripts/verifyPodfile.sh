@@ -25,6 +25,7 @@ fi
 
 info "Verifying Podfile.lock is up to date..."
 
+# Format a list of Pods based on the output of the config command
 CONFIGSPECS=$( \
   jq --raw-output --slurp 'map((.name + " (" + .version + ")")) | .[]' <<< "$( \
     npx react-native config | \
@@ -33,9 +34,11 @@ CONFIGSPECS=$( \
   )"
 )
 
+# Retrieve a list of external podspec directories as listed in the Podfile.lock
 LOCKSPECS=$(cat ios/Podfile.lock | yq '.["EXTERNAL SOURCES"].[].":path" | select( . == "*node_modules*")')
 
 # Check for uncommitted package removals
+# If they are listed in Podfile.lock but the directories don't exist they have been removed
 while read -r SPEC; do
   if [ ! -d "${SPEC#../}" ]; then
     error "${SPEC#../node_modules/} not found in node_modules.  Did you forget to run \`npx pod-install\` after removing the package?"
