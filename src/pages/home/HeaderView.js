@@ -98,6 +98,7 @@ const HeaderView = (props) => {
                         ]}
                     >
                         <Pressable
+                            onLongPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                             onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                         >
