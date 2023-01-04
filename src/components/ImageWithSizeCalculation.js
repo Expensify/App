@@ -18,7 +18,7 @@ const propTypes = {
     /** Callback fired when the image has been measured. */
     onMeasure: PropTypes.func,
 
-    /** Does the image require an authToken? */
+    /** Whether the image require an authToken */
     isAuthTokenRequired: PropTypes.bool,
 };
 

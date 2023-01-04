@@ -15,8 +15,7 @@ import Image from '../Image';
  * On the native layer, we use a image library to handle zoom functionality
  */
 const propTypes = {
-
-    /** Do the urls require an authToken? */
+    /** Whether the urls require an authToken */
     isAuthTokenRequired: PropTypes.bool,
 
     /** URL to full-sized image */

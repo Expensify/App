@@ -3,7 +3,6 @@ import stylePropTypes from '../../styles/stylePropTypes';
 import RESIZE_MODES from './resizeModes';
 
 const propTypes = {
-
     /** Styles for the Image */
     style: stylePropTypes,
 

@@ -15,7 +15,7 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
 
-    /** Does the image require an authToken? */
+    /** Whether the image require an authToken */
     isAuthTokenRequired: PropTypes.bool.isRequired,
 
     /** Width of the thumbnail image */
