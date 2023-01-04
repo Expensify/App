@@ -2731,7 +2731,7 @@ const styles = {
         overflow: 'hidden',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: themeColors.shadow,
+        backgroundColor: themeColors.imageCropBackgroundColor,
         cursor: 'move',
     },
 
