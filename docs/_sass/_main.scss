@@ -67,7 +67,7 @@ body {
 }
 
 hr {
-    background: $color-blue;
+    background: $color-light-blue;
     border: none;
     display: inline-block;
     width: 24px;
@@ -84,12 +84,8 @@ em {
 }
 
 a {
-    color: $color-blue;
+    color: $color-light-blue;
     text-decoration: none;
-
-    &:hover {
-        color: $color-blueHover;
-    }
 
     img {
         display: block;
@@ -354,12 +350,8 @@ button {
 
 .link {
     display: inline;
-    color: $color-blue;
+    color: $color-light-blue;
     cursor: pointer;
-
-    &:hover {
-        color: $color-blueHover;
-    }
 }
 
 .lhn-items {
