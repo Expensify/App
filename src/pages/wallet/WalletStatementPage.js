@@ -84,7 +84,7 @@ class WalletStatementPage extends React.Component {
         const url = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}statement.php?period=${this.yearMonth}`;
 
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={Str.recapitalize(title)}
                     shouldShowDownloadButton={!this.props.network.isOffline || this.props.walletStatement.isGenerating}

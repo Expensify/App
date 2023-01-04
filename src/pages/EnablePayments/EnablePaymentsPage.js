@@ -54,8 +54,8 @@ class EnablePaymentsPage extends React.Component {
         }
 
         return (
-            <ScreenWrapper>
-                {(() => {
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+                {() => {
                     if (this.props.userWallet.errorCode === CONST.WALLET.ERROR.KYC) {
                         return (
                             <>
@@ -85,7 +85,7 @@ class EnablePaymentsPage extends React.Component {
                             {currentStep === CONST.WALLET.STEP.ACTIVATE && <ActivateStep userWallet={this.props.userWallet} />}
                         </>
                     );
-                })()}
+                }}
             </ScreenWrapper>
         );
     }
