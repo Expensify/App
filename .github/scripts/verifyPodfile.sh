@@ -26,7 +26,7 @@ fi
 info "Comparing Podfile.lock with node packages..."
 
 # Retrieve a list of podspec directories as listed in the Podfile.lock
-SPEC_DIRS=$(cat ios/Podfile.lock | yq '.["EXTERNAL SOURCES"].[].":path" | select( . == "*node_modules*")')
+SPEC_DIRS=$(yq '.["EXTERNAL SOURCES"].[].":path" | select( . == "*node_modules*")' < ios/Podfile.lock)
 
 # Format a list of Pods based on the output of the config command
 FORMATTED_PODS=$( \
