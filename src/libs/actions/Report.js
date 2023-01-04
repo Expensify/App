@@ -1123,7 +1123,7 @@ Onyx.connect({
         }
 
         _.each(actions, (action) => {
-            if (lodashGet(handledReportActions, [reportID, action.sequenceNumber])) {
+            if (lodashGet(handledReportActions, [reportID, action.reportActionID])) {
                 return;
             }
 
@@ -1138,7 +1138,7 @@ Onyx.connect({
             // If we are past the deadline to notify for this comment don't do it
             if (moment.utc(moment(action.created).unix() * 1000).isBefore(moment.utc().subtract(10, 'seconds'))) {
                 handledReportActions[reportID] = handledReportActions[reportID] || {};
-                handledReportActions[reportID][action.sequenceNumber] = true;
+                handledReportActions[reportID][action.reportActionID] = true;
                 return;
             }
 
@@ -1150,7 +1150,7 @@ Onyx.connect({
 
             showReportActionNotification(reportID, action);
             handledReportActions[reportID] = handledReportActions[reportID] || {};
-            handledReportActions[reportID][action.sequenceNumber] = true;
+            handledReportActions[reportID][action.reportActionID] = true;
         });
     },
 });
