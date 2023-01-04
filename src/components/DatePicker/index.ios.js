@@ -75,6 +75,7 @@ class DatePicker extends React.Component {
                     placeholder={this.props.placeholder}
                     errorText={this.props.errorText}
                     containerStyles={this.props.containerStyles}
+                    textInputContainerStyles={this.state.isPickerVisible ? [styles.borderColorFocus] : []}
                     onPress={this.showPicker}
                     editable={false}
                     disabled={this.props.disabled}
@@ -113,10 +114,9 @@ class DatePicker extends React.Component {
                         value={this.state.selectedDate}
                         mode="date"
                         display="spinner"
-                        themeVariant="light"
+                        themeVariant="dark"
                         onChange={this.updateLocalDate}
                         locale={this.props.preferredLocale}
-                        maximumDate={this.props.maximumDate}
                     />
                 </Popover>
             </>

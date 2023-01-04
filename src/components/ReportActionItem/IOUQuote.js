@@ -45,11 +45,14 @@ const IOUQuote = props => (
                 focusable={props.shouldAllowViewDetails}
             >
                 <Text>
-                    <Text style={[styles.chatItemMessageLink]}>
+                    <Text style={props.shouldAllowViewDetails && styles.chatItemMessageLink}>
                         {/* Get first word of IOU message */}
                         {Str.htmlDecode(fragment.text.split(' ')[0])}
                     </Text>
-                    <Text style={[styles.chatItemMessage]}>
+                    <Text style={[styles.chatItemMessage, props.shouldAllowViewDetails
+                        ? styles.cursorPointer
+                        : styles.cursorDefault]}
+                    >
                         {/* Get remainder of IOU message */}
                         {Str.htmlDecode(fragment.text.substring(fragment.text.indexOf(' ')))}
                     </Text>

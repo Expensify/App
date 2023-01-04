@@ -132,7 +132,7 @@ export default {
         description: 'Drag, zoom, and rotate your image to your preferred specifications',
     },
     composer: {
-        noExtentionFoundForMimeType: 'No extension found for mime type',
+        noExtensionFoundForMimeType: 'No extension found for mime type',
         problemGettingImageYouPasted: 'There was a problem getting the image you pasted',
     },
     baseUpdateAppModal: {
@@ -166,6 +166,7 @@ export default {
     },
     reportActionCompose: {
         addAction: 'Actions',
+        dropToUpload: 'Drop to upload',
         sendAttachment: 'Send attachment',
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
@@ -283,12 +284,13 @@ export default {
         imageUploadFailed: 'Image upload failed',
         deleteWorkspaceError: 'Sorry, there was an unexpected problem deleting your workspace avatar.',
         sizeExceeded: ({maxUploadSizeInMB}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
-        tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels`,
+        resolutionConstraints: ({
+            minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx,
+        }) => `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels and smaller than ${maxHeightInPx}x${maxWidthInPx} pixels`,
         notAllowedExtension: ({allowedExtensions}) => `Profile picture must be one of the following types: ${allowedExtensions.join(', ')}.`,
     },
     profilePage: {
         profile: 'Profile',
-        tellUsAboutYourself: 'Tell us about yourself, we would love to get to know you!',
         john: 'John',
         doe: 'Doe',
         preferredPronouns: 'Preferred pronouns',
@@ -333,6 +335,11 @@ export default {
         john: 'John',
         doe: 'Doe',
     },
+    timezonePage: {
+        timezone: 'Timezone',
+        isShownOnProfile: 'Your timezone is shown on your profile.',
+        getLocationAutomatically: 'Automatically determine your location.',
+    },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add phone number',
         addEmailAddress: 'Add email address',
@@ -345,7 +352,7 @@ export default {
         aboutPage: {
             description: 'The New Expensify App is built by a community of open source developers from around the world. Help us build the future of Expensify.',
             appDownloadLinks: 'App download links',
-            viewKeyboardShortcuts: 'View Keyboard Shortcuts',
+            viewKeyboardShortcuts: 'View keyboard shortcuts',
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
             reportABug: 'Report a bug',
@@ -412,7 +419,7 @@ export default {
         nameOnCard: 'Name on card',
         debitCardNumber: 'Debit card number',
         expiration: 'Expiration date',
-        expirationDate: 'MM/YY',
+        expirationDate: 'MMYY',
         cvv: 'CVV',
         billingAddress: 'Billing address',
         expensifyTermsOfService: 'Expensify Terms of Service',
@@ -537,6 +544,9 @@ export default {
             firstNameLength: 'First name shouldn\'t be longer than 50 characters',
             lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
             characterLimit: ({limit}) => `Exceeds the max length of ${limit} characters`,
+            hasInvalidCharacter: ({invalidCharacter}) => `Please remove the ${invalidCharacter} from the name field.`,
+            comma: 'comma',
+            semicolon: 'semicolon',
         },
     },
     resendValidationForm: {
@@ -597,6 +607,7 @@ export default {
             addressStreet: 'Please enter a valid street address that is not a PO Box',
             addressState: 'Please select a valid state',
             incorporationDate: 'Please enter a valid date',
+            incorporationDateFuture: 'Incorporation date cannot be in the future',
             incorporationState: 'Please enter a valid state',
             industryCode: 'Please enter a valid industry classification code. Must be 6 digits.',
             restrictedBusiness: 'Please confirm company is not on the list of restricted businesses',
@@ -625,6 +636,7 @@ export default {
         unknownFilename: 'Unknown filename',
         passwordRequired: 'Please enter a password',
         passwordIncorrect: 'Incorrect password. Please try again.',
+        failedToLoadPDF: 'Failed to load PDF file.',
         pdfPasswordForm: {
             title: 'Password protected PDF',
             infoText: 'This PDF is password protected.',
@@ -818,7 +830,7 @@ export default {
             card: 'Issue cards',
             workspace: 'Workspace',
             edit: 'Edit workspace',
-            delete: 'Delete Workspace',
+            delete: 'Delete workspace',
             settings: 'General settings',
             reimburse: 'Reimburse expenses',
             bills: 'Pay bills',
@@ -1062,6 +1074,32 @@ export default {
         permissionError: {
             title: 'Access needed',
             message: 'Expensify does not have access to save attachments. To enable access, go to Settings and allow access',
+        },
+    },
+    desktopApplicationMenu: {
+        aboutExpensify: 'About New Expensify',
+        updateExpensify: 'Update New Expensify',
+        checkForUpdates: 'Check for updates',
+        history: 'History',
+    },
+    historyMenu: {
+        forward: 'Forward',
+        back: 'Back',
+    },
+    checkForUpdatesModal: {
+        available: {
+            title: 'Update Available',
+            message: 'The new version will be available shortly. We\'ll notify you when we\'re ready to update.',
+            soundsGood: 'Sounds good',
+        },
+        notAvailable: {
+            title: 'Update Not Available',
+            message: 'There is no update available as of now! Check again at a later time.',
+            okay: 'Okay',
+        },
+        error: {
+            title: 'Update Check Failed',
+            message: 'We couldn\'t look for an update. Please check again in a bit!',
         },
     },
 };

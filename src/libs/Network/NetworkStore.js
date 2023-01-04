@@ -61,7 +61,7 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
     callback: (val) => {
-        credentials = val || null;
+        credentials = val || {};
         checkRequiredData();
     },
 });
@@ -80,7 +80,7 @@ Onyx.connect({
             triggerReconnectCallback();
         }
 
-        offline = network.isOffline;
+        offline = Boolean(network.shouldForceOffline) || network.isOffline;
     },
 });
 

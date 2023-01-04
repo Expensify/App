@@ -1,3 +1,4 @@
+import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 
 describe('ReportActionsUtils', () => {
@@ -62,6 +63,61 @@ describe('ReportActionsUtils', () => {
         test.each(cases)('in descending order', (input, expectedOutput) => {
             const result = ReportActionsUtils.getSortedReportActions(input, true);
             expect(result).toStrictEqual(expectedOutput.reverse());
+        });
+    });
+
+    describe('filterReportActionsForDisplay', () => {
+        it('should filter out non-whitelisted actions', () => {
+            const input = [
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                    message: [{html: 'Hello world'}],
+                },
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
+                    message: [{html: 'Hello world'}],
+                },
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    message: [{html: 'Hello world'}],
+                },
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    message: [{html: 'Hello world'}],
+                },
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
+                    message: [{html: 'Hello world'}],
+                },
+                {
+                    actionName: 'REIMBURSED',
+                    message: [{html: 'Hello world'}],
+                },
+            ];
+            const result = ReportActionsUtils.filterReportActionsForDisplay(input);
+            input.pop();
+            expect(result).toStrictEqual(input);
+        });
+
+        it('should filter out deleted, non-pending comments', () => {
+            const input = [
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                    message: [{html: 'Hello world'}],
+                },
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                    message: [{html: ''}],
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                    message: [{html: ''}],
+                },
+            ];
+            const result = ReportActionsUtils.filterReportActionsForDisplay(input);
+            input.pop();
+            expect(result).toStrictEqual(input);
         });
     });
 });

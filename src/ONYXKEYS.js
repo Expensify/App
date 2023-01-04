@@ -92,7 +92,6 @@ export default {
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
-        REPORT_IOUS: 'reportIOUs_',
         POLICY: 'policy_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         POLICY_MEMBER_LIST: 'policyMemberList_',
@@ -173,6 +172,8 @@ export default {
         CLOSE_ACCOUNT_FORM: 'closeAccount',
         PROFILE_SETTINGS_FORM: 'profileSettingsForm',
         DISPLAY_NAME_FORM: 'displayNameForm',
+        NEW_ROOM_FORM: 'newRoomForm',
+        ROOM_SETTINGS_FORM: 'roomSettingsForm',
     },
 
     // Whether we should show the compose input or not

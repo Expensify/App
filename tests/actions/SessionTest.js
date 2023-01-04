@@ -28,7 +28,7 @@ test('Authenticate is called with saved credentials when a session expires', () 
     let credentials;
     Onyx.connect({
         key: ONYXKEYS.CREDENTIALS,
-        callback: val => credentials = val,
+        callback: val => credentials = val || {},
     });
 
     let session;

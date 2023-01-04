@@ -29,6 +29,16 @@ Onyx.connect({
 });
 
 /**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isDeletedAction(reportAction) {
+    // A deleted comment has either an empty array or an object with html field with empty string as value
+    const message = lodashGet(reportAction, 'message', []);
+    return message.length === 0 || lodashGet(message, [0, 'html']) === '';
+}
+
+/**
  * Sort an array of reportActions by their created timestamp first, and reportActionID second
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
  *
@@ -42,6 +52,11 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
     }
     const invertedMultiplier = shouldSortInDescendingOrder ? -1 : 1;
     reportActions.sort((first, second) => {
+        // If only one action is a report created action, return the created action first.
+        if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || second.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) && first.actionName !== second.actionName) {
+            return ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) ? -1 : 1) * invertedMultiplier;
+        }
+
         if (first.created !== second.created) {
             return (first.created < second.created ? -1 : 1) * invertedMultiplier;
         }
@@ -52,13 +67,23 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
 }
 
 /**
- * @param {Object} reportAction
- * @returns {Boolean}
+ * Filter out any reportActions which should not be displayed.
+ *
+ * @param {Array} reportActions
+ * @returns {Array}
  */
-function isDeletedAction(reportAction) {
-    // A deleted comment has either an empty array or an object with html field with empty string as value
-    const message = lodashGet(reportAction, 'message', []);
-    return message.length === 0 || lodashGet(message, [0, 'html']) === '';
+function filterReportActionsForDisplay(reportActions) {
+    return _.filter(reportActions, (reportAction) => {
+        // Filter out any unsupported reportAction types
+        if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName)) {
+            return false;
+        }
+
+        // All other actions are displayed except deleted, non-pending actions
+        const isDeleted = isDeletedAction(reportAction);
+        const isPending = !_.isEmpty(reportAction.pendingAction);
+        return !isDeleted || isPending;
+    });
 }
 
 /**
@@ -112,58 +137,34 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
 }
 
 /**
- * Get the message text for the last action that was not deleted
  * @param {String} reportID
  * @param {Object} [actionsToMerge]
- * @return {String}
+ * @return {Object}
  */
-function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
-    const parser = new ExpensiMark();
+function getLastVisibleAction(reportID, actionsToMerge = {}) {
     const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const sortedActions = getSortedReportActions(actions);
-    const lastMessageIndex = _.findLastIndex(sortedActions, action => (
-        !isDeletedAction(action)
-    ));
-    if (lastMessageIndex < 0) {
-        return '';
-    }
-
-    const htmlText = lodashGet(sortedActions, [lastMessageIndex, 'message', 0, 'html'], '');
-    const messageText = parser.htmlToText(htmlText);
-    return ReportUtils.formatReportLastMessageText(messageText);
+    const visibleActions = _.filter(actions, action => (!isDeletedAction(action)));
+    return _.max(visibleActions, action => moment.utc(action.created).valueOf());
 }
 
 /**
  * @param {String} reportID
  * @param {Object} [actionsToMerge]
- * @param {Number} deletedSequenceNumber
- * @param {Number} lastReadSequenceNumber
- * @return {Number}
+ * @return {String}
  */
-function getOptimisticLastReadSequenceNumberForDeletedAction(reportID, actionsToMerge = {}, deletedSequenceNumber, lastReadSequenceNumber) {
-    // If the action we are deleting is unread then just return the current last read sequence number
-    if (deletedSequenceNumber > lastReadSequenceNumber) {
-        return lastReadSequenceNumber;
-    }
+function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
+    const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
+    const htmlText = lodashGet(lastVisibleAction, 'message[0].html', '');
 
-    // Otherwise, we must find the first previous index of an action that is not deleted and less than the lastReadSequenceNumber
-    const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const sortedActions = getSortedReportActions(actions);
-    const lastMessageIndex = _.findLastIndex(sortedActions, action => (
-        !isDeletedAction(action) && action.sequenceNumber <= lastReadSequenceNumber
-    ));
-
-    // It's possible we won't find any and in that case the last read should be reset
-    if (lastMessageIndex < 0) {
-        return 0;
-    }
-
-    return sortedActions[lastMessageIndex].sequenceNumber;
+    const parser = new ExpensiMark();
+    const messageText = parser.htmlToText(htmlText);
+    return ReportUtils.formatReportLastMessageText(messageText);
 }
 
 export {
     getSortedReportActions,
-    getOptimisticLastReadSequenceNumberForDeletedAction,
+    filterReportActionsForDisplay,
+    getLastVisibleAction,
     getLastVisibleMessageText,
     getMostRecentIOUReportActionID,
     isDeletedAction,

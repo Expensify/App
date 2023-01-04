@@ -141,7 +141,7 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
-     * Check if amount is a decimal upto 3 digits
+     * Check if amount is a decimal up to 3 digits
      *
      * @param {String} amount
      * @returns {Boolean}
@@ -270,7 +270,7 @@ class IOUAmountPage extends React.Component {
                         }}
                     />
                 </View>
-                <View style={[styles.w100, styles.justifyContentEnd]}>
+                <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}>
                     {canUseTouchScreen()
                         ? (
                             <BigNumberPad
