@@ -18,12 +18,12 @@ const mocks = {
 
 function mockCall(command, apiCommandParameters, tag) {
     const mockResponse = mocks[command] && mocks[command](apiCommandParameters);
-    if (mockResponse && _.isArray(mockResponse.onyxData)) {
-        Log.warn(`[${tag}] for command ${command} is mocked!`);
-        return Onyx.update(mockResponse.onyxData);
+    if (!mockResponse || !_.isArray(mockResponse.onyxData)) {
+        Log.warn(`[${tag}] for command ${command} is not mocked yet!`);
+        return;
     }
 
-    Log.warn(`[${tag}] for command ${command} is not mocked yet!`);
+    return Onyx.update(mockResponse.onyxData);
 }
 
 /**
