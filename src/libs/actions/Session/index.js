@@ -30,7 +30,7 @@ Onyx.connect({
  * AuthScreens unmounts when the app is closed with the back button so we manage the
  * push subscription when the session changes here.
  */
-let previousAccountID = '';
+let previousAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
