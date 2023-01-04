@@ -87,6 +87,7 @@ class EmojiPickerMenu extends Component {
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.updatePreferredSkinTone = this.updatePreferredSkinTone.bind(this);
         this.setFirstNonHeaderIndex = this.setFirstNonHeaderIndex.bind(this);
+        this.getItemLayout = this.getItemLayout.bind(this);
 
         this.currentScrollOffset = 0;
         this.firstNonHeaderIndex = 0;
@@ -188,6 +189,20 @@ class EmojiPickerMenu extends Component {
             this.setState({arePointerEventsDisabled: false});
         };
         document.addEventListener('mousemove', this.mouseMoveHandler);
+    }
+
+    /**
+     * This function will be used with FlatList getItemLayout property for optimization purpose that allows skipping
+     * the measurement of dynamic content if we know the size (height or width) of items ahead of time.
+     * Generate and return an object with properties length(height of each individual row),
+     * offset(distance of the current row from the top of the FlatList), index(current row index)
+     *
+     * @param {*} data FlatList item
+     * @param {Number} index row index
+     * @returns {Object}
+     */
+    getItemLayout(data, index) {
+        return {length: CONST.EMOJI_PICKER_ITEM_HEIGHT, offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index, index};
     }
 
     /**
@@ -513,6 +528,7 @@ class EmojiPickerMenu extends Component {
                             }
                             stickyHeaderIndices={this.state.headerIndices}
                             onScroll={e => this.currentScrollOffset = e.nativeEvent.contentOffset.y}
+                            getItemLayout={this.getItemLayout}
                         />
                     )}
                 <EmojiSkinToneList

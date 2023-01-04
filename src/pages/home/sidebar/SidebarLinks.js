@@ -216,6 +216,7 @@ const chatReportSelector = (report) => {
         },
         maxSequenceNumber: report.maxSequenceNumber,
         lastReadSequenceNumber: report.lastReadSequenceNumber,
+        lastReadTime: report.lastReadTime,
         lastMessageText: report.lastMessageText,
         lastActionCreated: report.lastActionCreated,
         iouReportID: report.iouReportID,

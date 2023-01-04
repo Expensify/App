@@ -703,7 +703,7 @@ describe('NetworkTests', () => {
         // Given a simulated a condition where the credentials have not yet been read from storage and we are offline
         return Onyx.multiSet({
             [ONYXKEYS.NETWORK]: {isOffline: true},
-            [ONYXKEYS.CREDENTIALS]: null,
+            [ONYXKEYS.CREDENTIALS]: {},
             [ONYXKEYS.SESSION]: null,
         })
             .then(() => {
