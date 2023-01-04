@@ -70,6 +70,7 @@ export default {
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(54, 60),
+    overlayOpacity: 0.6,
     lineHeightSmall: getValueUsingPixelRatio(14, 16),
     lineHeightNormal: getValueUsingPixelRatio(16, 21),
     lineHeightLarge: getValueUsingPixelRatio(18, 24),
@@ -81,4 +82,5 @@ export default {
     INACTIVE_LABEL_TRANSLATE_Y: getValueUsingPixelRatio(16, 21),
     sliderBarHeight: 8,
     sliderKnobSize: 26,
+    checkboxLabelActiveOpacity: 0.7,
 };

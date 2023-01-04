@@ -238,10 +238,7 @@ class ReportScreen extends React.Component {
                             <ReportHeaderSkeletonView animate={animatePlaceholder} />
                             <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
                                 <ReportActionsSkeletonView animate={animatePlaceholder} containerHeight={this.state.skeletonViewContainerHeight} />
-                                <ReportFooter
-                                    shouldDisableCompose
-                                    isOffline={this.props.network.isOffline}
-                                />
+                                <ReportFooter shouldDisableCompose isOffline={this.props.network.isOffline} />
                             </View>
                         </>
                     )}
@@ -319,13 +316,8 @@ class ReportScreen extends React.Component {
                             we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
                             {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions) && (
                                 <>
-                                    <ReportActionsSkeletonView
-                                        containerHeight={this.state.skeletonViewContainerHeight}
-                                    />
-                                    <ReportFooter
-                                        shouldDisableCompose
-                                        isOffline={this.props.network.isOffline}
-                                    />
+                                    <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
+                                    <ReportFooter shouldDisableCompose isOffline={this.props.network.isOffline} />
                                 </>
                             )}
                             <PortalHost name={CONST.REPORT.DROP_HOST_NAME} />
