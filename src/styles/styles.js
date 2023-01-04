@@ -275,10 +275,7 @@ const styles = {
     },
 
     textXXXLarge: {
-        color: themeColors.heading,
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontSize: variables.fontSizeXXXLarge,
-        fontWeight: fontWeightBold,
     },
 
     textStrong: {
