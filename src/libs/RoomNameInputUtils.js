@@ -4,6 +4,7 @@ import CONST from '../CONST';
  * Modifies the room name in the following ways:
  * - Replaces spaces with dashes
  * - Makes all letters lowercase
+ *
  * @param {String} roomName
  * @returns {String}
  */
