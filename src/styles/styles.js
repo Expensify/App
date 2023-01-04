@@ -2464,7 +2464,7 @@ const styles = {
         minHeight: 115,
     },
 
-    workspaceSectionHeader: {
+    sectionHeader: {
         ...headlineFont,
         color: themeColors.heading,
         fontSize: variables.fontSizeXLarge,
