@@ -49,6 +49,7 @@ function openPlaidBankAccountSelector(publicToken, bankName, allowDebit) {
             value: {
                 isLoading: true,
                 error: '',
+                errors: null,
                 bankName,
             },
         }],
@@ -58,6 +59,7 @@ function openPlaidBankAccountSelector(publicToken, bankName, allowDebit) {
             value: {
                 isLoading: false,
                 error: '',
+                errors: null,
             },
         }],
         failureData: [{

@@ -44,6 +44,7 @@ const plaidDataDefaultProps = {
     bankAccounts: [],
     isLoading: false,
     error: '',
+    errors: {},
 };
 
 export {plaidDataPropTypes, plaidDataDefaultProps};

@@ -12,15 +12,11 @@ import Navigation from '../Navigation/Navigation';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
-import * as DeprecatedAPI from '../deprecatedAPI';
 import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import Log from '../Log';
-import * as LoginUtils from '../LoginUtils';
 import * as ReportUtils from '../ReportUtils';
-import Growl from '../Growl';
-import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
@@ -48,207 +44,8 @@ const typingWatchTimers = {};
  * @param {String} reportID
  * @returns {Number}
  */
-function getLastReadSequenceNumber(reportID) {
-    return lodashGet(allReports, [reportID, 'lastReadSequenceNumber'], 0);
-}
-
-/**
- * @param {String} reportID
- * @returns {Number}
- */
 function getMaxSequenceNumber(reportID) {
     return lodashGet(allReports, [reportID, 'maxSequenceNumber'], 0);
-}
-
-/**
- * @param {Object} report
- * @return {String[]}
- */
-function getParticipantEmailsFromReport({sharedReportList, reportNameValuePairs, ownerEmail}) {
-    const emailArray = _.map(sharedReportList, participant => participant.email);
-    if (ReportUtils.isChatRoom(reportNameValuePairs)) {
-        return emailArray;
-    }
-    if (ReportUtils.isPolicyExpenseChat(reportNameValuePairs)) {
-        // The owner of the policyExpenseChat isn't in the sharedReportsList so they need to be explicitly included.
-        return [ownerEmail, ...emailArray];
-    }
-
-    // The current user is excluded from the participants array in DMs/Group DMs because their participation is implied
-    // by the chat being shared to them. This also prevents the user's own avatar from being a part of the chat avatar.
-    return _.without(emailArray, currentUserEmail);
-}
-
-/**
- * Only store the minimal amount of data in Onyx that needs to be stored
- * because space is limited.
- *
- * @param {Object} report
- * @param {Number} report.reportID
- * @param {String} report.reportName
- * @param {Object} report.reportNameValuePairs
- * @returns {Object}
- */
-function getSimplifiedReportObject(report) {
-    const lastActionCreated = lodashGet(report, 'lastActionCreated', 0);
-    const lastActionMessage = lodashGet(report, ['lastActionMessage', 'html'], '');
-    const isLastMessageAttachment = new RegExp(`<img|a\\s[^>]*${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}\\s*=\\s*"[^"]*"[^>]*>`, 'gi').test(lastActionMessage);
-    const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
-
-    let lastMessageText = null;
-    if (report.reportActionCount > 0) {
-        // We are removing any html tags from the message html since we cannot access the text version of any comments as
-        // the report only has the raw reportActionList and not the processed version returned by Report_GetHistory
-        const parser = new ExpensiMark();
-        lastMessageText = parser.htmlToText(lastActionMessage);
-        lastMessageText = ReportUtils.formatReportLastMessageText(lastMessageText);
-    }
-
-    // Used for archived rooms, will store the policy name that the room used to belong to.
-    const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '').toString();
-
-    const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
-    const notificationPreference = lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY);
-
-    // Used for User Created Policy Rooms, will denote how access to a chat room is given among workspace members
-    const visibility = lodashGet(report, ['reportNameValuePairs', 'visibility']);
-    const lastReadSequenceNumber = lodashGet(report, [
-        'reportNameValuePairs',
-        `lastRead_${currentUserAccountID}`,
-        'sequenceNumber',
-    ]);
-
-    return {
-        // This needs to be cast to a string until the IOU API has been fully migrated to OfflineFirst API
-        reportID: report.reportID.toString(),
-        reportName: report.reportName,
-        chatType,
-        ownerEmail: LoginUtils.getEmailWithoutMergedAccountPrefix(lodashGet(report, ['ownerEmail'], '')),
-        policyID: lodashGet(report, ['reportNameValuePairs', 'expensify_policyID'], ''),
-        maxSequenceNumber: lodashGet(report, 'reportActionCount', 0),
-        participants: getParticipantEmailsFromReport(report),
-        isPinned: report.isPinned,
-        lastReadTimestamp: lodashGet(report, [
-            'reportNameValuePairs',
-            `lastRead_${currentUserAccountID}`,
-            'timestamp',
-        ], 0),
-        lastReadSequenceNumber,
-        lastActionCreated,
-        lastMessageText: isLastMessageAttachment ? '[Attachment]' : lastMessageText,
-        lastActorEmail,
-        notificationPreference,
-        stateNum: report.state,
-        statusNum: report.status,
-        oldPolicyName,
-        visibility,
-        isOwnPolicyExpenseChat: lodashGet(report, ['isOwnPolicyExpenseChat'], false),
-        lastMessageHtml: lastActionMessage,
-    };
-}
-
-/**
- * Get a simplified version of an IOU report
- *
- * @param {Object} reportData
- * @param {String} reportData.transactionID
- * @param {Number} reportData.amount
- * @param {String} reportData.currency
- * @param {String} reportData.created
- * @param {String} reportData.comment
- * @param {Object[]} reportData.transactionList
- * @param {String} reportData.ownerEmail
- * @param {String} reportData.managerEmail
- * @param {Number} reportData.reportID
- * @param {Number|String} chatReportID
- * @returns {Object}
- */
-function getSimplifiedIOUReport(reportData, chatReportID) {
-    return {
-        reportID: reportData.reportID,
-        ownerEmail: reportData.ownerEmail,
-        managerEmail: reportData.managerEmail,
-        currency: reportData.currency,
-        chatReportID: Number(chatReportID),
-        state: reportData.state,
-        cachedTotal: reportData.cachedTotal,
-        total: reportData.total,
-        status: reportData.status,
-        stateNum: reportData.stateNum,
-        submitterPayPalMeAddress: reportData.submitterPayPalMeAddress,
-        submitterPhoneNumbers: reportData.submitterPhoneNumbers,
-        hasOutstandingIOU: reportData.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && reportData.total !== 0,
-    };
-}
-
-/**
- * Given IOU and chat report ID fetches most recent IOU data from DeprecatedAPI.
- *
- * @param {Number} iouReportID
- * @param {Number} chatReportID
- * @returns {Promise}
- */
-function fetchIOUReport(iouReportID, chatReportID) {
-    return DeprecatedAPI.Get({
-        returnValueList: 'reportStuff',
-        reportIDList: iouReportID,
-        shouldLoadOptionalKeys: true,
-        includePinnedReports: true,
-    }).then((response) => {
-        if (!response) {
-            return;
-        }
-        if (response.jsonCode !== 200) {
-            console.error(response.message);
-            return;
-        }
-        const iouReportData = response.reports[iouReportID];
-        if (!iouReportData) {
-            // IOU data for a report will be missing when the IOU report has already been paid.
-            // This is expected and we return early as no further processing can be done.
-            return;
-        }
-        return getSimplifiedIOUReport(iouReportData, chatReportID);
-    }).catch((error) => {
-        Log.hmmm('[Report] Failed to populate IOU Collection:', error.message);
-    });
-}
-
-/**
- * Given IOU object, save the data to Onyx.
- *
- * @param {Object} iouReportObject
- * @param {Number} iouReportObject.stateNum
- * @param {Number} iouReportObject.total
- * @param {Number} iouReportObject.reportID
- */
-function setLocalIOUReportData(iouReportObject) {
-    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReportObject.reportID}`;
-    Onyx.merge(iouReportKey, iouReportObject);
-}
-
-/**
- * Fetch the iouReport and persist the data to Onyx.
- *
- * @param {Number} iouReportID - ID of the report we are fetching
- * @param {Number} chatReportID - associated chatReportID, set as an iouReport field
- * @param {Boolean} [shouldRedirectIfEmpty=false] - Whether to redirect to Active Report Screen if IOUReport is empty
- * @returns {Promise}
- */
-function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = false) {
-    return fetchIOUReport(iouReportID, chatReportID)
-        .then((iouReportObject) => {
-            if (!iouReportObject && shouldRedirectIfEmpty) {
-                Growl.error(Localize.translateLocal('notFound.iouReportNotFound'));
-                Navigation.navigate(ROUTES.REPORT);
-                return;
-            }
-            if (!iouReportObject) {
-                return;
-            }
-            setLocalIOUReportData(iouReportObject);
-            return iouReportObject;
-        });
 }
 
 /**
@@ -409,14 +206,16 @@ function addActions(reportID, text = '', file) {
     // Our report needs a new maxSequenceNumber that is n larger than the current depending on how many actions we are adding.
     const actionCount = text && file ? 2 : 1;
     const newSequenceNumber = highestSequenceNumber + actionCount;
+    const currentTime = DateUtils.getDBTime();
 
     // Update the report in Onyx to have the new sequence number
     const optimisticReport = {
         maxSequenceNumber: newSequenceNumber,
-        lastActionCreated: DateUtils.getDBTime(),
+        lastActionCreated: currentTime,
         lastMessageText: ReportUtils.formatReportLastMessageText(lastAction.message[0].text),
         lastActorEmail: currentUserEmail,
         lastReadSequenceNumber: newSequenceNumber,
+        lastReadTime: currentTime,
     };
 
     // Optimistically add the new actions to the store before waiting to save them to the server. We use the clientID
@@ -507,7 +306,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             value: {
                 isLoadingReportActions: true,
                 isLoadingMoreReportActions: false,
-                lastReadTimestamp: Date.now(),
+                lastReadTime: DateUtils.getDBTime(),
                 lastReadSequenceNumber: getMaxSequenceNumber(reportID),
                 reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
             },
@@ -652,7 +451,7 @@ function readOldestAction(reportID, oldestActionSequenceNumber) {
 /**
  * Gets the IOUReport and the associated report actions.
  *
- * @param {Number} chatReportID
+ * @param {String} chatReportID
  * @param {Number} iouReportID
  */
 function openPaymentDetailsPage(chatReportID, iouReportID) {
@@ -666,52 +465,45 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
  * Marks the new report actions as read
  *
  * @param {String} reportID
- * @param {String} createdDate
  */
-function readNewestAction(reportID, createdDate) {
-    const sequenceNumber = getMaxSequenceNumber(reportID);
+function readNewestAction(reportID) {
     API.write('ReadNewestAction',
         {
             reportID,
-            createdDate,
-            sequenceNumber,
         },
         {
             optimisticData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
-                    lastReadSequenceNumber: sequenceNumber,
-                    lastReadTimestamp: Date.now(),
+                    lastReadTime: DateUtils.getDBTime(),
                 },
             }],
         });
 }
 
 /**
- * Sets the last read comment on a report
+ * Sets the last read time on a report
  *
  * @param {String} reportID
- * @param {String} createdDate
- * @param {Number} sequenceNumber
+ * @param {String} reportActionCreated
  */
-function markCommentAsUnread(reportID, createdDate, sequenceNumber) {
-    const newLastReadSequenceNumber = sequenceNumber - 1;
+function markCommentAsUnread(reportID, reportActionCreated) {
+    // We subtract 1 millisecond so that the lastReadTime is updated to just before a given reportAction's created date
+    // For example, if we want to mark a report action with ID 100 and created date '2014-04-01 16:07:02.999' unread, we set the lastReadTime to '2014-04-01 16:07:02.998'
+    // Since the report action with ID 100 will be the first with a timestamp above '2014-04-01 16:07:02.998', it's the first one that will be shown as unread
+    const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(reportActionCreated, 1);
     API.write('MarkAsUnread',
         {
             reportID,
-
-            // We subtract 1 millisecond so that the lastRead is updated to just before this reportAction's created date
-            createdDate: DateUtils.getDBTime(moment.utc(createdDate).valueOf() - 1),
-            sequenceNumber,
+            lastReadTime,
         },
         {
             optimisticData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
-                    lastReadSequenceNumber: newLastReadSequenceNumber,
-                    lastReadTimestamp: Date.now(),
+                    lastReadTime,
                 },
             }],
         });
@@ -828,18 +620,12 @@ function deleteReportComment(reportID, reportAction) {
     };
 
     // If we are deleting the last visible message, let's find the previous visible one and update the lastMessageText in the LHN.
-    // Similarly, if we are deleting the last read comment we will want to update the lastReadSequenceNumber and maxSequenceNumber to use the previous visible message.
+    // Similarly, if we are deleting the last read comment we will want to update the lastActionCreated to use the previous visible message.
     const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID, optimisticReportActions);
-    const lastReadSequenceNumber = ReportActionsUtils.getOptimisticLastReadSequenceNumberForDeletedAction(
-        reportID,
-        optimisticReportActions,
-        reportAction.sequenceNumber,
-        getLastReadSequenceNumber(reportID),
-    );
+    const lastActionCreated = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions).created;
     const optimisticReport = {
         lastMessageText,
-        lastReadSequenceNumber,
-        maxSequenceNumber: lastReadSequenceNumber,
+        lastActionCreated,
     };
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
@@ -1050,39 +836,6 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
  */
 function saveReportActionDraft(reportID, reportActionID, draftMessage) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
-}
-
-/**
- * Syncs up a chat report and an IOU report in Onyx after an IOU transaction has been made
- * by setting the iouReportID and hasOutstandingIOU for the chat report.
- * Even though both reports are updated in the back-end, the API doesn't handle syncing their reportIDs.
- * If we didn't sync these reportIDs, the paid IOU would still be shown to users as unpaid.
- * The iouReport being fetched here must be open, because only an open iouReport can be paid.
- *
- * @param {Object} chatReport
- * @param {Object} iouReport
- */
-function syncChatAndIOUReports(chatReport, iouReport) {
-    // Return early in case there's a back-end issue preventing the IOU command from returning the report objects.
-    if (!chatReport || !iouReport) {
-        return;
-    }
-
-    const simplifiedIouReport = {};
-    const simplifiedReport = {};
-    const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`;
-    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`;
-
-    // We don't want to sync an iou report that's already been reimbursed with its chat report.
-    if (!iouReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED) {
-        simplifiedReport[chatReportKey].iouReportID = iouReport.reportID;
-    }
-    simplifiedReport[chatReportKey] = getSimplifiedReportObject(chatReport);
-    simplifiedReport[chatReportKey].hasOutstandingIOU = iouReport.stateNum
-        === CONST.REPORT.STATE_NUM.PROCESSING && iouReport.total !== 0;
-    simplifiedIouReport[iouReportKey] = getSimplifiedIOUReport(iouReport, chatReport.reportID);
-    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedIouReport);
-    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReport);
 }
 
 /**
@@ -1304,38 +1057,21 @@ function subscribeToNewActionEvent(reportID, callback) {
  * @param {String} reportID
  * @param {Object} action
  */
-function viewNewReportAction(reportID, action) {
-    const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
-    const updatedReportObject = {};
-
-    // When handling an action from the current user we can assume that their last read actionID has been updated in the server,
-    // but not necessarily reflected locally so we will update the lastReadSequenceNumber to mark the report as read.
-    updatedReportObject.maxSequenceNumber = action.sequenceNumber;
-    if (isFromCurrentUser) {
-        updatedReportObject.lastReadTimestamp = Date.now();
-        updatedReportObject.lastReadSequenceNumber = action.sequenceNumber;
-    }
-
-    if (reportID === newActionSubscriber.reportID) {
-        newActionSubscriber.callback(isFromCurrentUser, updatedReportObject.maxSequenceNumber);
-    }
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
-
-    const notificationPreference = lodashGet(allReports, [reportID, 'notificationPreference'], CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
+function showReportActionNotification(reportID, action) {
     if (!ActiveClientManager.isClientTheLeader()) {
         Log.info('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
         return;
     }
 
     // We don't want to send a local notification if the user preference is daily or mute
+    const notificationPreference = lodashGet(allReports, [reportID, 'notificationPreference'], CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
     if (notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY) {
         Log.info(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
         return;
     }
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
-    if (isFromCurrentUser) {
+    if (action.actorAccountID === currentUserAccountID) {
         Log.info('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
         return;
     }
@@ -1408,7 +1144,13 @@ Onyx.connect({
                 return;
             }
 
-            viewNewReportAction(reportID, action);
+            // Notify the ReportActionsView that a new comment has arrived
+            if (reportID === newActionSubscriber.reportID) {
+                const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
+                newActionSubscriber.callback(isFromCurrentUser, action.reportActionID);
+            }
+
+            showReportActionNotification(reportID, action);
             handledReportActions[reportID] = handledReportActions[reportID] || {};
             handledReportActions[reportID][action.sequenceNumber] = true;
         });
@@ -1416,7 +1158,6 @@ Onyx.connect({
 });
 
 export {
-    fetchIOUReportByID,
     addComment,
     addAttachment,
     reconnect,
@@ -1431,8 +1172,6 @@ export {
     handleUserDeletedLinks,
     saveReportActionDraft,
     deleteReportComment,
-    getSimplifiedIOUReport,
-    syncChatAndIOUReports,
     navigateToConciergeChat,
     setReportWithDraft,
     addPolicyReport,
