@@ -228,8 +228,6 @@ class AdditionalDetailsStep extends React.Component {
                         submitButtonText={this.props.translate('common.saveAndContinue')}
                         style={[styles.mh5, styles.flexGrow1]}
                     >
-                        <View style={[styles.mh5, styles.mb5]}>
-                            <View style={styles.mt4}>
                                 <TextInput
                                     inputID={INPUT_IDS.LEGAL_FIRST_NAME}
                                     containerStyles={[styles.mt4]}
@@ -250,7 +248,6 @@ class AdditionalDetailsStep extends React.Component {
                                     streetTranslationKey={this.fieldNameTranslationKeys.addressStreet}
                                     shouldSaveDraft
                                 />
-                            </View>
                             <TextInput
                                 inputID={INPUT_IDS.PHONE_NUMBER}
                                 containerStyles={[styles.mt4]}
@@ -274,7 +271,6 @@ class AdditionalDetailsStep extends React.Component {
                                 maxLength={shouldAskForFullSSN ? 9 : 4}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             />
-                        </View>
                         <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
                     </Form>
                 </View>
