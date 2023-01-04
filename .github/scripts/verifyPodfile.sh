@@ -6,7 +6,7 @@ cd "$ROOT_DIR" || exit 1
 
 source scripts/shellUtils.sh
 
-title "Verifying that the Podfile.lock is synchronized with the project"
+title "Verifying that Podfile.lock is synced with the project"
 
 declare EXIT_CODE=0
 
@@ -23,10 +23,13 @@ else
     EXIT_CODE=1
 fi
 
-info "Verifying Podfile.lock is up to date..."
+info "Comparing Podfile.lock with node packages..."
+
+# Retrieve a list of podspec directories as listed in the Podfile.lock
+SPEC_DIRS=$(cat ios/Podfile.lock | yq '.["EXTERNAL SOURCES"].[].":path" | select( . == "*node_modules*")')
 
 # Format a list of Pods based on the output of the config command
-CONFIGSPECS=$( \
+FORMATTED_PODS=$( \
   jq --raw-output --slurp 'map((.name + " (" + .version + ")")) | .[]' <<< "$( \
     npx react-native config | \
     jq '.dependencies[].platforms.ios.podspecPath | select( . != null )' | \
@@ -34,28 +37,25 @@ CONFIGSPECS=$( \
   )"
 )
 
-# Retrieve a list of external podspec directories as listed in the Podfile.lock
-LOCKSPECS=$(cat ios/Podfile.lock | yq '.["EXTERNAL SOURCES"].[].":path" | select( . == "*node_modules*")')
-
 # Check for uncommitted package removals
 # If they are listed in Podfile.lock but the directories don't exist they have been removed
-while read -r SPEC; do
-  if [ ! -d "${SPEC#../}" ]; then
-    error "${SPEC#../node_modules/} not found in node_modules.  Did you forget to run \`npx pod-install\` after removing the package?"
+while read -r DIR; do
+  if [ ! -d "${DIR#../}" ]; then
+    error "Directory \`${DIR#../node_modules/}\` not found in node_modules. Did you forget to run \`npx pod-install\` after removing the package?"
     EXIT_CODE=1
   fi
-done <<< "$LOCKSPECS"
+done <<< "$SPEC_DIRS"
 
 # Check for uncommitted package additions/updates
-while read -r SPEC; do
-  if ! grep -q "$SPEC" ./ios/Podfile.lock; then
-    error "Podspec $SPEC not found in Podfile.lock. Did you forget to run \`npx pod-install\`?"
+while read -r POD; do
+  if ! grep -q "$POD" ./ios/Podfile.lock; then
+    error "$POD not found in Podfile.lock. Did you forget to run \`npx pod-install\`?"
     EXIT_CODE=1
   fi
-done <<< "$CONFIGSPECS"
+done <<< "$FORMATTED_PODS"
 
 if [[ "$EXIT_CODE" == 0 ]]; then
-  success "Podfile.lock is synced with project."
+  success "Podfile.lock is up to date."
 fi
 
 # Cleanup
