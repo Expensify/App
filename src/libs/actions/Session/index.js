@@ -26,8 +26,7 @@ Onyx.connect({
 /**
  * Manage push notification subscriptions on sign-in/sign-out.
  *
- * We would normally do this when AuthScreens mounts and unmounts. However on Android,
- * AuthScreens unmounts when the app is closed with the back button so we manage the
+ * On Android, AuthScreens unmounts when the app is closed with the back button so we manage the
  * push subscription when the session changes here.
  */
 let previousAccountID;
