@@ -107,7 +107,7 @@ class ReportSettingsPage extends Component {
 
         // We error for any other invalid room names
         if (!ValidationUtils.isValidRoomName(values.newRoomName)) {
-            errors.newRoomName = 'Room names cannot contain punctuation or most special characters';
+            errors.newRoomName = this.props.translate('newRoomPage.roomNameInvalidError');
         }
 
         return errors;

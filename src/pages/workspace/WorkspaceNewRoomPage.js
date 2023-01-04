@@ -98,7 +98,7 @@ class WorkspaceNewRoomPage extends React.Component {
 
         // We error for any other invalid room names
         if (!ValidationUtils.isValidRoomName(values.newRoomName)) {
-            errors.newRoomName = 'Room names cannot contain punctuation or most special characters';
+            errors.roomName = this.props.translate('newRoomPage.roomNameInvalidError');
         }
 
         if (!values.policyID) {

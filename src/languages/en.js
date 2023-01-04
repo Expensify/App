@@ -1027,6 +1027,7 @@ export default {
         createRoom: 'Create Room',
         roomAlreadyExistsError: 'A room with this name already exists',
         roomNameReservedError: 'A room on this workspace already uses this name',
+        roomNameInvalidError: 'Room names cannot contain punctuation or most special characters',
         pleaseEnterRoomName: 'Please enter a room name',
         pleaseSelectWorkspace: 'Please select a workspace',
         renamedRoomAction: ({oldName, newName}) => ` renamed this room from ${oldName} to ${newName}`,
