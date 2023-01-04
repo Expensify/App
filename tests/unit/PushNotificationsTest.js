@@ -37,9 +37,7 @@ describe('PushNotifications', () => {
         });
 
         test('Push notifications are unsubscribed after signing out', () => {
-            Onyx.merge(ONYXKEYS.SESSION, {
-                accountID: null,
-            });
+            Onyx.set(ONYXKEYS.SESSION, null);
 
             return waitForPromisesToResolve().then(() => {
                 expect(PushNotification.deregister).toBeCalled();
