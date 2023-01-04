@@ -159,7 +159,7 @@ class RequestorStep extends React.Component {
                 ) : (
                     <Form
                         formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-                        submitButtonText={this.props.translate('common.continue')}
+                        submitButtonText={this.props.translate('common.saveAndContinue')}
                         validate={this.validate}
                         onSubmit={this.submit}
                         style={[styles.mh5, styles.flexGrow1]}
