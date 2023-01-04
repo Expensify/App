@@ -1,4 +1,3 @@
-import React from 'react';
 import PropTypes from 'prop-types';
 
 const propTypes = {
@@ -6,11 +5,7 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-const TouchableDismissKeyboard = props => (
-    <>
-        {props.children}
-    </>
-);
+const TouchableDismissKeyboard = props => props.children;
 
 TouchableDismissKeyboard.propTypes = propTypes;
 TouchableDismissKeyboard.displayName = 'TouchableDismissKeyboard';
