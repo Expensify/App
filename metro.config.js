@@ -9,7 +9,7 @@ require('dotenv').config();
 
 /* eslint arrow-body-style: 0 */
 module.exports = (() => {
-    const isUsingMockAPI = process.env.USE_MOCK_API === 'true' || process.env.E2E_TESTING === 'true';
+    const isUsingMockAPI = process.env.E2E_TESTING === 'true';
     if (isUsingMockAPI) {
         // eslint-disable-next-line no-console
         console.warn('⚠️ Using mock API');
