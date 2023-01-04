@@ -179,6 +179,8 @@ class Composer extends React.Component {
      */
     setSelection(start, end) {
         this.textInput.setSelectionRange(start, end);
+        this.textInput.blur();
+        this.textInput.focus();
     }
 
     /**
