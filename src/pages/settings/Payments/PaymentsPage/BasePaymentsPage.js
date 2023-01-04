@@ -464,7 +464,6 @@ class BasePaymentsPage extends React.Component {
                         this.makeDefaultPaymentMethod(password);
                     }}
                     submitButtonText={this.state.passwordButtonText}
-                    isDangerousAction
                 />
             </ScreenWrapper>
         );
