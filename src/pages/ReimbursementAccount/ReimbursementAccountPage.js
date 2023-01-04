@@ -183,7 +183,7 @@ class ReimbursementAccountPage extends React.Component {
         const achData = lodashGet(this.props.reimbursementAccount, 'achData', {});
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         const subStep = achData.subStep;
-        const shouldShowOnfido = achData.useOnfido && this.props.onfidoToken && !achData.isOnfidoSetupComplete;
+        const shouldShowOnfido = this.props.onfidoToken && !achData.isOnfidoSetupComplete;
         const hasInProgressVBBA = achData.bankAccountID && achData.state !== BankAccount.STATE.OPEN && achData.state !== BankAccount.STATE.LOCKED;
         switch (currentStep) {
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
@@ -318,7 +318,7 @@ class ReimbursementAccountPage extends React.Component {
         }
 
         if (currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
-            const shouldShowOnfido = achData.useOnfido && this.props.onfidoToken && !achData.isOnfidoSetupComplete;
+            const shouldShowOnfido = this.props.onfidoToken && !achData.isOnfidoSetupComplete;
             return (
                 <RequestorStep
                     reimbursementAccount={this.props.reimbursementAccount}
