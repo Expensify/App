@@ -802,14 +802,14 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
  * @param {String} currency
  * @param {String} comment - User comment for the IOU.
  * @param {Array}  participants - An array with participants details.
- * @param {String} paymentType - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
- * @param {String} iouTransactionID - Only required if the IOUReportAction type is oneOf(cancel, decline). Generates a randomID as default.
- * @param {String} iouReportID - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
- * @param {String} isSettlingUp - Whether we are settling up an IOU.
+ * @param {String} [paymentType] - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
+ * @param {String} [iouTransactionID] - Only required if the IOUReportAction type is oneOf(cancel, decline). Generates a randomID as default.
+ * @param {String} [iouReportID] - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
+ * @param {Boolean} [isSettlingUp] - Whether we are settling up an IOU.
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, comment, participants, paymentType = '', iouTransactionID = '', iouReportID = '', isSettlingUp) {
+function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, comment, participants, paymentType = '', iouTransactionID = '', iouReportID = '', isSettlingUp = false) {
     const IOUTransactionID = iouTransactionID || NumberUtils.rand64();
     const IOUReportID = iouReportID || generateReportID();
     const originalMessage = {

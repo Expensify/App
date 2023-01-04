@@ -288,7 +288,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChatReport.reportID}`,
             value: {
                 ...(existingGroupChatReport ? {} : {[groupCreatedReportAction.reportActionID]: groupCreatedReportAction}),
-                [groupIOUReportAction.sequenceNumber]: groupIOUReportAction,
+                [groupIOUReportAction.reportActionID]: groupIOUReportAction,
             },
         },
     ];
@@ -303,7 +303,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChatReport.reportID}`,
             value: {
-                0: {pendingAction: null},
+                ...(existingGroupChatReport ? {} : {[groupCreatedReportAction.reportActionID]: {pendingAction: null}}),
                 [groupIOUReportAction.sequenceNumber]: {pendingAction: null},
             },
         },
@@ -321,8 +321,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChatReport.reportID}`,
             value: {
-                0: {pendingAction: null},
-                [groupIOUReportAction.sequenceNumber]: {pendingAction: null},
+                ...(existingGroupChatReport ? {} : {[groupCreatedReportAction.reportActionID]: {pendingAction: null}}),
+                [groupIOUReportAction.reportActionID]: {pendingAction: null},
             },
         },
     ];
@@ -585,7 +585,7 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
             value: {
-                [optimisticReportAction.sequenceNumber]: {
+                [optimisticReportAction.reportActionID]: {
                     ...optimisticReportAction,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
@@ -607,7 +607,7 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
             value: {
-                [optimisticReportAction.sequenceNumber]: {
+                [optimisticReportAction.reportActionID]: {
                     pendingAction: null,
                 },
             },
@@ -618,7 +618,7 @@ function cancelMoneyRequest(chatReportID, iouReportID, type, moneyRequestAction)
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
             value: {
-                [optimisticReportAction.sequenceNumber]: {
+                [optimisticReportAction.reportActionID]: {
                     pendingAction: null,
                     errors: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCancelFailureMessage', {type}),
@@ -726,7 +726,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimisticIOUReportAction.sequenceNumber]: {
+                [optimisticIOUReportAction.reportActionID]: {
                     ...optimisticIOUReportAction,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
@@ -744,7 +744,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimisticIOUReportAction.sequenceNumber]: {
+                [optimisticIOUReportAction.reportActionID]: {
                     pendingAction: null,
                 },
             },
@@ -756,7 +756,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimisticIOUReportAction.sequenceNumber]: {
+                [optimisticIOUReportAction.reportActionID]: {
                     errors: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),
                     },
@@ -843,7 +843,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimisticIOUReportAction.sequenceNumber]: {
+                [optimisticIOUReportAction.reportActionID]: {
                     ...optimisticIOUReportAction,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
@@ -865,7 +865,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimisticIOUReportAction.sequenceNumber]: {
+                [optimisticIOUReportAction.reportActionID]: {
                     pendingAction: null,
                 },
             },
@@ -877,7 +877,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimisticIOUReportAction.sequenceNumber]: {
+                [optimisticIOUReportAction.reportActionID]: {
                     pendingAction: null,
                     errors: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),
