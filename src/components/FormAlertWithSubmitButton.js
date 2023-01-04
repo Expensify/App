@@ -36,7 +36,7 @@ const propTypes = {
     /** Should the button be enabled when offline */
     enabledWhenOffline: PropTypes.bool,
 
-    /** Whether the action is dangerous */
+    /** Whether the form submit action is dangerous */
     isSubmitActionDangerous: PropTypes.bool,
 };
 
