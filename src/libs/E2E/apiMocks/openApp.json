@@ -1461,10 +1461,10 @@
                "phoneNumber":"",
                "validated":true
             },
-            "applausetester+perf1@applause.expensifail.com":{
-               "login":"applausetester+perf1@applause.expensifail.com",
+            "fake6@gmail.com":{
+               "login":"fake6@gmail.com",
                "avatar":"https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_7.png",
-               "displayName":"applausetester+perf1@applause.expensifail.com",
+               "displayName":"fake6@gmail.com",
                "pronouns":"",
                "timezone":{
                   "automatic":true,
@@ -1492,10 +1492,10 @@
                "validated":true,
                "localCurrencyCode":"USD"
             },
-            "applausetester+perf3@applause.expensifail.com":{
-               "login":"applausetester+perf3@applause.expensifail.com",
+            "fake7@gmail.com":{
+               "login":"fake7@gmail.com",
                "avatar":"https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_2.png",
-               "displayName":"applausetester+perf3@applause.expensifail.com",
+               "displayName":"fake7@gmail.com",
                "pronouns":"",
                "timezone":{
                   "automatic":true,
@@ -1507,10 +1507,10 @@
                "phoneNumber":"",
                "validated":true
             },
-            "applausetester+perf4@applause.expensifail.com":{
-               "login":"applausetester+perf4@applause.expensifail.com",
+            "fake8@gmail.com":{
+               "login":"fake8@gmail.com",
                "avatar":"https://d1wpcgnaa73g0y.cloudfront.net/7b0a9cf9c93987053be9d6cc707cb1f091a1ef46_128.jpeg",
-               "displayName":"applausetester+perf4@applause.expensifail.com",
+               "displayName":"fake8@gmail.com",
                "pronouns":"",
                "timezone":{
                   "automatic":true,
@@ -1849,9 +1849,9 @@
                "maxSequenceNumber":2,
                "participants":[
                   "fake3@gmail.com",
-                  "applausetester+perf1@applause.expensifail.com",
-                  "applausetester+perf3@applause.expensifail.com",
-                  "applausetester+perf4@applause.expensifail.com"
+                  "fake6@gmail.com",
+                  "fake7@gmail.com",
+                  "fake8@gmail.com"
                ],
                "isPinned":false,
                "lastVisitedTimestamp":1671209362667,
@@ -1884,9 +1884,9 @@
                   "fake3@gmail.com",
                   "fake4@gmail.com",
                   "fake5@gmail.com",
-                  "applausetester+perf1@applause.expensifail.com",
-                  "applausetester+perf3@applause.expensifail.com",
-                  "applausetester+perf4@applause.expensifail.com"
+                  "fake6@gmail.com",
+                  "fake7@gmail.com",
+                  "fake8@gmail.com"
                ],
                "isPinned":false,
                "lastVisitedTimestamp":1671470568415,
@@ -1944,7 +1944,7 @@
                "maxSequenceNumber":1,
                "participants":[
                   "applausetester+ihchat4@applause.expensifail.com",
-                  "applausetester+perf1@applause.expensifail.com"
+                  "fake6@gmail.com"
                ],
                "isPinned":false,
                "lastVisitedTimestamp":1669197163626,
@@ -1961,7 +1961,7 @@
                "oldPolicyName":"",
                "visibility":null,
                "isOwnPolicyExpenseChat":false,
-               "lastMessageHtml":"Split \u20b45.00 with applausetester+perf2@applause.expensifail.com and applausetester+perf1@applause.expensifail.com",
+               "lastMessageHtml":"Split \u20b45.00 with applausetester+perf2@applause.expensifail.com and fake6@gmail.com",
                "hasOutstandingIOU":false
             },
             "report_98418120":{
@@ -1975,8 +1975,8 @@
                   "fake3@gmail.com",
                   "fake5@gmail.com",
                   "applausetester+0604lsn@applause.expensifail.com",
-                  "applausetester+perf1@applause.expensifail.com",
-                  "applausetester+perf3@applause.expensifail.com"
+                  "fake6@gmail.com",
+                  "fake7@gmail.com"
                ],
                "isPinned":false,
                "lastVisitedTimestamp":1671205456193,
@@ -2004,7 +2004,7 @@
                "policyID":"_FAKE_",
                "maxSequenceNumber":1787,
                "participants":[
-                  "applausetester+perf1@applause.expensifail.com"
+                  "fake6@gmail.com"
                ],
                "isPinned":false,
                "lastVisitedTimestamp":1671214557025,
@@ -2272,7 +2272,7 @@
                "lastActionCreated":"2022-11-29 12:38:15.985",
                "lastMessageTimestamp":1669725495985,
                "lastMessageText":"fff",
-               "lastActorEmail":"applausetester+perf1@applause.expensifail.com",
+               "lastActorEmail":"fake6@gmail.com",
                "notificationPreference":"daily",
                "stateNum":0,
                "statusNum":0,
@@ -2500,7 +2500,7 @@
             "report_2543745284790730":{
                "reportID":"2543745284790730",
                "ownerEmail":"applausetester+perf2@applause.expensifail.com",
-               "managerEmail":"applausetester+perf1@applause.expensifail.com",
+               "managerEmail":"fake6@gmail.com",
                "currency":"USD",
                "chatReportID":"98817646",
                "state":"SUBMITTED",

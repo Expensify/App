@@ -9,8 +9,28 @@ import Log from '../Log';
  * object.
  */
 const mocks = {
-    BeginSignIn: () => require('../E2E/apiMocks/beginSignin.json'),
-    SigninUser: () => require('../E2E/apiMocks/signinUser.json'),
+    BeginSignIn: ({email}) => {
+        const response = require('../E2E/apiMocks/beginSignin.json');
+        response.onyxData.forEach((d) => {
+            if (d.key !== 'credentials') {
+                return;
+            }
+            // eslint-disable-next-line no-param-reassign
+            d.value.login = email;
+        });
+        return response;
+    },
+    SigninUser: ({email}) => {
+        const response = require('../E2E/apiMocks/signinUser.json');
+        response.onyxData.forEach((d) => {
+            if (d.key !== 'session') {
+                return;
+            }
+            // eslint-disable-next-line no-param-reassign
+            d.value.email = email;
+        });
+        return response;
+    },
     OpenApp: () => require('../E2E/apiMocks/openApp.json'),
     OpenReport: () => require('../E2E/apiMocks/openReport.json'),
     AuthenticatePusher: () => require('../E2E/apiMocks/authenticatePusher.json'),
