@@ -1035,6 +1035,9 @@ export default {
             private: 'Privada',
         },
     },
+    statementPage: {
+        generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
+    },
     keyboardShortcutModal: {
         title: 'Atajos de teclado',
         subtitle: 'Ahorra tiempo con estos atajos de teclado:',
