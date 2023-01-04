@@ -401,8 +401,7 @@ function isExistingRoomName(roomName, reports, policyID) {
  * @returns {Boolean}
  */
 function isValidRoomName(roomName) {
-    const matcher = new RegExp(`^#[a-z0-9-]{1,${CONST.REPORT.MAX_ROOM_NAME_LENGTH}}$`);
-    return matcher.test(roomName);
+    return CONST.REGEX.ROOM_NAME.test(roomName);
 }
 
 /**
