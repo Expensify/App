@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import * as Report from '../../../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
@@ -72,9 +73,12 @@ class PopoverReportActionContextMenu extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
+        const previousLocale = lodashGet(this.props, 'preferredLocale', 'en');
+        const nextLocale = lodashGet(nextProps, 'preferredLocale', 'en');
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
             || this.state.popoverAnchorPosition !== nextState.popoverAnchorPosition
-            || this.state.isDeleteCommentConfirmModalVisible !== nextState.isDeleteCommentConfirmModalVisible;
+            || this.state.isDeleteCommentConfirmModalVisible !== nextState.isDeleteCommentConfirmModalVisible
+            || previousLocale !== nextLocale;
     }
 
     componentWillUnmount() {
