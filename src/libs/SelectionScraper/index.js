@@ -1,9 +1,7 @@
 import render from 'dom-serializer';
 import {parseDocument} from 'htmlparser2';
-import {Element} from 'domhandler';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
-import * as htmlEngineUtils from '../../components/HTMLEngineProvider/htmlEngineUtils';
 
 const elementsWillBeSkipped = ['html', 'body'];
 const tagAttribute = 'data-testid';
