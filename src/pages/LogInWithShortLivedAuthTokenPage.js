@@ -21,6 +21,7 @@ const propTypes = {
 class LogInWithShortLivedAuthTokenPage extends Component {
     componentDidMount() {
         const email = lodashGet(this.props, 'route.params.email', '');
+        // We have to check for both shortLivedAuthToken and shortLivedToken, as the old mobile app uses shortLivedToken, and is not being actively updated.
         const shortLivedAuthToken = lodashGet(this.props, 'route.params.shortLivedAuthToken', '') || lodashGet(this.props, 'route.params.shortLivedToken', '');
         Session.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
     }
