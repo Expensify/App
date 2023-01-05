@@ -35,6 +35,10 @@ function LogCommand(parameters) {
  * @return {Promise}
  */
 function serverLoggingCallback(logger, params) {
+    if (process.env.JEST_WORKER_ID !== undefined) {
+        return () => {};
+    }
+
     const requestParams = params;
     requestParams.shouldProcessImmediately = false;
     requestParams.shouldRetry = false;

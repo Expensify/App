@@ -154,7 +154,7 @@ describe('Migrations', () => {
 
     describe('KeyReportActionsByReportActionID', () => {
         it('Should migrate reportActions to be keyed by reportActionID instead of sequenceNumber', () => {
-            Onyx.set(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+            Onyx.multiSet({
                 reportActions_1: {
                     1: {
                         reportActionID: 1000,
@@ -196,7 +196,7 @@ describe('Migrations', () => {
         });
 
         it('Should return early if the migration has already happened', () => {
-            Onyx.set(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+            Onyx.multiSet({
                 reportActions_1: {
                     1000: {
                         reportActionID: 1000,
