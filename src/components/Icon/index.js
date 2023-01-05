@@ -52,8 +52,8 @@ class Icon extends PureComponent {
                     accessibilityHint={`${this.props.src.name} Icon`}
                     style={[StyleUtils.getWidthAndHeightStyle(width, height), styles.bgTransparent, styles.overflowVisible]}
                 >
-                    <View style={[StyleUtils.getWidthAndHeightStyle(width, height),
-                        IconWrapperStyles, styles.pAbsolute, this.props.svgAvatar ? styles.svgAvatarBorder : []]}
+                    <View style={[StyleUtils.getWidthAndHeightStyle(width, height), IconWrapperStyles, styles.pAbsolute,
+                        this.props.svgAvatar ? styles.svgAvatarBorder : []]}
                     >
                         <this.props.src
                             width={width}

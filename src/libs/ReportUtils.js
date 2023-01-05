@@ -414,7 +414,7 @@ function formatReportLastMessageText(lastMessageText) {
 }
 
 /**
- * Helper method to return a default avatar
+ * Helper method to return the default avatar associated with login
  *
  * @param {String} [login]
  * @returns {String}
@@ -435,13 +435,13 @@ function getDefaultAvatar(login = '') {
 }
 
 /**
- * Helper method to return a default avatar
+ * Helper method to return old dot default avatar associated with login
  *
  * @param {String} [login]
  * @returns {String}
  */
 function getOldDotDefaultAvatar(login = '') {
-    // There are 8 possible default avatars, so we choose which one this user has based
+    // There are 8 possible old dot default avatars, so we choose which one this user has based
     // on a simple hash of their login
     if (login === CONST.EMAIL.CONCIERGE) {
         return CONST.CONCIERGE_ICON_URL;
@@ -452,8 +452,7 @@ function getOldDotDefaultAvatar(login = '') {
 }
 
 /**
- * Returns true if avatar is default
- *
+ * Returns true if provided URL requires a default avatar
  * @param {String} [avatarURL]
  * @returns {Boolean}
  */
@@ -462,6 +461,7 @@ function isDefaultAvatarURL(avatarURL) {
         return true;
     }
 
+    // if null URL, we should also use a default avatar
     if (!avatarURL) {
         return true;
     }
@@ -469,12 +469,12 @@ function isDefaultAvatarURL(avatarURL) {
 }
 
 /**
- * If source is a default avatar, returns default avatar SVG.
- * Otherwise, returns the source uri for the user's avatar.
+ * Provided a source URL, if source is a default avatar, return the associated SVG.
+ * Otherwise, return the URL pointing to a user-uploaded avatar.
  *
- * @param {String} [avatarURL]
- * @param {String} [login]
- * @returns {String}
+ * @param {String} [avatarURL] - the avatar source from user's NVPs
+ * @param {String} [login] - the email of the user
+ * @returns {String | Function}
  */
 function getCorrectAvatar(avatarURL, login) {
     if (isDefaultAvatarURL(avatarURL)) {
@@ -542,7 +542,7 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
         participantDetails.push([
             login,
             lodashGet(personalDetails, [login, 'firstName'], ''),
-            avatarURL || getDefaultAvatar(login),
+            avatarURL,
         ]);
     }
 
