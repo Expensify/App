@@ -109,6 +109,8 @@ const USER_B_EMAIL = 'user_b@test.com';
 const USER_C_ACCOUNT_ID = 3;
 const USER_C_EMAIL = 'user_c@test.com';
 const MOMENT_FORMAT = 'YYYY-MM-DD HH:mm:ss.SSS';
+let reportAction3CreatedDate;
+let reportAction9CreatedDate;
 
 /**
  * Sets up a test with a logged in user that has one unread chat from another user. Returns the <App/> test instance.
@@ -127,6 +129,8 @@ function signInAndGetAppWithUnreadChat() {
         })
         .then(() => {
             const MOMENT_TEN_MINUTES_AGO = moment().subtract(10, 'minutes');
+            reportAction3CreatedDate = MOMENT_TEN_MINUTES_AGO.clone().add(30, 'seconds').format(MOMENT_FORMAT);
+            reportAction9CreatedDate = MOMENT_TEN_MINUTES_AGO.clone().add(90, 'seconds').format(MOMENT_FORMAT);
 
             // Simulate setting an unread report and personal details
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
@@ -134,7 +138,8 @@ function signInAndGetAppWithUnreadChat() {
                 reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                 maxSequenceNumber: 9,
                 lastReadSequenceNumber: 1,
-                lastActionCreated: DateUtils.getDBTime(MOMENT_TEN_MINUTES_AGO.utc().valueOf()),
+                lastReadTime: reportAction3CreatedDate,
+                lastActionCreated: reportAction9CreatedDate,
                 lastMessageText: 'Test',
                 participants: [USER_B_EMAIL],
             });
@@ -143,7 +148,7 @@ function signInAndGetAppWithUnreadChat() {
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     automatic: false,
                     sequenceNumber: 0,
-                    created: MOMENT_TEN_MINUTES_AGO.format(MOMENT_FORMAT),
+                    created: MOMENT_TEN_MINUTES_AGO.clone().format(MOMENT_FORMAT),
                     reportActionID: NumberUtils.rand64(),
                     message: [
                         {
@@ -158,15 +163,15 @@ function signInAndGetAppWithUnreadChat() {
                         },
                     ],
                 },
-                1: TestHelper.buildTestReportComment(USER_B_EMAIL, 1, MOMENT_TEN_MINUTES_AGO.add(10, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
-                2: TestHelper.buildTestReportComment(USER_B_EMAIL, 2, MOMENT_TEN_MINUTES_AGO.add(20, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
-                3: TestHelper.buildTestReportComment(USER_B_EMAIL, 3, MOMENT_TEN_MINUTES_AGO.add(30, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
-                4: TestHelper.buildTestReportComment(USER_B_EMAIL, 4, MOMENT_TEN_MINUTES_AGO.add(40, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
-                5: TestHelper.buildTestReportComment(USER_B_EMAIL, 5, MOMENT_TEN_MINUTES_AGO.add(50, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
-                6: TestHelper.buildTestReportComment(USER_B_EMAIL, 6, MOMENT_TEN_MINUTES_AGO.add(60, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
-                7: TestHelper.buildTestReportComment(USER_B_EMAIL, 7, MOMENT_TEN_MINUTES_AGO.add(70, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
-                8: TestHelper.buildTestReportComment(USER_B_EMAIL, 8, MOMENT_TEN_MINUTES_AGO.add(80, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
-                9: TestHelper.buildTestReportComment(USER_B_EMAIL, 9, MOMENT_TEN_MINUTES_AGO.add(90, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID),
+                1: TestHelper.buildTestReportComment(USER_B_EMAIL, 1, MOMENT_TEN_MINUTES_AGO.clone().add(10, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '1'),
+                2: TestHelper.buildTestReportComment(USER_B_EMAIL, 2, MOMENT_TEN_MINUTES_AGO.clone().add(20, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '2'),
+                3: TestHelper.buildTestReportComment(USER_B_EMAIL, 3, reportAction3CreatedDate, USER_B_ACCOUNT_ID, '3'),
+                4: TestHelper.buildTestReportComment(USER_B_EMAIL, 4, MOMENT_TEN_MINUTES_AGO.clone().add(40, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '4'),
+                5: TestHelper.buildTestReportComment(USER_B_EMAIL, 5, MOMENT_TEN_MINUTES_AGO.clone().add(50, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '5'),
+                6: TestHelper.buildTestReportComment(USER_B_EMAIL, 6, MOMENT_TEN_MINUTES_AGO.clone().add(60, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '6'),
+                7: TestHelper.buildTestReportComment(USER_B_EMAIL, 7, MOMENT_TEN_MINUTES_AGO.clone().add(70, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '7'),
+                8: TestHelper.buildTestReportComment(USER_B_EMAIL, 8, MOMENT_TEN_MINUTES_AGO.clone().add(80, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '8'),
+                9: TestHelper.buildTestReportComment(USER_B_EMAIL, 9, reportAction9CreatedDate, USER_B_ACCOUNT_ID, '9'),
             });
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
                 [USER_B_EMAIL]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
@@ -216,12 +221,12 @@ describe('Unread Indicators', () => {
                 const reportComments = renderedApp.queryAllByA11yLabel('Chat message');
                 expect(reportComments).toHaveLength(9);
 
-                // Since the last read sequenceNumber is 1 we should have an unread indicator above the next "unread" action which will
-                // have a sequenceNumber of 2
+                // Since the last read timestamp is the timestamp of action 3 we should have an unread indicator above the next "unread" action which will
+                // have actionID of 4
                 const unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
                 expect(unreadIndicator).toHaveLength(1);
-                const sequenceNumber = lodashGet(unreadIndicator, [0, 'props', 'data-sequence-number']);
-                expect(sequenceNumber).toBe(2);
+                const reportActionID = lodashGet(unreadIndicator, [0, 'props', 'data-action-id']);
+                expect(reportActionID).toBe('4');
 
                 // Scroll up and verify that the "New messages" badge appears
                 scrollUpToRevealNewMessagesBadge(renderedApp);
@@ -274,14 +279,17 @@ describe('Unread Indicators', () => {
                 renderedApp = testInstance;
 
                 // Simulate a new report arriving via Pusher along with reportActions and personalDetails for the other participant
+                // We set the created moment 5 seconds in the past to ensure that time has passed when we open the report
                 const NEW_REPORT_ID = '2';
-                const NEW_REPORT_CREATED_MOMENT = moment();
+                const NEW_REPORT_CREATED_MOMENT = moment().subtract(5, 'seconds');
+                const NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT = NEW_REPORT_CREATED_MOMENT.add(1, 'seconds');
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${NEW_REPORT_ID}`, {
                     reportID: NEW_REPORT_ID,
                     reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                     maxSequenceNumber: 1,
                     lastReadSequenceNumber: 0,
-                    lastActionCreated: DateUtils.getDBTime(NEW_REPORT_CREATED_MOMENT.utc().valueOf()),
+                    lastReadTime: '',
+                    lastActionCreated: DateUtils.getDBTime(NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.utc().valueOf()),
                     lastMessageText: 'Comment 1',
                     participants: [USER_C_EMAIL],
                 });
@@ -299,7 +307,7 @@ describe('Unread Indicators', () => {
                         actorAccountID: USER_C_ACCOUNT_ID,
                         person: [{type: 'TEXT', style: 'strong', text: 'User C'}],
                         sequenceNumber: 1,
-                        created: NEW_REPORT_CREATED_MOMENT.add(5, 'seconds').format(MOMENT_FORMAT),
+                        created: NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.format(MOMENT_FORMAT),
                         message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
                         reportActionID: NumberUtils.rand64(),
                     },
@@ -346,7 +354,7 @@ describe('Unread Indicators', () => {
             });
     });
 
-    it('Manually marking a chat message as read shows the new line indicator and updates the LHN', () => {
+    it('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () => {
         let renderedApp;
         return signInAndGetAppWithUnreadChat()
             .then((testInstance) => {
@@ -358,15 +366,15 @@ describe('Unread Indicators', () => {
             .then(() => {
                 // It's difficult to trigger marking a report comment as unread since we would have to mock the long press event and then
                 // another press on the context menu item so we will do it via the action directly and then test if the UI has updated properly
-                Report.markCommentAsUnread(REPORT_ID, 3);
+                Report.markCommentAsUnread(REPORT_ID, reportAction3CreatedDate);
                 return waitForPromisesToResolve();
             })
             .then(() => {
                 // Verify the indicator appears above the last action
                 const unreadIndicator = renderedApp.queryAllByA11yLabel('New message line indicator');
                 expect(unreadIndicator).toHaveLength(1);
-                const sequenceNumber = lodashGet(unreadIndicator, [0, 'props', 'data-sequence-number']);
-                expect(sequenceNumber).toBe(3);
+                const reportActionID = lodashGet(unreadIndicator, [0, 'props', 'data-action-id']);
+                expect(reportActionID).toBe('3');
 
                 // Scroll up and verify the new messages badge appears
                 scrollUpToRevealNewMessagesBadge(renderedApp);
@@ -467,7 +475,7 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(0);
 
                 // Mark a previous comment as unread and verify the unread action indicator returns
-                Report.markCommentAsUnread(REPORT_ID, 9);
+                Report.markCommentAsUnread(REPORT_ID, reportAction9CreatedDate);
                 return waitForPromisesToResolve();
             })
             .then(() => {

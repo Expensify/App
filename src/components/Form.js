@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -10,6 +10,8 @@ import * as FormActions from '../libs/actions/FormActions';
 import * as ErrorUtils from '../libs/ErrorUtils';
 import styles from '../styles/styles';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
+import SafeAreaConsumer from './SafeAreaConsumer';
+import ScrollViewWithContext from './ScrollViewWithContext';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -79,7 +81,6 @@ class Form extends React.Component {
 
         this.inputRefs = {};
         this.touchedInputs = {};
-        this.childPosition = {};
 
         this.setTouchedInput = this.setTouchedInput.bind(this);
         this.validate = this.validate.bind(this);
@@ -107,21 +108,6 @@ class Form extends React.Component {
         }
 
         return _.first(_.keys(hasStateErrors ? this.state.erorrs : this.props.formState.errorFields));
-    }
-
-    setPosition(element, position) {
-        // Some elements might not have props defined, e.g. Text
-        if (!element.props) {
-            return;
-        }
-
-        if (!element.props.inputID && element.props.children) {
-            _.forEach(element.props.children, (child) => {
-                this.setPosition(child, position);
-            });
-        } else {
-            this.childPosition[element.props.inputID] = position;
-        }
     }
 
     submit() {
@@ -190,15 +176,19 @@ class Form extends React.Component {
 
             // Look for any inputs nested in a custom component, e.g AddressForm or IdentityForm
             if (_.isFunction(child.type)) {
-                const nestedChildren = new child.type(child.props);
+                const childNode = new child.type(child.props);
 
-                if (!React.isValidElement(nestedChildren) || !lodashGet(nestedChildren, 'props.children')) {
-                    return child;
+                // If the custom component has a render method, use it to get the nested children
+                const nestedChildren = _.isFunction(childNode.render) ? childNode.render() : childNode;
+
+                // Render the custom component if it's a valid React element
+                // If the custom component has nested children, Loop over them and supply From props
+                if (React.isValidElement(nestedChildren) || lodashGet(nestedChildren, 'props.children')) {
+                    return this.childrenWrapperWithProps(nestedChildren);
                 }
 
-                return React.cloneElement(nestedChildren, {
-                    children: this.childrenWrapperWithProps(lodashGet(nestedChildren, 'props.children')),
-                });
+                // Just render the child if it's custom component not a valid React element, or if it hasn't children
+                return child;
             }
 
             // We check if the child has the inputID prop.
@@ -260,48 +250,45 @@ class Form extends React.Component {
 
     render() {
         return (
-            <>
-                <ScrollView
-                    style={[styles.w100, styles.flex1]}
-                    contentContainerStyle={styles.flexGrow1}
-                    keyboardShouldPersistTaps="handled"
-                    ref={el => this.form = el}
-                >
-                    <View style={[this.props.style]}>
-                        {_.map(this.childrenWrapperWithProps(this.props.children), child => (
-                            <View
-                                key={child.key}
-                                onLayout={(event) => {
-                                    this.setPosition(child, event.nativeEvent.layout.y);
+            <SafeAreaConsumer>
+                {({safeAreaPaddingBottomStyle}) => (
+                    <ScrollViewWithContext
+                        style={[styles.w100, styles.flex1]}
+                        contentContainerStyle={styles.flexGrow1}
+                        keyboardShouldPersistTaps="handled"
+                        ref={el => this.form = el}
+                    >
+                        <View style={[this.props.style, safeAreaPaddingBottomStyle]}>
+                            {this.childrenWrapperWithProps(this.props.children)}
+                            {this.props.isSubmitButtonVisible && (
+                            <FormAlertWithSubmitButton
+                                buttonText={this.props.submitButtonText}
+                                isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.getErrorMessage()) || !_.isEmpty(this.props.formState.errorFields)}
+                                isLoading={this.props.formState.isLoading}
+                                message={_.isEmpty(this.props.formState.errorFields) ? this.getErrorMessage() : null}
+                                onSubmit={this.submit}
+                                onFixTheErrorsLinkPressed={() => {
+                                    const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
+                                    const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
+                                    const focusInput = this.inputRefs[focusKey];
+                                    if (focusInput.focus && typeof focusInput.focus === 'function') {
+                                        focusInput.focus();
+                                    }
+
+                                    // We subtract 10 to scroll slightly above the input
+                                    if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
+                                        focusInput.measureLayout(this.form, (x, y) => this.form.scrollTo({y: y - 10, animated: false}));
+                                    }
                                 }}
-                            >
-                                {child}
-                            </View>
-                        ))}
-                        {this.props.isSubmitButtonVisible && (
-                        <FormAlertWithSubmitButton
-                            buttonText={this.props.submitButtonText}
-                            isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.getErrorMessage()) || !_.isEmpty(this.props.formState.errorFields)}
-                            isLoading={this.props.formState.isLoading}
-                            message={_.isEmpty(this.props.formState.errorFields) ? this.getErrorMessage() : null}
-                            onSubmit={this.submit}
-                            onFixTheErrorsLinkPressed={() => {
-                                const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
-                                const focusKey = _.find(_.keys(this.inputRefs), key => _.keys(errors).includes(key));
-                                const focusInput = this.inputRefs[focusKey];
-                                this.form.scrollTo({y: this.childPosition[focusKey], animated: false});
-                                if (focusInput.focus && typeof focusInput.focus === 'function') {
-                                    focusInput.focus();
-                                }
-                            }}
-                            containerStyles={[styles.mh0, styles.mt5]}
-                            enabledWhenOffline={this.props.enabledWhenOffline}
-                            isDangerousAction={this.props.isDangerousAction}
-                        />
-                        )}
-                    </View>
-                </ScrollView>
-            </>
+                                containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
+                                enabledWhenOffline={this.props.enabledWhenOffline}
+                                isDangerousAction={this.props.isDangerousAction}
+                            />
+                            )}
+                        </View>
+                    </ScrollViewWithContext>
+                )}
+            </SafeAreaConsumer>
         );
     }
 }

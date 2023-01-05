@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, ScrollView} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
@@ -20,6 +20,7 @@ import withPolicy from './withPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import ScrollViewWithContext from '../../components/ScrollViewWithContext';
 
 const propTypes = {
     shouldSkipVBBACall: PropTypes.bool,
@@ -105,8 +106,11 @@ class WorkspacePageWithSections extends React.Component {
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
-            <ScreenWrapper>
-                <FullPageNotFoundView shouldShowBackButton={false} shouldShow={_.isEmpty(this.props.policy)}>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+                <FullPageNotFoundView
+                    shouldShow={_.isEmpty(this.props.policy)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                >
                     <HeaderWithCloseButton
                         title={this.props.headerText}
                         subtitle={policyName}
@@ -118,7 +122,7 @@ class WorkspacePageWithSections extends React.Component {
                     />
                     {this.props.shouldUseScrollView
                         ? (
-                            <ScrollView
+                            <ScrollViewWithContext
                                 keyboardShouldPersistTaps="handled"
                                 style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
                             >
@@ -127,7 +131,7 @@ class WorkspacePageWithSections extends React.Component {
                                     {this.props.children(hasVBA, policyID, isUsingECard)}
 
                                 </View>
-                            </ScrollView>
+                            </ScrollViewWithContext>
                         )
                         : this.props.children(hasVBA, policyID, isUsingECard)}
                     {this.props.footer}

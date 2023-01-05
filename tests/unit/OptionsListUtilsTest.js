@@ -11,7 +11,7 @@ describe('OptionsListUtils', () => {
     // Given a set of reports with both single participants and multiple participants some pinned and some not
     const REPORTS = {
         1: {
-            lastVisitedTimestamp: 1610666739295,
+            lastReadTime: '2021-01-14 11:25:39.295',
             lastActionCreated: '2022-11-22 03:26:02.015',
             isPinned: false,
             reportID: 1,
@@ -22,7 +22,7 @@ describe('OptionsListUtils', () => {
             hasDraft: true,
         },
         2: {
-            lastVisitedTimestamp: 1610666739296,
+            lastReadTime: '2021-01-14 11:25:39.296',
             lastActionCreated: '2022-11-22 03:26:02.016',
             isPinned: false,
             reportID: 2,
@@ -34,7 +34,7 @@ describe('OptionsListUtils', () => {
 
         // This is the only report we are pinning in this test
         3: {
-            lastVisitedTimestamp: 1610666739297,
+            lastReadTime: '2021-01-14 11:25:39.297',
             lastActionCreated: '2022-11-22 03:26:02.170',
             isPinned: true,
             reportID: 3,
@@ -44,7 +44,7 @@ describe('OptionsListUtils', () => {
             maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
         4: {
-            lastVisitedTimestamp: 1610666739298,
+            lastReadTime: '2021-01-14 11:25:39.298',
             lastActionCreated: '2022-11-22 03:26:02.180',
             isPinned: false,
             reportID: 4,
@@ -54,7 +54,7 @@ describe('OptionsListUtils', () => {
             maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
         5: {
-            lastVisitedTimestamp: 1610666739299,
+            lastReadTime: '2021-01-14 11:25:39.299',
             lastActionCreated: '2022-11-22 03:26:02.019',
             isPinned: false,
             reportID: 5,
@@ -64,7 +64,7 @@ describe('OptionsListUtils', () => {
             maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         },
         6: {
-            lastVisitedTimestamp: 1610666739300,
+            lastReadTime: '2021-01-14 11:25:39.300',
             lastActionCreated: '2022-11-22 03:26:02.020',
             isPinned: false,
             reportID: 6,
@@ -76,7 +76,7 @@ describe('OptionsListUtils', () => {
 
         // Note: This report has the largest lastActionCreated
         7: {
-            lastVisitedTimestamp: 1610666739301,
+            lastReadTime: '2021-01-14 11:25:39.301',
             lastActionCreated: '2022-11-22 03:26:03.999',
             isPinned: false,
             reportID: 7,
@@ -88,7 +88,7 @@ describe('OptionsListUtils', () => {
 
         // Note: This report has no lastActionCreated
         8: {
-            lastVisitedTimestamp: 1610666739301,
+            lastReadTime: '2021-01-14 11:25:39.301',
             lastActionCreated: '2022-11-22 03:26:02.000',
             isPinned: false,
             reportID: 8,
@@ -100,7 +100,7 @@ describe('OptionsListUtils', () => {
 
         // Note: This report has an IOU
         9: {
-            lastVisitedTimestamp: 1610666739302,
+            lastReadTime: '2021-01-14 11:25:39.302',
             lastActionCreated: '2022-11-22 03:26:02.998',
             isPinned: false,
             reportID: 9,
@@ -114,7 +114,7 @@ describe('OptionsListUtils', () => {
 
         // This report is an archived room – it does not have a name and instead falls back on oldPolicyName
         10: {
-            lastVisitedTimestamp: 1610666739200,
+            lastReadTime: '2021-01-14 11:25:39.200',
             lastActionCreated: '2022-11-22 03:26:02.001',
             reportID: 10,
             isPinned: false,
@@ -179,7 +179,7 @@ describe('OptionsListUtils', () => {
         ...REPORTS,
 
         11: {
-            lastVisitedTimestamp: 1610666739302,
+            lastReadTime: '2021-01-14 11:25:39.302',
             lastActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: 11,
@@ -193,7 +193,7 @@ describe('OptionsListUtils', () => {
     const REPORTS_WITH_CHRONOS = {
         ...REPORTS,
         12: {
-            lastVisitedTimestamp: 1610666739302,
+            lastReadTime: '2021-01-14 11:25:39.302',
             lastActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: 12,
@@ -207,7 +207,7 @@ describe('OptionsListUtils', () => {
     const REPORTS_WITH_RECEIPTS = {
         ...REPORTS,
         13: {
-            lastVisitedTimestamp: 1610666739302,
+            lastReadTime: '2021-01-14 11:25:39.302',
             lastActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: 13,

@@ -21,11 +21,8 @@ import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
 import PopoverMenu from '../../../components/PopoverMenu';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import withDrawerState from '../../../components/withDrawerState';
 import CONST from '../../../CONST';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -39,7 +36,6 @@ import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
-import VirtualKeyboard from '../../../libs/VirtualKeyboard';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
 import OfflineIndicator from '../../../components/OfflineIndicator';
@@ -47,6 +43,12 @@ import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import withNavigationFocus from '../../../components/withNavigationFocus';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import reportPropTypes from '../../reportPropTypes';
+import ReportDropUI from './ReportDropUI';
+import DragAndDrop from '../../../components/DragAndDrop';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withDrawerState from '../../../components/withDrawerState';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 
 const propTypes = {
     /** Beta features list */
@@ -86,7 +88,10 @@ const propTypes = {
     isFocused: PropTypes.bool.isRequired,
 
     /** Is the composer full size */
-    isComposerFullSize: PropTypes.bool.isRequired,
+    isComposerFullSize: PropTypes.bool,
+
+    /** Whether user interactions should be disabled */
+    disabled: PropTypes.bool,
 
     // The NVP describing a user's block status
     blockedFromConcierge: PropTypes.shape({
@@ -97,6 +102,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
+    ...keyboardStatePropTypes,
 };
 
 const defaultProps = {
@@ -133,7 +139,7 @@ class ReportActionCompose extends React.Component {
         this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
         this.state = {
-            isFocused: this.shouldFocusInputOnScreenFocus,
+            isFocused: this.shouldFocusInputOnScreenFocus && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible,
             isFullComposerAvailable: props.isComposerFullSize,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
@@ -323,13 +329,12 @@ class ReportActionCompose extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        const emojiWithSpace = `${emoji} `;
         const newComment = this.comment.slice(0, this.state.selection.start)
-            + emojiWithSpace + this.comment.slice(this.state.selection.end, this.comment.length);
+            + emoji + this.comment.slice(this.state.selection.end, this.comment.length);
         this.setState(prevState => ({
             selection: {
-                start: prevState.selection.start + emojiWithSpace.length,
-                end: prevState.selection.start + emojiWithSpace.length,
+                start: prevState.selection.start + emoji.length,
+                end: prevState.selection.start + emoji.length,
             },
         }));
         this.updateComment(newComment);
@@ -385,10 +390,10 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(comment, shouldDebounceSaveComment) {
-        const newComment = EmojiUtils.replaceEmojis(comment);
+        const newComment = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth);
         this.setState((prevState) => {
             const newState = {
-                isCommentEmpty: !!newComment.match(/^(\s|`)*$/),
+                isCommentEmpty: !!newComment.match(/^(\s)*$/),
                 value: newComment,
             };
             if (comment !== newComment) {
@@ -428,7 +433,8 @@ class ReportActionCompose extends React.Component {
      * @param {Object} e
      */
     triggerHotkeyActions(e) {
-        if (!e || VirtualKeyboard.shouldAssumeIsOpen()) {
+        // Do not trigger actions for mobileWeb or native clients that have the keyboard open because for those devices, we want the return key to insert newlines rather than submit the form
+        if (!e || this.props.isSmallScreenWidth || this.props.isKeyboardShown) {
             return;
         }
 
@@ -535,7 +541,7 @@ class ReportActionCompose extends React.Component {
                 {shouldShowReportRecipientLocalTime
                     && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
-                    (!isBlockedFromConcierge && (this.state.isFocused || this.state.isDraggingOver))
+                    (!isBlockedFromConcierge && !this.props.disabled && (this.state.isFocused || this.state.isDraggingOver))
                         ? styles.chatItemComposeBoxFocusedColor
                         : styles.chatItemComposeBoxColor,
                     styles.flexRow,
@@ -569,8 +575,7 @@ class ReportActionCompose extends React.Component {
                                                             // Keep focus on the composer when Collapse button is clicked.
                                                             onMouseDown={e => e.preventDefault()}
                                                             style={styles.composerSizeButton}
-                                                            underlayColor={themeColors.componentBG}
-                                                            disabled={isBlockedFromConcierge}
+                                                            disabled={isBlockedFromConcierge || this.props.disabled}
                                                         >
                                                             <Icon src={Expensicons.Collapse} />
                                                         </TouchableOpacity>
@@ -588,8 +593,7 @@ class ReportActionCompose extends React.Component {
                                                             // Keep focus on the composer when Expand button is clicked.
                                                             onMouseDown={e => e.preventDefault()}
                                                             style={styles.composerSizeButton}
-                                                            underlayColor={themeColors.componentBG}
-                                                            disabled={isBlockedFromConcierge}
+                                                            disabled={isBlockedFromConcierge || this.props.disabled}
                                                         >
                                                             <Icon src={Expensicons.Expand} />
                                                         </TouchableOpacity>
@@ -606,8 +610,7 @@ class ReportActionCompose extends React.Component {
                                                             this.setMenuVisibility(true);
                                                         }}
                                                         style={styles.chatItemAttachButton}
-                                                        underlayColor={themeColors.componentBG}
-                                                        disabled={isBlockedFromConcierge}
+                                                        disabled={isBlockedFromConcierge || this.props.disabled}
                                                     >
                                                         <Icon src={Expensicons.Plus} />
                                                     </TouchableOpacity>
@@ -635,63 +638,58 @@ class ReportActionCompose extends React.Component {
                                     )}
                                 </AttachmentPicker>
                                 <View style={styles.textInputComposeSpacing}>
-                                    <Composer
-                                        autoFocus={!this.props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || this.isEmptyChat())}
-                                        multiline
-                                        ref={this.setTextInputRef}
-                                        textAlignVertical="top"
-                                        placeholder={inputPlaceholder}
-                                        placeholderTextColor={themeColors.placeholderText}
-                                        onChangeText={comment => this.updateComment(comment, true)}
-                                        onKeyPress={this.triggerHotkeyActions}
-                                        onDragEnter={(e, isOriginComposer) => {
-                                            if (!isOriginComposer) {
-                                                return;
-                                            }
-
+                                    <DragAndDrop
+                                        dropZoneId={CONST.REPORT.DROP_NATIVE_ID}
+                                        activeDropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID}
+                                        onDragEnter={() => {
                                             this.setState({isDraggingOver: true});
                                         }}
-                                        onDragOver={(e, isOriginComposer) => {
-                                            if (!isOriginComposer) {
-                                                return;
-                                            }
-
-                                            this.setState({isDraggingOver: true});
+                                        onDragLeave={() => {
+                                            this.setState({isDraggingOver: false});
                                         }}
-                                        onDragLeave={() => this.setState({isDraggingOver: false})}
                                         onDrop={(e) => {
                                             e.preventDefault();
 
                                             const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-                                            if (!file) {
-                                                return;
-                                            }
 
                                             displayFileInModal(file);
+
                                             this.setState({isDraggingOver: false});
                                         }}
-                                        style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
-                                        maxLines={this.state.maxLines}
-                                        onFocus={() => this.setIsFocused(true)}
-                                        onBlur={() => this.setIsFocused(false)}
-                                        onPasteFile={displayFileInModal}
-                                        shouldClear={this.state.textInputShouldClear}
-                                        onClear={() => this.setTextInputShouldClear(false)}
-                                        isDisabled={isComposeDisabled || isBlockedFromConcierge}
-                                        selection={this.state.selection}
-                                        onSelectionChange={this.onSelectionChange}
-                                        isFullComposerAvailable={this.state.isFullComposerAvailable}
-                                        setIsFullComposerAvailable={this.setIsFullComposerAvailable}
-                                        isComposerFullSize={this.props.isComposerFullSize}
-                                        value={this.state.value}
-                                    />
+                                        disabled={this.props.disabled}
+                                    >
+                                        <Composer
+                                            autoFocus={!this.props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || this.isEmptyChat())}
+                                            multiline
+                                            ref={this.setTextInputRef}
+                                            textAlignVertical="top"
+                                            placeholder={inputPlaceholder}
+                                            placeholderTextColor={themeColors.placeholderText}
+                                            onChangeText={comment => this.updateComment(comment, true)}
+                                            onKeyPress={this.triggerHotkeyActions}
+                                            style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
+                                            maxLines={this.state.maxLines}
+                                            onFocus={() => this.setIsFocused(true)}
+                                            onBlur={() => this.setIsFocused(false)}
+                                            onPasteFile={displayFileInModal}
+                                            shouldClear={this.state.textInputShouldClear}
+                                            onClear={() => this.setTextInputShouldClear(false)}
+                                            isDisabled={isComposeDisabled || isBlockedFromConcierge || this.props.disabled}
+                                            selection={this.state.selection}
+                                            onSelectionChange={this.onSelectionChange}
+                                            isFullComposerAvailable={this.state.isFullComposerAvailable}
+                                            setIsFullComposerAvailable={this.setIsFullComposerAvailable}
+                                            isComposerFullSize={this.props.isComposerFullSize}
+                                            value={this.state.value}
+                                        />
+                                    </DragAndDrop>
                                 </View>
                             </>
                         )}
                     </AttachmentModal>
                     {canUseTouchScreen() && this.props.isMediumScreenWidth ? null : (
                         <EmojiPickerButton
-                            isDisabled={isBlockedFromConcierge}
+                            isDisabled={isBlockedFromConcierge || this.props.disabled}
                             onModalHide={() => this.focus(true)}
                             onEmojiSelected={this.addEmojiToTextBox}
                         />
@@ -703,12 +701,11 @@ class ReportActionCompose extends React.Component {
                                     (this.state.isCommentEmpty || hasExceededMaxCommentLength) ? undefined : styles.buttonSuccess,
                                 ]}
                                 onPress={this.submitForm}
-                                underlayColor={themeColors.componentBG}
 
                                 // Keep focus on the composer when Send message is clicked.
                                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
                                 onMouseDown={e => e.preventDefault()}
-                                disabled={this.state.isCommentEmpty || isBlockedFromConcierge || hasExceededMaxCommentLength}
+                                disabled={this.state.isCommentEmpty || isBlockedFromConcierge || this.props.disabled || hasExceededMaxCommentLength}
                                 hitSlop={{
                                     top: 3, right: 3, bottom: 3, left: 3,
                                 }}
@@ -728,6 +725,7 @@ class ReportActionCompose extends React.Component {
                     <ReportTypingIndicator reportID={this.props.reportID} />
                     <ExceededCommentLength commentLength={this.comment.length} />
                 </View>
+                {this.state.isDraggingOver && <ReportDropUI />}
             </View>
         );
     }
@@ -744,6 +742,7 @@ export default compose(
     withNetwork(),
     withPersonalDetails(),
     withCurrentUserPersonalDetails,
+    withKeyboardState,
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
