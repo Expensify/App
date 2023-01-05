@@ -89,7 +89,7 @@ class DetailsPage extends React.PureComponent {
             details = {
                 login,
                 displayName: ReportUtils.getDisplayNameForParticipant(login),
-                avatar: avatar || ReportUtils.getDefaultAvatar(login),
+                avatar,
             };
         }
 
