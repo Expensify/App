@@ -92,15 +92,15 @@ class AttachmentModal extends PureComponent {
 
     /**
      * If our attachment is a PDF, return the unswipeable Modal type.
-     * @param {String} source
+     * @param {String} sourceURL
      * @param {Object} file
      * @returns {String}
      */
-    getModalType(source, file) {
+    getModalType(sourceURL, file) {
         return (
-            source
+            sourceURL
             && (
-                Str.isPDF(source)
+                Str.isPDF(sourceURL)
                 || (
                     file
                     && Str.isPDF(file.name || this.props.translate('attachmentView.unknownFilename'))
@@ -112,10 +112,10 @@ class AttachmentModal extends PureComponent {
     }
 
     /**
-     * @param {String} source
+     * @param {String} sourceURL
      */
-    downloadAttachment(source) {
-        fileDownload(source, this.props.originalFileName);
+    downloadAttachment(sourceURL) {
+        fileDownload(sourceURL, this.props.originalFileName);
 
         // At ios, if the keyboard is open while opening the attachment, then after downloading
         // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
