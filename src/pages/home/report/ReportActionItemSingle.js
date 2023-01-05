@@ -51,7 +51,12 @@ const showUserDetails = (email) => {
 };
 
 const ReportActionItemSingle = (props) => {
-    const {avatar, displayName, login, pendingFields} = props.personalDetails[props.action.actorEmail] || {};
+    const {
+        avatar,
+        displayName,
+        login,
+        pendingFields,
+    } = props.personalDetails[props.action.actorEmail] || {};
     const avatarUrl = props.action.automatic
         ? CONST.CONCIERGE_ICON_URL
 
