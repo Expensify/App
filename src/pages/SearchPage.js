@@ -49,6 +49,7 @@ class SearchPage extends Component {
 
         Timing.start(CONST.TIMING.SEARCH_RENDER);
 
+        this.searchRendered = this.searchRendered.bind(this);
         this.selectReport = this.selectReport.bind(this);
         this.onChangeText = this.onChangeText.bind(this);
         this.debouncedUpdateOptions = _.debounce(this.updateOptions.bind(this), 75);
@@ -70,10 +71,6 @@ class SearchPage extends Component {
             personalDetails,
             userToInvite,
         };
-    }
-
-    componentDidMount() {
-        Timing.end(CONST.TIMING.SEARCH_RENDER);
     }
 
     onChangeText(searchValue = '') {
@@ -116,6 +113,10 @@ class SearchPage extends Component {
         }
 
         return sections;
+    }
+
+    searchRendered() {
+        Timing.end(CONST.TIMING.SEARCH_RENDER);
     }
 
     updateOptions() {
@@ -183,6 +184,7 @@ class SearchPage extends Component {
                                 showTitleTooltip
                                 shouldShowOptions={didScreenTransitionEnd}
                                 placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                onLayout={this.searchRendered}
                             />
                         </View>
                     </>
