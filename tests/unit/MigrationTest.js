@@ -107,7 +107,7 @@ describe('Migrations', () => {
                     expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Adding lastActionCreated field to 2 reports');
                     const connectionID = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT,
-                        waitForCollectionCallbacks: true,
+                        waitForCollectionCallback: true,
                         callback: (allReports) => {
                             Onyx.disconnect(connectionID);
                             expect(_.keys(allReports).length).toBe(2);
@@ -142,7 +142,7 @@ describe('Migrations', () => {
                     expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration AddLastActionCreated');
                     const connectionID = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT,
-                        waitForCollectionCallbacks: true,
+                        waitForCollectionCallback: true,
                         callback: (allReports) => {
                             Onyx.disconnect(connectionID);
                             expect(allReports).toBeEmpty();
@@ -181,7 +181,7 @@ describe('Migrations', () => {
                     expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Re-keying reportActions by reportActionID for 2 reports');
                     const connectionID = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                        waitForCollectionCallbacks: true,
+                        waitForCollectionCallback: true,
                         callback: (allReportActions) => {
                             Onyx.disconnect(connectionID);
                             expect(_.keys(allReportActions).length).toBe(2);
@@ -221,7 +221,7 @@ describe('Migrations', () => {
                     expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID');
                     const connectionID = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-                        waitForCollectionCallbacks: true,
+                        waitForCollectionCallback: true,
                         callback: (allReportActions) => {
                             Onyx.disconnect(connectionID);
                             expect(_.keys(allReportActions).length).toBe(2);

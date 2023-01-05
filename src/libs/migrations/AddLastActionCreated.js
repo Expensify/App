@@ -12,7 +12,7 @@ export default function () {
     return new Promise((resolve) => {
         const connectionID = Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT,
-            waitForCollectionCallbacks: true,
+            waitForCollectionCallback: true,
             callback: (allReports) => {
                 Onyx.disconnect(connectionID);
                 const reportsToUpdate = {};
