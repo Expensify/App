@@ -20,7 +20,6 @@ class LogOutPreviousUserPage extends Component {
     componentDidMount() {
         Linking.getInitialURL()
             .then((transitionURL) => {
-
                 const sessionEmail = lodashGet(this.props.session, 'email', '');
                 const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL, sessionEmail);
 

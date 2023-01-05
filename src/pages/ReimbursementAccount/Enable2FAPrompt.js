@@ -7,7 +7,6 @@ import * as Expensicons from '../../components/Icon/Expensicons';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import Section from '../../components/Section';
 import * as Link from '../../libs/actions/Link';
-import CONFIG from '../../CONFIG';
 import ROUTES from '../../ROUTES';
 import themeColors from '../../styles/themes/default';
 
