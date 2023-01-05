@@ -51,7 +51,6 @@ class CloseAccountPage extends Component {
     }
 
     onConfirm() {
-        debugger;
         User.closeAccount(this.state.reasonForLeaving);
         this.setState({isConfirmModalVisible: false});
     }
