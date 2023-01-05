@@ -61,7 +61,7 @@ const AboutPage = (props) => {
     ];
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithCloseButton
                 title={props.translate('initialSettingsPage.about')}
                 shouldShowBackButton
