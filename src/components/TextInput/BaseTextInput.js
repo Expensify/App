@@ -66,7 +66,8 @@ class BaseTextInput extends Component {
         }
 
         if (this.props.shouldDelayFocus) {
-            return setTimeout(() => this.input.focus(), CONST.ANIMATED_TRANSITION);
+            this.focusTimeout = setTimeout(() => this.input.focus(), CONST.ANIMATED_TRANSITION);
+            return;
         }
         this.input.focus();
     }
@@ -94,6 +95,10 @@ class BaseTextInput extends Component {
     }
 
     componentWillUnmount() {
+        if (this.focusTimeout) {
+            clearTimeout(this.focusTimeout);
+        }
+
         if (!this.props.disableKeyboard || !this.appStateSubscription) {
             return;
         }
