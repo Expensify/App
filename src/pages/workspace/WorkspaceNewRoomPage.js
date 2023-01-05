@@ -123,7 +123,7 @@ class WorkspaceNewRoomPage extends React.Component {
         }));
 
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('newRoomPage.newRoom')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
