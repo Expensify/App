@@ -152,7 +152,7 @@ class CompanyStep extends React.Component {
         const shouldDisableCompanyTaxID = bankAccountID && this.getDefaultStateForField('companyTaxID');
 
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('companyStep.headerTitle')}
                     stepCounter={{step: 2, total: 5}}

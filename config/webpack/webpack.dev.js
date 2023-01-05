@@ -57,6 +57,13 @@ module.exports = (env = {}) => portfinder.getPortPromise({port: BASE_PORT})
                     config: [__filename],
                 },
             },
+            snapshot: {
+                // A list of paths webpack trusts would not be modified while webpack is running
+                managedPaths: [
+                    // Onyx can be modified on the fly, changes to other node_modules would not be reflected live
+                    /([\\/]node_modules[\\/](?!react-native-onyx))/,
+                ],
+            },
         });
 
         return TimeAnalyticsPlugin.wrap(config);

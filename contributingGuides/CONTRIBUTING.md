@@ -110,7 +110,6 @@ Additionally if you want to discuss an idea with the open source community witho
 
 #### Propose a solution for the job
 4. After you reproduce the issue, make a proposal for your solution and post it as a comment in the corresponding GitHub issue (linked in the Upwork job). Your solution proposal should include a brief written technical explanation of the changes you will make. Include "Proposal" as the first word in your comment. 
-    - Note: Issues that have not had the `External` label applied have not yet been approved for implementation. This means, if you propose a solution to an issue without the `External` label (which you are allowed to do) it is possible that the issue will be fixed internally. If the `External` label has not yet been applied, Expensify has the right to use your proposal to fix said issue, without providing compensation for your solution. This process covers the very rare instance where we need or want to fix an issue internally.
     - Note: Before submitting a proposal on an issue, be sure to read any other existing proposals. Any new proposal should be substantively different from existing proposals.
 5. Pause at this step until someone from the Contributor-Plus team and / or someone from Expensify provides feedback on your proposal (do not create a pull request yet).
 6. If your solution proposal is accepted by the Expensify engineer assigned to the issue, Expensify will hire you on Upwork and assign the GitHub issue to you.

@@ -78,7 +78,7 @@ class BankAccountManualStep extends React.Component {
         const shouldDisableInputs = Boolean(this.getDefaultStateForField('bankAccountID'));
 
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('workspace.common.bankAccount')}
                     stepCounter={{step: 1, total: 5}}

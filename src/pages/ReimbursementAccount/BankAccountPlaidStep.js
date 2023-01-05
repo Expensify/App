@@ -80,7 +80,7 @@ class BankAccountPlaidStep extends React.Component {
         const selectedPlaidAccountID = this.getDefaultStateForField('plaidAccountID', '');
 
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('workspace.common.bankAccount')}
                     stepCounter={{step: 1, total: 5}}

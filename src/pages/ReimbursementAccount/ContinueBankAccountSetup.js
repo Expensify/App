@@ -34,7 +34,7 @@ const propTypes = {
 };
 
 const ContinueBankAccountSetup = props => (
-    <ScreenWrapper>
+    <ScreenWrapper includeSafeAreaPaddingBottom={false}>
         <FullPageNotFoundView shouldShow={_.isEmpty(props.policy)}>
             <HeaderWithCloseButton
                 title={props.translate('workspace.common.bankAccount')}

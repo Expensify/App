@@ -45,7 +45,7 @@ const EnableStep = (props) => {
     const bankName = reimbursementAccount.addressName;
 
     return (
-        <ScreenWrapper style={[styles.flex1, styles.justifyContentBetween]}>
+        <ScreenWrapper style={[styles.flex1, styles.justifyContentBetween]} includeSafeAreaPaddingBottom={false}>
             <HeaderWithCloseButton
                 title={props.translate('workspace.common.bankAccount')}
                 onCloseButtonPress={Navigation.dismissModal}
