@@ -11,7 +11,7 @@ import Log from '../Log';
 const mocks = {
     BeginSignIn: ({email}) => {
         const response = require('../E2E/apiMocks/beginSignin.json');
-        response.onyxData.forEach((d) => {
+        response.onyxData.forEach((data) => {
             if (d.key !== 'credentials') {
                 return;
             }
