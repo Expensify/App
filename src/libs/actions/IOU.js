@@ -183,7 +183,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
                 value: {
-                    0: {
+                    [optimisticCreatedAction.reportActionID]: {
                         pendingAction: null,
                     },
                 },
@@ -202,7 +202,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
                 value: {
-                    0: {
+                    [optimisticCreatedAction.reportActionID]: {
                         pendingAction: null,
                     },
                 },

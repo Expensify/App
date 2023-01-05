@@ -143,13 +143,14 @@ function signInAndGetAppWithUnreadChat() {
                 lastMessageText: 'Test',
                 participants: [USER_B_EMAIL],
             });
+            const createdReportActionID = NumberUtils.rand64();
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
-                0: {
+                [createdReportActionID]: {
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     automatic: false,
                     sequenceNumber: 0,
                     created: MOMENT_TEN_MINUTES_AGO.clone().format(MOMENT_FORMAT),
-                    reportActionID: NumberUtils.rand64(),
+                    reportActionID: createdReportActionID,
                     message: [
                         {
                             style: 'strong',
@@ -293,13 +294,14 @@ describe('Unread Indicators', () => {
                     lastMessageText: 'Comment 1',
                     participants: [USER_C_EMAIL],
                 });
+                const createdReportActionID = NumberUtils.rand64();
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${NEW_REPORT_ID}`, {
-                    0: {
+                    [createdReportActionID]: {
                         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                         automatic: false,
                         sequenceNumber: 0,
                         created: NEW_REPORT_CREATED_MOMENT.format(MOMENT_FORMAT),
-                        reportActionID: NumberUtils.rand64(),
+                        reportActionID: createdReportActionID,
                     },
                     1: {
                         actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
