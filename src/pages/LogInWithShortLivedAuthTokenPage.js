@@ -21,7 +21,7 @@ const propTypes = {
 class LogInWithShortLivedAuthTokenPage extends Component {
     componentDidMount() {
         const email = lodashGet(this.props, 'route.params.email', '');
-        const shortLivedAuthToken = lodashGet(this.props, 'route.params.shortLivedAuthToken', '');
+        const shortLivedAuthToken = lodashGet(this.props, 'route.params.shortLivedAuthToken', '') || lodashGet(this.props, 'route.params.shortLivedToken', '');
         Session.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
     }
 
