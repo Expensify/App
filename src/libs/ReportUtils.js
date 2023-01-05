@@ -914,7 +914,6 @@ function buildOptimisticChatReport(
  * @returns {Object}
  */
 function buildOptimisticCreatedReportAction(ownerEmail) {
-    const reportActionID = NumberUtils.rand64();
     return {
         0: {
             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
@@ -944,7 +943,6 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
             sequenceNumber: 0,
             avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
             created: DateUtils.getDBTime(),
-            reportActionID,
             shouldShow: true,
         },
     };
