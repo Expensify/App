@@ -22,7 +22,7 @@ export default function () {
                     const [onyxKey, reportActionsForReport] = Object.entries(allReportActions)[i];
                     const newReportActionsForReport = {};
                     for (let j = 0; j < Object.entries(reportActionsForReport).length; j++) {
-                        const [reportActionKey, reportAction] = Object.entries(reportActionsForReport[j]);
+                        const [reportActionKey, reportAction] = Object.entries(reportActionsForReport)[j];
 
                         // If we find a reportAction that's already keyed by reportActionID instead of sequenceNumber,
                         // then we assume the migration already happened and return early.
