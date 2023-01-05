@@ -115,7 +115,7 @@ class DisplayNamePage extends Component {
         const currentUserDetails = this.props.currentUserPersonalDetails || {};
 
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('displayNamePage.headerTitle')}
                     shouldShowBackButton

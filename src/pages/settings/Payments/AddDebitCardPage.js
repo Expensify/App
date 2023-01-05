@@ -108,7 +108,7 @@ class DebitCardPage extends Component {
 
     render() {
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('addDebitCardPage.addADebitCard')}
                     shouldShowBackButton
