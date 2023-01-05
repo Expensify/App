@@ -422,9 +422,13 @@ function formatReportLastMessageText(lastMessageText) {
 function getDefaultAvatar(login = '') {
     // There are 24 possible default avatars, so we choose which one this user has based
     // on a simple hash of their login
-    if (login === CONST.EMAIL.CONCIERGE) {
-        return CONST.CONCIERGE_ICON_URL;
+    if (!login) {
+        return Expensicons.FallbackAvatar;
     }
+    if (login === CONST.EMAIL.CONCIERGE) {
+        return Expensicons.ConciergeAvatar;
+    }
+
     const loginHashBucket = (Math.abs(hashCode(login.toLowerCase())) % 24) + 1;
 
     return defaultAvatars[`Avatar${loginHashBucket}`];
@@ -436,33 +440,15 @@ function getDefaultAvatar(login = '') {
  * @param {String} [login]
  * @returns {String}
  */
-function getDefaultAvatarPNG(login = '') {
-    // There are 24 possible default avatars, so we choose which one this user has based
+function getOldDotDefaultAvatar(login = '') {
+    // There are 8 possible default avatars, so we choose which one this user has based
     // on a simple hash of their login
     if (login === CONST.EMAIL.CONCIERGE) {
         return CONST.CONCIERGE_ICON_URL;
     }
-    const loginHashBucket = (Math.abs(hashCode(login.toLowerCase())) % 24) + 1;
+    const loginHashBucket = (Math.abs(hashCode(login.toLowerCase())) % 8) + 1;
 
-    return `${CONST.CLOUDFRONT_URL}/images/avatars/default-avatar_${loginHashBucket}`;
-}
-
-/**
- * Helper method to link png avatar to svg
- *
- * @param {String} [avatarURL]
- * @returns {String}
- */
-function getSVGfromCloudflareURL(avatarURL) {
-    if (!isString(avatarURL)) {
-        return avatarURL;
-    }
-    if (avatarURL.includes('images/avatars/default')) {
-        const URLWithoutCloudFront = avatarURL.replace(CONST.CLOUDFRONT_URL, '');
-        const avatarNumber = URLWithoutCloudFront.replace(/[^0-9]/g, '');
-        return defaultAvatars[`Avatar${avatarNumber}`];
-    }
-    return avatarURL;
+    return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}`;
 }
 
 /**
@@ -472,11 +458,29 @@ function getSVGfromCloudflareURL(avatarURL) {
  * @returns {Boolean}
  */
 function isDefaultAvatarURL(avatarURL) {
-    if (isString(avatarURL)
-            && (avatarURL.includes('images/avatars/avatar_') || (avatarURL.includes('images/avatars/default')))) {
+    if (isString(avatarURL) && (avatarURL.includes('images/avatars/avatar_') || (avatarURL.includes('images/user-avatars/default')))) {
+        return true;
+    }
+
+    if (!avatarURL) {
         return true;
     }
     return false;
+}
+
+/**
+ * If source is a default avatar, returns default avatar SVG.
+ * Otherwise, returns the source uri for the user's avatar.
+ *
+ * @param {String} [avatarURL]
+ * @param {String} [login]
+ * @returns {String}
+ */
+function getCorrectAvatar(avatarURL, login) {
+    if (isDefaultAvatarURL(avatarURL)) {
+        return getDefaultAvatar(login);
+    }
+    return avatarURL;
 }
 
 /**
@@ -491,7 +495,7 @@ function isDefaultAvatarURL(avatarURL) {
  */
 function getIcons(report, personalDetails, policies, defaultIcon = null) {
     if (_.isEmpty(report)) {
-        return [defaultIcon || getDefaultAvatar()];
+        return [defaultIcon || getDefaultAvatar(report.ownerEmail)];
     }
     if (isConciergeChatReport(report)) {
         return [CONST.CONCIERGE_ICON_URL];
@@ -533,10 +537,8 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
     for (let i = 0; i < report.participants.length; i++) {
         const login = report.participants[i];
 
-        let avatarURL = lodashGet(personalDetails, [login, 'avatar'], '');
-        if (avatarURL.includes('images/avatars/default')) {
-            avatarURL = getDefaultAvatar(login);
-        }
+        const avatarURL = getCorrectAvatar(lodashGet(personalDetails, [login, 'avatar'], ''), login);
+
         participantDetails.push([
             login,
             lodashGet(personalDetails, [login, 'firstName'], ''),
@@ -1290,7 +1292,7 @@ export {
     getDisplayNameForParticipant,
     isIOUReport,
     chatIncludesChronos,
-    getSVGfromCloudflareURL,
+    getCorrectAvatar,
     isDefaultAvatarURL,
-    getDefaultAvatarPNG,
+    getOldDotDefaultAvatar,
 };

@@ -1672,6 +1672,7 @@ const styles = {
         borderWidth: 3,
         borderRadius: 18,
         borderColor: themeColors.cardBorder,
+        backgroundColor: themeColors.appBG,
     },
 
     avatarLarge: {
@@ -2026,7 +2027,7 @@ const styles = {
     },
 
     svgAvatarBorder: {
-        borderRadius: '50%',
+        borderRadius: 100,
         overflow: 'hidden',
     },
 
@@ -2219,6 +2220,7 @@ const styles = {
 
     iouPreviewBoxAvatarHover: {
         borderColor: themeColors.border,
+        backgroundColor: themeColors.border,
     },
 
     iouPreviewBoxCheckmark: {

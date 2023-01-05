@@ -229,9 +229,12 @@ class AttachmentModal extends PureComponent {
     }
 
     render() {
-        const sourceURL = this.props.isAuthTokenRequired
-            ? addEncryptedAuthTokenToURL(this.state.sourceURL)
-            : this.state.sourceURL;
+        let sourceURL = this.state.sourceURL;
+        if (!_.isFunction(this.state.sourceURL)) {
+            sourceURL = this.props.isAuthTokenRequired
+                ? addEncryptedAuthTokenToURL(this.state.sourceURL)
+                : this.state.sourceURL;
+        }
 
         const {fileName, fileExtension} = FileUtils.splitExtensionFromFileName(this.props.originalFileName || lodashGet(this.state, 'file.name', ''));
 

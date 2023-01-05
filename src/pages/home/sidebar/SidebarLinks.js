@@ -55,8 +55,8 @@ const propTypes = {
         /** Avatar URL of the current user from their personal details */
         avatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
 
-        // /** Login email of the current user from their personal details */
-        // login: PropTypes.string,
+        /** Login email of the current user from their personal details */
+        login: PropTypes.string,
     }),
 
     /** Current reportID from the route in react navigation state object */
@@ -128,6 +128,7 @@ class SidebarLinks extends React.Component {
             return null;
         }
         const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
+
         return (
             <View
                 accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
@@ -167,7 +168,7 @@ class SidebarLinks extends React.Component {
                         onPress={this.showSettingsPage}
                     >
                         <AvatarWithIndicator
-                            source={this.props.currentUserPersonalDetails.avatar}
+                            source={ReportUtils.getCorrectAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
                             tooltipText={this.props.translate('common.settings')}
                         />
                     </TouchableOpacity>

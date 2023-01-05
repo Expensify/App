@@ -1,5 +1,6 @@
 import React, {memo} from 'react';
 import {View, ActivityIndicator} from 'react-native';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import styles from '../styles/styles';
@@ -46,6 +47,13 @@ const defaultProps = {
 const AttachmentView = (props) => {
     // Check both sourceURL and file.name since PDFs dragged into the the text field
     // will appear with a sourceURL that is a blob
+
+    // handles SVG
+    if (_.isFunction(props.sourceURL)) {
+        return (
+            <Icon src={props.sourceURL} height={styles.h100} width={styles.w100} />
+        );
+    }
 
     if (Str.isPDF(props.sourceURL)
         || (props.file && Str.isPDF(props.file.name || props.translate('attachmentView.unknownFilename')))) {

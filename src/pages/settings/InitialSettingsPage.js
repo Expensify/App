@@ -30,6 +30,7 @@ import * as Wallet from '../../libs/actions/Wallet';
 import walletTermsPropTypes from '../EnablePayments/walletTermsPropTypes';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import ConfirmModal from '../../components/ConfirmModal';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -246,7 +247,7 @@ class InitialSettingsPage extends React.Component {
                                 <Tooltip text={this.props.currentUserPersonalDetails.displayName}>
                                     <Avatar
                                         imageStyles={[styles.avatarLarge]}
-                                        source={this.props.currentUserPersonalDetails.avatar}
+                                        source={ReportUtils.getCorrectAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.email)}
                                         size={CONST.AVATAR_SIZE.LARGE}
                                     />
                                 </Tooltip>

@@ -82,15 +82,17 @@ class DetailsPage extends React.PureComponent {
 
     render() {
         let details = lodashGet(this.props.personalDetails, lodashGet(this.props.route.params, 'login'));
-        const avatar = ReportUtils.getSVGfromCloudflareURL(lodashGet(details, 'avatar', ''));
+        const login = lodashGet(this.props.route.params, 'login');
+        const avatar = ReportUtils.getCorrectAvatar(lodashGet(details, 'avatar', ''), login);
+
         if (!details) {
-            const login = lodashGet(this.props.route.params, 'login');
             details = {
                 login,
                 displayName: ReportUtils.getDisplayNameForParticipant(login),
                 avatar: avatar || ReportUtils.getDefaultAvatar(login),
             };
         }
+
         const isSMSLogin = Str.isSMSLogin(details.login);
 
         // If we have a reportID param this means that we
@@ -127,7 +129,7 @@ class DetailsPage extends React.PureComponent {
                             <View style={styles.pageWrapper}>
                                 <AttachmentModal
                                     headerTitle={isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
-                                    sourceURL={details.avatar}
+                                    sourceURL={ReportUtils.getCorrectAvatar(details.avatar, details.login)}
                                     isAuthTokenRequired
                                 >
                                     {({show}) => (
@@ -138,9 +140,8 @@ class DetailsPage extends React.PureComponent {
                                             <Avatar
                                                 containerStyles={[styles.avatarLarge, styles.mb3]}
                                                 imageStyles={[styles.avatarLarge]}
-                                                source={details.avatar}
+                                                source={ReportUtils.getCorrectAvatar(details.avatar, details.login)}
                                                 size={CONST.AVATAR_SIZE.LARGE}
-                                                login={details.login}
                                             />
                                         </PressableWithoutFocus>
                                     )}

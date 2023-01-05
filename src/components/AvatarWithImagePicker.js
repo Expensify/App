@@ -24,7 +24,7 @@ import * as FileUtils from '../libs/fileDownload/FileUtils';
 
 const propTypes = {
     /** Avatar URL to display */
-    avatarURL: PropTypes.string,
+    avatarURL: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
 
     /** Additional style props */
     style: stylePropTypes,
