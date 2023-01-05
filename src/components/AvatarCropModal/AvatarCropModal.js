@@ -82,7 +82,7 @@ const AvatarCropModal = (props) => {
     const initializeImageContainer = useCallback((event) => {
         setIsImageContainerInitialized(true);
         const {height, width} = event.nativeEvent.layout;
-        setImageContainerSize(Math.min(height - styles.imageCropRotateButton.height, width));
+        setImageContainerSize(Math.floor(Math.min(height - styles.imageCropRotateButton.height, width)));
     }, [props.isSmallScreenWidth]);
 
     // An onLayout callback, that initializes the slider container size, for proper render of a slider
