@@ -51,7 +51,7 @@ const showUserDetails = (email) => {
 
 const ReportActionItemSingle = (props) => {
     const {avatar, displayName, login} = props.personalDetails[props.action.actorEmail] || {};
-    const avatarUrl = props.action.automatic
+    const avatarSource = props.action.automatic
         ? CONST.CONCIERGE_ICON_URL
 
         // Use avatar in personalDetails if we have one then fallback to avatar provided by the action
@@ -75,7 +75,7 @@ const ReportActionItemSingle = (props) => {
                 <Tooltip text={props.action.actorEmail}>
                     <Avatar
                         containerStyles={[styles.actionAvatar]}
-                        source={avatarUrl}
+                        source={avatarSource}
                     />
                 </Tooltip>
             </Pressable>

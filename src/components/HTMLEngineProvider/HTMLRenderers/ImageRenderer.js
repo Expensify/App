@@ -59,7 +59,7 @@ const ImageRenderer = (props) => {
     ) : (
         <AttachmentModal
             allowDownload
-            sourceURL={source}
+            source={source}
             isAuthTokenRequired={isAttachment}
             originalFileName={originalFileName}
         >

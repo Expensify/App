@@ -15,8 +15,8 @@ import Tooltip from './Tooltip';
 import themeColors from '../styles/themes/default';
 
 const propTypes = {
-    /** URL to full-sized attachment */
-    sourceURL: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
+    /** URL to full-sized attachment or SVG function */
+    source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
 
     /** File object maybe be instance of File or Object */
     file: PropTypes.shape({
@@ -45,32 +45,32 @@ const defaultProps = {
 };
 
 const AttachmentView = (props) => {
-    // Check both sourceURL and file.name since PDFs dragged into the the text field
-    // will appear with a sourceURL that is a blob
+    // Check both source and file.name since PDFs dragged into the the text field
+    // will appear with a source that is a blob
 
     // handles SVG
-    if (_.isFunction(props.sourceURL)) {
+    if (_.isFunction(props.source)) {
         return (
-            <Icon src={props.sourceURL} height={styles.h100} width={styles.w100} />
+            <Icon src={props.source} height={300} width={300} />
         );
     }
 
-    if (Str.isPDF(props.sourceURL)
+    if (Str.isPDF(props.source)
         || (props.file && Str.isPDF(props.file.name || props.translate('attachmentView.unknownFilename')))) {
         return (
             <PDFView
-                sourceURL={props.sourceURL}
+                sourceURL={props.source}
                 style={styles.imageModalPDF}
                 onToggleKeyboard={props.onToggleKeyboard}
             />
         );
     }
 
-    // For this check we use both sourceURL and file.name since temporary file sourceURL is a blob
+    // For this check we use both source and file.name since temporary file source is a blob
     // both PDFs and images will appear as images when pasted into the the text field
-    if (Str.isImage(props.sourceURL) || (props.file && Str.isImage(props.file.name))) {
+    if (Str.isImage(props.source) || (props.file && Str.isImage(props.file.name))) {
         return (
-            <ImageView url={props.sourceURL} />
+            <ImageView url={props.source} />
         );
     }
 

@@ -148,7 +148,7 @@ class ProfilePage extends Component {
                         onClose={PersonalDetails.clearAvatarErrors}
                     >
                         <AvatarWithImagePicker
-                            avatarURL={ReportUtils.getCorrectAvatar(currentUserDetails.avatar, currentUserDetails.login)}
+                            avatarSource={ReportUtils.getCorrectAvatar(currentUserDetails.avatar, currentUserDetails.login)}
                             onImageSelected={PersonalDetails.updateAvatar}
                             onImageRemoved={PersonalDetails.deleteAvatar}
                             anchorPosition={styles.createMenuPositionProfile}

@@ -23,8 +23,8 @@ import stylePropTypes from '../styles/stylePropTypes';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
 
 const propTypes = {
-    /** Avatar URL to display */
-    avatarURL: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+    /** Avatar source to display */
+    avatarSource: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
 
     /** Additional style props */
     style: stylePropTypes,
@@ -35,7 +35,7 @@ const propTypes = {
     /** Execute when the user taps "remove" */
     onImageRemoved: PropTypes.func,
 
-    /** A default avatar component to display when there is no avatarURL */
+    /** A default avatar component to display when there is no avatarSource */
     DefaultAvatar: PropTypes.func,
 
     /** Whether we are using the default avatar */
@@ -62,7 +62,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    avatarURL: '',
+    avatarSource: '',
     onImageSelected: () => {},
     onImageRemoved: () => {},
     style: [],
@@ -250,12 +250,12 @@ class AvatarWithImagePicker extends React.Component {
                     onPress={() => this.setState({isMenuVisible: true})}
                 >
                     <View style={[styles.pRelative, styles.avatarLarge]}>
-                        {this.props.avatarURL
+                        {this.props.avatarSource
                             ? (
                                 <Avatar
                                     containerStyles={styles.avatarLarge}
                                     imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                    source={this.props.avatarURL}
+                                    source={this.props.avatarSource}
                                     fallbackIcon={this.props.fallbackIcon}
                                     size={this.props.size}
                                 />

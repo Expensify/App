@@ -453,16 +453,16 @@ function getOldDotDefaultAvatar(login = '') {
 
 /**
  * Returns true if provided URL requires a default avatar
- * @param {String} [avatarURL]
+ * @param {String} [avatarSource]
  * @returns {Boolean}
  */
-function isDefaultAvatarURL(avatarURL) {
-    if (isString(avatarURL) && (avatarURL.includes('images/avatars/avatar_') || (avatarURL.includes('images/user-avatars/default')))) {
+function isDefaultAvatar(avatarSource) {
+    if (isString(avatarSource) && (avatarSource.includes('images/avatars/avatar_') || (avatarSource.includes('images/user-avatars/default')))) {
         return true;
     }
 
     // if null URL, we should also use a default avatar
-    if (!avatarURL) {
+    if (!avatarSource) {
         return true;
     }
     return false;
@@ -472,15 +472,15 @@ function isDefaultAvatarURL(avatarURL) {
  * Provided a source URL, if source is a default avatar, return the associated SVG.
  * Otherwise, return the URL pointing to a user-uploaded avatar.
  *
- * @param {String} [avatarURL] - the avatar source from user's NVPs
+ * @param {String} [avatarSource] - the avatar source from user's NVPs
  * @param {String} [login] - the email of the user
  * @returns {String | Function}
  */
-function getCorrectAvatar(avatarURL, login) {
-    if (isDefaultAvatarURL(avatarURL)) {
+function getCorrectAvatar(avatarSource, login) {
+    if (isDefaultAvatar(avatarSource)) {
         return getDefaultAvatar(login);
     }
-    return avatarURL;
+    return avatarSource;
 }
 
 /**
@@ -537,12 +537,12 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
     for (let i = 0; i < report.participants.length; i++) {
         const login = report.participants[i];
 
-        const avatarURL = getCorrectAvatar(lodashGet(personalDetails, [login, 'avatar'], ''), login);
+        const avatarSource = getCorrectAvatar(lodashGet(personalDetails, [login, 'avatar'], ''), login);
 
         participantDetails.push([
             login,
             lodashGet(personalDetails, [login, 'firstName'], ''),
-            avatarURL,
+            avatarSource,
         ]);
     }
 
@@ -1293,6 +1293,6 @@ export {
     isIOUReport,
     chatIncludesChronos,
     getCorrectAvatar,
-    isDefaultAvatarURL,
+    isDefaultAvatar,
     getOldDotDefaultAvatar,
 };
