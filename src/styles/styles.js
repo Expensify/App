@@ -2547,18 +2547,18 @@ const styles = {
 
     shortTermsBorder: {
         borderWidth: 1,
-        borderColor: themeColors.shadow,
+        borderColor: themeColors.border,
     },
 
     shortTermsHorizontalRule: {
         borderBottomWidth: 1,
-        borderColor: themeColors.shadow,
+        borderColor: themeColors.border,
         ...spacing.mh3,
     },
 
     shortTermsLargeHorizontalRule: {
         borderWidth: 1,
-        borderColor: themeColors.shadow,
+        borderColor: themeColors.border,
         ...spacing.mh3,
     },
 
