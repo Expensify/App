@@ -133,7 +133,7 @@ class AdditionalDetailsStep extends React.Component {
             errors[INPUT_IDS.DOB] = this.props.translate(this.errorTranslationKeys.age);
         }
 
-        if (!ValidationUtils.isValidAddress(values[INPUT_IDS.ADDRESS.street])) {
+        if (!ValidationUtils.isValidAddress(values[INPUT_IDS.ADDRESS.street]) || _.isEmpty(values[INPUT_IDS.ADDRESS.street])) {
             errors[INPUT_IDS.ADDRESS.street] = this.props.translate('bankAccount.error.addressStreet');
         }
 
