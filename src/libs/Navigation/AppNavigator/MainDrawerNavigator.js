@@ -65,7 +65,7 @@ class MainDrawerNavigator extends Component {
 
         // When we have chat reports the moment this component got created
         // we know that the data was served from storage/cache
-        this.isFromCache = props.reports && _.values(props.reports).length > 0;
+        this.isFromCache = _.size(props.reports) > 0;
     }
 
     shouldComponentUpdate(nextProps) {

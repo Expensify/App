@@ -64,7 +64,7 @@ class ReportActionsView extends React.Component {
         this.didLayout = false;
         this.didSubscribeToReportTypingEvents = false;
         this.unsubscribeVisibilityListener = null;
-        this.hasCachedActions = !_.size(props.reportActions);
+        this.hasCachedActions = _.size(props.reportActions) > 0;
 
         // We need this.sortedAndFilteredReportActions to be set before this.state is initialized because the function to calculate the newMarkerReportActionID uses the sorted report actions
         this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(props.reportActions);
