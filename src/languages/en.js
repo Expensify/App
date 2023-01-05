@@ -132,7 +132,7 @@ export default {
         description: 'Drag, zoom, and rotate your image to your preferred specifications',
     },
     composer: {
-        noExtentionFoundForMimeType: 'No extension found for mime type',
+        noExtensionFoundForMimeType: 'No extension found for mime type',
         problemGettingImageYouPasted: 'There was a problem getting the image you pasted',
     },
     baseUpdateAppModal: {
@@ -260,6 +260,7 @@ export default {
         split: ({amount}) => `Split ${amount}`,
         send: ({amount}) => `Send ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
+        pendingConversionMessage: 'Total will update when you\'re back online',
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
@@ -1037,6 +1038,9 @@ export default {
             restricted: 'Restricted',
             private: 'Private',
         },
+    },
+    statementPage: {
+        generatingPDF: 'We\'re generating your PDF right now. Please come back later!',
     },
     keyboardShortcutModal: {
         title: 'Keyboard Shortcuts',

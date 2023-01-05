@@ -235,8 +235,8 @@ class NewChatPage extends Component {
             maxParticipantsReached,
         );
         return (
-            <ScreenWrapper>
-                {({didScreenTransitionEnd}) => (
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+                {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
                         <HeaderWithCloseButton
                             title={this.props.isGroupChat
@@ -244,7 +244,7 @@ class NewChatPage extends Component {
                                 : this.props.translate('sidebarScreen.newChat')}
                             onCloseButtonPress={() => Navigation.dismissModal(true)}
                         />
-                        <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                        <View style={[styles.flex1, styles.w100, styles.pRelative, this.state.selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
                             {didScreenTransitionEnd ? (
                                 <OptionsSelector
                                     canSelectMultipleOptions={this.props.isGroupChat}
