@@ -12,22 +12,22 @@ const mocks = {
     BeginSignIn: ({email}) => {
         const response = require('../E2E/apiMocks/beginSignin.json');
         response.onyxData.forEach((data) => {
-            if (d.key !== 'credentials') {
+            if (data.key !== 'credentials') {
                 return;
             }
             // eslint-disable-next-line no-param-reassign
-            d.value.login = email;
+            data.value.login = email;
         });
         return response;
     },
     SigninUser: ({email}) => {
         const response = require('../E2E/apiMocks/signinUser.json');
-        response.onyxData.forEach((d) => {
-            if (d.key !== 'session') {
+        response.onyxData.forEach((data) => {
+            if (data.key !== 'session') {
                 return;
             }
             // eslint-disable-next-line no-param-reassign
-            d.value.email = email;
+            data.value.email = email;
         });
         return response;
     },
