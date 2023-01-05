@@ -63,7 +63,7 @@ class Tooltip extends PureComponent {
     getWrapperPosition() {
         return new Promise(((resolve) => {
             // Make sure the wrapper is mounted before attempting to measure it.
-            if (this.wrapperView) {
+            if (this.wrapperView && _.isFunction(this.wrapperView.measureInWindow)) {
                 this.wrapperView.measureInWindow((x, y, width, height) => resolve({
                     x, y, width, height,
                 }));
@@ -148,6 +148,9 @@ class Tooltip extends PureComponent {
             <View
                 ref={el => this.wrapperView = el}
                 style={this.props.containerStyles}
+                onFocus={this.showTooltip}
+                onBlur={this.hideTooltip}
+                focusable
             >
                 {this.props.children}
             </View>
@@ -156,15 +159,33 @@ class Tooltip extends PureComponent {
         if (this.props.absolute && React.isValidElement(this.props.children)) {
             child = React.cloneElement(React.Children.only(this.props.children), {
                 ref: (el) => {
-                    // Keep your own reference
                     this.wrapperView = el;
 
                     // Call the original ref, if any
                     const {ref} = this.props.children;
-                    if (typeof ref === 'function') {
+                    if (_.isFunction(ref)) {
                         ref(el);
                     }
                 },
+                onFocus: (el) => {
+                    this.showTooltip();
+
+                    // Call the original onFocus, if any
+                    const {onFocus} = this.props.children;
+                    if (_.isFunction(onFocus)) {
+                        onFocus(el);
+                    }
+                },
+                onBlur: (el) => {
+                    this.hideTooltip();
+
+                    // Call the original onBlur, if any
+                    const {onBlur} = this.props.children;
+                    if (_.isFunction(onBlur)) {
+                        onBlur(el);
+                    }
+                },
+                focusable: true,
             });
         }
         return (
@@ -189,7 +210,6 @@ class Tooltip extends PureComponent {
                     containerStyles={this.props.containerStyles}
                     onHoverIn={this.showTooltip}
                     onHoverOut={this.hideTooltip}
-                    resetsOnClickOutside
                 >
                     {child}
                 </Hoverable>
