@@ -10,7 +10,6 @@ import ONYXKEYS from '../../ONYXKEYS';
  */
 export default function () {
     return new Promise((resolve) => {
-        let shouldSkipMigration = false;
         const connectionID = Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
             waitForCollectionCallback: true,
@@ -27,8 +26,8 @@ export default function () {
                         // If we find a reportAction that's already keyed by reportActionID instead of sequenceNumber,
                         // then we assume the migration already happened and return early.
                         if (reportActionKey === reportAction.reportActionID && reportActionKey !== reportAction.sequenceNumber) {
-                            shouldSkipMigration = true;
-                            return;
+                            Log.info('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID');
+                            return resolve();
                         }
 
                         // Move it to be keyed by reportActionID instead
@@ -39,14 +38,9 @@ export default function () {
 
                 Log.info(`[Migrate Onyx] Re-keying reportActions by reportActionID for ${_.keys(newReportActions).length} reports`);
                 // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                Onyx.set(ONYXKEYS.COLLECTION.REPORT_ACTIONS, newReportActions)
+                Onyx.multiSet(newReportActions)
                     .then(resolve);
             },
         });
-
-        if (shouldSkipMigration) {
-            Log.info('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID');
-            return resolve();
-        }
     });
 }
