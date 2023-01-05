@@ -37,14 +37,14 @@ Onyx.connect({
 
         if (accountID && previousAccountID !== accountID) {
             PushNotification.register(accountID);
-            previousAccountID = accountID;
         }
 
         if (!accountID && previousAccountID !== accountID) {
             PushNotification.deregister();
             PushNotification.clearNotifications();
-            previousAccountID = accountID;
         }
+
+        previousAccountID = accountID;
     },
 });
 
