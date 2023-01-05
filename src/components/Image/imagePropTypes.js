@@ -31,6 +31,9 @@ const imagePropTypes = {
     /** Event for when the image is fully loaded and returns the natural dimensions of the image */
     onLoad: PropTypes.func,
 
+    /** Progress events while the image is downloading */
+    onProgress: PropTypes.func,
+
     /* Onyx Props */
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({

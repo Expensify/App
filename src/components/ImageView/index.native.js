@@ -55,7 +55,7 @@ class ImageView extends PureComponent {
             onStartShouldSetPanResponder: this.updatePanResponderTouches.bind(this),
         });
 
-        this.imageLoadingStart = this.imageLoadingStart.bind(this);
+        this.imageProgress = this.imageProgress.bind(this);
         this.imageLoad = this.imageLoad.bind(this);
     }
 
@@ -82,6 +82,10 @@ class ImageView extends PureComponent {
         return false;
     }
 
+    imageProgress() {
+        this.setState({isLoading: true});
+    }
+
     // Handles the `onLoad` event when the image loads providing the natural
     // image dimensions required for layout calculations
     imageLoad({nativeEvent}) {
@@ -106,10 +110,6 @@ class ImageView extends PureComponent {
             imageWidth = Math.min(imageWidth, (this.props.windowWidth * maxDimensionsScale));
             this.setState({imageHeight, imageWidth, isLoading: false});
         });
-    }
-
-    imageLoadingStart() {
-        this.setState({isLoading: true});
     }
 
     render() {
@@ -180,7 +180,7 @@ class ImageView extends PureComponent {
                         source={{uri: this.props.url}}
                         isAuthTokenRequired={this.props.isAuthTokenRequired}
                         resizeMode={Image.resizeMode.contain}
-                        onLoadStart={this.imageLoadingStart}
+                        onProgress={this.imageProgress}
                         onLoad={this.imageLoad}
                     />
                     {/**
