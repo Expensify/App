@@ -33,7 +33,7 @@ All contributors should be a member of **two** Slack channels:
 1. #expensify-open-source -- used to ask **general questions**, facilitate **discussions**, and make **feature requests**.
 2. #expensify-bugs -- used to discuss or report **bugs** specifically.
 
-To request an invite to these two Slack channels, just email contributors@expensify.com with the subject `Slack Channel Invites` and **include a link to your Upwork profile**. We'll send you an invite! 
+Before requesting an invite to Slack please ensure your Upwork account is active, we only pay via Upwork (see [below](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#payment-for-contributions)). To request an invite to these two Slack channels, email contributors@expensify.com with the subject `Slack Channel Invites`. We'll send you an invite! 
 
 Note: the Expensify team will not be able to respond to direct messages in Slack.
 
