@@ -133,6 +133,11 @@ class ReportActionsView extends React.Component {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
             this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(nextProps.reportActions);
             this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(nextProps.reportActions);
+
+            if (ReportUtils.isUnread(this.props.report)) {
+                this.newMarkerReportActionID = ReportUtils.getNewMarkerReportActionID(nextProps.report, this.sortedAndFilteredReportActions)
+            }
+
             return true;
         }
 
