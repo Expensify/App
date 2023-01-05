@@ -13,7 +13,7 @@ export default function () {
         let shouldSkipMigration = false;
         const connectionID = Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-            waitForCollectionCallbacks: true,
+            waitForCollectionCallback: true,
             callback: (allReportActions) => {
                 Onyx.disconnect(connectionID);
                 const newReportActions = {};
@@ -22,9 +22,9 @@ export default function () {
                     const [onyxKey, reportActionsForReport] = Object.entries(allReportActions)[i];
                     const newReportActionsForReport = {};
                     for (let j = 0; j < Object.entries(reportActionsForReport).length; j++) {
-                        const [reportActionKey, reportAction] = reportActionsForReport[j];
+                        const [reportActionKey, reportAction] = Object.entries(reportActionsForReport[j]);
 
-                        // If we find a reportAction that's already keyed by reoprtActionID instead of sequenceNumber,
+                        // If we find a reportAction that's already keyed by reportActionID instead of sequenceNumber,
                         // then we assume the migration already happened and return early.
                         if (reportActionKey === reportAction.reportActionID && reportActionKey !== reportAction.sequenceNumber) {
                             shouldSkipMigration = true;
