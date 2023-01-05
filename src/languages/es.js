@@ -132,7 +132,7 @@ export default {
         description: 'Arrastra, haz zoom y rota tu imagen para que quede como te gusta.',
     },
     composer: {
-        noExtentionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
+        noExtensionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
         problemGettingImageYouPasted: 'Ha ocurrido un problema al obtener la imagen que has pegado',
     },
     baseUpdateAppModal: {
@@ -284,7 +284,9 @@ export default {
         imageUploadFailed: 'Error al cargar la imagen',
         deleteWorkspaceError: 'Lo sentimos, hubo un problema eliminando el avatar de su espacio de trabajo.',
         sizeExceeded: ({maxUploadSizeInMB}) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
-        tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Por favor elige una imagen mas grande que ${minHeightInPx}x${minWidthInPx} píxeles`,
+        resolutionConstraints: ({
+            minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx,
+        }) => `Por favor, elige una imagen más grande que ${minHeightInPx}x${minWidthInPx} píxeles y más pequeña que ${maxHeightInPx}x${maxWidthInPx} píxeles`,
         notAllowedExtension: ({allowedExtensions}) => `La foto de perfil debe ser de uno de los siguientes tipos: ${allowedExtensions.join(', ')}.`,
     },
     profilePage: {

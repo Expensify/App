@@ -32,6 +32,11 @@ const CONST = {
     // Minimum width and height size in px for a selected image
     AVATAR_MIN_WIDTH_PX: 80,
     AVATAR_MIN_HEIGHT_PX: 80,
+
+    // Maximum width and height size in px for a selected image
+    AVATAR_MAX_WIDTH_PX: 4096,
+    AVATAR_MAX_HEIGHT_PX: 4096,
+
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
@@ -760,6 +765,7 @@ const CONST = {
         EMOJI_NAME: /:[\w+-]+:/g,
         EMOJI_SUGGESTIONS: /:[a-zA-Z]{1,20}(\s[a-zA-Z]{0,20})?$/,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
+        CODE_2FA: /^\d{6}$/,
     },
 
     PRONOUNS: {
