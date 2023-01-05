@@ -247,3 +247,15 @@ Form.js will automatically provide the following props to any input with the inp
 - errorText: The translated error text that is returned by validate for that specific input.
 - onBlur: An onBlur handler that calls validate.
 - onInputChange: An onChange handler that saves draft values and calls validate for that input (inputA). Passing an inputID as a second param allows inputA to manipulate the input value of the provided inputID (inputB).
+
+### Safe Area Padding
+
+Any `Form.js` that has a button will also add safe area padding by default. If the `<Form/>` is inside a `<ScreenWrapper>` we will want to disable the default safe area padding applied there e.g.
+
+```js
+<ScreenWrapper includeSafeAreaPaddingBottom={false}>
+    <Form>
+        {...}
+    </Form>
+</ScreenWrapper>
+```

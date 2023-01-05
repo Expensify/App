@@ -173,6 +173,7 @@ export default {
         PROFILE_SETTINGS_FORM: 'profileSettingsForm',
         DISPLAY_NAME_FORM: 'displayNameForm',
         NEW_ROOM_FORM: 'newRoomForm',
+        ROOM_SETTINGS_FORM: 'roomSettingsForm',
     },
 
     // Whether we should show the compose input or not

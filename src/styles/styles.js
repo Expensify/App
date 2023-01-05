@@ -373,6 +373,9 @@ const styles = {
         // It is needed to unset the Lineheight. We don't need it for buttons as button always contains single line of text.
         // It allows to vertically center the text.
         lineHeight: undefined,
+
+        // Add 1px to the Button text to give optical vertical alignment.
+        paddingBottom: 1,
     },
 
     buttonSmall: {
@@ -482,6 +485,10 @@ const styles = {
 
     buttonCTAIcon: {
         marginRight: 22,
+
+        // Align vertically with the Button text
+        paddingBottom: 1,
+        paddingTop: 1,
     },
 
     buttonConfirm: {
@@ -2735,7 +2742,7 @@ const styles = {
         overflow: 'hidden',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: themeColors.shadow,
+        backgroundColor: themeColors.imageCropBackgroundColor,
         cursor: 'move',
     },
 
