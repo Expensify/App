@@ -25,7 +25,7 @@ function start(eventName, shouldUseFirebase = false) {
  * End performance timing. Measure the time between event start/end in milliseconds, and push to Grafana
  *
  * @param {String} eventName - event name used as timestamp key
- * @param {String} [secondaryName] - optional secondary event name, passed to grafana. Default is the environment name.
+ * @param {String} [secondaryName] - optional secondary event name, passed to grafana
  */
 function end(eventName, secondaryName = '') {
     if (!timestampData[eventName]) {
