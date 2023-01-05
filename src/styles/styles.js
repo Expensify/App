@@ -768,6 +768,10 @@ const styles = {
         scrollPadding: '23px 0 0 0',
     },
 
+    textInputMultilineContainer: {
+        paddingTop: 23,
+    },
+
     textInputAndIconContainer: {
         flex: 1,
         height: '100%',
