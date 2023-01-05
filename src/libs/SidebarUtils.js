@@ -249,7 +249,7 @@ function getOptionData(reportID) {
         lastMessageTextFromReport = Str.htmlDecode(report ? report.lastMessageText : '');
     }
 
-    const lastActorDetails = personalDetails[report.lastActorEmail] || {displayName: Str.removeSMSDomain(report.lastActorEmail)};
+    const lastActorDetails = personalDetails[report.lastActorEmail] || null;
     let lastMessageText = hasMultipleParticipants && lastActorDetails && (lastActorDetails.login !== currentUserLogin.email)
         ? `${lastActorDetails.displayName}: `
         : '';
