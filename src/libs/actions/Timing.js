@@ -40,9 +40,10 @@ function end(eventName, secondaryName = '') {
             Firebase.stopTrace(eventName);
         }
 
+        const baseEventName = `${envName}.new.expensify.${eventName}`;
         const grafanaEventName = secondaryName
-            ? `expensify.${envName}.${eventName}.${secondaryName}`
-            : `expensify.${envName}.${eventName}`;
+            ? `${baseEventName}.${secondaryName}`
+            : baseEventName;
 
         console.debug(`Timing:${grafanaEventName}`, eventTime);
         delete timestampData[eventName];
