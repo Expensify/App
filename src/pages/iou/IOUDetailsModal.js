@@ -23,6 +23,7 @@ import ROUTES from '../../ROUTES';
 import FixedFooter from '../../components/FixedFooter';
 import networkPropTypes from '../../components/networkPropTypes';
 import reportActionPropTypes from '../home/report/reportActionPropTypes';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
     /** URL Route params */
@@ -146,47 +147,53 @@ class IOUDetailsModal extends Component {
 
     render() {
         const sessionEmail = lodashGet(this.props.session, 'email', null);
-        const reportIsLoading = _.isUndefined(this.props.iouReport);
+        const reportIsLoading = this.props.iou.loading;
         const pendingAction = this.findPendingAction();
+        const iouReportStateNum = lodashGet(this.props.iouReport, 'stateNum');
+        const hasOutstandingIOU = lodashGet(this.props.iouReport, 'hasOutstandingIOU');
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('common.details')}
-                    onCloseButtonPress={Navigation.dismissModal}
-                />
-                {reportIsLoading ? <ActivityIndicator color={themeColors.text} /> : (
-                    <View style={[styles.flex1, styles.justifyContentBetween]}>
-                        <ScrollView contentContainerStyle={styles.iouDetailsContainer}>
-                            <IOUPreview
-                                chatReportID={this.props.route.params.chatReportID}
-                                iouReportID={this.props.route.params.iouReportID}
-                                pendingAction={pendingAction}
-                                shouldHidePayButton
-                            />
-                            <IOUTransactions
-                                chatReportID={this.props.route.params.chatReportID}
-                                iouReportID={this.props.route.params.iouReportID}
-                                isIOUSettled={this.props.iouReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED}
-                                userEmail={sessionEmail}
-                            />
-                        </ScrollView>
-                        {(this.props.iouReport.hasOutstandingIOU
-                            && this.props.iouReport.managerEmail === sessionEmail && (
-                            <FixedFooter>
-                                <SettlementButton
-                                    isLoading={this.props.iou.loading}
-                                    onPress={paymentMethodType => this.payMoneyRequest(paymentMethodType)}
-                                    shouldShowPaypal={Boolean(lodashGet(this.props, 'iouReport.submitterPayPalMeAddress'))}
-                                    currency={lodashGet(this.props, 'iouReport.currency')}
-                                    enablePaymentsRoute={ROUTES.IOU_DETAILS_ENABLE_PAYMENTS}
-                                    addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
-                                    addDebitCardRoute={ROUTES.IOU_DETAILS_ADD_DEBIT_CARD}
+                <FullPageNotFoundView
+                    shouldShow={_.isEmpty(this.props.iouReport)}
+                    subtitleKey="notFound.iouReportNotFound"
+                    onBackButtonPress={Navigation.dismissModal}
+                >
+                    <HeaderWithCloseButton
+                        title={this.props.translate('common.details')}
+                    />
+                    {reportIsLoading ? <ActivityIndicator color={themeColors.text} /> : (
+                        <View style={[styles.flex1, styles.justifyContentBetween]}>
+                            <ScrollView contentContainerStyle={styles.iouDetailsContainer}>
+                                <IOUPreview
                                     chatReportID={this.props.route.params.chatReportID}
+                                    iouReportID={this.props.route.params.iouReportID}
+                                    pendingAction={pendingAction}
+                                    shouldHidePayButton
                                 />
-                            </FixedFooter>
-                        ))}
-                    </View>
-                )}
+                                <IOUTransactions
+                                    chatReportID={this.props.route.params.chatReportID}
+                                    iouReportID={this.props.route.params.iouReportID}
+                                    isIOUSettled={iouReportStateNum === CONST.REPORT.STATE_NUM.SUBMITTED}
+                                    userEmail={sessionEmail}
+                                />
+                            </ScrollView>
+                            {(hasOutstandingIOU && this.props.iouReport.managerEmail === sessionEmail && (
+                                <FixedFooter>
+                                    <SettlementButton
+                                        isLoading={this.props.iou.loading}
+                                        onPress={paymentMethodType => this.payMoneyRequest(paymentMethodType)}
+                                        shouldShowPaypal={Boolean(lodashGet(this.props, 'iouReport.submitterPayPalMeAddress'))}
+                                        currency={lodashGet(this.props, 'iouReport.currency')}
+                                        enablePaymentsRoute={ROUTES.IOU_DETAILS_ENABLE_PAYMENTS}
+                                        addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
+                                        addDebitCardRoute={ROUTES.IOU_DETAILS_ADD_DEBIT_CARD}
+                                        chatReportID={this.props.route.params.chatReportID}
+                                    />
+                                </FixedFooter>
+                            ))}
+                        </View>
+                    )}
+                </FullPageNotFoundView>
             </ScreenWrapper>
         );
     }
