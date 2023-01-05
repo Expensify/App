@@ -64,6 +64,7 @@ class ReportActionsView extends React.Component {
         this.didLayout = false;
         this.didSubscribeToReportTypingEvents = false;
         this.unsubscribeVisibilityListener = null;
+        this.hasCachedActions = !_.size(props.reportActions);
 
         // We need this.sortedAndFilteredReportActions to be set before this.state is initialized because the function to calculate the newMarkerReportActionID uses the sorted report actions
         this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(props.reportActions);
@@ -336,7 +337,7 @@ class ReportActionsView extends React.Component {
         }
 
         this.didLayout = true;
-        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
+        Timing.end(CONST.TIMING.SWITCH_REPORT, this.hasCachedActions ? CONST.Timing.WARM : CONST.TIMING.COLD);
 
         // Capture the init measurement only once not per each chat switch as the value gets overwritten
         if (!ReportActionsView.initMeasured) {
