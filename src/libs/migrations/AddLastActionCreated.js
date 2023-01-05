@@ -34,13 +34,14 @@ export default function () {
 
                 if (_.isEmpty(reportsToUpdate)) {
                     Log.info('[Migrate Onyx] Skipped migration AddLastActionCreated');
+                    return resolve();
                 } else {
                     Log.info(`[Migrate Onyx] Adding lastActionCreated field to ${_.keys(reportsToUpdate).length} reports`);
                     // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportsToUpdate);
+                    return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportsToUpdate)
+                        .then(resolve);
                 }
             },
         });
-        return resolve();
     });
 }

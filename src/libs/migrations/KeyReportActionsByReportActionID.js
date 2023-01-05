@@ -39,14 +39,14 @@ export default function () {
 
                 Log.info(`[Migrate Onyx] Re-keying reportActions by reportActionID for ${_.keys(newReportActions).length} reports`);
                 // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                Onyx.set(ONYXKEYS.COLLECTION.REPORT_ACTIONS, newReportActions);
+                Onyx.set(ONYXKEYS.COLLECTION.REPORT_ACTIONS, newReportActions)
+                    .then(resolve);
             },
         });
 
         if (shouldSkipMigration) {
             Log.info('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID');
+            return resolve();
         }
-
-        return resolve();
     });
 }
