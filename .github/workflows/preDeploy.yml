@@ -256,8 +256,6 @@ jobs:
 
       - name: Build "Compare" APK
         run: npm run android-build-e2e
-        env:
-          E2E_TESTING: true
 
       - name: Copy "Compare" APK
         run: cp android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk zip/app-e2eRelease-compare.apk
@@ -276,8 +274,6 @@ jobs:
 
       - name: Build "Baseline" APK
         run: npm run android-build-e2e
-        env:
-          E2E_TESTING: true
 
       - name: Copy "Baseline" APK
         run: cp android/app/build/outputs/apk/e2eRelease/app-e2eRelease.apk zip/app-e2eRelease-baseline.apk
