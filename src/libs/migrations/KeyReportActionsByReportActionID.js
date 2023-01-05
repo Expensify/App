@@ -9,6 +9,7 @@ import ONYXKEYS from '../../ONYXKEYS';
  * @returns {Promise}
  */
 export default function () {
+    console.log('RORY_DEBUG migration running');
     return new Promise((resolve) => {
         const connectionID = Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
