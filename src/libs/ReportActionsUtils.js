@@ -39,23 +39,51 @@ function isDeletedAction(reportAction) {
 }
 
 /**
- * Sorts the report actions by sequence number, filters out any that should not be shown and formats them for display.
+ * Sort an array of reportActions by their created timestamp first, and reportActionID second
+ * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
+ *
+ * @param {Array} reportActions
+ * @param {Boolean} shouldSortInDescendingOrder
+ * @returns {Array}
+ */
+function getSortedReportActions(reportActions, shouldSortInDescendingOrder = false) {
+    if (!_.isArray(reportActions)) {
+        throw new Error(`ReportActionsUtils.getSortedReportActions requires an array, received ${typeof reportActions}`);
+    }
+    const invertedMultiplier = shouldSortInDescendingOrder ? -1 : 1;
+    reportActions.sort((first, second) => {
+        // If only one action is a report created action, return the created action first.
+        if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || second.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) && first.actionName !== second.actionName) {
+            return ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) ? -1 : 1) * invertedMultiplier;
+        }
+
+        if (first.created !== second.created) {
+            return (first.created < second.created ? -1 : 1) * invertedMultiplier;
+        }
+
+        return (first.reportActionID < second.reportActionID ? -1 : 1) * invertedMultiplier;
+    });
+    return reportActions;
+}
+
+/**
+ * Filter out any reportActions which should not be displayed.
  *
  * @param {Array} reportActions
  * @returns {Array}
  */
-function getSortedReportActions(reportActions) {
-    return _.chain(reportActions)
-        .sortBy('sequenceNumber')
-        .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
+function filterReportActionsForDisplay(reportActions) {
+    return _.filter(reportActions, (reportAction) => {
+        // Filter out any unsupported reportAction types
+        if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName)) {
+            return false;
+        }
 
-            // All comment actions are shown unless they are deleted and non-pending
-            || (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && (!isDeletedAction(action) || !_.isEmpty(action.pendingAction)))
-            || action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
-            || action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED)
-        .map((item, index) => ({action: item, index}))
-        .value()
-        .reverse();
+        // All other actions are displayed except deleted, non-pending actions
+        const isDeleted = isDeletedAction(reportAction);
+        const isPending = !_.isEmpty(reportAction.pendingAction);
+        return !isDeleted || isPending;
+    });
 }
 
 /**
@@ -65,10 +93,13 @@ function getSortedReportActions(reportActions) {
  * @returns {String}
  */
 function getMostRecentIOUReportActionID(reportActions) {
-    return _.chain(reportActions)
-        .where({actionName: CONST.REPORT.ACTIONS.TYPE.IOU})
-        .max(action => action.sequenceNumber)
-        .value().reportActionID;
+    const iouActions = _.where(reportActions, {actionName: CONST.REPORT.ACTIONS.TYPE.IOU});
+    if (_.isEmpty(iouActions)) {
+        return null;
+    }
+
+    const sortedReportActions = getSortedReportActions(iouActions);
+    return _.last(sortedReportActions).reportActionID;
 }
 
 /**
@@ -82,7 +113,7 @@ function getMostRecentIOUReportActionID(reportActions) {
 function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
     // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
     // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
-    const previousAction = _.find(_.drop(reportActions, actionIndex + 1), action => isNetworkOffline || (action.action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
+    const previousAction = _.find(_.drop(reportActions, actionIndex + 1), action => isNetworkOffline || (action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
     const currentAction = reportActions[actionIndex];
 
     // It's OK for there to be no previous action, and in that case, false will be returned
@@ -92,73 +123,49 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
     }
 
     // Comments are only grouped if they happen within 5 minutes of each other
-    if (moment(currentAction.action.created).unix() - moment(previousAction.action.created).unix() > 300) {
+    if (moment(currentAction.created).unix() - moment(previousAction.created).unix() > 300) {
         return false;
     }
 
     // Do not group if previous or current action was a renamed action
-    if (previousAction.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
-        || currentAction.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+    if (previousAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
+        || currentAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
         return false;
     }
 
-    return currentAction.action.actorEmail === previousAction.action.actorEmail;
+    return currentAction.actorEmail === previousAction.actorEmail;
 }
 
 /**
- * Get the message text for the last action that was not deleted
+ * @param {String} reportID
+ * @param {Object} [actionsToMerge]
+ * @return {Object}
+ */
+function getLastVisibleAction(reportID, actionsToMerge = {}) {
+    const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
+    const visibleActions = _.filter(actions, action => (!isDeletedAction(action)));
+    return _.max(visibleActions, action => moment.utc(action.created).valueOf());
+}
+
+/**
  * @param {String} reportID
  * @param {Object} [actionsToMerge]
  * @return {String}
  */
 function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
-    const parser = new ExpensiMark();
-    const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const sortedActions = _.sortBy(actions, 'sequenceNumber');
-    const lastMessageIndex = _.findLastIndex(sortedActions, action => (
-        !isDeletedAction(action)
-    ));
-    if (lastMessageIndex < 0) {
-        return '';
-    }
+    const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
+    const htmlText = lodashGet(lastVisibleAction, 'message[0].html', '');
 
-    const htmlText = lodashGet(sortedActions, [lastMessageIndex, 'message', 0, 'html'], '');
+    const parser = new ExpensiMark();
     const messageText = parser.htmlToText(htmlText);
     return ReportUtils.formatReportLastMessageText(messageText);
 }
 
-/**
- * @param {String} reportID
- * @param {Object} [actionsToMerge]
- * @param {Number} deletedSequenceNumber
- * @param {Number} lastReadSequenceNumber
- * @return {Number}
- */
-function getOptimisticLastReadSequenceNumberForDeletedAction(reportID, actionsToMerge = {}, deletedSequenceNumber, lastReadSequenceNumber) {
-    // If the action we are deleting is unread then just return the current last read sequence number
-    if (deletedSequenceNumber > lastReadSequenceNumber) {
-        return lastReadSequenceNumber;
-    }
-
-    // Otherwise, we must find the first previous index of an action that is not deleted and less than the lastReadSequenceNumber
-    const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const sortedActions = _.sortBy(actions, 'sequenceNumber');
-    const lastMessageIndex = _.findLastIndex(sortedActions, action => (
-        !isDeletedAction(action) && action.sequenceNumber <= lastReadSequenceNumber
-    ));
-
-    // It's possible we won't find any and in that case the last read should be reset
-    if (lastMessageIndex < 0) {
-        return 0;
-    }
-
-    return sortedActions[lastMessageIndex].sequenceNumber;
-}
-
 export {
-    getOptimisticLastReadSequenceNumberForDeletedAction,
-    getLastVisibleMessageText,
     getSortedReportActions,
+    filterReportActionsForDisplay,
+    getLastVisibleAction,
+    getLastVisibleMessageText,
     getMostRecentIOUReportActionID,
     isDeletedAction,
     isConsecutiveActionMadeByPreviousActor,

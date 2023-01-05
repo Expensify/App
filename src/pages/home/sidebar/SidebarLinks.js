@@ -222,6 +222,7 @@ const chatReportSelector = (report) => {
         },
         maxSequenceNumber: report.maxSequenceNumber,
         lastReadSequenceNumber: report.lastReadSequenceNumber,
+        lastReadTime: report.lastReadTime,
         lastMessageText: report.lastMessageText,
         lastActionCreated: report.lastActionCreated,
         iouReportID: report.iouReportID,
@@ -230,6 +231,7 @@ const chatReportSelector = (report) => {
         stateNum: report.stateNum,
         chatType: report.chatType,
         policyID: report.policyID,
+        reportName: report.reportName,
     });
 };
 

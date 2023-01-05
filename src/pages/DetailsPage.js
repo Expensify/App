@@ -18,13 +18,13 @@ import CommunicationsLink from '../components/CommunicationsLink';
 import Tooltip from '../components/Tooltip';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
-import DateUtils from '../libs/DateUtils';
 import * as Expensicons from '../components/Icon/Expensicons';
 import MenuItem from '../components/MenuItem';
 import AttachmentModal from '../components/AttachmentModal';
 import PressableWithoutFocus from '../components/PressableWithoutFocus';
 import * as Report from '../libs/actions/Report';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
+import AutoUpdateTime from '../components/AutoUpdateTime';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -96,11 +96,7 @@ class DetailsPage extends React.PureComponent {
         // If we have a reportID param this means that we
         // arrived here via the ParticipantsPage and should be allowed to navigate back to it
         const shouldShowBackButton = Boolean(this.props.route.params.reportID);
-        const timezone = details.timezone ? DateUtils.getLocalMomentFromDatetime(this.props.preferredLocale, null, details.timezone.selected) : null;
-        const GMTTime = timezone ? `${timezone.toString().split(/[+-]/)[0].slice(-3)} ${timezone.zoneAbbr()}` : '';
-        const currentTime = (timezone && Number.isNaN(Number(timezone.zoneAbbr()))) ? timezone.zoneAbbr() : GMTTime;
-        const shouldShowLocalTime = !ReportUtils.hasExpensifyEmails([details.login]);
-
+        const shouldShowLocalTime = !ReportUtils.hasExpensifyEmails([details.login]) && details.timezone;
         let pronouns = details.pronouns;
 
         if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
@@ -181,18 +177,7 @@ class DetailsPage extends React.PureComponent {
                                         </Text>
                                     </View>
                                 ) : null}
-                                {shouldShowLocalTime && details.timezone ? (
-                                    <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                        <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                            {this.props.translate('detailsPage.localTime')}
-                                        </Text>
-                                        <Text numberOfLines={1}>
-                                            {timezone.format('LT')}
-                                            {' '}
-                                            {currentTime}
-                                        </Text>
-                                    </View>
-                                ) : null}
+                                {shouldShowLocalTime && <AutoUpdateTime timezone={details.timezone} />}
                             </View>
                             {details.login !== this.props.session.email && (
                                 <MenuItem

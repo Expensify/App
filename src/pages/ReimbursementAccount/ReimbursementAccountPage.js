@@ -240,11 +240,12 @@ class ReimbursementAccountPage extends React.Component {
             );
         }
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && (
                     <BankAccountStep
                         receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                         plaidLinkOAuthToken={this.props.plaidLinkToken}
+                        onSubStepBack={() => (hasInProgressVBBA ? this.setState({shouldShowContinueSetupButton: true}) : BankAccounts.setBankAccountSubStep(null))}
                     />
                 )}
                 {currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && (

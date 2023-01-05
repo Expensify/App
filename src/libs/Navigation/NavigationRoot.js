@@ -8,7 +8,6 @@ import AppNavigator from './AppNavigator';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
-import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
 import Log from '../Log';
 
 // https://reactnavigation.org/docs/themes
@@ -16,7 +15,7 @@ const navigationTheme = {
     ...DefaultTheme,
     colors: {
         ...DefaultTheme.colors,
-        background: themeColors.highlightBG,
+        background: themeColors.appBG,
     },
 };
 
@@ -46,7 +45,6 @@ function parseAndLogRoute(state) {
         Log.info('Navigating to route', false, {path: currentPath});
     }
 
-    UnreadIndicatorUpdater.throttledUpdatePageTitleAndUnreadCount();
     Navigation.setIsNavigationReady();
 }
 

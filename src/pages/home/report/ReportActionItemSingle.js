@@ -53,7 +53,7 @@ const showUserDetails = (email) => {
 const ReportActionItemSingle = (props) => {
     const {avatar, displayName, login, pendingFields} = props.personalDetails[props.action.actorEmail] || {};
     const avatarUrl = props.action.automatic
-        ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
+        ? CONST.CONCIERGE_ICON_URL
 
         // Use avatar in personalDetails if we have one then fallback to avatar provided by the action
         : (avatar || props.action.avatar);

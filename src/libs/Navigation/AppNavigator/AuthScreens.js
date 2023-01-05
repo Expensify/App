@@ -10,7 +10,6 @@ import compose from '../../compose';
 import * as PersonalDetails from '../../actions/PersonalDetails';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
-import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Timing from '../../actions/Timing';
@@ -22,6 +21,7 @@ import * as User from '../../actions/User';
 import * as Modal from '../../actions/Modal';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
+import NotFoundPage from '../../../pages/ErrorPage/NotFoundPage';
 
 // Modal Stack Navigators
 import * as ModalStackNavigators from './ModalStackNavigators';
@@ -100,8 +100,6 @@ class AuthScreens extends React.Component {
             User.subscribeToUserEvents();
         });
 
-        // Listen for report changes and fetch some data we need on initialization
-        UnreadIndicatorUpdater.listenForReportChanges();
         App.openApp();
         App.setUpPoliciesAndNavigate(this.props.session);
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
@@ -312,6 +310,12 @@ class AuthScreens extends React.Component {
                     name="Wallet_Statement"
                     options={modalScreenOptions}
                     component={ModalStackNavigators.WalletStatementStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.NOT_FOUND}
+                    options={{headerShown: false}}
+                    component={NotFoundPage}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>

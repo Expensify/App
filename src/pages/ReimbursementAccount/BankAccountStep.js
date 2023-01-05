@@ -1,5 +1,7 @@
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {
+    View, ScrollView, TouchableWithoutFeedback, Linking,
+} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -39,6 +41,10 @@ const propTypes = {
     /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
     plaidLinkOAuthToken: PropTypes.string,
 
+    /** Once the user has selected a sub step, clicking on back button should redirect to the continue button screen. */
+    /** As such, we need to expose this handler */
+    onSubStepBack: PropTypes.func,
+
     /** The bank account currently in setup */
     /* eslint-disable-next-line react/no-unused-prop-types */
     reimbursementAccount: reimbursementAccountPropTypes,
@@ -58,6 +64,7 @@ const defaultProps = {
     plaidData: {
         isPlaidDisabled: false,
     },
+    onSubStepBack: () => {},
     reimbursementAccount: {},
     user: {},
 };
@@ -72,11 +79,11 @@ const BankAccountStep = (props) => {
     const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT}`;
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
-        return <BankAccountManualStep />;
+        return <BankAccountManualStep onBack={props.onSubStepBack} />;
     }
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
-        return <BankAccountPlaidStep />;
+        return <BankAccountPlaidStep onBack={props.onSubStepBack} />;
     }
 
     return (
@@ -155,17 +162,22 @@ const BankAccountStep = (props) => {
                     <TextLink href="https://use.expensify.com/privacy">
                         {props.translate('common.privacy')}
                     </TextLink>
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                        <TextLink
-                            // eslint-disable-next-line max-len
-                            href="https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/"
-                        >
-                            {props.translate('bankAccount.yourDataIsSecure')}
-                        </TextLink>
-                        <View style={[styles.ml1]}>
-                            <Icon src={Expensicons.Lock} fill={colors.blue} />
+                    <TouchableWithoutFeedback
+                        // eslint-disable-next-line max-len
+                        onPress={() => Linking.openURL('https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/')}
+                    >
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.cursorPointer]}>
+                            <TextLink
+                                // eslint-disable-next-line max-len
+                                href="https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/"
+                            >
+                                {props.translate('bankAccount.yourDataIsSecure')}
+                            </TextLink>
+                            <View style={[styles.ml1]}>
+                                <Icon src={Expensicons.Lock} fill={colors.blue} />
+                            </View>
                         </View>
-                    </View>
+                    </TouchableWithoutFeedback>
                 </View>
             </ScrollView>
         </View>
