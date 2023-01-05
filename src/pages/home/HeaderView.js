@@ -25,6 +25,7 @@ import Tooltip from '../../components/Tooltip';
 import variables from '../../styles/variables';
 import colors from '../../styles/colors';
 import reportPropTypes from '../reportPropTypes';
+import ControlSelection from "../../libs/ControlSelection";
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -98,7 +99,10 @@ const HeaderView = (props) => {
                         ]}
                     >
                         <Pressable
-                            onLongPress={() => ReportUtils.navigateToDetailsPage(props.report)}
+                            touchstart={(e) => {
+                                event.preventDefault();
+                                event.returnValue = false;
+                            }}
                             onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                         >

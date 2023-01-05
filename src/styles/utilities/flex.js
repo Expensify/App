@@ -32,6 +32,10 @@ export default {
         flexDirection: 'row',
     },
 
+    testSelection: {
+        user_select: 'none',
+    },
+
     flexColumn: {
         flexDirection: 'column',
     },
