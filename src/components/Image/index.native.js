@@ -29,9 +29,8 @@ class Image extends React.Component {
 
     configureImageSource() {
         const source = this.props.source;
-        const isAuthTokenRequired = this.props.isAuthTokenRequired;
         let imageSource = source;
-        if (typeof source !== 'number' && isAuthTokenRequired) {
+        if (typeof source !== 'number' && this.props.isAuthTokenRequired) {
             const authToken = lodashGet(this.props, 'session.encryptedAuthToken', null);
             imageSource = {
                 ...source,

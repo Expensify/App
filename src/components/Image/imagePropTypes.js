@@ -13,7 +13,7 @@ const propTypes = {
             uri: PropTypes.string.isRequired,
             // eslint-disable-next-line react/forbid-prop-types
             headers: PropTypes.object,
-        }),
+        }).isRequired,
     ]),
 
     /** Should an auth token be included in the image request */
@@ -41,6 +41,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    style: [],
     session: {
         authToken: null,
     },

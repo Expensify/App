@@ -874,7 +874,6 @@ const CONST = {
     },
 
     TFA_CODE_LENGTH: 6,
-
     CHAT_ATTACHMENT_TOKEN_KEY: 'X-Chat-Attachment-Token',
 };
 

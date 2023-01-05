@@ -1,7 +1,7 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {
-    View, PanResponder, InteractionManager,
+    View, InteractionManager, PanResponder,
 } from 'react-native';
 import ImageZoom from 'react-native-image-pan-zoom';
 import _ from 'underscore';
@@ -82,6 +82,8 @@ class ImageView extends PureComponent {
         return false;
     }
 
+    // Handles the `onLoad` event when the image loads providing the natural
+    // image dimensions required for layout calculations
     imageLoad({nativeEvent}) {
         // Wait till animations are over to prevent stutter in navigation animation
         this.state.interactionPromise = InteractionManager.runAfterInteractions(() => {
