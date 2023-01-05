@@ -100,11 +100,6 @@ const replaceNodes = (dom) => {
         if (!elementsWillBeSkipped.includes(dom.attribs[tagAttribute])) {
             domName = dom.attribs[tagAttribute];
         }
-
-        // Adding a new line after each comment here, because adding after each range is not working for chrome.
-        if (htmlEngineUtils.isCommentTag(dom.attribs[tagAttribute])) {
-            dom.children.push(new Element('br', {}));
-        }
     } else if (dom.name === 'div' && dom.children.length === 1 && dom.children[0].type !== 'text') {
         // We are excluding divs that have only one child and no text nodes and don't have a tagAttribute to prevent
         // additional newlines from being added in the HTML to Markdown conversion process.
