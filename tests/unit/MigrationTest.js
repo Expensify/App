@@ -21,6 +21,7 @@ describe('Migrations', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
         LogSpy = jest.spyOn(Log, 'info');
+        Log.serverLoggingCallback = () => {};
         return waitForPromisesToResolve();
     });
 
