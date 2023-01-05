@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {Animated} from 'react-native';
+import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 import compose from '../../../libs/compose';
@@ -8,7 +9,7 @@ import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import styles from '../../../styles/styles';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import {withPersonalDetails} from '../../../components/OnyxProvider';
+import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import ReportActionItem from './ReportActionItem';
 import ReportActionsSkeletonView from '../../../components/ReportActionsSkeletonView';
 import variables from '../../../styles/variables';
@@ -18,10 +19,11 @@ import reportActionPropTypes from './reportActionPropTypes';
 import CONST from '../../../CONST';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import reportPropTypes from '../../reportPropTypes';
+import networkPropTypes from '../../../components/networkPropTypes';
 
 const propTypes = {
     /** Position of the "New" line marker */
-    newMarkerSequenceNumber: PropTypes.number.isRequired,
+    newMarkerReportActionID: PropTypes.string,
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -47,11 +49,15 @@ const propTypes = {
     /** Function to load more chats */
     loadMoreChats: PropTypes.func.isRequired,
 
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
+
     ...withDrawerPropTypes,
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
+    newMarkerReportActionID: '',
     personalDetails: {},
     mostRecentIOUReportActionID: '',
     isLoadingMoreReportActions: false,
@@ -65,6 +71,7 @@ class ReportActionsList extends React.Component {
 
         this.state = {
             fadeInAnimation: new Animated.Value(0),
+            skeletonViewHeight: 0,
         };
     }
 
@@ -120,17 +127,14 @@ class ReportActionsList extends React.Component {
         item: reportAction,
         index,
     }) {
-        // When the new indicator should not be displayed we explicitly set it to 0. The marker should never be shown above the
-        // created action (which will have sequenceNumber of 0) so we use 0 to indicate "hidden".
-        const shouldDisplayNewIndicator = this.props.newMarkerSequenceNumber > 0
-            && reportAction.sequenceNumber === this.props.newMarkerSequenceNumber
-            && !ReportActionsUtils.isDeletedAction(reportAction);
+        // When the new indicator should not be displayed we explicitly set it to null
+        const shouldDisplayNewMarker = reportAction.reportActionID === this.props.newMarkerReportActionID;
         return (
             <ReportActionItem
                 report={this.props.report}
                 action={reportAction}
                 displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(this.props.sortedReportActions, index)}
-                shouldDisplayNewIndicator={shouldDisplayNewIndicator}
+                shouldDisplayNewMarker={shouldDisplayNewMarker}
                 isMostRecentIOUReportAction={reportAction.reportActionID === this.props.mostRecentIOUReportActionID}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
@@ -141,7 +145,7 @@ class ReportActionsList extends React.Component {
     render() {
         // Native mobile does not render updates flatlist the changes even though component did update called.
         // To notify there something changes we can use extraData prop to flatlist
-        const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.newMarkerSequenceNumber : undefined;
+        const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.newMarkerReportActionID : undefined;
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report);
         return (
             <Animated.View style={[StyleUtils.fade(this.state.fadeInAnimation), styles.flex1]}>
@@ -159,15 +163,37 @@ class ReportActionsList extends React.Component {
                     initialNumToRender={this.calculateInitialNumToRender()}
                     onEndReached={this.props.loadMoreChats}
                     onEndReachedThreshold={0.75}
-                    ListFooterComponent={this.props.isLoadingMoreReportActions
-                        ? (
-                            <ReportActionsSkeletonView
-                                containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3}
-                            />
-                        )
-                        : null}
+                    ListFooterComponent={() => {
+                        if (this.props.report.isLoadingMoreReportActions) {
+                            return (
+                                <ReportActionsSkeletonView
+                                    containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3}
+                                />
+                            );
+                        }
+
+                        // Make sure the oldest report action loaded is not the first. This is so we do not show the
+                        // skeleton view above the created action in a newly generated optimistic chat or one with not
+                        // that many comments.
+                        const lastReportAction = _.last(this.props.sortedReportActions);
+                        if (this.props.report.isLoadingReportActions && lastReportAction.sequenceNumber > 0) {
+                            return (
+                                <ReportActionsSkeletonView
+                                    containerHeight={this.state.skeletonViewHeight}
+                                    animate={!this.props.network.isOffline}
+                                />
+                            );
+                        }
+
+                        return null;
+                    }}
                     keyboardShouldPersistTaps="handled"
-                    onLayout={this.props.onLayout}
+                    onLayout={(event) => {
+                        this.setState({
+                            skeletonViewHeight: event.nativeEvent.layout.height,
+                        });
+                        this.props.onLayout(event);
+                    }}
                     onScroll={this.props.onScroll}
                     extraData={extraData}
                 />
@@ -183,4 +209,5 @@ export default compose(
     withDrawerState,
     withWindowDimensions,
     withPersonalDetails(),
+    withNetwork(),
 )(ReportActionsList);

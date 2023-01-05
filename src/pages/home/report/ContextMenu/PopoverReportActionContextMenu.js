@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import * as Report from '../../../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
@@ -72,9 +73,12 @@ class PopoverReportActionContextMenu extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
+        const previousLocale = lodashGet(this.props, 'preferredLocale', 'en');
+        const nextLocale = lodashGet(nextProps, 'preferredLocale', 'en');
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
             || this.state.popoverAnchorPosition !== nextState.popoverAnchorPosition
-            || this.state.isDeleteCommentConfirmModalVisible !== nextState.isDeleteCommentConfirmModalVisible;
+            || this.state.isDeleteCommentConfirmModalVisible !== nextState.isDeleteCommentConfirmModalVisible
+            || previousLocale !== nextLocale;
     }
 
     componentWillUnmount() {
@@ -201,8 +205,10 @@ class PopoverReportActionContextMenu extends React.Component {
      * After Popover hides, call the registered onPopoverHide & onPopoverHideActionCallback callback and reset it
      */
     runAndResetOnPopoverHide() {
-        this.onPopoverHide = this.runAndResetCallback(this.onPopoverHide);
-        this.onPopoverHideActionCallback = this.runAndResetCallback(this.onPopoverHideActionCallback);
+        this.setState({reportID: '0', reportAction: {}}, () => {
+            this.onPopoverHide = this.runAndResetCallback(this.onPopoverHide);
+            this.onPopoverHideActionCallback = this.runAndResetCallback(this.onPopoverHideActionCallback);
+        });
     }
 
     /**
@@ -214,8 +220,6 @@ class PopoverReportActionContextMenu extends React.Component {
             this.onPopoverHideActionCallback = onHideActionCallback;
         }
         this.setState({
-            reportID: '0',
-            reportAction: {},
             selection: '',
             reportActionDraftMessage: '',
             isPopoverVisible: false,

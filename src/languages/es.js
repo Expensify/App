@@ -132,7 +132,7 @@ export default {
         description: 'Arrastra, haz zoom y rota tu imagen para que quede como te gusta.',
     },
     composer: {
-        noExtentionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
+        noExtensionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
         problemGettingImageYouPasted: 'Ha ocurrido un problema al obtener la imagen que has pegado',
     },
     baseUpdateAppModal: {
@@ -166,6 +166,7 @@ export default {
     },
     reportActionCompose: {
         addAction: 'Acción',
+        dropToUpload: 'Suelta el archivo aquí para compartirlo',
         sendAttachment: 'Enviar adjunto',
         addAttachment: 'Agregar archivo adjunto',
         writeSomething: 'Escribe algo...',
@@ -283,12 +284,13 @@ export default {
         imageUploadFailed: 'Error al cargar la imagen',
         deleteWorkspaceError: 'Lo sentimos, hubo un problema eliminando el avatar de su espacio de trabajo.',
         sizeExceeded: ({maxUploadSizeInMB}) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
-        tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Por favor elige una imagen mas grande que ${minHeightInPx}x${minWidthInPx} píxeles`,
+        resolutionConstraints: ({
+            minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx,
+        }) => `Por favor, elige una imagen más grande que ${minHeightInPx}x${minWidthInPx} píxeles y más pequeña que ${maxHeightInPx}x${maxWidthInPx} píxeles`,
         notAllowedExtension: ({allowedExtensions}) => `La foto de perfil debe ser de uno de los siguientes tipos: ${allowedExtensions.join(', ')}.`,
     },
     profilePage: {
         profile: 'Perfil',
-        tellUsAboutYourself: '¡Cuéntanos algo sobre tí, nos encantaría conocerte!',
         john: 'Juan',
         doe: 'Nadie',
         preferredPronouns: 'Pronombres preferidos',
@@ -417,7 +419,7 @@ export default {
         nameOnCard: 'Nombre en la tarjeta',
         debitCardNumber: 'Numero de la tarjeta de débito',
         expiration: 'Fecha de vencimiento',
-        expirationDate: 'MM/AA',
+        expirationDate: 'MMAA',
         cvv: 'CVV',
         billingAddress: 'Dirección de envio',
         expensifyTermsOfService: 'Expensify Términos de servicio',
@@ -496,7 +498,7 @@ export default {
         heroHeading: 'Dividir cuentas\ny chatear con amigos.',
         heroDescription: {
             phrase1: 'El dinero habla. Y ahora que el chat y los pagos están en un solo lugar, también es fácil. Sus pagos le llegan tan rápido como puede transmitir su punto.',
-            phrase2: 'New Expensify es de código abierto. Vista',
+            phrase2: 'Nuevo Expensify es de código abierto. Vista',
             phrase3: 'el código',
             phrase4: 'Vista',
             phrase5: 'vacantes',
@@ -542,6 +544,9 @@ export default {
             firstNameLength: 'El nombre no debe tener más de 50 caracteres',
             lastNameLength: 'El apellido no debe tener más de 50 caracteres',
             characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
+            hasInvalidCharacter: ({invalidCharacter}) => `Por favor elimina ${invalidCharacter} del campo nombre.`,
+            comma: 'la coma',
+            semicolon: 'el punto y coma',
         },
     },
     resendValidationForm: {
@@ -631,6 +636,7 @@ export default {
         unknownFilename: 'Archivo desconocido',
         passwordRequired: 'Por favor introduce tu contraseña',
         passwordIncorrect: 'Contraseña incorrecta. Por favor intenta de nuevo.',
+        failedToLoadPDF: 'Hubo un error al intentar cargar el PDF.',
         pdfPasswordForm: {
             title: 'PDF protegido con contraseña',
             infoText: 'Este PDF esta protegido con contraseña.',
@@ -798,9 +804,6 @@ export default {
         letsChatCTA: 'Sí, vamos a chatear',
         letsChatText: 'Gracias. Necesitamos tu ayuda para verificar la información, pero podemos hacerlo rápidamente a través del chat. ¿Estás listo?',
         letsChatTitle: '¡Vamos a chatear!',
-        enable2FATitle: 'Evita fraudes, activa la autenticación de dos factores!',
-        enable2FAText: 'Tu seguridad es importante para nosotros, por favor configura ahora la autenticación de dos factores. Eso nos permitirá disputar las transacciones de la Tarjeta Expensify y reducirá tu riesgo de fraude.',
-        secureYourAccount: 'Asegura tu cuenta',
     },
     beneficialOwnersStep: {
         additionalInformation: 'Información adicional',
@@ -1037,6 +1040,9 @@ export default {
             private: 'Privada',
         },
     },
+    statementPage: {
+        generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
+    },
     keyboardShortcutModal: {
         title: 'Atajos de teclado',
         subtitle: 'Ahorra tiempo con estos atajos de teclado:',
@@ -1073,6 +1079,32 @@ export default {
         permissionError: {
             title: 'Se necesita acceso',
             message: 'Expensify no tiene acceso para guardar archivos. Para habilitar la descarga de archivos, entra en Settings y habilita el accesso',
+        },
+    },
+    desktopApplicationMenu: {
+        aboutExpensify: 'Sobre Nuevo Expensify',
+        updateExpensify: 'Actualizar Nuevo Expensify',
+        checkForUpdates: 'Buscar actualizaciones',
+        history: 'Historial',
+    },
+    historyMenu: {
+        forward: 'Adelante',
+        back: 'Atrás',
+    },
+    checkForUpdatesModal: {
+        available: {
+            title: 'Actualización disponible',
+            message: 'La nueva versión estará disponible dentro de poco. Te notificaremos cuando esté lista.',
+            soundsGood: 'Suena bien',
+        },
+        notAvailable: {
+            title: 'Actualización no disponible',
+            message: 'No existe ninguna actualización disponible! Inténtalo de nuevo más tarde.',
+            okay: 'Vale',
+        },
+        error: {
+            title: 'Comprobación fallida',
+            message: 'No hemos podido comprobar si existe una actualización. Inténtalo de nuevo más tarde!',
         },
     },
 };

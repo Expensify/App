@@ -15,6 +15,7 @@ class TextInputLabel extends PureComponent {
     render() {
         return (
             <Animated.Text
+                allowFontScaling={false}
                 onLayout={({nativeEvent}) => {
                     this.setState({width: nativeEvent.layout.width});
                 }}

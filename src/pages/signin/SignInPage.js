@@ -6,7 +6,6 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
-import updateUnread from '../../libs/UnreadIndicatorUpdater/updateUnread/index';
 import compose from '../../libs/compose';
 import SignInPageLayout from './SignInPageLayout';
 import LoginForm from './LoginForm';
@@ -44,9 +43,6 @@ const defaultProps = {
 
 class SignInPage extends Component {
     componentDidMount() {
-        // Always reset the unread counter to zero on this page
-        // NOTE: We need to wait for the next tick to ensure that the unread indicator is updated
-        setTimeout(() => updateUnread(0), 0);
         Performance.measureTTI();
     }
 
@@ -83,7 +79,7 @@ class SignInPage extends Component {
                 >
                     {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
                     so that password managers can access the values. Conditionally rendering these components will break this feature. */}
-                    <LoginForm isVisible={showLoginForm} blurOnSubmit={shouldShowResendValidationLinkForm} />
+                    <LoginForm isVisible={showLoginForm} blurOnSubmit={this.props.account.validated === false} />
                     <PasswordForm isVisible={showPasswordForm} />
                     {shouldShowResendValidationLinkForm && <ResendValidationForm />}
                 </SignInPageLayout>
