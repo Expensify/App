@@ -43,6 +43,7 @@ class CloseAccountPage extends Component {
         CloseAccount.clearError();
         this.state = {
             isConfirmModalVisible: false,
+            reasonForLeaving: '',
         };
     }
 
@@ -51,12 +52,15 @@ class CloseAccountPage extends Component {
     }
 
     onSubmit(values) {
-        User.closeAccount(values.reasonForLeaving);
+        User.closeAccount(this.state.reasonForLeaving);
         this.hideConfirmModal();
     }
 
-    showConfirmModal() {
-        this.setState({isConfirmModalVisible: true});
+    showConfirmModal(values) {
+        this.setState({
+            isConfirmModalVisible: true,
+            reasonForLeaving: values.reasonForLeaving,
+        });
     }
 
     hideConfirmModal() {
@@ -119,7 +123,7 @@ class CloseAccountPage extends Component {
                         />
                         <ConfirmModal
                             title={this.props.translate('closeAccountPage.closeAccountWarning')}
-                            onConfirm={this.hideConfirmModal}
+                            onConfirm={this.onSubmit}
                             onCancel={this.hideConfirmModal}
                             isVisible={this.state.isConfirmModalVisible}
                             prompt={this.props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
