@@ -25,14 +25,14 @@ function start(eventName, shouldUseFirebase = false) {
  * End performance timing. Measure the time between event start/end in milliseconds, and push to Grafana
  *
  * @param {String} eventName - event name used as timestamp key
- * @param {String} [secondaryNameParam] - optional secondary event name, passed to grafana. Default is the environment name.
+ * @param {String} [secondaryName] - optional secondary event name, passed to grafana. Default is the environment name.
  */
-function end(eventName, secondaryNameParam = 'env') {
+function end(eventName, secondaryName = '') {
     if (!timestampData[eventName]) {
         return;
     }
 
-    function sendEvent(secondaryName = '') {
+    Environment.getEnvironment().then((envName) => {
         const {startTime, shouldUseFirebase} = timestampData[eventName];
         const eventTime = Date.now() - startTime;
 
@@ -41,8 +41,8 @@ function end(eventName, secondaryNameParam = 'env') {
         }
 
         const grafanaEventName = secondaryName
-            ? `expensify.cash.${eventName}.${secondaryName}`
-            : `expensify.cash.${eventName}`;
+            ? `expensify.${envName}.${eventName}.${secondaryName}`
+            : `expensify.${envName}.${eventName}`;
 
         console.debug(`Timing:${grafanaEventName}`, eventTime);
         delete timestampData[eventName];
@@ -57,13 +57,7 @@ function end(eventName, secondaryNameParam = 'env') {
             value: eventTime,
             platform: `${getPlatform()}`,
         });
-    }
-
-    if (secondaryNameParam === 'env') {
-        Environment.getEnvironment().then(sendEvent);
-    } else {
-        sendEvent(secondaryNameParam);
-    }
+    });
 }
 
 /**
