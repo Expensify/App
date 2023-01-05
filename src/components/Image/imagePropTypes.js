@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import stylePropTypes from '../../styles/stylePropTypes';
 import RESIZE_MODES from './resizeModes';
 
-const propTypes = {
+const imagePropTypes = {
     /** Styles for the Image */
     style: stylePropTypes,
 
@@ -53,4 +53,4 @@ const defaultProps = {
     onLoad: () => {},
 };
 
-export {propTypes, defaultProps};
+export {imagePropTypes, defaultProps};

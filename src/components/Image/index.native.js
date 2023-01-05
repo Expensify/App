@@ -4,7 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
-import {defaultProps, propTypes} from './imagePropTypes';
+import {defaultProps, imagePropTypes} from './imagePropTypes';
 import RESIZE_MODES from './resizeModes';
 
 class Image extends React.Component {
@@ -51,7 +51,7 @@ class Image extends React.Component {
     }
 }
 
-Image.propTypes = propTypes;
+Image.propTypes = imagePropTypes;
 Image.defaultProps = defaultProps;
 
 const ImageWithOnyx = withOnyx({

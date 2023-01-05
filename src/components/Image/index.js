@@ -2,9 +2,19 @@ import React from 'react';
 import {Image as RNImage} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import ONYXKEYS from '../../ONYXKEYS';
-import {defaultProps, propTypes} from './imagePropTypes';
+import {defaultProps, imagePropTypes} from './imagePropTypes';
 import RESIZE_MODES from './resizeModes';
+
+const propTypes = {
+    ...imagePropTypes,
+
+    /** The URI source of the image */
+    source: PropTypes.shape({
+        uri: PropTypes.string.isRequired,
+    }).isRequired,
+};
 
 class Image extends React.Component {
     constructor(props) {
@@ -26,11 +36,16 @@ class Image extends React.Component {
         this.configureImageSource();
     }
 
+    // Check if the image source is a URL - if so the `encryptedAuthToken` is appended
+    // to the source. The natural image dimensions can then be retrieved using this source
+    // and as a result the `onLoad` event needs to be maunually invoked to return these dimensions
     configureImageSource() {
         const source = this.props.source;
-        const isAuthTokenRequired = this.props.isAuthTokenRequired;
         let imageSource = source;
-        if (typeof source !== 'number' && isAuthTokenRequired) {
+        if (this.props.isAuthTokenRequired) {
+            // There is currently a `react-native-web` bug preventing the authToken being passed
+            // in the headers of the image request so the authToken is added as a query param.
+            // On native the authToken IS passed in the image request headers
             const authToken = lodashGet(this.props, 'session.encryptedAuthToken', null);
             imageSource = {uri: `${source.uri}?encryptedAuthToken=${encodeURIComponent(authToken)}`};
         }
@@ -41,10 +56,7 @@ class Image extends React.Component {
         if (this.props.onLoad == null) {
             return;
         }
-        const uri = typeof imageSource === 'number'
-            ? Image.resolveAssetSource(imageSource).uri
-            : imageSource.uri;
-        RNImage.getSize(uri, (width, height) => {
+        RNImage.getSize(imageSource.uri, (width, height) => {
             this.props.onLoad({nativeEvent: {width, height}});
         });
     }
