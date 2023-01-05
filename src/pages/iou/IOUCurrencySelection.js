@@ -111,7 +111,7 @@ class IOUCurrencySelection extends Component {
     render() {
         const headerMessage = this.state.searchValue.trim() && !this.state.currencyData.length ? this.props.translate('common.noResultsFound') : '';
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('iOUCurrencySelection.selectCurrency')}
                     onCloseButtonPress={Navigation.goBack}

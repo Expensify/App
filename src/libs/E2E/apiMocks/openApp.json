@@ -1,0 +1,2531 @@
+{
+   "onyxData":[
+      {
+         "onyxMethod":"merge",
+         "key":"user",
+         "value":{
+            "isFromPublicDomain":false
+         }
+      },
+      {
+         "onyxMethod":"merge",
+         "key":"currencyList",
+         "value":{
+            "AED":{
+               "symbol":"Dhs",
+               "name":"UAE Dirham",
+               "ISO4217":"784"
+            },
+            "AFN":{
+               "symbol":"Af",
+               "name":"Afghan Afghani",
+               "ISO4217":"971"
+            },
+            "ALL":{
+               "symbol":"ALL",
+               "name":"Albanian Lek",
+               "ISO4217":"008"
+            },
+            "AMD":{
+               "symbol":"\u0564\u0580",
+               "name":"Armenian Dram",
+               "ISO4217":"051"
+            },
+            "ANG":{
+               "symbol":"NA\u0192",
+               "name":"Neth Antilles Guilder",
+               "ISO4217":"532"
+            },
+            "AOA":{
+               "symbol":"Kz",
+               "name":"Angolan Kwanza",
+               "ISO4217":"973"
+            },
+            "ARS":{
+               "symbol":"AR$",
+               "name":"Argentine Peso",
+               "ISO4217":"032"
+            },
+            "AUD":{
+               "symbol":"A$",
+               "name":"Australian Dollar",
+               "ISO4217":"036"
+            },
+            "AWG":{
+               "symbol":"\u0192",
+               "name":"Aruba Florin",
+               "ISO4217":"533"
+            },
+            "AZN":{
+               "symbol":"man",
+               "name":"Azerbaijani Manat",
+               "ISO4217":"944"
+            },
+            "BAM":{
+               "symbol":"KM",
+               "name":"Bosnia And Herzegovina Convertible Mark",
+               "ISO4217":"977"
+            },
+            "BBD":{
+               "symbol":"Bds$",
+               "name":"Barbados Dollar",
+               "ISO4217":"052"
+            },
+            "BDT":{
+               "symbol":"Tk",
+               "name":"Bangladesh Taka",
+               "ISO4217":"050"
+            },
+            "BGN":{
+               "symbol":"\u043b\u0432",
+               "name":"Bulgarian Lev",
+               "ISO4217":"975"
+            },
+            "BHD":{
+               "symbol":"BHD",
+               "name":"Bahraini Dinar",
+               "ISO4217":"048"
+            },
+            "BIF":{
+               "symbol":"FBu",
+               "name":"Burundi Franc",
+               "decimals":0,
+               "ISO4217":"108"
+            },
+            "BMD":{
+               "symbol":"BD$",
+               "name":"Bermuda Dollar",
+               "ISO4217":"060"
+            },
+            "BND":{
+               "symbol":"BN$",
+               "name":"Brunei Dollar",
+               "ISO4217":"096"
+            },
+            "BOB":{
+               "symbol":"Bs",
+               "name":"Bolivian Boliviano",
+               "ISO4217":"068"
+            },
+            "BRL":{
+               "symbol":"R$",
+               "name":"Brazilian Real",
+               "ISO4217":"986"
+            },
+            "BSD":{
+               "symbol":"BS$",
+               "name":"Bahamian Dollar",
+               "ISO4217":"044"
+            },
+            "BTN":{
+               "symbol":"Nu.",
+               "name":"Bhutan Ngultrum",
+               "ISO4217":"064"
+            },
+            "BWP":{
+               "symbol":"P",
+               "name":"Botswana Pula",
+               "ISO4217":"072"
+            },
+            "BYN":{
+               "symbol":"BR",
+               "name":"Belarus Ruble",
+               "ISO4217":"933"
+            },
+            "BYR":{
+               "symbol":"BR",
+               "name":"Belarus Ruble",
+               "retired":true,
+               "retirementDate":"2016-07-01",
+               "ISO4217":"974"
+            },
+            "BZD":{
+               "symbol":"BZ$",
+               "name":"Belize Dollar",
+               "ISO4217":"084"
+            },
+            "CAD":{
+               "symbol":"C$",
+               "name":"Canadian Dollar",
+               "ISO4217":"124"
+            },
+            "CDF":{
+               "symbol":"CDF",
+               "name":"Congolese Franc",
+               "ISO4217":"976"
+            },
+            "CHF":{
+               "symbol":"CHF",
+               "name":"Swiss Franc",
+               "ISO4217":"756"
+            },
+            "CLP":{
+               "symbol":"Ch$",
+               "name":"Chilean Peso",
+               "decimals":0,
+               "ISO4217":"152"
+            },
+            "CNY":{
+               "symbol":"\u00a5",
+               "name":"Chinese Yuan",
+               "ISO4217":"156"
+            },
+            "COP":{
+               "symbol":"Col$",
+               "name":"Colombian Peso",
+               "decimals":0,
+               "ISO4217":"170"
+            },
+            "CRC":{
+               "symbol":"CR\u20a1",
+               "name":"Costa Rica Colon",
+               "ISO4217":"188"
+            },
+            "CUC":{
+               "symbol":"CUC",
+               "name":"Cuban Convertible Peso",
+               "ISO4217":"931"
+            },
+            "CUP":{
+               "symbol":"$MN",
+               "name":"Cuban Peso",
+               "ISO4217":"192"
+            },
+            "CVE":{
+               "symbol":"Esc",
+               "name":"Cape Verde Escudo",
+               "ISO4217":"132"
+            },
+            "CZK":{
+               "symbol":"K\u010d",
+               "name":"Czech Koruna",
+               "ISO4217":"203"
+            },
+            "DJF":{
+               "symbol":"Fdj",
+               "name":"Dijibouti Franc",
+               "decimals":0,
+               "ISO4217":"262"
+            },
+            "DKK":{
+               "symbol":"Dkr",
+               "name":"Danish Krone",
+               "ISO4217":"208"
+            },
+            "DOP":{
+               "symbol":"RD$",
+               "name":"Dominican Peso",
+               "ISO4217":"214"
+            },
+            "DZD":{
+               "symbol":"DZD",
+               "name":"Algerian Dinar",
+               "ISO4217":"012"
+            },
+            "EEK":{
+               "symbol":"KR",
+               "name":"Estonian Kroon",
+               "ISO4217":"",
+               "retired":true
+            },
+            "EGP":{
+               "symbol":"EGP",
+               "name":"Egyptian Pound",
+               "ISO4217":"818"
+            },
+            "ERN":{
+               "symbol":"Nfk",
+               "name":"Eritrea Nakfa",
+               "ISO4217":"232"
+            },
+            "ETB":{
+               "symbol":"Br",
+               "name":"Ethiopian Birr",
+               "ISO4217":"230"
+            },
+            "EUR":{
+               "symbol":"\u20ac",
+               "name":"Euro",
+               "ISO4217":"978"
+            },
+            "FJD":{
+               "symbol":"FJ$",
+               "name":"Fiji Dollar",
+               "ISO4217":"242"
+            },
+            "FKP":{
+               "symbol":"FK\u00a3",
+               "name":"Falkland Islands Pound",
+               "ISO4217":"238"
+            },
+            "GBP":{
+               "symbol":"\u00a3",
+               "name":"British Pound",
+               "ISO4217":"826"
+            },
+            "GEL":{
+               "symbol":"\u10da",
+               "name":"Georgian Lari",
+               "ISO4217":"981"
+            },
+            "GHS":{
+               "symbol":"\u20b5",
+               "name":"Ghanaian Cedi",
+               "ISO4217":"936"
+            },
+            "GIP":{
+               "symbol":"\u00a3G",
+               "name":"Gibraltar Pound",
+               "ISO4217":"292"
+            },
+            "GMD":{
+               "symbol":"D",
+               "name":"Gambian Dalasi",
+               "ISO4217":"270"
+            },
+            "GNF":{
+               "symbol":"FG",
+               "name":"Guinea Franc",
+               "decimals":0,
+               "ISO4217":"324"
+            },
+            "GTQ":{
+               "symbol":"Q",
+               "name":"Guatemala Quetzal",
+               "ISO4217":"320"
+            },
+            "GYD":{
+               "symbol":"GY$",
+               "name":"Guyana Dollar",
+               "ISO4217":"328"
+            },
+            "HKD":{
+               "symbol":"HK$",
+               "name":"Hong Kong Dollar",
+               "ISO4217":"344"
+            },
+            "HNL":{
+               "symbol":"HNL",
+               "name":"Honduras Lempira",
+               "ISO4217":"340"
+            },
+            "HRK":{
+               "symbol":"kn",
+               "name":"Croatian Kuna",
+               "ISO4217":"191"
+            },
+            "HTG":{
+               "symbol":"G",
+               "name":"Haiti Gourde",
+               "ISO4217":"332"
+            },
+            "HUF":{
+               "symbol":"Ft",
+               "name":"Hungarian Forint",
+               "ISO4217":"348"
+            },
+            "IDR":{
+               "symbol":"Rp",
+               "name":"Indonesian Rupiah",
+               "ISO4217":"360"
+            },
+            "ILS":{
+               "symbol":"\u20aa",
+               "name":"Israeli Shekel",
+               "ISO4217":"376"
+            },
+            "INR":{
+               "symbol":"\u20b9",
+               "name":"Indian Rupee",
+               "ISO4217":"356"
+            },
+            "IQD":{
+               "symbol":"IQD",
+               "name":"Iraqi Dinar",
+               "ISO4217":"368"
+            },
+            "IRR":{
+               "symbol":"\ufdfc",
+               "name":"Iran Rial",
+               "ISO4217":"364"
+            },
+            "ISK":{
+               "symbol":"kr",
+               "name":"Iceland Krona",
+               "decimals":0,
+               "ISO4217":"352"
+            },
+            "JMD":{
+               "symbol":"J$",
+               "name":"Jamaican Dollar",
+               "ISO4217":"388"
+            },
+            "JOD":{
+               "symbol":"JOD",
+               "name":"Jordanian Dinar",
+               "ISO4217":"400"
+            },
+            "JPY":{
+               "symbol":"\u00a5",
+               "name":"Japanese Yen",
+               "decimals":0,
+               "ISO4217":"392"
+            },
+            "KES":{
+               "symbol":"KSh",
+               "name":"Kenyan Shilling",
+               "ISO4217":"404"
+            },
+            "KGS":{
+               "symbol":"KGS",
+               "name":"Kyrgyzstani Som",
+               "ISO4217":"417"
+            },
+            "KHR":{
+               "symbol":"KHR",
+               "name":"Cambodia Riel",
+               "ISO4217":"116"
+            },
+            "KMF":{
+               "symbol":"CF",
+               "name":"Comoros Franc",
+               "ISO4217":"174"
+            },
+            "KPW":{
+               "symbol":"KP\u20a9",
+               "name":"North Korean Won",
+               "ISO4217":"408"
+            },
+            "KRW":{
+               "symbol":"\u20a9",
+               "name":"Korean Won",
+               "ISO4217":"410"
+            },
+            "KWD":{
+               "symbol":"KWD",
+               "name":"Kuwaiti Dinar",
+               "ISO4217":"414"
+            },
+            "KYD":{
+               "symbol":"CI$",
+               "name":"Cayman Islands Dollar",
+               "ISO4217":"136"
+            },
+            "KZT":{
+               "symbol":"\u3012",
+               "name":"Kazakhstan Tenge",
+               "ISO4217":"398"
+            },
+            "LAK":{
+               "symbol":"\u20ad",
+               "name":"Lao Kip",
+               "ISO4217":"418"
+            },
+            "LBP":{
+               "symbol":"LBP",
+               "name":"Lebanese Pound",
+               "ISO4217":"422"
+            },
+            "LKR":{
+               "symbol":"SL\u20a8",
+               "name":"Sri Lanka Rupee",
+               "ISO4217":"144"
+            },
+            "LRD":{
+               "symbol":"L$",
+               "name":"Liberian Dollar",
+               "ISO4217":"430"
+            },
+            "LSL":{
+               "symbol":"M",
+               "name":"Lesotho Loti",
+               "ISO4217":"426"
+            },
+            "LTL":{
+               "symbol":"Lt",
+               "name":"Lithuanian Lita",
+               "retirementDate":"2015-08-22",
+               "retired":true,
+               "ISO4217":"440"
+            },
+            "LVL":{
+               "symbol":"Ls",
+               "name":"Latvian Lat",
+               "ISO4217":"428",
+               "retired":true
+            },
+            "LYD":{
+               "symbol":"LYD",
+               "name":"Libyan Dinar",
+               "ISO4217":"434"
+            },
+            "MAD":{
+               "symbol":"MAD",
+               "name":"Moroccan Dirham",
+               "ISO4217":"504"
+            },
+            "MDL":{
+               "symbol":"MDL",
+               "name":"Moldovan Leu",
+               "ISO4217":"498"
+            },
+            "MGA":{
+               "symbol":"MGA",
+               "name":"Malagasy Ariary",
+               "ISO4217":"969"
+            },
+            "MKD":{
+               "symbol":"\u0434\u0435\u043d",
+               "name":"Macedonian Denar",
+               "ISO4217":"807"
+            },
+            "MMK":{
+               "symbol":"Ks",
+               "name":"Myanmar Kyat",
+               "ISO4217":"104"
+            },
+            "MNT":{
+               "symbol":"\u20ae",
+               "name":"Mongolian Tugrik",
+               "ISO4217":"496"
+            },
+            "MOP":{
+               "symbol":"MOP$",
+               "name":"Macau Pataca",
+               "ISO4217":"446"
+            },
+            "MRO":{
+               "symbol":"UM",
+               "name":"Mauritania Ougulya",
+               "decimals":0,
+               "retired":true,
+               "retirementDate":"2018-07-11",
+               "ISO4217":"478"
+            },
+            "MRU":{
+               "symbol":"UM",
+               "name":"Mauritania Ougulya",
+               "decimals":0,
+               "ISO4217":""
+            },
+            "MUR":{
+               "symbol":"Rs",
+               "name":"Mauritius Rupee",
+               "ISO4217":"480"
+            },
+            "MVR":{
+               "symbol":"Rf",
+               "name":"Maldives Rufiyaa",
+               "ISO4217":"462"
+            },
+            "MWK":{
+               "symbol":"MK",
+               "name":"Malawi Kwacha",
+               "ISO4217":"454"
+            },
+            "MXN":{
+               "symbol":"Mex$",
+               "name":"Mexican Peso",
+               "ISO4217":"484"
+            },
+            "MYR":{
+               "symbol":"RM",
+               "name":"Malaysian Ringgit",
+               "ISO4217":"458"
+            },
+            "MZN":{
+               "symbol":"MTn",
+               "name":"Mozambican Metical",
+               "ISO4217":"943"
+            },
+            "NAD":{
+               "symbol":"N$",
+               "name":"Namibian Dollar",
+               "ISO4217":"516"
+            },
+            "NGN":{
+               "symbol":"\u20a6",
+               "name":"Nigerian Naira",
+               "ISO4217":"566"
+            },
+            "NIO":{
+               "symbol":"NIO",
+               "name":"Nicaragua Cordoba",
+               "ISO4217":"558"
+            },
+            "NOK":{
+               "symbol":"Nkr",
+               "name":"Norwegian Krone",
+               "ISO4217":"578"
+            },
+            "NPR":{
+               "symbol":"\u20a8",
+               "name":"Nepalese Rupee",
+               "ISO4217":"524"
+            },
+            "NZD":{
+               "symbol":"NZ$",
+               "name":"New Zealand Dollar",
+               "ISO4217":"554"
+            },
+            "OMR":{
+               "symbol":"OMR",
+               "name":"Omani Rial",
+               "ISO4217":"512"
+            },
+            "PAB":{
+               "symbol":"B",
+               "name":"Panama Balboa",
+               "ISO4217":"590"
+            },
+            "PEN":{
+               "symbol":"S\/.",
+               "name":"Peruvian Nuevo Sol",
+               "ISO4217":"604"
+            },
+            "PGK":{
+               "symbol":"K",
+               "name":"Papua New Guinea Kina",
+               "ISO4217":"598"
+            },
+            "PHP":{
+               "symbol":"\u20b1",
+               "name":"Philippine Peso",
+               "ISO4217":"608"
+            },
+            "PKR":{
+               "symbol":"Rs",
+               "name":"Pakistani Rupee",
+               "ISO4217":"586"
+            },
+            "PLN":{
+               "symbol":"z\u0142",
+               "name":"Polish Zloty",
+               "ISO4217":"985"
+            },
+            "PYG":{
+               "symbol":"\u20b2",
+               "name":"Paraguayan Guarani",
+               "ISO4217":"600"
+            },
+            "QAR":{
+               "symbol":"QAR",
+               "name":"Qatar Rial",
+               "ISO4217":"634"
+            },
+            "RON":{
+               "symbol":"RON",
+               "name":"Romanian New Leu",
+               "ISO4217":"946"
+            },
+            "RSD":{
+               "symbol":"\u0420\u0421\u0414",
+               "name":"Serbian Dinar",
+               "ISO4217":"941"
+            },
+            "RUB":{
+               "symbol":"\u20bd",
+               "name":"Russian Rouble",
+               "ISO4217":"643"
+            },
+            "RWF":{
+               "symbol":"RF",
+               "name":"Rwanda Franc",
+               "decimals":0,
+               "ISO4217":"646"
+            },
+            "SAR":{
+               "symbol":"SAR",
+               "name":"Saudi Arabian Riyal",
+               "ISO4217":"682"
+            },
+            "SBD":{
+               "symbol":"SI$",
+               "name":"Solomon Islands Dollar",
+               "ISO4217":"090"
+            },
+            "SCR":{
+               "symbol":"SR",
+               "name":"Seychelles Rupee",
+               "ISO4217":"690"
+            },
+            "SDG":{
+               "symbol":"SDG",
+               "name":"Sudanese Pound",
+               "ISO4217":"938"
+            },
+            "SEK":{
+               "symbol":"Skr",
+               "name":"Swedish Krona",
+               "ISO4217":"752"
+            },
+            "SGD":{
+               "symbol":"S$",
+               "name":"Singapore Dollar",
+               "ISO4217":"702"
+            },
+            "SHP":{
+               "symbol":"\u00a3S",
+               "name":"St Helena Pound",
+               "ISO4217":"654"
+            },
+            "SLL":{
+               "symbol":"Le",
+               "name":"Sierra Leone Leone",
+               "ISO4217":"694"
+            },
+            "SOS":{
+               "symbol":"So.",
+               "name":"Somali Shilling",
+               "ISO4217":"706"
+            },
+            "SRD":{
+               "symbol":"SRD",
+               "name":"Surinamese Dollar",
+               "ISO4217":"968"
+            },
+            "STD":{
+               "symbol":"Db",
+               "name":"Sao Tome Dobra",
+               "retired":true,
+               "retirementDate":"2018-07-11",
+               "ISO4217":"678"
+            },
+            "STN":{
+               "symbol":"Db",
+               "name":"Sao Tome Dobra",
+               "ISO4217":""
+            },
+            "SVC":{
+               "symbol":"SVC",
+               "name":"El Salvador Colon",
+               "ISO4217":"222"
+            },
+            "SYP":{
+               "symbol":"SYP",
+               "name":"Syrian Pound",
+               "ISO4217":"760"
+            },
+            "SZL":{
+               "symbol":"E",
+               "name":"Swaziland Lilageni",
+               "ISO4217":"748"
+            },
+            "THB":{
+               "symbol":"\u0e3f",
+               "name":"Thai Baht",
+               "ISO4217":"764"
+            },
+            "TJS":{
+               "symbol":"TJS",
+               "name":"Tajikistani Somoni",
+               "ISO4217":"972"
+            },
+            "TMT":{
+               "symbol":"m",
+               "name":"Turkmenistani Manat",
+               "ISO4217":"934"
+            },
+            "TND":{
+               "symbol":"TND",
+               "name":"Tunisian Dinar",
+               "ISO4217":"788"
+            },
+            "TOP":{
+               "symbol":"T$",
+               "name":"Tonga Pa'ang",
+               "ISO4217":"776"
+            },
+            "TRY":{
+               "symbol":"TL",
+               "name":"Turkish Lira",
+               "ISO4217":"949"
+            },
+            "TTD":{
+               "symbol":"TT$",
+               "name":"Trinidad & Tobago Dollar",
+               "ISO4217":"780"
+            },
+            "TWD":{
+               "symbol":"NT$",
+               "name":"Taiwan Dollar",
+               "ISO4217":"901"
+            },
+            "TZS":{
+               "symbol":"TZS",
+               "name":"Tanzanian Shilling",
+               "ISO4217":"834"
+            },
+            "UAH":{
+               "symbol":"\u20b4",
+               "name":"Ukraine Hryvnia",
+               "ISO4217":"980"
+            },
+            "UGX":{
+               "symbol":"USh",
+               "name":"Ugandan Shilling",
+               "decimals":0,
+               "ISO4217":"800"
+            },
+            "USD":{
+               "symbol":"$",
+               "name":"United States Dollar",
+               "ISO4217":"840"
+            },
+            "UYU":{
+               "symbol":"$U",
+               "name":"Uruguayan New Peso",
+               "ISO4217":"858"
+            },
+            "UZS":{
+               "symbol":"UZS",
+               "name":"Uzbekistani Som",
+               "ISO4217":"860"
+            },
+            "VEB":{
+               "symbol":"Bs.",
+               "name":"Venezuelan Bolivar",
+               "retired":true,
+               "retirementDate":"2008-02-01",
+               "ISO4217":""
+            },
+            "VEF":{
+               "symbol":"Bs.F",
+               "name":"Venezuelan Bolivar Fuerte",
+               "retired":true,
+               "retirementDate":"2018-08-20",
+               "ISO4217":"937"
+            },
+            "VES":{
+               "symbol":"Bs.S",
+               "name":"Venezuelan Bolivar Soberano",
+               "ISO4217":"928"
+            },
+            "VND":{
+               "symbol":"\u20ab",
+               "name":"Vietnam Dong",
+               "decimals":0,
+               "ISO4217":"704"
+            },
+            "VUV":{
+               "symbol":"Vt",
+               "name":"Vanuatu Vatu",
+               "ISO4217":"548"
+            },
+            "WST":{
+               "symbol":"WS$",
+               "name":"Samoa Tala",
+               "ISO4217":"882"
+            },
+            "XAF":{
+               "symbol":"FCFA",
+               "name":"CFA Franc (BEAC)",
+               "decimals":0,
+               "ISO4217":"950"
+            },
+            "XCD":{
+               "symbol":"EC$",
+               "name":"East Caribbean Dollar",
+               "ISO4217":"951"
+            },
+            "XOF":{
+               "symbol":"CFA",
+               "name":"CFA Franc (BCEAO)",
+               "decimals":0,
+               "ISO4217":"952"
+            },
+            "XPF":{
+               "symbol":"XPF",
+               "name":"Pacific Franc",
+               "decimals":0,
+               "ISO4217":"953"
+            },
+            "YER":{
+               "symbol":"YER",
+               "name":"Yemen  Riyal",
+               "ISO4217":"886"
+            },
+            "ZAR":{
+               "symbol":"R",
+               "name":"South African Rand",
+               "ISO4217":"710"
+            },
+            "ZMK":{
+               "symbol":"ZK",
+               "name":"Zambian Kwacha",
+               "retired":true,
+               "retirementDate":"2013-01-01",
+               "ISO4217":"894"
+            },
+            "ZMW":{
+               "symbol":"ZMW",
+               "name":"Zambian Kwacha",
+               "cacheBurst":1,
+               "ISO4217":"967"
+            }
+         }
+      },
+      {
+         "onyxMethod":"merge",
+         "key":"nvp_priorityMode",
+         "value":"default"
+      },
+      {
+         "onyxMethod":"merge",
+         "key":"isFirstTimeNewExpensifyUser",
+         "value":false
+      },
+      {
+         "onyxMethod":"merge",
+         "key":"preferredLocale",
+         "value":"en"
+      },
+      {
+         "onyxMethod":"merge",
+         "key":"nvp_paypalMeAddress",
+         "value":""
+      },
+      {
+         "onyxMethod":"merge",
+         "key":"preferredEmojiSkinTone",
+         "value":"default"
+      },
+      {
+         "onyxMethod":"set",
+         "key":"frequentlyUsedEmojis",
+         "value":[
+            {
+               "code":"\ud83e\udd11",
+               "count":155,
+               "keywords":[
+                  "rich",
+                  "money_mouth_face",
+                  "face",
+                  "money",
+                  "mouth"
+               ],
+               "lastUpdatedAt":1669657594,
+               "name":"money_mouth_face"
+            },
+            {
+               "code":"\ud83e\udd17",
+               "count":91,
+               "keywords":[
+                  "hugs",
+                  "face",
+                  "hug",
+                  "hugging"
+               ],
+               "lastUpdatedAt":1669660894,
+               "name":"hugs"
+            },
+            {
+               "code":"\ud83d\ude0d",
+               "count":68,
+               "keywords":[
+                  "love",
+                  "crush",
+                  "heart_eyes",
+                  "eye",
+                  "face",
+                  "heart",
+                  "smile"
+               ],
+               "lastUpdatedAt":1669659126,
+               "name":"heart_eyes"
+            },
+            {
+               "code":"\ud83e\udd14",
+               "count":56,
+               "keywords":[
+                  "thinking",
+                  "face"
+               ],
+               "lastUpdatedAt":1669661008,
+               "name":"thinking"
+            },
+            {
+               "code":"\ud83d\ude02",
+               "count":55,
+               "keywords":[
+                  "tears",
+                  "joy",
+                  "face",
+                  "laugh",
+                  "tear"
+               ],
+               "lastUpdatedAt":1670346435,
+               "name":"joy"
+            },
+            {
+               "code":"\ud83d\ude05",
+               "count":41,
+               "keywords":[
+                  "hot",
+                  "sweat_smile",
+                  "cold",
+                  "face",
+                  "open",
+                  "smile",
+                  "sweat"
+               ],
+               "lastUpdatedAt":1670346845,
+               "name":"sweat_smile"
+            },
+            {
+               "code":"\ud83d\ude04",
+               "count":37,
+               "keywords":[
+                  "happy",
+                  "joy",
+                  "laugh",
+                  "pleased",
+                  "smile",
+                  "eye",
+                  "face",
+                  "mouth",
+                  "open"
+               ],
+               "lastUpdatedAt":1669659306,
+               "name":"smile"
+            },
+            {
+               "code":"\ud83d\ude18",
+               "count":27,
+               "keywords":[
+                  "face",
+                  "heart",
+                  "kiss"
+               ],
+               "lastUpdatedAt":1670346848,
+               "name":"kissing_heart"
+            },
+            {
+               "code":"\ud83e\udd23",
+               "count":25,
+               "keywords":[
+                  "lol",
+                  "laughing",
+                  "rofl",
+                  "face",
+                  "floor",
+                  "laugh",
+                  "rolling"
+               ],
+               "lastUpdatedAt":1669659311,
+               "name":"rofl"
+            },
+            {
+               "code":"\ud83d\ude0b",
+               "count":18,
+               "keywords":[
+                  "tongue",
+                  "lick",
+                  "yum",
+                  "delicious",
+                  "face",
+                  "savouring",
+                  "smile",
+                  "um"
+               ],
+               "lastUpdatedAt":1669658204,
+               "name":"yum"
+            },
+            {
+               "code":"\ud83d\ude0a",
+               "count":17,
+               "keywords":[
+                  "proud",
+                  "blush",
+                  "eye",
+                  "face",
+                  "smile"
+               ],
+               "lastUpdatedAt":1669661018,
+               "name":"blush"
+            },
+            {
+               "code":"\ud83d\ude06",
+               "count":17,
+               "keywords":[
+                  "happy",
+                  "haha",
+                  "laughing",
+                  "satisfied",
+                  "face",
+                  "laugh",
+                  "mouth",
+                  "open",
+                  "smile"
+               ],
+               "lastUpdatedAt":1669659070,
+               "name":"laughing"
+            },
+            {
+               "code":"\ud83d\ude10",
+               "count":17,
+               "keywords":[
+                  "deadpan",
+                  "face",
+                  "neutral"
+               ],
+               "lastUpdatedAt":1669658922,
+               "name":"neutral_face"
+            },
+            {
+               "code":"\ud83d\ude03",
+               "count":17,
+               "keywords":[
+                  "happy",
+                  "joy",
+                  "haha",
+                  "smiley",
+                  "face",
+                  "mouth",
+                  "open",
+                  "smile"
+               ],
+               "lastUpdatedAt":1669636981,
+               "name":"smiley"
+            },
+            {
+               "code":"\ud83d\ude17",
+               "count":15,
+               "keywords":[
+                  "face",
+                  "kiss"
+               ],
+               "lastUpdatedAt":1669639079
+            },
+            {
+               "code":"\ud83d\ude1a",
+               "count":14,
+               "keywords":[
+                  "kissing_closed_eyes",
+                  "closed",
+                  "eye",
+                  "face",
+                  "kiss"
+               ],
+               "lastUpdatedAt":1669660248,
+               "name":"kissing_closed_eyes"
+            },
+            {
+               "code":"\ud83d\ude19",
+               "count":12,
+               "keywords":[
+                  "kissing_smiling_eyes",
+                  "eye",
+                  "face",
+                  "kiss",
+                  "smile"
+               ],
+               "lastUpdatedAt":1669658208,
+               "name":"kissing_smiling_eyes"
+            },
+            {
+               "code":"\ud83e\udd10",
+               "count":11,
+               "keywords":[
+                  "face",
+                  "mouth",
+                  "zipper"
+               ],
+               "lastUpdatedAt":1670346432
+            },
+            {
+               "code":"\ud83d\ude25",
+               "count":11,
+               "keywords":[
+                  "disappointed",
+                  "face",
+                  "relieved",
+                  "whew"
+               ],
+               "lastUpdatedAt":1669660257
+            },
+            {
+               "code":"\ud83d\ude0e",
+               "count":11,
+               "keywords":[
+                  "bright",
+                  "cool",
+                  "eye",
+                  "eyewear",
+                  "face",
+                  "glasses",
+                  "smile",
+                  "sun",
+                  "sunglasses",
+                  "weather"
+               ],
+               "lastUpdatedAt":1669660252
+            },
+            {
+               "code":"\ud83d\ude36",
+               "count":11,
+               "keywords":[
+                  "face",
+                  "mouth",
+                  "quiet",
+                  "silent"
+               ],
+               "lastUpdatedAt":1669659075,
+               "name":"no_mouth"
+            },
+            {
+               "code":"\ud83d\ude11",
+               "count":11,
+               "keywords":[
+                  "expressionless",
+                  "face",
+                  "inexpressive",
+                  "unexpressive"
+               ],
+               "lastUpdatedAt":1669640332
+            },
+            {
+               "code":"\ud83d\ude0f",
+               "count":11,
+               "keywords":[
+                  "face",
+                  "smirk"
+               ],
+               "lastUpdatedAt":1666207075
+            },
+            {
+               "code":"\ud83e\udd70",
+               "count":1,
+               "keywords":[
+                  "love",
+                  "smiling_face_with_three_hearts"
+               ],
+               "lastUpdatedAt":1670581230,
+               "name":"smiling_face_with_three_hearts"
+            }
+         ]
+      },
+      {
+         "onyxMethod":"merge",
+         "key":"private_blockedFromConcierge",
+         "value":{
+
+         }
+      },
+      {
+         "onyxMethod":"merge",
+         "key":"user",
+         "value":{
+            "isSubscribedToNewsletter":true,
+            "validated":true,
+            "isUsingExpensifyCard":true
+         }
+      },
+      {
+         "onyxMethod":"set",
+         "key":"loginList",
+         "value":{
+            "applausetester+perf2@applause.expensifail.com":{
+               "partnerName":"expensify.com",
+               "partnerUserID":"applausetester+perf2@applause.expensifail.com",
+               "validatedDate":"2022-08-01 05:00:48"
+            }
+         }
+      },
+      {
+         "onyxMethod":"merge",
+         "key":"personalDetails",
+         "value":{
+            "fake2@gmail.com":{
+               "login":"fake2@gmail.com",
+               "avatar":"https://d1wpcgnaa73g0y.cloudfront.net/7a1fd3cdd41564cf04f4305140372b59d1dcd495_128.jpeg",
+               "displayName":"fake2@gmail.com",
+               "pronouns":"__predefined_zeHirHirs",
+               "timezone":{
+                  "automatic":false,
+                  "selected":"Europe/Monaco"
+               },
+               "firstName":"",
+               "lastName":"",
+               "payPalMeAddress":"qwerty",
+               "phoneNumber":"",
+               "validated":true
+            },
+            "fake1@gmail.com":{
+               "login":"fake1@gmail.com",
+               "avatar":"https://d1wpcgnaa73g0y.cloudfront.net/d76dfb6912a0095cbfd2a02f64f4d9d2d9c33c29_128.jpeg",
+               "displayName":"\"Chat N Laz\"",
+               "pronouns":"__predefined_theyThemTheirs",
+               "timezone":{
+                  "automatic":true,
+                  "selected":"Europe/Athens"
+               },
+               "firstName":"\"Chat N",
+               "lastName":"Laz\"",
+               "payPalMeAddress":"",
+               "phoneNumber":"",
+               "validated":true
+            },
+            "fake4@gmail.com":{
+               "login":"fake4@gmail.com",
+               "avatar":"https://d1wpcgnaa73g0y.cloudfront.net/e769e0edf5fd0bc11cfa7c39ec2605c5310d26de_128.jpeg",
+               "displayName":"fake4@gmail.com",
+               "pronouns":"",
+               "timezone":{
+                  "automatic":true,
+                  "selected":"Europe/Kiev"
+               },
+               "firstName":"",
+               "lastName":"",
+               "payPalMeAddress":"",
+               "phoneNumber":"",
+               "validated":true
+            },
+            "fake3@gmail.com":{
+               "login":"fake3@gmail.com",
+               "avatar":"https://d1wpcgnaa73g0y.cloudfront.net/301e37631eca9e3127d6b668822e3a53771551f6_128.jpeg",
+               "displayName":"123 Ios",
+               "pronouns":"__predefined_perPers",
+               "timezone":{
+                  "automatic":false,
+                  "selected":"Europe/Helsinki"
+               },
+               "firstName":"123",
+               "lastName":"Ios",
+               "payPalMeAddress":"Wwerty",
+               "phoneNumber":"",
+               "validated":true
+            },
+            "fake5@gmail.com":{
+               "login":"fake5@gmail.com",
+               "avatar":"https://d1wpcgnaa73g0y.cloudfront.net/2810a38b66d9a60fe41a9cf39c9fd6ecbe2cb35f_128.jpeg",
+               "displayName":"Qqq Qqq",
+               "pronouns":"__predefined_sheHerHers",
+               "timezone":{
+                  "automatic":false,
+                  "selected":"Europe/Lisbon"
+               },
+               "firstName":"Qqq",
+               "lastName":"Qqq",
+               "payPalMeAddress":"",
+               "phoneNumber":"",
+               "validated":true
+            },
+            "andreylazutkinutest@gmail.com":{
+               "login":"andreylazutkinutest@gmail.com",
+               "avatar":"https://d1wpcgnaa73g0y.cloudfront.net/2af13161ffcc95fc807769bb22c013c32280f338_128.jpeg",
+               "displayName":"Main Ios🏴󠁧󠁢󠁳󠁣󠁴󠁿ios",
+               "pronouns":"__predefined_heHimHis",
+               "timezone":{
+                  "automatic":false,
+                  "selected":"Europe/Belfast"
+               },
+               "firstName":"Main",
+               "lastName":"Ios🏴󠁧󠁢󠁳󠁣󠁴󠁿ios",
+               "payPalMeAddress":"",
+               "phoneNumber":"",
+               "validated":true
+            },
+            "applausetester+0604lsn@applause.expensifail.com":{
+               "login":"applausetester+0604lsn@applause.expensifail.com",
+               "avatar":"https://d1wpcgnaa73g0y.cloudfront.net/ad20184a011ed54383d69e4fe68658522583cbb8_128.jpeg",
+               "displayName":"0604 Lsn",
+               "pronouns":"__predefined_zeHirHirs",
+               "timezone":{
+                  "automatic":false,
+                  "selected":"America/Costa_Rica"
+               },
+               "firstName":"0604",
+               "lastName":"Lsn",
+               "payPalMeAddress":"12345",
+               "phoneNumber":"",
+               "validated":true
+            },
+            "applausetester+0704sveta@applause.expensifail.com":{
+               "login":"applausetester+0704sveta@applause.expensifail.com",
+               "avatar":"https://d1wpcgnaa73g0y.cloudfront.net/63cc4a392cc64ba1c8f6a1b90d5f1441a23270d1_128.jpeg",
+               "displayName":"07 04 0704 Lsn lsn",
+               "pronouns":"__predefined_callMeByMyName",
+               "timezone":{
+                  "automatic":false,
+                  "selected":"Africa/Freetown"
+               },
+               "firstName":"07 04 0704",
+               "lastName":"Lsn lsn",
+               "payPalMeAddress":"",
+               "phoneNumber":"",
+               "validated":true
+            },
+            "applausetester+0707abb@applause.expensifail.com":{
+               "login":"applausetester+0707abb@applause.expensifail.com",
+               "avatar":"https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_5.png",
+               "displayName":"Katya Becciv",
+               "pronouns":"__predefined_sheHerHers",
+               "timezone":{
+                  "automatic":false,
+                  "selected":"US/Eastern"
+               },
+               "firstName":"Katya",
+               "lastName":"Becciv",
+               "payPalMeAddress":"testing",
+               "phoneNumber":"",
+               "validated":true
+            },
+            "applausetester+0901abb@applause.expensifail.com":{
+               "login":"applausetester+0901abb@applause.expensifail.com",
+               "avatar":"https://d1wpcgnaa73g0y.cloudfront.net/0f6e999ba61695599f092b7652c1e159aee62c65_128.jpeg",
+               "displayName":"Katie Becciv",
+               "pronouns":"__predefined_faeFaer",
+               "timezone":{
+                  "automatic":false,
+                  "selected":"Africa/Accra"
+               },
+               "firstName":"Katie",
+               "lastName":"Becciv",
+               "payPalMeAddress":"kbecciv",
+               "phoneNumber":"",
+               "validated":true
+            },
+            "applausetester+1904lsn@applause.expensifail.com":{
+               "login":"applausetester+1904lsn@applause.expensifail.com",
+               "avatar":"https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_5.png",
+               "displayName":"11 11",
+               "pronouns":"",
+               "timezone":{
+                  "automatic":true,
+                  "selected":"Europe/Athens"
+               },
+               "firstName":"11",
+               "lastName":"11",
+               "payPalMeAddress":"",
+               "phoneNumber":"",
+               "validated":true
+            },
+            "applausetester+42222abb@applause.expensifail.com":{
+               "login":"applausetester+42222abb@applause.expensifail.com",
+               "avatar":"https://d1wpcgnaa73g0y.cloudfront.net/d166c112f300a6e30bc70752cd394c3fde099e4f_128.jpeg",
+               "displayName":"\"First\"",
+               "pronouns":"",
+               "timezone":{
+                  "automatic":true,
+                  "selected":"America/New_York"
+               },
+               "firstName":"\"First\"",
+               "lastName":"",
+               "payPalMeAddress":"444555",
+               "phoneNumber":"",
+               "validated":true
+            },
+            "applausetester+bernardo@applause.expensifail.com":{
+               "login":"applausetester+bernardo@applause.expensifail.com",
+               "avatar":"https://d1wpcgnaa73g0y.cloudfront.net/803733b7038bbd5e543315fa9c6c0118eda227af_128.jpeg",
+               "displayName":"bernardo utest",
+               "pronouns":"",
+               "timezone":{
+                  "automatic":true,
+                  "selected":"America/Los_Angeles"
+               },
+               "firstName":"bernardo",
+               "lastName":"utest",
+               "payPalMeAddress":"",
+               "phoneNumber":"",
+               "validated":false
+            },
+            "applausetester+ihchat4@applause.expensifail.com":{
+               "login":"applausetester+ihchat4@applause.expensifail.com",
+               "avatar":"https://d1wpcgnaa73g0y.cloudfront.net/1008dcaadc12badbddf4720dcb7ad99b7384c613_128.jpeg",
+               "displayName":"Chat HT",
+               "pronouns":"__predefined_callMeByMyName",
+               "timezone":{
+                  "automatic":true,
+                  "selected":"Europe/Kiev"
+               },
+               "firstName":"Chat",
+               "lastName":"HT",
+               "payPalMeAddress":"111",
+               "phoneNumber":"",
+               "validated":true
+            },
+            "applausetester+pd1005@applause.expensifail.com":{
+               "login":"applausetester+pd1005@applause.expensifail.com",
+               "avatar":"https://d1wpcgnaa73g0y.cloudfront.net/86c9b7dce35aea83b69c6e825a4b3d00a87389b7_128.jpeg",
+               "displayName":"applausetester+pd1005@applause.expensifail.com",
+               "pronouns":"",
+               "timezone":{
+                  "automatic":"true",
+                  "selected":"Europe/Lisbon"
+               },
+               "firstName":"",
+               "lastName":"",
+               "payPalMeAddress":"",
+               "phoneNumber":"",
+               "validated":true
+            },
+            "fake6@gmail.com":{
+               "login":"fake6@gmail.com",
+               "avatar":"https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_7.png",
+               "displayName":"fake6@gmail.com",
+               "pronouns":"",
+               "timezone":{
+                  "automatic":true,
+                  "selected":"Europe/Warsaw"
+               },
+               "firstName":"",
+               "lastName":"",
+               "payPalMeAddress":"",
+               "phoneNumber":"",
+               "validated":true
+            },
+            "applausetester+perf2@applause.expensifail.com":{
+               "login":"applausetester+perf2@applause.expensifail.com",
+               "avatar":"https://d1wpcgnaa73g0y.cloudfront.net/1486f9cc6367d8c399ee453ad5b686d157bb4dda_128.jpeg",
+               "displayName":"applausetester+perf2@applause.expensifail.com",
+               "pronouns":"",
+               "timezone":{
+                  "automatic":true,
+                  "selected":"America/Los_Angeles"
+               },
+               "firstName":"",
+               "lastName":"",
+               "payPalMeAddress":"",
+               "phoneNumber":"",
+               "validated":true,
+               "localCurrencyCode":"USD"
+            },
+            "fake7@gmail.com":{
+               "login":"fake7@gmail.com",
+               "avatar":"https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_2.png",
+               "displayName":"fake7@gmail.com",
+               "pronouns":"",
+               "timezone":{
+                  "automatic":true,
+                  "selected":"America/Toronto"
+               },
+               "firstName":"",
+               "lastName":"",
+               "payPalMeAddress":"",
+               "phoneNumber":"",
+               "validated":true
+            },
+            "fake8@gmail.com":{
+               "login":"fake8@gmail.com",
+               "avatar":"https://d1wpcgnaa73g0y.cloudfront.net/7b0a9cf9c93987053be9d6cc707cb1f091a1ef46_128.jpeg",
+               "displayName":"fake8@gmail.com",
+               "pronouns":"",
+               "timezone":{
+                  "automatic":true,
+                  "selected":"Europe/Paris"
+               },
+               "firstName":"",
+               "lastName":"",
+               "payPalMeAddress":"",
+               "phoneNumber":"",
+               "validated":true
+            },
+            "applausetester@applause.expensifail.com":{
+               "login":"applausetester@applause.expensifail.com",
+               "avatar":"https://d1wpcgnaa73g0y.cloudfront.net/8ddbb1a4675883ea12b3021f698a8b2dcfc18d42_128.jpeg",
+               "displayName":"Applause Main Account",
+               "pronouns":"__predefined_coCos",
+               "timezone":{
+                  "automatic":"true",
+                  "selected":"Europe/Kiev"
+               },
+               "firstName":"Applause",
+               "lastName":"Main Account",
+               "payPalMeAddress":"ss",
+               "phoneNumber":"",
+               "validated":true
+            },
+            "christoph+hightraffic@margelo.io":{
+               "login":"christoph+hightraffic@margelo.io",
+               "avatar":"https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_1.png",
+               "displayName":"Christoph Pader",
+               "pronouns":"",
+               "timezone":{
+                  "automatic":true,
+                  "selected":"Europe/Vienna"
+               },
+               "firstName":"Christoph",
+               "lastName":"Pader",
+               "payPalMeAddress":"",
+               "phoneNumber":"",
+               "validated":true
+            },
+            "concierge@expensify.com":{
+               "login":"concierge@expensify.com",
+               "avatar":"https://d2k5nsl2zxldvw.cloudfront.net/images/icons/concierge_2022.png",
+               "displayName":"Concierge",
+               "pronouns":"",
+               "timezone":{
+                  "automatic":true,
+                  "selected":"Europe/Moscow"
+               },
+               "firstName":"Concierge",
+               "lastName":"",
+               "payPalMeAddress":"",
+               "phoneNumber":"",
+               "validated":true
+            },
+            "svetlanalazutkinautest+0211@gmail.com":{
+               "login":"svetlanalazutkinautest+0211@gmail.com",
+               "avatar":"https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_6.png",
+               "displayName":"Chat S",
+               "pronouns":"",
+               "timezone":{
+                  "automatic":true,
+                  "selected":"Europe/Kiev"
+               },
+               "firstName":"Chat S",
+               "lastName":"",
+               "payPalMeAddress":"",
+               "phoneNumber":"",
+               "validated":true
+            },
+            "tayla.lay@team.expensify.com":{
+               "login":"tayla.lay@team.expensify.com",
+               "avatar":"https://d1wpcgnaa73g0y.cloudfront.net/d3196c27ed6bdb2df741af29a3ccfdb0f9919c41_128.jpeg",
+               "displayName":"Tayla Simmons",
+               "pronouns":"__predefined_sheHerHers",
+               "timezone":{
+                  "automatic":true,
+                  "selected":"America/Chicago"
+               },
+               "firstName":"Tayla",
+               "lastName":"Simmons",
+               "payPalMeAddress":"",
+               "phoneNumber":"",
+               "validated":true
+            }
+         }
+      },
+      {
+         "onyxMethod":"set",
+         "key":"betas",
+         "value":[
+            "all",
+            "pdfMetaStore",
+            "reportActionContextMenu",
+            "submitPolicy",
+            "attendees",
+            "autoExport",
+            "autoExportIntacct",
+            "autoExportQbo",
+            "autoExportXero",
+            "autoJoinPolicy",
+            "automatedTaxExemption",
+            "billPay",
+            "categoryDefaultTax",
+            "collectableDepositAccounts",
+            "conciergeTravel",
+            "connectedCards",
+            "discrepancy",
+            "domainContactBilling",
+            "domainTwoFactorAuth",
+            "duplicateDetection",
+            "emailSuppressionBeta",
+            "expensesV2",
+            "expensifyCard",
+            "expensifyCardIntacctReconciliation",
+            "expensifyCardNetSuiteReconciliation",
+            "expensifyCardQBOReconciliation",
+            "expensifyCardRapidIncreaseFraud",
+            "expensifyCardXeroReconciliation",
+            "expensifyOrg",
+            "fixViolationPushNotification",
+            "freePlan",
+            "freePlanFullLaunch",
+            "freePlanSoftLaunch",
+            "gusto",
+            "inboxCache",
+            "inboxHiddenTasks",
+            "indirectIntegrationSetup",
+            "IOU",
+            "joinPolicy",
+            "loadPolicyAsync",
+            "mapReceipt",
+            "mergeAPI",
+            "mobileRealtimeReportComments",
+            "mobileSecureReceipts",
+            "monthlySettlement",
+            "namesAndAvatars",
+            "nativeChat",
+            "newPricing",
+            "newsletterThree",
+            "nextSteps",
+            "openFaceHamburger",
+            "pdfMetaStore",
+            "perDiem",
+            "perDiemInternational",
+            "pricingCopyChanges",
+            "qboInvoices",
+            "quickbooksDesktopV2",
+            "realtimeReportComments",
+            "s2wAnnouncement",
+            "scheduledAutoReporting",
+            "secureReceipts",
+            "secureReceiptsReports",
+            "selfServiceHardLaunch",
+            "sendMoney",
+            "smartScanUserDisputes",
+            "smsSignUp",
+            "stripeConnect",
+            "submitPolicy",
+            "summaryEmail",
+            "swipeToWin",
+            "taxForMileage",
+            "twoFactorAuth",
+            "venmoIntegration",
+            "zenefitsIntegration"
+         ]
+      },
+      {
+         "onyxMethod":"merge",
+         "key":"countryCode",
+         "value":1
+      },
+      {
+         "onyxMethod":"merge",
+         "key":"account",
+         "value":{
+            "requiresTwoFactorAuth":false
+         }
+      },
+      {
+         "onyxMethod":"mergecollection",
+         "key":"policy_",
+         "value":{
+            "policy_28493C792FA01DAE":{
+               "isFromFullPolicy":false,
+               "id":"28493C792FA01DAE",
+               "name":"applausetester+perf2's Expenses",
+               "role":"admin",
+               "type":"personal",
+               "owner":"applausetester+perf2@applause.expensifail.com",
+               "outputCurrency":"USD",
+               "avatar":"",
+               "employeeList":[
+
+               ]
+            },
+            "policy_A6511FF8D2EE7661":{
+               "isFromFullPolicy":false,
+               "id":"A6511FF8D2EE7661",
+               "name":"Applause's Workspace",
+               "role":"admin",
+               "type":"free",
+               "owner":"applausetester+perf2@applause.expensifail.com",
+               "outputCurrency":"INR",
+               "avatar":"",
+               "employeeList":[
+
+               ]
+            }
+         }
+      },
+      {
+         "onyxMethod":"mergecollection",
+         "key":"report_",
+         "value":{
+            "report_98258097":{
+               "reportID":"98258097",
+               "reportName":"Chat Report",
+               "chatType":"",
+               "ownerEmail":"__fake__",
+               "policyID":"_FAKE_",
+               "maxSequenceNumber":2,
+               "participants":[
+                  "concierge@expensify.com"
+               ],
+               "isPinned":true,
+               "lastVisitedTimestamp":1671126234191,
+               "lastReadTimestamp":1671126234191,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":2,
+               "lastActionCreated":"2022-08-03 06:45:00",
+               "lastMessageTimestamp":1659509100000,
+               "lastMessageText":"You can easily track, approve, and pay bills in Expensify with your custom compa",
+               "lastActorEmail":"concierge@expensify.com",
+               "notificationPreference":"always",
+               "stateNum":0,
+               "statusNum":0,
+               "oldPolicyName":"",
+               "visibility":null,
+               "isOwnPolicyExpenseChat":false,
+               "lastMessageHtml":"You can easily track, approve, and pay bills in Expensify with your custom company bill pay email address: <a href=\"mailto:applause.expensifail.com@expensify.cash\" target=\"_blank\" rel=\"noreferrer noopener\">applause.expensifail.com@expensify.cash<\/a>. Learn more <a href=\"https:\/\/www.expensify.com\/inbox?policyID=C28C2634DD7226B8&amp;taskID=ForwardToExpensifyCash\" target=\"_blank\" rel=\"noreferrer noopener\">here.<\/a> For questions, just reply to this message.",
+               "hasOutstandingIOU":false
+            },
+            "report_98258458":{
+               "reportID":"98258458",
+               "reportName":"",
+               "chatType":"policyExpenseChat",
+               "ownerEmail":"applausetester+perf2@applause.expensifail.com",
+               "policyID":"C28C2634DD7226B8",
+               "maxSequenceNumber":1,
+               "participants":[
+                  "applausetester@applause.expensifail.com",
+                  "applausetester+perf2@applause.expensifail.com"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":1669129206943,
+               "lastReadTimestamp":1669129206943,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":1,
+               "lastActionCreated":"2022-11-03 20:30:55.599",
+               "lastMessageTimestamp":1667507455599,
+               "lastMessageText":"",
+               "lastActorEmail":"applausetester@applause.expensifail.com",
+               "notificationPreference":"always",
+               "stateNum":2,
+               "statusNum":2,
+               "oldPolicyName":"Crowded Policy - Definitive Edition",
+               "visibility":null,
+               "isOwnPolicyExpenseChat":true,
+               "lastMessageHtml":"",
+               "hasOutstandingIOU":false
+            },
+            "report_98344717":{
+               "reportID":"98344717",
+               "reportName":"Chat Report",
+               "chatType":"",
+               "ownerEmail":"__fake__",
+               "policyID":"_FAKE_",
+               "maxSequenceNumber":8,
+               "participants":[
+                  "applausetester+ihchat4@applause.expensifail.com"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":1671205050152,
+               "lastReadTimestamp":1671205050152,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":8,
+               "lastActionCreated":"2022-08-02 20:03:42",
+               "lastMessageTimestamp":1659470622000,
+               "lastMessageText":"Requested \u20b41.67 from applausetester+perf2@applause.expensifail.com",
+               "lastActorEmail":"applausetester+ihchat4@applause.expensifail.com",
+               "notificationPreference":"always",
+               "stateNum":0,
+               "statusNum":0,
+               "oldPolicyName":"",
+               "visibility":null,
+               "isOwnPolicyExpenseChat":false,
+               "lastMessageHtml":"Requested \u20b41.67 from applausetester+perf2@applause.expensifail.com",
+               "hasOutstandingIOU":false
+            },
+            "report_98345050":{
+               "reportID":"98345050",
+               "reportName":"Chat Report",
+               "chatType":"",
+               "ownerEmail":"__fake__",
+               "policyID":"_FAKE_",
+               "maxSequenceNumber":17,
+               "participants":[
+                  "fake3@gmail.com"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":1671210740419,
+               "lastReadTimestamp":1671210740419,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":17,
+               "lastActionCreated":"2022-11-04 21:18:00.038",
+               "lastMessageTimestamp":1667596680038,
+               "lastMessageText":"Cancelled the \u20b440.00 request",
+               "lastActorEmail":"fake3@gmail.com",
+               "notificationPreference":"always",
+               "stateNum":0,
+               "statusNum":0,
+               "oldPolicyName":"",
+               "visibility":null,
+               "isOwnPolicyExpenseChat":false,
+               "lastMessageHtml":"Cancelled the \u20b440.00 request",
+               "hasOutstandingIOU":false
+            },
+            "report_98345315":{
+               "reportID":"98345315",
+               "reportName":"Chat Report",
+               "chatType":"",
+               "ownerEmail":"__fake__",
+               "policyID":"_FAKE_",
+               "maxSequenceNumber":2,
+               "participants":[
+                  "fake3@gmail.com",
+                  "fake6@gmail.com",
+                  "fake7@gmail.com",
+                  "fake8@gmail.com"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":1671209362667,
+               "lastReadTimestamp":1671209362667,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":2,
+               "lastActionCreated":"2022-08-01 20:48:16",
+               "lastMessageTimestamp":1659386896000,
+               "lastMessageText":"applausetester+perf2@applause.expensifail.com",
+               "lastActorEmail":"fake3@gmail.com",
+               "notificationPreference":"always",
+               "stateNum":0,
+               "statusNum":0,
+               "oldPolicyName":"",
+               "visibility":null,
+               "isOwnPolicyExpenseChat":false,
+               "lastMessageHtml":"<a href=\"mailto:applausetester+perf2@applause.expensifail.com\">applausetester+perf2@applause.expensifail.com<\/a>",
+               "hasOutstandingIOU":false
+            },
+            "report_98345625":{
+               "reportID":"98345625",
+               "reportName":"Chat Report",
+               "chatType":"",
+               "ownerEmail":"__fake__",
+               "policyID":"_FAKE_",
+               "maxSequenceNumber":1,
+               "participants":[
+                  "fake1@gmail.com",
+                  "fake2@gmail.com",
+                  "fake3@gmail.com",
+                  "fake4@gmail.com",
+                  "fake5@gmail.com",
+                  "fake6@gmail.com",
+                  "fake7@gmail.com",
+                  "fake8@gmail.com"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":1671470568415,
+               "lastReadTimestamp":1671470568415,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":1,
+               "lastActionCreated":"2022-08-01 20:49:11",
+               "lastMessageTimestamp":1659386951000,
+               "lastMessageText":"Say hello\ud83d\ude10",
+               "lastActorEmail":"fake3@gmail.com",
+               "notificationPreference":"always",
+               "stateNum":0,
+               "statusNum":0,
+               "oldPolicyName":"",
+               "visibility":null,
+               "isOwnPolicyExpenseChat":false,
+               "lastMessageHtml":"Say hello\ud83d\ude10",
+               "hasOutstandingIOU":false
+            },
+            "report_98345679":{
+               "reportID":"98345679",
+               "reportName":"",
+               "chatType":"policyExpenseChat",
+               "ownerEmail":"applausetester+perf2@applause.expensifail.com",
+               "policyID":"1CE001C4B9F3CA54",
+               "maxSequenceNumber":2,
+               "participants":[
+                  "fake3@gmail.com",
+                  "applausetester+perf2@applause.expensifail.com"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":1664363369565,
+               "lastReadTimestamp":1664363369565,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":2,
+               "lastActionCreated":"2022-08-16 12:30:57",
+               "lastMessageTimestamp":1660653057000,
+               "lastMessageText":"",
+               "lastActorEmail":"fake3@gmail.com",
+               "notificationPreference":"always",
+               "stateNum":2,
+               "statusNum":2,
+               "oldPolicyName":"Andreylazutkinutest+123's workspace",
+               "visibility":null,
+               "isOwnPolicyExpenseChat":true,
+               "lastMessageHtml":"",
+               "hasOutstandingIOU":false
+            },
+            "report_98414813":{
+               "reportID":"98414813",
+               "reportName":"Chat Report",
+               "chatType":"",
+               "ownerEmail":"__fake__",
+               "policyID":"_FAKE_",
+               "maxSequenceNumber":1,
+               "participants":[
+                  "applausetester+ihchat4@applause.expensifail.com",
+                  "fake6@gmail.com"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":1669197163626,
+               "lastReadTimestamp":1669197163626,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":1,
+               "lastActionCreated":"2022-08-02 20:03:41",
+               "lastMessageTimestamp":1659470621000,
+               "lastMessageText":"Split \u20b45.00 with applausetester+perf2@applause.expensifail.com and applauseteste",
+               "lastActorEmail":"applausetester+ihchat4@applause.expensifail.com",
+               "notificationPreference":"always",
+               "stateNum":0,
+               "statusNum":0,
+               "oldPolicyName":"",
+               "visibility":null,
+               "isOwnPolicyExpenseChat":false,
+               "lastMessageHtml":"Split \u20b45.00 with applausetester+perf2@applause.expensifail.com and fake6@gmail.com",
+               "hasOutstandingIOU":false
+            },
+            "report_98418120":{
+               "reportID":"98418120",
+               "reportName":"Chat Report",
+               "chatType":"",
+               "ownerEmail":"__fake__",
+               "policyID":"_FAKE_",
+               "maxSequenceNumber":8,
+               "participants":[
+                  "fake3@gmail.com",
+                  "fake5@gmail.com",
+                  "applausetester+0604lsn@applause.expensifail.com",
+                  "fake6@gmail.com",
+                  "fake7@gmail.com"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":1671205456193,
+               "lastReadTimestamp":1671205456193,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":8,
+               "lastActionCreated":"2022-10-03 12:09:38.707",
+               "lastMessageTimestamp":1664798978707,
+               "lastMessageText":"It\u2019s like I got this music signing its gonna be alright, cause the players gonna",
+               "lastActorEmail":"applausetester+perf2@applause.expensifail.com",
+               "notificationPreference":"always",
+               "stateNum":0,
+               "statusNum":0,
+               "oldPolicyName":"",
+               "visibility":null,
+               "isOwnPolicyExpenseChat":false,
+               "lastMessageHtml":"It\u2019s like I got this music signing its gonna be alright, cause the players gonna play baby I am just gonna shake shake shake shack shake it off yeah crash the JS thread whooooop[add jaws asjhd Ladd ksdfksjdhf add k skiff skiff skid fkjsdhf skfkjsfdsklajkhf maladjusted lashed k skadhfhkh aksdhfskdahfaksjhdf ahefhashdsjkfk dhfskjhdfakehf I had fkjjhsadkfhjsak DualShock shfkashdf kahsdf marsh fhfwaeiu Audie with I the JS and UI thread is literally dying while typing, and I am here to fix that. However when typing realistically fast I still think the numbers are okay ish. However, they shouldn\u2019t be laggy at all I guess !",
+               "hasOutstandingIOU":false
+            },
+            "report_98817646":{
+               "reportID":"98817646",
+               "reportName":"Chat Report",
+               "chatType":"",
+               "ownerEmail":"__fake__",
+               "policyID":"_FAKE_",
+               "maxSequenceNumber":1787,
+               "participants":[
+                  "fake6@gmail.com"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":1671214557025,
+               "lastReadTimestamp":1671214557025,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":1787,
+               "lastActionCreated":"2022-12-09 10:17:18.362",
+               "lastMessageTimestamp":1670581038362,
+               "lastMessageText":"RR",
+               "lastActorEmail":"applausetester+perf2@applause.expensifail.com",
+               "notificationPreference":"always",
+               "stateNum":0,
+               "statusNum":0,
+               "oldPolicyName":"",
+               "visibility":null,
+               "isOwnPolicyExpenseChat":false,
+               "lastMessageHtml":"RR",
+               "hasOutstandingIOU":true,
+               "iouReportID":2543745284790730
+            },
+            "report_358751490033727":{
+               "reportID":"358751490033727",
+               "reportName":"#digimobileroom",
+               "chatType":"policyRoom",
+               "ownerEmail":"__fake__",
+               "policyID":"C28C2634DD7226B8",
+               "maxSequenceNumber":3,
+               "participants":[
+                  "applausetester+pd1005@applause.expensifail.com"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":1669298874528,
+               "lastReadTimestamp":1669298874528,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":3,
+               "lastActionCreated":"2022-10-12 17:47:45.228",
+               "lastMessageTimestamp":1665596865228,
+               "lastMessageText":"STAGING_CHAT_MESSAGE_A2C534B7-3509-416E-A0AD-8463831C29DD",
+               "lastActorEmail":"applausetester+fachat1@applause.expensifail.com",
+               "notificationPreference":"daily",
+               "stateNum":0,
+               "statusNum":0,
+               "oldPolicyName":"",
+               "visibility":"restricted",
+               "isOwnPolicyExpenseChat":false,
+               "lastMessageHtml":"STAGING_CHAT_MESSAGE_A2C534B7-3509-416E-A0AD-8463831C29DD",
+               "hasOutstandingIOU":false
+            },
+            "report_663424408122117":{
+               "reportID":"663424408122117",
+               "reportName":"#announce",
+               "chatType":"policyAnnounce",
+               "ownerEmail":"__fake__",
+               "policyID":"A6511FF8D2EE7661",
+               "maxSequenceNumber":0,
+               "participants":[
+                  "applausetester+perf2@applause.expensifail.com"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":0,
+               "lastReadTimestamp":0,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":0,
+               "lastActionCreated":"",
+               "lastMessageTimestamp":0,
+               "lastMessageText":"",
+               "lastActorEmail":"",
+               "notificationPreference":"daily",
+               "stateNum":0,
+               "statusNum":0,
+               "oldPolicyName":"",
+               "visibility":null,
+               "isOwnPolicyExpenseChat":false,
+               "lastMessageHtml":"",
+               "hasOutstandingIOU":false
+            },
+            "report_944123936554214":{
+               "reportID":"944123936554214",
+               "reportName":"",
+               "chatType":"policyExpenseChat",
+               "ownerEmail":"applausetester+perf2@applause.expensifail.com",
+               "policyID":"A6511FF8D2EE7661",
+               "maxSequenceNumber":0,
+               "participants":[
+                  "applausetester+perf2@applause.expensifail.com"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":1669122367932,
+               "lastReadTimestamp":1669122367932,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":0,
+               "lastActionCreated":"",
+               "lastMessageTimestamp":0,
+               "lastMessageText":"",
+               "lastActorEmail":"",
+               "notificationPreference":"always",
+               "stateNum":0,
+               "statusNum":0,
+               "oldPolicyName":"",
+               "visibility":null,
+               "isOwnPolicyExpenseChat":true,
+               "lastMessageHtml":"",
+               "hasOutstandingIOU":false
+            },
+            "report_2242399088152511":{
+               "reportID":"2242399088152511",
+               "reportName":"Chat Report",
+               "chatType":"",
+               "ownerEmail":"__fake__",
+               "policyID":"_FAKE_",
+               "maxSequenceNumber":3,
+               "participants":[
+                  "concierge@expensify.com",
+                  "applausetester+0901abb@applause.expensifail.com",
+                  "andreylazutkinutest@gmail.com",
+                  "applausetester+0704sveta@applause.expensifail.com",
+                  "fake3@gmail.com"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":1671211239096,
+               "lastReadTimestamp":1671211239096,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":3,
+               "lastActionCreated":"2022-11-03 20:48:58.815",
+               "lastMessageTimestamp":1667508538815,
+               "lastMessageText":"Hi there, thanks for reaching out! How may I help?",
+               "lastActorEmail":"concierge@expensify.com",
+               "notificationPreference":"always",
+               "stateNum":0,
+               "statusNum":0,
+               "oldPolicyName":"",
+               "visibility":null,
+               "isOwnPolicyExpenseChat":false,
+               "lastMessageHtml":"<p>Hi there, thanks for reaching out! How may I help?<\/p>",
+               "hasOutstandingIOU":false
+            },
+            "report_2576922422943214":{
+               "reportID":"2576922422943214",
+               "reportName":"Chat Report",
+               "chatType":"",
+               "ownerEmail":"__fake__",
+               "policyID":"_FAKE_",
+               "maxSequenceNumber":1,
+               "participants":[
+                  "applausetester+42222abb@applause.expensifail.com"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":1671213666675,
+               "lastReadTimestamp":1671213666675,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":1,
+               "lastActionCreated":"2022-12-01 08:05:11.009",
+               "lastMessageTimestamp":1669881911009,
+               "lastMessageText":"Test",
+               "lastActorEmail":"applausetester+perf2@applause.expensifail.com",
+               "notificationPreference":"always",
+               "stateNum":0,
+               "statusNum":0,
+               "oldPolicyName":"",
+               "visibility":null,
+               "isOwnPolicyExpenseChat":false,
+               "lastMessageHtml":"Test",
+               "hasOutstandingIOU":false
+            },
+            "report_2752461403207161":{
+               "reportID":"2752461403207161",
+               "reportName":"Chat Report",
+               "chatType":"",
+               "ownerEmail":"__fake__",
+               "policyID":"_FAKE_",
+               "maxSequenceNumber":0,
+               "participants":[
+                  "fake1@gmail.com"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":1669300587843,
+               "lastReadTimestamp":1669300587843,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":0,
+               "lastActionCreated":"",
+               "lastMessageTimestamp":0,
+               "lastMessageText":"",
+               "lastActorEmail":"",
+               "notificationPreference":"always",
+               "stateNum":0,
+               "statusNum":0,
+               "oldPolicyName":"",
+               "visibility":null,
+               "isOwnPolicyExpenseChat":false,
+               "lastMessageHtml":"",
+               "hasOutstandingIOU":false
+            },
+            "report_3785654888638968":{
+               "reportID":"3785654888638968",
+               "reportName":"#jack",
+               "chatType":"policyRoom",
+               "ownerEmail":"__fake__",
+               "policyID":"C28C2634DD7226B8",
+               "maxSequenceNumber":3,
+               "participants":[
+                  "applausetester+pd1005@applause.expensifail.com"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":1669881965738,
+               "lastReadTimestamp":1669881965738,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":3,
+               "lastActionCreated":"2022-10-12 12:20:00.668",
+               "lastMessageTimestamp":1665577200668,
+               "lastMessageText":"Room renamed to #jack",
+               "lastActorEmail":"applausetester+pd1005@applause.expensifail.com",
+               "notificationPreference":"daily",
+               "stateNum":0,
+               "statusNum":0,
+               "oldPolicyName":"",
+               "visibility":"restricted",
+               "isOwnPolicyExpenseChat":false,
+               "lastMessageHtml":"Room renamed to #jack",
+               "hasOutstandingIOU":false
+            },
+            "report_4867098979334014":{
+               "reportID":"4867098979334014",
+               "reportName":"Chat Report",
+               "chatType":"",
+               "ownerEmail":"__fake__",
+               "policyID":"_FAKE_",
+               "maxSequenceNumber":2,
+               "participants":[
+                  "christoph+hightraffic@margelo.io"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":1671214566347,
+               "lastReadTimestamp":1671214566347,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":2,
+               "lastActionCreated":"2022-12-16 18:14:00.208",
+               "lastMessageTimestamp":1671214440208,
+               "lastMessageText":"Requested \u20ac200.00 from Christoph for Essen mit Kunden",
+               "lastActorEmail":"applausetester+perf2@applause.expensifail.com",
+               "notificationPreference":"always",
+               "stateNum":0,
+               "statusNum":0,
+               "oldPolicyName":"",
+               "visibility":null,
+               "isOwnPolicyExpenseChat":false,
+               "lastMessageHtml":"Requested \u20ac200.00 from Christoph for Essen mit Kunden",
+               "hasOutstandingIOU":true,
+               "iouReportID":4249286573496381
+            },
+            "report_5277760851229035":{
+               "reportID":"5277760851229035",
+               "reportName":"#kasper_tha_cat",
+               "chatType":"policyRoom",
+               "ownerEmail":"__fake__",
+               "policyID":"C28C2634DD7226B8",
+               "maxSequenceNumber":13,
+               "participants":[
+                  "applausetester+pd1005@applause.expensifail.com"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":1670955487510,
+               "lastReadTimestamp":1670955487510,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":13,
+               "lastActionCreated":"2022-11-29 12:38:15.985",
+               "lastMessageTimestamp":1669725495985,
+               "lastMessageText":"fff",
+               "lastActorEmail":"fake6@gmail.com",
+               "notificationPreference":"daily",
+               "stateNum":0,
+               "statusNum":0,
+               "oldPolicyName":"",
+               "visibility":"restricted",
+               "isOwnPolicyExpenseChat":false,
+               "lastMessageHtml":"fff<br \/>f<br \/>f<br \/>f<br \/>f<br \/>f<br \/>f<br \/>f<br \/>f<br \/><br \/>f<br \/>f<br \/>f<br \/>f<br \/><br \/>f<br \/>f<br \/>f<br \/>f<br \/>f<br \/>f<br \/><br \/>f<br \/>f<br \/>f<br \/>f<br \/>f<br \/>ff",
+               "hasOutstandingIOU":false
+            },
+            "report_5324367938904284":{
+               "reportID":"5324367938904284",
+               "reportName":"#applause.expensifail.com",
+               "chatType":"domainAll",
+               "ownerEmail":"+@applause.expensifail.com",
+               "policyID":"_FAKE_",
+               "maxSequenceNumber":17,
+               "participants":[
+                  "applausetester+bernardo@applause.expensifail.com"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":1669634659097,
+               "lastReadTimestamp":1669634659097,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":14,
+               "lastActionCreated":"2022-11-29 21:08:00.793",
+               "lastMessageTimestamp":1669756080793,
+               "lastMessageText":"Iviviviv8b",
+               "lastActorEmail":"applausetester+0901abb@applause.expensifail.com",
+               "notificationPreference":"daily",
+               "stateNum":0,
+               "statusNum":0,
+               "oldPolicyName":"",
+               "visibility":null,
+               "isOwnPolicyExpenseChat":false,
+               "lastMessageHtml":"Iviviviv8b",
+               "hasOutstandingIOU":false
+            },
+            "report_5654270288238256":{
+               "reportID":"5654270288238256",
+               "reportName":"Chat Report",
+               "chatType":"",
+               "ownerEmail":"__fake__",
+               "policyID":"_FAKE_",
+               "maxSequenceNumber":0,
+               "participants":[
+                  "andreylazutkinutest@gmail.com",
+                  "fake1@gmail.com",
+                  "applausetester+0707abb@applause.expensifail.com",
+                  "fake3@gmail.com",
+                  "fake5@gmail.com",
+                  "applausetester+0604lsn@applause.expensifail.com",
+                  "andreylazutkinutest+0904@gmail.com",
+                  "applausetester+1904lsn@applause.expensifail.com"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":1669129467258,
+               "lastReadTimestamp":1669129467258,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":0,
+               "lastActionCreated":"",
+               "lastMessageTimestamp":0,
+               "lastMessageText":"",
+               "lastActorEmail":"",
+               "notificationPreference":"always",
+               "stateNum":0,
+               "statusNum":0,
+               "oldPolicyName":"",
+               "visibility":null,
+               "isOwnPolicyExpenseChat":false,
+               "lastMessageHtml":"",
+               "hasOutstandingIOU":false
+            },
+            "report_6194900075541844":{
+               "reportID":"6194900075541844",
+               "reportName":"#admins",
+               "chatType":"policyAdmins",
+               "ownerEmail":"__fake__",
+               "policyID":"A6511FF8D2EE7661",
+               "maxSequenceNumber":0,
+               "participants":[
+                  "applausetester+perf2@applause.expensifail.com"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":0,
+               "lastReadTimestamp":0,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":0,
+               "lastActionCreated":"",
+               "lastMessageTimestamp":0,
+               "lastMessageText":"",
+               "lastActorEmail":"",
+               "notificationPreference":"always",
+               "stateNum":0,
+               "statusNum":0,
+               "oldPolicyName":"",
+               "visibility":null,
+               "isOwnPolicyExpenseChat":false,
+               "lastMessageHtml":"",
+               "hasOutstandingIOU":false
+            },
+            "report_6801643744224146":{
+               "reportID":"6801643744224146",
+               "reportName":"Chat Report",
+               "chatType":"",
+               "ownerEmail":"__fake__",
+               "policyID":"_FAKE_",
+               "maxSequenceNumber":1,
+               "participants":[
+                  "concierge@expensify.com",
+                  "andreylazutkinutest@gmail.com",
+                  "fake1@gmail.com",
+                  "svetlanalazutkinautest+0211@gmail.com",
+                  "applausetester+0707abb@applause.expensifail.com",
+                  "fake3@gmail.com",
+                  "fake5@gmail.com",
+                  "applausetester+0604lsn@applause.expensifail.com"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":1671211247254,
+               "lastReadTimestamp":1671211247254,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":1,
+               "lastActionCreated":"2022-09-15 12:57:59.526",
+               "lastMessageTimestamp":1663246679526,
+               "lastMessageText":"\ud83d\udc4b Welcome to Expensify! I'm Concierge. Is there anything I can help with? Click ",
+               "lastActorEmail":"concierge@expensify.com",
+               "notificationPreference":"always",
+               "stateNum":0,
+               "statusNum":0,
+               "oldPolicyName":"",
+               "visibility":null,
+               "isOwnPolicyExpenseChat":false,
+               "lastMessageHtml":"\ud83d\udc4b Welcome to Expensify! I'm Concierge. Is there anything I can help with? Click the + icon on the homescreen to explore the features you can use.",
+               "hasOutstandingIOU":false
+            },
+            "report_7658708888047100":{
+               "reportID":"7658708888047100",
+               "reportName":"Chat Report",
+               "chatType":"",
+               "ownerEmail":"__fake__",
+               "policyID":"_FAKE_",
+               "maxSequenceNumber":3,
+               "participants":[
+                  "concierge@expensify.com",
+                  "andreylazutkinutest@gmail.com",
+                  "fake3@gmail.com",
+                  "fake5@gmail.com",
+                  "tayla.lay@team.expensify.com",
+                  "andreylazutkinutest+160956@gmail.com"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":1669634649909,
+               "lastReadTimestamp":1669634649909,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":3,
+               "lastActionCreated":"2022-09-16 11:12:46.739",
+               "lastMessageTimestamp":1663326766739,
+               "lastMessageText":"Hi there! How can I help?\u00a0",
+               "lastActorEmail":"concierge@expensify.com",
+               "notificationPreference":"always",
+               "stateNum":0,
+               "statusNum":0,
+               "oldPolicyName":"",
+               "visibility":null,
+               "isOwnPolicyExpenseChat":false,
+               "lastMessageHtml":"Hi there! How can I help?\u00a0",
+               "hasOutstandingIOU":false
+            },
+            "report_7756405299640824":{
+               "reportID":"7756405299640824",
+               "reportName":"#jackd23",
+               "chatType":"policyRoom",
+               "ownerEmail":"__fake__",
+               "policyID":"C28C2634DD7226B8",
+               "maxSequenceNumber":1,
+               "participants":[
+                  "applausetester+pd1005@applause.expensifail.com"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":1669197883208,
+               "lastReadTimestamp":1669197883208,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":1,
+               "lastActionCreated":"2022-10-12 12:46:43.577",
+               "lastMessageTimestamp":1665578803577,
+               "lastMessageText":"Room renamed to #jackd23",
+               "lastActorEmail":"applausetester+pd1005@applause.expensifail.com",
+               "notificationPreference":"daily",
+               "stateNum":0,
+               "statusNum":0,
+               "oldPolicyName":"",
+               "visibility":"restricted",
+               "isOwnPolicyExpenseChat":false,
+               "lastMessageHtml":"Room renamed to #jackd23",
+               "hasOutstandingIOU":false
+            },
+            "report_7819732651025410":{
+               "reportID":"7819732651025410",
+               "reportName":"Chat Report",
+               "chatType":"",
+               "ownerEmail":"__fake__",
+               "policyID":"_FAKE_",
+               "maxSequenceNumber":0,
+               "participants":[
+                  "fake5@gmail.com"
+               ],
+               "isPinned":false,
+               "lastVisitedTimestamp":1671205430161,
+               "lastReadTimestamp":1671205430161,
+               "lastReadCreated":"1980-01-01 00:00:00.000",
+               "lastReadSequenceNumber":0,
+               "lastActionCreated":"",
+               "lastMessageTimestamp":0,
+               "lastMessageText":"",
+               "lastActorEmail":"",
+               "notificationPreference":"always",
+               "stateNum":0,
+               "statusNum":0,
+               "oldPolicyName":"",
+               "visibility":null,
+               "isOwnPolicyExpenseChat":false,
+               "lastMessageHtml":"",
+               "hasOutstandingIOU":false
+            },
+            "report_2543745284790730":{
+               "reportID":"2543745284790730",
+               "ownerEmail":"applausetester+perf2@applause.expensifail.com",
+               "managerEmail":"fake6@gmail.com",
+               "currency":"USD",
+               "chatReportID":"98817646",
+               "state":"SUBMITTED",
+               "cachedTotal":"($1,473.11)",
+               "total":147311,
+               "stateNum":1,
+               "submitterPayPalMeAddress":"",
+               "hasOutstandingIOU":true
+            },
+            "report_4249286573496381":{
+               "reportID":"4249286573496381",
+               "ownerEmail":"applausetester+perf2@applause.expensifail.com",
+               "managerEmail":"christoph+hightraffic@margelo.io",
+               "currency":"USD",
+               "chatReportID":"4867098979334014",
+               "state":"SUBMITTED",
+               "cachedTotal":"($212.78)",
+               "total":21278,
+               "stateNum":1,
+               "submitterPayPalMeAddress":"",
+               "hasOutstandingIOU":true
+            }
+         }
+      }
+   ],
+   "jsonCode":200,
+   "requestID":"783ef7fac81f969a-SJC"
+}

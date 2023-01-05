@@ -24,6 +24,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ConfirmModal from './ConfirmModal';
 import TextWithEllipsis from './TextWithEllipsis';
 import HeaderGap from './HeaderGap';
+import SafeAreaConsumer from './SafeAreaConsumer';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -294,17 +295,21 @@ class AttachmentModal extends PureComponent {
                     </View>
                     {/* If we have an onConfirm method show a confirmation button */}
                     {this.props.onConfirm && (
-                        <Animated.View style={StyleUtils.fade(this.state.confirmButtonFadeAnimation)}>
-                            <Button
-                                success
-                                style={[styles.buttonConfirm, this.props.isSmallScreenWidth ? {} : styles.attachmentButtonBigScreen]}
-                                textStyles={[styles.buttonConfirmText]}
-                                text={this.props.translate('common.send')}
-                                onPress={this.submitAndClose}
-                                disabled={this.state.isConfirmButtonDisabled}
-                                pressOnEnter
-                            />
-                        </Animated.View>
+                        <SafeAreaConsumer>
+                            {({safeAreaPaddingBottomStyle}) => (
+                                <Animated.View style={[StyleUtils.fade(this.state.confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
+                                    <Button
+                                        success
+                                        style={[styles.buttonConfirm, this.props.isSmallScreenWidth ? {} : styles.attachmentButtonBigScreen]}
+                                        textStyles={[styles.buttonConfirmText]}
+                                        text={this.props.translate('common.send')}
+                                        onPress={this.submitAndClose}
+                                        disabled={this.state.isConfirmButtonDisabled}
+                                        pressOnEnter
+                                    />
+                                </Animated.View>
+                            )}
+                        </SafeAreaConsumer>
                     )}
                 </Modal>
 
