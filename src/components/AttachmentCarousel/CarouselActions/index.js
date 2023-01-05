@@ -10,7 +10,7 @@ const propTypes = {
     onCycleThroughAttachments: PropTypes.func.isRequired,
 
     /** Styles to be assigned to Carousel */
-    styles: PropTypes.arrayOf(PropTypes.object).isRequired,
+    styles: PropTypes.shape({}).isRequired,
 
     /** Children to render. */
     children: PropTypes.oneOfType([
