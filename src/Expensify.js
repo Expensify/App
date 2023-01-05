@@ -24,6 +24,10 @@ import * as User from './libs/actions/User';
 import NetworkConnection from './libs/NetworkConnection';
 import Navigation from './libs/Navigation/Navigation';
 
+// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
+// eslint-disable-next-line no-unused-vars
+import UnreadIndicatorUpdater from './libs/UnreadIndicatorUpdater';
+
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
         Log.alert(message);

@@ -334,6 +334,14 @@ const styles = {
         opacity: 1,
     },
 
+    pr0: {
+        paddingRight: 0,
+    },
+
+    pl0: {
+        paddingLeft: 0,
+    },
+
     textDanger: {
         color: themeColors.danger,
     },
@@ -350,6 +358,11 @@ const styles = {
         ...spacing.ph3,
     },
 
+    buttonContainer: {
+        padding: 1,
+        borderRadius: variables.buttonBorderRadius,
+    },
+
     buttonText: {
         color: themeColors.text,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
@@ -360,6 +373,9 @@ const styles = {
         // It is needed to unset the Lineheight. We don't need it for buttons as button always contains single line of text.
         // It allows to vertically center the text.
         lineHeight: undefined,
+
+        // Add 1px to the Button text to give optical vertical alignment.
+        paddingBottom: 1,
     },
 
     buttonSmall: {
@@ -385,7 +401,7 @@ const styles = {
         borderRadius: variables.buttonBorderRadius,
         height: variables.componentSizeLarge,
         paddingTop: 8,
-        paddingRight: 18,
+        paddingRight: 10,
         paddingBottom: 8,
         paddingLeft: 18,
         backgroundColor: themeColors.buttonDefaultBG,
@@ -445,9 +461,11 @@ const styles = {
         borderWidth: 0,
     },
 
-    buttonDropdown: {
-        borderLeftWidth: 1,
-        borderColor: themeColors.textLight,
+    buttonDivider: {
+        width: 1,
+        alignSelf: 'stretch',
+        backgroundColor: themeColors.appBG,
+        marginVertical: 1,
     },
 
     noRightBorderRadius: {
@@ -467,6 +485,10 @@ const styles = {
 
     buttonCTAIcon: {
         marginRight: 22,
+
+        // Align vertically with the Button text
+        paddingBottom: 1,
+        paddingTop: 1,
     },
 
     buttonConfirm: {
@@ -523,8 +545,8 @@ const styles = {
     },
 
     loadingVBAAnimation: {
-        width: 160,
-        height: 160,
+        width: 140,
+        height: 140,
     },
 
     pickerSmall: {
@@ -616,7 +638,7 @@ const styles = {
 
     border: {
         borderWidth: 1,
-        borderRadius: variables.buttonBorderRadius,
+        borderRadius: variables.componentBorderRadius,
         borderColor: themeColors.border,
     },
 
@@ -734,7 +756,7 @@ const styles = {
     baseTextInput: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeNormal,
-        lineHeight: variables.fontSizeNormalHeight,
+        lineHeight: variables.lineHeightNormal,
         color: themeColors.text,
         paddingTop: 23,
         paddingBottom: 8,
@@ -998,13 +1020,19 @@ const styles = {
         },
     },
 
+    floatingActionButtonContainer: {
+        position: 'absolute',
+        right: 20,
+
+        // The bottom of the floating action button should align with the bottom of the compose box.
+        // The value should be equal to the height + marginBottom + marginTop of chatItemComposeSecondaryRow
+        bottom: 25,
+    },
+
     floatingActionButton: {
         backgroundColor: themeColors.success,
-        position: 'absolute',
         height: variables.componentSizeLarge,
         width: variables.componentSizeLarge,
-        right: 20,
-        bottom: 34,
         borderRadius: 999,
         alignItems: 'center',
         justifyContent: 'center',
@@ -1123,7 +1151,7 @@ const styles = {
     },
 
     sidebarLinkText: {
-        color: themeColors.text,
+        color: themeColors.textSupporting,
         fontSize: variables.fontSizeNormal,
         textDecorationLine: 'none',
         overflow: 'hidden',
@@ -1138,13 +1166,13 @@ const styles = {
         textDecorationLine: 'none',
     },
 
-    sidebarLinkTextUnread: {
+    sidebarLinkTextBold: {
         fontWeight: '700',
         color: themeColors.heading,
     },
 
     sidebarLinkActiveText: {
-        color: themeColors.text,
+        color: themeColors.textSupporting,
         fontSize: variables.fontSizeNormal,
         textDecorationLine: 'none',
         overflow: 'hidden',
@@ -1423,7 +1451,7 @@ const styles = {
     },
 
     emojiPickerList: {
-        height: 300,
+        height: 288,
         width: '100%',
         ...spacing.ph4,
     },
@@ -1434,7 +1462,9 @@ const styles = {
     emojiHeaderStyle: {
         backgroundColor: themeColors.componentBG,
         width: '100%',
-        ...spacing.pv3,
+        height: 32,
+        display: 'flex',
+        alignItems: 'center',
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
@@ -1475,11 +1505,20 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
+    emojiItemKeyboardHighlighted: {
+        transition: '0.2s ease',
+        borderWidth: 1,
+        borderColor: themeColors.link,
+        borderRadius: variables.buttonBorderRadius,
+    },
+
     chatItemEmojiButton: {
         alignSelf: 'flex-end',
-        borderRadius: 6,
+        borderRadius: variables.buttonBorderRadius,
         height: 32,
-        margin: 3,
+        marginVertical: 4,
+        marginLeft: 3,
+        paddingHorizontal: 6,
         justifyContent: 'center',
     },
 
@@ -1569,6 +1608,7 @@ const styles = {
         backgroundColor: themeColors.appBG,
         borderRadius: 33,
         paddingTop: 2,
+        alignItems: 'center',
     },
 
     singleSubscript: {
@@ -1732,8 +1772,6 @@ const styles = {
         width: 28,
         borderWidth: 2,
         borderStyle: 'solid',
-        borderColor: themeColors.appBG,
-        backgroundColor: themeColors.opaqueAvatar,
         borderRadius: 24,
         zIndex: 6,
     },
@@ -1907,7 +1945,7 @@ const styles = {
         ...spacing.p1,
         ...spacing.mv1,
         ...spacing.mh1,
-        ...{borderRadius: variables.componentBorderRadiusSmall},
+        ...{borderRadius: variables.buttonBorderRadius},
     },
 
     reportActionSystemMessageContainer: {
@@ -1971,14 +2009,14 @@ const styles = {
         marginLeft: -16,
     },
 
-    screenBlur: {
+    roomHeaderAvatarOverlay: {
         position: 'absolute',
         top: 0,
         right: 0,
         bottom: 0,
         left: 0,
-        backgroundColor: themeColors.inverse,
-        opacity: 0.5,
+        backgroundColor: themeColors.overlay,
+        opacity: variables.overlayOpacity,
     },
 
     avatarInnerTextChat: {
@@ -2139,6 +2177,7 @@ const styles = {
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
+        lineHeight: variables.inputHeight,
     },
 
     iouAmountTextInput: addOutlineWidth({
@@ -2366,7 +2405,7 @@ const styles = {
 
     smallEditIcon: {
         alignItems: 'center',
-        backgroundColor: themeColors.icon,
+        backgroundColor: themeColors.buttonHoveredBG,
         borderColor: themeColors.textReversed,
         borderRadius: 14,
         borderWidth: 3,
@@ -2485,7 +2524,6 @@ const styles = {
 
     dotIndicatorMessage: {
         display: 'flex',
-        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
     },
@@ -2495,13 +2533,13 @@ const styles = {
     },
 
     cardOverlay: {
-        backgroundColor: themeColors.modalBackdrop,
+        backgroundColor: themeColors.overlay,
         position: 'absolute',
         top: 0,
         left: 0,
         width: '100%',
         height: '100%',
-        opacity: 0.5,
+        opacity: variables.overlayOpacity,
     },
 
     communicationsLinkIcon: {
@@ -2591,9 +2629,9 @@ const styles = {
         ],
     }),
 
-    confettiIcon: {
-        height: 100,
-        width: 100,
+    confirmationAnimation: {
+        height: 180,
+        width: 180,
         marginBottom: 20,
     },
 
@@ -2700,7 +2738,7 @@ const styles = {
         overflow: 'hidden',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: themeColors.shadow,
+        backgroundColor: themeColors.imageCropBackgroundColor,
         cursor: 'move',
     },
 
@@ -2756,6 +2794,18 @@ const styles = {
         alignSelf: 'center',
     },
 
+    fullScreenTransparentOverlay: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: themeColors.dropUIBG,
+        zIndex: 2,
+    },
+
     textPill: {
         ellipsizeMode: 'end',
         backgroundColor: themeColors.border,
@@ -2765,6 +2815,18 @@ const styles = {
         flexShrink: 1,
         fontSize: variables.fontSizeSmall,
         ...spacing.ph2,
+    },
+
+    dropZoneTopInvisibleOverlay: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: themeColors.dropTransparentOverlay,
+        zIndex: 1000,
     },
 
     cardSection: {
@@ -2778,9 +2840,11 @@ const styles = {
     },
 
     cardMenuItem: {
-        paddingHorizontal: 0,
-        borderRadius: variables.componentBorderRadiusNormal,
-        paddingVertical: 12,
+        paddingLeft: 8,
+        paddingRight: 0,
+        borderRadius: variables.buttonBorderRadius,
+        height: variables.componentSizeLarge,
+        alignItems: 'center',
     },
 
     callRequestSection: {
@@ -2789,6 +2853,22 @@ const styles = {
         paddingBottom: 0,
         marginHorizontal: 0,
         marginBottom: 0,
+    },
+
+    archivedReportFooter: {
+        borderRadius: variables.componentBorderRadius,
+        ...wordBreak.breakWord,
+    },
+
+    saveButtonPadding: {
+        paddingLeft: 18,
+        paddingRight: 18,
+    },
+
+    pushToPageEmptyItemLabel: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeNormal,
+        maxWidth: 240,
     },
 };
 

@@ -25,7 +25,7 @@ import Form from '../../../components/Form';
 const propTypes = {
     /* Onyx Props */
     formData: PropTypes.shape({
-        setupComplete: PropTypes.boolean,
+        setupComplete: PropTypes.bool,
     }),
 
     ...withLocalizePropTypes,
@@ -108,7 +108,7 @@ class DebitCardPage extends Component {
 
     render() {
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('addDebitCardPage.addADebitCard')}
                     shouldShowBackButton
@@ -139,6 +139,7 @@ class DebitCardPage extends Component {
                                 label={this.props.translate('addDebitCardPage.expiration')}
                                 placeholder={this.props.translate('addDebitCardPage.expirationDate')}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                                maxLength={4}
                             />
                         </View>
                         <View style={[styles.flex1]}>

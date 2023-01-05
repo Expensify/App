@@ -38,7 +38,7 @@ export default PropTypes.shape({
     lastReadSequenceNumber: PropTypes.number,
 
     /** The last time the report was visited */
-    lastVisitedTimestamp: PropTypes.number,
+    lastReadTime: PropTypes.string,
 
     /** The largest sequenceNumber on this report */
     maxSequenceNumber: PropTypes.number,

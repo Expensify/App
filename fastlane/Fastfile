@@ -16,7 +16,7 @@ opt_out_usage
 platform :android do
   desc "Generate a new local APK for e2e testing"
   lane :build_e2e do
-    ENV["ENVFILE"]="e2e/.env.e2e"
+    ENV["ENVFILE"]="tests/e2e/.env.e2e"
     ENV["ENTRY_FILE"]="src/libs/E2E/reactNativeLaunchingTest.js"
 
     gradle(
@@ -144,6 +144,7 @@ platform :ios do
         workspace: "./ios/NewExpensify.xcworkspace",
         skip_profile_detection: true,
         scheme: "NewExpensify",
+        xcargs: { :PROVISIONING_PROFILE_SPECIFIER => "chat_expensify_adhoc", },
         export_method: "ad-hoc",
         export_options: {
             method: "ad-hoc",
@@ -161,7 +162,7 @@ platform :ios do
       region: ENV['S3_REGION'],
 
       ipa: lane_context[SharedValues::IPA_OUTPUT_PATH],
-      app_directory: "android/#{ENV['PULL_REQUEST_NUMBER']}",
+      app_directory: "ios/#{ENV['PULL_REQUEST_NUMBER']}",
     )
 
     sh("echo '{\"ipa_path\": \"#{lane_context[SharedValues::S3_IPA_OUTPUT_PATH]}\",\"html_path\": \"#{lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}\"}' > ../ios_paths.json")
