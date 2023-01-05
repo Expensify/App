@@ -1029,7 +1029,7 @@ export default {
         createRoom: 'Crea una sala de chat',
         roomAlreadyExistsError: 'Ya existe una sala con este nombre',
         roomNameReservedError: 'Una sala en este espacio de trabajo ya usa este nombre',
-        roomNameInvalidError: 'Los nombres de las habitaciones no pueden contener signos de puntuación ni la mayoría de los caracteres especiales.',
+        roomNameInvalidError: 'Los nombres de las salas no pueden contener signos de puntuación ni la mayoría de caracteres especiales.',
         pleaseEnterRoomName: 'Por favor escribe el nombre de una sala',
         pleaseSelectWorkspace: 'Por favor, selecciona un espacio de trabajo',
         renamedRoomAction: ({oldName, newName}) => ` cambió el nombre de la sala de ${oldName} a ${newName}`,
