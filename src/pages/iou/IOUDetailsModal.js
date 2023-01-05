@@ -160,6 +160,7 @@ class IOUDetailsModal extends Component {
                 >
                     <HeaderWithCloseButton
                         title={this.props.translate('common.details')}
+                        onCloseButtonPress={Navigation.dismissModal}
                     />
                     {reportIsLoading ? <ActivityIndicator color={themeColors.text} /> : (
                         <View style={[styles.flex1, styles.justifyContentBetween]}>
