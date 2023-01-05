@@ -33,6 +33,7 @@ export default {
     avatarSizeSmaller: 24,
     avatarSizeSubscript: 20,
     avatarSizeSmallSubscript: 14,
+    defaultAvatarPreviewSize: 360,
     fontSizeOnlyEmojis: 30,
     fontSizeOnlyEmojisHeight: 35,
     fontSizeSmall: getValueUsingPixelRatio(11, 17),

@@ -13,6 +13,7 @@ import compose from '../libs/compose';
 import Text from './Text';
 import Tooltip from './Tooltip';
 import themeColors from '../styles/themes/default';
+import variables from '../styles/variables';
 
 const propTypes = {
     /** URL to full-sized attachment or SVG function */
@@ -51,7 +52,7 @@ const AttachmentView = (props) => {
     // handles SVG
     if (_.isFunction(props.source)) {
         return (
-            <Icon src={props.source} height={300} width={300} />
+            <Icon src={props.source} height={variables.defaultAvatarPreviewSize} width={variables.defaultAvatarPreviewSize} />
         );
     }
 

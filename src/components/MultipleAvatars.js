@@ -1,6 +1,6 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
-import {Image, View} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import Avatar from './Avatar';
@@ -117,42 +117,26 @@ const MultipleAvatars = (props) => {
                     style={singleAvatarStyles}
                 >
                     <Tooltip text={props.avatarTooltips[0]} absolute>
-                        {_.isFunction(props.icons[0])
-                            ? (
-                                <Avatar
-                                    source={props.icons[0] || props.fallbackIcon}
-                                    fill={themeColors.iconSuccessFill}
-                                    size={CONST.AVATAR_SIZE.SMALLER}
-                                />
-                            )
-                            : (
-                                <Image
-                                    source={{uri: props.icons[0]}}
-                                    style={singleAvatarStyles}
-
-                                />
-                            )}
+                        <View>
+                            <Avatar
+                                source={props.icons[0] || props.fallbackIcon}
+                                fill={themeColors.iconSuccessFill}
+                                size={CONST.AVATAR_SIZE.SMALLER}
+                            />
+                        </View>
                     </Tooltip>
                     <View
                         style={secondAvatarStyles}
                     >
                         {props.icons.length === 2 ? (
                             <Tooltip text={props.avatarTooltips[1]} absolute>
-                                {_.isFunction(props.icons[1])
-                                    ? (
-                                        <Avatar
-                                            source={props.icons[1] || props.fallbackIcon}
-                                            fill={themeColors.iconSuccessFill}
-                                            size={CONST.AVATAR_SIZE.SMALLER}
-                                        />
-                                    )
-                                    : (
-                                        <Image
-                                            source={{uri: props.icons[1]}}
-                                            style={singleAvatarStyles}
-
-                                        />
-                                    )}
+                                <View>
+                                    <Avatar
+                                        source={props.icons[1] || props.fallbackIcon}
+                                        fill={themeColors.iconSuccessFill}
+                                        size={CONST.AVATAR_SIZE.SMALLER}
+                                    />
+                                </View>
                             </Tooltip>
                         ) : (
                             <Tooltip text={props.avatarTooltips.slice(1).join(', ')} absolute>

@@ -230,7 +230,9 @@ class AttachmentModal extends PureComponent {
 
     render() {
         let source = this.state.source;
-        if (!_.isFunction(this.state.source)) {
+
+        // if source is a URL, add auth token to get access
+        if (_.isString(this.state.source)) {
             source = this.props.isAuthTokenRequired
                 ? addEncryptedAuthTokenToURL(this.state.source)
                 : this.state.source;

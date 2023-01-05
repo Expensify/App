@@ -453,16 +453,16 @@ function getOldDotDefaultAvatar(login = '') {
 
 /**
  * Returns true if provided URL requires a default avatar
- * @param {String} [avatarSource]
+ * @param {String} [avatarURL]
  * @returns {Boolean}
  */
-function isDefaultAvatar(avatarSource) {
-    if (isString(avatarSource) && (avatarSource.includes('images/avatars/avatar_') || (avatarSource.includes('images/user-avatars/default')))) {
+function isDefaultAvatar(avatarURL) {
+    if (isString(avatarURL) && (avatarURL.includes('images/avatars/avatar_') || (avatarURL.includes('images/user-avatars/default')))) {
         return true;
     }
 
     // if null URL, we should also use a default avatar
-    if (!avatarSource) {
+    if (!avatarURL) {
         return true;
     }
     return false;
@@ -472,15 +472,15 @@ function isDefaultAvatar(avatarSource) {
  * Provided a source URL, if source is a default avatar, return the associated SVG.
  * Otherwise, return the URL pointing to a user-uploaded avatar.
  *
- * @param {String} [avatarSource] - the avatar source from user's NVPs
+ * @param {String} [avatarURL] - the avatar source from user's NVPs
  * @param {String} [login] - the email of the user
  * @returns {String | Function}
  */
-function getCorrectAvatar(avatarSource, login) {
-    if (isDefaultAvatar(avatarSource)) {
+function getCorrectAvatar(avatarURL, login) {
+    if (isDefaultAvatar(avatarURL)) {
         return getDefaultAvatar(login);
     }
-    return avatarSource;
+    return avatarURL;
 }
 
 /**
