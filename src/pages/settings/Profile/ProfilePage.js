@@ -133,7 +133,7 @@ class ProfilePage extends Component {
             },
         ];
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPadding={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('common.profile')}
                     shouldShowBackButton

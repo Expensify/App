@@ -175,11 +175,18 @@ const IOUPreview = (props) => {
                                 </Text>
                             )
                             : (
-                                <Text>
-                                    {props.iouReport.hasOutstandingIOU
-                                        ? props.translate('iou.owesyou', {manager: managerName})
-                                        : props.translate('iou.paidyou', {manager: managerName})}
-                                </Text>
+                                <>
+                                    <Text>
+                                        {props.iouReport.hasOutstandingIOU
+                                            ? props.translate('iou.owesyou', {manager: managerName})
+                                            : props.translate('iou.paidyou', {manager: managerName})}
+                                    </Text>
+                                    {props.shouldShowPendingConversionMessage && (
+                                        <Text style={[styles.textLabel, styles.colorMuted]}>
+                                            {props.translate('iou.pendingConversionMessage')}
+                                        </Text>
+                                    )}
+                                </>
                             )}
                         {(isCurrentUserManager
                             && !props.shouldHidePayButton
