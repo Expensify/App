@@ -25,37 +25,45 @@ function start(eventName, shouldUseFirebase = false) {
  * End performance timing. Measure the time between event start/end in milliseconds, and push to Grafana
  *
  * @param {String} eventName - event name used as timestamp key
- * @param {String} [secondaryName] - optional secondary event name, passed to grafana
+ * @param {String} [secondaryNameParam] - optional secondary event name, passed to grafana. Default is the environment name.
  */
-function end(eventName, secondaryName = '') {
+function end(eventName, secondaryNameParam = 'env') {
     if (!timestampData[eventName]) {
         return;
     }
 
-    const {startTime, shouldUseFirebase} = timestampData[eventName];
-    const eventTime = Date.now() - startTime;
+    function sendEvent(secondaryName = '') {
+        const {startTime, shouldUseFirebase} = timestampData[eventName];
+        const eventTime = Date.now() - startTime;
 
-    if (shouldUseFirebase) {
-        Firebase.stopTrace(eventName);
+        if (shouldUseFirebase) {
+            Firebase.stopTrace(eventName);
+        }
+
+        const grafanaEventName = secondaryName
+            ? `expensify.cash.${eventName}.${secondaryName}`
+            : `expensify.cash.${eventName}`;
+
+        console.debug(`Timing:${grafanaEventName}`, eventTime);
+        delete timestampData[eventName];
+
+        if (Environment.isDevelopment()) {
+            // Don't create traces on dev as this will mess up the accuracy of data in release builds of the app
+            return;
+        }
+
+        API.write('SendPerformanceTiming', {
+            name: grafanaEventName,
+            value: eventTime,
+            platform: `${getPlatform()}`,
+        });
     }
 
-    const grafanaEventName = secondaryName
-        ? `expensify.cash.${eventName}.${secondaryName}`
-        : `expensify.cash.${eventName}`;
-
-    console.debug(`Timing:${grafanaEventName}`, eventTime);
-    delete timestampData[eventName];
-
-    if (Environment.isDevelopment()) {
-        // Don't create traces on dev as this will mess up the accuracy of data in release builds of the app
-        return;
+    if (secondaryNameParam === 'env') {
+        Environment.getEnvironment().then(sendEvent);
+    } else {
+        sendEvent(secondaryNameParam);
     }
-
-    API.write('SendPerformanceTiming', {
-        name: grafanaEventName,
-        value: eventTime,
-        platform: `${getPlatform()}`,
-    });
 }
 
 /**
