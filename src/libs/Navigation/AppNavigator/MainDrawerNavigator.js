@@ -79,13 +79,11 @@ class MainDrawerNavigator extends Component {
     }
 
     trackAppStartTiming() {
+        // We only want to report timing events when rendering from cached data
         if (!this.isFromCache) {
             return;
         }
 
-        // We only want to report the start time, if the sidebar was
-        // rendered with cached data, so we don't have any network
-        // times in that timing included.
         Timing.end(CONST.TIMING.SIDEBAR_LOADED);
     }
 
