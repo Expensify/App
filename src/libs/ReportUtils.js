@@ -65,6 +65,14 @@ Onyx.connect({
     callback: val => allReports = val,
 });
 
+let isOffline;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (val) => {
+        isOffline = val && val.isOffline;
+    },
+});
+
 function getChatType(report) {
     return report ? report.chatType : '';
 }
@@ -143,7 +151,8 @@ function canDeleteReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.reportActionID
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
-        && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
+        && (reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
+            || (isOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD))
         && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
