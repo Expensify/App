@@ -49,12 +49,12 @@ const showUserDetails = (email) => {
 };
 
 const ReportActionItemSingle = (props) => {
-    const {avatar, displayName, login} = props.personalDetails[props.action.actorEmail] || {};
+    const {avatar, avatarThumbnail, displayName, login} = props.personalDetails[props.action.actorEmail] || {};
     const avatarUrl = props.action.automatic
         ? CONST.CONCIERGE_ICON_URL
 
-        // Use avatar in personalDetails if we have one then fallback to avatar provided by the action
-        : (avatar || props.action.avatar);
+        // Use avatar in personalDetails - if we don't have one then fallback to avatar provided by the action
+        : (avatarThumbnail || avatar || props.action.avatar);
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
