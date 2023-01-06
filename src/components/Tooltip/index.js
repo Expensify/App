@@ -7,6 +7,7 @@ import withWindowDimensions from '../withWindowDimensions';
 import {propTypes, defaultProps} from './tooltipPropTypes';
 import TooltipSense from './TooltipSense';
 import makeCancellablePromise from '../../libs/MakeCancellablePromise';
+import * as Browser from '../../libs/Browser';
 
 class Tooltip extends PureComponent {
     constructor(props) {
@@ -79,6 +80,12 @@ class Tooltip extends PureComponent {
      * Display the tooltip in an animation.
      */
     showTooltip() {
+        // On mWeb we do not show Tooltips as there are no way to hide them besides blurring.
+        // That's due to that fact that on mWeb there is no MouseLeave events.
+        if (Browser.isMobile()) {
+            return;
+        }
+
         if (!this.state.isRendered) {
             this.setState({isRendered: true});
         }
