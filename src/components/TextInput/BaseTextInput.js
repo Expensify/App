@@ -66,7 +66,8 @@ class BaseTextInput extends Component {
         }
 
         if (this.props.shouldDelayFocus) {
-            return setTimeout(() => this.input.focus(), CONST.ANIMATED_TRANSITION);
+            this.focusTimeout = setTimeout(() => this.input.focus(), CONST.ANIMATED_TRANSITION);
+            return;
         }
         this.input.focus();
     }
@@ -94,6 +95,10 @@ class BaseTextInput extends Component {
     }
 
     componentWillUnmount() {
+        if (this.focusTimeout) {
+            clearTimeout(this.focusTimeout);
+        }
+
         if (!this.props.disableKeyboard || !this.appStateSubscription) {
             return;
         }
@@ -242,7 +247,13 @@ class BaseTextInput extends Component {
                                         />
                                     </>
                                 ) : null}
-                                <View style={[styles.textInputAndIconContainer]} pointerEvents="box-none">
+                                <View
+                                    style={[
+                                        styles.textInputAndIconContainer,
+                                        (this.props.multiline && hasLabel) && styles.textInputMultilineContainer,
+                                    ]}
+                                    pointerEvents="box-none"
+                                >
                                     {Boolean(this.props.prefixCharacter) && (
                                         <Text
                                             pointerEvents="none"
@@ -271,7 +282,7 @@ class BaseTextInput extends Component {
                                             styles.flex1,
                                             styles.w100,
                                             this.props.inputStyle,
-                                            !hasLabel && styles.pv0,
+                                            (!hasLabel || this.props.multiline) && styles.pv0,
                                             this.props.prefixCharacter && StyleUtils.getPaddingLeft(this.state.prefixWidth + styles.pl1.paddingLeft),
                                             this.props.secureTextEntry && styles.secureInput,
                                             !this.props.multiline && {height: this.state.height},
