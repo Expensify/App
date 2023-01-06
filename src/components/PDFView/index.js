@@ -9,6 +9,9 @@ import CONST from '../../CONST';
 import PDFPasswordForm from './PDFPasswordForm';
 import * as pdfViewPropTypes from './pdfViewPropTypes';
 import withWindowDimensions from '../withWindowDimensions';
+import withLocalize from '../withLocalize';
+import Text from '../Text';
+import compose from '../../libs/compose';
 
 class PDFView extends Component {
     constructor(props) {
@@ -22,7 +25,7 @@ class PDFView extends Component {
         };
         this.onDocumentLoadSuccess = this.onDocumentLoadSuccess.bind(this);
         this.initiatePasswordChallenge = this.initiatePasswordChallenge.bind(this);
-        this.attemptPdfLoad = this.attemptPdfLoad.bind(this);
+        this.attemptPDFLoad = this.attemptPDFLoad.bind(this);
         this.toggleKeyboardOnSmallScreens = this.toggleKeyboardOnSmallScreens.bind(this);
     }
 
@@ -81,7 +84,7 @@ class PDFView extends Component {
      *
      * @param {String} password Password to send via callback to react-pdf
      */
-    attemptPdfLoad(password) {
+    attemptPDFLoad(password) {
         this.onPasswordCallback(password);
     }
 
@@ -114,16 +117,18 @@ class PDFView extends Component {
         // If we're requesting a password then we need to hide - but still render -
         // the PDF component.
         const pdfContainerStyle = this.state.shouldRequestPassword
-            ? [styles.PDFView, this.props.style, styles.invisible]
-            : [styles.PDFView, this.props.style];
+            ? [styles.PDFView, styles.noSelect, this.props.style, styles.invisible]
+            : [styles.PDFView, styles.noSelect, this.props.style];
 
         return (
             <View style={outerContainerStyle}>
                 <View
+                    focusable
                     style={pdfContainerStyle}
                     onLayout={event => this.setState({windowWidth: event.nativeEvent.layout.width})}
                 >
                     <Document
+                        error={<Text style={[styles.textLabel, styles.textLarge]}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>}
                         loading={<FullScreenLoadingIndicator />}
                         file={this.props.sourceURL}
                         options={{
@@ -145,7 +150,7 @@ class PDFView extends Component {
                 </View>
                 {this.state.shouldRequestPassword && (
                     <PDFPasswordForm
-                        onSubmit={this.attemptPdfLoad}
+                        onSubmit={this.attemptPDFLoad}
                         onPasswordUpdated={() => this.setState({isPasswordInvalid: false})}
                         isPasswordInvalid={this.state.isPasswordInvalid}
                         shouldAutofocusPasswordField={!this.props.isSmallScreenWidth}
@@ -160,4 +165,7 @@ class PDFView extends Component {
 PDFView.propTypes = pdfViewPropTypes.propTypes;
 PDFView.defaultProps = pdfViewPropTypes.defaultProps;
 
-export default withWindowDimensions(PDFView);
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+)(PDFView);

@@ -55,7 +55,7 @@ jobs:
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
-      - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
+      - uses: softprops/turnstyle@ca99add00ff0c9cbc697d22631d2992f377e5bd5
         with:
           poll-interval-seconds: 10
         env:

@@ -3,10 +3,11 @@ import React, {
     useCallback, useEffect, useState,
 } from 'react';
 import {
-    ActivityIndicator, Image, View,
+    ActivityIndicator, Image, View, Pressable,
 } from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {
+    runOnUI,
     interpolate,
     useAnimatedGestureHandler,
     useSharedValue,
@@ -14,7 +15,6 @@ import {
 } from 'react-native-reanimated';
 import CONST from '../../CONST';
 import compose from '../../libs/compose';
-import colors from '../../styles/colors';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import Button from '../Button';
@@ -38,6 +38,9 @@ const propTypes = {
     /** Name of the image */
     imageName: PropTypes.string,
 
+    /** Type of the image file */
+    imageType: PropTypes.string,
+
     /** Callback to be called when user closes the modal */
     onClose: PropTypes.func,
 
@@ -54,6 +57,7 @@ const propTypes = {
 const defaultProps = {
     imageUri: '',
     imageName: '',
+    imageType: '',
     onClose: () => {},
     onSave: () => {},
 };
@@ -67,6 +71,7 @@ const AvatarCropModal = (props) => {
     const scale = useSharedValue(CONST.AVATAR_CROP_MODAL.MIN_SCALE);
     const rotation = useSharedValue(0);
     const translateSlider = useSharedValue(0);
+    const isPressableEnabled = useSharedValue(true);
 
     const [imageContainerSize, setImageContainerSize] = useState(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const [sliderContainerSize, setSliderContainerSize] = useState(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
@@ -164,6 +169,16 @@ const AvatarCropModal = (props) => {
     }, [imageContainerSize, scale, clamp]);
 
     /**
+     * @param {Number} newSliderValue
+     * @param {Number} containerSize
+     * @returns {Number}
+     */
+    const newScaleValue = useWorkletCallback((newSliderValue, containerSize) => {
+        const {MAX_SCALE, MIN_SCALE} = CONST.AVATAR_CROP_MODAL;
+        return ((newSliderValue / containerSize) * (MAX_SCALE - MIN_SCALE)) + MIN_SCALE;
+    });
+
+    /**
      * Calculates new x & y image translate value on image panning
      * and updates image's offset.
      */
@@ -194,12 +209,11 @@ const AvatarCropModal = (props) => {
             // since that is required for proper work of turbo modules.
             // eslint-disable-next-line no-param-reassign
             context.translateSliderX = translateSlider.value;
+            isPressableEnabled.value = false;
         },
         onActive: (event, context) => {
             const newSliderValue = clamp(event.translationX + context.translateSliderX, [0, sliderContainerSize]);
-            const newScale = ((newSliderValue / sliderContainerSize)
-                * (CONST.AVATAR_CROP_MODAL.MAX_SCALE - CONST.AVATAR_CROP_MODAL.MIN_SCALE))
-                + CONST.AVATAR_CROP_MODAL.MIN_SCALE;
+            const newScale = newScaleValue(newSliderValue, sliderContainerSize);
 
             const differential = newScale / scale.value;
 
@@ -210,7 +224,8 @@ const AvatarCropModal = (props) => {
             const newY = translateY.value * differential;
             updateImageOffset(newX, newY);
         },
-    }, [imageContainerSize, clamp, translateX, translateY, translateSlider, scale, sliderContainerSize]);
+        onEnd: () => isPressableEnabled.value = true,
+    }, [imageContainerSize, clamp, translateX, translateY, translateSlider, scale, sliderContainerSize, isPressableEnabled]);
 
     // This effect is needed to prevent the incorrect position of
     // the slider's knob when the window's layout changes
@@ -255,12 +270,37 @@ const AvatarCropModal = (props) => {
             height: size, width: size, originX, originY,
         };
 
-        cropOrRotateImage(props.imageUri, [{rotate: rotation.value % 360}, {crop}], {compress: 1, name: props.imageName})
+        cropOrRotateImage(
+            props.imageUri,
+            [{rotate: rotation.value % 360}, {crop}],
+            {compress: 1, name: props.imageName, type: props.imageType},
+        )
             .then((newImage) => {
                 props.onClose();
                 props.onSave(newImage);
             });
-    }, [props.imageUri, props.imageName, imageContainerSize]);
+    }, [props.imageUri, props.imageName, props.imageType, imageContainerSize]);
+
+    /**
+     * @param {Number} locationX
+     */
+    const sliderOnPress = (locationX) => {
+        // We are using the worklet directive here and running on the UI thread to ensure the Reanimated
+        // shared values are updated synchronously, as they update asynchronously on the JS thread.
+
+        'worklet';
+
+        if (!isPressableEnabled.value) {
+            return;
+        }
+        const newScale = newScaleValue(locationX, sliderContainerSize);
+        translateSlider.value = locationX;
+        const differential = newScale / scale.value;
+        scale.value = newScale;
+        const newX = translateX.value * differential;
+        const newY = translateY.value * differential;
+        updateImageOffset(newX, newY);
+    };
 
     return (
         <Modal
@@ -293,15 +333,19 @@ const AvatarCropModal = (props) => {
                                 translateX={translateX}
                                 rotation={rotation}
                             />
-                            <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthAndHeightStyle(imageContainerSize)]}>
-                                <Icon src={Expensicons.Zoom} fill={colors.gray3} />
-                                <View style={[styles.mh5, styles.flex1]} onLayout={initializeSliderContainer}>
+                            <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
+                                <Icon src={Expensicons.Zoom} fill={themeColors.icons} />
+                                <Pressable
+                                    style={[styles.mh5, styles.flex1]}
+                                    onLayout={initializeSliderContainer}
+                                    onPressIn={e => runOnUI(sliderOnPress)(e.nativeEvent.locationX)}
+                                >
                                     <Slider sliderValue={translateSlider} onGesture={panSliderGestureEventHandler} />
-                                </View>
+                                </Pressable>
                                 <Button
                                     medium
                                     icon={Expensicons.Rotate}
-                                    iconFill={colors.black}
+                                    iconFill={themeColors.inverse}
                                     iconStyles={[styles.mr0]}
                                     style={[styles.imageCropRotateButton]}
                                     onPress={rotateImage}

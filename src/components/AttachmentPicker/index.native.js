@@ -74,6 +74,8 @@ function getDataForUpload(fileData) {
     const fileResult = {
         name: fileName,
         type: fileData.type,
+        width: fileData.width,
+        height: fileData.height,
         uri: fileData.fileCopyUri || fileData.uri,
         size: fileData.fileSize || fileData.size,
     };

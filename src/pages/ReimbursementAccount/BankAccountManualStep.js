@@ -1,6 +1,7 @@
 import React from 'react';
 import {Image, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import CONST from '../../CONST';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
@@ -17,9 +18,15 @@ import ONYXKEYS from '../../ONYXKEYS';
 import exampleCheckImage from './exampleCheckImage';
 import Form from '../../components/Form';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
+import shouldDelayFocus from '../../libs/shouldDelayFocus';
 
 const propTypes = {
+    onBack: PropTypes.func,
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    onBack: () => {},
 };
 
 class BankAccountManualStep extends React.Component {
@@ -73,14 +80,14 @@ class BankAccountManualStep extends React.Component {
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                     shouldShowBackButton
-                    onBackButtonPress={() => BankAccounts.setBankAccountSubStep(null)}
+                    onBackButtonPress={this.props.onBack}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 <Form
                     formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
                     onSubmit={this.submit}
                     validate={this.validate}
-                    submitButtonText={this.props.translate('common.saveAndContinue')}
+                    submitButtonText={this.props.translate('common.continue')}
                     style={[styles.mh5, styles.flexGrow1]}
                 >
                     <Text style={[styles.mb5]}>
@@ -92,6 +99,8 @@ class BankAccountManualStep extends React.Component {
                         source={exampleCheckImage(this.props.preferredLocale)}
                     />
                     <TextInput
+                        autoFocus
+                        shouldDelayFocus={shouldDelayFocus}
                         inputID="routingNumber"
                         label={this.props.translate('bankAccount.routingNumber')}
                         defaultValue={ReimbursementAccountUtils.getDefaultStateForField(this.props, 'routingNumber', '')}
@@ -116,7 +125,12 @@ class BankAccountManualStep extends React.Component {
                                 <Text>
                                     {this.props.translate('common.iAcceptThe')}
                                 </Text>
-                                <TextLink href="https://use.expensify.com/terms">
+                                <TextLink
+                                    href="https://use.expensify.com/terms"
+
+                                    // to call the onPress in the TextLink before the input blur is fired and shift the link element
+                                    onMouseDown={e => e.preventDefault()}
+                                >
                                     {`Expensify ${this.props.translate('common.termsOfService')}`}
                                 </TextLink>
                             </View>
@@ -131,6 +145,7 @@ class BankAccountManualStep extends React.Component {
 }
 
 BankAccountManualStep.propTypes = propTypes;
+BankAccountManualStep.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({

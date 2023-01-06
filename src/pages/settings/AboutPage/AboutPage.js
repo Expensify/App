@@ -6,6 +6,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
+import TextLink from '../../../components/TextLink';
 import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -60,7 +61,7 @@ const AboutPage = (props) => {
     ];
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithCloseButton
                 title={props.translate('initialSettingsPage.about')}
                 shouldShowBackButton
@@ -116,29 +117,21 @@ const AboutPage = (props) => {
                             'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase1',
                         )}
                         {' '}
-                        <Text
-                            accessibilityRole="link"
-                            style={[styles.textMicroSupporting, styles.link]}
-                            onPress={() => Link.openExternalLink(CONST.TERMS_URL)}
-                        >
+                        <TextLink style={[styles.textMicroSupporting, styles.link]} href={CONST.TERMS_URL}>
                             {props.translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase2',
                             )}
-                        </Text>
+                        </TextLink>
                         {' '}
                         {props.translate(
                             'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase3',
                         )}
                         {' '}
-                        <Text
-                            accessibilityRole="link"
-                            style={[styles.textMicroSupporting, styles.link]}
-                            onPress={() => Link.openExternalLink(CONST.PRIVACY_URL)}
-                        >
+                        <TextLink style={[styles.textMicroSupporting, styles.link]} href={CONST.PRIVACY_URL}>
                             {props.translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase4',
                             )}
-                        </Text>
+                        </TextLink>
                         .
                     </Text>
                 </View>

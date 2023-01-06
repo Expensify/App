@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import * as Report from '../../../../libs/actions/Report';
@@ -109,7 +110,7 @@ export default [
                     if (!Clipboard.canSetHtml()) {
                         Clipboard.setString(parser.htmlToMarkdown(content));
                     } else {
-                        Clipboard.setHtml(content, parser.htmlToText(content));
+                        Clipboard.setHtml(content, Str.htmlDecode(parser.htmlToText(content)));
                     }
                 }
             } else {
@@ -151,19 +152,20 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT_ACTION,
         onPress: (closePopover, {reportAction, reportID}) => {
-            Report.markCommentAsUnread(reportID, reportAction.sequenceNumber);
+            Report.markCommentAsUnread(reportID, reportAction.created);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
         },
         getDescription: () => {},
+        autoReset: false,
     },
 
     {
         textTranslateKey: 'reportActionContextMenu.editComment',
         icon: Expensicons.Pencil,
-        shouldShow: (type, reportAction, isArchivedRoom) => (
-            type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && !isArchivedRoom
+        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) => (
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && !isArchivedRoom && !isChronosReport
         ),
         onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
             const editAction = () => Report.saveReportActionDraft(
@@ -186,8 +188,8 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.deleteComment',
         icon: Expensicons.Trashcan,
-        shouldShow: (type, reportAction, isArchivedRoom) => type === CONTEXT_MENU_TYPES.REPORT_ACTION
-            && ReportUtils.canDeleteReportAction(reportAction) && !isArchivedRoom,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) => type === CONTEXT_MENU_TYPES.REPORT_ACTION
+            && ReportUtils.canDeleteReportAction(reportAction) && !isArchivedRoom && !isChronosReport,
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal

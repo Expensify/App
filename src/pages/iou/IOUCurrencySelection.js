@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import OptionsSelector from '../../components/OptionsSelector';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -41,11 +40,9 @@ class IOUCurrencySelection extends Component {
     constructor(props) {
         super(props);
 
-        const {currencyOptions} = OptionsListUtils.getCurrencyListForSections(this.getCurrencyOptions(this.props.currencyList), '');
-
         this.state = {
             searchValue: '',
-            currencyData: currencyOptions,
+            currencyData: this.getCurrencyOptions(this.props.currencyList),
         };
         this.getCurrencyOptions = this.getCurrencyOptions.bind(this);
         this.getSections = this.getSections.bind(this);
@@ -90,13 +87,13 @@ class IOUCurrencySelection extends Component {
      * @return {void}
      */
     changeSearchValue(searchValue) {
-        const {currencyOptions} = OptionsListUtils.getCurrencyListForSections(
-            this.getCurrencyOptions(this.props.currencyList),
-            searchValue,
-        );
+        const currencyOptions = this.getCurrencyOptions(this.props.currencyList);
+        const searchRegex = new RegExp(searchValue, 'i');
+        const filteredCurrencies = _.filter(currencyOptions, currencyOption => searchRegex.test(currencyOption.text));
+
         this.setState({
             searchValue,
-            currencyData: currencyOptions,
+            currencyData: filteredCurrencies,
         });
     }
 
@@ -114,7 +111,7 @@ class IOUCurrencySelection extends Component {
     render() {
         const headerMessage = this.state.searchValue.trim() && !this.state.currencyData.length ? this.props.translate('common.noResultsFound') : '';
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('iOUCurrencySelection.selectCurrency')}
                     onCloseButtonPress={Navigation.goBack}

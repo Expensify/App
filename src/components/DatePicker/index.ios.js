@@ -1,6 +1,6 @@
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Button, View} from 'react-native';
+import {Button, View, Keyboard} from 'react-native';
 import RNDatePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
 import _ from 'underscore';
@@ -23,7 +23,7 @@ class DatePicker extends React.Component {
 
         this.state = {
             isPickerVisible: false,
-            selectedDate: props.defaultValue ? moment(props.defaultValue).toDate() : new Date(),
+            selectedDate: props.value || props.defaultValue ? moment(props.value || props.defaultValue).toDate() : new Date(),
         };
 
         this.showPicker = this.showPicker.bind(this);
@@ -36,6 +36,7 @@ class DatePicker extends React.Component {
      * @param {Event} event
      */
     showPicker(event) {
+        Keyboard.dismiss();
         this.initialValue = this.state.selectedDate;
         this.setState({isPickerVisible: true});
         event.preventDefault();
@@ -66,7 +67,7 @@ class DatePicker extends React.Component {
     }
 
     render() {
-        const dateAsText = this.props.defaultValue ? moment(this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
+        const dateAsText = this.props.value || this.props.defaultValue ? moment(this.props.value || this.props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
         return (
             <>
                 <TextInput
@@ -75,6 +76,7 @@ class DatePicker extends React.Component {
                     placeholder={this.props.placeholder}
                     errorText={this.props.errorText}
                     containerStyles={this.props.containerStyles}
+                    textInputContainerStyles={this.state.isPickerVisible ? [styles.borderColorFocus] : []}
                     onPress={this.showPicker}
                     editable={false}
                     disabled={this.props.disabled}
@@ -113,10 +115,9 @@ class DatePicker extends React.Component {
                         value={this.state.selectedDate}
                         mode="date"
                         display="spinner"
-                        themeVariant="light"
+                        themeVariant="dark"
                         onChange={this.updateLocalDate}
                         locale={this.props.preferredLocale}
-                        maximumDate={this.props.maximumDate}
                     />
                 </Popover>
             </>

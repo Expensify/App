@@ -18,6 +18,7 @@ import variables from '../../styles/variables';
 import Checkbox from '../Checkbox';
 import getSecureEntryKeyboardType from '../../libs/getSecureEntryKeyboardType';
 import CONST from '../../CONST';
+import FormHelpMessage from '../FormHelpMessage';
 
 class BaseTextInput extends Component {
     constructor(props) {
@@ -198,12 +199,11 @@ class BaseTextInput extends Component {
         const inputProps = _.omit(this.props, _.keys(baseTextInputPropTypes.propTypes));
         const hasLabel = Boolean(this.props.label.length);
         const inputHelpText = this.props.errorText || this.props.hint;
-        const formHelpStyles = this.props.errorText ? styles.formError : styles.formHelp;
         const placeholder = (this.props.prefixCharacter || this.state.isFocused || !hasLabel || (hasLabel && this.props.forceActiveLabel)) ? this.props.placeholder : null;
         const textInputContainerStyles = _.reduce([
             styles.textInputContainer,
             ...this.props.textInputContainerStyles,
-            this.props.autoGrow && StyleUtils.getAutoGrowTextInputStyle(this.state.textInputWidth),
+            this.props.autoGrow && StyleUtils.getWidthStyle(this.state.textInputWidth),
             !this.props.hideFocusedState && this.state.isFocused && styles.borderColorFocus,
             (this.props.hasError || this.props.errorText) && styles.borderColorDanger,
         ], (finalStyles, s) => ({...finalStyles, ...s}), {});
@@ -242,7 +242,13 @@ class BaseTextInput extends Component {
                                         />
                                     </>
                                 ) : null}
-                                <View style={[styles.textInputAndIconContainer]} pointerEvents="box-none">
+                                <View
+                                    style={[
+                                        styles.textInputAndIconContainer,
+                                        (this.props.multiline && hasLabel) && styles.textInputMultilineContainer,
+                                    ]}
+                                    pointerEvents="box-none"
+                                >
                                     {Boolean(this.props.prefixCharacter) && (
                                         <Text
                                             pointerEvents="none"
@@ -271,7 +277,7 @@ class BaseTextInput extends Component {
                                             styles.flex1,
                                             styles.w100,
                                             this.props.inputStyle,
-                                            !hasLabel && styles.pv0,
+                                            (!hasLabel || this.props.multiline) && styles.pv0,
                                             this.props.prefixCharacter && StyleUtils.getPaddingLeft(this.state.prefixWidth + styles.pl1.paddingLeft),
                                             this.props.secureTextEntry && styles.secureInput,
                                             !this.props.multiline && {height: this.state.height},
@@ -305,9 +311,7 @@ class BaseTextInput extends Component {
                         </TouchableWithoutFeedback>
                     </View>
                     {!_.isEmpty(inputHelpText) && (
-                        <Text style={[formHelpStyles, styles.mt1, styles.ph3]}>
-                            {inputHelpText}
-                        </Text>
+                        <FormHelpMessage isError={!_.isEmpty(this.props.errorText)} message={inputHelpText} />
                     )}
                 </View>
                 {/*

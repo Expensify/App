@@ -31,6 +31,11 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: ubuntu-latest
     steps:
+      # This action checks-out the repository, so the workflow can access it.
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        with:
+          fetch-depth: 0
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
@@ -58,7 +63,6 @@ jobs:
           MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
           MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
 
-
       - name: Run Fastlane production
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane android production
@@ -70,6 +74,12 @@ jobs:
         with:
           name: android-sourcemap
           path: android/app/build/generated/sourcemaps/react/release/*.map
+
+      - name: Upload Android version to Browser Stack
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@./android/app/build/outputs/bundle/release/app-release.aab"
+        env:
+          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
       - name: Warn deployers if Android production deploy failed
         if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -95,6 +105,11 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: macos-12
     steps:
+      # This action checks-out the repository, so the workflow can access it.
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        with:
+          fetch-depth: 0
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Decrypt Developer ID Certificate
@@ -130,6 +145,11 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: macos-12
     steps:
+      # This action checks-out the repository, so the workflow can access it.
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        with:
+          fetch-depth: 0
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7
@@ -138,7 +158,7 @@ jobs:
           bundler-cache: true
 
       - name: Install cocoapods
-        uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
+        uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -174,6 +194,12 @@ jobs:
           name: ios-sourcemap
           path: main.jsbundle.map
 
+      - name: Upload iOS version to Browser Stack
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/Users/runner/work/App/App/New Expensify.ipa"
+        env:
+          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+
       - name: Set iOS version in ENV
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: echo "IOS_VERSION=$(echo '${{ github.event.release.tag_name }}' | tr '-' '.')" >> "$GITHUB_ENV"
@@ -208,18 +234,21 @@ jobs:
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: ubuntu-latest
     steps:
+      # This action checks-out the repository, so the workflow can access it.
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        with:
+          fetch-depth: 0
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Setup Cloudflare CLI
         run: pip3 install cloudflare
 
       - name: Configure AWS Credentials
-        # Version: 1.5.5
-        uses: aws-actions/configure-aws-credentials@e97d7fbc8e0e5af69631c13daa0f4b5a8d88165b
+        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Build web for production
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -329,6 +358,11 @@ jobs:
     if: ${{ always() }}
     needs: [android, desktop, iOS, web]
     steps:
+      # This action checks-out the repository, so the workflow can access it.
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        with:
+          fetch-depth: 0
+
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       - name: Set version

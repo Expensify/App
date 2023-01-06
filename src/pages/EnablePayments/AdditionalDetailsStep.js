@@ -4,6 +4,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
+import moment from 'moment';
 import IdologyQuestions from './IdologyQuestions';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -29,6 +30,7 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes,
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import OfflineIndicator from '../../components/OfflineIndicator';
 import * as ErrorUtils from '../../libs/ErrorUtils';
+import SafeAreaConsumer from '../../components/SafeAreaConsumer';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -231,7 +233,7 @@ class AdditionalDetailsStep extends React.Component {
      */
     clearDateErrorsAndSetValue(value) {
         this.formHelper.clearErrors(this.props, ['dob', 'age']);
-        Wallet.updateAdditionalDetailsDraft({dob: value});
+        Wallet.updateAdditionalDetailsDraft({dob: moment(value).format(CONST.DATE.MOMENT_FORMAT_STRING)});
     }
 
     /**
@@ -353,7 +355,6 @@ class AdditionalDetailsStep extends React.Component {
                                 defaultValue={this.props.walletAdditionalDetailsDraft.dob || ''}
                                 placeholder={this.props.translate('common.dob')}
                                 errorText={this.getErrorText('dob') || this.getErrorText('age')}
-                                maximumDate={new Date()}
                             />
                             <TextInput
                                 containerStyles={[styles.mt4]}
@@ -365,16 +366,22 @@ class AdditionalDetailsStep extends React.Component {
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             />
                         </View>
-                        <FormAlertWithSubmitButton
-                            isAlertVisible={isErrorVisible}
-                            onSubmit={this.activateWallet}
-                            onFixTheErrorsLinkPressed={() => {
-                                this.form.scrollTo({y: 0, animated: true});
-                            }}
-                            message={errorMessage}
-                            isLoading={this.props.walletAdditionalDetails.isLoading}
-                            buttonText={this.props.translate('common.saveAndContinue')}
-                        />
+                        <SafeAreaConsumer>
+                            {({safeAreaPaddingBottomStyle}) => (
+                                <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
+                                    <FormAlertWithSubmitButton
+                                        isAlertVisible={isErrorVisible}
+                                        onSubmit={this.activateWallet}
+                                        onFixTheErrorsLinkPressed={() => {
+                                            this.form.scrollTo({y: 0, animated: true});
+                                        }}
+                                        message={errorMessage}
+                                        isLoading={this.props.walletAdditionalDetails.isLoading}
+                                        buttonText={this.props.translate('common.saveAndContinue')}
+                                    />
+                                </View>
+                            )}
+                        </SafeAreaConsumer>
                         <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
                     </FormScrollView>
                 </View>

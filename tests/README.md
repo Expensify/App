@@ -29,7 +29,7 @@ expect(onyxData).toBe(expectedOnyxData);
 
 ## Documenting Tests
 
-Tests aren't always clear about what exactly is being tested. To make this a bit easier we recommend adopting the following format for code comments:
+Tests aren't always clear about what exactly is being tested.  To make this a bit easier we recommend adopting the following format for code comments:
 
 ```
 // Given <initial_condition>

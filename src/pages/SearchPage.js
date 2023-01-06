@@ -87,28 +87,31 @@ class SearchPage extends Component {
      */
     getSections() {
         const sections = [];
+        let indexOffset = 0;
+
         if (this.state.recentReports.length > 0) {
             sections.push(({
                 data: this.state.recentReports,
                 shouldShow: true,
-                indexOffset: 0,
+                indexOffset,
             }));
+            indexOffset += this.state.recentReports.length;
         }
 
         if (this.state.personalDetails.length > 0) {
             sections.push(({
                 data: this.state.personalDetails,
                 shouldShow: true,
-                indexOffset: this.state.recentReports.length,
+                indexOffset,
             }));
+            indexOffset += this.state.recentReports.length;
         }
 
         if (this.state.userToInvite) {
             sections.push(({
-                undefined,
                 data: [this.state.userToInvite],
                 shouldShow: true,
-                indexOffset: 0,
+                indexOffset,
             }));
         }
 
@@ -150,10 +153,7 @@ class SearchPage extends Component {
                 Navigation.navigate(ROUTES.getReportRoute(option.reportID));
             });
         } else {
-            Report.fetchOrCreateChatReport([
-                this.props.session.email,
-                option.login,
-            ]);
+            Report.navigateToAndOpenReport([option.login]);
         }
     }
 
@@ -165,7 +165,7 @@ class SearchPage extends Component {
             this.state.searchValue,
         );
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({didScreenTransitionEnd}) => (
                     <>
                         <HeaderWithCloseButton
@@ -180,9 +180,9 @@ class SearchPage extends Component {
                                 onChangeText={this.onChangeText}
                                 headerMessage={headerMessage}
                                 hideSectionHeaders
-                                hideAdditionalOptionStates
                                 showTitleTooltip
                                 shouldShowOptions={didScreenTransitionEnd}
+                                placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                             />
                         </View>
                     </>

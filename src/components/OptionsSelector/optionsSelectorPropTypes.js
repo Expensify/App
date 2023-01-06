@@ -54,11 +54,8 @@ const propTypes = {
     /** Whether to disable interactivity of option rows */
     isDisabled: PropTypes.bool,
 
-    /** A flag to indicate whether to show additional optional states, such as pin and draft icons */
-    hideAdditionalOptionStates: PropTypes.bool,
-
-    /** Force the text style to be the unread style on all rows */
-    forceTextUnreadStyle: PropTypes.bool,
+    /** Display the text of the option in bold font style */
+    boldStyle: PropTypes.bool,
 
     /** Whether to show the title tooltip */
     showTitleTooltip: PropTypes.bool,
@@ -89,6 +86,9 @@ const propTypes = {
 
     /** Whether to show options list */
     shouldShowOptions: PropTypes.bool,
+
+    /** Whether to show a line separating options in list */
+    shouldHaveOptionSeparator: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -99,8 +99,7 @@ const defaultProps = {
     headerMessage: '',
     canSelectMultipleOptions: false,
     hideSectionHeaders: false,
-    hideAdditionalOptionStates: false,
-    forceTextUnreadStyle: false,
+    boldStyle: false,
     showTitleTooltip: false,
     shouldFocusOnSelectRow: false,
     autoFocus: true,
@@ -113,6 +112,7 @@ const defaultProps = {
     shouldShowOptions: true,
     disableArrowKeysActions: false,
     isDisabled: false,
+    shouldHaveOptionSeparator: false,
 };
 
 export {propTypes, defaultProps};

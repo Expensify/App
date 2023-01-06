@@ -54,25 +54,6 @@ function trimEmojiUnicode(emojiCode) {
 }
 
 /**
- * Validates that this string is composed of a single emoji
- *
- * @param {String} message
- * @returns {Boolean}
- */
-function isSingleEmoji(message) {
-    const match = message.match(CONST.REGEX.EMOJIS);
-
-    if (!match) {
-        return false;
-    }
-
-    const matchedEmoji = match[0];
-    const matchedUnicode = getEmojiUnicode(matchedEmoji);
-    const currentMessageUnicode = trimEmojiUnicode(getEmojiUnicode(message));
-    return matchedUnicode === currentMessageUnicode;
-}
-
-/**
  * Validates that this message contains only emojis
  *
  * @param {String} message
@@ -88,7 +69,7 @@ function containsOnlyEmojis(message) {
 
     const codes = [];
     _.map(match, emoji => _.map(getEmojiUnicode(emoji).split(' '), (code) => {
-        if (code !== CONST.EMOJI_INVISIBLE_CODEPOINT) {
+        if (!CONST.INVISIBLE_CODEPOINTS.includes(code)) {
             codes.push(code);
         }
         return code;
@@ -96,7 +77,7 @@ function containsOnlyEmojis(message) {
 
     // Emojis are stored as multiple characters, so we're using spread operator
     // to iterate over the actual emojis, not just characters that compose them
-    const messageCodes = _.filter(_.map([...trimmedMessage], char => getEmojiUnicode(char)), string => string.length > 0 && string !== CONST.EMOJI_INVISIBLE_CODEPOINT);
+    const messageCodes = _.filter(_.map([...trimmedMessage], char => getEmojiUnicode(char)), string => string.length > 0 && !CONST.INVISIBLE_CODEPOINTS.includes(string));
     return codes.length === messageCodes.length;
 }
 
@@ -125,7 +106,9 @@ function getDynamicHeaderIndices(emojis) {
 function getDynamicSpacing(emojiCount, suffix) {
     const spacerEmojis = [];
     let modLength = CONST.EMOJI_NUM_PER_ROW - (emojiCount % CONST.EMOJI_NUM_PER_ROW);
-    while (modLength > 0) {
+
+    // Empty spaces is pushed if the given row has less than eight emojis
+    while (modLength > 0 && modLength < CONST.EMOJI_NUM_PER_ROW) {
         spacerEmojis.push({
             code: `${CONST.EMOJI_SPACER}_${suffix}_${modLength}`,
             spacer: true,
@@ -201,11 +184,13 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
 }
 
 /**
- * Replace any emoji name in a text with the emoji icon
+ * Replace any emoji name in a text with the emoji icon.
+ * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  * @param {String} text
+ * @param {Boolean} isSmallScreenWidth
  * @returns {String}
  */
-function replaceEmojis(text) {
+function replaceEmojis(text, isSmallScreenWidth = false) {
     let newText = text;
     const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
     if (!emojiData || emojiData.length === 0) {
@@ -214,7 +199,14 @@ function replaceEmojis(text) {
     for (let i = 0; i < emojiData.length; i++) {
         const checkEmoji = emojisTrie.search(emojiData[i].slice(1, -1));
         if (checkEmoji && checkEmoji.metaData.code) {
-            newText = newText.replace(emojiData[i], checkEmoji.metaData.code);
+            let emojiReplacement = checkEmoji.metaData.code;
+
+            // If this is the last emoji in the message and it's the end of the message so far,
+            // add a space after it so the user can keep typing easily.
+            if (isSmallScreenWidth && i === emojiData.length - 1 && text.endsWith(emojiData[i])) {
+                emojiReplacement += ' ';
+            }
+            newText = newText.replace(emojiData[i], emojiReplacement);
         }
     }
     return newText;
@@ -254,11 +246,11 @@ function suggestEmojis(text, limit = 5) {
 }
 
 export {
-    isSingleEmoji,
     getDynamicHeaderIndices,
     mergeEmojisWithFrequentlyUsedEmojis,
     addToFrequentlyUsedEmojis,
     containsOnlyEmojis,
     replaceEmojis,
     suggestEmojis,
+    trimEmojiUnicode,
 };

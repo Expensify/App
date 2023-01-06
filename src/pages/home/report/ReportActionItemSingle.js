@@ -51,7 +51,7 @@ const showUserDetails = (email) => {
 const ReportActionItemSingle = (props) => {
     const {avatar, displayName, login} = props.personalDetails[props.action.actorEmail] || {};
     const avatarUrl = props.action.automatic
-        ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
+        ? CONST.CONCIERGE_ICON_URL
 
         // Use avatar in personalDetails if we have one then fallback to avatar provided by the action
         : (avatar || props.action.avatar);
@@ -89,7 +89,7 @@ const ReportActionItemSingle = (props) => {
                         >
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment
-                                    key={`person-${props.action.sequenceNumber}-${index}`}
+                                    key={`person-${props.action.reportActionID}-${index}`}
                                     fragment={fragment}
                                     tooltipText={props.action.actorEmail}
                                     isAttachment={props.action.isAttachment}
@@ -98,7 +98,7 @@ const ReportActionItemSingle = (props) => {
                                 />
                             ))}
                         </Pressable>
-                        <ReportActionItemDate timestamp={props.action.timestamp} />
+                        <ReportActionItemDate created={props.action.created} />
                     </View>
                 ) : null}
                 {props.children}

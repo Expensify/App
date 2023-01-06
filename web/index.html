@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <title>New Expensify</title>
     <meta name="description" content="Corporate cards, reimbursements, receipt scanning, invoicing, and bill pay. One app, all free.">
+    <meta name="theme-color" content="">
     <meta property="twitter:card" content="summary">
     <meta property="twitter:site" content="@expensify">
     <meta property="og:type" content="website">
@@ -22,6 +23,9 @@
         #root > div > div {
             height: 100% !important;
         }
+        :root {
+            color-scheme: dark;
+        }
         #drag-area {
             -webkit-app-region: drag;
         }
@@ -34,11 +38,11 @@
         }
         :focus-visible {
             outline: 0;
-            box-shadow: inset 0px 0px 0px 1px #0185ff;
+            box-shadow: inset 0px 0px 0px 1px #5AB0FF;
         }
         :focus[data-focusvisible-polyfill] {
             outline: 0;
-            box-shadow: inset 0px 0px 0px 1px #0185ff;
+            box-shadow: inset 0px 0px 0px 1px #5AB0FF;
         }
         input:focus-visible, input:focus[data-focusvisible-polyfill],
         select:focus-visible, select:focus[data-focusvisible-polyfill]  {
@@ -46,6 +50,21 @@
         }
         ::-ms-reveal {
             display: none;
+        }
+
+        /* Customizes the background and text colors for autofill inputs in Chrome */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        textarea:-webkit-autofill,
+        textarea:-webkit-autofill:hover,
+        textarea:-webkit-autofill:focus,
+        select:-webkit-autofill,
+        select:-webkit-autofill:hover,
+        select:-webkit-autofill:focus {
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: #ffffff;
+            caret-color: #ffffff;
         }
     </style>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
@@ -58,5 +77,8 @@
 <body>
     <div style="position: absolute; top: 0; left: 0; right: 0; height: 30px;" id="drag-area"></div>
     <div id="root"></div>
+    <div id="splash">
+        <div class="splash-logo"></div>
+    </div>
 </body>
 </html>

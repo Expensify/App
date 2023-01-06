@@ -5,10 +5,7 @@ import {View, ScrollView} from 'react-native';
 import Button from '../Button';
 import Text from '../Text';
 import TextInput from '../TextInput';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
-import colors from '../../styles/colors';
 import PDFInfoMessage from './PDFInfoMessage';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
@@ -105,7 +102,7 @@ class PDFPasswordForm extends Component {
                     <ScrollView
                         keyboardShouldPersistTaps="handled"
                         style={containerStyle}
-                        contentContainerStyle={[styles.ph5, styles.flex1, styles.justifyContentCenter]}
+                        contentContainerStyle={styles.p5}
                     >
                         <View style={styles.mb4}>
                             <Text>
@@ -120,26 +117,16 @@ class PDFPasswordForm extends Component {
                             onChangeText={this.updatePassword}
                             returnKeyType="done"
                             onSubmitEditing={this.submitPassword}
-                            errorText={this.state.validationErrorText}
+                            errorText={this.props.isPasswordInvalid ? this.props.translate('attachmentView.passwordIncorrect') : this.state.validationErrorText}
                             onFocus={() => this.props.onPasswordFieldFocused(true)}
                             onBlur={this.validateAndNotifyPasswordBlur}
                             autoFocus={this.props.shouldAutofocusPasswordField}
                             secureTextEntry
                         />
-                        {this.props.isPasswordInvalid && (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt3]}>
-                            <Icon src={Expensicons.Exclamation} fill={colors.red} />
-                            <View style={[styles.flexRow, styles.ml2, styles.flexWrap, styles.flex1]}>
-                                <Text style={styles.mutedTextLabel}>
-                                    {this.props.translate('attachmentView.passwordIncorrect')}
-                                </Text>
-                            </View>
-                        </View>
-                        )}
                         <Button
                             text={this.props.translate('common.confirm')}
                             onPress={this.submitPassword}
-                            style={styles.pt4}
+                            style={styles.mt4}
                             isLoading={this.props.shouldShowLoadingIndicator}
                             pressOnEnter
                         />

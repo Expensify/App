@@ -157,18 +157,22 @@ function setPersonalDetails(login, accountID) {
 /**
  * @param {String} actorEmail
  * @param {Number} sequenceNumber
- * @param {Number} timestamp
+ * @param {String} created
+ * @param {Number} actorAccountID
+ * @param {String} actionID
  * @returns {Object}
  */
-function buildTestReportComment(actorEmail, sequenceNumber, timestamp) {
+function buildTestReportComment(actorEmail, sequenceNumber, created, actorAccountID, actionID = null) {
+    const reportActionID = actionID || NumberUtils.rand64();
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
         actorEmail,
         person: [{type: 'TEXT', style: 'strong', text: 'User B'}],
         sequenceNumber,
-        timestamp,
+        created,
         message: [{type: 'COMMENT', html: `Comment ${sequenceNumber}`, text: `Comment ${sequenceNumber}`}],
-        reportActionID: NumberUtils.rand64(),
+        reportActionID,
+        actorAccountID,
     };
 }
 

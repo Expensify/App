@@ -18,6 +18,9 @@ const windowDimensionsPropTypes = {
 
     // Is the window width narrow, like on a tablet device?
     isMediumScreenWidth: PropTypes.bool.isRequired,
+
+    // Is the window width wide, like on a browser or desktop?
+    isLargeScreenWidth: PropTypes.bool.isRequired,
 };
 
 const windowDimensionsProviderPropTypes = {
@@ -35,6 +38,7 @@ class WindowDimensionsProvider extends React.Component {
         const isSmallScreenWidth = initialDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
         const isMediumScreenWidth = initialDimensions.width > variables.mobileResponsiveWidthBreakpoint
           && initialDimensions.width <= variables.tabletResponsiveWidthBreakpoint;
+        const isLargeScreenWidth = !isSmallScreenWidth && !isMediumScreenWidth;
 
         this.dimensionsEventListener = null;
 
@@ -43,6 +47,7 @@ class WindowDimensionsProvider extends React.Component {
             windowWidth: initialDimensions.width,
             isSmallScreenWidth,
             isMediumScreenWidth,
+            isLargeScreenWidth,
         };
     }
 
@@ -67,11 +72,13 @@ class WindowDimensionsProvider extends React.Component {
         const {window} = newDimensions;
         const isSmallScreenWidth = window.width <= variables.mobileResponsiveWidthBreakpoint;
         const isMediumScreenWidth = !isSmallScreenWidth && window.width <= variables.tabletResponsiveWidthBreakpoint;
+        const isLargeScreenWidth = !isSmallScreenWidth && !isMediumScreenWidth;
         this.setState({
             windowHeight: window.height,
             windowWidth: window.width,
             isSmallScreenWidth,
             isMediumScreenWidth,
+            isLargeScreenWidth,
         });
     }
 

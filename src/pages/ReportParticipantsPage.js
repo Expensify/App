@@ -19,6 +19,7 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import * as ReportUtils from '../libs/ReportUtils';
 import reportPropTypes from './reportPropTypes';
+import withReportOrNavigateHome from './home/report/withReportOrNavigateHome';
 
 const propTypes = {
     /* Onyx Props */
@@ -57,7 +58,7 @@ const getAllParticipants = (report, personalDetails) => {
         return ({
             alternateText: userLogin,
             displayName: userPersonalDetail.displayName,
-            icons: [userPersonalDetail.avatar],
+            icons: userPersonalDetail.avatar ? [userPersonalDetail.avatar] : [ReportUtils.getDefaultAvatar()],
             keyForList: userLogin,
             login,
             text: userPersonalDetail.displayName,
@@ -98,8 +99,7 @@ const ReportParticipantsPage = (props) => {
                         hideSectionHeaders
                         showTitleTooltip
                         disableFocusOptions
-                        optionMode="default"
-                        forceTextUnreadStyle
+                        boldStyle
                         optionHoveredStyle={styles.hoveredComponentBG}
                     />
                     )}
@@ -113,12 +113,10 @@ ReportParticipantsPage.displayName = 'ReportParticipantsPage';
 
 export default compose(
     withLocalize,
+    withReportOrNavigateHome,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
         },
     }),
 )(ReportParticipantsPage);

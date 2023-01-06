@@ -18,13 +18,12 @@ import CommunicationsLink from '../components/CommunicationsLink';
 import Tooltip from '../components/Tooltip';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
-import DateUtils from '../libs/DateUtils';
 import * as Expensicons from '../components/Icon/Expensicons';
-import FullscreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import MenuItem from '../components/MenuItem';
 import AttachmentModal from '../components/AttachmentModal';
 import PressableWithoutFocus from '../components/PressableWithoutFocus';
 import * as Report from '../libs/actions/Report';
+import AutoUpdateTime from '../components/AutoUpdateTime';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -82,21 +81,21 @@ class DetailsPage extends React.PureComponent {
     }
 
     render() {
-        const details = lodashGet(this.props.personalDetails, lodashGet(this.props.route.params, 'login'));
+        let details = lodashGet(this.props.personalDetails, lodashGet(this.props.route.params, 'login'));
         if (!details) {
-            // Personal details have not loaded yet
-            return <FullscreenLoadingIndicator />;
+            const login = lodashGet(this.props.route.params, 'login');
+            details = {
+                login,
+                displayName: ReportUtils.getDisplayNameForParticipant(login),
+                avatar: ReportUtils.getDefaultAvatar(),
+            };
         }
         const isSMSLogin = Str.isSMSLogin(details.login);
 
         // If we have a reportID param this means that we
         // arrived here via the ParticipantsPage and should be allowed to navigate back to it
         const shouldShowBackButton = Boolean(this.props.route.params.reportID);
-        const timezone = DateUtils.getLocalMomentFromTimestamp(this.props.preferredLocale, null, details.timezone.selected);
-        const GMTTime = `${timezone.toString().split(/[+-]/)[0].slice(-3)} ${timezone.zoneAbbr()}`;
-        const currentTime = Number.isNaN(Number(timezone.zoneAbbr())) ? timezone.zoneAbbr() : GMTTime;
-        const shouldShowLocalTime = !ReportUtils.hasExpensifyEmails([details.login]);
-
+        const shouldShowLocalTime = !ReportUtils.hasExpensifyEmails([details.login]) && details.timezone;
         let pronouns = details.pronouns;
 
         if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
@@ -152,10 +151,7 @@ class DetailsPage extends React.PureComponent {
                                                 ? 'common.phoneNumber'
                                                 : 'common.email')}
                                         </Text>
-                                        <CommunicationsLink
-                                            type={isSMSLogin ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL}
-                                            value={isSMSLogin ? getPhoneNumber(details) : details.login}
-                                        >
+                                        <CommunicationsLink value={isSMSLogin ? getPhoneNumber(details) : details.login}>
                                             <Tooltip text={isSMSLogin ? getPhoneNumber(details) : details.login}>
                                                 <Text numberOfLines={1}>
                                                     {isSMSLogin
@@ -176,24 +172,13 @@ class DetailsPage extends React.PureComponent {
                                         </Text>
                                     </View>
                                 ) : null}
-                                {shouldShowLocalTime && details.timezone ? (
-                                    <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                        <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                            {this.props.translate('detailsPage.localTime')}
-                                        </Text>
-                                        <Text numberOfLines={1}>
-                                            {timezone.format('LT')}
-                                            {' '}
-                                            {currentTime}
-                                        </Text>
-                                    </View>
-                                ) : null}
+                                {shouldShowLocalTime && <AutoUpdateTime timezone={details.timezone} />}
                             </View>
                             {details.login !== this.props.session.email && (
                                 <MenuItem
                                     title={`${this.props.translate('common.message')}${details.displayName}`}
                                     icon={Expensicons.ChatBubble}
-                                    onPress={() => Report.fetchOrCreateChatReport([this.props.session.email, details.login])}
+                                    onPress={() => Report.navigateToAndOpenReport([details.login])}
                                     wrapperStyle={styles.breakAll}
                                     shouldShowRightIcon
                                 />

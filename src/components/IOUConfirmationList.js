@@ -15,6 +15,7 @@ import Log from '../libs/Log';
 import SettlementButton from './SettlementButton';
 import ROUTES from '../ROUTES';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from './withCurrentUserPersonalDetails';
+import * as IOUUtils from '../libs/IOUUtils';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -47,8 +48,6 @@ const propTypes = {
         searchText: PropTypes.string,
         text: PropTypes.string,
         keyForList: PropTypes.string,
-        isPinned: PropTypes.bool,
-        isUnread: PropTypes.bool,
         reportID: PropTypes.string,
         // eslint-disable-next-line react/forbid-prop-types
         participantsList: PropTypes.arrayOf(PropTypes.object),
@@ -56,8 +55,8 @@ const propTypes = {
         phoneNumber: PropTypes.string,
     })).isRequired,
 
-    /** Is this IOU associated with existing report */
-    isIOUAttachedToExistingChatReport: PropTypes.bool.isRequired,
+    /** Can the participants be modified or not */
+    canModifyParticipants: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
 
@@ -90,6 +89,7 @@ const defaultProps = {
     onUpdateComment: null,
     comment: '',
     iouType: CONST.IOU.IOU_TYPE.REQUEST,
+    canModifyParticipants: false,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -143,7 +143,7 @@ class IOUConfirmationList extends Component {
     getParticipantsWithAmount(participants) {
         return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
             participants,
-            this.props.numberFormat(this.calculateAmount(participants) / 100, {
+            this.props.numberFormat(IOUUtils.calculateAmount(participants, this.props.iouAmount) / 100, {
                 style: 'currency',
                 currency: this.props.iou.selectedCurrencyCode,
             }),
@@ -177,7 +177,7 @@ class IOUConfirmationList extends Component {
 
             const formattedMyPersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(
                 this.props.currentUserPersonalDetails,
-                this.props.numberFormat(this.calculateAmount(selectedParticipants, true) / 100, {
+                this.props.numberFormat(IOUUtils.calculateAmount(selectedParticipants, this.props.iouAmount, true) / 100, {
                     style: 'currency',
                     currency: this.props.iou.selectedCurrencyCode,
                 }),
@@ -213,35 +213,6 @@ class IOUConfirmationList extends Component {
     }
 
     /**
-     * Gets splits for the transaction
-     * @returns {Array|null}
-     */
-    getSplits() {
-        // There can only be splits when there are multiple participants, so return early when there are not
-        // multiple participants
-        if (!this.props.hasMultipleParticipants) {
-            return null;
-        }
-        const selectedParticipants = this.getSelectedParticipants();
-        const splits = _.map(selectedParticipants, participant => ({
-            email: OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login),
-
-            // We should send in cents to API
-            // Cents is temporary and there must be support for other currencies in the future
-            amount: this.calculateAmount(selectedParticipants),
-        }));
-
-        splits.push({
-            email: OptionsListUtils.addSMSDomainIfPhoneNumber(this.props.currentUserPersonalDetails.login),
-
-            // The user is default and we should send in cents to API
-            // USD is temporary and there must be support for other currencies in the future
-            amount: this.calculateAmount(selectedParticipants, true),
-        });
-        return splits;
-    }
-
-    /**
      * Returns selected options -- there is checkmark for every row in List for split flow
      * @returns {Array}
      */
@@ -257,30 +228,6 @@ class IOUConfirmationList extends Component {
     }
 
     /**
-     * Calculates the amount per user given a list of participants
-     * @param {Array} participants
-     * @param {Boolean} isDefaultUser
-     * @returns {Number}
-     */
-    calculateAmount(participants, isDefaultUser = false) {
-        // Convert to cents before working with iouAmount to avoid
-        // javascript subtraction with decimal problem -- when dealing with decimals,
-        // because they are encoded as IEEE 754 floating point numbers, some of the decimal
-        // numbers cannot be represented with perfect accuracy.
-        // Cents is temporary and there must be support for other currencies in the future
-        const iouAmount = Math.round(parseFloat(this.props.iouAmount * 100));
-        const totalParticipants = participants.length + 1;
-        const amountPerPerson = Math.round(iouAmount / totalParticipants);
-
-        if (!isDefaultUser) { return amountPerPerson; }
-
-        const sumAmount = amountPerPerson * totalParticipants;
-        const difference = iouAmount - sumAmount;
-
-        return iouAmount !== sumAmount ? (amountPerPerson + difference) : amountPerPerson;
-    }
-
-    /**
     * Toggle selected option's selected prop.
     * @param {Object} option
     */
@@ -293,7 +240,7 @@ class IOUConfirmationList extends Component {
         this.setState((prevState) => {
             const newParticipants = _.map(prevState.participants, (participant) => {
                 if (participant.login === option.login) {
-                    return {...option, selected: !option.selected};
+                    return {...participant, selected: !participant.selected};
                 }
                 return participant;
             });
@@ -318,7 +265,7 @@ class IOUConfirmationList extends Component {
             Log.info(`[IOU] Sending money via: ${paymentMethod}`);
             this.props.onSendMoney(paymentMethod);
         } else {
-            this.props.onConfirm(this.getSplits());
+            this.props.onConfirm(selectedParticipants);
         }
     }
 
@@ -327,7 +274,8 @@ class IOUConfirmationList extends Component {
         const shouldShowSettlementButton = this.props.iouType === CONST.IOU.IOU_TYPE.SEND;
         const shouldDisableButton = selectedParticipants.length === 0;
         const recipient = this.state.participants[0];
-        const canModifyParticipants = this.props.isIOUAttachedToExistingChatReport && this.props.hasMultipleParticipants;
+        const canModifyParticipants = this.props.canModifyParticipants && this.props.hasMultipleParticipants;
+
         return (
             <OptionsSelector
                 sections={this.getSections()}
@@ -338,11 +286,10 @@ class IOUConfirmationList extends Component {
                 textInputLabel={this.props.translate('iOUConfirmationList.whatsItFor')}
                 placeholderText={this.props.translate('common.optional')}
                 selectedOptions={this.getSelectedOptions()}
-                canSelectMultipleOptions={this.props.hasMultipleParticipants}
+                canSelectMultipleOptions={canModifyParticipants}
                 disableArrowKeysActions={!canModifyParticipants}
                 isDisabled={!canModifyParticipants}
-                hideAdditionalOptionStates
-                forceTextUnreadStyle
+                boldStyle
                 autoFocus
                 shouldDelayFocus
                 shouldTextInputAppearBelowOptions

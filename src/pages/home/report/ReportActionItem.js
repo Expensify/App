@@ -33,6 +33,7 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ReportActions from '../../../libs/actions/ReportActions';
 import reportPropTypes from '../../reportPropTypes';
+import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
 
 const propTypes = {
     /** Report for this action */
@@ -50,8 +51,8 @@ const propTypes = {
     /** Whether there is an outstanding amount in IOU */
     hasOutstandingIOU: PropTypes.bool,
 
-    /** Should we display the new indicator on top of the comment? */
-    shouldDisplayNewIndicator: PropTypes.bool.isRequired,
+    /** Should we display the new marker on top of the comment? */
+    shouldDisplayNewMarker: PropTypes.bool.isRequired,
 
     /** Position index of the report action in the overall report FlatList view */
     index: PropTypes.number.isRequired,
@@ -76,6 +77,7 @@ class ReportActionItem extends Component {
         };
         this.checkIfContextMenuActive = this.checkIfContextMenuActive.bind(this);
         this.showPopover = this.showPopover.bind(this);
+        this.renderItemContent = this.renderItemContent.bind(this);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -83,7 +85,7 @@ class ReportActionItem extends Component {
             || this.props.draftMessage !== nextProps.draftMessage
             || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
             || this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU
-            || this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator
+            || this.props.shouldDisplayNewMarker !== nextProps.shouldDisplayNewMarker
             || !_.isEqual(this.props.action, nextProps.action)
             || this.state.isContextMenuActive !== nextState.isContextMenuActive;
     }
@@ -94,7 +96,13 @@ class ReportActionItem extends Component {
         }
 
         // Only focus the input when user edits a message, skip it for existing drafts being edited of the report.
-        this.textInput.focus();
+        // There is an animation when the comment is hidden and the edit form is shown, and there can be bugs on different mobile platforms
+        // if the input is given focus in the middle of that animation which can prevent the keyboard from opening.
+        focusTextInputAfterAnimation(this.textInput, 100);
+    }
+
+    checkIfContextMenuActive() {
+        this.setState({isContextMenuActive: ReportActionContextMenu.isActiveReportAction(this.props.action.reportActionID)});
     }
 
     /**
@@ -107,6 +115,8 @@ class ReportActionItem extends Component {
         if (this.props.draftMessage) {
             return;
         }
+
+        this.setState({isContextMenuActive: true});
         const selection = SelectionScraper.getCurrentSelection();
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
@@ -116,30 +126,26 @@ class ReportActionItem extends Component {
             this.props.report.reportID,
             this.props.action,
             this.props.draftMessage,
-            this.checkIfContextMenuActive,
+            undefined,
             this.checkIfContextMenuActive,
         );
     }
 
-    checkIfContextMenuActive() {
-        this.setState({isContextMenuActive: ReportActionContextMenu.isActiveReportAction(this.props.action.reportActionID)});
-    }
-
-    render() {
-        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-            return <ReportActionItemCreated reportID={this.props.report.reportID} />;
-        }
-        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
-            return <RenameAction action={this.props.action} />;
-        }
-
+    /**
+     * Get the content of ReportActionItem
+     * @param {Boolean} hovered whether the ReportActionItem is hovered
+     * @returns {Object} child component(s)
+     */
+    renderItemContent(hovered = false) {
         let children;
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
             children = (
                 <IOUAction
                     chatReportID={this.props.report.reportID}
+                    iouReportID={this.props.report.iouReportID}
                     action={this.props.action}
                     isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
+                    isHovered={hovered}
                 />
             );
         } else {
@@ -161,6 +167,16 @@ class ReportActionItem extends Component {
                     />
                 );
         }
+        return children;
+    }
+
+    render() {
+        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+            return <ReportActionItemCreated reportID={this.props.report.reportID} />;
+        }
+        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+            return <RenameAction action={this.props.action} />;
+        }
         return (
             <PressableWithSecondaryInteraction
                 ref={el => this.popoverAnchor = el}
@@ -168,16 +184,12 @@ class ReportActionItem extends Component {
                 onPressOut={() => ControlSelection.unblock()}
                 onSecondaryInteraction={this.showPopover}
                 preventDefaultContentMenu={!this.props.draftMessage}
-                onKeyDown={(event) => {
-                    // Blur the input after a key is pressed to keep the blue focus border from appearing
-                    event.target.blur();
-                }}
             >
-                <Hoverable resetsOnClickOutside>
+                <Hoverable>
                     {hovered => (
                         <View accessibilityLabel="Chat message">
-                            {this.props.shouldDisplayNewIndicator && (
-                                <UnreadActionIndicator sequenceNumber={this.props.action.sequenceNumber} />
+                            {this.props.shouldDisplayNewMarker && (
+                                <UnreadActionIndicator reportActionID={this.props.action.reportActionID} />
                             )}
                             <View
                                 style={StyleUtils.getReportActionItemStyle(
@@ -190,24 +202,29 @@ class ReportActionItem extends Component {
                                 <OfflineWithFeedback
                                     onClose={() => {
                                         if (this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                                            ReportActions.deleteOptimisticReportAction(this.props.report.reportID, this.props.action.clientID);
+                                            const sequenceNumber = this.props.action.actionName
+                                              === CONST.REPORT.ACTIONS.TYPE.IOU
+                                                ? this.props.action
+                                                    .sequenceNumber
+                                                : this.props.action.clientID;
+                                            ReportActions.deleteOptimisticReportAction(this.props.report.reportID, sequenceNumber);
                                         } else {
                                             ReportActions.clearReportActionErrors(this.props.report.reportID, this.props.action.sequenceNumber);
                                         }
                                     }}
-                                    pendingAction={this.props.action.pendingAction}
+                                    pendingAction={this.props.draftMessage ? null : this.props.action.pendingAction}
                                     errors={this.props.action.errors}
                                     errorRowStyles={[styles.ml10, styles.mr2]}
                                 >
                                     {!this.props.displayAsGroup
                                         ? (
                                             <ReportActionItemSingle action={this.props.action} showHeader={!this.props.draftMessage}>
-                                                {children}
+                                                {this.renderItemContent(hovered || this.state.isContextMenuActive)}
                                             </ReportActionItemSingle>
                                         )
                                         : (
                                             <ReportActionItemGrouped>
-                                                {children}
+                                                {this.renderItemContent(hovered || this.state.isContextMenuActive)}
                                             </ReportActionItemGrouped>
                                         )}
                                 </OfflineWithFeedback>
@@ -223,6 +240,7 @@ class ReportActionItem extends Component {
                                     && !this.props.draftMessage
                                 }
                                 draftMessage={this.props.draftMessage}
+                                isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
                             />
                         </View>
                     )}

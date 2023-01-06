@@ -12,13 +12,14 @@ const CONST = {
     ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
+    ANIMATION_IN_TIMING: 100,
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
         ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml', 'mp3', 'mp4', 'mov'],
 
-        // 50 megabytes in bytes
-        MAX_SIZE: 52428800,
+        // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
+        MAX_SIZE: 25165824,
 
         // An arbitrary size, but the same minimum as in the PHP layer
         MIN_SIZE: 240,
@@ -31,6 +32,11 @@ const CONST = {
     // Minimum width and height size in px for a selected image
     AVATAR_MIN_WIDTH_PX: 80,
     AVATAR_MIN_HEIGHT_PX: 80,
+
+    // Maximum width and height size in px for a selected image
+    AVATAR_MAX_WIDTH_PX: 4096,
+    AVATAR_MAX_HEIGHT_PX: 4096,
+
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
@@ -39,6 +45,7 @@ const CONST = {
     },
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
+        UNIX_EPOCH: '1970-01-01 00:00:00.000',
     },
     SMS: {
         DOMAIN: '@expensify.sms',
@@ -103,7 +110,11 @@ const CONST = {
         },
         MAX_LENGTH: {
             SSN: 4,
-            ZIP_CODE: 5,
+            ZIP_CODE: 10,
+        },
+        TYPE: {
+            BUSINESS: 'BUSINESS',
+            PERSONAL: 'PERSONAL',
         },
     },
     INCORPORATION_TYPES: {
@@ -225,12 +236,13 @@ const CONST = {
     DEEPLINK_BASE_URL: 'new-expensify://',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
+    CONCIERGE_ICON_URL: `${CLOUDFRONT_URL}/images/icons/concierge_2022.png`,
     UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
     GITHUB_URL: 'https://github.com/Expensify/App',
     TERMS_URL: `${USE_EXPENSIFY_URL}/terms`,
     PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
     LICENSES_URL: `${USE_EXPENSIFY_URL}/licenses`,
-    PLAY_STORE_URL: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}&hl=en`,
+    GITHUB_RELEASE_URL: 'https://api.github.com/repos/expensify/app/releases/latest',
     ADD_SECONDARY_LOGIN_URL: encodeURI('settings?param={"section":"account","openModal":"secondaryLogin"}'),
     MANAGE_CARDS_URL: 'domain_companycards',
     FEES_URL: `${USE_EXPENSIFY_URL}/fees`,
@@ -245,7 +257,9 @@ const CONST = {
         PERSONAL_DETAIL: 'personalDetail',
     },
     REPORT: {
+        DROP_HOST_NAME: 'ReportDropZone',
         DROP_NATIVE_ID: 'report-dropzone',
+        ACTIVE_DROP_NATIVE_ID: 'report-dropzone',
         MAXIMUM_PARTICIPANTS: 8,
         ACTIONS: {
             LIMIT: 50,
@@ -263,9 +277,6 @@ const CONST = {
             ACCOUNT_MERGED: 'accountMerged',
             REMOVED_FROM_POLICY: 'removedFromPolicy',
             POLICY_DELETED: 'policyDeleted',
-        },
-        ERROR: {
-            INACCESSIBLE_REPORT: 'Report not found',
         },
         MESSAGE: {
             TYPE: {
@@ -314,9 +325,10 @@ const CONST = {
         },
         RESERVED_ROOM_NAMES: ['#admins', '#announce'],
         MAX_PREVIEW_AVATARS: 4,
-        MAX_ROOM_NAME_LENGTH: 80,
+        MAX_ROOM_NAME_LENGTH: 79,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
         OWNER_EMAIL_FAKE: '__FAKE__',
+        DEFAULT_REPORT_NAME: 'Chat Report',
     },
     COMPOSER: {
         MAX_LINES: 16,
@@ -350,11 +362,11 @@ const CONST = {
         SEARCH_RENDER: 'search_render',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',
-        HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
         SWITCH_REPORT: 'switch_report',
         SIDEBAR_LOADED: 'sidebar_loaded',
         COLD: 'cold',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
+        SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
         TOOLTIP_SENSE: 1000,
         SPINNER_TIMEOUT: 15 * 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
@@ -448,7 +460,7 @@ const CONST = {
 
     EMOJI_FREQUENT_ROW_COUNT: 3,
 
-    EMOJI_INVISIBLE_CODEPOINT: 'fe0f',
+    INVISIBLE_CODEPOINTS: ['fe0f', '200d', '2066'],
 
     TOOLTIP_MAX_LINES: 3,
 
@@ -489,11 +501,11 @@ const CONST = {
     ADD_PAYMENT_MENU_POSITION_X: 356,
     EMOJI_PICKER_SIZE: {
         WIDTH: 320,
-        HEIGHT: 400,
+        HEIGHT: 390,
     },
-    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
-    EMOJI_PICKER_ITEM_HEIGHT: 40,
-    EMOJI_PICKER_HEADER_HEIGHT: 38,
+    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 288,
+    EMOJI_PICKER_ITEM_HEIGHT: 32,
+    EMOJI_PICKER_HEADER_HEIGHT: 32,
     COMPOSER_MAX_HEIGHT: 125,
     CHAT_FOOTER_MIN_HEIGHT: 65,
     CHAT_SKELETON_VIEW: {
@@ -504,6 +516,7 @@ const CONST = {
             3: 100,
         },
     },
+    EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EMAIL: {
         CONCIERGE: 'concierge@expensify.com',
         HELP: 'help@expensify.com',
@@ -574,6 +587,7 @@ const CONST = {
         STEP: {
             // In the order they appear in the Wallet flow
             ADDITIONAL_DETAILS: 'AdditionalDetailsStep',
+            ADDITIONAL_DETAILS_KBA: 'AdditionalDetailsKBAStep',
             ONFIDO: 'OnfidoStep',
             TERMS: 'TermsStep',
             ACTIVATE: 'ActivateStep',
@@ -602,8 +616,9 @@ const CONST = {
         },
         SMS_NUMBER_COUNTRY_CODE: 'US',
         ERROR: {
-            USER_CANCELLED: 'User canceled flow',
+            USER_CANCELLED: 'User canceled flow.',
             USER_TAPPED_BACK: 'User exited by clicking the back button.',
+            USER_EXITED: 'User exited by manual action.',
             USER_CAMERA_DENINED: 'Onfido.OnfidoFlowError',
             USER_CAMERA_PERMISSION: 'Encountered an error: cameraPermission',
             // eslint-disable-next-line max-len
@@ -657,6 +672,9 @@ const CONST = {
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
             CREATE: 'create',
+            SPLIT: 'split',
+            DECLINE: 'decline',
+            CANCEL: 'cancel',
         },
         AMOUNT_MAX_LENGTH: 10,
     },
@@ -681,6 +699,8 @@ const CONST = {
         },
         ROLE: {
             ADMIN: 'admin',
+            AUDITOR: 'auditor',
+            USER: 'user',
         },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
@@ -704,6 +724,7 @@ const CONST = {
         LARGE: 'large',
         DEFAULT: 'default',
         SMALL: 'small',
+        SMALLER: 'smaller',
         SUBSCRIPT: 'subscript',
         SMALL_SUBSCRIPT: 'small-subscript',
     },
@@ -738,11 +759,13 @@ const CONST = {
         HYPERLINK: /^(?:(?:(?:https?|ftp):\/\/)?)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\u00a1-\uffff][a-z0-9\u00a1-\uffff_-]{0,62})?[a-z0-9\u00a1-\uffff]\.)+(?:[a-z\u00a1-\uffff]{2,}\.?))(?::\d{2,5})?(?:[/?#]\S*)?$/i,
 
         // eslint-disable-next-line max-len, no-misleading-character-class
-        EMOJIS: /(?:\uD83D(?:\uDC41\u200D\uD83D\uDDE8|\uDC68\u200D\uD83D[\uDC68\uDC69]\u200D\uD83D(?:\uDC66(?:\u200D\uD83D\uDC66)?|\uDC67(?:\u200D\uD83D[\uDC66\uDC67])?)|\uDC69\u200D\uD83D\uDC69\u200D\uD83D(?:\uDC66(?:\u200D\uD83D\uDC66)?|\uDC67(?:\u200D\uD83D[\uDC66\uDC67])?))|[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|[\ud83c\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|[\ud83c\ude32-\ude3a]|[\ud83c\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26FF]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])/g,
+        EMOJIS: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
         EMOJI_NAME: /:[\w+-]+:/g,
         EMOJI_SUGGESTIONS: /:[a-zA-Z]{1,20}(\s[a-zA-Z]{0,20})?$/,
+        AFTER_FIRST_LINE_BREAK: /\n.*/g,
+        CODE_2FA: /^\d{6}$/,
     },
 
     PRONOUNS: {
@@ -819,7 +842,6 @@ const CONST = {
         INVITE: 'invite',
         LEAVE_ROOM: 'leaveRoom',
     },
-    PROFILE_SETTINGS_FORM: 'profileSettingsForm',
 
     // These split the maximum decimal value of a signed 64-bit number (9,223,372,036,854,775,807) into parts where none of them are too big to fit into a 32-bit number, so that we can
     // generate them each with a random number generator with only 32-bits of precision.

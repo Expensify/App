@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import CONST from '../../src/CONST';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -36,7 +35,9 @@ const policies = {
 
 Onyx.init({keys: ONYXKEYS});
 
-beforeAll(() => Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail}));
+beforeAll(() => waitForPromisesToResolve()
+    .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS, participantsPersonalDetails))
+    .then(() => Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail})));
 beforeEach(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.DEFAULT_LOCALE).then(waitForPromisesToResolve));
 
 describe('ReportUtils', () => {
@@ -97,26 +98,26 @@ describe('ReportUtils', () => {
             test('with displayName', () => {
                 expect(ReportUtils.getReportName({
                     participants: [currentUserEmail, 'ragnar@vikings.net'],
-                }, _.pick(participantsPersonalDetails, 'ragnar@vikings.net'))).toBe('Ragnar Lothbrok');
+                })).toBe('Ragnar Lothbrok');
             });
 
             test('no displayName', () => {
                 expect(ReportUtils.getReportName({
                     participants: [currentUserEmail, 'floki@vikings.net'],
-                }, _.pick(participantsPersonalDetails, 'floki@vikings.net'))).toBe('floki@vikings.net');
+                })).toBe('floki@vikings.net');
             });
 
             test('SMS', () => {
                 expect(ReportUtils.getReportName({
                     participants: [currentUserEmail, '+12223334444@expensify.sms'],
-                }, _.pick(participantsPersonalDetails, '+12223334444@expensify.sms'))).toBe('2223334444');
+                })).toBe('2223334444');
             });
         });
 
         test('Group DM', () => {
             expect(ReportUtils.getReportName({
                 participants: [currentUserEmail, 'ragnar@vikings.net', 'floki@vikings.net', 'lagertha@vikings.net', '+12223334444@expensify.sms'],
-            }, participantsPersonalDetails)).toBe('Ragnar, floki@vikings.net, Lagertha, 2223334444');
+            })).toBe('Ragnar, floki@vikings.net, Lagertha, 2223334444');
         });
 
         describe('Default Policy Room', () => {
@@ -175,7 +176,7 @@ describe('ReportUtils', () => {
                         policyID: policy.policyID,
                         isOwnPolicyExpenseChat: true,
                         ownerEmail: 'ragnar@vikings.net',
-                    }, participantsPersonalDetails, policies)).toBe('Vikings Policy');
+                    }, policies)).toBe('Vikings Policy');
                 });
 
                 test('as admin', () => {
@@ -184,7 +185,7 @@ describe('ReportUtils', () => {
                         policyID: policy.policyID,
                         isOwnPolicyExpenseChat: false,
                         ownerEmail: 'ragnar@vikings.net',
-                    }, participantsPersonalDetails, policies)).toBe('Ragnar Lothbrok');
+                    }, policies)).toBe('Ragnar Lothbrok');
                 });
             });
 
@@ -204,10 +205,10 @@ describe('ReportUtils', () => {
                         isOwnPolicyExpenseChat: true,
                     };
 
-                    expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat, {}, policies)).toBe('Vikings Policy (archived)');
+                    expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat, policies)).toBe('Vikings Policy (archived)');
 
                     return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es')
-                        .then(() => expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat, {}, policies)).toBe('Vikings Policy (archivado)'));
+                        .then(() => expect(ReportUtils.getReportName(memberArchivedPolicyExpenseChat, policies)).toBe('Vikings Policy (archivado)'));
                 });
 
                 test('as admin', () => {
@@ -216,10 +217,10 @@ describe('ReportUtils', () => {
                         isOwnPolicyExpenseChat: false,
                     };
 
-                    expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat, participantsPersonalDetails)).toBe('Ragnar Lothbrok (archived)');
+                    expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok (archived)');
 
                     return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es')
-                        .then(() => expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat, participantsPersonalDetails)).toBe('Ragnar Lothbrok (archivado)'));
+                        .then(() => expect(ReportUtils.getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok (archivado)'));
                 });
             });
         });
@@ -254,7 +255,7 @@ describe('ReportUtils', () => {
                 iouReportID: '1',
             };
             const iouReports = {
-                reportIOUs_1: {
+                report_1: {
                     reportID: '1',
                 },
             };
@@ -266,7 +267,7 @@ describe('ReportUtils', () => {
                 iouReportID: '1',
             };
             const iouReports = {
-                reportIOUs_1: {
+                report_1: {
                     reportID: '1',
                     ownerEmail: 'a@a.com',
                 },
@@ -280,7 +281,7 @@ describe('ReportUtils', () => {
                 hasOutstandingIOU: true,
             };
             const iouReports = {
-                reportIOUs_1: {
+                report_1: {
                     reportID: '1',
                     ownerEmail: 'a@a.com',
                 },
@@ -294,7 +295,7 @@ describe('ReportUtils', () => {
                 hasOutstandingIOU: false,
             };
             const iouReports = {
-                reportIOUs_1: {
+                report_1: {
                     reportID: '1',
                     ownerEmail: 'a@a.com',
                 },

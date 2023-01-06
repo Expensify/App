@@ -15,7 +15,6 @@ import NetworkConnection from '../NetworkConnection';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import * as Link from './Link';
-import getSkinToneEmojiFromIndex from '../../components/EmojiPicker/getSkinToneEmojiFromIndex';
 import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
 
@@ -74,56 +73,18 @@ function closeAccount(message) {
         optimisticData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.CLOSE_ACCOUNT,
+                key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM,
                 value: {isLoading: true},
             },
         ],
         failureData: [
             {
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.CLOSE_ACCOUNT,
+                key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM,
                 value: {isLoading: false},
             },
         ],
     });
-}
-
-/**
- * Fetches the data needed for user settings
- */
-function getUserDetails() {
-    DeprecatedAPI.Get({
-        returnValueList: 'account, loginList, nameValuePairs',
-        nvpNames: [
-            CONST.NVP.PAYPAL_ME_ADDRESS,
-            CONST.NVP.PREFERRED_EMOJI_SKIN_TONE,
-            CONST.NVP.FREQUENTLY_USED_EMOJIS,
-            CONST.NVP.BLOCKED_FROM_CONCIERGE,
-        ].join(','),
-    })
-        .then((response) => {
-            // Update the User onyx key
-            const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
-            const isSubscribedToNewsletter = lodashGet(response, 'account.subscribed', true);
-            const validatedStatus = lodashGet(response, 'account.validated', false);
-            Onyx.merge(ONYXKEYS.USER, {isSubscribedToNewsletter: !!isSubscribedToNewsletter, validated: !!validatedStatus});
-            Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
-
-            // Update the nvp_payPalMeAddress NVP
-            const payPalMeAddress = lodashGet(response, `nameValuePairs.${CONST.NVP.PAYPAL_ME_ADDRESS}`, '');
-            Onyx.merge(ONYXKEYS.NVP_PAYPAL_ME_ADDRESS, payPalMeAddress);
-
-            // Update the blockedFromConcierge NVP
-            const blockedFromConcierge = lodashGet(response, `nameValuePairs.${CONST.NVP.BLOCKED_FROM_CONCIERGE}`, {});
-            Onyx.merge(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, blockedFromConcierge);
-
-            const preferredSkinTone = lodashGet(response, `nameValuePairs.${CONST.NVP.PREFERRED_EMOJI_SKIN_TONE}`, {});
-            Onyx.merge(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-                getSkinToneEmojiFromIndex(preferredSkinTone).skinTone);
-
-            const frequentlyUsedEmojis = lodashGet(response, `nameValuePairs.${CONST.NVP.FREQUENTLY_USED_EMOJIS}`, []);
-            Onyx.set(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyUsedEmojis);
-        });
 }
 
 /**
@@ -176,8 +137,7 @@ function setSecondaryLoginAndNavigate(login, password) {
         password,
     }).then((response) => {
         if (response.jsonCode === 200) {
-            const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
-            Onyx.set(ONYXKEYS.LOGIN_LIST, loginList);
+            Onyx.set(ONYXKEYS.LOGIN_LIST, response.loginList);
             Navigation.navigate(ROUTES.SETTINGS_PROFILE);
             return;
         }
@@ -458,27 +418,42 @@ function joinScreenShare(accessToken, roomName) {
 /**
  * Downloads the statement PDF for the provided period
  * @param {String} period YYYYMM format
- * @returns {Promise<Void>}
  */
 function generateStatementPDF(period) {
-    Onyx.merge(ONYXKEYS.WALLET_STATEMENT, {isGenerating: true});
-    return DeprecatedAPI.GetStatementPDF({period})
-        .then((response) => {
-            if (response.jsonCode !== 200 || !response.filename) {
-                Log.info('[User] Failed to generate statement PDF', false, {response});
-                return;
-            }
-
-            Onyx.merge(ONYXKEYS.WALLET_STATEMENT, {[period]: response.filename});
-        }).finally(() => {
-            Onyx.merge(ONYXKEYS.WALLET_STATEMENT, {isGenerating: false});
-        });
+    API.read('GetStatementPDF', {period}, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_STATEMENT,
+                value: {
+                    isGenerating: true,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_STATEMENT,
+                value: {
+                    isGenerating: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.WALLET_STATEMENT,
+                value: {
+                    isGenerating: false,
+                },
+            },
+        ],
+    });
 }
 
 export {
     updatePassword,
     closeAccount,
-    getUserDetails,
     resendValidateCode,
     updateNewsletterSubscription,
     setSecondaryLoginAndNavigate,
