@@ -271,8 +271,11 @@ function openProfile() {
 }
 
 function openTestToolModal() {
-    Log.info('Neil gesture');
-    console.log('Recognized gesture');
+    Onyx.set(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN, true);
+}
+
+function closeTestToolModal() {
+    Onyx.set(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN, false);
 }
 
 export {
@@ -283,4 +286,5 @@ export {
     openApp,
     reconnectApp,
     openTestToolModal,
+    closeTestToolModal,
 };

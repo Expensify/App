@@ -157,6 +157,9 @@ export default {
     // Is Keyboard shortcuts modal open?
     IS_SHORTCUTS_MODAL_OPEN: 'isShortcutsModalOpen',
 
+    // Is the test tools modal open?
+    IS_TEST_TOOLS_MODAL_OPEN: 'isTestToolsModalOpen',
+
     // Stores information about active wallet transfer amount, selectedAccountID, status, etc
     WALLET_TRANSFER: 'walletTransfer',
 
