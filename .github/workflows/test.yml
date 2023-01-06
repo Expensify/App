@@ -6,44 +6,11 @@ on:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
 
-env:
-  # Number of parallel jobs for jest tests
-  CHUNKS: 3
 jobs:
-  config:
-    runs-on: ubuntu-latest
-    name: Define matrix parameters
-    outputs:
-      MATRIX: ${{ steps.set-matrix.outputs.MATRIX }}
-      JEST_CHUNKS: ${{ steps.set-matrix.outputs.JEST_CHUNKS }}
-    steps:
-      - name: Set Matrix
-        id: set-matrix
-        uses: actions/github-script@v6
-        with:
-          # Generate matrix array i.e. [0, 1, 2, ...., CHUNKS - 1] for test job
-          script: |
-            core.setOutput('MATRIX', Array.from({ length: Number(process.env.CHUNKS) }, (v, i) => i + 1));
-            core.setOutput('JEST_CHUNKS', Number(process.env.CHUNKS) - 1);
-
   test:
-    needs: config
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
-    name: test (job ${{ fromJSON(matrix.chunk) }})
-    env:
-      CI: true
-    strategy:
-      fail-fast: false
-      matrix:
-        chunk: ${{fromJson(needs.config.outputs.MATRIX)}}
-
     steps:
-      # This action checks-out the repository, so the workflow can access it.
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
-        with:
-          fetch-depth: 0
-
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
       # If automatic signing is enabled, iOS builds will fail, so ensure we always have the proper profile specified
@@ -55,6 +22,13 @@ jobs:
             echo "Error: Automatic provisioning style is not allowed!"
             exit 1
           fi
+      - name: Jest Unit Tests
+        run: npm run test
+        env:
+          CI: true
+
+      - name: Pull Request Tests
+        run: tests/unit/getPullRequestsMergedBetweenTest.sh
 
       - name: Cache Jest cache
         id: cache-jest-cache
