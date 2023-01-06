@@ -626,7 +626,7 @@ function deleteReportComment(reportID, reportAction) {
     };
 
     // If we're trying to delete a report action that's still pending add,
-    // then we must be offline and the report action must have been added in the same offline session.
+    // then we must be offline and the optmistic report action must have been added in the same offline session.
     // Therefore, let's just hide it for the time being.
     if (reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         // Optimistic report actions are saved into the clientID, not the sequenceNumber
