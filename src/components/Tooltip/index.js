@@ -7,6 +7,7 @@ import withWindowDimensions from '../withWindowDimensions';
 import {propTypes, defaultProps} from './tooltipPropTypes';
 import TooltipSense from './TooltipSense';
 import makeCancellablePromise from '../../libs/MakeCancellablePromise';
+import * as Browser from '../../libs/Browser';
 
 class Tooltip extends PureComponent {
     constructor(props) {
@@ -63,7 +64,7 @@ class Tooltip extends PureComponent {
     getWrapperPosition() {
         return new Promise(((resolve) => {
             // Make sure the wrapper is mounted before attempting to measure it.
-            if (this.wrapperView) {
+            if (this.wrapperView && _.isFunction(this.wrapperView.measureInWindow)) {
                 this.wrapperView.measureInWindow((x, y, width, height) => resolve({
                     x, y, width, height,
                 }));
@@ -79,6 +80,12 @@ class Tooltip extends PureComponent {
      * Display the tooltip in an animation.
      */
     showTooltip() {
+        // On mWeb we do not show Tooltips as there are no way to hide them besides blurring.
+        // That's due to that fact that on mWeb there is no MouseLeave events.
+        if (Browser.isMobile()) {
+            return;
+        }
+
         if (!this.state.isRendered) {
             this.setState({isRendered: true});
         }
@@ -148,6 +155,8 @@ class Tooltip extends PureComponent {
             <View
                 ref={el => this.wrapperView = el}
                 style={this.props.containerStyles}
+                onBlur={this.hideTooltip}
+                focusable
             >
                 {this.props.children}
             </View>
@@ -156,15 +165,24 @@ class Tooltip extends PureComponent {
         if (this.props.absolute && React.isValidElement(this.props.children)) {
             child = React.cloneElement(React.Children.only(this.props.children), {
                 ref: (el) => {
-                    // Keep your own reference
                     this.wrapperView = el;
 
                     // Call the original ref, if any
                     const {ref} = this.props.children;
-                    if (typeof ref === 'function') {
+                    if (_.isFunction(ref)) {
                         ref(el);
                     }
                 },
+                onBlur: (el) => {
+                    this.hideTooltip();
+
+                    // Call the original onBlur, if any
+                    const {onBlur} = this.props.children;
+                    if (_.isFunction(onBlur)) {
+                        onBlur(el);
+                    }
+                },
+                focusable: true,
             });
         }
         return (
@@ -189,7 +207,6 @@ class Tooltip extends PureComponent {
                     containerStyles={this.props.containerStyles}
                     onHoverIn={this.showTooltip}
                     onHoverOut={this.hideTooltip}
-                    resetsOnClickOutside
                 >
                     {child}
                 </Hoverable>
