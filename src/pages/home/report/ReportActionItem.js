@@ -170,7 +170,7 @@ class ReportActionItem extends Component {
     }
 
     render() {
-        if (this.props.action.shouldHide) {
+        if (this.props.action.isDeletedPendingAdd) {
             return null;
         }
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
