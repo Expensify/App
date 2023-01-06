@@ -115,6 +115,7 @@ class ProfilePage extends Component {
 
     render() {
         const currentUserDetails = this.props.currentUserPersonalDetails || {};
+        const avatarUrl = currentUserDetails.avatarThumbnail || currentUserDetails.avatar;
         const profileSettingsOptions = [
             {
                 description: this.props.translate('displayNamePage.headerTitle'),
@@ -149,7 +150,7 @@ class ProfilePage extends Component {
                     >
                         <AvatarWithImagePicker
                             isUsingDefaultAvatar={lodashGet(currentUserDetails, 'avatar', '').includes('/images/avatars/avatar')}
-                            avatarURL={currentUserDetails.avatar}
+                            avatarURL={avatarUrl}
                             onImageSelected={PersonalDetails.updateAvatar}
                             onImageRemoved={PersonalDetails.deleteAvatar}
                             anchorPosition={styles.createMenuPositionProfile}
