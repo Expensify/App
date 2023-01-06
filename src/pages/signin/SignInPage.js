@@ -11,7 +11,7 @@ import SignInPageLayout from './SignInPageLayout';
 import LoginForm from './LoginForm';
 import PasswordForm from './PasswordForm';
 import ValidateCodeForm from './ValidateCodeForm';
-import SendValidateCodeForm from './SendValidateCodeForm';
+import ResendValidationForm from './ResendValidationForm';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Performance from '../../libs/Performance';
 import Permissions from '../../libs/Permissions';
@@ -118,7 +118,7 @@ class SignInPage extends Component {
                     ) : (
                         <PasswordForm isVisible={showPasswordForm} />
                     )}
-                    {showSendValidateCodeForm && <SendValidateCodeForm />}
+                    {showSendValidateCodeForm && <ResendValidationForm />}
                 </SignInPageLayout>
             </SafeAreaView>
         );
