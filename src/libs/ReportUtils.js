@@ -493,7 +493,7 @@ function getCorrectAvatar(avatarURL, login) {
  */
 function getIcons(report, personalDetails, policies, defaultIcon = null) {
     if (_.isEmpty(report)) {
-        return [defaultIcon || getDefaultAvatar(report.ownerEmail)];
+        return [defaultIcon || getDefaultAvatar()];
     }
     if (isConciergeChatReport(report)) {
         return [CONST.CONCIERGE_ICON_URL];
