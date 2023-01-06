@@ -8,13 +8,13 @@ const imagePropTypes = {
 
     /** The static asset or URI source of the image */
     source: PropTypes.oneOfType([
-        PropTypes.number.isRequired,
+        PropTypes.number,
         PropTypes.shape({
             uri: PropTypes.string.isRequired,
             // eslint-disable-next-line react/forbid-prop-types
             headers: PropTypes.object,
-        }).isRequired,
-    ]),
+        }),
+    ]).isRequired,
 
     /** Should an auth token be included in the image request */
     isAuthTokenRequired: PropTypes.bool,
@@ -49,7 +49,6 @@ const defaultProps = {
         authToken: null,
     },
     isAuthTokenRequired: false,
-    source: null,
     resizeMode: RESIZE_MODES.cover,
     onLoadStart: () => {},
     onLoadEnd: () => {},

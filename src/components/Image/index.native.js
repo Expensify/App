@@ -7,53 +7,30 @@ import ONYXKEYS from '../../ONYXKEYS';
 import {defaultProps, imagePropTypes} from './imagePropTypes';
 import RESIZE_MODES from './resizeModes';
 
-class Image extends React.Component {
-    constructor(props) {
-        super(props);
+const Image = (props) => {
+    // eslint-disable-next-line react/destructuring-assignment
+    const {
+        source, isAuthTokenRequired, session, ...rest
+    } = props;
 
-        this.state = {
-            imageSource: undefined,
+    let imageSource = source;
+    if (typeof source !== 'number' && isAuthTokenRequired) {
+        const authToken = lodashGet(props, 'session.encryptedAuthToken', null);
+        imageSource = {
+            ...source,
+            headers: authToken ? {
+                [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: authToken,
+            } : null,
         };
     }
 
-    componentDidMount() {
-        this.configureImageSource();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.source === this.props.source) {
-            return;
-        }
-        this.configureImageSource();
-    }
-
-    configureImageSource() {
-        const source = this.props.source;
-        let imageSource = source;
-        if (typeof source !== 'number' && this.props.isAuthTokenRequired) {
-            const authToken = lodashGet(this.props, 'session.encryptedAuthToken', null);
-            imageSource = {
-                ...source,
-                headers: authToken ? {
-                    [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: authToken,
-                } : null,
-            };
-        }
-        this.setState({imageSource});
-    }
-
-    render() {
-        // eslint-disable-next-line
-        const { source, ...rest } = this.props;
-
-        // eslint-disable-next-line
-        return <RNFastImage {...rest} source={this.state.imageSource} />;
-    }
-}
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return <RNFastImage {...rest} source={imageSource} />;
+};
 
 Image.propTypes = imagePropTypes;
 Image.defaultProps = defaultProps;
-
+Image.displayName = 'Image';
 const ImageWithOnyx = withOnyx({
     session: {
         key: ONYXKEYS.SESSION,

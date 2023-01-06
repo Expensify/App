@@ -15,7 +15,7 @@ import themeColors from '../styles/themes/default';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 
 const propTypes = {
-    /** Whether the urls require an authToken */
+    /** Whether source url requires authentication */
     isAuthTokenRequired: PropTypes.bool,
 
     /** URL to full-sized attachment */

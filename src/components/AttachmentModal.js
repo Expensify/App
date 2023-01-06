@@ -44,7 +44,7 @@ const propTypes = {
     /** A function as a child to pass modal launching methods to */
     children: PropTypes.func.isRequired,
 
-    /** Do the urls require an authToken? */
+    /** Whether source url requires authentication */
     isAuthTokenRequired: PropTypes.bool,
 
     /** Determines if download Button should be shown or not */

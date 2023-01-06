@@ -9,7 +9,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDime
 import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
 
 const propTypes = {
-    /** Do the urls require an authToken? */
+    /** Whether source url requires authentication */
     isAuthTokenRequired: PropTypes.bool,
 
     /** URL to full-sized image */

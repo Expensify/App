@@ -15,7 +15,7 @@ import Image from '../Image';
  * On the native layer, we use a image library to handle zoom functionality
  */
 const propTypes = {
-    /** Whether the urls require an authToken */
+    /** Whether source url requires authentication */
     isAuthTokenRequired: PropTypes.bool,
 
     /** URL to full-sized image */
@@ -86,8 +86,12 @@ class ImageView extends PureComponent {
         this.setState({isLoading: true});
     }
 
-    // Handles the `onLoad` event when the image loads providing the natural
-    // image dimensions required for layout calculations
+    /**
+     * Handles the `onLoad` event when the image loads providing the natural
+     * image dimensions required for layout calculations
+     *
+     * @param {Object} nativeEvent
+     */
     imageLoad({nativeEvent}) {
         // Wait till animations are over to prevent stutter in navigation animation
         this.state.interactionPromise = InteractionManager.runAfterInteractions(() => {
