@@ -11,7 +11,7 @@ const propTypes = {
     ]).isRequired,
 
     /** Whether to include padding bottom */
-    includePaddingBottom: PropTypes.bool,
+    includeSafeAreaPaddingBottom: PropTypes.bool,
 
     /** Whether to include padding top */
     includePaddingTop: PropTypes.bool,
@@ -32,7 +32,7 @@ const propTypes = {
 
 const defaultProps = {
     style: [],
-    includePaddingBottom: true,
+    includeSafeAreaPaddingBottom: true,
     includePaddingTop: true,
     onTransitionEnd: () => {},
     modal: {},

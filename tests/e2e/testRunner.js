@@ -78,7 +78,7 @@ const restartApp = async () => {
     await launchApp('android');
 };
 
-const runTestsOnBranch = async (branch, baselineOrCompare) => {
+const runTestsOnBranch = async (baselineOrCompare, branch) => {
     if (args.includes('--buildMode')) {
         buildMode = args[args.indexOf('--buildMode') + 1];
     }
@@ -93,9 +93,11 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
         }
     }
 
-    // Switch branch
-    Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}'`);
-    await execAsync(`git checkout ${branch}`);
+    if (branch != null) {
+        // Switch branch
+        Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}'`);
+        await execAsync(`git checkout ${branch}`);
+    }
 
     if (!args.includes('--skipInstallDeps')) {
         Logger.log(`Preparing ${baselineOrCompare} tests on branch '${branch}' - npm install`);
@@ -152,7 +154,7 @@ const runTestsOnBranch = async (branch, baselineOrCompare) => {
     for (let testIndex = 0; testIndex < numOfTests; testIndex++) {
         const testConfig = _.values(config.TESTS_CONFIG)[testIndex];
 
-        // check if we want to skip the text
+        // check if we want to skip the test
         if (args.includes('--includes')) {
             const includes = args[args.indexOf('--includes') + 1];
 
@@ -230,11 +232,13 @@ const runTests = async () => {
     Logger.info('Running e2e tests');
 
     try {
+        const skipCheckout = args.includes('--skipCheckout');
+
         // Run tests on baseline branch
-        await runTestsOnBranch(baselineBranch, 'baseline');
+        await runTestsOnBranch('baseline', skipCheckout ? null : baselineBranch);
 
         // Run tests on current branch
-        await runTestsOnBranch('-', 'compare');
+        await runTestsOnBranch('compare', skipCheckout ? null : '-');
 
         await compare();
 

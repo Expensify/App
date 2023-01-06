@@ -21,9 +21,21 @@ const PressableWithSecondaryInteraction = (props) => {
                 if (e.nativeEvent.state !== State.ACTIVE) {
                     return;
                 }
+
+                // Map gesture event to normal Responder event
+                const {
+                    absoluteX, absoluteY, locationX, locationY,
+                } = e.nativeEvent;
+                const mapEvent = {
+                    ...e,
+                    nativeEvent: {
+                        ...e.nativeEvent, pageX: absoluteX, pageY: absoluteY, x: locationX, y: locationY,
+                    },
+                };
+
                 e.preventDefault();
                 HapticFeedback.trigger();
-                props.onSecondaryInteraction(e);
+                props.onSecondaryInteraction(mapEvent);
             }}
         >
             <Node
