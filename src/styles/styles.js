@@ -169,10 +169,6 @@ const styles = {
 
     link,
 
-    linkHovered: {
-        color: themeColors.linkHover,
-    },
-
     linkMuted: {
         color: themeColors.textSupporting,
         textDecorationColor: themeColors.textSupporting,
