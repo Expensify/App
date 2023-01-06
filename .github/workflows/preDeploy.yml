@@ -312,9 +312,11 @@ jobs:
           cleanup: true
 
       - name: Unzip AWS Device Farm results
+        if: ${{ always() }}
         run: unzip Customer\ Artifacts.zip
 
       - name: Print AWS Device Farm run results
+        if: ${{ always() }}
         run: cat "Customer\ Artifacts/Host_Machine_Files/$WORKING_DIRECTORY/debug.log"
 
       - name: Set output of AWS Device Farm into GitHub ENV
