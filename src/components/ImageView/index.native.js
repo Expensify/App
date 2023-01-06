@@ -56,7 +56,7 @@ class ImageView extends PureComponent {
         });
 
         this.imageProgress = this.imageProgress.bind(this);
-        this.imageLoad = this.imageLoad.bind(this);
+        this.configureImageZoom = this.configureImageZoom.bind(this);
     }
 
     componentWillUnmount() {
@@ -87,12 +87,13 @@ class ImageView extends PureComponent {
     }
 
     /**
-     * Handles the `onLoad` event when the image loads providing the natural
-     * image dimensions required for layout calculations
+     * The `ImageZoom` component requires image dimensions which
+     * are calculated here from the natural image dimensions produced by
+     * the `onLoad` event
      *
      * @param {Object} nativeEvent
      */
-    imageLoad({nativeEvent}) {
+    configureImageZoom({nativeEvent}) {
         // Wait till animations are over to prevent stutter in navigation animation
         this.state.interactionPromise = InteractionManager.runAfterInteractions(() => {
             let imageWidth = nativeEvent.width;
@@ -185,7 +186,7 @@ class ImageView extends PureComponent {
                         isAuthTokenRequired={this.props.isAuthTokenRequired}
                         resizeMode={Image.resizeMode.contain}
                         onProgress={this.imageProgress}
-                        onLoad={this.imageLoad}
+                        onLoad={this.configureImageZoom}
                     />
                     {/**
                      Create an invisible view on top of the image so we can capture and set the amount of touches before
