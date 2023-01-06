@@ -1,5 +1,6 @@
 import {View} from 'react-native';
 import React from 'react';
+import {GestureDetector, Gesture} from 'react-native-gesture-handler';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -18,8 +19,8 @@ import withWindowDimensions from '../withWindowDimensions';
 import ONYXKEYS from '../../ONYXKEYS';
 import {withNetwork} from '../OnyxProvider';
 import {propTypes, defaultProps} from './propTypes';
-import {GestureDetector, Gesture} from 'react-native-gesture-handler';
 import * as App from '../../libs/actions/App';
+import Modal from '../Modal';
 
 class ScreenWrapper extends React.Component {
     constructor(props) {
@@ -70,7 +71,7 @@ class ScreenWrapper extends React.Component {
     render() {
         const quintupleTap = Gesture.Tap()
             .numberOfTaps(5)
-            .onEnd(App.openTestToolModal)
+            .onEnd(App.openTestToolModal);
         return (
             <SafeAreaInsetsContext.Consumer>
                 {(insets) => {
@@ -97,6 +98,12 @@ class ScreenWrapper extends React.Component {
                             >
                                 <KeyboardAvoidingView style={[styles.w100, styles.h100]} behavior={this.props.keyboardAvoidingViewBehavior}>
                                     <HeaderGap />
+                                    <Modal
+                                        isVisible={this.props.isTestToolsModalOpen}
+                                        type={CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
+                                        containerStyle={{...styles.keyboardShortcutModalContainer, ...StyleUtils.getKeyboardShortcutsModalWidth(this.props.isSmallScreenWidth)}}
+                                        onClose={App.closeTestToolModal}
+                                    />
                                     {// If props.children is a function, call it to provide the insets to the children.
                                         _.isFunction(this.props.children)
                                             ? this.props.children({
@@ -127,6 +134,9 @@ export default compose(
     withOnyx({
         modal: {
             key: ONYXKEYS.MODAL,
+        },
+        isTestToolsModalOpen: {
+            key: ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN,
         },
     }),
     withNetwork(),

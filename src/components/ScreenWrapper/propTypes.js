@@ -28,6 +28,9 @@ const propTypes = {
         /** Indicates when an Alert modal is about to be visible */
         willAlertModalBecomeVisible: PropTypes.bool,
     }),
+
+    /** Whether the test tools modal is open */
+    isTestToolsModalOpen: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -36,6 +39,7 @@ const defaultProps = {
     includePaddingTop: true,
     onTransitionEnd: () => {},
     modal: {},
+    isTestToolsModalOpen: false,
     keyboardAvoidingViewBehavior: 'padding',
 };
 
