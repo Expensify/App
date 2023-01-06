@@ -20,7 +20,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import {withNetwork} from '../OnyxProvider';
 import {propTypes, defaultProps} from './propTypes';
 import * as App from '../../libs/actions/App';
-import Modal from '../Modal';
+import TestToolsModal from '../TestToolsModal';
 
 class ScreenWrapper extends React.Component {
     constructor(props) {
@@ -98,12 +98,7 @@ class ScreenWrapper extends React.Component {
                             >
                                 <KeyboardAvoidingView style={[styles.w100, styles.h100]} behavior={this.props.keyboardAvoidingViewBehavior}>
                                     <HeaderGap />
-                                    <Modal
-                                        isVisible={this.props.isTestToolsModalOpen}
-                                        type={CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
-                                        containerStyle={{...styles.keyboardShortcutModalContainer, ...StyleUtils.getKeyboardShortcutsModalWidth(this.props.isSmallScreenWidth)}}
-                                        onClose={App.closeTestToolModal}
-                                    />
+                                    <TestToolsModal />
                                     {// If props.children is a function, call it to provide the insets to the children.
                                         _.isFunction(this.props.children)
                                             ? this.props.children({
