@@ -1,6 +1,6 @@
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Button, View} from 'react-native';
+import {Button, View, Keyboard} from 'react-native';
 import RNDatePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
 import _ from 'underscore';
@@ -36,6 +36,7 @@ class DatePicker extends React.Component {
      * @param {Event} event
      */
     showPicker(event) {
+        Keyboard.dismiss();
         this.initialValue = this.state.selectedDate;
         this.setState({isPickerVisible: true});
         event.preventDefault();
@@ -75,6 +76,7 @@ class DatePicker extends React.Component {
                     placeholder={this.props.placeholder}
                     errorText={this.props.errorText}
                     containerStyles={this.props.containerStyles}
+                    textInputContainerStyles={this.state.isPickerVisible ? [styles.borderColorFocus] : []}
                     onPress={this.showPicker}
                     editable={false}
                     disabled={this.props.disabled}

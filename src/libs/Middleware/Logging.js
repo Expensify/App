@@ -74,6 +74,12 @@ function Logging(response, request) {
             };
 
             if (error.message === CONST.ERROR.FAILED_TO_FETCH) {
+                // If the command that failed is Log it's possible that the next call to Log may also fail.
+                // This will lead to infinitely complex log params that can eventually crash the app.
+                if (request.command === 'Log') {
+                    delete logParams.request;
+                }
+
                 // Throw when we get a "Failed to fetch" error so we can retry. Very common if a user is offline or experiencing an unlikely scenario like
                 // incorrect url, bad cors headers returned by the server, DNS lookup failure etc.
                 Log.hmmm('[Network] API request error: Failed to fetch', logParams);

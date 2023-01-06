@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import moment from 'moment';
 import {
     beforeEach, beforeAll, afterEach, jest, describe, it, expect,
 } from '@jest/globals';
@@ -207,6 +208,7 @@ describe('actions/Report', () => {
         const REPORT_ID = 1;
         let report;
         let reportActionCreatedDate;
+        let currentTime;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
             callback: val => report = val,
@@ -242,10 +244,11 @@ describe('actions/Report', () => {
                             reportID: REPORT_ID,
                             maxSequenceNumber: 1,
                             notificationPreference: 'always',
-                            lastActionCreated: '2022-11-22 03:48:27.267',
                             lastMessageText: 'Comment 1',
                             lastActorEmail: USER_2_LOGIN,
                             lastReadSequenceNumber: 0,
+                            lastActionCreated: reportActionCreatedDate,
+                            lastReadTime: DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1),
                         },
                     },
                     {
@@ -263,6 +266,7 @@ describe('actions/Report', () => {
                                 sequenceNumber: 1,
                                 shouldShow: true,
                                 created: reportActionCreatedDate,
+                                reportActionID: '1',
                             },
                         },
                     },
@@ -274,49 +278,55 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnread(report)).toBe(true);
 
                 // When the user visits the report
+                currentTime = DateUtils.getDBTime();
                 Report.openReport(REPORT_ID);
                 return waitForPromisesToResolve();
             })
             .then(() => {
                 // The report will be read
                 expect(ReportUtils.isUnread(report)).toBe(false);
+                expect(moment.utc(report.lastReadTime).valueOf()).toBeGreaterThanOrEqual(moment.utc(currentTime).valueOf());
 
                 // When the user manually marks a message as "unread"
-                Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate, 1);
+                Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate);
                 return waitForPromisesToResolve();
             })
             .then(() => {
                 // Then the report will be unread
                 expect(ReportUtils.isUnread(report)).toBe(true);
+                expect(report.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1));
 
                 // When a new comment is added by the current user
+                currentTime = DateUtils.getDBTime();
                 Report.addComment(REPORT_ID, 'Current User Comment 1');
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // The report will be read and the lastReadSequenceNumber incremented
+                // The report will be read and the lastReadTime updated
                 expect(ReportUtils.isUnread(report)).toBe(false);
-                expect(report.lastReadSequenceNumber).toBe(2);
+                expect(moment.utc(report.lastReadTime).valueOf()).toBeGreaterThanOrEqual(moment.utc(currentTime).valueOf());
                 expect(report.lastMessageText).toBe('Current User Comment 1');
 
                 // When another comment is added by the current user
+                currentTime = DateUtils.getDBTime();
                 Report.addComment(REPORT_ID, 'Current User Comment 2');
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // The report will be read and the lastReadSequenceNumber incremented
+                // The report will be read and the lastReadTime updated
                 expect(ReportUtils.isUnread(report)).toBe(false);
-                expect(report.lastReadSequenceNumber).toBe(3);
+                expect(moment.utc(report.lastReadTime).valueOf()).toBeGreaterThanOrEqual(moment.utc(currentTime).valueOf());
                 expect(report.lastMessageText).toBe('Current User Comment 2');
 
                 // When another comment is added by the current user
+                currentTime = DateUtils.getDBTime();
                 Report.addComment(REPORT_ID, 'Current User Comment 3');
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // The report will be read and the lastReadSequenceNumber incremented
+                // The report will be read and the lastReadTime updated
                 expect(ReportUtils.isUnread(report)).toBe(false);
-                expect(report.lastReadSequenceNumber).toBe(4);
+                expect(moment.utc(report.lastReadTime).valueOf()).toBeGreaterThanOrEqual(moment.utc(currentTime).valueOf());
                 expect(report.lastMessageText).toBe('Current User Comment 3');
 
                 const USER_1_BASE_ACTION = {
@@ -327,8 +337,8 @@ describe('actions/Report', () => {
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
                     person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
                     shouldShow: true,
-                    created: DateUtils.getDBTime(),
-                    reportActionID: 'derp',
+                    created: DateUtils.getDBTime(Date.now() - 3),
+                    reportActionID: 'derp1',
                 };
 
                 const optimisticReportActions = {
@@ -341,20 +351,23 @@ describe('actions/Report', () => {
                         2: {
                             ...USER_1_BASE_ACTION,
                             message: [{type: 'COMMENT', html: 'Current User Comment 1', text: 'Current User Comment 1'}],
-                            created: DateUtils.getDBTime(),
+                            created: DateUtils.getDBTime(Date.now() - 2),
                             sequenceNumber: 2,
+                            reportActionID: 'derp2',
                         },
                         3: {
                             ...USER_1_BASE_ACTION,
                             message: [{type: 'COMMENT', html: 'Current User Comment 2', text: 'Current User Comment 2'}],
-                            created: DateUtils.getDBTime(),
+                            created: DateUtils.getDBTime(Date.now() - 1),
                             sequenceNumber: 3,
+                            reportActionID: 'derp3',
                         },
                         4: {
                             ...USER_1_BASE_ACTION,
                             message: [{type: 'COMMENT', html: 'Current User Comment 3', text: 'Current User Comment 3'}],
                             created: DateUtils.getDBTime(),
                             sequenceNumber: 4,
+                            reportActionID: 'derp4',
                         },
                     },
                 };
@@ -370,10 +383,11 @@ describe('actions/Report', () => {
                             reportID: REPORT_ID,
                             maxSequenceNumber: 4,
                             notificationPreference: 'always',
-                            lastActionCreated: '2022-11-22 03:48:27.267',
                             lastMessageText: 'Current User Comment 3',
                             lastActorEmail: 'test@test.com',
                             lastReadSequenceNumber: 4,
+                            lastActionCreated: reportActionCreatedDate,
+                            lastReadTime: reportActionCreatedDate,
                         },
                     },
                     optimisticReportActions,
@@ -388,19 +402,19 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Then no change will occur
-                expect(report.lastReadSequenceNumber).toBe(4);
+                expect(report.lastReadTime).toBe(reportActionCreatedDate);
                 expect(ReportUtils.isUnread(report)).toBe(false);
 
                 // When the user manually marks a message as "unread"
-                Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate, 3);
+                Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate);
                 return waitForPromisesToResolve();
             })
             .then(() => {
                 // Then we should expect the report to be to be unread
                 expect(ReportUtils.isUnread(report)).toBe(true);
-                expect(report.lastReadSequenceNumber).toBe(2);
+                expect(report.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1));
 
-                // If the user deletes the last comment after the last read the lastMessageText will reflect the new last comment
+                // If the user deletes the last comment after the lastReadTime the lastMessageText will reflect the new last comment
                 Report.deleteReportComment(REPORT_ID, {...reportActions[4], sequenceNumber: 4, clientID: null});
                 return waitForPromisesToResolve();
             })

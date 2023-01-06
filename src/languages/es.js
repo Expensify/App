@@ -133,7 +133,7 @@ export default {
         description: 'Arrastra, haz zoom y rota tu imagen para que quede como te gusta.',
     },
     composer: {
-        noExtentionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
+        noExtensionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
         problemGettingImageYouPasted: 'Ha ocurrido un problema al obtener la imagen que has pegado',
     },
     baseUpdateAppModal: {
@@ -263,6 +263,7 @@ export default {
         split: ({amount}) => `Dividir ${amount}`,
         send: ({amount}) => `Enviar ${amount}`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
+        pendingConversionMessage: 'El total se actualizará cuando estés online',
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
@@ -287,12 +288,13 @@ export default {
         imageUploadFailed: 'Error al cargar la imagen',
         deleteWorkspaceError: 'Lo sentimos, hubo un problema eliminando el avatar de su espacio de trabajo.',
         sizeExceeded: ({maxUploadSizeInMB}) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
-        tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Por favor elige una imagen mas grande que ${minHeightInPx}x${minWidthInPx} píxeles`,
+        resolutionConstraints: ({
+            minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx,
+        }) => `Por favor, elige una imagen más grande que ${minHeightInPx}x${minWidthInPx} píxeles y más pequeña que ${maxHeightInPx}x${maxWidthInPx} píxeles`,
         notAllowedExtension: ({allowedExtensions}) => `La foto de perfil debe ser de uno de los siguientes tipos: ${allowedExtensions.join(', ')}.`,
     },
     profilePage: {
         profile: 'Perfil',
-        tellUsAboutYourself: '¡Cuéntanos algo sobre tí, nos encantaría conocerte!',
         john: 'Juan',
         doe: 'Nadie',
         preferredPronouns: 'Pronombres preferidos',
@@ -500,7 +502,7 @@ export default {
         heroHeading: 'Dividir cuentas\ny chatear con amigos.',
         heroDescription: {
             phrase1: 'El dinero habla. Y ahora que el chat y los pagos están en un solo lugar, también es fácil. Sus pagos le llegan tan rápido como puede transmitir su punto.',
-            phrase2: 'New Expensify es de código abierto. Vista',
+            phrase2: 'Nuevo Expensify es de código abierto. Vista',
             phrase3: 'el código',
             phrase4: 'Vista',
             phrase5: 'vacantes',
@@ -558,6 +560,9 @@ export default {
             firstNameLength: 'El nombre no debe tener más de 50 caracteres',
             lastNameLength: 'El apellido no debe tener más de 50 caracteres',
             characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
+            hasInvalidCharacter: ({invalidCharacter}) => `Por favor elimina ${invalidCharacter} del campo nombre.`,
+            comma: 'la coma',
+            semicolon: 'el punto y coma',
         },
     },
     resendValidationForm: {
@@ -1040,6 +1045,7 @@ export default {
         createRoom: 'Crea una sala de chat',
         roomAlreadyExistsError: 'Ya existe una sala con este nombre',
         roomNameReservedError: 'Una sala en este espacio de trabajo ya usa este nombre',
+        roomNameInvalidError: 'Los nombres de las salas solo pueden contener letras, números y guiones',
         pleaseEnterRoomName: 'Por favor escribe el nombre de una sala',
         pleaseSelectWorkspace: 'Por favor, selecciona un espacio de trabajo',
         renamedRoomAction: ({oldName, newName}) => ` cambió el nombre de la sala de ${oldName} a ${newName}`,
@@ -1050,6 +1056,9 @@ export default {
             restricted: 'Restringida',
             private: 'Privada',
         },
+    },
+    statementPage: {
+        generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
     },
     keyboardShortcutModal: {
         title: 'Atajos de teclado',
@@ -1087,6 +1096,32 @@ export default {
         permissionError: {
             title: 'Se necesita acceso',
             message: 'Expensify no tiene acceso para guardar archivos. Para habilitar la descarga de archivos, entra en Settings y habilita el accesso',
+        },
+    },
+    desktopApplicationMenu: {
+        aboutExpensify: 'Sobre Nuevo Expensify',
+        updateExpensify: 'Actualizar Nuevo Expensify',
+        checkForUpdates: 'Buscar actualizaciones',
+        history: 'Historial',
+    },
+    historyMenu: {
+        forward: 'Adelante',
+        back: 'Atrás',
+    },
+    checkForUpdatesModal: {
+        available: {
+            title: 'Actualización disponible',
+            message: 'La nueva versión estará disponible dentro de poco. Te notificaremos cuando esté lista.',
+            soundsGood: 'Suena bien',
+        },
+        notAvailable: {
+            title: 'Actualización no disponible',
+            message: 'No existe ninguna actualización disponible! Inténtalo de nuevo más tarde.',
+            okay: 'Vale',
+        },
+        error: {
+            title: 'Comprobación fallida',
+            message: 'No hemos podido comprobar si existe una actualización. Inténtalo de nuevo más tarde!',
         },
     },
 };
