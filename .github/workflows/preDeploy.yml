@@ -315,7 +315,7 @@ jobs:
         run: unzip Customer\ Artifacts.zip
 
       - name: Print AWS Device Farm run results
-        run: cat Customer\ Artifacts/Host_Machine_Files/$WORKING_DIRECTORY/debug.log
+        run: cat "Customer\ Artifacts/Host_Machine_Files/$WORKING_DIRECTORY/debug.log"
 
       - name: Set output of AWS Device Farm into GitHub ENV
         run: |
