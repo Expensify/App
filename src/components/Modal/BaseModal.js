@@ -8,6 +8,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import themeColors from '../../styles/themes/default';
 import {propTypes as modalPropTypes, defaultProps as modalDefaultProps} from './modalPropTypes';
 import * as Modal from '../../libs/actions/Modal';
+import DomUtils from '../../libs/DomUtils';
 import getModalStyles from '../../styles/getModalStyles';
 import variables from '../../styles/variables';
 
@@ -90,6 +91,7 @@ class BaseModal extends PureComponent {
                 // Note: Escape key on web/desktop will trigger onBackButtonPress callback
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 onBackButtonPress={this.props.onClose}
+                onModalWillShow={DomUtils.blurActiveElement}
                 onModalShow={() => {
                     if (this.props.shouldSetModalVisibility) {
                         Modal.setModalVisibility(true);
