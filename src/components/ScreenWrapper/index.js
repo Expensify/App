@@ -14,6 +14,7 @@ import OfflineIndicator from '../OfflineIndicator';
 import compose from '../../libs/compose';
 import withNavigation from '../withNavigation';
 import withWindowDimensions from '../withWindowDimensions';
+import withEnvironment from '../withEnvironment';
 import ONYXKEYS from '../../ONYXKEYS';
 import {withNetwork} from '../OnyxProvider';
 import {propTypes, defaultProps} from './propTypes';
@@ -80,9 +81,15 @@ class ScreenWrapper extends React.Component {
     }
 
     render() {
+        // Open the test tools menu on 5 taps in dev only
         const quintupleTap = Gesture.Tap()
             .numberOfTaps(5)
-            .onEnd(App.openTestToolModal);
+            .onEnd(() => {
+                if (this.props.environment !== CONST.ENVIRONMENT.DEV) {
+                    return;
+                }
+                App.openTestToolModal();
+            });
         return (
             <SafeAreaConsumer>
                 {({
@@ -147,4 +154,5 @@ export default compose(
         },
     }),
     withNetwork(),
+    withEnvironment,
 )(ScreenWrapper);
