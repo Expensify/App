@@ -20,7 +20,7 @@ phases:
     commands:
       - cd zip
       - npm install underscore
-      - node e2e/testRunner.js -- --skipInstallDeps --skipBuild --skipCheckout
+      - node e2e/testRunner.js -- --skipInstallDeps --buildMode "skip" --skipCheckout
 
 artifacts:
 - $WORKING_DIRECTORY

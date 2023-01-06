@@ -105,6 +105,10 @@ class ReportSettingsPage extends Component {
             errors.newRoomName = this.props.translate('newRoomPage.roomNameReservedError');
         }
 
+        if (!ValidationUtils.isValidRoomName(values.newRoomName)) {
+            errors.newRoomName = this.props.translate('newRoomPage.roomNameInvalidError');
+        }
+
         return errors;
     }
 
