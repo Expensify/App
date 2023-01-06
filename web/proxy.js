@@ -31,7 +31,7 @@ const server = http.createServer((request, response) => {
         headers: {
             ...request.headers,
             host,
-	    'User-Agent': 'Development NewDot',
+            'User-Agent': request.headers['user-agent'].concat(" ", "Development-NewDot"),
         },
         port: 443,
     });
