@@ -165,7 +165,6 @@ class WorkspacesListPage extends Component {
                     fallbackIcon={item.fallbackIcon}
                     brickRoadIndicator={item.brickRoadIndicator}
                     disabled={item.disabled}
-                    style={styles.mw100}
                 />
             </OfflineWithFeedback>
         );
