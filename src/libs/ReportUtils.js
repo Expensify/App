@@ -476,7 +476,9 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
         participantDetails.push([
             login,
             lodashGet(personalDetails, [login, 'firstName'], ''),
-            lodashGet(personalDetails, [login, 'avatar']) || getDefaultAvatar(login),
+            lodashGet(personalDetails, [login, 'avatarThumbnail']) ||
+                lodashGet(personalDetails, [login, 'avatar']) ||
+                getDefaultAvatar(login),
         ]);
     }
 
