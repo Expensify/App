@@ -31,6 +31,11 @@ class WalletStatementModal extends React.Component {
             return;
         }
 
+        if (type === 'CONCIERGE_NAVIGATE') {
+            this.webview.stopLoading();
+            Report.navigateToConciergeChat();
+        }
+
         if (type === 'STATEMENT_NAVIGATE' && url) {
             const iouRoutes = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND, ROUTES.IOU_BILL];
             const navigateToIOURoute = _.find(iouRoutes, iouRoute => url.includes(iouRoute));
@@ -38,10 +43,6 @@ class WalletStatementModal extends React.Component {
                 this.webview.stopLoading();
                 Navigation.navigate(navigateToIOURoute);
             }
-        } else if (type === 'CONCIERGE_NAVIGATE') {
-            this.webview.stopLoading();
-            Navigation.navigate(navigateToIOURoute);
-            Report.navigateToConciergeChat();
         }
     }
 
