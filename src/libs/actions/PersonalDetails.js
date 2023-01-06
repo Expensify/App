@@ -293,6 +293,7 @@ function deleteAvatar() {
             value: {
                 [currentUserEmail]: {
                     avatar: defaultAvatar,
+                    avatarThumbnail: defaultAvatar,
                 },
             },
         }],
