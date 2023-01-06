@@ -15,6 +15,8 @@ export default function () {
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
             waitForCollectionCallback: true,
             callback: (allReportActions) => {
+                console.log('RORY_DEBUG allReportActions:', allReportActions);
+                throw new Error('fail');
                 Onyx.disconnect(connectionID);
                 const newReportActions = {};
 
@@ -28,7 +30,7 @@ export default function () {
                         // then we assume the migration already happened and return early.
                         if (reportActionKey === reportAction.reportActionID && reportActionKey !== reportAction.sequenceNumber) {
                             Log.info('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID');
-                            return resolve();
+                            resolve();
                         }
 
                         // Move it to be keyed by reportActionID instead

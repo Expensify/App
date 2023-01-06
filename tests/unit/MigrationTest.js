@@ -236,8 +236,6 @@ describe('Migrations', () => {
                 });
         });
 
-        it('Should not fail if there is no reportActions data', () => {
-            expect(KeyReportActionsByReportActionID).not.toThrow();
-        });
+        it('Should not fail if there is no reportActions data', () => expect(KeyReportActionsByReportActionID).not.throw());
     });
 });
