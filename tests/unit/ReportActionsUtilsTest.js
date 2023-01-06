@@ -74,7 +74,31 @@ describe('ReportActionsUtils', () => {
                     message: [{html: 'Hello world'}],
                 },
                 {
-                    actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    message: [{html: 'Hello world'}],
+                },
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    message: [{html: 'Hello world'}],
+                },
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
+                    message: [{html: 'Hello world'}],
+                },
+                {
+                    actionName: 'REIMBURSED',
+                    message: [{html: 'Hello world'}],
+                },
+            ];
+            const result = ReportActionsUtils.filterReportActionsForDisplay(input);
+            input.pop();
+            expect(result).toStrictEqual(input);
+        });
+
+        it('should filter out closed actions', () => {
+            const input = [
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
                     message: [{html: 'Hello world'}],
                 },
                 {
@@ -90,7 +114,7 @@ describe('ReportActionsUtils', () => {
                     message: [{html: 'Hello world'}],
                 },
                 {
-                    actionName: 'REIMBURSED',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
                     message: [{html: 'Hello world'}],
                 },
             ];
