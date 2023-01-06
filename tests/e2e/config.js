@@ -8,6 +8,7 @@ const OUTPUT_DIR = process.env.WORKING_DIRECTORY || './tests/e2e/results';
 // add your test name here …
 const TEST_NAMES = {
     AppStartTime: 'App start time',
+    OpenSearchPage: 'Open search page',
 };
 
 /**
@@ -64,6 +65,9 @@ module.exports = {
             name: TEST_NAMES.AppStartTime,
 
             // ... any additional config you might need
+        },
+        [TEST_NAMES.OpenSearchPage]: {
+            name: TEST_NAMES.OpenSearchPage,
         },
     },
 };

@@ -19,6 +19,7 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
+import Performance from '../libs/Performance';
 
 const propTypes = {
     /* Onyx Props */
@@ -48,6 +49,7 @@ class SearchPage extends Component {
         super(props);
 
         Timing.start(CONST.TIMING.SEARCH_RENDER);
+        Performance.markStart(CONST.TIMING.SEARCH_RENDER);
 
         this.searchRendered = this.searchRendered.bind(this);
         this.selectReport = this.selectReport.bind(this);
@@ -117,6 +119,7 @@ class SearchPage extends Component {
 
     searchRendered() {
         Timing.end(CONST.TIMING.SEARCH_RENDER);
+        Performance.markEnd(CONST.TIMING.SEARCH_RENDER);
     }
 
     updateOptions() {
