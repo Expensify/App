@@ -155,7 +155,6 @@ class Tooltip extends PureComponent {
             <View
                 ref={el => this.wrapperView = el}
                 style={this.props.containerStyles}
-                onFocus={this.showTooltip}
                 onBlur={this.hideTooltip}
                 focusable
             >
@@ -172,15 +171,6 @@ class Tooltip extends PureComponent {
                     const {ref} = this.props.children;
                     if (_.isFunction(ref)) {
                         ref(el);
-                    }
-                },
-                onFocus: (el) => {
-                    this.showTooltip();
-
-                    // Call the original onFocus, if any
-                    const {onFocus} = this.props.children;
-                    if (_.isFunction(onFocus)) {
-                        onFocus(el);
                     }
                 },
                 onBlur: (el) => {
