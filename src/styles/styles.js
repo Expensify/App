@@ -857,12 +857,6 @@ const styles = {
         },
     }),
 
-    pickerStyles: (disabled = false) => ({
-        appearance: 'none',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        ...picker,
-    }),
-
     disabledText: {
         color: themeColors.icon,
     },
