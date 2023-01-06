@@ -123,6 +123,38 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             shouldAddTopSafeAreaPadding = isSmallScreenWidth;
             shouldAddBottomSafeAreaPadding = false;
             break;
+        case CONST.MODAL.MODAL_TYPE.CENTERED_SMALL:
+            // A centered modal that takes up the minimum possible screen space on all devices
+            modalStyle = {
+                ...modalStyle,
+                ...{
+                    alignItems: 'center',
+                },
+            };
+            modalContainerStyle = {
+                // Shadow Styles
+                shadowColor: themeColors.shadow,
+                shadowOffset: {
+                    width: 0,
+                    height: 0,
+                },
+                shadowOpacity: 0.1,
+                shadowRadius: 5,
+
+                flex: 1,
+                borderRadius: 12,
+                borderWidth: 0,
+            };
+
+            // Allow this modal to be dismissed with a swipe down or swipe right
+            swipeDirection = ['down', 'right'];
+            animationIn = 'fadeIn';
+            animationOut = 'fadeOut';
+            shouldAddTopSafeAreaMargin = !isSmallScreenWidth;
+            shouldAddBottomSafeAreaMargin = !isSmallScreenWidth;
+            shouldAddTopSafeAreaPadding = isSmallScreenWidth;
+            shouldAddBottomSafeAreaPadding = false;
+            break;
         case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
             modalStyle = {
                 ...modalStyle,

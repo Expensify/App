@@ -338,6 +338,7 @@ const CONST = {
             CONFIRM: 'confirm',
             CENTERED: 'centered',
             CENTERED_UNSWIPEABLE: 'centered_unswipeable',
+            CENTERED_SMALL: 'centered_small',
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
