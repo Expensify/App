@@ -12,6 +12,9 @@ const propTypes = {
             /** Short lived authToken to sign in a user */
             shortLivedAuthToken: PropTypes.string,
 
+            /** Short lived authToken to sign in as a user, if they are coming from the old mobile app */
+            shortLivedToken: PropTypes.string,
+
             /** The email of the transitioning user */
             email: PropTypes.string,
         }),
