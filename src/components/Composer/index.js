@@ -240,7 +240,7 @@ class Composer extends React.Component {
                     .then((x) => {
                         const extension = IMAGE_EXTENSIONS[x.type];
                         if (!extension) {
-                            throw new Error(this.props.translate('composer.noExtentionFoundForMimeType'));
+                            throw new Error(this.props.translate('composer.noExtensionFoundForMimeType'));
                         }
 
                         return new File([x], `pasted_image.${extension}`, {});

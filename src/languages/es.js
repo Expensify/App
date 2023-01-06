@@ -132,7 +132,7 @@ export default {
         description: 'Arrastra, haz zoom y rota tu imagen para que quede como te gusta.',
     },
     composer: {
-        noExtentionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
+        noExtensionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
         problemGettingImageYouPasted: 'Ha ocurrido un problema al obtener la imagen que has pegado',
     },
     baseUpdateAppModal: {
@@ -266,6 +266,7 @@ export default {
         split: ({amount}) => `Dividir ${amount}`,
         send: ({amount}) => `Enviar ${amount}`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
+        pendingConversionMessage: 'El total se actualizará cuando estés online',
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
@@ -1035,6 +1036,7 @@ export default {
         createRoom: 'Crea una sala de chat',
         roomAlreadyExistsError: 'Ya existe una sala con este nombre',
         roomNameReservedError: 'Una sala en este espacio de trabajo ya usa este nombre',
+        roomNameInvalidError: 'Los nombres de las salas solo pueden contener letras, números y guiones',
         pleaseEnterRoomName: 'Por favor escribe el nombre de una sala',
         pleaseSelectWorkspace: 'Por favor, selecciona un espacio de trabajo',
         renamedRoomAction: ({oldName, newName}) => ` cambió el nombre de la sala de ${oldName} a ${newName}`,
@@ -1045,6 +1047,9 @@ export default {
             restricted: 'Restringida',
             private: 'Privada',
         },
+    },
+    statementPage: {
+        generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
     },
     keyboardShortcutModal: {
         title: 'Atajos de teclado',

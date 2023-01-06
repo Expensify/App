@@ -30,6 +30,7 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes,
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import OfflineIndicator from '../../components/OfflineIndicator';
 import * as ErrorUtils from '../../libs/ErrorUtils';
+import SafeAreaConsumer from '../../components/SafeAreaConsumer';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -365,16 +366,22 @@ class AdditionalDetailsStep extends React.Component {
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             />
                         </View>
-                        <FormAlertWithSubmitButton
-                            isAlertVisible={isErrorVisible}
-                            onSubmit={this.activateWallet}
-                            onFixTheErrorsLinkPressed={() => {
-                                this.form.scrollTo({y: 0, animated: true});
-                            }}
-                            message={errorMessage}
-                            isLoading={this.props.walletAdditionalDetails.isLoading}
-                            buttonText={this.props.translate('common.saveAndContinue')}
-                        />
+                        <SafeAreaConsumer>
+                            {({safeAreaPaddingBottomStyle}) => (
+                                <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
+                                    <FormAlertWithSubmitButton
+                                        isAlertVisible={isErrorVisible}
+                                        onSubmit={this.activateWallet}
+                                        onFixTheErrorsLinkPressed={() => {
+                                            this.form.scrollTo({y: 0, animated: true});
+                                        }}
+                                        message={errorMessage}
+                                        isLoading={this.props.walletAdditionalDetails.isLoading}
+                                        buttonText={this.props.translate('common.saveAndContinue')}
+                                    />
+                                </View>
+                            )}
+                        </SafeAreaConsumer>
                         <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
                     </FormScrollView>
                 </View>
