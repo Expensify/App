@@ -71,10 +71,11 @@ class ScreenWrapper extends React.Component {
 
     render() {
         // Open the test tools menu on 5 taps in dev only
+        const isDevEnvironment = this.props.environment === CONST.ENVIRONMENT.DEV;
         const quintupleTap = Gesture.Tap()
             .numberOfTaps(5)
             .onEnd(() => {
-                if (this.props.environment !== CONST.ENVIRONMENT.DEV) {
+                if (!isDevEnvironment) {
                     return;
                 }
                 App.openTestToolModal();
