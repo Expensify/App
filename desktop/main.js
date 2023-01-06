@@ -262,10 +262,10 @@ const mainWindow = (() => {
     * */
     return app.whenReady()
         .then(() => {
-            /*
+            /**
              * We only want to register the scheme this way when in dev, since
              * when the app is bundled electron-builder will take care of it.
-            */
+             */
             if (__DEV__) {
                 app.setAsDefaultProtocolClient('new-expensify');
             }

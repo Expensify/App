@@ -52,10 +52,9 @@ class DeeplinkWrapper extends PureComponent {
         }, 500);
 
         // check if pathname matches with deeplink routes
-        const pathname = window.location.pathname;
         const matchedRoute = _.find(deeplinkRoutes, (route) => {
             const routeRegex = new RegExp(route.pattern);
-            return routeRegex.test(pathname);
+            return routeRegex.test(window.location.pathname);
         });
 
         if (matchedRoute) {
@@ -67,9 +66,8 @@ class DeeplinkWrapper extends PureComponent {
     }
 
     openRouteInDesktopApp() {
-        const pathname = window.location.pathname;
         const expensifyUrl = new URL(CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
-        const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}${pathname}`;
+        const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}${window.location.pathname}`;
 
         // This check is necessary for Safari, otherwise, if the user
         // does NOT have the Expensify desktop app installed, it's gonna
@@ -80,6 +78,10 @@ class DeeplinkWrapper extends PureComponent {
             document.body.appendChild(iframe);
             iframe.contentWindow.location.href = expensifyDeeplinkUrl;
 
+            // Since we're creating an iframe for Safari to handle
+            // deeplink we need to give this iframe some time for
+            // it to do what it needs to do. After that we can just
+            // remove the iframe.
             setTimeout(() => {
                 if (!iframe.parentNode) {
                     return;
@@ -120,7 +122,7 @@ class DeeplinkWrapper extends PureComponent {
                                 src={Illustrations.RocketBlue}
                             />
                         </View>
-                        <Text style={styles.textXXLarge}>
+                        <Text style={[styles.textHeadline, styles.textXXLarge]}>
                             {this.props.translate('deeplinkWrapper.launching')}
                         </Text>
                         <View style={styles.mt2}>
