@@ -33,37 +33,37 @@ class DeeplinkWrapper extends PureComponent {
     }
 
     componentDidMount() {
-        if (this.isMacOSWeb()) {
-            let focused = true;
-
-            window.addEventListener('blur', () => {
-                focused = false;
-            });
-
-            setTimeout(() => {
-                if (!focused) {
-                    this.setState({appInstallationCheckStatus: 'installed'});
-                } else {
-                    this.setState({appInstallationCheckStatus: 'not-installed'});
-                }
-            }, 500);
-
-            // check if pathname matches with deeplink routes
-            const pathname = window.location.pathname;
-            const matchedRoute = _.find(deeplinkRoutes, (route) => {
-                const routeRegex = new RegExp(route.pattern);
-                return routeRegex.test(pathname);
-            });
-
-            if (matchedRoute) {
-                this.setState({deeplinkMatch: true});
-                this.openRouteInDesktopApp();
-            } else {
-                this.setState({deeplinkMatch: false});
-            }
+        if (!this.isMacOSWeb()) {
+            return;
         }
 
-        return undefined;
+        let focused = true;
+
+        window.addEventListener('blur', () => {
+            focused = false;
+        });
+
+        setTimeout(() => {
+            if (!focused) {
+                this.setState({appInstallationCheckStatus: 'installed'});
+            } else {
+                this.setState({appInstallationCheckStatus: 'not-installed'});
+            }
+        }, 500);
+
+        // check if pathname matches with deeplink routes
+        const pathname = window.location.pathname;
+        const matchedRoute = _.find(deeplinkRoutes, (route) => {
+            const routeRegex = new RegExp(route.pattern);
+            return routeRegex.test(pathname);
+        });
+
+        if (matchedRoute) {
+            this.setState({deeplinkMatch: true});
+            this.openRouteInDesktopApp();
+        } else {
+            this.setState({deeplinkMatch: false});
+        }
     }
 
     openRouteInDesktopApp() {
