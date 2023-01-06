@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import {environmentPropTypes} from '../withEnvironment';
 
 const propTypes = {
     /** Array of additional styles to add */
@@ -28,6 +29,8 @@ const propTypes = {
         /** Indicates when an Alert modal is about to be visible */
         willAlertModalBecomeVisible: PropTypes.bool,
     }),
+
+    ...environmentPropTypes,
 };
 
 const defaultProps = {
