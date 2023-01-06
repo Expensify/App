@@ -1429,7 +1429,7 @@ const styles = {
     },
 
     editInputComposeSpacing: {
-        marginHorizontal: 8,
+        backgroundColor: themeColors.transparent,
         marginVertical: 6,
     },
 
