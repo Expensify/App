@@ -1138,7 +1138,6 @@ const styles = {
     popoverMenuText: {
         fontSize: variables.fontSizeNormal,
         color: themeColors.heading,
-        maxWidth: 240,
     },
 
     menuItemTextContainer: {
