@@ -444,7 +444,7 @@ const styles = {
     },
 
     buttonDangerDisabled: {
-        backgroundColor: themeColors.dangerDisabled,
+        opacity: 0.5,
     },
 
     buttonDangerHovered: {
