@@ -9,17 +9,19 @@ import ONYXKEYS from '../../ONYXKEYS';
  * @returns {Promise}
  */
 export default function () {
-    console.log('RORY_DEBUG migration running');
     return new Promise((resolve) => {
         const connectionID = Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
             waitForCollectionCallback: true,
             callback: (allReportActions) => {
-                console.log('RORY_DEBUG allReportActions:', allReportActions);
-                throw new Error('fail');
                 Onyx.disconnect(connectionID);
-                const newReportActions = {};
 
+                if (!allReportActions) {
+                    Log.info('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID');
+                    resolve();
+                }
+
+                const newReportActions = {};
                 for (let i = 0; i < Object.entries(allReportActions).length; i++) {
                     const [onyxKey, reportActionsForReport] = Object.entries(allReportActions)[i];
                     const newReportActionsForReport = {};
