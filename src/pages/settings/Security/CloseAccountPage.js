@@ -38,6 +38,7 @@ class CloseAccountPage extends Component {
 
         this.onConfirm = this.onConfirm.bind(this);
         this.validate = this.validate.bind(this);
+        this.hideConfirmModal = this.hideConfirmModal.bind(this);
         this.showConfirmModal = this.showConfirmModal.bind(this);
         CloseAccount.clearError();
         this.state = {
@@ -52,7 +53,7 @@ class CloseAccountPage extends Component {
 
     onConfirm() {
         User.closeAccount(this.state.reasonForLeaving);
-        this.setState({isConfirmModalVisible: false});
+        this.hideConfirmModal();
     }
 
     showConfirmModal(values) {
@@ -60,6 +61,10 @@ class CloseAccountPage extends Component {
             isConfirmModalVisible: true,
             reasonForLeaving: values.reasonForLeaving,
         });
+    }
+
+    hideConfirmModal() {
+        this.setState({isConfirmModalVisible: false});
     }
 
     validate(values) {
