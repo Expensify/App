@@ -17,7 +17,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.2.49</string>
+	<string>1.2.50</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -30,7 +30,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1.2.49.0</string>
+	<string>1.2.50.1</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationQueriesSchemes</key>
@@ -77,7 +77,6 @@
 	<string>Your photos are used to create chat attachments.</string>
 	<key>UIAppFonts</key>
 	<array>
-		<string>ExpensifyNewKansas-Meduim.otf</string>
 		<string>ExpensifyMono-Bold.otf</string>
 		<string>ExpensifyMono-Regular.otf</string>
 		<string>ExpensifyNeue-Bold.otf</string>
