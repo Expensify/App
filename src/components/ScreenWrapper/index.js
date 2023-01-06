@@ -74,6 +74,9 @@ class ScreenWrapper extends React.Component {
         const isDevEnvironment = this.props.environment === CONST.ENVIRONMENT.DEV;
         const quintupleTap = Gesture.Tap()
             .numberOfTaps(5)
+
+            // Run the callbacks on the JS thread otherwise there's an error on iOS
+            .runOnJS(true)
             .onEnd(() => {
                 if (!isDevEnvironment) {
                     return;
