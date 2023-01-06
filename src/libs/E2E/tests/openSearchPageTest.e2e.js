@@ -6,13 +6,8 @@ import ROUTES from '../../../ROUTES';
 import CONST from '../../../CONST';
 
 const test = () => {
-    const email = 'applausetester+perf2@applause.expensifail.com';
-    const password = 'Password123';
-
-    console.debug('[E2E] App is ready, logging in…');
-
     // check for login (if already logged in the action will simply resolve)
-    E2ELogin(email, password).then((neededLogin) => {
+    E2ELogin().then((neededLogin) => {
         if (neededLogin) {
             // we don't want to submit the first login to the results
             return E2EClient.submitTestDone();
@@ -24,7 +19,7 @@ const test = () => {
             }
 
             E2EClient.submitTestResults({
-                name: CONST.TIMING.SEARCH_RENDER,
+                name: 'Open Search Page TTI',
                 duration: entry.duration,
             }).then(E2EClient.submitTestDone);
         });
