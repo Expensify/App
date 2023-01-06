@@ -31,6 +31,7 @@ const server = http.createServer((request, response) => {
         headers: {
             ...request.headers,
             host,
+	    'User-Agent': 'Development NewDot',
         },
         port: 443,
     });
