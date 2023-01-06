@@ -317,7 +317,7 @@ jobs:
 
       - name: Print AWS Device Farm run results
         if: ${{ always() }}
-        run: cat "Customer\ Artifacts/Host_Machine_Files/\$WORKING_DIRECTORY/debug.log"
+        run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/debug.log"
 
       - name: Set output of AWS Device Farm into GitHub ENV
         run: |
