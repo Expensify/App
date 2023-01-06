@@ -1,18 +1,16 @@
 import CONST from '../CONST';
 
 /**
- * Modifies the room name to follow our conventions:
- * - Max length 80 characters
- * - Cannot not include space or special characters, and we automatically apply an underscore for spaces
- * - Must be lowercase
+ * Modifies the room name in the following ways:
+ * - Replaces spaces with dashes
+ * - Makes all letters lowercase
+ *
  * @param {String} roomName
  * @returns {String}
  */
 function modifyRoomName(roomName) {
     const modifiedRoomNameWithoutHash = roomName
-        .replace(/ /g, '_')
-        .replace(/[^a-zA-Z\d_]/g, '')
-        .substr(0, CONST.REPORT.MAX_ROOM_NAME_LENGTH)
+        .replace(/ /g, '-')
         .toLowerCase();
 
     return `${CONST.POLICY.ROOM_PREFIX}${modifiedRoomNameWithoutHash}`;

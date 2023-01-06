@@ -23,6 +23,7 @@ import MenuItem from '../components/MenuItem';
 import AttachmentModal from '../components/AttachmentModal';
 import PressableWithoutFocus from '../components/PressableWithoutFocus';
 import * as Report from '../libs/actions/Report';
+import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import AutoUpdateTime from '../components/AutoUpdateTime';
 
 const matchType = PropTypes.shape({
@@ -130,17 +131,21 @@ class DetailsPage extends React.PureComponent {
                                             style={styles.noOutline}
                                             onPress={show}
                                         >
-                                            <Avatar
-                                                containerStyles={[styles.avatarLarge, styles.mb3]}
-                                                imageStyles={[styles.avatarLarge]}
-                                                source={details.avatar}
-                                                size={CONST.AVATAR_SIZE.LARGE}
-                                            />
+                                            <OfflineWithFeedback
+                                                pendingAction={lodashGet(details, 'pendingFields.avatar', null)}
+                                            >
+                                                <Avatar
+                                                    containerStyles={[styles.avatarLarge, styles.mb3]}
+                                                    imageStyles={[styles.avatarLarge]}
+                                                    source={details.avatar}
+                                                    size={CONST.AVATAR_SIZE.LARGE}
+                                                />
+                                            </OfflineWithFeedback>
                                         </PressableWithoutFocus>
                                     )}
                                 </AttachmentModal>
                                 {details.displayName && (
-                                    <Text style={[styles.displayName, styles.mb6]} numberOfLines={1}>
+                                    <Text style={[styles.textHeadline, styles.mb6]} numberOfLines={1}>
                                         {isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
                                     </Text>
                                 )}
