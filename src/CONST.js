@@ -754,6 +754,7 @@ const CONST = {
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
+        ROOM_NAME: /^#[a-z0-9-]{1,80}$/,
 
         // Adapted from: https://gist.github.com/dperini/729294
         // eslint-disable-next-line max-len

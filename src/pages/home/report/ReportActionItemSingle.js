@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
@@ -18,6 +19,7 @@ import {withPersonalDetails} from '../../../components/OnyxProvider';
 import Tooltip from '../../../components/Tooltip';
 import ControlSelection from '../../../libs/ControlSelection';
 import * as ReportUtils from '../../../libs/ReportUtils';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 
 const propTypes = {
     /** All the data of the action */
@@ -50,7 +52,12 @@ const showUserDetails = (email) => {
 };
 
 const ReportActionItemSingle = (props) => {
-    const {avatar, displayName, login} = props.personalDetails[props.action.actorEmail] || {};
+    const {
+        avatar,
+        displayName,
+        login,
+        pendingFields,
+    } = props.personalDetails[props.action.actorEmail] || {};
     const avatarSource = props.action.automatic
         ? CONST.CONCIERGE_ICON_URL
 
@@ -73,10 +80,14 @@ const ReportActionItemSingle = (props) => {
                 onPress={() => showUserDetails(props.action.actorEmail)}
             >
                 <Tooltip text={props.action.actorEmail}>
-                    <Avatar
-                        containerStyles={[styles.actionAvatar]}
-                        source={avatarSource}
-                    />
+                    <OfflineWithFeedback
+                        pendingAction={lodashGet(pendingFields, 'avatar', null)}
+                    >
+                        <Avatar
+                            containerStyles={[styles.actionAvatar]}
+                            source={avatarSource}
+                        />
+                    </OfflineWithFeedback>
                 </Tooltip>
             </Pressable>
             <View style={[styles.chatItemRight]}>

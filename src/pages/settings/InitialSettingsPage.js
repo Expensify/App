@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, ScrollView, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
@@ -31,6 +32,7 @@ import walletTermsPropTypes from '../EnablePayments/walletTermsPropTypes';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import ConfirmModal from '../../components/ConfirmModal';
 import * as ReportUtils from '../../libs/ReportUtils';
+import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
 const propTypes = {
     /* Onyx Props */
@@ -245,16 +247,20 @@ class InitialSettingsPage extends React.Component {
                         <View style={styles.pageWrapper}>
                             <Pressable style={[styles.mb3]} onPress={this.openProfileSettings}>
                                 <Tooltip text={this.props.currentUserPersonalDetails.displayName}>
-                                    <Avatar
-                                        imageStyles={[styles.avatarLarge]}
-                                        source={ReportUtils.getCorrectAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.email)}
-                                        size={CONST.AVATAR_SIZE.LARGE}
-                                    />
+                                    <OfflineWithFeedback
+                                        pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
+                                    >
+                                        <Avatar
+                                            imageStyles={[styles.avatarLarge]}
+                                            source={ReportUtils.getCorrectAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.email)}
+                                            size={CONST.AVATAR_SIZE.LARGE}
+                                        />
+                                    </OfflineWithFeedback>
                                 </Tooltip>
                             </Pressable>
 
                             <Pressable style={[styles.mt1, styles.mw100]} onPress={this.openProfileSettings}>
-                                <Text style={[styles.displayName]} numberOfLines={1}>
+                                <Text style={[styles.textHeadline]} numberOfLines={1}>
                                     {this.props.currentUserPersonalDetails.displayName
                                         ? this.props.currentUserPersonalDetails.displayName
                                         : Str.removeSMSDomain(this.props.session.email)}
