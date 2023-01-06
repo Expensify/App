@@ -96,6 +96,10 @@ class WorkspaceNewRoomPage extends React.Component {
             errors.roomName = this.props.translate('newRoomPage.roomNameReservedError');
         }
 
+        if (!ValidationUtils.isValidRoomName(values.roomName)) {
+            errors.roomName = this.props.translate('newRoomPage.roomNameInvalidError');
+        }
+
         if (!values.policyID) {
             errors.policyID = this.props.translate('newRoomPage.pleaseSelectWorkspace');
         }
