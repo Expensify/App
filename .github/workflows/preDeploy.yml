@@ -337,7 +337,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check if test failed, if so leave a deploy blocker label
-        if: ${{ !contains(env.OUTPUT, 'There are no entries') }}
+        if: ${{ contains(env.OUTPUT, 'Significant Changes To Duration') && contains(env.OUTPUT, '🔴') }}
         run: |
           gh pr edit ${{ steps.getMergedPullRequest.outputs.number }} --add-label 'DeployBlockerCash'
           gh pr comment ${{ steps.getMergedPullRequest.outputs.number }} -b "@Expensify/mobile-deployers 📣 Please look into this performance regression as it's a deploy blocker."
