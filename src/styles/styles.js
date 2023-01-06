@@ -169,10 +169,6 @@ const styles = {
 
     link,
 
-    linkHovered: {
-        color: themeColors.linkHover,
-    },
-
     linkMuted: {
         color: themeColors.textSupporting,
         textDecorationColor: themeColors.textSupporting,
@@ -766,6 +762,10 @@ const styles = {
 
     textInputMultiline: {
         scrollPadding: '23px 0 0 0',
+    },
+
+    textInputMultilineContainer: {
+        paddingTop: 23,
     },
 
     textInputAndIconContainer: {
