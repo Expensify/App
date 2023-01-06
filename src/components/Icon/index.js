@@ -53,7 +53,7 @@ class Icon extends PureComponent {
                     style={[StyleUtils.getWidthAndHeightStyle(width, height), styles.bgTransparent, styles.overflowVisible]}
                 >
                     <View style={[StyleUtils.getWidthAndHeightStyle(width, height), IconWrapperStyles, styles.pAbsolute,
-                        this.props.svgAvatar ? styles.svgAvatarBorder : []]}
+                        StyleUtils.getAvatarSVGBorder(this.props.svgAvatar)]}
                     >
                         <this.props.src
                             width={width}
@@ -66,7 +66,7 @@ class Icon extends PureComponent {
         }
 
         return (
-            <View accessibilityHint={`${this.props.src.name} Icon`} style={[this.props.svgAvatar ? styles.svgAvatarBorder : []]}>
+            <View accessibilityHint={`${this.props.src.name} Icon`} style={StyleUtils.getAvatarSVGBorder(this.props.svgAvatar)}>
                 <this.props.src
                     width={width}
                     height={height}

@@ -43,6 +43,19 @@ function getAvatarStyle(size) {
 }
 
 /**
+ * Return the border style if avatar is SVG
+ *
+ * @param {Boolean} isSVG
+ * @returns {Object}
+ */
+function getAvatarSVGBorder(isSVG) {
+    if (!isSVG) {
+        return [];
+    }
+    return styles.svgAvatarBorder;
+}
+
+/**
  * Takes safe area insets and returns padding to use for a View
  *
  * @param {Object} insets
@@ -652,6 +665,7 @@ function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
 export {
     getAvatarSize,
     getAvatarStyle,
+    getAvatarSVGBorder,
     getSafeAreaPadding,
     getSafeAreaMargins,
     getNavigationDrawerStyle,
