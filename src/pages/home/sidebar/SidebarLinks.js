@@ -125,6 +125,8 @@ class SidebarLinks extends React.Component {
             return null;
         }
         const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
+        const avatarSource = this.props.currentUserPersonalDetails.avatarThumbnail ||
+            this.props.currentUserPersonalDetails.avatar;
         return (
             <View
                 accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
@@ -164,7 +166,7 @@ class SidebarLinks extends React.Component {
                         onPress={this.showSettingsPage}
                     >
                         <AvatarWithIndicator
-                            source={this.props.currentUserPersonalDetails.avatar}
+                            source={avatarSource}
                             tooltipText={this.props.translate('common.settings')}
                         />
                     </TouchableOpacity>
