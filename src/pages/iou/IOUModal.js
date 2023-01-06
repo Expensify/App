@@ -410,8 +410,8 @@ class IOUModal extends Component {
         const currentStep = this.steps[this.state.currentStepIndex];
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
         return (
-            <ScreenWrapper>
-                {({didScreenTransitionEnd}) => (
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+                {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
                         <View style={[styles.pRelative, styles.flex1]}>
                             {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
@@ -420,7 +420,7 @@ class IOUModal extends Component {
                                     {currentStep === Steps.IOUAmount && (
                                         <AnimatedStep
                                             direction={this.getDirection()}
-                                            style={[styles.flex1]}
+                                            style={[styles.flex1, safeAreaPaddingBottomStyle]}
                                         >
                                             {this.renderHeader()}
                                             <IOUAmountPage
@@ -452,7 +452,7 @@ class IOUModal extends Component {
                                     )}
                                     {currentStep === Steps.IOUConfirm && (
                                         <AnimatedStep
-                                            style={[styles.flex1]}
+                                            style={[styles.flex1, safeAreaPaddingBottomStyle]}
                                             direction={this.getDirection()}
                                         >
                                             {this.renderHeader()}
