@@ -142,7 +142,6 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, innerContain
                 shadowOpacity: 0.1,
                 shadowRadius: 5,
 
-                flex: 1,
                 borderRadius: 12,
                 borderWidth: 0,
             };
