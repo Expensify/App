@@ -379,14 +379,16 @@ class IOUModal extends Component {
                 >
                     {this.state.currentStepIndex > 0
                         && (
-                        <Tooltip text={this.props.translate('common.back')}>
-                            <TouchableOpacity
-                                onPress={this.navigateToPreviousStep}
-                                style={[styles.touchableButtonImage]}
-                            >
-                                <Icon src={Expensicons.BackArrow} />
-                            </TouchableOpacity>
-                        </Tooltip>
+                        <View style={[styles.mr2]}>
+                            <Tooltip text={this.props.translate('common.back')}>
+                                <TouchableOpacity
+                                    onPress={this.navigateToPreviousStep}
+                                    style={[styles.touchableButtonImage]}
+                                >
+                                    <Icon src={Expensicons.BackArrow} />
+                                </TouchableOpacity>
+                            </Tooltip>
+                        </View>
                         )}
                     <Header title={this.getTitleForStep()} />
                     <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
