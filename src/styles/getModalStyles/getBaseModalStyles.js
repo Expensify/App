@@ -149,9 +149,9 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, containerSty
             swipeDirection = ['down', 'right'];
             animationIn = 'fadeIn';
             animationOut = 'fadeOut';
-            shouldAddTopSafeAreaMargin = !isSmallScreenWidth;
-            shouldAddBottomSafeAreaMargin = !isSmallScreenWidth;
-            shouldAddTopSafeAreaPadding = isSmallScreenWidth;
+            shouldAddTopSafeAreaMargin = false;
+            shouldAddBottomSafeAreaMargin = false;
+            shouldAddTopSafeAreaPadding = false;
             shouldAddBottomSafeAreaPadding = false;
             break;
         case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
