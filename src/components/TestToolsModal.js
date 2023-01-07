@@ -24,11 +24,9 @@ const TestToolsModal = props => (
         type={CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
         onClose={App.closeTestToolModal}
     >
-        <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-            <View style={styles.settingsPageBody}>
-                <TestToolMenu />
-            </View>
-        </ScrollView>
+        <View style={[styles.settingsPageBody, styles.p5]}>
+            <TestToolMenu />
+        </View>
     </Modal>
 );
 
