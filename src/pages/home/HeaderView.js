@@ -156,7 +156,7 @@ const HeaderView = (props) => {
                             <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
                                 <Pressable
                                     onPress={() => Report.togglePinnedState(props.report)}
-                                    style={[styles.touchableButtonImage, styles.mr0]}
+                                    style={[styles.touchableButtonImage]}
                                 >
                                     <Icon src={Expensicons.Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
                                 </Pressable>
