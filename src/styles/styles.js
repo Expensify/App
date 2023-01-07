@@ -537,7 +537,6 @@ const styles = {
         alignItems: 'center',
         height: variables.componentSizeNormal,
         justifyContent: 'center',
-        marginRight: 8,
         width: variables.componentSizeNormal,
     },
 
