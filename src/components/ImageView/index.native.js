@@ -55,7 +55,7 @@ class ImageView extends PureComponent {
             onStartShouldSetPanResponder: this.updatePanResponderTouches.bind(this),
         });
 
-        this.imageProgress = this.imageProgress.bind(this);
+        this.imageLoadStart = this.imageLoadStart.bind(this);
         this.configureImageZoom = this.configureImageZoom.bind(this);
     }
 
@@ -82,7 +82,12 @@ class ImageView extends PureComponent {
         return false;
     }
 
-    imageProgress() {
+    imageLoadStart({nativeEvent}) {
+        // Only show a loading state if the image is not from cache
+        // and thus has to be downloaded before it can be displayed
+        if (nativeEvent.cachePath != null) {
+            return;
+        }
         this.setState({isLoading: true});
     }
 
@@ -185,7 +190,7 @@ class ImageView extends PureComponent {
                         source={{uri: this.props.url}}
                         isAuthTokenRequired={this.props.isAuthTokenRequired}
                         resizeMode={Image.resizeMode.contain}
-                        onProgress={this.imageProgress}
+                        onLoadStart={this.imageLoadStart}
                         onLoad={this.configureImageZoom}
                     />
                     {/**
