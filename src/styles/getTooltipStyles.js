@@ -27,7 +27,6 @@ const POINTER_WIDTH = 12;
  * @param {Number} [manualShiftHorizontal] - Any additional amount to manually shift the tooltip to the left or right.
  *                                         A positive value shifts it to the right,
  *                                         and a negative value shifts it to the left.
- * @param {Boolean} useFixedPosition - Whether to use position fixed or position absolute.
  * @returns {Number}
  */
 function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWidth, manualShiftHorizontal) {
@@ -70,6 +69,7 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  *                                         and a negative value shifts it to the left.
  * @param {Number} [manualShiftVertical] - Any additional amount to manually shift the tooltip up or down.
  *                                       A positive value shifts it down, and a negative value shifts it up.
+ * @param {Boolean} useFixedPosition - Whether to use position fixed or position absolute.
  * @returns {Object}
  */
 export default function getTooltipStyles(
