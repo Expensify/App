@@ -101,7 +101,7 @@ class AttachmentCarousel extends React.Component {
         let page;
         const actions = ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions), true);
 
-        // this is used to match the initial image URL from props in a config environment.
+        // This is used to match the initial image URL from props in a config environment.
         // Eg: while using Ngrok the image path is from an Ngrok URL and not an Expensify URL.
         const propsSourceURL = this.props.sourceURL.replace(
             Config.EXPENSIFY.EXPENSIFY_URL,
