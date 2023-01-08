@@ -34,6 +34,7 @@ class ImageView extends PureComponent {
 
         this.state = {
             isLoading: false,
+            isConfiguringImageZoom: false,
 
             // Default to large image width and height to prevent
             // small, blurry image being present by react-native-image-pan-zoom
@@ -85,10 +86,10 @@ class ImageView extends PureComponent {
     imageLoadStart({nativeEvent}) {
         // Only show a loading state if the image is not from cache
         // and thus has to be downloaded before it can be displayed
-        if (nativeEvent.cachePath != null) {
-            return;
-        }
-        this.setState({isLoading: true});
+        this.setState({
+            isLoading: nativeEvent.cachePath == null,
+            isConfiguringImageZoom: true,
+        });
     }
 
     /**
@@ -118,7 +119,12 @@ class ImageView extends PureComponent {
             const maxDimensionsScale = 11;
             imageHeight = Math.min(imageHeight, (this.props.windowHeight * maxDimensionsScale));
             imageWidth = Math.min(imageWidth, (this.props.windowWidth * maxDimensionsScale));
-            this.setState({imageHeight, imageWidth, isLoading: false});
+            this.setState({
+                imageHeight,
+                imageWidth,
+                isLoading: false,
+                isConfiguringImageZoom: false,
+            });
         });
     }
 
@@ -185,7 +191,7 @@ class ImageView extends PureComponent {
                             // Hide image while loading so ImageZoom can get the image
                             // size before presenting - preventing visual glitches or shift
                             // due to ImageZoom
-                            this.state.isLoading ? styles.opacity0 : styles.opacity1,
+                            this.state.isLoading || this.state.isConfiguringImageZoom ? styles.opacity0 : styles.opacity1,
                         ]}
                         source={{uri: this.props.url}}
                         isAuthTokenRequired={this.props.isAuthTokenRequired}
