@@ -54,9 +54,29 @@ function getPolicyBrickRoadIndicatorStatus(policy, policyMembers) {
     return '';
 }
 
+/**
+ * Check if the policy can be display
+ * If offline always show the delete pending policy.
+ * If online show the delete pending policy only if it has an error.
+ * @param {Object} policy
+ * @param {boolean} isOffline
+ * @returns {boolean}
+ */
+function shouldShowPolicy(policy, isOffline) {
+    return policy
+    && policy.type === CONST.POLICY.TYPE.FREE
+    && policy.role === CONST.POLICY.ROLE.ADMIN
+    && (
+        isOffline
+        || policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+        || !_.isEmpty(policy.errors)
+    );
+}
+
 export {
     hasPolicyMemberError,
     hasPolicyError,
     hasCustomUnitsError,
     getPolicyBrickRoadIndicatorStatus,
+    shouldShowPolicy,
 };
