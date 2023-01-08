@@ -27,6 +27,7 @@ const POINTER_WIDTH = 12;
  * @param {Number} [manualShiftHorizontal] - Any additional amount to manually shift the tooltip to the left or right.
  *                                         A positive value shifts it to the right,
  *                                         and a negative value shifts it to the left.
+ * @param {Boolean} useFixedPosition - Whether to use position fixed or position absolute.
  * @returns {Number}
  */
 function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWidth, manualShiftHorizontal) {
@@ -84,6 +85,7 @@ export default function getTooltipStyles(
     tooltipTextWidth,
     manualShiftHorizontal = 0,
     manualShiftVertical = 0,
+    useFixedPosition = true,
 ) {
     // Determine if the tooltip should display below the wrapped component.
     // If a tooltip will try to render within GUTTER_WIDTH logical pixels of the top of the screen,
@@ -117,7 +119,7 @@ export default function getTooltipStyles(
             }],
         },
         tooltipWrapperStyle: {
-            position: 'fixed',
+            position: useFixedPosition ? 'fixed' : 'absolute',
             backgroundColor: themeColors.heading,
             borderRadius: variables.componentBorderRadiusSmall,
             ...tooltipVerticalPadding,
@@ -136,10 +138,10 @@ export default function getTooltipStyles(
             top: shouldShowBelow
 
                 // We need to shift the tooltip down below the component. So shift the tooltip down (+) by...
-                ? (yOffset + componentHeight + POINTER_HEIGHT + manualShiftVertical)
+                ? ((useFixedPosition ? yOffset : 0) + componentHeight + POINTER_HEIGHT + manualShiftVertical)
 
                 // We need to shift the tooltip up above the component. So shift the tooltip up (-) by...
-                : ((yOffset - (tooltipHeight + POINTER_HEIGHT)) + manualShiftVertical),
+                : (((useFixedPosition ? yOffset : 0) - (tooltipHeight + POINTER_HEIGHT)) + manualShiftVertical),
 
             // Next, we'll position it horizontally.
             // we will use xOffset to position the tooltip relative to the Wrapped Component
@@ -153,7 +155,7 @@ export default function getTooltipStyles(
             //      so the tooltip's center lines up with the center of the wrapped component.
             //   3) Add the horizontal shift (left or right) computed above to keep it out of the gutters.
             //   4) Lastly, add the manual horizontal shift passed in as a parameter.
-            left: xOffset + ((componentWidth / 2) - (tooltipWidth / 2)) + horizontalShift + manualShiftHorizontal,
+            left: (useFixedPosition ? xOffset : 0) + ((componentWidth / 2) - (tooltipWidth / 2)) + horizontalShift + manualShiftHorizontal,
 
             opacity,
         },
@@ -164,7 +166,7 @@ export default function getTooltipStyles(
             overflow: 'hidden',
         },
         pointerWrapperStyle: {
-            position: 'fixed',
+            position: useFixedPosition ? 'fixed' : 'absolute',
 
             // By default, the pointer's top-left will align with the top-left of the tooltip wrapper.
             //

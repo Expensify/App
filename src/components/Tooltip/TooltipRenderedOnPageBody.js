@@ -41,11 +41,15 @@ const propTypes = {
 
     /** Maximum number of lines to show in tooltip */
     numberOfLines: PropTypes.number.isRequired,
+
+    /** Whether to teleport the tooltip through the portal */
+    teleport: PropTypes.bool,
 };
 
 const defaultProps = {
     shiftHorizontal: 0,
     shiftVertical: 0,
+    teleport: true,
 };
 
 // Props will change frequently.
@@ -117,34 +121,44 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
             this.state.tooltipTextWidth,
             this.props.shiftHorizontal,
             this.props.shiftVertical,
+            this.props.teleport,
         );
+
+        const child = (
+            <Animated.View
+                onLayout={this.measureTooltip}
+                style={[tooltipWrapperStyle, animationStyle]}
+            >
+                <Text numberOfLines={this.props.numberOfLines} style={tooltipTextStyle}>
+                    <Text
+                        style={tooltipTextStyle}
+                        ref={(ref) => {
+                            // Once the text for the tooltip first renders, update the width of the tooltip dynamically to fit the width of the text.
+                            // Note that we can't have this code in componentDidMount because the ref for the text won't be set until after the first render
+                            if (this.textRef) {
+                                return;
+                            }
+
+                            this.textRef = ref;
+                            this.updateTooltipTextWidth();
+                        }}
+                    >
+                        {this.props.text}
+                    </Text>
+                </Text>
+                <View style={pointerWrapperStyle}>
+                    <View style={pointerStyle} />
+                </View>
+            </Animated.View>
+        );
+
+        if (!this.props.teleport) {
+            return child;
+        }
+
         return (
             <Portal>
-                <Animated.View
-                    onLayout={this.measureTooltip}
-                    style={[tooltipWrapperStyle, animationStyle]}
-                >
-                    <Text numberOfLines={this.props.numberOfLines} style={tooltipTextStyle}>
-                        <Text
-                            style={tooltipTextStyle}
-                            ref={(ref) => {
-                                // Once the text for the tooltip first renders, update the width of the tooltip dynamically to fit the width of the text.
-                                // Note that we can't have this code in componentDidMount because the ref for the text won't be set until after the first render
-                                if (this.textRef) {
-                                    return;
-                                }
-
-                                this.textRef = ref;
-                                this.updateTooltipTextWidth();
-                            }}
-                        >
-                            {this.props.text}
-                        </Text>
-                    </Text>
-                    <View style={pointerWrapperStyle}>
-                        <View style={pointerStyle} />
-                    </View>
-                </Animated.View>
+                {child}
             </Portal>
         );
     }

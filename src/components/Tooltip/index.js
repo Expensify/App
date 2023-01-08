@@ -181,7 +181,12 @@ class Tooltip extends PureComponent {
             });
         }
         return (
-            <>
+            <Hoverable
+                absolute={this.props.absolute}
+                containerStyles={this.props.containerStyles}
+                onHoverIn={this.showTooltip}
+                onHoverOut={this.hideTooltip}
+            >
                 {this.state.isRendered && (
                     <TooltipRenderedOnPageBody
                         animation={this.animation}
@@ -195,17 +200,11 @@ class Tooltip extends PureComponent {
                         text={this.props.text}
                         maxWidth={this.props.maxWidth}
                         numberOfLines={this.props.numberOfLines}
+                        teleport={this.props.teleport}
                     />
                 )}
-                <Hoverable
-                    absolute={this.props.absolute}
-                    containerStyles={this.props.containerStyles}
-                    onHoverIn={this.showTooltip}
-                    onHoverOut={this.hideTooltip}
-                >
-                    {child}
-                </Hoverable>
-            </>
+                {child}
+            </Hoverable>
         );
     }
 }

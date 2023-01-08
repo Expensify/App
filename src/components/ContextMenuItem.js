@@ -75,7 +75,7 @@ class ContextMenuItem extends Component {
         return (
             this.props.isMini
                 ? (
-                    <Tooltip text={text}>
+                    <Tooltip text={text} teleport={false}>
                         <Pressable
                             focusable
                             accessibilityLabel={text}
