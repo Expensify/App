@@ -224,7 +224,7 @@ class WorkspaceInitialPage extends React.Component {
                                                     <Text
                                                         numberOfLines={1}
                                                         style={[
-                                                            styles.displayName,
+                                                            styles.textHeadline,
                                                             styles.alignSelfCenter,
                                                         ]}
                                                     >
