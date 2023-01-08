@@ -115,7 +115,7 @@ index dbeb813..bf8f21c 100644
          return false;
      }
 diff --git a/node_modules/react-native-fast-image/android/src/main/java/com/dylanvann/fastimage/FastImageViewWithUrl.java b/node_modules/react-native-fast-image/android/src/main/java/com/dylanvann/fastimage/FastImageViewWithUrl.java
-index 34fcf89..40d78cc 100644
+index 34fcf89..1339f5c 100644
 --- a/node_modules/react-native-fast-image/android/src/main/java/com/dylanvann/fastimage/FastImageViewWithUrl.java
 +++ b/node_modules/react-native-fast-image/android/src/main/java/com/dylanvann/fastimage/FastImageViewWithUrl.java
 @@ -2,6 +2,7 @@ package com.dylanvann.fastimage;
@@ -151,7 +151,7 @@ index 34fcf89..40d78cc 100644
  import java.util.ArrayList;
  import java.util.Collections;
  import java.util.List;
-@@ -124,9 +133,33 @@ class FastImageViewWithUrl extends AppCompatImageView {
+@@ -124,9 +133,34 @@ class FastImageViewWithUrl extends AppCompatImageView {
              RCTEventEmitter eventEmitter = context.getJSModule(RCTEventEmitter.class);
              int viewId = this.getId();
  
@@ -184,11 +184,12 @@ index 34fcf89..40d78cc 100644
 +                                    result);
 +                            return false;
 +                        }
-+                    });
++                    })
++                    .submit();
          }
  
          if (requestManager != null) {
-@@ -148,6 +181,25 @@ class FastImageViewWithUrl extends AppCompatImageView {
+@@ -148,6 +182,25 @@ class FastImageViewWithUrl extends AppCompatImageView {
                  builder.listener(new FastImageRequestListener(key));
  
              builder.into(this);
