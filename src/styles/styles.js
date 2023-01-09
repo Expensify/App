@@ -691,11 +691,11 @@ const styles = {
     },
 
     chatItemComposeSecondaryRowOffset: {
-        marginLeft: 56,
+        marginLeft: variables.chatInputSpacing,
     },
 
     offlineIndicator: {
-        marginLeft: 56,
+        marginLeft: variables.chatInputSpacing,
     },
 
     offlineIndicatorMobile: {
@@ -1307,7 +1307,7 @@ const styles = {
         flexShrink: 1,
         flexBasis: 0,
         position: 'relative',
-        marginLeft: 56,
+        marginLeft: variables.chatInputSpacing,
     },
 
     chatItemRight: {
