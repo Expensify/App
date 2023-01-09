@@ -23,12 +23,18 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
+const desktopAppState = {
+    checking: 'checking',
+    installed: 'installed',
+    notInstalled: 'not-installed',
+};
+
 class DeeplinkWrapper extends PureComponent {
     constructor(props) {
         super(props);
 
         this.state = {
-            appInstallationCheckStatus: this.isMacOSWeb() ? 'checking' : 'not-installed',
+            appInstallationCheckStatus: this.isMacOSWeb() ? desktopAppState.checking : desktopAppState.notInstalled,
         };
     }
 
@@ -45,9 +51,9 @@ class DeeplinkWrapper extends PureComponent {
 
         setTimeout(() => {
             if (!focused) {
-                this.setState({appInstallationCheckStatus: 'installed'});
+                this.setState({appInstallationCheckStatus: desktopAppState.installed});
             } else {
-                this.setState({appInstallationCheckStatus: 'not-installed'});
+                this.setState({appInstallationCheckStatus: desktopAppState.notInstalled});
             }
         }, 500);
 
@@ -104,13 +110,13 @@ class DeeplinkWrapper extends PureComponent {
     }
 
     render() {
-        if (this.state.appInstallationCheckStatus === 'checking') {
+        if (this.state.appInstallationCheckStatus === desktopAppState.checking) {
             return <FullScreenLoadingIndicator style={styles.flex1} />;
         }
 
         if (
             this.state.deeplinkMatch
-            && this.state.appInstallationCheckStatus === 'installed'
+            && this.state.appInstallationCheckStatus === desktopAppState.installed
         ) {
             return (
                 <View style={styles.deeplinkWrapperContainer}>
@@ -134,6 +140,7 @@ class DeeplinkWrapper extends PureComponent {
                                 <TextLink onPress={() => this.setState({deeplinkMatch: false})}>
                                     {this.props.translate('deeplinkWrapper.openLinkInBrowser')}
                                 </TextLink>
+                                .
                             </Text>
                         </View>
                     </View>
