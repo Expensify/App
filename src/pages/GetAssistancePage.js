@@ -58,7 +58,7 @@ const GetAssistancePage = props => (
                         wrapperStyle: [styles.cardMenuItem],
                     },
                     {
-                        title: props.translate('initialSettingsPage.help'),
+                        title: props.translate('getAssistancePage.exploreHelpDocs'),
                         onPress: () => Link.openExternalLink(CONST.NEWHELP_URL),
                         icon: Expensicons.QuestionMark,
                         shouldShowRightIcon: true,
