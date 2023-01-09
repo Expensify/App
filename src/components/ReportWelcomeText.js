@@ -65,7 +65,7 @@ const ReportWelcomeText = (props) => {
     return (
         <>
             <View>
-                <Text style={[styles.textHeader]}>
+                <Text style={[styles.textHero]}>
                     {props.translate('reportActionsView.sayHello')}
                 </Text>
             </View>

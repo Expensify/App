@@ -274,8 +274,9 @@ const styles = {
         fontSize: variables.fontSizeXXXLarge,
     },
 
-    textHeader: {
+    textHero: {
         fontSize: variables.fontSizeHero,
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
     },
 
     textStrong: {
