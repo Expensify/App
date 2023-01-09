@@ -180,13 +180,9 @@ class Tooltip extends PureComponent {
                 focusable: true,
             });
         }
-        return (
-            <Hoverable
-                absolute={this.props.absolute}
-                containerStyles={this.props.containerStyles}
-                onHoverIn={this.showTooltip}
-                onHoverOut={this.hideTooltip}
-            >
+
+        const childWithTooltip = (
+            <>
                 {this.state.isRendered && (
                     <TooltipRenderedOnPageBody
                         animation={this.animation}
@@ -203,8 +199,25 @@ class Tooltip extends PureComponent {
                         teleport={this.props.teleport}
                     />
                 )}
-                {child}
-            </Hoverable>
+                <Hoverable
+                    absolute={this.props.absolute}
+                    containerStyles={this.props.containerStyles}
+                    onHoverIn={this.showTooltip}
+                    onHoverOut={this.hideTooltip}
+                >
+                    {child}
+                </Hoverable>
+            </>
+        );
+
+        if (this.props.teleport) {
+            return childWithTooltip;
+        }
+
+        return (
+            <View>
+                {childWithTooltip}
+            </View>
         );
     }
 }
