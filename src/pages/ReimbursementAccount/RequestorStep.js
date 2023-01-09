@@ -18,7 +18,6 @@ import * as ValidationUtils from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
-import * as Link from '../../libs/actions/Link';
 import RequestorOnfidoStep from './RequestorOnfidoStep';
 import Form from '../../components/Form';
 
