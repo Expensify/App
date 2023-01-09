@@ -155,6 +155,11 @@ const CONST = {
         AU: 'AU',
         CA: 'CA',
     },
+    DESKTOP_DEEPLINK_APP_STATE: {
+        CHECKING: 'checking',
+        INSTALLED: 'installed',
+        NOT_INSTALLED: 'not-installed',
+    },
     PLATFORM: {
         IOS: 'ios',
         ANDROID: 'android',

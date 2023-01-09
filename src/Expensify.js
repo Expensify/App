@@ -23,6 +23,7 @@ import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
 import * as User from './libs/actions/User';
 import NetworkConnection from './libs/NetworkConnection';
 import Navigation from './libs/Navigation/Navigation';
+import DeeplinkWrapper from './components/DeeplinkWrapper';
 
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 // eslint-disable-next-line no-unused-vars
@@ -189,7 +190,7 @@ class Expensify extends PureComponent {
         }
 
         return (
-            <>
+            <DeeplinkWrapper>
                 {!this.state.isSplashShown && (
                     <>
                         <GrowlNotification ref={Growl.growlRef} />
@@ -213,7 +214,7 @@ class Expensify extends PureComponent {
                     onReady={this.setNavigationReady}
                     authenticated={this.isAuthenticated()}
                 />
-            </>
+            </DeeplinkWrapper>
         );
     }
 }
