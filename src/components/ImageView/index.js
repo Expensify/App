@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
-import canUseTouchScreen from '../../libs/canUseTouchscreen';
+import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
 
@@ -19,7 +19,7 @@ class ImageView extends PureComponent {
     constructor(props) {
         super(props);
         this.scrollableRef = null;
-        this.canUseTouchScreen = canUseTouchScreen();
+        this.canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
         this.onContainerLayoutChanged = this.onContainerLayoutChanged.bind(this);
         this.onContainerPressIn = this.onContainerPressIn.bind(this);
         this.onContainerPress = this.onContainerPress.bind(this);
