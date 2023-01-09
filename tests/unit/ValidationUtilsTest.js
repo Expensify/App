@@ -22,4 +22,30 @@ describe('ValidationUtils', () => {
             expect(ValidationUtils.isValidTwoFactorCode('123$%^')).toBe(false);
         });
     });
+
+    describe('isValidRoomName', () => {
+        test('room name without #', () => {
+            expect(ValidationUtils.isValidRoomName('test')).toBe(false);
+        });
+
+        test('room name with upper case letters', () => {
+            expect(ValidationUtils.isValidRoomName('#Test')).toBe(false);
+        });
+
+        test('room name with special character other than dash', () => {
+            expect(ValidationUtils.isValidRoomName('#test_room')).toBe(false);
+        });
+
+        test('room name with less than one character', () => {
+            expect(ValidationUtils.isValidRoomName('#')).toBe(false);
+        });
+
+        test('room name with 81 characters', () => {
+            expect(ValidationUtils.isValidRoomName('#123456789012345678901234567890123456789012345678901234567890123456789012345678901')).toBe(false);
+        });
+
+        test('room name with lowercase letters, numbers, and dashes', () => {
+            expect(ValidationUtils.isValidRoomName('#this-is-a-room1')).toBe(true);
+        });
+    });
 });
