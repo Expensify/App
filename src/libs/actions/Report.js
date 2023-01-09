@@ -362,6 +362,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
         {
             reportID,
             emailList: participantList ? participantList.join(',') : '',
+            shouldKeyReportActionsByID: true,
         },
         onyxData);
 }
@@ -392,7 +393,10 @@ function navigateToAndOpenReport(userLogins) {
  */
 function reconnect(reportID) {
     API.write('ReconnectToReport',
-        {reportID},
+        {
+            reportID,
+            shouldKeyReportActionsByID: true,
+        },
         {
             optimisticData: [{
                 onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -467,6 +471,7 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
     API.read('OpenPaymentDetailsPage', {
         reportID: chatReportID,
         iouReportID,
+        shouldKeyReportActionsByID: true,
     });
 }
 
@@ -682,6 +687,7 @@ function deleteReportComment(reportID, reportAction) {
     const parameters = {
         reportID,
         reportActionID: reportAction.reportActionID,
+        shouldKeyReportActionsByID: true,
     };
     API.write('DeleteComment', parameters, {optimisticData, successData, failureData});
 }
@@ -830,6 +836,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         reportID,
         reportComment: htmlForNewComment,
         reportActionID,
+        shouldKeyReportActionsByID: true,
     };
     API.write('UpdateComment', parameters, {optimisticData, successData, failureData});
 }
