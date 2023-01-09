@@ -113,6 +113,7 @@ Additionally if you want to discuss an idea with the open source community witho
     - Note: Before submitting a proposal on an issue, be sure to read any other existing proposals. Any new proposal should be substantively different from existing proposals.
 5. Pause at this step until someone from the Contributor-Plus team and / or someone from Expensify provides feedback on your proposal (do not create a pull request yet).
 6. If your solution proposal is accepted by the Expensify engineer assigned to the issue, Expensify will hire you on Upwork and assign the GitHub issue to you.
+7. Once hired, post a comment in the Github issue stating when you expect to have your PR ready for review 
 
 #### Begin coding your solution in a pull request
 7. When you are ready to start, fork the repository and create a new branch.
