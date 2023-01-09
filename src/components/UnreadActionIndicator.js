@@ -5,7 +5,7 @@ import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const UnreadActionIndicator = props => (
-    <View accessibilityLabel="New message line indicator" data-sequence-number={props.sequenceNumber} style={styles.unreadIndicatorContainer}>
+    <View accessibilityLabel="New message line indicator" data-action-id={props.reportActionID} style={styles.unreadIndicatorContainer}>
         <View style={styles.unreadIndicatorLine} />
         <Text style={styles.unreadIndicatorText}>
             {props.translate('common.new')}
