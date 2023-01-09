@@ -41,14 +41,6 @@ let conciergeChatReportID;
 const typingWatchTimers = {};
 
 /**
- * @param {String} reportID
- * @returns {Number}
- */
-function getMaxSequenceNumber(reportID) {
-    return lodashGet(allReports, [reportID, 'maxSequenceNumber'], 0);
-}
-
-/**
  * Get the private pusher channel name for a Report.
  *
  * @param {String} reportID
@@ -181,40 +173,30 @@ function addActions(reportID, text = '', file) {
     let attachmentAction;
     let commandName = 'AddComment';
 
-    const highestSequenceNumber = getMaxSequenceNumber(reportID);
-
     if (text) {
-        const nextSequenceNumber = highestSequenceNumber + 1;
-        const reportComment = ReportUtils.buildOptimisticReportAction(nextSequenceNumber, text);
+        const reportComment = ReportUtils.buildOptimisticReportAction(-1, text);
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
     }
 
     if (file) {
-        const nextSequenceNumber = (text && file) ? highestSequenceNumber + 2 : highestSequenceNumber + 1;
-
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = 'AddAttachment';
-        const attachment = ReportUtils.buildOptimisticReportAction(nextSequenceNumber, '', file);
+        const attachment = ReportUtils.buildOptimisticReportAction(-1, '', file);
         attachmentAction = attachment.reportAction;
     }
 
     // Always prefer the file as the last action over text
     const lastAction = attachmentAction || reportCommentAction;
 
-    // Our report needs a new maxSequenceNumber that is n larger than the current depending on how many actions we are adding.
-    const actionCount = text && file ? 2 : 1;
-    const newSequenceNumber = highestSequenceNumber + actionCount;
     const currentTime = DateUtils.getDBTime();
 
-    // Update the report in Onyx to have the new sequence number
+    // Update the report in Onyx to have info the new action
     const optimisticReport = {
-        maxSequenceNumber: newSequenceNumber,
         lastActionCreated: currentTime,
         lastMessageText: ReportUtils.formatReportLastMessageText(lastAction.message[0].text),
         lastActorEmail: currentUserEmail,
-        lastReadSequenceNumber: newSequenceNumber,
         lastReadTime: currentTime,
     };
 
@@ -307,7 +289,6 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
                 isLoadingReportActions: true,
                 isLoadingMoreReportActions: false,
                 lastReadTime: DateUtils.getDBTime(),
-                lastReadSequenceNumber: getMaxSequenceNumber(reportID),
                 reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
             },
         }],
@@ -1188,6 +1169,5 @@ export {
     updatePolicyRoomName,
     clearPolicyRoomNameErrors,
     clearIOUError,
-    getMaxSequenceNumber,
     subscribeToNewActionEvent,
 };
