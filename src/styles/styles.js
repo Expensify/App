@@ -1806,6 +1806,7 @@ const styles = {
 
     borderNone: {
         borderWidth: 0,
+        borderBottomWidth: 0,
     },
 
     borderRight: {
@@ -2179,14 +2180,14 @@ const styles = {
         lineHeight: variables.inputHeight,
     },
 
-    iouAmountTextInput: addOutlineWidth({
+    iouAmountTextInput: {
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
         padding: 0,
         lineHeight: undefined,
-    }, 0),
+    },
 
     iouPreviewBox: {
         backgroundColor: themeColors.cardBG,
