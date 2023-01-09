@@ -612,7 +612,7 @@ function deleteReportComment(reportID, reportAction) {
         isEdited: true,
     }];
 
-    const isDeletedPendingAdd = reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+    const deletedPendingAdd = reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
     const optimisticReportActions = {
         [sequenceNumber]: {
@@ -623,21 +623,21 @@ function deleteReportComment(reportID, reportAction) {
             // If we're trying to delete a report action that's still pending add,
             // then we must be offline and the report action must have been added in the same offline session.
             // This hides any reportActions that are added after AddComment fires
-            isDeletedPendingAdd,
+            deletedPendingAdd,
         },
     };
 
     // If we're trying to delete a report action that's still pending add,
     // then we must be offline and the optmistic report action must have been added in the same offline session.
     // Therefore, let's just hide it for the time being.
-    if (isDeletedPendingAdd) {
+    if (deletedPendingAdd) {
         // Optimistic report actions are saved into the clientID, not the sequenceNumber
         const clientID = reportAction.clientID;
         optimisticReportActions[clientID] = {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             previousMessage: reportAction.message,
             message: deletedMessage,
-            isDeletedPendingAdd,
+            deletedPendingAdd,
         };
     }
 
