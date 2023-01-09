@@ -75,6 +75,7 @@ class ReportActionsView extends React.Component {
 
         this.currentScrollOffset = 0;
         this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(props.reportActions);
+        this.updatedNewMarkerReportActionID = '';
         this.trackScroll = this.trackScroll.bind(this);
         this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
@@ -133,10 +134,7 @@ class ReportActionsView extends React.Component {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
             this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(nextProps.reportActions);
             this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(nextProps.reportActions);
-
-            if (this.newMarkerReportActionID !== '') {
-                this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(nextProps.report, this.sortedAndFilteredReportActions)});
-            }
+            this.updatedNewMarkerReportActionID = ReportUtils.getNewMarkerReportActionID(nextProps.report, this.sortedAndFilteredReportActions);
 
             return true;
         }
@@ -197,6 +195,11 @@ class ReportActionsView extends React.Component {
             } else {
                 Report.reconnect(this.props.report.reportID);
             }
+        }
+
+        if (this.updatedNewMarkerReportActionID) {
+            this.setState({newMarkerReportActionID: this.updatedNewMarkerReportActionID});
+            this.updatedNewMarkerReportActionID = '';
         }
 
         // If the report was previously hidden by the side bar, or the view is expanded from mobile to desktop layout
@@ -374,7 +377,7 @@ class ReportActionsView extends React.Component {
                             mostRecentIOUReportActionID={this.mostRecentIOUReportActionID}
                             isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
                             loadMoreChats={this.loadMoreChats}
-                            newMarkerReportActionID={this.state.newMarkerReportActionID}
+                            newMarkerReportActionID={this.updatedNewMarkerReportActionID ? this.updatedNewMarkerReportActionID : this.state.newMarkerReportActionID}
                         />
                         <PopoverReportActionContextMenu
                             ref={ReportActionContextMenu.contextMenuRef}
