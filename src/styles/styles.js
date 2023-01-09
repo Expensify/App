@@ -710,7 +710,6 @@ const styles = {
     // Actions
     actionAvatar: {
         borderRadius: 20,
-        marginRight: 8,
     },
 
     componentHeightLarge: {
@@ -1330,7 +1329,6 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         lineHeight: variables.lineHeightXLarge,
-        paddingRight: 5,
         paddingBottom: 4,
         ...wordBreak.breakWord,
     },
