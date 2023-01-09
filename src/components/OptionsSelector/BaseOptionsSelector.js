@@ -265,6 +265,7 @@ class BaseOptionsSelector extends Component {
                 showTitleTooltip={this.props.showTitleTooltip}
                 isDisabled={this.props.isDisabled}
                 shouldHaveOptionSeparator={this.props.shouldHaveOptionSeparator}
+                onLayout={this.props.onLayout}
             />
         ) : <FullScreenLoadingIndicator />;
         return (

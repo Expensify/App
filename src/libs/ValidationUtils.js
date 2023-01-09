@@ -392,6 +392,19 @@ function isExistingRoomName(roomName, reports, policyID) {
 }
 
 /**
+ * Checks if a room name is valid by checking that:
+ * - It starts with a hash '#'
+ * - After the first character, it contains only lowercase letters, numbers, and dashes
+ * - It's between 1 and MAX_ROOM_NAME_LENGTH characters long
+ *
+ * @param {String} roomName
+ * @returns {Boolean}
+ */
+function isValidRoomName(roomName) {
+    return CONST.REGEX.ROOM_NAME.test(roomName);
+}
+
+/**
  * Checks if tax ID consists of 9 digits
  *
  * @param {String} taxID
@@ -428,6 +441,7 @@ export {
     doesFailCharacterLimitAfterTrim,
     isReservedRoomName,
     isExistingRoomName,
+    isValidRoomName,
     isValidTaxID,
     findInvalidSymbols,
 };
