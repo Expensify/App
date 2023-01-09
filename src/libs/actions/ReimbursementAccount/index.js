@@ -14,7 +14,7 @@ export {
 /**
  * Set the current sub step in first step of adding withdrawal bank account:
  * - `null` if we want to go back to the view where the user selects between connecting via Plaid or connecting manually
- * - CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL to ask them for their accountNumber and accountNumber
+ * - CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL to ask them to enter their accountNumber and routingNumber
  * - CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID to ask them to log in their bank
  *
  * @param {String} subStep
