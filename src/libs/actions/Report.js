@@ -353,17 +353,17 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
         });
     }
 
-    const params = {reportID, emailList: participantList ? participantList.join(',') : ''};
-    if (optimisticCreatedAction) {
-        params.createdReportActionID = optimisticCreatedAction;
+    const params = {
+        reportID,
+        emailList: participantList ? participantList.join(',') : '',
+        shouldKeyReportActionsByID: true,
+    };
+    if (_.has(optimisticCreatedAction, 'reportActionID')) {
+        params.createdReportActionID = optimisticCreatedAction.reportActionID;
     }
 
     API.write('OpenReport',
-        {
-            reportID,
-            emailList: participantList ? participantList.join(',') : '',
-            shouldKeyReportActionsByID: true,
-        },
+        params,
         onyxData);
 }
 
