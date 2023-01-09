@@ -403,7 +403,7 @@ button {
 
 .card {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     border-radius: 16px;
     padding: 28px;
     font-weight: 700;
@@ -571,6 +571,7 @@ button {
 }
 
 .get-help {
+    flex-wrap: wrap;
     margin-top: auto;
 }
 
