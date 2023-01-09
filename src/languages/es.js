@@ -975,6 +975,7 @@ export default {
         chatWithConcierge: 'Chatear con Concierge',
         requestSetupCall: 'Llámame por teléfono',
         questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
+        exploreHelpDocs: 'Explorar documentos de ayuda',
     },
     requestCallPage: {
         title: 'Llámame por teléfono',

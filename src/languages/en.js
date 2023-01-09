@@ -973,6 +973,7 @@ export default {
         chatWithConcierge: 'Chat with Concierge',
         requestSetupCall: 'Request a setup call',
         questionMarkButtonTooltip: 'Get assistance from our team',
+        exploreHelpDocs: 'Explore help docs',
     },
     requestCallPage: {
         title: 'Request a call',
