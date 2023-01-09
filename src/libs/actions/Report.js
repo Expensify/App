@@ -352,6 +352,8 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             pendingFields: {
                 createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
+
+            // We add 1ms such that the newly created report appears as read.
             lastReadTime: DateUtils.getDBTime(moment().utc().add(1).valueOf()),
             isOptimisticReport: true,
         };
