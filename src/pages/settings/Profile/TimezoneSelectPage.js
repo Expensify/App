@@ -42,7 +42,7 @@ class TimezoneSelectPage extends Component {
                 keyForList: timezone,
 
                 // Include the green checkmark icon to indicate the currently selected value
-                customIcon: timezone === this.currentSelectedTimezone && greenCheckmark,
+                customIcon: timezone === this.currentSelectedTimezone ? greenCheckmark : undefined,
 
                 // This property will make the currently selected value have bold text
                 boldStyle: timezone === this.currentSelectedTimezone,
@@ -75,7 +75,7 @@ class TimezoneSelectPage extends Component {
 
     render() {
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('timezonePage.timezone')}
                     shouldShowBackButton

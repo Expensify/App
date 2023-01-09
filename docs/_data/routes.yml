@@ -8,7 +8,7 @@ hubs:
   - href: send-money
     title: Send money
     description: With only a couple of clicks, send money to your friends or coworkers.
-    icon: /assets/images/send.svg
+    icon: /assets/images/paper-airplane.svg
     sections:
       - href: workspaces
         title: Workspaces
@@ -20,15 +20,10 @@ hubs:
         articles:
           - href: Request-and-Send-Money
             title: Request and Send Money
-      - href: chat
-        title: Chat
-        articles:
-          - href: Everything-About-Chat
-            title: Everything About Chat
 
   - href: request-money
     title: Request money
-    icon: /assets/images/money-circle.svg
+    icon: /assets/images/money-case.svg
     description: Request money for work expenses, bills, or a night out with friends.
     articles:
       - href: Request-and-Send-Money
@@ -37,7 +32,9 @@ hubs:
   - href: other
     title: Other
     description: Everything else you're looking for is right here.
-    icon: /assets/images/users.svg
+    icon: /assets/images/lightbulb.svg
     articles:
       - href: Your-Expensify-Account-Manager
         title: Your Expensify Account Manager
+      - href: Everything-About-Chat
+        title: Everything About Chat

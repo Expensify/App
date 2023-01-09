@@ -109,7 +109,7 @@ function sortReportsByLastRead(reports) {
     return _.chain(reports)
         .toArray()
         .filter(report => report && report.reportID && !isIOUReport(report))
-        .sortBy('lastReadTimestamp')
+        .sortBy('lastReadTime')
         .value();
 }
 
@@ -242,9 +242,7 @@ function hasExpensifyGuidesEmails(emails) {
 }
 
 /**
- * Given a collection of reports returns the most recently accessed one
- *
- * @param {Record<String, {lastReadTimestamp, reportID}>|Array<{lastReadTimestamp, reportID}>} reports
+ * @param {Record<String, {lastReadTime, reportID}>|Array<{lastReadTime, reportID}>} reports
  * @param {Boolean} [ignoreDefaultRooms]
  * @param {Object} policies
  * @returns {Object}
@@ -752,13 +750,13 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
     let paymentMethodMessage;
     switch (paymentType) {
         case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
-            paymentMethodMessage = 'using wallet';
+            paymentMethodMessage = '!';
             break;
         case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
-            paymentMethodMessage = 'elsewhere';
+            paymentMethodMessage = ' elsewhere';
             break;
         case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
-            paymentMethodMessage = 'using PayPal.me';
+            paymentMethodMessage = ' using PayPal.me';
             break;
         default:
             break;
@@ -781,7 +779,7 @@ function getIOUReportActionMessage(type, total, participants, comment, currency,
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
             iouMessage = isSettlingUp
                 ? `Settled up ${paymentMethodMessage}`
-                : `Sent ${amount}${comment && ` for ${comment}`} ${paymentMethodMessage}`;
+                : `Sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
             break;
         default:
             break;
@@ -895,7 +893,7 @@ function buildOptimisticChatReport(
         lastMessageText: null,
         lastReadSequenceNumber: 0,
         lastActionCreated: DateUtils.getDBTime(),
-        lastReadTimestamp: 0,
+        lastReadTime: '',
         maxSequenceNumber: 0,
         notificationPreference,
         oldPolicyName,
@@ -919,6 +917,7 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
     return {
         0: {
             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            reportActionID: NumberUtils.rand64(),
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             actorAccountID: currentUserAccountID,
             message: [
@@ -1013,9 +1012,14 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
  * @returns {Boolean}
  */
 function isUnread(report) {
-    const lastReadSequenceNumber = report.lastReadSequenceNumber || 0;
-    const maxSequenceNumber = report.maxSequenceNumber || 0;
-    return lastReadSequenceNumber < maxSequenceNumber;
+    if (!report) {
+        return false;
+    }
+
+    // lastActionCreated and lastReadTime are both datetime strings and can be compared directly
+    const lastActionCreated = report.lastActionCreated || '';
+    const lastReadTime = report.lastReadTime || '';
+    return lastReadTime < lastActionCreated;
 }
 
 /**
@@ -1180,6 +1184,27 @@ function chatIncludesChronos(report) {
                 && _.contains(report.participants, CONST.EMAIL.CHRONOS);
 }
 
+/**
+ * @param {Object} report
+ * @param {String} report.lastReadTime
+ * @param {Array} sortedAndFilteredReportActions - reportActions for the report, sorted newest to oldest, and filtered for only those that should be visible
+ *
+ * @returns {String|null}
+ */
+function getNewMarkerReportActionID(report, sortedAndFilteredReportActions) {
+    if (!isUnread(report)) {
+        return '';
+    }
+
+    const newMarkerIndex = _.findLastIndex(sortedAndFilteredReportActions, reportAction => (
+        (reportAction.created || '') > report.lastReadTime
+    ));
+
+    return _.has(sortedAndFilteredReportActions[newMarkerIndex], 'reportActionID')
+        ? sortedAndFilteredReportActions[newMarkerIndex].reportActionID
+        : '';
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1227,4 +1252,5 @@ export {
     getDisplayNameForParticipant,
     isIOUReport,
     chatIncludesChronos,
+    getNewMarkerReportActionID,
 };

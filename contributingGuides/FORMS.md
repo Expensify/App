@@ -256,3 +256,15 @@ In order for Form to track the nested values properly, each field must have a un
 To generate these unique keys, use `Str.guid()`.
 
 An example of this can be seen in the [ACHContractStep](https://github.com/Expensify/App/blob/f2973f88cfc0d36c0dbe285201d3ed5e12f29d87/src/pages/ReimbursementAccount/ACHContractStep.js), where each key is stored in an array in state, and IdentityForms are dynamically rendered based on which keys are present in the array.
+
+### Safe Area Padding
+
+Any `Form.js` that has a button will also add safe area padding by default. If the `<Form/>` is inside a `<ScreenWrapper>` we will want to disable the default safe area padding applied there e.g.
+
+```js
+<ScreenWrapper includeSafeAreaPaddingBottom={false}>
+    <Form>
+        {...}
+    </Form>
+</ScreenWrapper>
+```
