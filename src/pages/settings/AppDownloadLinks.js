@@ -14,7 +14,7 @@ import * as Link from '../../libs/actions/Link';
 import PressableWithSecondaryInteraction from '../../components/PressableWithSecondaryInteraction';
 import ControlSelection from '../../libs/ControlSelection';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import canUseTouchScreen from '../../libs/canUseTouchscreen';
+import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from '../home/report/ContextMenu/ContextMenuActions';
 import PopoverReportActionContextMenu from '../home/report/ContextMenu/PopoverReportActionContextMenu';
@@ -87,7 +87,7 @@ const AppDownloadLinksPage = (props) => {
                 {_.map(menuItems, item => (
                     <PressableWithSecondaryInteraction
                         key={item.translationKey}
-                        onPressIn={() => props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
+                        onPressIn={() => props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={() => ControlSelection.unblock()}
                         onSecondaryInteraction={e => showPopover(e, item.link)}
                         ref={el => popoverAnchor = el}
