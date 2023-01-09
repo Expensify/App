@@ -456,7 +456,7 @@ const styles = {
     },
 
     buttonDangerDisabled: {
-        backgroundColor: themeColors.dangerDisabled,
+        opacity: 0.5,
     },
 
     buttonDangerHovered: {
@@ -710,7 +710,6 @@ const styles = {
     // Actions
     actionAvatar: {
         borderRadius: 20,
-        marginRight: 8,
     },
 
     componentHeightLarge: {
@@ -1138,7 +1137,6 @@ const styles = {
     popoverMenuText: {
         fontSize: variables.fontSizeNormal,
         color: themeColors.heading,
-        maxWidth: 240,
     },
 
     menuItemTextContainer: {
@@ -1331,7 +1329,6 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         lineHeight: variables.lineHeightXLarge,
-        paddingRight: 5,
         paddingBottom: 4,
         ...wordBreak.breakWord,
     },
