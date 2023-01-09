@@ -92,7 +92,7 @@ class BankAccountManualStep extends React.Component {
                     formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
                     onSubmit={this.submit}
                     validate={this.validate}
-                    submitButtonText={this.props.translate('common.saveAndContinue')}
+                    submitButtonText={this.props.translate('common.continue')}
                     style={[styles.mh5, styles.flexGrow1]}
                 >
                     <Text style={[styles.mb5]}>
