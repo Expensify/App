@@ -176,6 +176,16 @@ function getDBTime(timestamp = '') {
 }
 
 /**
+ * @param {String} dateTime
+ * @param {Number} milliseconds
+ * @returns {String}
+ */
+function subtractMillisecondsFromDateTime(dateTime, milliseconds) {
+    const newTimestamp = moment.utc(dateTime).subtract(milliseconds, 'milliseconds').valueOf();
+    return getDBTime(newTimestamp);
+}
+
+/**
  * @namespace DateUtils
  */
 const DateUtils = {
@@ -188,6 +198,7 @@ const DateUtils = {
     setTimezoneUpdated,
     getMicroseconds,
     getDBTime,
+    subtractMillisecondsFromDateTime,
 };
 
 export default DateUtils;

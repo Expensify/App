@@ -1,14 +1,19 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
+import CONST from '../../CONST';
+import {withNetwork} from '../OnyxProvider';
+import compose from '../../libs/compose';
 import IOUQuote from './IOUQuote';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
+import networkPropTypes from '../networkPropTypes';
+import iouReportPropTypes from '../../pages/iouReportPropTypes';
 import IOUPreview from './IOUPreview';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
+import * as IOUUtils from '../../libs/IOUUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -30,9 +35,16 @@ const propTypes = {
         hasOutstandingIOU: PropTypes.bool.isRequired,
     }),
 
+    /** IOU report data object */
+    iouReport: iouReportPropTypes.isRequired,
+
+    /** Array of report actions for this report */
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)).isRequired,
+
     /** Whether the IOU is hovered so we can modify its style */
     isHovered: PropTypes.bool,
 
+    network: networkPropTypes.isRequired,
 };
 
 const defaultProps = {
@@ -52,6 +64,17 @@ const IOUAction = (props) => {
         && Boolean(props.action.originalMessage.IOUReportID)
         && props.chatReport.hasOutstandingIOU) || props.action.originalMessage.type === 'pay';
 
+    let shouldShowPendingConversionMessage = false;
+    if (
+        props.iouReport
+        && props.chatReport.hasOutstandingIOU
+        && props.isMostRecentIOUReportAction
+        && props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
+        && props.network.isOffline
+    ) {
+        shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(props.reportActions, props.iouReport);
+    }
+
     return (
         <>
             <IOUQuote
@@ -61,9 +84,9 @@ const IOUAction = (props) => {
             />
             {shouldShowIOUPreview && (
                 <IOUPreview
-                    pendingAction={lodashGet(props.action, 'pendingAction', null)}
                     iouReportID={props.action.originalMessage.IOUReportID.toString()}
                     chatReportID={props.chatReportID}
+                    shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
                     onPayButtonPressed={launchDetailsModal}
                     onPreviewPressed={launchDetailsModal}
                     containerStyles={[
@@ -83,8 +106,18 @@ IOUAction.propTypes = propTypes;
 IOUAction.defaultProps = defaultProps;
 IOUAction.displayName = 'IOUAction';
 
-export default withOnyx({
-    chatReport: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
-    },
-})(IOUAction);
+export default compose(
+    withOnyx({
+        chatReport: {
+            key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+        },
+        iouReport: {
+            key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+        },
+        reportActions: {
+            key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            canEvict: false,
+        },
+    }),
+    withNetwork(),
+)(IOUAction);

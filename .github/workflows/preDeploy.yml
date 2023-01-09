@@ -312,7 +312,12 @@ jobs:
           cleanup: true
 
       - name: Unzip AWS Device Farm results
+        if: ${{ always() }}
         run: unzip Customer\ Artifacts.zip
+
+      - name: Print AWS Device Farm run results
+        if: ${{ always() }}
+        run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/debug.log"
 
       - name: Set output of AWS Device Farm into GitHub ENV
         run: |
@@ -332,7 +337,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check if test failed, if so leave a deploy blocker label
-        if: ${{ !contains(env.OUTPUT, 'There are no entries') }}
+        if: ${{ contains(env.OUTPUT, '🔴') }}
         run: |
           gh pr edit ${{ steps.getMergedPullRequest.outputs.number }} --add-label 'DeployBlockerCash'
           gh pr comment ${{ steps.getMergedPullRequest.outputs.number }} -b "@Expensify/mobile-deployers 📣 Please look into this performance regression as it's a deploy blocker."
