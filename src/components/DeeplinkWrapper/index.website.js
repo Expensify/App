@@ -23,18 +23,12 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const desktopAppState = {
-    checking: 'checking',
-    installed: 'installed',
-    notInstalled: 'not-installed',
-};
-
 class DeeplinkWrapper extends PureComponent {
     constructor(props) {
         super(props);
 
         this.state = {
-            appInstallationCheckStatus: this.isMacOSWeb() ? desktopAppState.checking : desktopAppState.notInstalled,
+            appInstallationCheckStatus: this.isMacOSWeb() ? CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING : CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED,
         };
     }
 
@@ -51,9 +45,9 @@ class DeeplinkWrapper extends PureComponent {
 
         setTimeout(() => {
             if (!focused) {
-                this.setState({appInstallationCheckStatus: desktopAppState.installed});
+                this.setState({appInstallationCheckStatus: CONST.DESKTOP_DEEPLINK_APP_STATE.INSTALLED});
             } else {
-                this.setState({appInstallationCheckStatus: desktopAppState.notInstalled});
+                this.setState({appInstallationCheckStatus: CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED});
             }
         }, 500);
 
@@ -110,13 +104,13 @@ class DeeplinkWrapper extends PureComponent {
     }
 
     render() {
-        if (this.state.appInstallationCheckStatus === desktopAppState.checking) {
+        if (this.state.appInstallationCheckStatus === CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING) {
             return <FullScreenLoadingIndicator style={styles.flex1} />;
         }
 
         if (
             this.state.deeplinkMatch
-            && this.state.appInstallationCheckStatus === desktopAppState.installed
+            && this.state.appInstallationCheckStatus === CONST.DESKTOP_DEEPLINK_APP_STATE.INSTALLED
         ) {
             return (
                 <View style={styles.deeplinkWrapperContainer}>
