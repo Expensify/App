@@ -35,7 +35,7 @@ Onyx.connect({
 function isDeletedAction(reportAction) {
     // A deleted comment has either an empty array or an object with html field with empty string as value
     const message = lodashGet(reportAction, 'message', []);
-    return message.length === 0 || lodashGet(message, [0, 'html']) === '';
+    return lodashGet(reportAction, 'deletedPendingAdd') || message.length === 0 || lodashGet(message, [0, 'html']) === '';
 }
 
 /**
