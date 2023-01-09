@@ -895,11 +895,10 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
 
     Navigation.isNavigationReady()
         .then(() => {
-            console.log('going to workspace');
             if (transitionFromOldDot) {
                 Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
             }
-            Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+            Navigation.navigate(ROUTES.getReportRoute(adminsChatReportID));
         });
 }
 

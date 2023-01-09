@@ -27,6 +27,7 @@ import reportActionPropTypes from '../report/reportActionPropTypes';
 import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
+import Log from '../../../libs/Log';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */

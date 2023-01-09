@@ -109,11 +109,11 @@ function show({routes, showCreateMenu}) {
         const topRouteName = lodashGet(_.last(routes), 'name', '');
         const transitionRoute = _.find(routes, route => route.name === SCREENS.TRANSITION_FROM_OLD_DOT);
         const exitingToWorkspaceRoute = lodashGet(transitionRoute, 'params.exitTo', '') === 'workspace/new';
-        const isDisplayingWorkspaceRoute = topRouteName.toLowerCase().includes('workspace') || exitingToWorkspaceRoute;
+        const isDisplayingWorkspaceRoute = true; // topRouteName.toLowerCase().includes('workspace') || exitingToWorkspaceRoute;
 
         // We want to display the Workspace chat first since that means a user is already in a Workspace and doesn't need to create another one
         const workspaceChatReport = _.find(allReports, report => ReportUtils.isPolicyExpenseChat(report) && report.ownerEmail === email);
-        console.log('showing workspace', isDisplayingWorkspaceRoute, lodashGet(transitionRoute, 'params.exitTo', ''), topRouteName.toLowerCase());
+        console.log('showing workspace', isDisplayingWorkspaceRoute, lodashGet(transitionRoute, 'params.exitTo', ''), topRouteName.toLowerCase(), routes);
         if (workspaceChatReport && !isDisplayingWorkspaceRoute) {
             console.log('navigating');
             Navigation.navigate(ROUTES.getReportRoute(workspaceChatReport.reportID));
