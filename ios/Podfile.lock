@@ -975,11 +975,11 @@ SPEC CHECKSUMS:
   React-jsinspector: 7b02a02b9b9bf830102394039c80b3bf2e0200b0
   React-logger: b2c47bb0829c3c45ba3a04add9a2b4aea3f3dd4e
   react-native-blob-util: c3b0faecd2919db568e9d552084396f3e50b57c7
-  react-native-cameraroll: 60ac50a5209777cbccfe8d7a62d0743a9da87060
+  react-native-cameraroll: 2957f2bce63ae896a848fbe0d5352c1bd4d20866
   react-native-config: 7cd105e71d903104e8919261480858940a6b9c0e
   react-native-document-picker: f68191637788994baed5f57d12994aa32cf8bf88
   react-native-flipper: dc5290261fbeeb2faec1bdc57ae6dd8d562e1de4
-  react-native-image-manipulator: db28c0cc09d89e740974c9bb2f13175eb48f1ef2
+  react-native-image-manipulator: c48f64221cfcd46e9eec53619c4c0374f3328a56
   react-native-image-picker: bf34f3f516d139ed3e24c5f5a381a91819e349ea
   react-native-netinfo: 1a6035d3b9780221d407c277ebfb5722ace00658
   react-native-pdf: 33c622cbdf776a649929e8b9d1ce2d313347c4fa
@@ -987,7 +987,7 @@ SPEC CHECKSUMS:
   react-native-progress-bar-android: be43138ab7da30d51fc038bafa98e9ed594d0c40
   react-native-progress-view: 4d3bbe6a099ba027b1fedb1548c2c87f74249b70
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
-  react-native-safe-area-context: ec0d85aca8110dae9327430a9541fec165352dab
+  react-native-safe-area-context: 99b24a0c5acd0d5dcac2b1a7f18c49ea317be99a
   react-native-webview: e771bc375f789ebfa02a26939a57dbc6fa897336
   React-perflogger: b231fb9993c1b5f74e32f0a3473225f9ebaf73d3
   React-RCTActionSheet: 9064b3b78118a253f2d6a63153f6dfff0b38f19f
