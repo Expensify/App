@@ -34,6 +34,7 @@ Which of our officially supported platforms is this issue occurring on?
 **Version Number:**
 **Reproducible in staging?:**
 **Reproducible in production?:**
+**If this was caught during regression testing, add the test name, ID and link from TestRail:**
 **Email or phone of affected tester (no customers):**
 **Logs:** https://stackoverflow.com/c/expensify/questions/4856
 **Notes/Photos/Videos:** Any additional supporting documentation
