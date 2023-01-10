@@ -12,7 +12,7 @@ import Tooltip from '../../../components/Tooltip';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import canUseTouchScreen from '../../../libs/canUseTouchscreen';
+import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import compose from '../../../libs/compose';
 import * as StyleUtils from '../../../styles/StyleUtils';
 
@@ -120,7 +120,7 @@ const ReportActionItemFragment = (props) => {
             return (
                 <Text
                     family="EMOJI_TEXT_FONT"
-                    selectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
+                    selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
                     style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
                 >
                     {StyleUtils.convertToLTR(Str.htmlDecode(text))}
