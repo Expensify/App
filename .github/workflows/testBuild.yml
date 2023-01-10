@@ -247,7 +247,7 @@ jobs:
 
       - name: Read JSONs with android paths
         id: get_android_path
-        if: ${{ needs.android.result == 'success'}}
+        if: ${{ needs.android.result == 'success' }}
         run: |
           content_android="$(cat ./android/android_paths.json)"
           content_android="${content_android//'%'/'%25'}"
@@ -257,7 +257,7 @@ jobs:
 
       - name: Read JSONs with iOS paths
         id: get_ios_path
-        if: ${{ needs.ios.result == 'success'}}
+        if: ${{ needs.ios.result == 'success' }}
         run: |
           content_ios="$(cat ./ios/ios_paths.json)"
           content_ios="${content_ios//'%'/'%25'}"
@@ -279,7 +279,7 @@ jobs:
         if: ${{ fromJSON(needs.validateActor.outputs.READY_TO_BUILD) }}
         uses: Expensify/App/.github/actions/javascript/postTestBuildComment@main
         with:
-          PR_NUMBER: $PULL_REQUEST_NUMBER
+          PR_NUMBER: ${{ env.PULL_REQUEST_NUMBER }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ANDROID: ${{ needs.android.result }}
           DESKTOP: ${{ needs.desktop.result }}
@@ -287,5 +287,5 @@ jobs:
           WEB: ${{ needs.web.result }}
           ANDROID_LINK: ${{fromJson(steps.get_android_path.outputs.android_paths).html_path}}
           DESKTOP_LINK: "https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/$PULL_REQUEST_NUMBER/NewExpensify.dmg"
-          IOS_LINK: ${{fromJson(steps.get_ios_path.outputs.ios_paths).html_path}}
+          IOS_LINK: ${{ fromJson(steps.get_ios_path.outputs.ios_paths).html_path }}
           WEB_LINK: "https://$PULL_REQUEST_NUMBER.pr-testing.expensify.com"
