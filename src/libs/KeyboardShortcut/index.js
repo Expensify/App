@@ -1,8 +1,9 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import Str from 'expensify-common/lib/str';
+import * as KeyCommand from 'react-native-key-command';
 import getOperatingSystem from '../getOperatingSystem';
 import CONST from '../../CONST';
+import keyboard from './keyboard';
 
 // Handlers for the various keyboard listeners we set up
 const eventHandlers = {};
@@ -15,29 +16,6 @@ const documentedShortcuts = {};
  */
 function getDocumentedShortcuts() {
     return _.values(documentedShortcuts);
-}
-
-/**
- * Gets modifiers from a keyboard event.
- *
- * @param {Event} event
- * @returns {Array<String>}
- */
-function getKeyEventModifiers(event) {
-    const modifiers = [];
-    if (event.shiftKey) {
-        modifiers.push('SHIFT');
-    }
-    if (event.ctrlKey) {
-        modifiers.push('CONTROL');
-    }
-    if (event.altKey) {
-        modifiers.push('ALT');
-    }
-    if (event.metaKey) {
-        modifiers.push('META');
-    }
-    return modifiers;
 }
 
 /**
@@ -61,63 +39,6 @@ function getDisplayName(key, modifiers) {
 }
 
 /**
- * Checks if an event for that key is configured and if so, runs it.
- * @param {Event} event
- * @private
- */
-function bindHandlerToKeydownEvent(event) {
-    if (!(event instanceof KeyboardEvent)) {
-        return;
-    }
-
-    const eventModifiers = getKeyEventModifiers(event);
-    const displayName = getDisplayName(event.key, eventModifiers);
-
-    // Loop over all the callbacks
-    _.every(eventHandlers[displayName], (callback) => {
-        // If configured to do so, prevent input text control to trigger this event
-        if (!callback.captureOnInputs && (
-            event.target.nodeName === 'INPUT'
-            || event.target.nodeName === 'TEXTAREA'
-            || event.target.contentEditable === 'true'
-        )) {
-            return true;
-        }
-
-        // Determine if the event should bubble before executing the callback (which may have side-effects)
-        let shouldBubble = callback.shouldBubble || false;
-        if (_.isFunction(callback.shouldBubble)) {
-            shouldBubble = callback.shouldBubble();
-        }
-
-        if (_.isFunction(callback.callback)) {
-            callback.callback(event);
-        }
-        if (callback.shouldPreventDefault) {
-            event.preventDefault();
-        }
-
-        // If the event should not bubble, short-circuit the loop
-        return shouldBubble;
-    });
-}
-
-// Make sure we don't add multiple listeners
-document.removeEventListener('keydown', bindHandlerToKeydownEvent, {capture: true});
-document.addEventListener('keydown', bindHandlerToKeydownEvent, {capture: true});
-
-/**
- * Unsubscribes a keyboard event handler.
- *
- * @param {String} displayName The display name for the key combo to stop watching
- * @param {String} callbackID The specific ID given to the callback at the time it was added
- * @private
- */
-function unsubscribe(displayName, callbackID) {
-    eventHandlers[displayName] = _.reject(eventHandlers[displayName], callback => callback.id === callbackID);
-}
-
-/**
  * Return platform specific modifiers for keys like Control (CMD on macOS)
  *
  * @param {Array<String>} keys
@@ -135,6 +56,18 @@ function getPlatformEquivalentForKeys(keys) {
     });
 }
 
+const getLibraryAdjustedModifiers = (modifiers) => {
+    if (_.isEqual(modifiers, ['CTRL', 'SHIFT'])) {
+        return KeyCommand.constants.keyModifierShiftCommand;
+    }
+
+    if (_.isEqual(modifiers, ['CTRL'])) {
+        return KeyCommand.constants.keyModifierCommand;
+    }
+
+    return undefined;
+};
+
 /**
  * Subscribes to a keyboard event.
  * @param {String} key The key to watch, i.e. 'K' or 'Escape'
@@ -149,18 +82,19 @@ function getPlatformEquivalentForKeys(keys) {
  */
 function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false, shouldBubble = false, priority = 0, shouldPreventDefault = true) {
     const platformAdjustedModifiers = getPlatformEquivalentForKeys(modifiers);
+    const libraryAdjustedModifiers = getLibraryAdjustedModifiers(modifiers);
     const displayName = getDisplayName(key, platformAdjustedModifiers);
     if (!_.has(eventHandlers, displayName)) {
         eventHandlers[displayName] = [];
     }
 
-    const callbackID = Str.guid();
-    eventHandlers[displayName].splice(priority, 0, {
-        id: callbackID,
-        callback,
-        captureOnInputs,
-        shouldPreventDefault,
-        shouldBubble,
+    KeyCommand.addListener({input: key.toLowerCase(), modifierFlags: libraryAdjustedModifiers}, (payload, event) => {
+        keyboard.bindHandlerToKeydownEvent(event, {
+            captureOnInputs,
+            shouldBubble,
+            callback,
+            shouldPreventDefault,
+        });
     });
 
     if (descriptionKey) {
@@ -172,7 +106,7 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
         };
     }
 
-    return () => unsubscribe(displayName, callbackID);
+    return () => {};
 }
 
 /**
