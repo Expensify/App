@@ -7,11 +7,16 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import Text from '../Text';
 import PDFPasswordForm from './PDFPasswordForm';
-import * as pdfViewPropTypes from './pdfViewPropTypes';
+import {propTypes as basePropTypes, defaultProps} from './pdfViewPropTypes';
 import compose from '../../libs/compose';
 import withWindowDimensions from '../withWindowDimensions';
-import withKeyboardState from '../withKeyboardState';
+import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
 import withLocalize from '../withLocalize';
+
+const propTypes = {
+    ...basePropTypes,
+    ...keyboardStatePropTypes,
+};
 
 /**
  * On the native layer, we use react-native-pdf/PDF to display PDFs. If a PDF is
@@ -174,8 +179,8 @@ class PDFView extends Component {
     }
 }
 
-PDFView.propTypes = pdfViewPropTypes.propTypes;
-PDFView.defaultProps = pdfViewPropTypes.defaultProps;
+PDFView.propTypes = propTypes;
+PDFView.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
