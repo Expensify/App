@@ -357,12 +357,14 @@ class IOUModal extends Component {
             );
             return;
         }
-        IOU.requestMoney(this.props.report,
+        IOU.requestMoney(
+            this.props.report,
             Math.round(this.state.amount * 100),
             this.props.iou.selectedCurrencyCode,
             this.props.currentUserPersonalDetails.login,
             selectedParticipants[0],
-            this.state.comment);
+            this.state.comment
+        );
     }
 
     renderHeader() {
