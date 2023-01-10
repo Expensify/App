@@ -41,7 +41,7 @@ const propTypes = {
     /* Onyx Props */
     /** Holds data related to IOU view state, rather than the underlying IOU data. */
     iou: PropTypes.shape({
-        /** Is the IOU Report currently being paid? */
+        /** Is the IOU Report currently being loaded? */
         loading: PropTypes.bool,
 
         /** Error message, empty represents no error */
@@ -147,7 +147,6 @@ class IOUDetailsModal extends Component {
 
     render() {
         const sessionEmail = lodashGet(this.props.session, 'email', null);
-        const reportIsLoading = this.props.iou.loading;
         const pendingAction = this.findPendingAction();
         const iouReportStateNum = lodashGet(this.props.iouReport, 'stateNum');
         const hasOutstandingIOU = lodashGet(this.props.iouReport, 'hasOutstandingIOU');
@@ -162,7 +161,7 @@ class IOUDetailsModal extends Component {
                         title={this.props.translate('common.details')}
                         onCloseButtonPress={Navigation.dismissModal}
                     />
-                    {reportIsLoading ? <ActivityIndicator color={themeColors.text} /> : (
+                    {this.props.iou.loading ? <ActivityIndicator color={themeColors.text} /> : (
                         <View style={[styles.flex1, styles.justifyContentBetween]}>
                             <ScrollView contentContainerStyle={styles.iouDetailsContainer}>
                                 <IOUPreview
@@ -181,7 +180,6 @@ class IOUDetailsModal extends Component {
                             {(hasOutstandingIOU && this.props.iouReport.managerEmail === sessionEmail && (
                                 <FixedFooter>
                                     <SettlementButton
-                                        isLoading={this.props.iou.loading}
                                         onPress={paymentMethodType => this.payMoneyRequest(paymentMethodType)}
                                         shouldShowPaypal={Boolean(lodashGet(this.props, 'iouReport.submitterPayPalMeAddress'))}
                                         currency={lodashGet(this.props, 'iouReport.currency')}
