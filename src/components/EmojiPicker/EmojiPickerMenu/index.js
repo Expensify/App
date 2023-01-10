@@ -396,6 +396,9 @@ class EmojiPickerMenu extends Component {
         }
         const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, this.emojis.length);
 
+        // Sort the emojis by index so that we always get the same order of emojis
+        newFilteredEmojiList.sort((a, b) => ((a.index > b.index) ? 1 : -1));
+
         // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
         this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: [], highlightedIndex: 0});
         this.setFirstNonHeaderIndex(newFilteredEmojiList);
