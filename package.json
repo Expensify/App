@@ -75,6 +75,7 @@
     "file-loader": "^6.0.0",
     "html-entities": "^1.3.1",
     "htmlparser2": "^7.2.0",
+    "jest-when": "^3.5.2",
     "localforage": "^1.10.0",
     "lodash": "4.17.21",
     "metro-config": "^0.71.3",
