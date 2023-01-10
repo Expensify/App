@@ -152,7 +152,7 @@ export default {
     },
     iOUCurrencySelection: {
         selectCurrency: 'Select a currency',
-        allCurrencies: 'ALL CURRENCIES',
+        allCurrencies: 'All currencies',
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
