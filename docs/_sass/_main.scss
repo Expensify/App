@@ -462,6 +462,13 @@ button {
         padding: 0;
         margin: 0;
 
+        @include maxBreakpoint($breakpoint-mobile) {
+            max-width: 50vw;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         &.with-margin {
             margin: 0 0 4px 0;
         }
