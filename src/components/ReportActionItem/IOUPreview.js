@@ -23,7 +23,7 @@ import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import walletTermsPropTypes from '../../pages/EnablePayments/walletTermsPropTypes';
 import ControlSelection from '../../libs/ControlSelection';
-import canUseTouchScreen from '../../libs/canUseTouchscreen';
+import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as ReportUtils from '../../libs/ReportUtils';
@@ -165,7 +165,7 @@ const IOUPreview = (props) => {
     return (
         <TouchableWithoutFeedback
             onPress={props.onPreviewPressed}
-            onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
+            onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
             onLongPress={showContextMenu}
         >
@@ -213,11 +213,18 @@ const IOUPreview = (props) => {
                                 </Text>
                             )
                             : (
-                                <Text>
-                                    {props.iouReport.hasOutstandingIOU
-                                        ? props.translate('iou.owesyou', {manager: managerName})
-                                        : props.translate('iou.paidyou', {manager: managerName})}
-                                </Text>
+                                <>
+                                    <Text>
+                                        {props.iouReport.hasOutstandingIOU
+                                            ? props.translate('iou.owesyou', {manager: managerName})
+                                            : props.translate('iou.paidyou', {manager: managerName})}
+                                    </Text>
+                                    {props.shouldShowPendingConversionMessage && (
+                                        <Text style={[styles.textLabel, styles.colorMuted]}>
+                                            {props.translate('iou.pendingConversionMessage')}
+                                        </Text>
+                                    )}
+                                </>
                             )}
                         {(isCurrentUserManager
                             && !props.shouldHidePayButton
@@ -225,7 +232,7 @@ const IOUPreview = (props) => {
                                 <Button
                                     style={styles.mt4}
                                     onPress={props.onPayButtonPressed}
-                                    onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
+                                    onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                                     onPressOut={() => ControlSelection.unblock()}
                                     onLongPress={showContextMenu}
                                     text={props.translate('iou.pay')}

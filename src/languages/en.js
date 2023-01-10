@@ -132,12 +132,18 @@ export default {
         description: 'Drag, zoom, and rotate your image to your preferred specifications',
     },
     composer: {
-        noExtentionFoundForMimeType: 'No extension found for mime type',
+        noExtensionFoundForMimeType: 'No extension found for mime type',
         problemGettingImageYouPasted: 'There was a problem getting the image you pasted',
     },
     baseUpdateAppModal: {
         updateApp: 'Update app',
         updatePrompt: 'A new version of this app is available.\nUpdate now or restart the app at a later time to download the latest changes.',
+    },
+    deeplinkWrapper: {
+        launching: 'Launching Expensify',
+        redirectedToDesktopApp: 'We\'ve redirected you to the desktop app.',
+        youCanAlso: 'You can also',
+        openLinkInBrowser: 'open this link in your browser',
     },
     iOUConfirmationList: {
         whoPaid: 'WHO PAID?',
@@ -260,6 +266,7 @@ export default {
         split: ({amount}) => `Split ${amount}`,
         send: ({amount}) => `Send ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
+        pendingConversionMessage: 'Total will update when you\'re back online',
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
@@ -284,7 +291,9 @@ export default {
         imageUploadFailed: 'Image upload failed',
         deleteWorkspaceError: 'Sorry, there was an unexpected problem deleting your workspace avatar.',
         sizeExceeded: ({maxUploadSizeInMB}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
-        tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels`,
+        resolutionConstraints: ({
+            minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx,
+        }) => `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels and smaller than ${maxHeightInPx}x${maxWidthInPx} pixels`,
         notAllowedExtension: ({allowedExtensions}) => `Profile picture must be one of the following types: ${allowedExtensions.join(', ')}.`,
     },
     profilePage: {
@@ -382,7 +391,8 @@ export default {
         reasonForLeavingPrompt: 'We’d hate to see you go! Would you kindly tell us why, so we can improve?',
         enterMessageHere: 'Enter message here',
         closeAccountWarning: 'Closing your account cannot be undone.',
-        closeAccountPermanentlyDeleteData: 'This will permanently delete all of your unsubmitted expense data. Type your phone number or email address to confirm.',
+        closeAccountPermanentlyDeleteData: 'This will permanently delete all of your unsubmitted expense data and will cancel and decline any outstanding money requests. Are you sure you want to delete the account?',
+        enterDefaultContactToConfirm: 'Please type your default contact method to confirm you wish to close your account. Your default contact method is:',
         enterDefaultContact: 'Enter your default contact method',
         defaultContact: 'Default contact method:',
         enterYourDefaultContactMethod: 'Please enter your default contact method to close your account.',
@@ -1025,6 +1035,7 @@ export default {
         createRoom: 'Create Room',
         roomAlreadyExistsError: 'A room with this name already exists',
         roomNameReservedError: 'A room on this workspace already uses this name',
+        roomNameInvalidError: 'Room names can only contain letters, numbers and hyphens',
         pleaseEnterRoomName: 'Please enter a room name',
         pleaseSelectWorkspace: 'Please select a workspace',
         renamedRoomAction: ({oldName, newName}) => ` renamed this room from ${oldName} to ${newName}`,
@@ -1035,6 +1046,9 @@ export default {
             restricted: 'Restricted',
             private: 'Private',
         },
+    },
+    statementPage: {
+        generatingPDF: 'We\'re generating your PDF right now. Please come back later!',
     },
     keyboardShortcutModal: {
         title: 'Keyboard Shortcuts',

@@ -3,7 +3,7 @@ import React, {Component} from 'react';
 import {Pressable} from 'react-native';
 import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
 import styles from '../../styles/styles';
-import hasHoverSupport from '../../libs/hasHoverSupport';
+import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 
 /**
  * This is a special Pressable that calls onSecondaryInteraction when LongPressed, or right-clicked.
@@ -46,7 +46,7 @@ class PressableWithSecondaryInteraction extends Component {
                 style={this.props.inline && styles.dInline}
                 onPressIn={this.props.onPressIn}
                 onLongPress={(e) => {
-                    if (hasHoverSupport()) {
+                    if (DeviceCapabilities.hasHoverSupport()) {
                         return;
                     }
                     this.props.onSecondaryInteraction(e);

@@ -11,7 +11,7 @@ import themeColors from '../../styles/themes/default';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import ControlSelection from '../../libs/ControlSelection';
-import canUseTouchScreen from '../../libs/canUseTouchscreen';
+import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import {showContextMenuForReport} from '../ShowContextMenuContext';
 
 const propTypes = {
@@ -51,7 +51,7 @@ const IOUQuote = props => (
                 onPress={props.shouldAllowViewDetails
                     ? props.onViewDetailsPressed
                     : () => {}}
-                onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
+                onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={event => showContextMenuForReport(
                     event,
