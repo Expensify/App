@@ -883,6 +883,7 @@ function buildOptimisticChatReport(
     visibility = undefined,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
 ) {
+    const currentTime = DateUtils.getDBTime();
     return {
         chatType,
         hasOutstandingIOU: false,
@@ -892,8 +893,8 @@ function buildOptimisticChatReport(
         lastMessageHtml: '',
         lastMessageText: null,
         lastReadSequenceNumber: 0,
-        lastActionCreated: DateUtils.getDBTime(),
-        lastReadTime: '',
+        lastActionCreated: currentTime,
+        lastReadTime: currentTime,
         maxSequenceNumber: 0,
         notificationPreference,
         oldPolicyName,

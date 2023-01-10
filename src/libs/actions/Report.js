@@ -338,7 +338,6 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
         // and we need the data to be available when we navigate to the chat page
         onyxData.optimisticData[0].onyxMethod = CONST.ONYX.METHOD.SET;
 
-        // Also create a report action so that the page isn't endlessly loading
         const optimisticReportAction = ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail);
         onyxData.optimisticData[1] = {
             onyxMethod: CONST.ONYX.METHOD.SET,
@@ -352,9 +351,6 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             pendingFields: {
                 createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
-
-            // We add 1ms such that the newly created report appears as read.
-            lastReadTime: DateUtils.getDBTime(moment().utc().add(1).valueOf()),
             isOptimisticReport: true,
         };
 
