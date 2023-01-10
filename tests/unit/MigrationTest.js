@@ -117,7 +117,6 @@ describe('Migrations', () => {
                         key: ONYXKEYS.COLLECTION.REPORT,
                         waitForCollectionCallback: true,
                         callback: (allReports) => {
-                            console.log('RORY_DEBUG in test allReports:', allReports);
                             Onyx.disconnect(connectionID);
                             expect(_.keys(allReports).length).toBe(2);
                             _.each(allReports, (report) => {
