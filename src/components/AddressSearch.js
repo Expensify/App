@@ -157,7 +157,6 @@ const AddressSearch = (props) => {
                         setDisplayListViewBorder(false);
                     }}
                     query={{
-                        key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
                         language: props.preferredLocale,
                         types: 'address',
                         components: 'country:us',
