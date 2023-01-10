@@ -1190,4 +1190,5 @@ export {
     clearIOUError,
     getMaxSequenceNumber,
     subscribeToNewActionEvent,
+    showReportActionNotification,
 };
