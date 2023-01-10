@@ -1107,6 +1107,12 @@ function showReportActionNotification(reportID, action) {
             Navigation.navigate(ROUTES.getReportRoute(reportID));
         },
     });
+
+    // Notify the ReportActionsView that a new comment has arrived
+    if (reportID === newActionSubscriber.reportID) {
+        const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
+        newActionSubscriber.callback(isFromCurrentUser, action.reportActionID);
+    }
 }
 
 /**
