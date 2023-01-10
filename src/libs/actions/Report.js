@@ -646,7 +646,7 @@ function deleteReportComment(reportID, reportAction) {
         };
 
         // We store the clientIDs and reportActionIDs of any report actions that were deleted while they were pending add,
-        // we use this information to skip the API requests when coming back online.
+        // we use this information to skip any API requests that handle adding/deleting them when coming back online.
         if (!allReports[reportID].deletedPendingAddReportActions) {
             allReports[reportID].deletedPendingAddReportActions = [];
         }
