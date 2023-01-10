@@ -727,6 +727,7 @@ const CONST = {
     ICON_TYPE_AVATAR: 'avatar',
     AVATAR_SIZE: {
         LARGE: 'large',
+        MEDIUM: 'medium',
         DEFAULT: 'default',
         SMALL: 'small',
         SMALLER: 'smaller',

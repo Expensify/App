@@ -2011,9 +2011,6 @@ const styles = {
     },
 
     roomHeaderAvatar: {
-        height: variables.componentSizeLarge,
-        width: variables.componentSizeLarge,
-        borderRadius: 100,
         borderColor: themeColors.componentBG,
         borderWidth: 4,
         marginLeft: -16,
