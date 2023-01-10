@@ -123,10 +123,6 @@ class PaymentMethodList extends Component {
             combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === this.props.filterType);
         }
 
-        if (!this.props.network.isOffline) {
-            combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        }
-
         combinedPaymentMethods = _.map(combinedPaymentMethods, paymentMethod => ({
             ...paymentMethod,
             onPress: e => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault, paymentMethod.methodID),
@@ -259,7 +255,6 @@ PaymentMethodList.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withNetwork(),
     withOnyx({
         bankAccountList: {
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
