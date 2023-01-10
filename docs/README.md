@@ -22,6 +22,17 @@ cd docs
 bundle install
 ```
 
+- On newer versions of macOS/Xcode you may see a `bundle install` error similar to the following. You can workaround it by symlinking whichever version of `universal-darwin` you have. More info in [this SO](https://stackoverflow.com/a/65481787/18466468).
+
+```bash
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.0.sdk/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/include/ruby-2.6.0/universal-darwin21/ruby/config.h', needed by arena.o'
+```
+
+```bash
+cd /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.0.sdk/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/include/ruby-2.6.0/
+ln -sf universal-darwin22 universal-darwin21
+```
+
 ## Steps
 
 1. Open the Terminal command line in macOS.
@@ -29,6 +40,14 @@ bundle install
 1. Run `bundle exec jekyll serve --livereload`.
     - _Note: If you see an error like `Unable to load the EventMachine C Extension...`, try running `gem uninstall eventmachine && bundle install`. If that doesn't work just removing the `--livereload` flag should work._
 1. Modify a `.html` or `.md` file and save your changes, and the browser should quickly auto-refresh.
+
+## Troubleshooting
+
+### Android Chrome emulator
+To visit the site on the Android emulator, go to `10.0.2.2:4000`.
+
+If you're getting an error page that says "Refused to connect", try running `adb reverse tcp:4000 tcp:4000` with your emulator open. 
+
 
 # How the project is structured
 

@@ -6,8 +6,6 @@ import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
 
 export {
-    setupWithdrawalAccount,
-    fetchFreePlanVerifiedBankAccount,
     goToWithdrawalAccountSetupStep,
     setBankAccountFormValidationErrors,
     resetReimbursementAccount,
@@ -25,7 +23,6 @@ export {
 } from './Plaid';
 export {
     openOnfidoFlow,
-    activateWallet,
     answerQuestionsForWallet,
     verifyIdentity,
     acceptWalletTerms,
@@ -366,6 +363,15 @@ function openWorkspaceView() {
     API.read('OpenWorkspaceView');
 }
 
+/**
+ * Set the reimbursement account loading so that it happens right away, instead of when the API command is processed.
+ *
+ * @param {Boolean} isLoading
+ */
+function setReimbursementAccountLoading(isLoading) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading});
+}
+
 export {
     addPersonalBankAccount,
     clearOnfidoToken,
@@ -382,4 +388,5 @@ export {
     openWorkspaceView,
     validateBankAccount,
     verifyIdentityForBankAccount,
+    setReimbursementAccountLoading,
 };

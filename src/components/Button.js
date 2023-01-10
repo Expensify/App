@@ -13,7 +13,6 @@ import HapticFeedback from '../libs/HapticFeedback';
 import withNavigationFallback from './withNavigationFallback';
 import compose from '../libs/compose';
 import * as Expensicons from './Icon/Expensicons';
-import colors from '../styles/colors';
 import withNavigationFocus from './withNavigationFocus';
 
 const propTypes = {
@@ -116,7 +115,7 @@ const defaultProps = {
     shouldShowRightIcon: false,
     icon: null,
     iconRight: Expensicons.ArrowRight,
-    iconFill: colors.white,
+    iconFill: themeColors.textLight,
     iconStyles: [],
     isLoading: false,
     isDisabled: false,
@@ -145,7 +144,6 @@ const defaultProps = {
 class Button extends Component {
     constructor(props) {
         super(props);
-        this.additionalStyles = StyleUtils.parseStyleAsArray(this.props.style);
 
         this.renderContent = this.renderContent.bind(this);
     }
@@ -218,7 +216,7 @@ class Button extends Component {
                         {textComponent}
                     </View>
                     {this.props.shouldShowRightIcon && (
-                        <View>
+                        <View style={styles.justifyContentCenter}>
                             <Icon
                                 src={this.props.iconRight}
                                 fill={this.props.iconFill}
@@ -257,7 +255,10 @@ class Button extends Component {
                 disabled={this.props.isLoading || this.props.isDisabled}
                 style={[
                     this.props.isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
-                    ...this.additionalStyles,
+                    styles.buttonContainer,
+                    this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
+                    this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+                    ...StyleUtils.parseStyleAsArray(this.props.style),
                 ]}
                 nativeID={this.props.nativeID}
             >
@@ -286,7 +287,7 @@ class Button extends Component {
                             {this.renderContent()}
                             {this.props.isLoading && (
                                 <ActivityIndicator
-                                    color={(this.props.success || this.props.danger) ? themeColors.textReversed : themeColors.text}
+                                    color={(this.props.success || this.props.danger) ? themeColors.textLight : themeColors.text}
                                     style={[styles.pAbsolute, styles.l0, styles.r0]}
                                 />
                             )}

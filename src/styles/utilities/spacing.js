@@ -93,6 +93,10 @@ export default {
         marginRight: -20,
     },
 
+    mrn8: {
+        marginRight: -32,
+    },
+
     mlAuto: {
         marginLeft: 'auto',
     },
@@ -127,6 +131,10 @@ export default {
 
     mln5: {
         marginLeft: -20,
+    },
+
+    mln8: {
+        marginLeft: -32,
     },
 
     mt1: {
@@ -276,6 +284,10 @@ export default {
 
     ph6: {
         paddingHorizontal: 24,
+    },
+
+    ph8: {
+        paddingHorizontal: 32,
     },
 
     pr1: {

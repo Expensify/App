@@ -1,9 +1,11 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, ScrollView, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
+import {withNetwork} from '../../components/OnyxProvider';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
@@ -28,6 +30,8 @@ import cardPropTypes from '../../components/cardPropTypes';
 import * as Wallet from '../../libs/actions/Wallet';
 import walletTermsPropTypes from '../EnablePayments/walletTermsPropTypes';
 import * as PolicyUtils from '../../libs/PolicyUtils';
+import ConfirmModal from '../../components/ConfirmModal';
+import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 
 const propTypes = {
     /* Onyx Props */
@@ -96,6 +100,12 @@ class InitialSettingsPage extends React.Component {
         this.getWalletBalance = this.getWalletBalance.bind(this);
         this.getDefaultMenuItems = this.getDefaultMenuItems.bind(this);
         this.getMenuItem = this.getMenuItem.bind(this);
+        this.toggleSignoutConfirmModal = this.toggleSignoutConfirmModal.bind(this);
+        this.signout = this.signOut.bind(this);
+
+        this.state = {
+            shouldShowSignoutConfirmModal: false,
+        };
     }
 
     componentDidMount() {
@@ -171,7 +181,7 @@ class InitialSettingsPage extends React.Component {
             {
                 translationKey: 'initialSettingsPage.signOut',
                 icon: Expensicons.Exit,
-                action: Session.signOutAndRedirectToSignIn,
+                action: () => { this.signout(false); },
             },
         ]);
     }
@@ -199,6 +209,20 @@ class InitialSettingsPage extends React.Component {
         );
     }
 
+    toggleSignoutConfirmModal(value) {
+        this.setState({shouldShowSignoutConfirmModal: value});
+    }
+
+    signOut(shouldForceSignout = false) {
+        if (!this.props.network.isOffline || shouldForceSignout) {
+            Session.signOutAndRedirectToSignIn();
+            return;
+        }
+
+        // When offline, warn the user that any actions they took while offline will be lost if they sign out
+        this.toggleSignoutConfirmModal(true);
+    }
+
     openProfileSettings() {
         Navigation.navigate(ROUTES.SETTINGS_PROFILE);
     }
@@ -212,7 +236,7 @@ class InitialSettingsPage extends React.Component {
         }
 
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('common.settings')}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -222,16 +246,20 @@ class InitialSettingsPage extends React.Component {
                         <View style={styles.pageWrapper}>
                             <Pressable style={[styles.mb3]} onPress={this.openProfileSettings}>
                                 <Tooltip text={this.props.currentUserPersonalDetails.displayName}>
-                                    <Avatar
-                                        imageStyles={[styles.avatarLarge]}
-                                        source={this.props.currentUserPersonalDetails.avatar}
-                                        size={CONST.AVATAR_SIZE.LARGE}
-                                    />
+                                    <OfflineWithFeedback
+                                        pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
+                                    >
+                                        <Avatar
+                                            imageStyles={[styles.avatarLarge]}
+                                            source={this.props.currentUserPersonalDetails.avatar}
+                                            size={CONST.AVATAR_SIZE.LARGE}
+                                        />
+                                    </OfflineWithFeedback>
                                 </Tooltip>
                             </Pressable>
 
                             <Pressable style={[styles.mt1, styles.mw100]} onPress={this.openProfileSettings}>
-                                <Text style={[styles.displayName]} numberOfLines={1}>
+                                <Text style={[styles.textHeadline]} numberOfLines={1}>
                                     {this.props.currentUserPersonalDetails.displayName
                                         ? this.props.currentUserPersonalDetails.displayName
                                         : Str.removeSMSDomain(this.props.session.email)}
@@ -247,6 +275,17 @@ class InitialSettingsPage extends React.Component {
                             )}
                         </View>
                         {_.map(this.getDefaultMenuItems(), (item, index) => this.getMenuItem(item, index))}
+
+                        <ConfirmModal
+                            danger
+                            title={this.props.translate('common.areYouSure')}
+                            prompt={this.props.translate('initialSettingsPage.signOutConfirmationText')}
+                            confirmText={this.props.translate('initialSettingsPage.signOut')}
+                            cancelText={this.props.translate('common.cancel')}
+                            isVisible={this.state.shouldShowSignoutConfirmModal}
+                            onConfirm={() => this.signOut(true)}
+                            onCancel={() => this.toggleSignoutConfirmModal(false)}
+                        />
                     </View>
                 </ScrollView>
             </ScreenWrapper>
@@ -286,4 +325,5 @@ export default compose(
             key: ONYXKEYS.WALLET_TERMS,
         },
     }),
+    withNetwork(),
 )(InitialSettingsPage);

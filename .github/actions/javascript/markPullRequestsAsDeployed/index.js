@@ -480,7 +480,7 @@ class GithubUtils {
                 console.log('Found the following Internal QA PRs:', internalQAPRMap);
 
                 const noQAPRs = _.pluck(
-                    _.filter(data, PR => (PR.title || '').toUpperCase().startsWith('[NO QA]')),
+                    _.filter(data, PR => /\[No\s?QA]/i.test(PR.title)),
                     'html_url',
                 );
                 console.log('Found the following NO QA PRs:', noQAPRs);
@@ -540,7 +540,7 @@ class GithubUtils {
                 // eslint-disable-next-line max-len
                 issueBody += `\r\n- [${isTimingDashboardChecked ? 'x' : ' '}] I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.`;
                 // eslint-disable-next-line max-len
-                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes.`;
+                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
 
                 issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
                 return issueBody;
@@ -575,6 +575,44 @@ class GithubUtils {
         })
             .then(prList => _.filter(prList, pr => _.contains(pullRequestNumbers, pr.number)))
             .catch(err => console.error('Failed to get PR list', err));
+    }
+
+    /**
+     * @param {Number} pullRequestNumber
+     * @returns {Promise}
+     */
+    static getPullRequestBody(pullRequestNumber) {
+        return this.octokit.pulls.get({
+            owner: GITHUB_OWNER,
+            repo: APP_REPO,
+            pull_number: pullRequestNumber,
+        }).then(({data: pullRequestComment}) => pullRequestComment.body);
+    }
+
+    /**
+     * @param {Number} pullRequestNumber
+     * @returns {Promise}
+     */
+    static getAllReviewComments(pullRequestNumber) {
+        return this.paginate(this.octokit.pulls.listReviews, {
+            owner: GITHUB_OWNER,
+            repo: APP_REPO,
+            pull_number: pullRequestNumber,
+            per_page: 100,
+        }, response => _.map(response.data, review => review.body));
+    }
+
+    /**
+     * @param {Number} issueNumber
+     * @returns {Promise}
+     */
+    static getAllComments(issueNumber) {
+        return this.paginate(this.octokit.issues.listComments, {
+            owner: GITHUB_OWNER,
+            repo: APP_REPO,
+            issue_number: issueNumber,
+            per_page: 100,
+        }, response => _.map(response.data, comment => comment.body));
     }
 
     /**

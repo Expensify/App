@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {Freeze} from 'react-freeze';
+import {PortalHost} from '@gorhom/portal';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
@@ -153,13 +154,9 @@ class ReportScreen extends React.Component {
     isReportReadyForDisplay() {
         const reportIDFromPath = getReportID(this.props.route);
 
-        // We need to wait for the initial app data to load as it tells us which reports are unread. Waiting will allow the new marker to be set
-        // correctly when the report mounts. If we don't do this, the report may initialize in the "read" state and the marker won't be set at all.
-        const isLoadingInitialAppData = this.props.isLoadingInitialAppData;
-
         // This is necessary so that when we are retrieving the next report data from Onyx the ReportActionsView will remount completely
         const isTransitioning = this.props.report && this.props.report.reportID !== reportIDFromPath;
-        return reportIDFromPath && this.props.report.reportID && !isTransitioning && !isLoadingInitialAppData;
+        return reportIDFromPath && this.props.report.reportID && !isTransitioning;
     }
 
     fetchReportIfNeeded() {
@@ -199,10 +196,12 @@ class ReportScreen extends React.Component {
         // We create policy rooms for all policies, however we don't show them unless
         // - It's a free plan workspace
         // - The report includes guides participants (@team.expensify.com) for 1:1 Assigned
+        // - It's an archived room
         if (!Permissions.canUseDefaultRooms(this.props.betas)
             && ReportUtils.isDefaultRoom(this.props.report)
             && ReportUtils.getPolicyType(this.props.report, this.props.policies) !== CONST.POLICY.TYPE.FREE
             && !ReportUtils.hasExpensifyGuidesEmails(lodashGet(this.props.report, ['participants'], []))
+            && !ReportUtils.isArchivedRoom(this.props.report)
         ) {
             return null;
         }
@@ -220,20 +219,29 @@ class ReportScreen extends React.Component {
 
         // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
+
+        // When the ReportScreen is not open/in the viewport, we want to "freeze" it for performance reasons
+        const freeze = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
+
+        // the moment the ReportScreen becomes unfrozen we want to start the animation of the placeholder skeleton content
+        // (which is shown, until all the actual views of the ReportScreen have been rendered)
+        const animatePlaceholder = !freeze;
+
         return (
-            <Freeze
-                freeze={this.props.isSmallScreenWidth && this.props.isDrawerOpen}
-                placeholder={(
-                    <ScreenWrapper
-                        style={screenWrapperStyle}
-                    >
-                        <ReportHeaderSkeletonView />
-                        <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
-                    </ScreenWrapper>
-                )}
+            <ScreenWrapper
+                style={screenWrapperStyle}
             >
-                <ScreenWrapper
-                    style={screenWrapperStyle}
+                <Freeze
+                    freeze={freeze}
+                    placeholder={(
+                        <>
+                            <ReportHeaderSkeletonView animate={animatePlaceholder} />
+                            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
+                                <ReportActionsSkeletonView animate={animatePlaceholder} containerHeight={this.state.skeletonViewContainerHeight} />
+                                <ReportFooter shouldDisableCompose isOffline={this.props.network.isOffline} />
+                            </View>
+                        </>
+                    )}
                 >
                     <FullPageNotFoundView
                         shouldShow={!this.props.report.reportID}
@@ -278,44 +286,45 @@ class ReportScreen extends React.Component {
                                 if (skeletonViewContainerHeight === 0) {
                                     return;
                                 }
-
                                 reportActionsListViewHeight = skeletonViewContainerHeight;
                                 this.setState({skeletonViewContainerHeight});
                             }}
                         >
-                            {this.isReportReadyForDisplay() && (
-                                <ReportActionsView
-                                    reportActions={this.props.reportActions}
-                                    report={this.props.report}
-                                    session={this.props.session}
-                                    isComposerFullSize={this.props.isComposerFullSize}
-                                    isDrawerOpen={this.props.isDrawerOpen}
-                                    parentViewHeight={this.state.skeletonViewContainerHeight}
-                                />
+                            {(this.isReportReadyForDisplay() && !isLoadingInitialReportActions) && (
+                                <>
+                                    <ReportActionsView
+                                        reportActions={this.props.reportActions}
+                                        report={this.props.report}
+                                        session={this.props.session}
+                                        isComposerFullSize={this.props.isComposerFullSize}
+                                        isDrawerOpen={this.props.isDrawerOpen}
+                                        parentViewHeight={this.state.skeletonViewContainerHeight}
+                                    />
+                                    <ReportFooter
+                                        errors={addWorkspaceRoomOrChatErrors}
+                                        pendingAction={addWorkspaceRoomOrChatPendingAction}
+                                        isOffline={this.props.network.isOffline}
+                                        reportActions={this.props.reportActions}
+                                        report={this.props.report}
+                                        isComposerFullSize={this.props.isComposerFullSize}
+                                        onSubmitComment={this.onSubmitComment}
+                                    />
+                                </>
                             )}
 
                             {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
                             we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
                             {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions) && (
-                                <ReportActionsSkeletonView
-                                    containerHeight={this.state.skeletonViewContainerHeight}
-                                />
+                                <>
+                                    <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
+                                    <ReportFooter shouldDisableCompose isOffline={this.props.network.isOffline} />
+                                </>
                             )}
-                            {this.isReportReadyForDisplay() && !isLoadingInitialReportActions && (
-                                <ReportFooter
-                                    errors={addWorkspaceRoomOrChatErrors}
-                                    pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                    isOffline={this.props.network.isOffline}
-                                    reportActions={this.props.reportActions}
-                                    report={this.props.report}
-                                    isComposerFullSize={this.props.isComposerFullSize}
-                                    onSubmitComment={this.onSubmitComment}
-                                />
-                            )}
+                            <PortalHost name={CONST.REPORT.DROP_HOST_NAME} />
                         </View>
                     </FullPageNotFoundView>
-                </ScreenWrapper>
-            </Freeze>
+                </Freeze>
+            </ScreenWrapper>
         );
     }
 }
@@ -356,9 +365,6 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        isLoadingInitialAppData: {
-            key: ONYXKEYS.IS_LOADING_INITIAL_APP_DATA,
         },
     }),
 )(ReportScreen);

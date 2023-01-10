@@ -22,6 +22,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ConfirmModal from './ConfirmModal';
 import TextWithEllipsis from './TextWithEllipsis';
 import HeaderGap from './HeaderGap';
+import SafeAreaConsumer from './SafeAreaConsumer';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -151,6 +152,17 @@ class AttachmentModal extends PureComponent {
      * @returns {Boolean}
      */
     isValidFile(file) {
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
+        if (!_.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
+            const invalidReason = `${this.props.translate('attachmentPicker.notAllowedExtension')} ${CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS.join(', ')}`;
+            this.setState({
+                isAttachmentInvalid: true,
+                attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.wrongFileType'),
+                attachmentInvalidReason: invalidReason,
+            });
+            return false;
+        }
+
         if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
             this.setState({
                 isAttachmentInvalid: true,
@@ -165,17 +177,6 @@ class AttachmentModal extends PureComponent {
                 isAttachmentInvalid: true,
                 attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.attachmentTooSmall'),
                 attachmentInvalidReason: this.props.translate('attachmentPicker.sizeNotMet'),
-            });
-            return false;
-        }
-
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
-        if (!_.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
-            const invalidReason = `${this.props.translate('attachmentPicker.notAllowedExtension')} ${CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS.join(', ')}`;
-            this.setState({
-                isAttachmentInvalid: true,
-                attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.wrongFileType'),
-                attachmentInvalidReason: invalidReason,
             });
             return false;
         }
@@ -275,17 +276,21 @@ class AttachmentModal extends PureComponent {
 
                     {/* If we have an onConfirm method show a confirmation button */}
                     {this.props.onConfirm && (
-                        <Animated.View style={StyleUtils.fade(this.state.confirmButtonFadeAnimation)}>
-                            <Button
-                                success
-                                style={[styles.buttonConfirm]}
-                                textStyles={[styles.buttonConfirmText]}
-                                text={this.props.translate('common.send')}
-                                onPress={this.submitAndClose}
-                                disabled={this.state.isConfirmButtonDisabled}
-                                pressOnEnter
-                            />
-                        </Animated.View>
+                        <SafeAreaConsumer>
+                            {({safeAreaPaddingBottomStyle}) => (
+                                <Animated.View style={[StyleUtils.fade(this.state.confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
+                                    <Button
+                                        success
+                                        style={[styles.buttonConfirm, this.props.isSmallScreenWidth ? {} : styles.attachmentButtonBigScreen]}
+                                        textStyles={[styles.buttonConfirmText]}
+                                        text={this.props.translate('common.send')}
+                                        onPress={this.submitAndClose}
+                                        disabled={this.state.isConfirmButtonDisabled}
+                                        pressOnEnter
+                                    />
+                                </Animated.View>
+                            )}
+                        </SafeAreaConsumer>
                     )}
                 </Modal>
 

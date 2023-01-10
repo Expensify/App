@@ -19,6 +19,7 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
+import Performance from '../libs/Performance';
 
 const propTypes = {
     /* Onyx Props */
@@ -48,7 +49,9 @@ class SearchPage extends Component {
         super(props);
 
         Timing.start(CONST.TIMING.SEARCH_RENDER);
+        Performance.markStart(CONST.TIMING.SEARCH_RENDER);
 
+        this.searchRendered = this.searchRendered.bind(this);
         this.selectReport = this.selectReport.bind(this);
         this.onChangeText = this.onChangeText.bind(this);
         this.debouncedUpdateOptions = _.debounce(this.updateOptions.bind(this), 75);
@@ -72,10 +75,6 @@ class SearchPage extends Component {
         };
     }
 
-    componentDidMount() {
-        Timing.end(CONST.TIMING.SEARCH_RENDER);
-    }
-
     onChangeText(searchValue = '') {
         this.setState({searchValue}, this.debouncedUpdateOptions);
     }
@@ -87,32 +86,40 @@ class SearchPage extends Component {
      */
     getSections() {
         const sections = [];
+        let indexOffset = 0;
+
         if (this.state.recentReports.length > 0) {
             sections.push(({
                 data: this.state.recentReports,
                 shouldShow: true,
-                indexOffset: 0,
+                indexOffset,
             }));
+            indexOffset += this.state.recentReports.length;
         }
 
         if (this.state.personalDetails.length > 0) {
             sections.push(({
                 data: this.state.personalDetails,
                 shouldShow: true,
-                indexOffset: this.state.recentReports.length,
+                indexOffset,
             }));
+            indexOffset += this.state.recentReports.length;
         }
 
         if (this.state.userToInvite) {
             sections.push(({
-                undefined,
                 data: [this.state.userToInvite],
                 shouldShow: true,
-                indexOffset: 0,
+                indexOffset,
             }));
         }
 
         return sections;
+    }
+
+    searchRendered() {
+        Timing.end(CONST.TIMING.SEARCH_RENDER);
+        Performance.markEnd(CONST.TIMING.SEARCH_RENDER);
     }
 
     updateOptions() {
@@ -162,7 +169,7 @@ class SearchPage extends Component {
             this.state.searchValue,
         );
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({didScreenTransitionEnd}) => (
                     <>
                         <HeaderWithCloseButton
@@ -177,9 +184,10 @@ class SearchPage extends Component {
                                 onChangeText={this.onChangeText}
                                 headerMessage={headerMessage}
                                 hideSectionHeaders
-                                hideAdditionalOptionStates
                                 showTitleTooltip
                                 shouldShowOptions={didScreenTransitionEnd}
+                                placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                onLayout={this.searchRendered}
                             />
                         </View>
                     </>

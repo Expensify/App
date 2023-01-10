@@ -15,8 +15,7 @@ import * as Expensicons from './Icon/Expensicons';
 import MultipleAvatars from './MultipleAvatars';
 import Hoverable from './Hoverable';
 import DisplayNames from './DisplayNames';
-import IOUBadge from './IOUBadge';
-import colors from '../styles/colors';
+import themeColors from '../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Text from './Text';
 import SelectCircle from './SelectCircle';
@@ -27,15 +26,6 @@ import * as ReportUtils from '../libs/ReportUtils';
 import variables from '../styles/variables';
 
 const propTypes = {
-    /** The accessibility hint for the entire option row. Primarily used for unit testing to identify the component */
-    accessibilityHint: PropTypes.string,
-
-    /** The accessibility hint for alternative text label. Primarily used for unit testing to identify the component */
-    alternateTextAccessibilityLabel: PropTypes.string,
-
-    /** Background Color of the Option Row */
-    backgroundColor: PropTypes.string,
-
     /** Style for hovered state */
     // eslint-disable-next-line react/forbid-prop-types
     hoverStyle: PropTypes.object,
@@ -49,26 +39,23 @@ const propTypes = {
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow: PropTypes.func,
 
-    /** A flag to indicate whether to show additional optional states, such as pin and draft icons */
-    hideAdditionalOptionStates: PropTypes.bool,
-
     /** Whether we should show the selected state */
     showSelectedState: PropTypes.bool,
 
     /** Whether this item is selected */
     isSelected: PropTypes.bool,
 
-    /** Force the text style to be the unread style */
-    forceTextUnreadStyle: PropTypes.bool,
+    /** Display the text of the option in bold font style */
+    boldStyle: PropTypes.bool,
 
     /** Whether to show the title tooltip */
     showTitleTooltip: PropTypes.bool,
 
-    /** Toggle between compact and default view */
-    mode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
-
     /** Whether this option should be disabled */
     isDisabled: PropTypes.bool,
+
+    /** Whether to show a line separating options in list */
+    shouldHaveOptionSeparator: PropTypes.bool,
 
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
@@ -76,20 +63,16 @@ const propTypes = {
 };
 
 const defaultProps = {
-    accessibilityHint: '',
-    alternateTextAccessibilityLabel: '',
-    backgroundColor: colors.white,
     hoverStyle: styles.sidebarLinkHover,
-    hideAdditionalOptionStates: false,
     showSelectedState: false,
     isSelected: false,
-    forceTextUnreadStyle: false,
+    boldStyle: false,
     showTitleTooltip: false,
-    mode: 'default',
     onSelectRow: () => {},
     isDisabled: false,
     optionIsFocused: false,
     style: null,
+    shouldHaveOptionSeparator: false,
 };
 
 const OptionRow = (props) => {
@@ -97,24 +80,12 @@ const OptionRow = (props) => {
     const textStyle = props.optionIsFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
-    const textUnreadStyle = (props.option.isUnread || props.forceTextUnreadStyle)
-        ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
-    const displayNameStyle = StyleUtils.combineStyles(props.mode === CONST.OPTION_MODE.COMPACT
-        ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2]
-        : [styles.optionDisplayName, ...textUnreadStyle], props.style);
-    const alternateTextStyle = StyleUtils.combineStyles(props.mode === CONST.OPTION_MODE.COMPACT
-        ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact]
-        : [textStyle, styles.optionAlternateText, styles.textLabelSupporting], props.style);
-    const contentContainerStyles = props.mode === CONST.OPTION_MODE.COMPACT
-        ? [styles.flex1, styles.flexRow, styles.overflowHidden, styles.alignItemsCenter]
-        : [styles.flex1];
-    const sidebarInnerRowStyle = StyleSheet.flatten(props.mode === CONST.OPTION_MODE.COMPACT ? [
-        styles.chatLinkRowPressable,
-        styles.flexGrow1,
-        styles.optionItemAvatarNameWrapper,
-        styles.optionRowCompact,
-        styles.justifyContentCenter,
-    ] : [
+    const textUnreadStyle = (props.boldStyle)
+        ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
+    const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, textUnreadStyle, props.style);
+    const alternateTextStyle = StyleUtils.combineStyles(textStyle, styles.optionAlternateText, styles.textLabelSupporting, props.style);
+    const contentContainerStyles = [styles.flex1];
+    const sidebarInnerRowStyle = StyleSheet.flatten([
         styles.chatLinkRowPressable,
         styles.flexGrow1,
         styles.optionItemAvatarNameWrapper,
@@ -160,13 +131,13 @@ const OptionRow = (props) => {
                             styles.justifyContentBetween,
                             styles.sidebarLink,
                             styles.sidebarLinkInner,
-                            StyleUtils.getBackgroundColorStyle(props.backgroundColor),
                             props.optionIsFocused ? styles.sidebarLinkActive : null,
                             hovered && !props.optionIsFocused ? props.hoverStyle : null,
                             props.isDisabled && styles.cursorDisabled,
+                            props.shouldHaveOptionSeparator && styles.borderTop,
                         ]}
                     >
-                        <View accessibilityHint={props.accessibilityHint} style={sidebarInnerRowStyle}>
+                        <View style={sidebarInnerRowStyle}>
                             <View
                                 style={[
                                     styles.flexRow,
@@ -182,14 +153,13 @@ const OptionRow = (props) => {
                                             secondaryAvatar={props.option.icons[1]}
                                             mainTooltip={props.option.ownerEmail}
                                             secondaryTooltip={props.option.subtitle}
-                                            size={props.mode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                            size={CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     ) : (
                                         <MultipleAvatars
                                             icons={props.option.icons}
-                                            size={props.mode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                            size={CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[
-                                                StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor),
                                                 props.optionIsFocused
                                                     ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor)
                                                     : undefined,
@@ -214,7 +184,6 @@ const OptionRow = (props) => {
                                     />
                                     {props.option.alternateText ? (
                                         <Text
-                                            accessibilityLabel={props.alternateTextAccessibilityLabel}
                                             style={alternateTextStyle}
                                             numberOfLines={1}
                                         >
@@ -233,7 +202,7 @@ const OptionRow = (props) => {
                                 <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                     <Icon
                                         src={Expensicons.DotIndicator}
-                                        fill={colors.red}
+                                        fill={themeColors.danger}
                                         height={variables.iconSizeSmall}
                                         width={variables.iconSizeSmall}
                                     />
@@ -242,30 +211,19 @@ const OptionRow = (props) => {
                                 {props.showSelectedState && <SelectCircle isChecked={props.isSelected} />}
                             </View>
                         </View>
-                        {!props.hideAdditionalOptionStates && (
+                        {props.option.customIcon && (
                             <View
                                 style={[styles.flexRow, styles.alignItemsCenter]}
                                 accessible={false}
                             >
-                                {props.option.hasDraftComment && (
-                                    <View
-                                        style={styles.ml2}
-                                        accessibilityLabel={props.translate('sidebarScreen.draftedMessage')}
-                                    >
-                                        <Icon src={Expensicons.Pencil} height={16} width={16} />
-                                    </View>
-                                )}
-                                {props.option.hasOutstandingIOU && (
-                                    <IOUBadge iouReportID={props.option.iouReportID} />
-                                )}
-                                {props.option.isPinned && (
-                                    <View
-                                        style={styles.ml2}
-                                        accessibilityLabel={props.translate('sidebarScreen.chatPinned')}
-                                    >
-                                        <Icon src={Expensicons.Pin} height={16} width={16} />
-                                    </View>
-                                )}
+                                <View>
+                                    <Icon
+                                        src={lodashGet(props.option, 'customIcon.src', '')}
+                                        height={16}
+                                        width={16}
+                                        fill={lodashGet(props.option, 'customIcon.color')}
+                                    />
+                                </View>
                             </View>
                         )}
                     </TouchableOpacity>
@@ -280,71 +238,13 @@ OptionRow.defaultProps = defaultProps;
 OptionRow.displayName = 'OptionRow';
 
 // It it very important to use React.memo here so SectionList items will not unnecessarily re-render
-export default withLocalize(memo(OptionRow, (prevProps, nextProps) => {
-    if (prevProps.optionIsFocused !== nextProps.optionIsFocused) {
-        return false;
-    }
-
-    if (prevProps.isSelected !== nextProps.isSelected) {
-        return false;
-    }
-
-    if (prevProps.mode !== nextProps.mode) {
-        return false;
-    }
-
-    if (prevProps.option.isUnread !== nextProps.option.isUnread) {
-        return false;
-    }
-
-    if (prevProps.option.alternateText !== nextProps.option.alternateText) {
-        return false;
-    }
-
-    if (prevProps.option.descriptiveText !== nextProps.option.descriptiveText) {
-        return false;
-    }
-
-    if (prevProps.option.hasDraftComment !== nextProps.option.hasDraftComment) {
-        return false;
-    }
-
-    if (prevProps.option.isPinned !== nextProps.option.isPinned) {
-        return false;
-    }
-
-    if (prevProps.option.hasOutstandingIOU !== nextProps.option.hasOutstandingIOU) {
-        return false;
-    }
-
-    if (!_.isEqual(prevProps.option.icons, nextProps.option.icons)) {
-        return false;
-    }
-
-    // Re-render when the text changes
-    if (prevProps.option.text !== nextProps.option.text) {
-        return false;
-    }
-
-    if (prevProps.showSelectedState !== nextProps.showSelectedState) {
-        return false;
-    }
-
-    if (prevProps.isDisabled !== nextProps.isDisabled) {
-        return false;
-    }
-
-    if (prevProps.showTitleTooltip !== nextProps.showTitleTooltip) {
-        return false;
-    }
-
-    if (prevProps.backgroundColor !== nextProps.backgroundColor) {
-        return false;
-    }
-
-    if (prevProps.option.brickRoadIndicator !== nextProps.option.brickRoadIndicator) {
-        return false;
-    }
-
-    return true;
-}));
+export default withLocalize(memo(OptionRow, (prevProps, nextProps) => prevProps.optionIsFocused === nextProps.optionIsFocused
+    && prevProps.isSelected === nextProps.isSelected
+    && prevProps.option.alternateText === nextProps.option.alternateText
+    && prevProps.option.descriptiveText === nextProps.option.descriptiveText
+    && _.isEqual(prevProps.option.icons, nextProps.option.icons)
+    && prevProps.option.text === nextProps.option.text
+    && prevProps.showSelectedState === nextProps.showSelectedState
+    && prevProps.isDisabled === nextProps.isDisabled
+    && prevProps.showTitleTooltip === nextProps.showTitleTooltip
+    && prevProps.option.brickRoadIndicator === nextProps.option.brickRoadIndicator));

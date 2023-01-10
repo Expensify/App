@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
@@ -27,13 +28,11 @@ import reportActionPropTypes from '../report/reportActionPropTypes';
 import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
     onLinkClick: PropTypes.func.isRequired,
-
-    /** Navigates to settings and hides sidebar */
-    onAvatarClick: PropTypes.func.isRequired,
 
     /** Safe area insets required for mobile devices margins */
     insets: safeAreaInsetPropTypes.isRequired,
@@ -41,11 +40,11 @@ const propTypes = {
     /* Onyx Props */
     /** List of reports */
     // eslint-disable-next-line react/no-unused-prop-types
-    reports: PropTypes.objectOf(reportPropTypes),
+    chatReports: PropTypes.objectOf(reportPropTypes),
 
     /** All report actions for all reports */
     // eslint-disable-next-line react/no-unused-prop-types
-    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+    reportActions: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes))),
 
     /** List of users' personal details */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -72,7 +71,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    reports: {},
+    chatReports: {},
     reportActions: {},
     personalDetails: {},
     currentUserPersonalDetails: {
@@ -83,8 +82,43 @@ const defaultProps = {
 };
 
 class SidebarLinks extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.showSearchPage = this.showSearchPage.bind(this);
+        this.showSettingsPage = this.showSettingsPage.bind(this);
+        this.showReportPage = this.showReportPage.bind(this);
+    }
+
     showSearchPage() {
+        if (this.props.isCreateMenuOpen) {
+            // Prevent opening Search page when click Search icon quickly after clicking FAB icon
+            return;
+        }
         Navigation.navigate(ROUTES.SEARCH);
+    }
+
+    showSettingsPage() {
+        if (this.props.isCreateMenuOpen) {
+            // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS);
+    }
+
+    /**
+     * Show Report page with selected report id
+     *
+     * @param {Object} option
+     * @param {String} option.reportID
+     */
+    showReportPage(option) {
+        if (this.props.isCreateMenuOpen) {
+            // Prevent opening Report page when click LHN row quickly after clicking FAB icon
+            return;
+        }
+        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+        this.props.onLinkClick();
     }
 
     render() {
@@ -110,11 +144,11 @@ class SidebarLinks extends React.Component {
                     nativeID="drag-area"
                 >
                     <Header
-                        textSize="large"
                         title={this.props.translate('sidebarScreen.headerChat')}
                         accessibilityLabel={this.props.translate('sidebarScreen.headerChat')}
                         accessibilityRole="text"
                         shouldShowEnvironmentBadge
+                        textStyles={[styles.textHeadline]}
                     />
                     <Tooltip text={this.props.translate('common.search')}>
                         <TouchableOpacity
@@ -129,12 +163,16 @@ class SidebarLinks extends React.Component {
                     <TouchableOpacity
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
                         accessibilityRole="button"
-                        onPress={this.props.onAvatarClick}
+                        onPress={this.showSettingsPage}
                     >
-                        <AvatarWithIndicator
-                            source={this.props.currentUserPersonalDetails.avatar}
-                            tooltipText={this.props.translate('common.settings')}
-                        />
+                        <OfflineWithFeedback
+                            pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
+                        >
+                            <AvatarWithIndicator
+                                source={this.props.currentUserPersonalDetails.avatar}
+                                tooltipText={this.props.translate('common.settings')}
+                            />
+                        </OfflineWithFeedback>
                     </TouchableOpacity>
                 </View>
                 <Freeze freeze={this.props.isSmallScreenWidth && !this.props.isDrawerOpen && this.isSidebarLoaded}>
@@ -147,10 +185,7 @@ class SidebarLinks extends React.Component {
                         focusedIndex={_.findIndex(optionListItems, (
                             option => option.toString() === this.props.reportIDFromRoute
                         ))}
-                        onSelectRow={(option) => {
-                            Navigation.navigate(ROUTES.getReportRoute(option.reportID));
-                            this.props.onLinkClick();
-                        }}
+                        onSelectRow={this.showReportPage}
                         shouldDisableFocusOptions={this.props.isSmallScreenWidth}
                         optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
                         onLayout={() => {
@@ -173,25 +208,32 @@ SidebarLinks.defaultProps = defaultProps;
  * @param {Object} [report]
  * @returns {Object|undefined}
  */
-const reportSelector = report => report && ({
-    reportID: report.reportID,
-    participants: report.participants,
-    hasDraft: report.hasDraft,
-    isPinned: report.isPinned,
-    errorFields: {
-        addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
-    },
-    maxSequenceNumber: report.maxSequenceNumber,
-    lastReadSequenceNumber: report.lastReadSequenceNumber,
-    lastMessageText: report.lastMessageText,
-    lastMessageTimestamp: report.lastMessageTimestamp,
-    iouReportID: report.iouReportID,
-    hasOutstandingIOU: report.hasOutstandingIOU,
-    statusNum: report.statusNum,
-    stateNum: report.stateNum,
-    chatType: report.chatType,
-    policyID: report.policyID,
-});
+const chatReportSelector = (report) => {
+    if (ReportUtils.isIOUReport(report)) {
+        return null;
+    }
+    return report && ({
+        reportID: report.reportID,
+        participants: report.participants,
+        hasDraft: report.hasDraft,
+        isPinned: report.isPinned,
+        errorFields: {
+            addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
+        },
+        maxSequenceNumber: report.maxSequenceNumber,
+        lastReadSequenceNumber: report.lastReadSequenceNumber,
+        lastReadTime: report.lastReadTime,
+        lastMessageText: report.lastMessageText,
+        lastActionCreated: report.lastActionCreated,
+        iouReportID: report.iouReportID,
+        hasOutstandingIOU: report.hasOutstandingIOU,
+        statusNum: report.statusNum,
+        stateNum: report.stateNum,
+        chatType: report.chatType,
+        policyID: report.policyID,
+        reportName: report.reportName,
+    });
+};
 
 /**
  * @param {Object} [personalDetails]
@@ -236,9 +278,9 @@ export default compose(
         // for that key, then there would be no re-render and the options wouldn't reflect the new data because SidebarUtils.getOrderedReportIDs() wouldn't be triggered.
         // This could be changed if each OptionRowLHN used withOnyx() to connect to the Onyx keys, but if you had 10,000 reports
         // with 10,000 withOnyx() connections, it would have unknown performance implications.
-        reports: {
+        chatReports: {
             key: ONYXKEYS.COLLECTION.REPORT,
-            selector: reportSelector,
+            selector: chatReportSelector,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,

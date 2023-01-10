@@ -18,9 +18,6 @@ export default PropTypes.shape({
     // reportID (only present when there is a matching report)
     reportID: PropTypes.string,
 
-    // Whether the report has read or not
-    isUnread: PropTypes.bool,
-
     // Whether the report has a draft comment or not
     hasDraftComment: PropTypes.bool,
 
@@ -38,6 +35,15 @@ export default PropTypes.shape({
 
     // Whether the option has an outstanding IOU
     hasOutstandingIOU: PropTypes.bool,
+
+    // Custom icon to render on the right side of the option
+    customIcon: PropTypes.shape({
+        // The icon source
+        src: PropTypes.func,
+
+        // The color of the icon
+        color: PropTypes.string,
+    }),
 
     // List of participants of the report
     participantsList: PropTypes.arrayOf(participantPropTypes),

@@ -1,92 +1,57 @@
 @font-face {
-    font-family: GTAmericaExp-Regular;
-    font-weight: 100;
-    font-style: normal;
-    src: url("https://www.expensify.com/font/GT-America-Standard-Light.eot") format("embedded-opentype"), url("https://www.expensify.com/font/GT-America-Standard-Light.woff") format("woff"), url("https://www.expensify.com/font/GT-America-Standard-Light.woff2") format("woff2");
-}
-
-@font-face {
-    font-family: GTAmericaExp-Regular;
-    font-weight: 200;
-    font-style: normal;
-    src: url("https://www.expensify.com/font/GT-America-Standard-Thin.eot") format("embedded-opentype"), url("https://www.expensify.com/font/GT-America-Standard-Thin.woff") format("woff"), url("https://www.expensify.com/font/GT-America-Standard-Thin.woff2") format("woff2");
-}
-
-@font-face {
-    font-family: GTAmericaExp-Regular;
+    font-family: ExpensifyNeue-Regular;
     font-weight: 400;
     font-style: normal;
-    src: url("https://www.expensify.com/font/GT-America-Standard-Regular.eot") format("embedded-opentype"), url("https://www.expensify.com/font/GT-America-Standard-Regular.woff") format("woff"), url("https://www.expensify.com/font/GT-America-Standard-Regular.woff2") format("woff2");
+    src: url('/fonts/ExpensifyNeue-Regular.woff2') format('woff2'), url('/fonts/ExpensifyNeue-Regular.woff') format('woff');
 }
 
 @font-face {
-    font-family: GTAmericaExp-Regular;
+    font-family: ExpensifyNeue-Regular;
+    font-weight: 700;
+    font-style: normal;
+    src: url('/fonts/ExpensifyNeue-Bold.woff2') format('woff2'), url('/fonts/ExpensifyNeue-Bold.woff') format('woff');
+}
+
+@font-face {
+    font-family: ExpensifyNeue-Regular;
+    font-weight: 400;
+    font-style: italic;
+    src: url('/fonts/ExpensifyNeue-Italic.woff2') format('woff2'), url('/fonts/ExpensifyNeue-Italic.woff') format('woff');
+}
+
+@font-face {
+    font-family: ExpensifyNeue-Regular;
+    font-weight: 700;
+    font-style: italic;
+    src: url('/fonts/ExpensifyNeue-BoldItalic.woff2') format('woff2'), url('/fonts/ExpensifyNeue-BoldItalic.woff') format('woff');
+}
+
+@font-face {
+    font-family: ExpensifyMono-Regular;
+    font-weight: 400;
+    font-style: normal;
+    src: url('/fonts/ExpensifyMono-Regular.woff2') format('woff2'), url('/fonts/ExpensifyMono-Regular.woff') format('woff');
+}
+
+@font-face {
+    font-family: ExpensifyMono-Bold;
+    font-weight: 700;
+    font-style: normal;
+    src: url('/fonts/ExpensifyMono-Bold.woff2') format('woff2'),  url('/fonts/ExpensifyMono-Bold.woff') format('woff');
+}
+
+@font-face {
+    font-family: ExpensifyNewKansas-Medium;
     font-weight: 500;
     font-style: normal;
-    src: url("https://www.expensify.com/font/GT-America-Standard-Medium.eot") format("embedded-opentype"), url("https://www.expensify.com/font/GT-America-Standard-Medium.woff") format("woff"), url("https://www.expensify.com/font/GT-America-Standard-Medium.woff2") format("woff2");
+    src: url('/fonts/ExpensifyNewKansas-Medium.woff2') format('woff2'),  url('/fonts/ExpensifyNewKansas-Medium.woff') format('woff');
 }
 
 @font-face {
-    font-family: GTAmericaExp-Regular;
-    font-weight: 600;
-    font-style: normal;
-    src: url("https://www.expensify.com/font/GT-America-Standard-Medium.eot") format("embedded-opentype"), url("https://www.expensify.com/font/GT-America-Standard-Medium.woff") format("woff"), url("https://www.expensify.com/font/GT-America-Standard-Medium.woff2") format("woff2");
-}
-
-@font-face {
-    font-family: GTAmericaExp-Regular;
-    font-weight: 700;
-    font-style: normal;
-    src: url("https://www.expensify.com/font/GT-America-Standard-Bold.eot") format("embedded-opentype"), url("https://www.expensify.com/font/GT-America-Standard-Bold.woff") format("woff"), url("https://www.expensify.com/font/GT-America-Standard-Bold.woff2") format("woff2");
-}
-
-@font-face {
-    font-family: GTAmericaExp-RgIt;
-    font-weight: 400;
-    font-style: italic;
-    src: url("https://www.expensify.com/font/GT-America-Standard-Regular-Italic.eot") format("embedded-opentype"), url("https://www.expensify.com/font/GT-America-Standard-Regular-Italic.woff") format("woff"), url("https://www.expensify.com/font/GT-America-Standard-Regular-Italic.woff2") format("woff2");
-}
-
-@font-face {
-    font-family: GTAmericaExp-MdIt;
+    font-family: ExpensifyNewKansas-MediumItalic;
     font-weight: 500;
     font-style: italic;
-    src: url("https://www.expensify.com/font/GT-America-Standard-Medium-Italic.eot") format("embedded-opentype"), url("https://www.expensify.com/font/GT-America-Standard-Medium-Italic.woff") format("woff"), url("https://www.expensify.com/font/GT-America-Standard-Medium-Italic.woff2") format("woff2");
-}
-
-@font-face {
-    font-family: GTAmericaExp-BdIt;
-    font-weight: 700;
-    font-style: italic;
-    src: url("https://www.expensify.com/font/GT-America-Standard-Bold-Italic.eot") format("embedded-opentype"), url("https://www.expensify.com/font/GT-America-Standard-Bold-Italic.woff") format("woff"), url("https://www.expensify.com/font/GT-America-Standard-Bold-Italic.woff2") format("woff2");
-}
-
-@font-face {
-    font-family: GTAmericaExpMono-Rg;
-    font-weight: 400;
-    font-style: normal;
-    src: url('https://www.expensify.com/font/GT-America-Exp-Mono-Regular.eot') format('embedded-opentype'), url('https://www.expensify.com/font/GT-America-Exp-Mono-Regular.woff') format('woff'), url('https://www.expensify.com/font/GT-America-Exp-Mono-Regular.woff2') format('woff2');
-}
-
-@font-face {
-    font-family: GTAmericaExpMono-RgIt;
-    font-weight: 400;
-    font-style: italic;
-    src: url('https://www.expensify.com/font/GT-America-Exp-Mono-Regular-Italic.eot') format('embedded-opentype'), url('https://www.expensify.com/font/GT-America-Exp-Mono-Regular-Italic.woff') format('woff'), url('https://www.expensify.com/font/GT-America-Exp-Mono-Regular-Italic.woff2') format('woff2');
-}
-
-@font-face {
-    font-family: GTAmericaExpMono-Bd;
-    font-weight: 700;
-    font-style: normal;
-    src: url('https://www.expensify.com/font/GT-America-Exp-Mono-Bold.eot') format('embedded-opentype'), url('https://www.expensify.com/font/GT-America-Exp-Mono-Bold.woff') format('woff'), url('https://www.expensify.com/font/GT-America-Exp-Mono-Bold.woff2') format('woff2');
-}
-
-@font-face {
-    font-family: GTAmericaExpMono-BdIt;
-    font-weight: 700;
-    font-style: italic;
-    src: url('https://www.expensify.com/font/GT-America-Exp-Mono-Bold-Italic.eot') format('embedded-opentype'), url('https://www.expensify.com/font/GT-America-Exp-Mono-Bold-Italic.woff') format('woff'), url('https://www.expensify.com/font/GT-America-Exp-Mono-Bold-Italic.woff2') format('woff2');
+    src: url('/fonts/ExpensifyNewKansas-MediumItalic.woff2') format('woff2'),  url('/fonts/ExpensifyNewKansas-MediumItalic.woff') format('woff');
 }
 
 * {

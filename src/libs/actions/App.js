@@ -15,6 +15,7 @@ import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
 import getCurrentUrl from '../Navigation/currentUrl';
+import * as Session from './Session';
 
 let currentUserAccountID;
 let currentUserEmail = '';
@@ -45,29 +46,24 @@ Onyx.connect({
     },
 });
 
-let policyIDList = [];
+let allPolicies = [];
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
-    callback: (policies) => {
-        policyIDList = _.compact(_.pluck(policies, 'id'));
-    },
+    callback: policies => allPolicies = policies,
 });
 
-// When we reconnect the app, we don't want to fetch workspaces created optimistically while offline since they don't exist yet in the back-end.
-// If we fetched them then they'd return as empty objects which would clear out the optimistic policy values initially created locally.
-// Once the re-queued call to CreateWorkspace returns, the full contents of the workspace excluded here should be correctly saved into Onyx.
-let policyIDListExcludingWorkspacesCreatedOffline = [];
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (policies) => {
-        const policiesExcludingWorkspacesCreatedOffline = _.reject(policies,
-            policy => lodashGet(policy, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
-            && lodashGet(policy, 'type', null) === CONST.POLICY.TYPE.FREE);
-        policyIDListExcludingWorkspacesCreatedOffline = _.compact(_.pluck(policiesExcludingWorkspacesCreatedOffline, 'id'));
-    },
-});
+/**
+ * @param {Array} policies
+ * @return {Array<String>} array of policy ids
+*/
+function getNonOptimisticPolicyIDs(policies) {
+    return _.chain(policies)
+        .reject(policy => lodashGet(policy, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
+        .pluck('id')
+        .compact()
+        .value();
+}
 
 /**
 * @param {String} locale
@@ -116,43 +112,36 @@ AppState.addEventListener('change', (nextAppState) => {
  * Fetches data needed for app initialization
  */
 function openApp() {
-    API.read('OpenApp', {policyIDList}, {
-        optimisticData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                value: true,
-            },
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_INITIAL_APP_DATA,
-                value: true,
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                value: false,
-            },
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_INITIAL_APP_DATA,
-                value: false,
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                value: false,
-            },
-            {
-                onyxMethod: CONST.ONYX.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_INITIAL_APP_DATA,
-                value: false,
-            },
-        ],
+    // We need a fresh connection/callback here to make sure that the list of policyIDs that is sent to OpenApp is the most updated list from Onyx
+    const connectionID = Onyx.connect({
+        key: ONYXKEYS.COLLECTION.POLICY,
+        waitForCollectionCallback: true,
+        callback: (policies) => {
+            Onyx.disconnect(connectionID);
+            API.read('OpenApp', {policyIDList: getNonOptimisticPolicyIDs(policies)}, {
+                optimisticData: [
+                    {
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                        value: true,
+                    },
+                ],
+                successData: [
+                    {
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                        value: false,
+                    },
+                ],
+                failureData: [
+                    {
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                        value: false,
+                    },
+                ],
+            });
+        },
     });
 }
 
@@ -160,7 +149,7 @@ function openApp() {
  * Refreshes data when the app reconnects
  */
 function reconnectApp() {
-    API.write('ReconnectApp', {policyIDListExcludingWorkspacesCreatedOffline}, {
+    API.write('ReconnectApp', {policyIDList: getNonOptimisticPolicyIDs(allPolicies)}, {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
@@ -215,31 +204,31 @@ function setUpPoliciesAndNavigate(session) {
     const makeMeAdmin = url.searchParams.get('makeMeAdmin');
     const policyName = url.searchParams.get('policyName');
 
+    // Sign out the current user if we're transitioning from oldDot with a different user
+    const isTransitioningFromOldDot = Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT));
+    if (isLoggingInAsNewUser && isTransitioningFromOldDot) {
+        Session.signOut();
+    }
+
     const shouldCreateFreePolicy = !isLoggingInAsNewUser
-                        && Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT))
+                        && isTransitioningFromOldDot
                         && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        Policy.createWorkspace(ownerEmail, makeMeAdmin, policyName);
+        Policy.createWorkspace(ownerEmail, makeMeAdmin, policyName, true);
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
-        if (Navigation.isDrawerRoute(exitTo)) {
-            // The drawer navigation is only created after we have fetched reports from the server.
-            // Thus, if we use the standard navigation and try to navigate to a drawer route before
-            // the reports have been fetched, we will fail to navigate.
-            Navigation.isDrawerReady()
-                .then(() => {
-                    // We must call dismissModal() to remove the /transition route from history
-                    Navigation.dismissModal();
-                    Navigation.navigate(exitTo);
-                });
-            return;
-        }
         Navigation.isNavigationReady()
             .then(() => {
-                // We must call dismissModal() to remove the /transition route from history
-                Navigation.dismissModal();
-                Navigation.navigate(exitTo);
+                // The drawer navigation is only created after we have fetched reports from the server.
+                // Thus, if we use the standard navigation and try to navigate to a drawer route before
+                // the reports have been fetched, we will fail to navigate.
+                Navigation.isDrawerReady()
+                    .then(() => {
+                        // We must call dismissModal() to remove the /transition route from history
+                        Navigation.dismissModal();
+                        Navigation.navigate(exitTo);
+                    });
             });
     }
 }

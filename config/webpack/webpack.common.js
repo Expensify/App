@@ -7,6 +7,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const dotenv = require('dotenv');
 const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
+const HtmlInlineScriptPlugin = require('html-inline-script-webpack-plugin');
 const CustomVersionFilePlugin = require('./CustomVersionFilePlugin');
 
 const includeModules = [
@@ -23,6 +24,20 @@ const includeModules = [
     '@react-navigation/drawer',
 ].join('|');
 
+const envToLogoSuffixMap = {
+    production: '',
+    staging: '-stg',
+    dev: '-dev',
+};
+
+function mapEnvToLogoSuffix(envFile) {
+    let env = envFile.split('.')[2];
+    if (typeof env === 'undefined') {
+        env = 'dev';
+    }
+    return envToLogoSuffixMap[env];
+}
+
 /**
  * Get a production grade config for web or desktop
  * @param {Object} env
@@ -33,10 +48,13 @@ const includeModules = [
 const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
     mode: 'production',
     devtool: 'source-map',
-    entry: [
-        'babel-polyfill',
-        './index.js',
-    ],
+    entry: {
+        main: [
+            'babel-polyfill',
+            './index.js',
+        ],
+        splash: ['./web/splash/splash.js'],
+    },
     output: {
         filename: '[name]-[contenthash].bundle.js',
         path: path.resolve(__dirname, '../../dist'),
@@ -58,6 +76,9 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             filename: 'index.html',
             usePolyfillIO: platform === 'web',
         }),
+        new HtmlInlineScriptPlugin({
+            scriptMatchPattern: [/splash.+[.]js$/],
+        }),
         new ProvidePlugin({
             process: 'process/browser',
         }),
@@ -69,6 +90,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 {from: 'web/favicon-unread.png'},
                 {from: 'web/og-preview-image.png'},
                 {from: 'assets/css', to: 'css'},
+                {from: 'assets/fonts/web', to: 'fonts'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
                 {from: 'assets/images/shadow.png', to: 'images/shadow.png'},
                 {from: '.well-known/apple-app-site-association', to: '.well-known/apple-app-site-association', toType: 'file'},
@@ -144,6 +166,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             // Load svg images
             {
                 test: /\.svg$/,
+                resourceQuery: {not: [/raw/]},
                 exclude: /node_modules/,
                 use: [
                     {
@@ -152,13 +175,32 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 ],
             },
             {
+                test: /splash.css$/i,
+                use: [{
+                    loader: 'style-loader',
+                    options: {
+                        insert: 'head',
+                        injectType: 'singletonStyleTag',
+                    },
+                }],
+            },
+            {
                 test: /\.css$/i,
                 use: ['style-loader', 'css-loader'],
+            },
+            {
+                test: /\.(woff|woff2)$/i,
+                type: 'asset',
+            },
+            {
+                resourceQuery: /raw/,
+                type: 'asset/source',
             },
         ],
     },
     resolve: {
         alias: {
+            logo$: path.resolve(__dirname, `../../assets/images/new-expensify${mapEnvToLogoSuffix(envFile)}.svg`),
             'react-native-config': 'react-web-config',
             'react-native$': '@expensify/react-native-web',
             'react-native-web': '@expensify/react-native-web',
@@ -173,6 +215,26 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         extensions: ['.web.js', (platform === 'web') ? '.website.js' : '.desktop.js', '.js', '.jsx'],
         fallback: {
             'process/browser': require.resolve('process/browser'),
+        },
+    },
+    optimization: {
+        runtimeChunk: 'single',
+        splitChunks: {
+            cacheGroups: {
+                // Extract all 3rd party dependencies (~75% of App) to separate js file
+                // This gives a more efficient caching - 3rd party deps don't change as often as main source
+                // When dependencies don't change webpack would produce the same js file (and content hash)
+                // After App update end users would download just the main source and resolve the rest from cache
+                // When dependencies do change cache is invalidated and users download everything - same as before
+                vendor: {
+                    test: /[\\/]node_modules[\\/]/,
+                    name: 'vendors',
+
+                    // Capture only the scripts needed for the initial load, so any async imports
+                    // would be grouped (and lazy loaded) separately
+                    chunks: 'initial',
+                },
+            },
         },
     },
 });

@@ -40,7 +40,18 @@ function isMobile() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Silk|Opera Mini/i.test(navigator.userAgent);
 }
 
+/**
+ * Checks if requesting user agent is Safari browser on a mobile device
+ *
+ * @returns {Boolean}
+ */
+function isMobileSafari() {
+    const userAgent = navigator.userAgent;
+    return /iP(ad|od|hone)/i.test(userAgent) && /WebKit/i.test(userAgent) && !(/(CriOS|FxiOS|OPiOS|mercury)/i.test(userAgent));
+}
+
 export {
     getBrowser,
     isMobile,
+    isMobileSafari,
 };

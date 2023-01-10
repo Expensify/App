@@ -1,10 +1,13 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import Text from '../Text';
+import Icon from '../Icon';
+import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 
@@ -12,8 +15,8 @@ const propTypes = {
     /** All the data of the action */
     action: PropTypes.shape(reportActionPropTypes).isRequired,
 
-    /** Should the View Details link be displayed? */
-    shouldShowViewDetailsLink: PropTypes.bool,
+    /** Whether it is allowed to view details. */
+    shouldAllowViewDetails: PropTypes.bool,
 
     /** Callback invoked when View Details is pressed */
     onViewDetailsPressed: PropTypes.func,
@@ -22,26 +25,40 @@ const propTypes = {
 };
 
 const defaultProps = {
-    shouldShowViewDetailsLink: false,
+    shouldAllowViewDetails: false,
     onViewDetailsPressed: () => {},
 };
 
 const IOUQuote = props => (
     <View style={[styles.chatItemMessage]}>
         {_.map(props.action.message, (fragment, index) => (
-            <View key={`iouQuote-${props.action.reportActionID}-${index}`} style={[styles.alignItemsStart, styles.blockquote]}>
-                <Text style={[styles.chatItemMessage]}>
-                    {Str.htmlDecode(fragment.text)}
-                </Text>
-                {props.shouldShowViewDetailsLink && (
-                    <Text
-                        style={[styles.chatItemMessageLink, styles.alignSelfStart]}
-                        onPress={props.onViewDetailsPressed}
-                    >
-                        {props.translate('iou.viewDetails')}
+            <Pressable
+                key={`iouQuote-${props.action.reportActionID}-${index}`}
+                onPress={props.shouldAllowViewDetails
+                    ? props.onViewDetailsPressed
+                    : () => {}}
+                style={[styles.flexRow, styles.justifyContentBetween,
+                    props.shouldAllowViewDetails
+                        ? undefined
+                        : styles.cursorDefault,
+                ]}
+                focusable={props.shouldAllowViewDetails}
+            >
+                <Text>
+                    <Text style={props.shouldAllowViewDetails && styles.chatItemMessageLink}>
+                        {/* Get first word of IOU message */}
+                        {Str.htmlDecode(fragment.text.split(' ')[0])}
                     </Text>
-                )}
-            </View>
+                    <Text style={[styles.chatItemMessage, props.shouldAllowViewDetails
+                        ? styles.cursorPointer
+                        : styles.cursorDefault]}
+                    >
+                        {/* Get remainder of IOU message */}
+                        {Str.htmlDecode(fragment.text.substring(fragment.text.indexOf(' ')))}
+                    </Text>
+                </Text>
+                <Icon src={Expensicons.ArrowRight} fill={props.shouldAllowViewDetails ? themeColors.icon : themeColors.transparent} />
+            </Pressable>
         ))}
     </View>
 );

@@ -86,6 +86,7 @@ class IOUTransactions extends Component {
                         <ReportTransaction
                             chatReportID={this.props.chatReportID}
                             iouReportID={this.props.iouReportID}
+                            reportActions={this.props.reportActions}
                             action={reportAction}
                             key={reportAction.reportActionID}
                             canBeRejected={canBeRejected}

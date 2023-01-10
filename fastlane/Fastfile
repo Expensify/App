@@ -16,8 +16,9 @@ opt_out_usage
 platform :android do
   desc "Generate a new local APK for e2e testing"
   lane :build_e2e do
-    ENV["ENVFILE"]="e2e/.env.e2e"
+    ENV["ENVFILE"]="tests/e2e/.env.e2e"
     ENV["ENTRY_FILE"]="src/libs/E2E/reactNativeLaunchingTest.js"
+    ENV["E2E_TESTING"]="true"
 
     gradle(
       project_dir: './android',
@@ -34,6 +35,29 @@ platform :android do
       task: 'assemble',
       build_type: 'Release',
     )
+  end
+
+  desc "Build app for testing"
+  lane :build_internal do
+    ENV["ENVFILE"]=".env.staging"
+
+    gradle(
+        project_dir: './android',
+        task: 'assemble',
+        build_type: 'InternalRelease',
+    )
+
+    aws_s3(
+      access_key: ENV['S3_ACCESS_KEY'],
+      secret_access_key: ENV['S3_SECRET_ACCESS_KEY'],
+      bucket: ENV['S3_BUCKET'],
+      region: ENV['S3_REGION'],
+
+      apk: lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH],
+      app_directory: "android/#{ENV['PULL_REQUEST_NUMBER']}",
+    )
+
+    sh("echo '{\"apk_path\": \"#{lane_context[SharedValues::S3_APK_OUTPUT_PATH]}\",\"html_path\": \"#{lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}\"}' > ../android_paths.json")
   end
 
   desc "Build and upload app to Google Play"
@@ -89,6 +113,60 @@ platform :ios do
         workspace: "./ios/NewExpensify.xcworkspace",
         scheme: "NewExpensify"
     )
+  end
+
+  desc "Build app for testing"
+  lane :build_internal do
+    require 'securerandom'
+    ENV["ENVFILE"]=".env.staging"
+
+    keychain_password = SecureRandom.uuid
+
+    create_keychain(
+        name: "ios-build.keychain",
+        password: keychain_password,
+        default_keychain: "true",
+        unlock: "true",
+        timeout: "3600",
+        add_to_search_list: "true"
+    )
+
+    import_certificate(
+        certificate_path: "./ios/Certificates.p12",
+        keychain_name: "ios-build.keychain",
+        keychain_password: keychain_password
+    )
+
+    install_provisioning_profile(
+        path: "./ios/chat_expensify_adhoc.mobileprovision"
+    )
+
+    build_app(
+        workspace: "./ios/NewExpensify.xcworkspace",
+        skip_profile_detection: true,
+        scheme: "NewExpensify",
+        xcargs: { :PROVISIONING_PROFILE_SPECIFIER => "chat_expensify_adhoc", },
+        export_method: "ad-hoc",
+        export_options: {
+            method: "ad-hoc",
+            provisioningProfiles: {
+              "com.chat.expensify.chat" => "chat_expensify_adhoc",
+            },
+            manageAppVersionAndBuildNumber: false
+        }
+    )
+
+    aws_s3(
+      access_key: ENV['S3_ACCESS_KEY'],
+      secret_access_key: ENV['S3_SECRET_ACCESS_KEY'],
+      bucket: ENV['S3_BUCKET'],
+      region: ENV['S3_REGION'],
+
+      ipa: lane_context[SharedValues::IPA_OUTPUT_PATH],
+      app_directory: "ios/#{ENV['PULL_REQUEST_NUMBER']}",
+    )
+
+    sh("echo '{\"ipa_path\": \"#{lane_context[SharedValues::S3_IPA_OUTPUT_PATH]}\",\"html_path\": \"#{lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}\"}' > ../ios_paths.json")
   end
 
   desc "Build and upload app to TestFlight"

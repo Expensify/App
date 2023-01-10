@@ -161,7 +161,7 @@ function hasActiveFreePolicy(policies) {
  */
 function removeMembers(members, policyID) {
     // In case user selects only themselves (admin), their email will be filtered out and the members
-    // array passed will be empty, prevent the funtion from proceeding in that case as there is noone to remove
+    // array passed will be empty, prevent the function from proceeding in that case as there is noone to remove
     if (members.length === 0) {
         return;
     }
@@ -697,8 +697,9 @@ function generatePolicyID() {
  * @param {String} [ownerEmail] Optional, the email of the account to make the owner of the policy
  * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  * @param {String} [policyName] Optional, custom policy name we will use for created workspace
+ * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
  */
-function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '') {
+function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false) {
     const policyID = generatePolicyID();
     const workspaceName = policyName || generateDefaultWorkspaceName(ownerEmail);
 
@@ -751,7 +752,12 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '') 
         {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
-            value: announceChatData,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                ...announceChatData,
+            },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.SET,
@@ -761,7 +767,12 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '') 
         {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
-            value: adminsChatData,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                ...adminsChatData,
+            },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.SET,
@@ -771,7 +782,12 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '') 
         {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
-            value: expenseChatData,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                ...expenseChatData,
+            },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.SET,
@@ -786,7 +802,12 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '') 
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
-            value: {pendingAction: null},
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: null,
+                },
+                pendingAction: null,
+            },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -800,7 +821,12 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '') 
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
-            value: {pendingAction: null},
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: null,
+                },
+                pendingAction: null,
+            },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -814,7 +840,12 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '') 
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
-            value: {pendingAction: null},
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: null,
+                },
+                pendingAction: null,
+            },
         },
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -864,18 +895,46 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '') 
 
     Navigation.isNavigationReady()
         .then(() => {
-            Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
+            if (transitionFromOldDot) {
+                Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
+            }
             Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
         });
 }
 
-function openWorkspaceReimburseView(policyID) {
+/**
+ *
+ * @param {string} policyID
+ * @param {string} subStep The sub step in first step of adding withdrawal bank account
+ * @param {*} localCurrentStep The locally stored current step of adding a withdrawal bank account
+ */
+function openWorkspaceReimburseView(policyID, subStep, localCurrentStep) {
     if (!policyID) {
         Log.warn('openWorkspaceReimburseView invalid params', {policyID});
         return;
     }
+    const onyxData = {
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+    };
 
-    API.read('OpenWorkspaceReimburseView', {policyID});
+    API.read('OpenWorkspaceReimburseView', {policyID, subStep, localCurrentStep}, onyxData);
 }
 
 function openWorkspaceMembersPage(policyID, clientMemberEmails) {
