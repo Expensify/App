@@ -379,6 +379,7 @@ class IOUModal extends Component {
                 >
                     {this.state.currentStepIndex > 0
                         && (
+                        <View style={[styles.mr2]}>
                             <Tooltip text={this.props.translate('common.back')}>
                                 <TouchableOpacity
                                     onPress={this.navigateToPreviousStep}
@@ -387,13 +388,14 @@ class IOUModal extends Component {
                                     <Icon src={Expensicons.BackArrow} />
                                 </TouchableOpacity>
                             </Tooltip>
+                        </View>
                         )}
                     <Header title={this.getTitleForStep()} />
                     <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
                         <Tooltip text={this.props.translate('common.close')}>
                             <TouchableOpacity
                                 onPress={() => Navigation.dismissModal()}
-                                style={[styles.touchableButtonImage, styles.mr0]}
+                                style={[styles.touchableButtonImage]}
                                 accessibilityRole="button"
                                 accessibilityLabel={this.props.translate('common.close')}
                             >
