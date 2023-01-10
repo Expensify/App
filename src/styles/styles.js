@@ -1746,13 +1746,13 @@ const styles = {
     },
 
     emptyAvatar: {
-        marginRight: variables.componentSizeNormal - 28,
+        marginRight: variables.componentSizeNormal - 26,
         height: variables.avatarSizeNormal,
         width: variables.avatarSizeNormal,
     },
 
     emptyAvatarSmall: {
-        marginRight: variables.componentSizeNormal - 32,
+        marginRight: variables.componentSizeNormal - 30,
         height: variables.avatarSizeSmall,
         width: variables.avatarSizeSmall,
     },
