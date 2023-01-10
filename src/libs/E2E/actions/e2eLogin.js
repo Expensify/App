@@ -12,7 +12,7 @@ import * as Session from '../../actions/Session';
  * @param {String} password
  * @return {Promise<boolean>} Resolved true when the user was actually signed in. Returns false if the user was already logged in.
  */
-export default function (email, password) {
+export default function (email = 'fake@email.com', password = 'Password123') {
     const waitForBeginSignInToFinish = () => new Promise((resolve) => {
         const id = Onyx.connect({
             key: ONYXKEYS.CREDENTIALS,
