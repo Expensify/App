@@ -99,7 +99,7 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} draft
      */
     updateDraft(draft) {
-        const newDraft = EmojiUtils.replaceEmojis(draft);
+        const newDraft = EmojiUtils.replaceEmojis(draft, this.props.isSmallScreenWidth);
         this.setState((prevState) => {
             const newState = {draft: newDraft};
             if (draft !== newDraft) {
@@ -183,13 +183,12 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        const emojiWithSpace = `${emoji} `;
         const newComment = this.state.draft.slice(0, this.state.selection.start)
-            + emojiWithSpace + this.state.draft.slice(this.state.selection.end, this.state.draft.length);
+            + emoji + this.state.draft.slice(this.state.selection.end, this.state.draft.length);
         this.setState(prevState => ({
             selection: {
-                start: prevState.selection.start + emojiWithSpace.length,
-                end: prevState.selection.start + emojiWithSpace.length,
+                start: prevState.selection.start + emoji.length,
+                end: prevState.selection.start + emoji.length,
             },
         }));
         this.updateDraft(newComment);
