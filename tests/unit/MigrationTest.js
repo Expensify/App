@@ -32,7 +32,6 @@ describe('Migrations', () => {
     });
 
     describe('MoveToIndexedDb', () => {
-
         let mockMultiSet;
         beforeEach(() => {
             getPlatform.mockImplementation(() => CONST.PLATFORM.WEB);
@@ -111,19 +110,6 @@ describe('Migrations', () => {
                     lastMessageTimestamp: 1668562314821,
                 },
             })
-                .then(() => {
-                    return new Promise((resolve) => {
-                        const connectionID = Onyx.connect({
-                            key: ONYXKEYS.COLLECTION.REPORT,
-                            waitForCollectionCallback: true,
-                            callback: (val) => {
-                                console.log('RORY_DEBUG val:', val);
-                                Onyx.disconnect(connectionID);
-                                resolve();
-                            },
-                        });
-                    });
-                })
                 .then(AddLastActionCreated)
                 .then(() => {
                     expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Adding lastActionCreated field to 2 reports');

@@ -30,7 +30,9 @@ export default function () {
 
                         // If we find a reportAction that's already keyed by reportActionID instead of sequenceNumber,
                         // then we assume the migration already happened and return early.
-                        if (reportActionKey == reportAction.reportActionID && reportActionKey != reportAction.sequenceNumber) {
+                        if (!_.isNaN(Number(reportActionKey))
+                            && Number(reportActionKey) === Number(reportAction.reportActionID)
+                            && Number(reportActionKey) !== Number(reportAction.sequenceNumber)) {
                             Log.info('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID');
                             resolve();
                         }
