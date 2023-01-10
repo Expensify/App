@@ -148,7 +148,7 @@ class TooltipRenderedOnPageBody extends React.PureComponent {
                     <View style={pointerStyle} />
                 </View>
             </Animated.View>,
-            document.querySelector('body')
+            document.querySelector('body'),
         );
     }
 }
