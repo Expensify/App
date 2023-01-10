@@ -334,15 +334,6 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
     if (!_.isEmpty(newReportObject)) {
-        onyxData.optimisticData[0].value = {
-            ...onyxData.optimisticData[0].value,
-            ...newReportObject,
-            pendingFields: {
-                createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-            isOptimisticReport: true,
-        };
-
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
         onyxData.optimisticData[0].onyxMethod = CONST.ONYX.METHOD.SET;
@@ -353,6 +344,18 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: optimisticReportAction,
+        };
+
+        onyxData.optimisticData[0].value = {
+            ...onyxData.optimisticData[0].value,
+            ...newReportObject,
+            pendingFields: {
+                createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+
+            // We add 1ms such that the newly created report appears as read.
+            lastReadTime: DateUtils.getDBTime(moment().utc().add(1).valueOf()),
+            isOptimisticReport: true,
         };
 
         // Add the createdReportActionID parameter to the API call
