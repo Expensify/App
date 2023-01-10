@@ -22,6 +22,7 @@ import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
 import PopoverMenu from '../../../components/PopoverMenu';
 import CONST from '../../../CONST';
+import Log from '../../../libs/Log';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -158,6 +159,7 @@ class ReportActionCompose extends React.Component {
 
     componentDidMount() {
         ReportActionComposeFocusManager.onComposerFocus(() => {
+            Log.hmmm('ReportActionComposeFocusManager.onComposerFocus called');
             if (!this.shouldFocusInputOnScreenFocus || !this.props.isFocused) {
                 return;
             }
