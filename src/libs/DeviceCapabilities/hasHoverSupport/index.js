@@ -3,10 +3,8 @@
  *
  * @returns {Boolean}
  */
-
-import * as Browser from '../Browser';
-
-const hasHoverSupport = () => !Browser.isMobile();
+function hasHoverSupport() {
+    return !window.matchMedia('(hover: none)').matches;
+}
 
 export default hasHoverSupport;
-
