@@ -115,7 +115,7 @@ describe('EmojiTest', () => {
 
     it('suggests emojis when typing emojis prefix after colon', () => {
         const text = 'Hi :coffin';
-        expect(EmojiUtils.suggestEmojis(text)).toEqual([{code: '⚰️', name: 'coffin'}]);
+        expect(EmojiUtils.suggestEmojis(text)).toEqual([{code: '⚰️', index: 1325, name: 'coffin'}]);
     });
 
     it('suggests a limited number of matching emojis', () => {
@@ -126,6 +126,6 @@ describe('EmojiTest', () => {
 
     it('correct suggests emojis accounting for keywords', () => {
         const text = ':thumb';
-        expect(EmojiUtils.suggestEmojis(text)).toEqual([{code: '👍', name: '+1'}, {code: '👎', name: '-1'}]);
+        expect(EmojiUtils.suggestEmojis(text)).toEqual([{code: '👍', index: 177, name: '+1'}, {code: '👎', index: 178, name: '-1'}]);
     });
 });
