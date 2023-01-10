@@ -163,8 +163,8 @@ const AddressSearch = (props) => {
                         components: 'country:us',
                     }}
                     requestUrl={{
-                        useOnPlatform: 'web',
-                        url: `${CONFIG.EXPENSIFY.EXPENSIFY_URL}api?command=Proxy_GooglePlaces&proxyUrl=`,
+                        useOnPlatform: 'all',
+                        url: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Proxy_GooglePlaces&proxyUrl=`,
                     }}
                     textInputProps={{
                         InputComp: TextInput,
@@ -224,9 +224,9 @@ const AddressSearch = (props) => {
                         separator: [styles.googleSearchSeparator],
                     }}
                     onLayout={(event) => {
-                    // We use the height of the element to determine if we should hide the border of the listView dropdown
-                    // to prevent a lingering border when there are no address suggestions.
-                    // The height of the empty element is 2px (1px height for each top and bottom borders)
+                        // We use the height of the element to determine if we should hide the border of the listView dropdown
+                        // to prevent a lingering border when there are no address suggestions.
+                        // The height of the empty element is 2px (1px height for each top and bottom borders)
                         setDisplayListViewBorder(event.nativeEvent.layout.height > 2);
                     }}
                 />
