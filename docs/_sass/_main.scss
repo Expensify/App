@@ -413,6 +413,10 @@ button {
         background-color: darken($color-darker-green, 1%);
     }
 
+    &.get-help {
+        margin-top: auto;
+    }
+
     .row {
         display: flex;
         flex-basis:100%;
@@ -566,10 +570,6 @@ button {
     @include breakpoint($breakpoint-tablet) {
         display: block;
     }
-}
-
-.get-help {
-    margin-top: auto;
 }
 
 .floating-concierge-button {
