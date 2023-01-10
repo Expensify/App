@@ -1353,6 +1353,10 @@ const styles = {
         ...wordBreak.breakWord,
     },
 
+    IOUMessage: {
+        maxWidth: '90%',
+    },
+
     chatItemMessageLink: {
         color: themeColors.link,
         fontSize: variables.fontSizeNormal,
