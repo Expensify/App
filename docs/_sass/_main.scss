@@ -397,7 +397,7 @@ button {
     padding-bottom: 20px;
 
     @include breakpoint($breakpoint-desktop) {
-        grid-template-columns: auto auto;
+        grid-template-columns: 50% 50%;
     }
 }
 
