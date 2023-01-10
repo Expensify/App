@@ -892,7 +892,6 @@ function buildOptimisticChatReport(
         lastMessageHtml: '',
         lastMessageText: null,
         lastReadSequenceNumber: 0,
-        lastActionCreated: DateUtils.getDBTime(),
         lastReadTime: '',
         maxSequenceNumber: 0,
         notificationPreference,
