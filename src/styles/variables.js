@@ -84,5 +84,5 @@ export default {
     sliderBarHeight: 8,
     sliderKnobSize: 26,
     checkboxLabelActiveOpacity: 0.7,
-    chatInputSpacing: 56,
+    chatInputSpacing: 52,
 };

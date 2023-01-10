@@ -710,7 +710,7 @@ const styles = {
     // Actions
     actionAvatar: {
         borderRadius: 20,
-        marginRight: 8,
+        marginRight: 6,
     },
 
     componentHeightLarge: {
@@ -1746,13 +1746,13 @@ const styles = {
     },
 
     emptyAvatar: {
-        marginRight: variables.componentSizeNormal - 24,
+        marginRight: variables.componentSizeNormal - 28,
         height: variables.avatarSizeNormal,
         width: variables.avatarSizeNormal,
     },
 
     emptyAvatarSmall: {
-        marginRight: variables.componentSizeNormal - 28,
+        marginRight: variables.componentSizeNormal - 32,
         height: variables.avatarSizeSmall,
         width: variables.avatarSizeSmall,
     },
