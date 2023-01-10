@@ -1060,6 +1060,10 @@ function subscribeToNewActionEvent(reportID, callback) {
  * @param {Object} action
  */
 function showReportActionNotification(reportID, action) {
+    if (ReportActionsUtils.isDeletedAction(action)) {
+        return;
+    }
+
     if (!ActiveClientManager.isClientTheLeader()) {
         Log.info('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
         return;
@@ -1152,7 +1156,7 @@ Onyx.connect({
                 newActionSubscriber.callback(isFromCurrentUser, action.reportActionID);
             }
 
-            showReportActionNotification(reportID, action);
+            // showReportActionNotification(reportID, action);
             handledReportActions[reportID] = handledReportActions[reportID] || {};
             handledReportActions[reportID][action.sequenceNumber] = true;
         });
