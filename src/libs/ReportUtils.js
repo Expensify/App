@@ -883,7 +883,6 @@ function buildOptimisticChatReport(
     visibility = undefined,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
 ) {
-    // Used so we can set the lastRead and the lastActionCreated to the exact time and not deal with millisecond differences
     const currentTime = DateUtils.getDBTime();
     return {
         chatType,
