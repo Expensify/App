@@ -55,9 +55,9 @@ function getPolicyBrickRoadIndicatorStatus(policy, policyMembers) {
 }
 
 /**
- * Check if the policy can be display
- * If offline always show the delete pending policy.
- * If online show the delete pending policy only if it has an error.
+ * Check if the policy can be displayed
+ * If offline, always show the policy pending deletion.
+ * If online, show the policy pending deletion only if there is an error.
  * @param {Object} policy
  * @param {boolean} isOffline
  * @returns {boolean}
