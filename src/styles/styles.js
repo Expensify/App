@@ -350,6 +350,10 @@ const styles = {
         paddingLeft: 0,
     },
 
+    pl6: {
+        paddingLeft: 6,
+    },
+
     textDanger: {
         color: themeColors.danger,
     },
