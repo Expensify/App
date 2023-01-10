@@ -35,7 +35,7 @@ Onyx.connect({
 function isDeletedAction(reportAction) {
     // A deleted comment has either an empty array or an object with html field with empty string as value
     const message = lodashGet(reportAction, 'message', []);
-    return lodashGet(reportAction, 'deletedPendingAdd') || message.length === 0 || lodashGet(message, [0, 'html']) === '';
+    return message.length === 0 || lodashGet(message, [0, 'html']) === '';
 }
 
 /**
@@ -143,6 +143,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
  */
 function getLastVisibleAction(reportID, actionsToMerge = {}) {
     const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
+
     const visibleActions = _.filter(actions, action => (!isDeletedAction(action)));
     return _.max(visibleActions, action => moment.utc(action.created).valueOf());
 }

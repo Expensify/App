@@ -40,6 +40,11 @@ const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
 
+const CANCELLABLE_COMMANDS = [
+    'AddComment',
+    'DeleteComment',
+];
+
 /**
  * @param {String} reportID
  * @returns {Number}
@@ -630,15 +635,21 @@ function deleteReportComment(reportID, reportAction) {
     // If we're trying to delete a report action that's still pending add,
     // then we must be offline and the optmistic report action must have been added in the same offline session.
     // Therefore, let's just hide it for the time being.
+    const clientID = reportAction.clientID;
     if (deletedPendingAdd) {
         // Optimistic report actions are saved into the clientID, not the sequenceNumber
-        const clientID = reportAction.clientID;
         optimisticReportActions[clientID] = {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             previousMessage: reportAction.message,
             message: deletedMessage,
             deletedPendingAdd,
         };
+
+        if (!allReports[reportID].deletedPendingAddReportActions) {
+            allReports[reportID].deletedPendingAddReportActions = [];
+        }
+        allReports[reportID].deletedPendingAddReportActions.push(clientID);
+        allReports[reportID].deletedPendingAddReportActions.push(reportAction.reportActionID);
     }
 
     // If we are deleting the last visible message, let's find the previous visible one and update the lastMessageText in the LHN.
@@ -1136,6 +1147,37 @@ function clearIOUError(reportID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {errorFields: {iou: null}});
 }
 
+function checkRedundantRequest(request) {
+    if (!CANCELLABLE_COMMANDS.includes(request.command)) {
+        return false;
+    }
+
+    const reportID = request.data.reportID;
+    const clientID = request.data.clientID;
+    const reportActionID = request.data.reportActionID;
+    let isRedundant = false;
+    const {deletedPendingAddReportActions} = allReports[reportID];
+
+    if (!deletedPendingAddReportActions) {
+        return isRedundant;
+    }
+
+    if (request.command === 'AddComment') {
+        const index = deletedPendingAddReportActions.indexOf(clientID);
+        isRedundant = index !== -1;
+        if (isRedundant) {
+            allReports[reportID].deletedPendingAddReportActions.splice(index, 1);
+        }
+    } else if (request.command === 'DeleteComment') {
+        const index = deletedPendingAddReportActions.indexOf(reportActionID);
+        isRedundant = index !== -1;
+        if (isRedundant) {
+            allReports[reportID].deletedPendingAddReportActions.splice(index, 1);
+        }
+    }
+    return isRedundant;
+}
+
 // We are using this map to ensure actions are only handled once
 const handledReportActions = {};
 Onyx.connect({
@@ -1212,4 +1254,5 @@ export {
     clearIOUError,
     getMaxSequenceNumber,
     subscribeToNewActionEvent,
+    checkRedundantRequest,
 };

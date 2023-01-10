@@ -2,6 +2,9 @@ import _ from 'underscore';
 import HttpUtils from './HttpUtils';
 import enhanceParameters from './Network/enhanceParameters';
 import * as NetworkStore from './Network/NetworkStore';
+import * as Report from './actions/Report';
+import * as PersistedRequests from './actions/PersistedRequests';
+import CONST from '../CONST';
 
 let middlewares = [];
 
@@ -20,11 +23,25 @@ function makeXHR(request) {
 }
 
 /**
+ * @param {*} request
+ * @returns {Boolean}
+ */
+function isRedundant(request) {
+    return Report.checkRedundantRequest(request);
+}
+
+/**
  * @param {Object} request
  * @param {Boolean} [isFromSequentialQueue]
  * @returns {Promise}
  */
 function processWithMiddleware(request, isFromSequentialQueue = false) {
+    // Certain write requests can be cancelled if they were made offline
+    // e.g. if the same comment was added/deleted while offline
+    if (request.data.apiRequestType === CONST.API_REQUEST_TYPE.WRITE && isRedundant(request)) {
+        PersistedRequests.remove(request);
+        return Promise.resolve();
+    }
     return _.reduce(
         middlewares,
         (last, middleware) => middleware(last, request, isFromSequentialQueue),

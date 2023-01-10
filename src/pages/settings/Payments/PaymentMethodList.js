@@ -22,6 +22,7 @@ import FormAlertWrapper from '../../../components/FormAlertWrapper';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import Log from '../../../libs/Log';
+import {withNetwork} from '../../../components/OnyxProvider';
 
 const propTypes = {
     /** What to do when a menu item is pressed */
@@ -120,6 +121,10 @@ class PaymentMethodList extends Component {
 
         if (!_.isEmpty(this.props.filterType)) {
             combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.accountType === this.props.filterType);
+        }
+
+        if (!this.props.network.isOffline) {
+            combinedPaymentMethods = _.filter(combinedPaymentMethods, paymentMethod => paymentMethod.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         }
 
         combinedPaymentMethods = _.map(combinedPaymentMethods, paymentMethod => ({
@@ -254,6 +259,7 @@ PaymentMethodList.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNetwork(),
     withOnyx({
         bankAccountList: {
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
