@@ -167,11 +167,11 @@ export default {
     phoneCountryCode: '34',
     welcomeText: {
         welcome: 'Con el Nuevo Expensify, chat y pagos son lo mismo.',
-        welcomeEnterMagicCode: ({login}) => `¡Siempre es genial ver una cara nueva por aquí! Por favor ingrese el código mágico enviado a ${login}`,
+        welcomeEnterMagicCode: ({login}) => `¡Siempre es genial ver una cara nueva por aquí! Por favor ingresa el código mágico enviado a ${login}`,
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
         welcomeBack: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, introduce tu contraseña.',
-        welcomeBackEnterMagicCode: ({login}) => `¡Bienvenido de nuevo! Por favor, introduzca el código mágico enviado a ${login}`,
+        welcomeBackEnterMagicCode: ({login}) => `¡Bienvenido de nuevo! Por favor, introduce el código mágico enviado a ${login}`,
     },
     reportActionCompose: {
         addAction: 'Acción',
@@ -525,12 +525,12 @@ export default {
     },
     validateCodeForm: {
         magicCodeNotReceived: '¿No recibiste un código mágico?',
-        fillTwoFactorAuthOrRecoveryCode: 'Introduzca el código de dos factores o código de recuperación',
-        enterTwoFactorOrRecoveryCode: 'Introduzca el código de dos factores o código de recuperación',
+        fillTwoFactorAuthOrRecoveryCode: 'Introduce el código de dos factores o código de recuperación',
+        enterTwoFactorOrRecoveryCode: 'Introduce el código de dos factores o código de recuperación',
         twoFactorCode: 'Autenticación de 2 factores',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
         error: {
-            pleaseFillMagicCode: 'Por favor, introduzca el código mágico',
+            pleaseFillMagicCode: 'Por favor, introduce el código mágico',
             incorrectMagicCode: 'Código mágico incorrecto. Inténtalo de nuevo.',
             pleaseFillTwoFactorAuth: 'Por favor, introduce tu código 2 factores',
         },
