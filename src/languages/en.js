@@ -139,6 +139,12 @@ export default {
         updateApp: 'Update app',
         updatePrompt: 'A new version of this app is available.\nUpdate now or restart the app at a later time to download the latest changes.',
     },
+    deeplinkWrapper: {
+        launching: 'Launching Expensify',
+        redirectedToDesktopApp: 'We\'ve redirected you to the desktop app.',
+        youCanAlso: 'You can also',
+        openLinkInBrowser: 'open this link in your browser',
+    },
     iOUConfirmationList: {
         whoPaid: 'WHO PAID?',
         whoWasThere: 'WHO WAS THERE?',
@@ -385,7 +391,8 @@ export default {
         reasonForLeavingPrompt: 'We’d hate to see you go! Would you kindly tell us why, so we can improve?',
         enterMessageHere: 'Enter message here',
         closeAccountWarning: 'Closing your account cannot be undone.',
-        closeAccountPermanentlyDeleteData: 'This will permanently delete all of your unsubmitted expense data. Type your phone number or email address to confirm.',
+        closeAccountPermanentlyDeleteData: 'This will permanently delete all of your unsubmitted expense data and will cancel and decline any outstanding money requests. Are you sure you want to delete the account?',
+        enterDefaultContactToConfirm: 'Please type your default contact method to confirm you wish to close your account. Your default contact method is:',
         enterDefaultContact: 'Enter your default contact method',
         defaultContact: 'Default contact method:',
         enterYourDefaultContactMethod: 'Please enter your default contact method to close your account.',

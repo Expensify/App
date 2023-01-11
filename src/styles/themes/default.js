@@ -23,7 +23,6 @@ const darkTheme = {
     danger: colors.red,
     dangerHover: colors.redHover,
     dangerPressed: colors.redHover,
-    dangerDisabled: colors.redDisabled,
     warning: colors.yellow,
     success: colors.green,
     successHover: colors.greenHover,
