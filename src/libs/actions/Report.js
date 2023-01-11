@@ -355,7 +355,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
         };
 
         // Add the createdReportActionID parameter to the API call
-        params.createdReportActionID = optimisticReportAction.reportActionID;
+        params.createdReportActionID = optimisticReportAction[0].reportActionID;
     }
 
     API.write('OpenReport', params, onyxData);
