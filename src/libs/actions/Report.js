@@ -611,13 +611,35 @@ function deleteReportComment(reportID, reportAction) {
         text: '',
         isEdited: true,
     }];
+
+    // If we're trying to delete a report action that's still pending add,
+    // the report action must have been added as a result of an offline call to the addComment action
+    // and we must still be offline.
+    const deletedPendingAdd = reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
     const optimisticReportActions = {
         [sequenceNumber]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             previousMessage: reportAction.message,
             message: deletedMessage,
         },
+
+        // This flag hides any report actions that were deleted pending add
+        // (see render method in ReportActionItem)
+        deletedPendingAdd,
     };
+
+    // Since the optimistic report action is saved into the clientID, we also need to ensure these are hidden
+    // if they were deleted pending add
+    const clientID = reportAction.clientID;
+    if (deletedPendingAdd) {
+        optimisticReportActions[clientID] = {
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            previousMessage: reportAction.message,
+            message: deletedMessage,
+            deletedPendingAdd,
+        };
+    }
 
     // If we are deleting the last visible message, let's find the previous visible one and update the lastMessageText in the LHN.
     // Similarly, if we are deleting the last read comment we will want to update the lastActionCreated to use the previous visible message.
