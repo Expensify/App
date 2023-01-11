@@ -120,6 +120,8 @@ class ReimbursementAccountPage extends React.Component {
     }
 
     /**
+     * We can pass stepToOpen in the URL to force which step to show.
+     * Mainly needed when user finished the flow in verifying state, and Ops ask them to modify some fields from a specific step.
      * @returns {String}
      */
     getStepToOpenFromRouteParams() {
