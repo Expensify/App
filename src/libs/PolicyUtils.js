@@ -61,8 +61,8 @@ function getPolicyBrickRoadIndicatorStatus(policy, policyMembers) {
  * Note: Using a local ONYXKEYS.NETWORK subscription will cause a delay in
  * updating the screen. Passing the offline status from the component.
  * @param {Object} policy
- * @param {boolean} isOffline
- * @returns {boolean}
+ * @param {Boolean} isOffline
+ * @returns {Boolean}
  */
 function shouldShowPolicy(policy, isOffline) {
     return policy
