@@ -58,6 +58,8 @@ function getPolicyBrickRoadIndicatorStatus(policy, policyMembers) {
  * Check if the policy can be displayed
  * If offline, always show the policy pending deletion.
  * If online, show the policy pending deletion only if there is an error.
+ * Note: Using a local ONYXKEYS.NETWORK subscription will cause a delay in
+ * updating the screen pass the offline status from the component.
  * @param {Object} policy
  * @param {boolean} isOffline
  * @returns {boolean}
