@@ -61,6 +61,10 @@ const RoomHeaderAvatars = (props) => {
     }
 
     const iconsToDisplay = props.icons.slice(0, CONST.REPORT.MAX_PREVIEW_AVATARS);
+    const iconStyle = [
+        styles.roomHeaderAvatar,
+        StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.MEDIUM),
+    ];
     return (
         <View pointerEvents="none">
             <View style={[styles.flexRow, styles.wAuto, styles.ml3]}>
@@ -70,7 +74,7 @@ const RoomHeaderAvatars = (props) => {
                             source={val}
                             fill={themeColors.iconSuccessFill}
                             size={CONST.AVATAR_SIZE.HEADER}
-                            containerStyles={[styles.roomHeaderAvatar]}
+                            containerStyles={[styles.roomHeaderAvatar, iconStyle]}
                         />
                         {index === CONST.REPORT.MAX_PREVIEW_AVATARS - 1 && props.icons.length - CONST.REPORT.MAX_PREVIEW_AVATARS !== 0 && (
                             <>

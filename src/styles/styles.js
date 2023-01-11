@@ -456,7 +456,7 @@ const styles = {
     },
 
     buttonDangerDisabled: {
-        backgroundColor: themeColors.dangerDisabled,
+        opacity: 0.5,
     },
 
     buttonDangerHovered: {
@@ -537,7 +537,6 @@ const styles = {
         alignItems: 'center',
         height: variables.componentSizeNormal,
         justifyContent: 'center',
-        marginRight: 8,
         width: variables.componentSizeNormal,
     },
 
@@ -710,7 +709,6 @@ const styles = {
     // Actions
     actionAvatar: {
         borderRadius: 20,
-        marginRight: 8,
     },
 
     componentHeightLarge: {
@@ -1330,7 +1328,6 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         lineHeight: variables.lineHeightXLarge,
-        paddingRight: 5,
         paddingBottom: 4,
         ...wordBreak.breakWord,
     },
@@ -2890,6 +2887,25 @@ const styles = {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeNormal,
         maxWidth: 240,
+    },
+
+    deeplinkWrapperContainer: {
+        padding: 20,
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: themeColors.appBG,
+    },
+
+    deeplinkWrapperMessage: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    deeplinkWrapperFooter: {
+        paddingTop: 80,
+        paddingBottom: 45,
     },
 };
 

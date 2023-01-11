@@ -74,7 +74,7 @@ const ReportActionItemSingle = (props) => {
     return (
         <View style={props.wrapperStyles}>
             <Pressable
-                style={styles.alignSelfStart}
+                style={[styles.alignSelfStart, styles.mr2]}
                 onPressIn={ControlSelection.block}
                 onPressOut={ControlSelection.unblock}
                 onPress={() => showUserDetails(props.action.actorEmail)}
@@ -94,7 +94,7 @@ const ReportActionItemSingle = (props) => {
                 {props.showHeader ? (
                     <View style={[styles.chatItemMessageHeader]}>
                         <Pressable
-                            style={[styles.flexShrink1]}
+                            style={[styles.flexShrink1, styles.mr1]}
                             onPressIn={ControlSelection.block}
                             onPressOut={ControlSelection.unblock}
                             onPress={() => showUserDetails(props.action.actorEmail)}
