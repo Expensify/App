@@ -34,12 +34,11 @@ class ImageView extends PureComponent {
 
         this.state = {
             isLoading: false,
-            isConfiguringImageZoom: false,
 
             // Default to large image width and height to prevent
             // small, blurry image being present by react-native-image-pan-zoom
-            imageWidth: props.windowWidth,
-            imageHeight: props.windowHeight,
+            imageWidth: 0,
+            imageHeight: 0,
             interactionPromise: undefined,
             containerHeight: undefined,
         };
@@ -83,13 +82,8 @@ class ImageView extends PureComponent {
         return false;
     }
 
-    imageLoadStart({nativeEvent}) {
-        // Only show a loading state if the image is not from cache
-        // and thus has to be downloaded before it can be displayed
-        this.setState({
-            isLoading: nativeEvent.cachePath == null,
-            isConfiguringImageZoom: true,
-        });
+    imageLoadStart() {
+        this.setState({isLoading: true});
     }
 
     /**
@@ -119,18 +113,15 @@ class ImageView extends PureComponent {
             const maxDimensionsScale = 11;
             imageHeight = Math.min(imageHeight, (this.props.windowHeight * maxDimensionsScale));
             imageWidth = Math.min(imageWidth, (this.props.windowWidth * maxDimensionsScale));
-            this.setState({
-                imageHeight,
-                imageWidth,
-                isLoading: false,
-                isConfiguringImageZoom: false,
-            });
+            this.setState({imageHeight, imageWidth, isLoading: false});
         });
     }
 
     render() {
         // Default windowHeight accounts for the modal header height
         const windowHeight = this.props.windowHeight - variables.contentHeaderHeight;
+        const hasImageDimensions = this.state.imageWidth !== 0 && this.state.imageHeight !== 0;
+        const shouldShowLoadingIndicator = this.state.isLoading || !hasImageDimensions;
 
         // Zoom view should be loaded only after measuring actual image dimensions, otherwise it causes blurred images on Android
         return (
@@ -191,7 +182,7 @@ class ImageView extends PureComponent {
                             // Hide image while loading so ImageZoom can get the image
                             // size before presenting - preventing visual glitches or shift
                             // due to ImageZoom
-                            this.state.isLoading || this.state.isConfiguringImageZoom ? styles.opacity0 : styles.opacity1,
+                            shouldShowLoadingIndicator ? styles.opacity0 : styles.opacity1,
                         ]}
                         source={{uri: this.props.url}}
                         isAuthTokenRequired={this.props.isAuthTokenRequired}
@@ -214,7 +205,7 @@ class ImageView extends PureComponent {
                         ]}
                     />
                 </ImageZoom>
-                {this.state.isLoading && (
+                {shouldShowLoadingIndicator && (
                     <FullscreenLoadingIndicator
                         style={[styles.opacity1, styles.bgTransparent]}
                     />
