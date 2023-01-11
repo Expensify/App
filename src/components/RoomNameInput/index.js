@@ -73,6 +73,7 @@ class RoomNameInput extends Component {
                 autoCapitalize="none"
                 onBlur={this.props.onBlur}
                 autoFocus={this.props.autoFocus}
+                maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
             />
         );
     }

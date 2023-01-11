@@ -48,6 +48,11 @@ const baseCodeTagStyles = {
     backgroundColor: themeColors.textBackground,
 };
 
+const headlineFont = {
+    fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+    fontWeight: '500',
+};
+
 const webViewStyles = {
     // As of react-native-render-html v6, don't declare distinct styles for
     // custom renderers, the API for custom renderers has changed. Declare the
@@ -169,10 +174,6 @@ const styles = {
 
     link,
 
-    linkHovered: {
-        color: themeColors.linkHover,
-    },
-
     linkMuted: {
         color: themeColors.textSupporting,
         textDecorationColor: themeColors.textSupporting,
@@ -261,15 +262,16 @@ const styles = {
         fontSize: variables.fontSizeLarge,
     },
 
+    textXLarge: {
+        fontSize: variables.fontSizeXLarge,
+    },
+
     textXXLarge: {
         fontSize: variables.fontSizeXXLarge,
     },
 
     textXXXLarge: {
-        color: themeColors.heading,
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontSize: variables.fontSizeXXXLarge,
-        fontWeight: fontWeightBold,
     },
 
     textStrong: {
@@ -280,6 +282,12 @@ const styles = {
     textItalic: {
         fontFamily: fontFamily.EXP_NEUE_ITALIC,
         fontStyle: 'italic',
+    },
+
+    textHeadline: {
+        ...headlineFont,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeXLarge,
     },
 
     textDecorationNoLine: {
@@ -448,7 +456,7 @@ const styles = {
     },
 
     buttonDangerDisabled: {
-        backgroundColor: themeColors.dangerDisabled,
+        opacity: 0.5,
     },
 
     buttonDangerHovered: {
@@ -529,7 +537,6 @@ const styles = {
         alignItems: 'center',
         height: variables.componentSizeNormal,
         justifyContent: 'center',
-        marginRight: 8,
         width: variables.componentSizeNormal,
     },
 
@@ -702,7 +709,6 @@ const styles = {
     // Actions
     actionAvatar: {
         borderRadius: 20,
-        marginRight: 8,
     },
 
     componentHeightLarge: {
@@ -766,6 +772,10 @@ const styles = {
 
     textInputMultiline: {
         scrollPadding: '23px 0 0 0',
+    },
+
+    textInputMultilineContainer: {
+        paddingTop: 23,
     },
 
     textInputAndIconContainer: {
@@ -1126,7 +1136,6 @@ const styles = {
     popoverMenuText: {
         fontSize: variables.fontSizeNormal,
         color: themeColors.heading,
-        maxWidth: 240,
     },
 
     menuItemTextContainer: {
@@ -1319,7 +1328,6 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         lineHeight: variables.lineHeightXLarge,
-        paddingRight: 5,
         paddingBottom: 4,
         ...wordBreak.breakWord,
     },
@@ -1912,10 +1920,11 @@ const styles = {
     },
 
     notFoundTextHeader: {
-        color: themeColors.link,
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
-        fontSize: 150,
+        ...headlineFont,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeXLarge,
+        marginTop: 20,
+        marginBottom: 8,
     },
 
     notFoundTextBody: {
@@ -2001,9 +2010,6 @@ const styles = {
     },
 
     roomHeaderAvatar: {
-        height: variables.componentSizeLarge,
-        width: variables.componentSizeLarge,
-        borderRadius: 100,
         borderColor: themeColors.componentBG,
         borderWidth: 4,
         marginLeft: -16,
@@ -2026,13 +2032,6 @@ const styles = {
         textAlign: 'center',
         fontWeight: 'normal',
         position: 'absolute',
-    },
-
-    displayName: {
-        fontSize: variables.fontSizeLarge,
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
-        color: themeColors.heading,
     },
 
     pageWrapper: {
@@ -2173,16 +2172,14 @@ const styles = {
     },
 
     iouAmountText: {
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
+        ...headlineFont,
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
         lineHeight: variables.inputHeight,
     },
 
     iouAmountTextInput: addOutlineWidth({
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
+        ...headlineFont,
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
         padding: 0,
@@ -2550,18 +2547,18 @@ const styles = {
 
     shortTermsBorder: {
         borderWidth: 1,
-        borderColor: themeColors.shadow,
+        borderColor: themeColors.border,
     },
 
     shortTermsHorizontalRule: {
         borderBottomWidth: 1,
-        borderColor: themeColors.shadow,
+        borderColor: themeColors.border,
         ...spacing.mh3,
     },
 
     shortTermsLargeHorizontalRule: {
         borderWidth: 1,
-        borderColor: themeColors.shadow,
+        borderColor: themeColors.border,
         ...spacing.mh3,
     },
 
@@ -2869,6 +2866,25 @@ const styles = {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeNormal,
         maxWidth: 240,
+    },
+
+    deeplinkWrapperContainer: {
+        padding: 20,
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: themeColors.appBG,
+    },
+
+    deeplinkWrapperMessage: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    deeplinkWrapperFooter: {
+        paddingTop: 80,
+        paddingBottom: 45,
     },
 };
 

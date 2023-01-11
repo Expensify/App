@@ -901,6 +901,7 @@ function addPolicyReport(policy, reportName, visibility) {
         // The room might contain all policy members so notifying always should be opt-in only.
         CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
     );
+    const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(policyReport.ownerEmail);
 
     // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
     // fetchReportIfNeeded is called on the ReportScreen, so openReport is called which is unnecessary since the optimistic data will be stored in Onyx.
@@ -919,7 +920,7 @@ function addPolicyReport(policy, reportName, visibility) {
         {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyReport.reportID}`,
-            value: ReportUtils.buildOptimisticCreatedReportAction(policyReport.ownerEmail),
+            value: createdReportAction,
         },
     ];
     const successData = [
@@ -950,6 +951,7 @@ function addPolicyReport(policy, reportName, visibility) {
             reportName,
             visibility,
             reportID: policyReport.reportID,
+            createdReportActionID: createdReportAction.reportActionID,
         },
         {optimisticData, successData},
     );
