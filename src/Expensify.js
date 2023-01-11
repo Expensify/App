@@ -120,23 +120,18 @@ class Expensify extends PureComponent {
         this.appStateChangeListener = AppState.addEventListener('change', this.initializeClient);
     }
 
-    componentDidUpdate(prevProps) {
-        const previousAccountID = lodashGet(prevProps, 'session.accountID', null);
-        const currentAccountID = lodashGet(this.props, 'session.accountID', null);
-
-        if (currentAccountID && (currentAccountID !== previousAccountID)) {
-            PushNotification.register(currentAccountID);
+    componentDidUpdate() {
+        if (!this.state.isNavigationReady || !this.state.isSplashShown) {
+            return;
         }
 
-        if (this.state.isNavigationReady && this.state.isSplashShown) {
-            const shouldHideSplash = !this.isAuthenticated() || this.props.isSidebarLoaded;
+        const shouldHideSplash = !this.isAuthenticated() || this.props.isSidebarLoaded;
 
-            if (shouldHideSplash) {
-                BootSplash.hide();
+        if (shouldHideSplash) {
+            BootSplash.hide();
 
-                // eslint-disable-next-line react/no-did-update-set-state
-                this.setState({isSplashShown: false});
-            }
+            // eslint-disable-next-line react/no-did-update-set-state
+            this.setState({isSplashShown: false});
         }
     }
 
