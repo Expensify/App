@@ -367,7 +367,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             oneOnOneChatReport.iouReportID = oneOnOneIOUReport.reportID;
         }
 
-        const oneOnOneCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
         const oneOnOneChatReportMaxSequenceNumber = lodashGet(oneOnOneChatReport, 'maxSequenceNumber', 0);
         const oneOnOneIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
             oneOnOneChatReportMaxSequenceNumber + 1,
@@ -385,7 +384,10 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         oneOnOneChatReport.lastReadSequenceNumber = oneOnOneChatReportMaxSequenceNumber + 1;
         oneOnOneChatReport.lastMessageText = oneOnOneIOUReportAction.message[0].text;
         oneOnOneChatReport.lastMessageHtml = oneOnOneIOUReportAction.message[0].html;
+
+        let oneOnOneCreatedReportAction = {};
         if (!existingOneOnOneChatReport) {
+            oneOnOneCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
             oneOnOneChatReport.pendingFields = {
                 createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             };
