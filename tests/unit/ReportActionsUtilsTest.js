@@ -10,46 +10,94 @@ describe('ReportActionsUtils', () => {
                     {
                         created: '2022-11-09 22:27:01.825',
                         reportActionID: '8401445780099176',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
                     },
                     {
                         created: '2022-11-09 22:27:01.600',
                         reportActionID: '6401435781022176',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
                     },
 
                     // These reportActions were created in the same millisecond so should appear ordered by reportActionID
                     {
                         created: '2022-11-09 22:26:48.789',
                         reportActionID: '2962390724708756',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
                     },
                     {
                         created: '2022-11-09 22:26:48.789',
                         reportActionID: '1609646094152486',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
                     },
                     {
                         created: '2022-11-09 22:26:48.789',
                         reportActionID: '1661970171066218',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
                     },
                 ],
                 [
                     {
                         created: '2022-11-09 22:26:48.789',
                         reportActionID: '1609646094152486',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
                     },
                     {
                         created: '2022-11-09 22:26:48.789',
                         reportActionID: '1661970171066218',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
                     },
                     {
                         created: '2022-11-09 22:26:48.789',
                         reportActionID: '2962390724708756',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
                     },
                     {
                         created: '2022-11-09 22:27:01.600',
                         reportActionID: '6401435781022176',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
                     },
                     {
                         created: '2022-11-09 22:27:01.825',
                         reportActionID: '8401445780099176',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                    },
+                ],
+            ],
+            [
+                [
+                    // Given three reportActions with the same timestamp
+                    {
+                        created: '2023-01-10 22:25:47.132',
+                        reportActionID: '3',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                    },
+                    {
+                        created: '2023-01-10 22:25:47.132',
+                        reportActionID: '2',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    },
+                    {
+                        created: '2023-01-10 22:25:47.132',
+                        reportActionID: '1',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                    },
+                ],
+                [
+                    // The CREATED action should appear first, then we should sort by reportActionID
+                    {
+                        created: '2023-01-10 22:25:47.132',
+                        reportActionID: '2',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    },
+                    {
+                        created: '2023-01-10 22:25:47.132',
+                        reportActionID: '1',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                    },
+                    {
+                        created: '2023-01-10 22:25:47.132',
+                        reportActionID: '3',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
                     },
                 ],
             ],
