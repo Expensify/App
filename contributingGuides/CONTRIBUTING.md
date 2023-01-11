@@ -58,6 +58,7 @@ Please be aware that compensation for any support in solving an issue is provide
 - Merged PR within 6 business days - 0% bonus 
 - Merged PR within 9 business days - 50% **penalty**  
 - No PR within 12 business days - **Contract terminated**  
+
 If the PR causes a regression within 7 days of being deployed to production, the bonus timeline restarts from the initial hire date. 
 
 ## Finding Jobs
