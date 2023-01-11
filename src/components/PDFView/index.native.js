@@ -7,14 +7,14 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import Text from '../Text';
 import PDFPasswordForm from './PDFPasswordForm';
-import {propTypes as basePropTypes, defaultProps} from './pdfViewPropTypes';
+import {propTypes as pdfViewPropTypes, defaultProps} from './pdfViewPropTypes';
 import compose from '../../libs/compose';
 import withWindowDimensions from '../withWindowDimensions';
 import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
 import withLocalize from '../withLocalize';
 
 const propTypes = {
-    ...basePropTypes,
+    ...pdfViewPropTypes,
     ...keyboardStatePropTypes,
 };
 
