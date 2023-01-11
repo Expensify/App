@@ -147,7 +147,9 @@ const MenuItem = (props) => {
                         <Badge
                             text={props.badgeText}
                             badgeStyles={[styles.alignSelfCenter, (props.brickRoadIndicator ? styles.mr2 : undefined),
-                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive))]}
+                                (props.focused || hovered) ? styles.hoveredButton : {},
+                                pressed ? StyleUtils.getBadgeColorStyle(false, false) : {},
+                            ]}
                         />
                         )}
                         {/* Since subtitle can be of type number, we should allow 0 to be shown */}
