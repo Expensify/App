@@ -34,9 +34,6 @@ class ImageView extends PureComponent {
 
         this.state = {
             isLoading: false,
-
-            // Default to large image width and height to prevent
-            // small, blurry image being present by react-native-image-pan-zoom
             imageWidth: 0,
             imageHeight: 0,
             interactionPromise: undefined,
