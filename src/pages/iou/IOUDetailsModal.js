@@ -86,6 +86,10 @@ const defaultProps = {
 
 class IOUDetailsModal extends Component {
     componentDidMount() {
+        if (this.props.network.isOffline) {
+            return;
+        }
+
         this.fetchData();
     }
 
