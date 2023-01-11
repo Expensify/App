@@ -471,8 +471,9 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
     }
 
     const participantDetails = [];
-    for (let i = 0; i < report.participants.length; i++) {
-        const login = report.participants[i];
+    const participants = report.participants || [];
+    for (let i = 0; i < participants.length; i++) {
+        const login = participants[i];
         participantDetails.push([
             login,
             lodashGet(personalDetails, [login, 'firstName'], ''),
