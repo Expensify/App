@@ -306,7 +306,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChatReport.reportID}`,
             value: {
                 ...(existingGroupChatReport ? {} : {[groupCreatedReportAction.reportActionID]: {pendingAction: null}}),
-                [groupIOUReportAction.sequenceNumber]: {pendingAction: null},
+                [groupIOUReportAction.reportActionID]: {pendingAction: null},
             },
         },
     ];
