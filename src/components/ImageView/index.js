@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {
     View, Image, Pressable,
 } from 'react-native';
+import _ from 'underscore';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
@@ -20,6 +21,7 @@ class ImageView extends PureComponent {
         super(props);
         this.scrollableRef = null;
         this.canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
+        this.debouncedCalculateImageSize = _.debounce(this.calculateImageSize, 220);
         this.onContainerLayoutChanged = this.onContainerLayoutChanged.bind(this);
         this.onContainerPressIn = this.onContainerPressIn.bind(this);
         this.onContainerPress = this.onContainerPress.bind(this);
@@ -46,18 +48,21 @@ class ImageView extends PureComponent {
     }
 
     componentDidMount() {
+        this.debouncedCalculateImageSize();
         if (this.canUseTouchScreen) {
             return;
         }
+
         document.addEventListener('mousemove', this.trackMovement);
         document.addEventListener('mouseup', this.trackPointerPosition);
     }
 
-    componentDidUpdate() {
-        // Resize the image when cycled through
-        Image.getSize(this.props.url, (width, height) => {
-            this.setImageRegion(width, height);
-        });
+    componentDidUpdate(prevProps) {
+        if (prevProps.url === this.props.url) {
+            return;
+        }
+        this.debouncedCalculateImageSize.cancel();
+        this.debouncedCalculateImageSize();
     }
 
     componentWillUnmount() {
@@ -180,6 +185,18 @@ class ImageView extends PureComponent {
             offsetY = y - (this.state.containerHeight / 2);
         }
         return {offsetX, offsetY};
+    }
+
+    /**
+     * Resize the image when cycled through
+     */
+    calculateImageSize() {
+        if (!this.props.url) {
+            return;
+        }
+        Image.getSize(this.props.url, (width, height) => {
+            this.setImageRegion(width, height);
+        });
     }
 
     /**

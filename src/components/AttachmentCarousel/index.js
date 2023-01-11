@@ -52,7 +52,7 @@ class AttachmentCarousel extends React.Component {
         this.canUseTouchScreen = canUseTouchScreen();
         this.makeStateWithReports = this.makeStateWithReports.bind(this);
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
-        this.onShowArrow = this.onShowArrow.bind(this);
+        this.toggleArrowsVisibility = this.toggleArrowsVisibility.bind(this);
 
         this.state = {shouldShowArrow: this.canUseTouchScreen};
     }
@@ -62,20 +62,12 @@ class AttachmentCarousel extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        const prevReportSize = _.size(prevProps.reportActions);
-        const currReportSize = _.size(this.props.reportActions);
-        if (prevReportSize === currReportSize) {
+        const previousReportActionsCount = _.size(prevProps.reportActions);
+        const currentReportActionsCount = _.size(this.props.reportActions);
+        if (previousReportActionsCount === currentReportActionsCount) {
             return;
         }
         this.makeStateWithReports();
-    }
-
-    /**
-     * Toggles the visibility of the arrows
-     * @param {Boolean} shouldShowArrow
-     */
-    onShowArrow(shouldShowArrow) {
-        this.setState({shouldShowArrow});
     }
 
     /**
@@ -92,6 +84,14 @@ class AttachmentCarousel extends React.Component {
             sourceURL,
             file,
         };
+    }
+
+    /**
+     * Toggles the visibility of the arrows
+     * @param {Boolean} shouldShowArrow
+     */
+    toggleArrowsVisibility(shouldShowArrow) {
+        this.setState({shouldShowArrow});
     }
 
     /**
@@ -185,8 +185,8 @@ class AttachmentCarousel extends React.Component {
         return (
             <View
                 style={[styles.attachmentModalArrowsContainer]}
-                onMouseEnter={() => this.onShowArrow(true)}
-                onMouseLeave={() => this.onShowArrow(false)}
+                onMouseEnter={() => this.toggleArrowsVisibility(true)}
+                onMouseLeave={() => this.toggleArrowsVisibility(false)}
             >
                 {this.state.shouldShowArrow && (
                     <>
@@ -220,10 +220,10 @@ class AttachmentCarousel extends React.Component {
                     styles={[styles.attachmentModalArrowsContainer]}
                     canSwipeLeft={!this.state.isBackDisabled}
                     canSwipeRight={!this.state.isForwardDisabled}
-                    onPress={() => this.canUseTouchScreen && this.onShowArrow(!this.state.shouldShowArrow)}
+                    onPress={() => this.canUseTouchScreen && this.toggleArrowsVisibility(!this.state.shouldShowArrow)}
                     onCycleThroughAttachments={this.cycleThroughAttachments}
                 >
-                    <AttachmentView onPress={() => this.onShowArrow(!this.state.shouldShowArrow)} sourceURL={authSourceURL} file={this.state.file} />
+                    <AttachmentView onPress={() => this.toggleArrowsVisibility(!this.state.shouldShowArrow)} sourceURL={authSourceURL} file={this.state.file} />
                 </CarouselActions>
 
             </View>
