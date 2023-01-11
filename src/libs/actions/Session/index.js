@@ -34,12 +34,13 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
         const accountID = lodashGet(session, 'accountID');
-
-        if (accountID && previousAccountID !== accountID) {
-            PushNotification.register(accountID);
+        if (previousAccountID === accountID) {
+            return;
         }
 
-        if (!accountID && previousAccountID !== accountID) {
+        if (accountID) {
+            PushNotification.register(accountID);
+        } else {
             PushNotification.deregister();
             PushNotification.clearNotifications();
         }
