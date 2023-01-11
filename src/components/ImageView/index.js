@@ -249,8 +249,7 @@ class ImageView extends PureComponent {
                 onLayout={this.onContainerLayoutChanged}
                 style={[
                     styles.imageViewContainer,
-                    styles.overflowScroll,
-                    styles.noScrollbars,
+                    styles.overflowAuto,
                     styles.pRelative,
                 ]}
             >
