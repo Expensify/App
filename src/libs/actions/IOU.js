@@ -252,7 +252,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         ? chatReports[`${ONYXKEYS.COLLECTION.REPORT}${existingGroupChatReportID}`]
         : ReportUtils.getChatByParticipants(participantLogins);
     const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(participantLogins);
-    const groupCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
     const groupChatReportMaxSequenceNumber = lodashGet(groupChatReport, 'maxSequenceNumber', 0);
     const groupIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         groupChatReportMaxSequenceNumber + 1,
@@ -270,7 +269,9 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     groupChatReport.lastMessageHtml = groupIOUReportAction.message[0].html;
 
     // If we have an existing groupChatReport use it's pending fields, otherwise indicate that we are adding a chat
+    let groupCreatedReportAction = {};
     if (!existingGroupChatReport) {
+        groupCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
         groupChatReport.pendingFields = {
             createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         };
