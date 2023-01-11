@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import moment from 'moment';
 import {
-    beforeEach, beforeAll, afterEach, jest, describe, it, expect,
+    beforeEach, beforeAll, afterEach, describe, it, expect,
 } from '@jest/globals';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as Pusher from '../../src/libs/Pusher/pusher';
@@ -18,6 +18,15 @@ import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 import * as User from '../../src/libs/actions/User';
 import * as ReportUtils from '../../src/libs/ReportUtils';
 import DateUtils from '../../src/libs/DateUtils';
+
+jest.mock('../../src/libs/actions/Report', () => {
+    const originalModule = jest.requireActual('../../src/libs/actions/Report');
+
+    return {
+        ...originalModule,
+        showReportActionNotification: jest.fn(),
+    };
+});
 
 describe('actions/Report', () => {
     beforeAll(() => {
@@ -469,5 +478,36 @@ describe('actions/Report', () => {
         newCommentMarkdown = Report.handleUserDeletedLinks(afterEditCommentText, originalCommentHTML);
         expectedOutput = 'Comment www.google.com  [www.facebook.com](https://www.facebook.com)';
         expect(newCommentMarkdown).toBe(expectedOutput);
+    });
+
+    it('should show a notification for report action updates with shouldNotify', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const REPORT_ID = 1;
+        const REPORT_ACTION = {};
+
+        // Setup user and pusher listeners
+        return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID)
+            .then(() => {
+                User.subscribeToUserEvents();
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                // Simulate a Pusher Onyx update with a report action with shouldNotify
+                const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${TEST_USER_ACCOUNT_ID}${CONFIG.PUSHER.SUFFIX}`);
+                channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
+                    {
+                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                        value: {
+                            1: REPORT_ACTION,
+                        },
+                        shouldNotify: true,
+                    },
+                ]);
+                return waitForPromisesToResolve();
+            }).then(() => {
+                // Ensure we show a notification for this new report action
+                expect(Report.showReportActionNotification).toBeCalledWith(String(REPORT_ID), REPORT_ACTION);
+            });
     });
 });
