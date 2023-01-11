@@ -338,11 +338,11 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
         // and we need the data to be available when we navigate to the chat page
         onyxData.optimisticData[0].onyxMethod = CONST.ONYX.METHOD.SET;
 
-        const optimisticReportAction = ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail);
+        const optimisticCreatedActionData = ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail);
         onyxData.optimisticData[1] = {
             onyxMethod: CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: optimisticReportAction,
+            value: optimisticCreatedActionData,
         };
 
         onyxData.optimisticData[0].value = {
@@ -355,7 +355,7 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
         };
 
         // Add the createdReportActionID parameter to the API call
-        params.createdReportActionID = optimisticReportAction[0].reportActionID;
+        params.createdReportActionID = optimisticCreatedActionData[0].reportActionID;
     }
 
     API.write('OpenReport', params, onyxData);
