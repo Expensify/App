@@ -970,7 +970,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
     );
     const announceChatReportID = announceChatData.reportID;
     const announceReportActionData = buildOptimisticCreatedReportAction(announceChatData.ownerEmail);
-    const announceCreatedReportActionID = announceReportActionData.reportActionID;
+    const announceCreatedReportActionID = announceReportActionData[0].reportActionID;
 
     const adminsChatData = buildOptimisticChatReport(
         [currentUserEmail],
@@ -983,7 +983,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
     );
     const adminsChatReportID = adminsChatData.reportID;
     const adminsReportActionData = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
-    const adminsCreatedReportActionID = adminsReportActionData.reportActionID;
+    const adminsCreatedReportActionID = adminsReportActionData[0].reportActionID;
 
     const expenseChatData = buildOptimisticChatReport(
         [currentUserEmail],
@@ -996,7 +996,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
     );
     const expenseChatReportID = expenseChatData.reportID;
     const expenseReportActionData = buildOptimisticCreatedReportAction(expenseChatData.ownerEmail);
-    const expenseCreatedReportActionID = expenseReportActionData.reportActionID;
+    const expenseCreatedReportActionID = expenseReportActionData[0].reportActionID;
 
     return {
         announceChatReportID,
