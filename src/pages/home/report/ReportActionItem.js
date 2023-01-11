@@ -117,7 +117,11 @@ class ReportActionItem extends Component {
         }
 
         this.setState({isContextMenuActive: true});
-        const selection = SelectionScraper.getCurrentSelection();
+
+        // Newline characters need to be removed here because getCurrentSelection() returns html mixed with newlines, and when
+        // <br> tags are converted later to markdown, it creates duplicate newline characters. This means that when the content
+        // is pasted, there are extra newlines in the content that we want to avoid.
+        const selection = SelectionScraper.getCurrentSelection().replace(/\n/g, '');
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,

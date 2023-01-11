@@ -139,6 +139,12 @@ export default {
         updateApp: 'Actualizar app',
         updatePrompt: 'Existe una nueva versión de esta aplicación.\nActualiza ahora or reinicia la aplicación más tarde para recibir la última versión.',
     },
+    deeplinkWrapper: {
+        launching: 'Cargando Expensify',
+        redirectedToDesktopApp: 'Te hemos redirigido a la aplicación de escritorio.',
+        youCanAlso: 'También puedes',
+        openLinkInBrowser: 'abrir este enlace en tu navegador',
+    },
     iOUConfirmationList: {
         whoPaid: '¿QUIÉN PAGO?',
         whoWasThere: '¿QUIÉN ASISTIÓ?',

@@ -139,6 +139,12 @@ export default {
         updateApp: 'Update app',
         updatePrompt: 'A new version of this app is available.\nUpdate now or restart the app at a later time to download the latest changes.',
     },
+    deeplinkWrapper: {
+        launching: 'Launching Expensify',
+        redirectedToDesktopApp: 'We\'ve redirected you to the desktop app.',
+        youCanAlso: 'You can also',
+        openLinkInBrowser: 'open this link in your browser',
+    },
     iOUConfirmationList: {
         whoPaid: 'WHO PAID?',
         whoWasThere: 'WHO WAS THERE?',

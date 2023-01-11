@@ -542,7 +542,6 @@ const styles = {
         alignItems: 'center',
         height: variables.componentSizeNormal,
         justifyContent: 'center',
-        marginRight: 8,
         width: variables.componentSizeNormal,
     },
 
@@ -2016,9 +2015,6 @@ const styles = {
     },
 
     roomHeaderAvatar: {
-        height: variables.componentSizeLarge,
-        width: variables.componentSizeLarge,
-        borderRadius: 100,
         borderColor: themeColors.componentBG,
         borderWidth: 4,
         marginLeft: -16,
@@ -2875,6 +2871,25 @@ const styles = {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeNormal,
         maxWidth: 240,
+    },
+
+    deeplinkWrapperContainer: {
+        padding: 20,
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: themeColors.appBG,
+    },
+
+    deeplinkWrapperMessage: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    deeplinkWrapperFooter: {
+        paddingTop: 80,
+        paddingBottom: 45,
     },
 
     emptyStateBackgroundContainer: {
