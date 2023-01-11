@@ -757,6 +757,7 @@ const styles = {
     baseTextInput: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeNormal,
+        lineHeight: variables.lineHeightNormal,
         color: themeColors.text,
         paddingTop: 23,
         paddingBottom: 8,
