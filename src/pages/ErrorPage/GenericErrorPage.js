@@ -35,7 +35,7 @@ const GenericErrorPage = props => (
                     />
                 </View>
                 <View style={styles.mb5}>
-                    <Text style={[styles.headerText, styles.textXXLarge]}>
+                    <Text style={[styles.textHeadline]}>
                         {props.translate('genericErrorPage.title')}
                     </Text>
                 </View>
@@ -71,7 +71,7 @@ const GenericErrorPage = props => (
         </View>
         <View styles={styles.alignSelfEnd}>
             <View style={[styles.flex1, styles.flexRow, styles.justifyContentCenter]}>
-                <LogoWordmark height={30} width={80} />
+                <LogoWordmark height={30} width={80} fill={defaultTheme.textLight} />
             </View>
         </View>
     </View>

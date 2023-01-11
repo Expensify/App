@@ -71,15 +71,18 @@ let lastFakeReportID = 0;
 /**
  * @param {String[]} participants
  * @param {Number} millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
+ * @param {boolean} isUnread
  * @returns {Object}
  */
-function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], millisecondsInThePast = 0) {
+function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], millisecondsInThePast = 0, isUnread = false) {
+    const lastActionCreated = DateUtils.getDBTime(Date.now() - millisecondsInThePast);
     return {
         reportID: `${++lastFakeReportID}`,
         reportName: 'Report',
         maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
         lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
-        lastActionCreated: DateUtils.getDBTime(Date.now() - millisecondsInThePast),
+        lastActionCreated,
+        lastReadTime: isUnread ? DateUtils.subtractMillisecondsFromDateTime(lastActionCreated, 1) : lastActionCreated,
         participants,
     };
 }
@@ -98,7 +101,7 @@ function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], mi
  */
 function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft) {
     return {
-        ...getFakeReport(),
+        ...getFakeReport(['email1@test.com', 'email2@test.com'], 0, isUnread),
         chatType: isUserCreatedPolicyRoom ? CONST.REPORT.CHAT_TYPE.POLICY_ROOM : CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
         statusNum: isArchived ? CONST.REPORT.STATUS.CLOSED : 0,
         stateNum: isArchived ? CONST.REPORT.STATE_NUM.SUBMITTED : 0,
