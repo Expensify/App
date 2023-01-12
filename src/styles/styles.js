@@ -1543,14 +1543,15 @@ const styles = {
     chatItemAttachBorder: {
         borderRightColor: themeColors.border,
         borderRightWidth: 1,
+        height: 32,
+        width: 32,
         marginBottom: 3,
         marginTop: 3,
-
+        justifyContent: 'center',
     },
 
     composerSizeButton: {
         alignItems: 'center',
-        alignSelf: 'flex-end',
         height: 26,
         marginBottom: 6,
         marginTop: 6,

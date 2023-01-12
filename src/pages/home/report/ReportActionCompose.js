@@ -560,7 +560,7 @@ class ReportActionCompose extends React.Component {
                                     {({openPicker}) => (
                                         <>
                                             <View style={[
-                                                styles.dFlex, styles.flexColumn,
+                                                styles.ml1, styles.dFlex, styles.flexColumn,
                                                 (this.state.isFullComposerAvailable || this.props.isComposerFullSize) ? styles.justifyContentBetween : styles.justifyContentEnd,
                                             ]}
                                             >
