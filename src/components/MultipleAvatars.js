@@ -117,6 +117,7 @@ const MultipleAvatars = (props) => {
                     style={singleAvatarStyles}
                 >
                     <Tooltip text={props.avatarTooltips[0]} absolute>
+                        {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                         <View>
                             <Avatar
                                 source={props.icons[0] || props.fallbackIcon}

@@ -46,16 +46,15 @@ const defaultProps = {
 };
 
 const AttachmentView = (props) => {
-    // Check both source and file.name since PDFs dragged into the the text field
-    // will appear with a source that is a blob
-
-    // handles SVG
+    // Handles case where source is a component (ex: SVG)
     if (_.isFunction(props.source)) {
         return (
             <Icon src={props.source} height={variables.defaultAvatarPreviewSize} width={variables.defaultAvatarPreviewSize} />
         );
     }
 
+    // Check both source and file.name since PDFs dragged into the the text field
+    // will appear with a source that is a blob
     if (Str.isPDF(props.source)
         || (props.file && Str.isPDF(props.file.name || props.translate('attachmentView.unknownFilename')))) {
         return (

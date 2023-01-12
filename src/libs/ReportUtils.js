@@ -1,4 +1,4 @@
-import _, {isString} from 'underscore';
+import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
@@ -412,8 +412,7 @@ function formatReportLastMessageText(lastMessageText) {
 }
 
 /**
- * Helper method to return the default avatar associated with login
- *
+ * Helper method to return the default avatar associated with the given login
  * @param {String} [login]
  * @returns {String}
  */
@@ -446,16 +445,16 @@ function getOldDotDefaultAvatar(login = '') {
     }
     const loginHashBucket = (Math.abs(hashCode(login.toLowerCase())) % 8) + 1;
 
-    return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}`;
+    return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
 }
 
 /**
- * Returns true if provided URL requires a default avatar
- * @param {String} [avatarURL]
+ * Given a user's avatar path, returns true if user doesn't have an avatar or if URL points to a default avatar
+ * @param {String} [avatarURL] - the avatar source from user's personalDetails
  * @returns {Boolean}
  */
 function isDefaultAvatar(avatarURL) {
-    if (isString(avatarURL) && (avatarURL.includes('images/avatars/avatar_') || (avatarURL.includes('images/avatars/user/default')))) {
+    if (_.isString(avatarURL) && (avatarURL.includes('images/avatars/avatar_') || (avatarURL.includes('images/avatars/user/default')))) {
         return true;
     }
 
@@ -470,7 +469,7 @@ function isDefaultAvatar(avatarURL) {
  * Provided a source URL, if source is a default avatar, return the associated SVG.
  * Otherwise, return the URL pointing to a user-uploaded avatar.
  *
- * @param {String} [avatarURL] - the avatar source from user's NVPs
+ * @param {String} [avatarURL] - the avatar source from user's personalDetails
  * @param {String} [login] - the email of the user
  * @returns {String | Function}
  */
@@ -493,7 +492,7 @@ function getCorrectAvatar(avatarURL, login) {
  */
 function getIcons(report, personalDetails, policies, defaultIcon = null) {
     if (_.isEmpty(report)) {
-        return [defaultIcon || getDefaultAvatar()];
+        return [defaultIcon || getDefaultAvatar(personalDetails.login || '')];
     }
     if (isConciergeChatReport(report)) {
         return [CONST.CONCIERGE_ICON_URL];

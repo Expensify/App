@@ -51,13 +51,13 @@ const propTypes = {
 
     /** The personal details of the person who is logged in */
     currentUserPersonalDetails: PropTypes.shape({
-        /** Display name of the current user from their personal details */
+        /** Display name of the current user */
         displayName: PropTypes.string,
 
-        /** Avatar URL of the current user from their personal details */
+        /** Avatar URL or SVG of the current user */
         avatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
 
-        /** Login email of the current user from their personal details */
+        /** Login email of the current user */
         login: PropTypes.string,
     }),
 

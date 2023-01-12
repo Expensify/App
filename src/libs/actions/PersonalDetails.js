@@ -284,7 +284,7 @@ function updateAvatar(file) {
  * Replaces the user's avatar image with a default avatar
  */
 function deleteAvatar() {
-    // we want to use the old dot avatar here as this affects both platforms.
+    // We want to use the old dot avatar here as this affects both platforms.
     const defaultAvatar = ReportUtils.getOldDotDefaultAvatar(currentUserEmail);
 
     API.write('DeleteUserAvatar', {}, {

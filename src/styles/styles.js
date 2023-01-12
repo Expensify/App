@@ -2042,7 +2042,7 @@ const styles = {
         position: 'absolute',
     },
 
-    svgAvatarBorder: {
+    SVGAvatarBorder: {
         borderRadius: 100,
         overflow: 'hidden',
     },
