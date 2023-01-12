@@ -16,7 +16,6 @@ import exampleCheckImage from './exampleCheckImage';
 import Form from '../../components/Form';
 import shouldDelayFocus from '../../libs/shouldDelayFocus';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
@@ -28,17 +27,6 @@ class BankAccountManualStep extends React.Component {
         super(props);
         this.submit = this.submit.bind(this);
         this.validate = this.validate.bind(this);
-        this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
-    }
-
-    /**
-     * @param {String} fieldName
-     * @param {*} defaultValue
-     *
-     * @returns {*}
-     */
-    getDefaultStateForField(fieldName, defaultValue = '') {
-        return ReimbursementAccountUtils.getDefaultStateForField(this.props.reimbursementAccountDraft, this.props.reimbursementAccount, fieldName, defaultValue);
     }
 
     /**
@@ -67,15 +55,15 @@ class BankAccountManualStep extends React.Component {
 
     submit(values) {
         BankAccounts.connectBankAccountManually(
-            this.getDefaultStateForField('bankAccountID', 0),
+            this.props.getDefaultStateForField('bankAccountID', 0),
             values.accountNumber,
             values.routingNumber,
-            this.getDefaultStateForField('plaidMask'),
+            this.props.getDefaultStateForField('plaidMask'),
         );
     }
 
     render() {
-        const shouldDisableInputs = Boolean(this.getDefaultStateForField('bankAccountID'));
+        const shouldDisableInputs = Boolean(this.props.getDefaultStateForField('bankAccountID'));
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -108,7 +96,7 @@ class BankAccountManualStep extends React.Component {
                         shouldDelayFocus={shouldDelayFocus}
                         inputID="routingNumber"
                         label={this.props.translate('bankAccount.routingNumber')}
-                        defaultValue={this.getDefaultStateForField('routingNumber', '')}
+                        defaultValue={this.props.getDefaultStateForField('routingNumber', '')}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableInputs}
                         shouldSaveDraft
@@ -117,7 +105,7 @@ class BankAccountManualStep extends React.Component {
                         inputID="accountNumber"
                         containerStyles={[styles.mt4]}
                         label={this.props.translate('bankAccount.accountNumber')}
-                        defaultValue={this.getDefaultStateForField('accountNumber', '')}
+                        defaultValue={this.props.getDefaultStateForField('accountNumber', '')}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableInputs}
                         shouldSaveDraft
@@ -140,7 +128,7 @@ class BankAccountManualStep extends React.Component {
                                 </TextLink>
                             </View>
                         )}
-                        defaultValue={this.getDefaultStateForField('acceptTerms', false)}
+                        defaultValue={this.props.getDefaultStateForField('acceptTerms', false)}
                         shouldSaveDraft
                     />
                 </Form>

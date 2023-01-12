@@ -42,22 +42,11 @@ class BankAccountPlaidStep extends React.Component {
     constructor(props) {
         super(props);
         this.submit = this.submit.bind(this);
-        this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
-    }
-
-    /**
-     * @param {String} fieldName
-     * @param {*} defaultValue
-     *
-     * @returns {*}
-     */
-    getDefaultStateForField(fieldName, defaultValue = '') {
-        return ReimbursementAccountUtils.getDefaultStateForField(this.props.reimbursementAccountDraft, this.props.reimbursementAccount, fieldName, defaultValue);
     }
 
     submit() {
         const selectedPlaidBankAccount = _.findWhere(lodashGet(this.props.plaidData, 'bankAccounts', []), {
-            plaidAccountID: this.getDefaultStateForField('plaidAccountID'),
+            plaidAccountID: this.props.getDefaultStateForField('plaidAccountID'),
         });
 
         const bankAccountData = {
@@ -71,13 +60,13 @@ class BankAccountPlaidStep extends React.Component {
         };
         ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
 
-        const bankAccountID = this.getDefaultStateForField('bankAccountID', 0);
+        const bankAccountID = this.props.getDefaultStateForField('bankAccountID', 0);
         BankAccounts.connectBankAccountWithPlaid(bankAccountID, bankAccountData);
     }
 
     render() {
-        const bankAccountID = this.getDefaultStateForField('bankAccountID', 0);
-        const selectedPlaidAccountID = this.getDefaultStateForField('plaidAccountID', '');
+        const bankAccountID = this.props.getDefaultStateForField('bankAccountID', 0);
+        const selectedPlaidAccountID = this.props.getDefaultStateForField('plaidAccountID', '');
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>

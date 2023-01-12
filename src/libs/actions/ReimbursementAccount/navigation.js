@@ -11,9 +11,7 @@ import Navigation from '../../Navigation/Navigation';
  * @param {Object} newAchData
  */
 function goToWithdrawalAccountSetupStep(stepID, newAchData) {
-    const originalACHData = {...store.getReimbursementAccountInSetup()};
-
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...originalACHData, ...newAchData, currentStep: stepID}});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, {...newAchData, currentStep: stepID});
 }
 
 /**

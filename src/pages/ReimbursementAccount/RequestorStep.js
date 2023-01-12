@@ -17,7 +17,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import RequestorOnfidoStep from './RequestorOnfidoStep';
 import Form from '../../components/Form';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
@@ -33,17 +32,6 @@ class RequestorStep extends React.Component {
 
         this.validate = this.validate.bind(this);
         this.submit = this.submit.bind(this);
-        this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
-    }
-
-    /**
-     * @param {String} fieldName
-     * @param {*} defaultValue
-     *
-     * @returns {*}
-     */
-    getDefaultStateForField(fieldName, defaultValue = '') {
-        return ReimbursementAccountUtils.getDefaultStateForField(this.props.reimbursementAccountDraft, this.props.reimbursementAccount, fieldName, defaultValue);
     }
 
     /**
@@ -102,7 +90,7 @@ class RequestorStep extends React.Component {
 
     submit(values) {
         const payload = {
-            bankAccountID: this.getDefaultStateForField('bankAccountID', 0),
+            bankAccountID: this.props.getDefaultStateForField('bankAccountID', 0),
             ...values,
             dob: moment(values.dob).format(CONST.DATE.MOMENT_FORMAT_STRING),
         };
@@ -117,6 +105,7 @@ class RequestorStep extends React.Component {
                     reimbursementAccount={this.props.reimbursementAccount}
                     reimbursementAccountDraft={this.props.reimbursementAccountDraft}
                     onBackButtonPress={this.props.onBackButtonPress}
+                    getDefaultStateForField={this.props.getDefaultStateForField}
                 />
             );
         }
@@ -160,14 +149,14 @@ class RequestorStep extends React.Component {
                     <IdentityForm
                         translate={this.props.translate}
                         defaultValues={{
-                            firstName: this.getDefaultStateForField('firstName'),
-                            lastName: this.getDefaultStateForField('lastName'),
-                            street: this.getDefaultStateForField('requestorAddressStreet'),
-                            city: this.getDefaultStateForField('requestorAddressCity'),
-                            state: this.getDefaultStateForField('requestorAddressState'),
-                            zipCode: this.getDefaultStateForField('requestorAddressZipCode'),
-                            dob: this.getDefaultStateForField('dob'),
-                            ssnLast4: this.getDefaultStateForField('ssnLast4'),
+                            firstName: this.props.getDefaultStateForField('firstName'),
+                            lastName: this.props.getDefaultStateForField('lastName'),
+                            street: this.props.getDefaultStateForField('requestorAddressStreet'),
+                            city: this.props.getDefaultStateForField('requestorAddressCity'),
+                            state: this.props.getDefaultStateForField('requestorAddressState'),
+                            zipCode: this.props.getDefaultStateForField('requestorAddressZipCode'),
+                            dob: this.props.getDefaultStateForField('dob'),
+                            ssnLast4: this.props.getDefaultStateForField('ssnLast4'),
                         }}
                         inputKeys={{
                             firstName: 'firstName',
@@ -183,7 +172,7 @@ class RequestorStep extends React.Component {
                     />
                     <CheckboxWithLabel
                         inputID="isControllingOfficer"
-                        defaultValue={this.getDefaultStateForField('isControllingOfficer', false)}
+                        defaultValue={this.props.getDefaultStateForField('isControllingOfficer', false)}
                         LabelComponent={() => (
                             <View style={[styles.flex1, styles.pr1]}>
                                 <Text>

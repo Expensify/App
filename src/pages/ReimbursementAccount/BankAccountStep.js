@@ -4,7 +4,6 @@ import {
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import BankAccountManualStep from './BankAccountManualStep';
 import BankAccountPlaidStep from './BankAccountPlaidStep';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -54,7 +53,7 @@ const defaultProps = {
 };
 
 const BankAccountStep = (props) => {
-    let subStep = lodashGet(props.reimbursementAccount, 'achData.subStep', '');
+    let subStep = props.getDefaultStateForField('subStep', '');
     const shouldReinitializePlaidLink = props.plaidLinkOAuthToken && props.receivedRedirectURI && subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
     if (shouldReinitializePlaidLink) {
         subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
@@ -68,6 +67,7 @@ const BankAccountStep = (props) => {
                 reimbursementAccount={props.reimbursementAccount}
                 reimbursementAccountDraft={props.reimbursementAccountDraft}
                 onBackButtonPress={props.onBackButtonPress}
+                getDefaultStateForField={props.getDefaultStateForField}
             />
         );
     }
@@ -78,6 +78,7 @@ const BankAccountStep = (props) => {
                 reimbursementAccount={props.reimbursementAccount}
                 reimbursementAccountDraft={props.reimbursementAccountDraft}
                 onBackButtonPress={props.onBackButtonPress}
+                getDefaultStateForField={props.getDefaultStateForField}
             />
         );
     }

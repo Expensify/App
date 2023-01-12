@@ -30,22 +30,11 @@ class RequestorOnfidoStep extends React.Component {
     constructor(props) {
         super(props);
         this.submit = this.submit.bind(this);
-        this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
-    }
-
-    /**
-     * @param {String} fieldName
-     * @param {*} defaultValue
-     *
-     * @returns {*}
-     */
-    getDefaultStateForField(fieldName, defaultValue = '') {
-        return ReimbursementAccountUtils.getDefaultStateForField(this.props.reimbursementAccountDraft, this.props.reimbursementAccount, fieldName, defaultValue);
     }
 
     submit(onfidoData) {
         BankAccounts.verifyIdentityForBankAccount(
-            this.getDefaultStateForField('bankAccountID', 0),
+            this.props.getDefaultStateForField('bankAccountID', 0),
             onfidoData,
         );
 

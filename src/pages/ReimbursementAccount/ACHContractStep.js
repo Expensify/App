@@ -33,14 +33,13 @@ class ACHContractStep extends React.Component {
 
         this.addBeneficialOwner = this.addBeneficialOwner.bind(this);
         this.submit = this.submit.bind(this);
-        this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
 
         this.state = {
-            ownsMoreThan25Percent: this.getDefaultStateForField('ownsMoreThan25Percent', false),
-            hasOtherBeneficialOwners: this.getDefaultStateForField('hasOtherBeneficialOwners', false),
-            acceptTermsAndConditions: this.getDefaultStateForField('acceptTermsAndConditions', false),
-            certifyTrueInformation: this.getDefaultStateForField('certifyTrueInformation', false),
-            beneficialOwners: this.getDefaultStateForField('beneficialOwners', []),
+            ownsMoreThan25Percent: props.getDefaultStateForField('ownsMoreThan25Percent', false),
+            hasOtherBeneficialOwners: props.getDefaultStateForField('hasOtherBeneficialOwners', false),
+            acceptTermsAndConditions: props.getDefaultStateForField('acceptTermsAndConditions', false),
+            certifyTrueInformation: props.getDefaultStateForField('certifyTrueInformation', false),
+            beneficialOwners: props.getDefaultStateForField('beneficialOwners', []),
         };
 
         // These fields need to be filled out in order to submit the form (doesn't include IdentityForm fields)
@@ -59,16 +58,6 @@ class ACHContractStep extends React.Component {
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
         this.clearErrors = inputKeys => ReimbursementAccountUtils.clearErrors(this.props, inputKeys);
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
-    }
-
-    /**
-     * @param {String} fieldName
-     * @param {*} defaultValue
-     *
-     * @returns {*}
-     */
-    getDefaultStateForField(fieldName, defaultValue = '') {
-        return ReimbursementAccountUtils.getDefaultStateForField(this.props.reimbursementAccountDraft, this.props.reimbursementAccount, fieldName, defaultValue);
     }
 
     /**

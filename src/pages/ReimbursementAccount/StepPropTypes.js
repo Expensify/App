@@ -12,5 +12,9 @@ export default {
 
     /** Goes to the previous step */
     onBackButtonPress: PropTypes.func.isRequired,
+
+    /** Get a field value from Onyx reimbursementAccountDraft or reimbursementAccount */
+    getDefaultStateForField: PropTypes.func.isRequired,
+
     ...withLocalizePropTypes,
 };

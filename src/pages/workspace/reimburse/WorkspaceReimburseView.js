@@ -180,14 +180,11 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     fetchData() {
-        const subStep = this.props.reimbursementAccount.subStep || '';
-        const localCurrentStep = this.props.reimbursementAccount.currentStep || '';
-
         // Instead of setting the reimbursement account loading within the optimistic data of the API command, use a separate action so that the Onyx value is updated right away.
         // openWorkspaceReimburseView uses API.read which will not make the request until all WRITE requests in the sequential queue have finished responding, so there would be a delay in
         // updating Onyx with the optimistic data.
         BankAccounts.setReimbursementAccountLoading(true);
-        Policy.openWorkspaceReimburseView(this.props.policy.id, subStep, localCurrentStep);
+        Policy.openWorkspaceReimburseView(this.props.policy.id);
     }
 
     debounceUpdateOnCursorMove(event) {

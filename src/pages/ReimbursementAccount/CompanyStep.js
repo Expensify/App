@@ -38,7 +38,6 @@ class CompanyStep extends React.Component {
 
         this.submit = this.submit.bind(this);
         this.validate = this.validate.bind(this);
-        this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
 
         this.defaultWebsite = lodashGet(props, 'user.isFromPublicDomain', false)
             ? 'https://'
@@ -47,16 +46,6 @@ class CompanyStep extends React.Component {
 
     componentWillUnmount() {
         BankAccounts.resetReimbursementAccount();
-    }
-
-    /**
-     * @param {String} fieldName
-     * @param {*} defaultValue
-     *
-     * @returns {*}
-     */
-    getDefaultStateForField(fieldName, defaultValue = '') {
-        return ReimbursementAccountUtils.getDefaultStateForField(this.props.reimbursementAccountDraft, this.props.reimbursementAccount, fieldName, defaultValue);
     }
 
     /**
@@ -147,9 +136,9 @@ class CompanyStep extends React.Component {
     }
 
     render() {
-        const bankAccountID = this.getDefaultStateForField('bankAccountID', 0);
-        const shouldDisableCompanyName = bankAccountID && this.getDefaultStateForField('companyName');
-        const shouldDisableCompanyTaxID = bankAccountID && this.getDefaultStateForField('companyTaxID');
+        const bankAccountID = this.props.getDefaultStateForField('bankAccountID', 0);
+        const shouldDisableCompanyName = bankAccountID && this.props.getDefaultStateForField('companyName');
+        const shouldDisableCompanyTaxID = bankAccountID && this.props.getDefaultStateForField('companyTaxID');
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -175,16 +164,16 @@ class CompanyStep extends React.Component {
                         inputID="companyName"
                         containerStyles={[styles.mt4]}
                         disabled={shouldDisableCompanyName}
-                        defaultValue={this.getDefaultStateForField('companyName')}
+                        defaultValue={this.props.getDefaultStateForField('companyName')}
                         shouldSaveDraft
                     />
                     <AddressForm
                         translate={this.props.translate}
                         defaultValues={{
-                            street: this.getDefaultStateForField('addressStreet'),
-                            city: this.getDefaultStateForField('addressCity'),
-                            state: this.getDefaultStateForField('addressState'),
-                            zipCode: this.getDefaultStateForField('addressZipCode'),
+                            street: this.props.getDefaultStateForField('addressStreet'),
+                            city: this.props.getDefaultStateForField('addressCity'),
+                            state: this.props.getDefaultStateForField('addressState'),
+                            zipCode: this.props.getDefaultStateForField('addressZipCode'),
                         }}
                         inputKeys={{
                             street: 'addressStreet', city: 'addressCity', state: 'addressState', zipCode: 'addressZipCode',
@@ -198,14 +187,14 @@ class CompanyStep extends React.Component {
                         containerStyles={[styles.mt4]}
                         keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                         placeholder={this.props.translate('common.phoneNumberPlaceholder')}
-                        defaultValue={this.getDefaultStateForField('companyPhone')}
+                        defaultValue={this.props.getDefaultStateForField('companyPhone')}
                         shouldSaveDraft
                     />
                     <TextInput
                         inputID="website"
                         label={this.props.translate('companyStep.companyWebsite')}
                         containerStyles={[styles.mt4]}
-                        defaultValue={this.getDefaultStateForField('website', this.defaultWebsite)}
+                        defaultValue={this.props.getDefaultStateForField('website', this.defaultWebsite)}
                         shouldSaveDraft
                     />
                     <TextInput
@@ -215,7 +204,7 @@ class CompanyStep extends React.Component {
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableCompanyTaxID}
                         placeholder={this.props.translate('companyStep.taxIDNumberPlaceholder')}
-                        defaultValue={this.getDefaultStateForField('companyTaxID')}
+                        defaultValue={this.props.getDefaultStateForField('companyTaxID')}
                         shouldSaveDraft
                     />
                     <View style={styles.mt4}>
@@ -224,7 +213,7 @@ class CompanyStep extends React.Component {
                             label={this.props.translate('companyStep.companyType')}
                             items={_.map(this.props.translate('companyStep.incorporationTypes'), (label, value) => ({value, label}))}
                             placeholder={{value: '', label: '-'}}
-                            defaultValue={this.getDefaultStateForField('incorporationType')}
+                            defaultValue={this.props.getDefaultStateForField('incorporationType')}
                             shouldSaveDraft
                         />
                     </View>
@@ -233,7 +222,7 @@ class CompanyStep extends React.Component {
                             inputID="incorporationDate"
                             label={this.props.translate('companyStep.incorporationDate')}
                             placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
-                            defaultValue={this.getDefaultStateForField('incorporationDate')}
+                            defaultValue={this.props.getDefaultStateForField('incorporationDate')}
                             shouldSaveDraft
                         />
                     </View>
@@ -241,13 +230,13 @@ class CompanyStep extends React.Component {
                         <StatePicker
                             inputID="incorporationState"
                             label={this.props.translate('companyStep.incorporationState')}
-                            defaultValue={this.getDefaultStateForField('incorporationState')}
+                            defaultValue={this.props.getDefaultStateForField('incorporationState')}
                             shouldSaveDraft
                         />
                     </View>
                     <CheckboxWithLabel
                         inputID="hasNoConnectionToCannabis"
-                        defaultValue={this.getDefaultStateForField('hasNoConnectionToCannabis', false)}
+                        defaultValue={this.props.getDefaultStateForField('hasNoConnectionToCannabis', false)}
                         LabelComponent={() => (
                             <>
                                 <Text>{`${this.props.translate('companyStep.confirmCompanyIsNot')} `}</Text>
