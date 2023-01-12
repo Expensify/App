@@ -68,4 +68,8 @@ module.exports = {
         app: 'desktop',
         output: 'desktop-build',
     },
+    protocols: {
+        name: 'New Expensify',
+        schemes: ['new-expensify'],
+    },
 };

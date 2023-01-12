@@ -471,8 +471,9 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
     }
 
     const participantDetails = [];
-    for (let i = 0; i < report.participants.length; i++) {
-        const login = report.participants[i];
+    const participants = report.participants || [];
+    for (let i = 0; i < participants.length; i++) {
+        const login = participants[i];
         participantDetails.push([
             login,
             lodashGet(personalDetails, [login, 'firstName'], ''),
@@ -883,6 +884,7 @@ function buildOptimisticChatReport(
     visibility = undefined,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
 ) {
+    const currentTime = DateUtils.getDBTime();
     return {
         chatType,
         hasOutstandingIOU: false,
@@ -892,8 +894,8 @@ function buildOptimisticChatReport(
         lastMessageHtml: '',
         lastMessageText: null,
         lastReadSequenceNumber: 0,
-        lastActionCreated: DateUtils.getDBTime(),
-        lastReadTime: '',
+        lastReadTime: currentTime,
+        lastActionCreated: currentTime,
         maxSequenceNumber: 0,
         notificationPreference,
         oldPolicyName,
@@ -914,9 +916,8 @@ function buildOptimisticChatReport(
  * @returns {Object}
  */
 function buildOptimisticCreatedReportAction(ownerEmail) {
-    const reportActionID = NumberUtils.rand64();
     return {
-        reportActionID,
+        reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
@@ -1006,12 +1007,15 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         announceChatReportID,
         announceChatData,
         announceReportActionData,
+        announceCreatedReportActionID: announceCreatedAction.reportActionID,
         adminsChatReportID,
         adminsChatData,
         adminsReportActionData,
+        adminsCreatedReportActionID: adminsCreatedAction.reportActionID,
         expenseChatReportID,
         expenseChatData,
         expenseReportActionData,
+        expenseCreatedReportActionID: expenseReportCreatedAction.reportActionID,
     };
 }
 
