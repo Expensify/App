@@ -70,7 +70,6 @@ const emojis = [
     {
         code: 'smileysAndEmotion',
         header: true,
-        index: 0,
     },
     {
         name: 'grinning',
@@ -82,7 +81,6 @@ const emojis = [
             'face',
             'grin',
         ],
-        index: 1,
     },
     {
         name: 'smiley',
@@ -97,7 +95,6 @@ const emojis = [
             'open',
             'smile',
         ],
-        index: 2,
     },
     {
         name: 'smile',
@@ -113,7 +110,6 @@ const emojis = [
             'mouth',
             'open',
         ],
-        index: 3,
     },
     {
         name: 'grin',
@@ -124,7 +120,6 @@ const emojis = [
             'face',
             'smile',
         ],
-        index: 4,
     },
     {
         name: 'laughing',
@@ -140,7 +135,6 @@ const emojis = [
             'open',
             'smile',
         ],
-        index: 5,
     },
     {
         name: 'sweat_smile',
@@ -154,7 +148,6 @@ const emojis = [
             'smile',
             'sweat',
         ],
-        index: 6,
     },
     {
         name: 'rofl',
@@ -168,7 +161,6 @@ const emojis = [
             'laugh',
             'rolling',
         ],
-        index: 7,
     },
     {
         name: 'joy',
@@ -180,7 +172,6 @@ const emojis = [
             'laugh',
             'tear',
         ],
-        index: 8,
     },
     {
         name: 'slightly_smiling_face',
@@ -190,7 +181,6 @@ const emojis = [
             'face',
             'smile',
         ],
-        index: 9,
     },
     {
         name: 'upside_down_face',
@@ -200,7 +190,6 @@ const emojis = [
             'face',
             'upside-down',
         ],
-        index: 10,
     },
     {
         name: 'wink',
@@ -210,7 +199,6 @@ const emojis = [
             'wink',
             'face',
         ],
-        index: 11,
     },
     {
         name: 'blush',
@@ -222,7 +210,6 @@ const emojis = [
             'face',
             'smile',
         ],
-        index: 12,
     },
     {
         name: 'innocent',
@@ -236,7 +223,6 @@ const emojis = [
             'halo',
             'smile',
         ],
-        index: 13,
     },
     {
         name: 'smiling_face_with_three_hearts',
@@ -245,7 +231,6 @@ const emojis = [
             'love',
             'smiling_face_with_three_hearts',
         ],
-        index: 14,
     },
     {
         name: 'heart_eyes',
@@ -259,7 +244,6 @@ const emojis = [
             'heart',
             'smile',
         ],
-        index: 15,
     },
     {
         name: 'star_struck',
@@ -268,7 +252,6 @@ const emojis = [
             'eyes',
             'star_struck',
         ],
-        index: 16,
     },
     {
         name: 'kissing_heart',
@@ -280,7 +263,6 @@ const emojis = [
             'heart',
             'kiss',
         ],
-        index: 17,
     },
     {
         name: 'kissing',
@@ -290,7 +272,6 @@ const emojis = [
             'face',
             'kiss',
         ],
-        index: 18,
     },
     {
         name: 'relaxed',
@@ -300,7 +281,6 @@ const emojis = [
             'pleased',
             'relaxed',
         ],
-        index: 19,
     },
     {
         name: 'kissing_closed_eyes',
@@ -312,7 +292,6 @@ const emojis = [
             'face',
             'kiss',
         ],
-        index: 20,
     },
     {
         name: 'kissing_smiling_eyes',
@@ -324,7 +303,6 @@ const emojis = [
             'kiss',
             'smile',
         ],
-        index: 21,
     },
     {
         name: 'smiling_face_with_tear',
@@ -332,7 +310,6 @@ const emojis = [
         keywords: [
             'smiling_face_with_tear',
         ],
-        index: 22,
     },
     {
         name: 'yum',
@@ -347,7 +324,6 @@ const emojis = [
             'smile',
             'um',
         ],
-        index: 23,
     },
     {
         name: 'stuck_out_tongue',
@@ -357,7 +333,6 @@ const emojis = [
             'face',
             'tongue',
         ],
-        index: 24,
     },
     {
         name: 'stuck_out_tongue_winking_eye',
@@ -372,7 +347,6 @@ const emojis = [
             'tongue',
             'wink',
         ],
-        index: 25,
     },
     {
         name: 'zany_face',
@@ -382,7 +356,6 @@ const emojis = [
             'wacky',
             'zany_face',
         ],
-        index: 26,
     },
     {
         name: 'stuck_out_tongue_closed_eyes',
@@ -396,7 +369,6 @@ const emojis = [
             'taste',
             'tongue',
         ],
-        index: 27,
     },
     {
         name: 'money_mouth_face',
@@ -408,7 +380,6 @@ const emojis = [
             'money',
             'mouth',
         ],
-        index: 28,
     },
     {
         name: 'hugs',
@@ -419,7 +390,6 @@ const emojis = [
             'hug',
             'hugging',
         ],
-        index: 29,
     },
     {
         name: 'hand_over_mouth',
@@ -429,7 +399,6 @@ const emojis = [
             'whoops',
             'hand_over_mouth',
         ],
-        index: 30,
     },
     {
         name: 'shushing_face',
@@ -439,7 +408,6 @@ const emojis = [
             'quiet',
             'shushing_face',
         ],
-        index: 31,
     },
     {
         name: 'thinking',
@@ -448,7 +416,6 @@ const emojis = [
             'thinking',
             'face',
         ],
-        index: 32,
     },
     {
         name: 'zipper_mouth_face',
@@ -461,7 +428,6 @@ const emojis = [
             'mouth',
             'zipper',
         ],
-        index: 33,
     },
     {
         name: 'raised_eyebrow',
@@ -470,7 +436,6 @@ const emojis = [
             'suspicious',
             'raised_eyebrow',
         ],
-        index: 34,
     },
     {
         name: 'neutral_face',
@@ -482,7 +447,6 @@ const emojis = [
             'face',
             'neutral',
         ],
-        index: 35,
     },
     {
         name: 'expressionless',
@@ -493,7 +457,6 @@ const emojis = [
             'inexpressive',
             'unexpressive',
         ],
-        index: 36,
     },
     {
         name: 'no_mouth',
@@ -507,7 +470,6 @@ const emojis = [
             'quiet',
             'silent',
         ],
-        index: 37,
     },
     {
         name: 'face_in_clouds',
@@ -515,7 +477,6 @@ const emojis = [
         keywords: [
             'face_in_clouds',
         ],
-        index: 38,
     },
     {
         name: 'smirk',
@@ -525,7 +486,6 @@ const emojis = [
             'smirk',
             'face',
         ],
-        index: 39,
     },
     {
         name: 'unamused',
@@ -536,7 +496,6 @@ const emojis = [
             'face',
             'unhappy',
         ],
-        index: 40,
     },
     {
         name: 'roll_eyes',
@@ -547,7 +506,6 @@ const emojis = [
             'face',
             'rolling',
         ],
-        index: 41,
     },
     {
         name: 'grimacing',
@@ -557,7 +515,6 @@ const emojis = [
             'face',
             'grimace',
         ],
-        index: 42,
     },
     {
         name: 'face_exhaling',
@@ -565,7 +522,6 @@ const emojis = [
         keywords: [
             'face_exhaling',
         ],
-        index: 43,
     },
     {
         name: 'lying_face',
@@ -577,7 +533,6 @@ const emojis = [
             'lie',
             'pinocchio',
         ],
-        index: 44,
     },
     {
         name: 'relieved',
@@ -587,7 +542,6 @@ const emojis = [
             'relieved',
             'face',
         ],
-        index: 45,
     },
     {
         name: 'pensive',
@@ -597,7 +551,6 @@ const emojis = [
             'dejected',
             'face',
         ],
-        index: 46,
     },
     {
         name: 'sleepy',
@@ -608,7 +561,6 @@ const emojis = [
             'face',
             'sleep',
         ],
-        index: 47,
     },
     {
         name: 'drooling_face',
@@ -618,7 +570,6 @@ const emojis = [
             'drooling',
             'face',
         ],
-        index: 48,
     },
     {
         name: 'sleeping',
@@ -629,7 +580,6 @@ const emojis = [
             'face',
             'sleep',
         ],
-        index: 49,
     },
     {
         name: 'mask',
@@ -643,7 +593,6 @@ const emojis = [
             'face',
             'medicine',
         ],
-        index: 50,
     },
     {
         name: 'face_with_thermometer',
@@ -655,7 +604,6 @@ const emojis = [
             'ill',
             'thermometer',
         ],
-        index: 51,
     },
     {
         name: 'face_with_head_bandage',
@@ -667,7 +615,6 @@ const emojis = [
             'face',
             'injury',
         ],
-        index: 52,
     },
     {
         name: 'nauseated_face',
@@ -681,7 +628,6 @@ const emojis = [
             'nauseated',
             'vomit',
         ],
-        index: 53,
     },
     {
         name: 'vomiting_face',
@@ -691,7 +637,6 @@ const emojis = [
             'sick',
             'vomiting_face',
         ],
-        index: 54,
     },
     {
         name: 'sneezing_face',
@@ -704,7 +649,6 @@ const emojis = [
             'gesundheit',
             'sneeze',
         ],
-        index: 55,
     },
     {
         name: 'hot_face',
@@ -714,7 +658,6 @@ const emojis = [
             'sweating',
             'hot_face',
         ],
-        index: 56,
     },
     {
         name: 'cold_face',
@@ -724,7 +667,6 @@ const emojis = [
             'ice',
             'cold_face',
         ],
-        index: 57,
     },
     {
         name: 'woozy_face',
@@ -733,7 +675,6 @@ const emojis = [
             'groggy',
             'woozy_face',
         ],
-        index: 58,
     },
     {
         name: 'dizzy_face',
@@ -743,7 +684,6 @@ const emojis = [
             'dizzy',
             'face',
         ],
-        index: 59,
     },
     {
         name: 'face_with_spiral_eyes',
@@ -751,7 +691,6 @@ const emojis = [
         keywords: [
             'face_with_spiral_eyes',
         ],
-        index: 60,
     },
     {
         name: 'exploding_head',
@@ -761,7 +700,6 @@ const emojis = [
             'blown',
             'exploding_head',
         ],
-        index: 61,
     },
     {
         name: 'cowboy_hat_face',
@@ -773,7 +711,6 @@ const emojis = [
             'face',
             'hat',
         ],
-        index: 62,
     },
     {
         name: 'partying_face',
@@ -783,7 +720,6 @@ const emojis = [
             'birthday',
             'partying_face',
         ],
-        index: 63,
     },
     {
         name: 'disguised_face',
@@ -791,7 +727,6 @@ const emojis = [
         keywords: [
             'disguised_face',
         ],
-        index: 64,
     },
     {
         name: 'sunglasses',
@@ -808,7 +743,6 @@ const emojis = [
             'sun',
             'weather',
         ],
-        index: 65,
     },
     {
         name: 'nerd_face',
@@ -820,7 +754,6 @@ const emojis = [
             'face',
             'nerd',
         ],
-        index: 66,
     },
     {
         name: 'monocle_face',
@@ -828,7 +761,6 @@ const emojis = [
         keywords: [
             'monocle_face',
         ],
-        index: 67,
     },
     {
         name: 'confused',
@@ -837,7 +769,6 @@ const emojis = [
             'confused',
             'face',
         ],
-        index: 68,
     },
     {
         name: 'worried',
@@ -847,7 +778,6 @@ const emojis = [
             'worried',
             'face',
         ],
-        index: 69,
     },
     {
         name: 'slightly_frowning_face',
@@ -857,7 +787,6 @@ const emojis = [
             'face',
             'frown',
         ],
-        index: 70,
     },
     {
         name: 'frowning_face',
@@ -865,7 +794,6 @@ const emojis = [
         keywords: [
             'frowning_face',
         ],
-        index: 71,
     },
     {
         name: 'open_mouth',
@@ -880,7 +808,6 @@ const emojis = [
             'open',
             'sympathy',
         ],
-        index: 72,
     },
     {
         name: 'hushed',
@@ -893,7 +820,6 @@ const emojis = [
             'stunned',
             'surprised',
         ],
-        index: 73,
     },
     {
         name: 'astonished',
@@ -906,7 +832,6 @@ const emojis = [
             'shocked',
             'totally',
         ],
-        index: 74,
     },
     {
         name: 'flushed',
@@ -916,7 +841,6 @@ const emojis = [
             'dazed',
             'face',
         ],
-        index: 75,
     },
     {
         name: 'pleading_face',
@@ -926,7 +850,6 @@ const emojis = [
             'eyes',
             'pleading_face',
         ],
-        index: 76,
     },
     {
         name: 'frowning',
@@ -938,7 +861,6 @@ const emojis = [
             'mouth',
             'open',
         ],
-        index: 77,
     },
     {
         name: 'anguished',
@@ -948,7 +870,6 @@ const emojis = [
             'anguished',
             'face',
         ],
-        index: 78,
     },
     {
         name: 'fearful',
@@ -961,7 +882,6 @@ const emojis = [
             'face',
             'fear',
         ],
-        index: 79,
     },
     {
         name: 'cold_sweat',
@@ -977,7 +897,6 @@ const emojis = [
             'rushed',
             'sweat',
         ],
-        index: 80,
     },
     {
         name: 'disappointed_relieved',
@@ -992,7 +911,6 @@ const emojis = [
             'relieved',
             'whew',
         ],
-        index: 81,
     },
     {
         name: 'cry',
@@ -1003,7 +921,6 @@ const emojis = [
             'cry',
             'face',
         ],
-        index: 82,
     },
     {
         name: 'sob',
@@ -1016,7 +933,6 @@ const emojis = [
             'face',
             'tear',
         ],
-        index: 83,
     },
     {
         name: 'scream',
@@ -1031,7 +947,6 @@ const emojis = [
             'munch',
             'scared',
         ],
-        index: 84,
     },
     {
         name: 'confounded',
@@ -1040,7 +955,6 @@ const emojis = [
             'confounded',
             'face',
         ],
-        index: 85,
     },
     {
         name: 'persevere',
@@ -1050,7 +964,6 @@ const emojis = [
             'persevere',
             'face',
         ],
-        index: 86,
     },
     {
         name: 'disappointed',
@@ -1060,7 +973,6 @@ const emojis = [
             'disappointed',
             'face',
         ],
-        index: 87,
     },
     {
         name: 'sweat',
@@ -1070,7 +982,6 @@ const emojis = [
             'cold',
             'face',
         ],
-        index: 88,
     },
     {
         name: 'weary',
@@ -1080,7 +991,6 @@ const emojis = [
             'weary',
             'face',
         ],
-        index: 89,
     },
     {
         name: 'tired_face',
@@ -1092,7 +1002,6 @@ const emojis = [
             'face',
             'tired',
         ],
-        index: 90,
     },
     {
         name: 'yawning_face',
@@ -1100,7 +1009,6 @@ const emojis = [
         keywords: [
             'yawning_face',
         ],
-        index: 91,
     },
     {
         name: 'triumph',
@@ -1111,7 +1019,6 @@ const emojis = [
             'face',
             'won',
         ],
-        index: 92,
     },
     {
         name: 'rage',
@@ -1125,7 +1032,6 @@ const emojis = [
             'pouting',
             'red',
         ],
-        index: 93,
     },
     {
         name: 'angry',
@@ -1136,7 +1042,6 @@ const emojis = [
             'angry',
             'face',
         ],
-        index: 94,
     },
     {
         name: 'cursing_face',
@@ -1145,7 +1050,6 @@ const emojis = [
             'foul',
             'cursing_face',
         ],
-        index: 95,
     },
     {
         name: 'smiling_imp',
@@ -1160,7 +1064,6 @@ const emojis = [
             'fantasy',
             'smile',
         ],
-        index: 96,
     },
     {
         name: 'imp',
@@ -1176,7 +1079,6 @@ const emojis = [
             'fairy tale',
             'fantasy',
         ],
-        index: 97,
     },
     {
         name: 'skull',
@@ -1192,7 +1094,6 @@ const emojis = [
             'fairy tale',
             'monster',
         ],
-        index: 98,
     },
     {
         name: 'skull_and_crossbones',
@@ -1208,7 +1109,6 @@ const emojis = [
             'monster',
             'skull',
         ],
-        index: 99,
     },
     {
         name: 'hankey',
@@ -1224,7 +1124,6 @@ const emojis = [
             'monster',
             'poo',
         ],
-        index: 100,
     },
     {
         name: 'clown_face',
@@ -1234,7 +1133,6 @@ const emojis = [
             'clown',
             'face',
         ],
-        index: 101,
     },
     {
         name: 'japanese_ogre',
@@ -1249,7 +1147,6 @@ const emojis = [
             'japanese',
             'ogre',
         ],
-        index: 102,
     },
     {
         name: 'japanese_goblin',
@@ -1264,7 +1161,6 @@ const emojis = [
             'japanese',
             'monster',
         ],
-        index: 103,
     },
     {
         name: 'ghost',
@@ -1278,7 +1174,6 @@ const emojis = [
             'fantasy',
             'monster',
         ],
-        index: 104,
     },
     {
         name: 'alien',
@@ -1294,7 +1189,6 @@ const emojis = [
             'monster',
             'space',
         ],
-        index: 105,
     },
     {
         name: 'space_invader',
@@ -1313,7 +1207,6 @@ const emojis = [
             'space',
             'ufo',
         ],
-        index: 106,
     },
     {
         name: 'robot',
@@ -1323,7 +1216,6 @@ const emojis = [
             'face',
             'monster',
         ],
-        index: 107,
     },
     {
         name: 'smiley_cat',
@@ -1336,7 +1228,6 @@ const emojis = [
             'open',
             'smile',
         ],
-        index: 108,
     },
     {
         name: 'smile_cat',
@@ -1349,7 +1240,6 @@ const emojis = [
             'grin',
             'smile',
         ],
-        index: 109,
     },
     {
         name: 'joy_cat',
@@ -1361,7 +1251,6 @@ const emojis = [
             'joy',
             'tear',
         ],
-        index: 110,
     },
     {
         name: 'heart_eyes_cat',
@@ -1375,7 +1264,6 @@ const emojis = [
             'love',
             'smile',
         ],
-        index: 111,
     },
     {
         name: 'smirk_cat',
@@ -1388,7 +1276,6 @@ const emojis = [
             'smile',
             'wry',
         ],
-        index: 112,
     },
     {
         name: 'kissing_cat',
@@ -1400,7 +1287,6 @@ const emojis = [
             'face',
             'kiss',
         ],
-        index: 113,
     },
     {
         name: 'scream_cat',
@@ -1414,7 +1300,6 @@ const emojis = [
             'surprised',
             'weary',
         ],
-        index: 114,
     },
     {
         name: 'crying_cat_face',
@@ -1427,7 +1312,6 @@ const emojis = [
             'cry',
             'face',
         ],
-        index: 115,
     },
     {
         name: 'pouting_cat',
@@ -1438,7 +1322,6 @@ const emojis = [
             'face',
             'pouting',
         ],
-        index: 116,
     },
     {
         name: 'see_no_evil',
@@ -1457,7 +1340,6 @@ const emojis = [
             'prohibited',
             'see',
         ],
-        index: 117,
     },
     {
         name: 'hear_no_evil',
@@ -1475,7 +1357,6 @@ const emojis = [
             'not',
             'prohibited',
         ],
-        index: 118,
     },
     {
         name: 'speak_no_evil',
@@ -1494,7 +1375,6 @@ const emojis = [
             'prohibited',
             'speak',
         ],
-        index: 119,
     },
     {
         name: 'kiss',
@@ -1507,7 +1387,6 @@ const emojis = [
             'mark',
             'romance',
         ],
-        index: 120,
     },
     {
         name: 'love_letter',
@@ -1522,7 +1401,6 @@ const emojis = [
             'mail',
             'romance',
         ],
-        index: 121,
     },
     {
         name: 'cupid',
@@ -1534,7 +1412,6 @@ const emojis = [
             'arrow',
             'romance',
         ],
-        index: 122,
     },
     {
         name: 'gift_heart',
@@ -1546,7 +1423,6 @@ const emojis = [
             'ribbon',
             'valentine',
         ],
-        index: 123,
     },
     {
         name: 'sparkling_heart',
@@ -1557,7 +1433,6 @@ const emojis = [
             'heart',
             'sparkle',
         ],
-        index: 124,
     },
     {
         name: 'heartpulse',
@@ -1569,7 +1444,6 @@ const emojis = [
             'heart',
             'nervous',
         ],
-        index: 125,
     },
     {
         name: 'heartbeat',
@@ -1580,7 +1454,6 @@ const emojis = [
             'heart',
             'pulsating',
         ],
-        index: 126,
     },
     {
         name: 'revolving_hearts',
@@ -1590,7 +1463,6 @@ const emojis = [
             'heart',
             'revolving',
         ],
-        index: 127,
     },
     {
         name: 'two_hearts',
@@ -1600,7 +1472,6 @@ const emojis = [
             'heart',
             'love',
         ],
-        index: 128,
     },
     {
         name: 'heart_decoration',
@@ -1609,7 +1480,6 @@ const emojis = [
             'heart_decoration',
             'heart',
         ],
-        index: 129,
     },
     {
         name: 'heavy_heart_exclamation',
@@ -1621,7 +1491,6 @@ const emojis = [
             'mark',
             'punctuation',
         ],
-        index: 130,
     },
     {
         name: 'broken_heart',
@@ -1632,7 +1501,6 @@ const emojis = [
             'broken',
             'heart',
         ],
-        index: 131,
     },
     {
         name: 'heart_on_fire',
@@ -1640,7 +1508,6 @@ const emojis = [
         keywords: [
             'heart_on_fire',
         ],
-        index: 132,
     },
     {
         name: 'mending_heart',
@@ -1648,7 +1515,6 @@ const emojis = [
         keywords: [
             'mending_heart',
         ],
-        index: 133,
     },
     {
         name: 'heart',
@@ -1657,7 +1523,6 @@ const emojis = [
             'love',
             'heart',
         ],
-        index: 134,
     },
     {
         name: 'orange_heart',
@@ -1665,7 +1530,6 @@ const emojis = [
         keywords: [
             'orange_heart',
         ],
-        index: 135,
     },
     {
         name: 'yellow_heart',
@@ -1675,7 +1539,6 @@ const emojis = [
             'heart',
             'yellow',
         ],
-        index: 136,
     },
     {
         name: 'green_heart',
@@ -1685,7 +1548,6 @@ const emojis = [
             'green',
             'heart',
         ],
-        index: 137,
     },
     {
         name: 'blue_heart',
@@ -1695,7 +1557,6 @@ const emojis = [
             'blue',
             'heart',
         ],
-        index: 138,
     },
     {
         name: 'purple_heart',
@@ -1705,7 +1566,6 @@ const emojis = [
             'heart',
             'purple',
         ],
-        index: 139,
     },
     {
         name: 'brown_heart',
@@ -1713,7 +1573,6 @@ const emojis = [
         keywords: [
             'brown_heart',
         ],
-        index: 140,
     },
     {
         name: 'black_heart',
@@ -1725,7 +1584,6 @@ const emojis = [
             'heart',
             'wicked',
         ],
-        index: 141,
     },
     {
         name: 'white_heart',
@@ -1733,7 +1591,6 @@ const emojis = [
         keywords: [
             'white_heart',
         ],
-        index: 142,
     },
     {
         name: '100',
@@ -1745,7 +1602,6 @@ const emojis = [
             'full',
             'hundred',
         ],
-        index: 143,
     },
     {
         name: 'anger',
@@ -1756,7 +1612,6 @@ const emojis = [
             'comic',
             'mad',
         ],
-        index: 144,
     },
     {
         name: 'boom',
@@ -1767,7 +1622,6 @@ const emojis = [
             'collision',
             'comic',
         ],
-        index: 145,
     },
     {
         name: 'dizzy',
@@ -1777,7 +1631,6 @@ const emojis = [
             'dizzy',
             'comic',
         ],
-        index: 146,
     },
     {
         name: 'sweat_drops',
@@ -1790,7 +1643,6 @@ const emojis = [
             'splashing',
             'sweat',
         ],
-        index: 147,
     },
     {
         name: 'dash',
@@ -1803,7 +1655,6 @@ const emojis = [
             'comic',
             'running',
         ],
-        index: 148,
     },
     {
         name: 'hole',
@@ -1811,7 +1662,6 @@ const emojis = [
         keywords: [
             'hole',
         ],
-        index: 149,
     },
     {
         name: 'bomb',
@@ -1821,7 +1671,6 @@ const emojis = [
             'bomb',
             'comic',
         ],
-        index: 150,
     },
     {
         name: 'speech_balloon',
@@ -1835,7 +1684,6 @@ const emojis = [
             'dialog',
             'speech',
         ],
-        index: 151,
     },
     {
         name: 'eye_speech_bubble',
@@ -1843,7 +1691,6 @@ const emojis = [
         keywords: [
             'eye_speech_bubble',
         ],
-        index: 152,
     },
     {
         name: 'left_speech_bubble',
@@ -1851,7 +1698,6 @@ const emojis = [
         keywords: [
             'left_speech_bubble',
         ],
-        index: 153,
     },
     {
         name: 'right_anger_bubble',
@@ -1859,7 +1705,6 @@ const emojis = [
         keywords: [
             'right_anger_bubble',
         ],
-        index: 154,
     },
     {
         name: 'thought_balloon',
@@ -1872,7 +1717,6 @@ const emojis = [
             'comic',
             'thought',
         ],
-        index: 155,
     },
     {
         name: 'zzz',
@@ -1883,12 +1727,10 @@ const emojis = [
             'comic',
             'sleep',
         ],
-        index: 156,
     },
     {
         code: 'peopleAndBody',
         header: true,
-        index: 157,
     },
     {
         name: 'wave',
@@ -1907,7 +1749,6 @@ const emojis = [
             '👋🏼',
             '👋🏻',
         ],
-        index: 158,
     },
     {
         name: 'raised_back_of_hand',
@@ -1924,7 +1765,6 @@ const emojis = [
             '🤚🏼',
             '🤚🏻',
         ],
-        index: 159,
     },
     {
         name: 'raised_hand_with_fingers_splayed',
@@ -1939,7 +1779,6 @@ const emojis = [
             '🖐🏼',
             '🖐🏻',
         ],
-        index: 160,
     },
     {
         name: 'hand',
@@ -1958,7 +1797,6 @@ const emojis = [
             '✋🏼',
             '✋🏻',
         ],
-        index: 161,
     },
     {
         name: 'vulcan_salute',
@@ -1979,7 +1817,6 @@ const emojis = [
             '🖖🏼',
             '🖖🏻',
         ],
-        index: 162,
     },
     {
         name: 'ok_hand',
@@ -1997,7 +1834,6 @@ const emojis = [
             '👌🏼',
             '👌🏻',
         ],
-        index: 163,
     },
     {
         name: 'pinched_fingers',
@@ -2012,7 +1848,6 @@ const emojis = [
             '🤌🏼',
             '🤌🏻',
         ],
-        index: 164,
     },
     {
         name: 'pinching_hand',
@@ -2027,7 +1862,6 @@ const emojis = [
             '🤏🏼',
             '🤏🏻',
         ],
-        index: 165,
     },
     {
         name: 'v',
@@ -2044,7 +1878,6 @@ const emojis = [
             '✌🏼',
             '✌🏻',
         ],
-        index: 166,
     },
     {
         name: 'crossed_fingers',
@@ -2064,7 +1897,6 @@ const emojis = [
             '🤞🏼',
             '🤞🏻',
         ],
-        index: 167,
     },
     {
         name: 'love_you_gesture',
@@ -2079,7 +1911,6 @@ const emojis = [
             '🤟🏼',
             '🤟🏻',
         ],
-        index: 168,
     },
     {
         name: 'metal',
@@ -2099,7 +1930,6 @@ const emojis = [
             '🤘🏼',
             '🤘🏻',
         ],
-        index: 169,
     },
     {
         name: 'call_me_hand',
@@ -2116,7 +1946,6 @@ const emojis = [
             '🤙🏼',
             '🤙🏻',
         ],
-        index: 170,
     },
     {
         name: 'point_left',
@@ -2137,7 +1966,6 @@ const emojis = [
             '👈🏼',
             '👈🏻',
         ],
-        index: 171,
     },
     {
         name: 'point_right',
@@ -2158,7 +1986,6 @@ const emojis = [
             '👉🏼',
             '👉🏻',
         ],
-        index: 172,
     },
     {
         name: 'point_up_2',
@@ -2180,7 +2007,6 @@ const emojis = [
             '👆🏼',
             '👆🏻',
         ],
-        index: 173,
     },
     {
         name: 'middle_finger',
@@ -2200,7 +2026,6 @@ const emojis = [
             '🖕🏼',
             '🖕🏻',
         ],
-        index: 174,
     },
     {
         name: 'point_down',
@@ -2222,7 +2047,6 @@ const emojis = [
             '👇🏼',
             '👇🏻',
         ],
-        index: 175,
     },
     {
         name: 'point_up',
@@ -2237,7 +2061,6 @@ const emojis = [
             '☝🏼',
             '☝🏻',
         ],
-        index: 176,
     },
     {
         name: '+1',
@@ -2260,7 +2083,6 @@ const emojis = [
             '👍🏼',
             '👍🏻',
         ],
-        index: 177,
     },
     {
         name: '-1',
@@ -2283,7 +2105,6 @@ const emojis = [
             '👎🏼',
             '👎🏻',
         ],
-        index: 178,
     },
     {
         name: 'fist_raised',
@@ -2304,7 +2125,6 @@ const emojis = [
             '✊🏼',
             '✊🏻',
         ],
-        index: 179,
     },
     {
         name: 'fist_oncoming',
@@ -2326,7 +2146,6 @@ const emojis = [
             '👊🏼',
             '👊🏻',
         ],
-        index: 180,
     },
     {
         name: 'fist_left',
@@ -2343,7 +2162,6 @@ const emojis = [
             '🤛🏼',
             '🤛🏻',
         ],
-        index: 181,
     },
     {
         name: 'fist_right',
@@ -2360,7 +2178,6 @@ const emojis = [
             '🤜🏼',
             '🤜🏻',
         ],
-        index: 182,
     },
     {
         name: 'clap',
@@ -2379,7 +2196,6 @@ const emojis = [
             '👏🏼',
             '👏🏻',
         ],
-        index: 183,
     },
     {
         name: 'raised_hands',
@@ -2400,7 +2216,6 @@ const emojis = [
             '🙌🏼',
             '🙌🏻',
         ],
-        index: 184,
     },
     {
         name: 'open_hands',
@@ -2418,7 +2233,6 @@ const emojis = [
             '👐🏼',
             '👐🏻',
         ],
-        index: 185,
     },
     {
         name: 'palms_up_together',
@@ -2433,7 +2247,6 @@ const emojis = [
             '🤲🏼',
             '🤲🏻',
         ],
-        index: 186,
     },
     {
         name: 'handshake',
@@ -2446,7 +2259,6 @@ const emojis = [
             'meeting',
             'shake',
         ],
-        index: 187,
     },
     {
         name: 'pray',
@@ -2471,7 +2283,6 @@ const emojis = [
             '🙏🏼',
             '🙏🏻',
         ],
-        index: 188,
     },
     {
         name: 'writing_hand',
@@ -2486,7 +2297,6 @@ const emojis = [
             '✍🏼',
             '✍🏻',
         ],
-        index: 189,
     },
     {
         name: 'nail_care',
@@ -2508,7 +2318,6 @@ const emojis = [
             '💅🏼',
             '💅🏻',
         ],
-        index: 190,
     },
     {
         name: 'selfie',
@@ -2525,7 +2334,6 @@ const emojis = [
             '🤳🏼',
             '🤳🏻',
         ],
-        index: 191,
     },
     {
         name: 'muscle',
@@ -2547,7 +2355,6 @@ const emojis = [
             '💪🏼',
             '💪🏻',
         ],
-        index: 192,
     },
     {
         name: 'mechanical_arm',
@@ -2555,7 +2362,6 @@ const emojis = [
         keywords: [
             'mechanical_arm',
         ],
-        index: 193,
     },
     {
         name: 'mechanical_leg',
@@ -2563,7 +2369,6 @@ const emojis = [
         keywords: [
             'mechanical_leg',
         ],
-        index: 194,
     },
     {
         name: 'leg',
@@ -2578,7 +2383,6 @@ const emojis = [
             '🦵🏼',
             '🦵🏻',
         ],
-        index: 195,
     },
     {
         name: 'foot',
@@ -2593,7 +2397,6 @@ const emojis = [
             '🦶🏼',
             '🦶🏻',
         ],
-        index: 196,
     },
     {
         name: 'ear',
@@ -2612,7 +2415,6 @@ const emojis = [
             '👂🏼',
             '👂🏻',
         ],
-        index: 197,
     },
     {
         name: 'ear_with_hearing_aid',
@@ -2627,7 +2429,6 @@ const emojis = [
             '🦻🏼',
             '🦻🏻',
         ],
-        index: 198,
     },
     {
         name: 'nose',
@@ -2644,7 +2445,6 @@ const emojis = [
             '👃🏼',
             '👃🏻',
         ],
-        index: 199,
     },
     {
         name: 'brain',
@@ -2652,7 +2452,6 @@ const emojis = [
         keywords: [
             'brain',
         ],
-        index: 200,
     },
     {
         name: 'anatomical_heart',
@@ -2660,7 +2459,6 @@ const emojis = [
         keywords: [
             'anatomical_heart',
         ],
-        index: 201,
     },
     {
         name: 'lungs',
@@ -2668,7 +2466,6 @@ const emojis = [
         keywords: [
             'lungs',
         ],
-        index: 202,
     },
     {
         name: 'tooth',
@@ -2676,7 +2473,6 @@ const emojis = [
         keywords: [
             'tooth',
         ],
-        index: 203,
     },
     {
         name: 'bone',
@@ -2684,7 +2480,6 @@ const emojis = [
         keywords: [
             'bone',
         ],
-        index: 204,
     },
     {
         name: 'eyes',
@@ -2698,7 +2493,6 @@ const emojis = [
             'eye',
             'face',
         ],
-        index: 205,
     },
     {
         name: 'eye',
@@ -2706,7 +2500,6 @@ const emojis = [
         keywords: [
             'eye',
         ],
-        index: 206,
     },
     {
         name: 'tongue',
@@ -2716,7 +2509,6 @@ const emojis = [
             'tongue',
             'body',
         ],
-        index: 207,
     },
     {
         name: 'lips',
@@ -2727,7 +2519,6 @@ const emojis = [
             'body',
             'mouth',
         ],
-        index: 208,
     },
     {
         name: 'baby',
@@ -2744,7 +2535,6 @@ const emojis = [
             '👶🏼',
             '👶🏻',
         ],
-        index: 209,
     },
     {
         name: 'child',
@@ -2759,7 +2549,6 @@ const emojis = [
             '🧒🏼',
             '🧒🏻',
         ],
-        index: 210,
     },
     {
         name: 'boy',
@@ -2775,7 +2564,6 @@ const emojis = [
             '👦🏼',
             '👦🏻',
         ],
-        index: 211,
     },
     {
         name: 'girl',
@@ -2795,7 +2583,6 @@ const emojis = [
             '👧🏼',
             '👧🏻',
         ],
-        index: 212,
     },
     {
         name: 'adult',
@@ -2810,7 +2597,6 @@ const emojis = [
             '🧑🏼',
             '🧑🏻',
         ],
-        index: 213,
     },
     {
         name: 'blond_haired_person',
@@ -2826,7 +2612,6 @@ const emojis = [
             '👱🏼',
             '👱🏻',
         ],
-        index: 214,
     },
     {
         name: 'man',
@@ -2844,7 +2629,6 @@ const emojis = [
             '👨🏼',
             '👨🏻',
         ],
-        index: 215,
     },
     {
         name: 'bearded_person',
@@ -2859,7 +2643,6 @@ const emojis = [
             '🧔🏼',
             '🧔🏻',
         ],
-        index: 216,
     },
     {
         name: 'man_beard',
@@ -2874,7 +2657,6 @@ const emojis = [
             '🧔🏼‍♂️',
             '🧔🏻‍♂️',
         ],
-        index: 217,
     },
     {
         name: 'woman_beard',
@@ -2889,7 +2671,6 @@ const emojis = [
             '🧔🏼‍♀️',
             '🧔🏻‍♀️',
         ],
-        index: 218,
     },
     {
         name: 'red_haired_man',
@@ -2904,7 +2685,6 @@ const emojis = [
             '👨🏼‍🦰',
             '👨🏻‍🦰',
         ],
-        index: 219,
     },
     {
         name: 'curly_haired_man',
@@ -2919,7 +2699,6 @@ const emojis = [
             '👨🏼‍🦱',
             '👨🏻‍🦱',
         ],
-        index: 220,
     },
     {
         name: 'white_haired_man',
@@ -2934,7 +2713,6 @@ const emojis = [
             '👨🏼‍🦳',
             '👨🏻‍🦳',
         ],
-        index: 221,
     },
     {
         name: 'bald_man',
@@ -2949,7 +2727,6 @@ const emojis = [
             '👨🏼‍🦲',
             '👨🏻‍🦲',
         ],
-        index: 222,
     },
     {
         name: 'woman',
@@ -2965,7 +2742,6 @@ const emojis = [
             '👩🏼',
             '👩🏻',
         ],
-        index: 223,
     },
     {
         name: 'red_haired_woman',
@@ -2980,7 +2756,6 @@ const emojis = [
             '👩🏼‍🦰',
             '👩🏻‍🦰',
         ],
-        index: 224,
     },
     {
         name: 'person_red_hair',
@@ -2995,7 +2770,6 @@ const emojis = [
             '🧑🏼‍🦰',
             '🧑🏻‍🦰',
         ],
-        index: 225,
     },
     {
         name: 'curly_haired_woman',
@@ -3010,7 +2784,6 @@ const emojis = [
             '👩🏼‍🦱',
             '👩🏻‍🦱',
         ],
-        index: 226,
     },
     {
         name: 'person_curly_hair',
@@ -3025,7 +2798,6 @@ const emojis = [
             '🧑🏼‍🦱',
             '🧑🏻‍🦱',
         ],
-        index: 227,
     },
     {
         name: 'white_haired_woman',
@@ -3040,7 +2812,6 @@ const emojis = [
             '👩🏼‍🦳',
             '👩🏻‍🦳',
         ],
-        index: 228,
     },
     {
         name: 'person_white_hair',
@@ -3055,7 +2826,6 @@ const emojis = [
             '🧑🏼‍🦳',
             '🧑🏻‍🦳',
         ],
-        index: 229,
     },
     {
         name: 'bald_woman',
@@ -3070,7 +2840,6 @@ const emojis = [
             '👩🏼‍🦲',
             '👩🏻‍🦲',
         ],
-        index: 230,
     },
     {
         name: 'person_bald',
@@ -3085,7 +2854,6 @@ const emojis = [
             '🧑🏼‍🦲',
             '🧑🏻‍🦲',
         ],
-        index: 231,
     },
     {
         name: 'blond_haired_woman',
@@ -3101,7 +2869,6 @@ const emojis = [
             '👱🏼‍♀️',
             '👱🏻‍♀️',
         ],
-        index: 232,
     },
     {
         name: 'blond_haired_man',
@@ -3116,7 +2883,6 @@ const emojis = [
             '👱🏼‍♂️',
             '👱🏻‍♂️',
         ],
-        index: 233,
     },
     {
         name: 'older_adult',
@@ -3131,7 +2897,6 @@ const emojis = [
             '🧓🏼',
             '🧓🏻',
         ],
-        index: 234,
     },
     {
         name: 'older_man',
@@ -3148,7 +2913,6 @@ const emojis = [
             '👴🏼',
             '👴🏻',
         ],
-        index: 235,
     },
     {
         name: 'older_woman',
@@ -3165,7 +2929,6 @@ const emojis = [
             '👵🏼',
             '👵🏻',
         ],
-        index: 236,
     },
     {
         name: 'frowning_person',
@@ -3182,7 +2945,6 @@ const emojis = [
             '🙍🏼',
             '🙍🏻',
         ],
-        index: 237,
     },
     {
         name: 'frowning_man',
@@ -3197,7 +2959,6 @@ const emojis = [
             '🙍🏼‍♂️',
             '🙍🏻‍♂️',
         ],
-        index: 238,
     },
     {
         name: 'frowning_woman',
@@ -3212,7 +2973,6 @@ const emojis = [
             '🙍🏼‍♀️',
             '🙍🏻‍♀️',
         ],
-        index: 239,
     },
     {
         name: 'pouting_face',
@@ -3229,7 +2989,6 @@ const emojis = [
             '🙎🏼',
             '🙎🏻',
         ],
-        index: 240,
     },
     {
         name: 'pouting_man',
@@ -3244,7 +3003,6 @@ const emojis = [
             '🙎🏼‍♂️',
             '🙎🏻‍♂️',
         ],
-        index: 241,
     },
     {
         name: 'pouting_woman',
@@ -3259,7 +3017,6 @@ const emojis = [
             '🙎🏼‍♀️',
             '🙎🏻‍♀️',
         ],
-        index: 242,
     },
     {
         name: 'no_good',
@@ -3283,7 +3040,6 @@ const emojis = [
             '🙅🏼',
             '🙅🏻',
         ],
-        index: 243,
     },
     {
         name: 'no_good_man',
@@ -3302,7 +3058,6 @@ const emojis = [
             '🙅🏼‍♂️',
             '🙅🏻‍♂️',
         ],
-        index: 244,
     },
     {
         name: 'no_good_woman',
@@ -3321,7 +3076,6 @@ const emojis = [
             '🙅🏼‍♀️',
             '🙅🏻‍♀️',
         ],
-        index: 245,
     },
     {
         name: 'ok_person',
@@ -3339,7 +3093,6 @@ const emojis = [
             '🙆🏼',
             '🙆🏻',
         ],
-        index: 246,
     },
     {
         name: 'ok_man',
@@ -3354,7 +3107,6 @@ const emojis = [
             '🙆🏼‍♂️',
             '🙆🏻‍♂️',
         ],
-        index: 247,
     },
     {
         name: 'ok_woman',
@@ -3369,7 +3121,6 @@ const emojis = [
             '🙆🏼‍♀️',
             '🙆🏻‍♀️',
         ],
-        index: 248,
     },
     {
         name: 'tipping_hand_person',
@@ -3389,7 +3140,6 @@ const emojis = [
             '💁🏼',
             '💁🏻',
         ],
-        index: 249,
     },
     {
         name: 'tipping_hand_man',
@@ -3406,7 +3156,6 @@ const emojis = [
             '💁🏼‍♂️',
             '💁🏻‍♂️',
         ],
-        index: 250,
     },
     {
         name: 'tipping_hand_woman',
@@ -3423,7 +3172,6 @@ const emojis = [
             '💁🏼‍♀️',
             '💁🏻‍♀️',
         ],
-        index: 251,
     },
     {
         name: 'raising_hand',
@@ -3442,7 +3190,6 @@ const emojis = [
             '🙋🏼',
             '🙋🏻',
         ],
-        index: 252,
     },
     {
         name: 'raising_hand_man',
@@ -3457,7 +3204,6 @@ const emojis = [
             '🙋🏼‍♂️',
             '🙋🏻‍♂️',
         ],
-        index: 253,
     },
     {
         name: 'raising_hand_woman',
@@ -3472,7 +3218,6 @@ const emojis = [
             '🙋🏼‍♀️',
             '🙋🏻‍♀️',
         ],
-        index: 254,
     },
     {
         name: 'deaf_person',
@@ -3487,7 +3232,6 @@ const emojis = [
             '🧏🏼',
             '🧏🏻',
         ],
-        index: 255,
     },
     {
         name: 'deaf_man',
@@ -3502,7 +3246,6 @@ const emojis = [
             '🧏🏼‍♂️',
             '🧏🏻‍♂️',
         ],
-        index: 256,
     },
     {
         name: 'deaf_woman',
@@ -3517,7 +3260,6 @@ const emojis = [
             '🧏🏼‍♀️',
             '🧏🏻‍♀️',
         ],
-        index: 257,
     },
     {
         name: 'bow',
@@ -3537,7 +3279,6 @@ const emojis = [
             '🙇🏼',
             '🙇🏻',
         ],
-        index: 258,
     },
     {
         name: 'bowing_man',
@@ -3554,7 +3295,6 @@ const emojis = [
             '🙇🏼‍♂️',
             '🙇🏻‍♂️',
         ],
-        index: 259,
     },
     {
         name: 'bowing_woman',
@@ -3571,7 +3311,6 @@ const emojis = [
             '🙇🏼‍♀️',
             '🙇🏻‍♀️',
         ],
-        index: 260,
     },
     {
         name: 'facepalm',
@@ -3590,7 +3329,6 @@ const emojis = [
             '🤦🏼',
             '🤦🏻',
         ],
-        index: 261,
     },
     {
         name: 'man_facepalming',
@@ -3605,7 +3343,6 @@ const emojis = [
             '🤦🏼‍♂️',
             '🤦🏻‍♂️',
         ],
-        index: 262,
     },
     {
         name: 'woman_facepalming',
@@ -3620,7 +3357,6 @@ const emojis = [
             '🤦🏼‍♀️',
             '🤦🏻‍♀️',
         ],
-        index: 263,
     },
     {
         name: 'shrug',
@@ -3638,7 +3374,6 @@ const emojis = [
             '🤷🏼',
             '🤷🏻',
         ],
-        index: 264,
     },
     {
         name: 'man_shrugging',
@@ -3653,7 +3388,6 @@ const emojis = [
             '🤷🏼‍♂️',
             '🤷🏻‍♂️',
         ],
-        index: 265,
     },
     {
         name: 'woman_shrugging',
@@ -3668,7 +3402,6 @@ const emojis = [
             '🤷🏼‍♀️',
             '🤷🏻‍♀️',
         ],
-        index: 266,
     },
     {
         name: 'health_worker',
@@ -3683,7 +3416,6 @@ const emojis = [
             '🧑🏼‍⚕️',
             '🧑🏻‍⚕️',
         ],
-        index: 267,
     },
     {
         name: 'man_health_worker',
@@ -3700,7 +3432,6 @@ const emojis = [
             '👨🏼‍⚕️',
             '👨🏻‍⚕️',
         ],
-        index: 268,
     },
     {
         name: 'woman_health_worker',
@@ -3717,7 +3448,6 @@ const emojis = [
             '👩🏼‍⚕️',
             '👩🏻‍⚕️',
         ],
-        index: 269,
     },
     {
         name: 'student',
@@ -3732,7 +3462,6 @@ const emojis = [
             '🧑🏼‍🎓',
             '🧑🏻‍🎓',
         ],
-        index: 270,
     },
     {
         name: 'man_student',
@@ -3748,7 +3477,6 @@ const emojis = [
             '👨🏼‍🎓',
             '👨🏻‍🎓',
         ],
-        index: 271,
     },
     {
         name: 'woman_student',
@@ -3764,7 +3492,6 @@ const emojis = [
             '👩🏼‍🎓',
             '👩🏻‍🎓',
         ],
-        index: 272,
     },
     {
         name: 'teacher',
@@ -3779,7 +3506,6 @@ const emojis = [
             '🧑🏼‍🏫',
             '🧑🏻‍🏫',
         ],
-        index: 273,
     },
     {
         name: 'man_teacher',
@@ -3796,7 +3522,6 @@ const emojis = [
             '👨🏼‍🏫',
             '👨🏻‍🏫',
         ],
-        index: 274,
     },
     {
         name: 'woman_teacher',
@@ -3813,7 +3538,6 @@ const emojis = [
             '👩🏼‍🏫',
             '👩🏻‍🏫',
         ],
-        index: 275,
     },
     {
         name: 'judge',
@@ -3828,7 +3552,6 @@ const emojis = [
             '🧑🏼‍⚖️',
             '🧑🏻‍⚖️',
         ],
-        index: 276,
     },
     {
         name: 'man_judge',
@@ -3844,7 +3567,6 @@ const emojis = [
             '👨🏼‍⚖️',
             '👨🏻‍⚖️',
         ],
-        index: 277,
     },
     {
         name: 'woman_judge',
@@ -3860,7 +3582,6 @@ const emojis = [
             '👩🏼‍⚖️',
             '👩🏻‍⚖️',
         ],
-        index: 278,
     },
     {
         name: 'farmer',
@@ -3875,7 +3596,6 @@ const emojis = [
             '🧑🏼‍🌾',
             '🧑🏻‍🌾',
         ],
-        index: 279,
     },
     {
         name: 'man_farmer',
@@ -3890,7 +3610,6 @@ const emojis = [
             '👨🏼‍🌾',
             '👨🏻‍🌾',
         ],
-        index: 280,
     },
     {
         name: 'woman_farmer',
@@ -3905,7 +3624,6 @@ const emojis = [
             '👩🏼‍🌾',
             '👩🏻‍🌾',
         ],
-        index: 281,
     },
     {
         name: 'cook',
@@ -3920,7 +3638,6 @@ const emojis = [
             '🧑🏼‍🍳',
             '🧑🏻‍🍳',
         ],
-        index: 282,
     },
     {
         name: 'man_cook',
@@ -3936,7 +3653,6 @@ const emojis = [
             '👨🏼‍🍳',
             '👨🏻‍🍳',
         ],
-        index: 283,
     },
     {
         name: 'woman_cook',
@@ -3952,7 +3668,6 @@ const emojis = [
             '👩🏼‍🍳',
             '👩🏻‍🍳',
         ],
-        index: 284,
     },
     {
         name: 'mechanic',
@@ -3967,7 +3682,6 @@ const emojis = [
             '🧑🏼‍🔧',
             '🧑🏻‍🔧',
         ],
-        index: 285,
     },
     {
         name: 'man_mechanic',
@@ -3982,7 +3696,6 @@ const emojis = [
             '👨🏼‍🔧',
             '👨🏻‍🔧',
         ],
-        index: 286,
     },
     {
         name: 'woman_mechanic',
@@ -3997,7 +3710,6 @@ const emojis = [
             '👩🏼‍🔧',
             '👩🏻‍🔧',
         ],
-        index: 287,
     },
     {
         name: 'factory_worker',
@@ -4012,7 +3724,6 @@ const emojis = [
             '🧑🏼‍🏭',
             '🧑🏻‍🏭',
         ],
-        index: 288,
     },
     {
         name: 'man_factory_worker',
@@ -4027,7 +3738,6 @@ const emojis = [
             '👨🏼‍🏭',
             '👨🏻‍🏭',
         ],
-        index: 289,
     },
     {
         name: 'woman_factory_worker',
@@ -4042,7 +3752,6 @@ const emojis = [
             '👩🏼‍🏭',
             '👩🏻‍🏭',
         ],
-        index: 290,
     },
     {
         name: 'office_worker',
@@ -4057,7 +3766,6 @@ const emojis = [
             '🧑🏼‍💼',
             '🧑🏻‍💼',
         ],
-        index: 291,
     },
     {
         name: 'man_office_worker',
@@ -4073,7 +3781,6 @@ const emojis = [
             '👨🏼‍💼',
             '👨🏻‍💼',
         ],
-        index: 292,
     },
     {
         name: 'woman_office_worker',
@@ -4089,7 +3796,6 @@ const emojis = [
             '👩🏼‍💼',
             '👩🏻‍💼',
         ],
-        index: 293,
     },
     {
         name: 'scientist',
@@ -4104,7 +3810,6 @@ const emojis = [
             '🧑🏼‍🔬',
             '🧑🏻‍🔬',
         ],
-        index: 294,
     },
     {
         name: 'man_scientist',
@@ -4120,7 +3825,6 @@ const emojis = [
             '👨🏼‍🔬',
             '👨🏻‍🔬',
         ],
-        index: 295,
     },
     {
         name: 'woman_scientist',
@@ -4136,7 +3840,6 @@ const emojis = [
             '👩🏼‍🔬',
             '👩🏻‍🔬',
         ],
-        index: 296,
     },
     {
         name: 'technologist',
@@ -4151,7 +3854,6 @@ const emojis = [
             '🧑🏼‍💻',
             '🧑🏻‍💻',
         ],
-        index: 297,
     },
     {
         name: 'man_technologist',
@@ -4167,7 +3869,6 @@ const emojis = [
             '👨🏼‍💻',
             '👨🏻‍💻',
         ],
-        index: 298,
     },
     {
         name: 'woman_technologist',
@@ -4183,7 +3884,6 @@ const emojis = [
             '👩🏼‍💻',
             '👩🏻‍💻',
         ],
-        index: 299,
     },
     {
         name: 'singer',
@@ -4198,7 +3898,6 @@ const emojis = [
             '🧑🏼‍🎤',
             '🧑🏻‍🎤',
         ],
-        index: 300,
     },
     {
         name: 'man_singer',
@@ -4214,7 +3913,6 @@ const emojis = [
             '👨🏼‍🎤',
             '👨🏻‍🎤',
         ],
-        index: 301,
     },
     {
         name: 'woman_singer',
@@ -4230,7 +3928,6 @@ const emojis = [
             '👩🏼‍🎤',
             '👩🏻‍🎤',
         ],
-        index: 302,
     },
     {
         name: 'artist',
@@ -4245,7 +3942,6 @@ const emojis = [
             '🧑🏼‍🎨',
             '🧑🏻‍🎨',
         ],
-        index: 303,
     },
     {
         name: 'man_artist',
@@ -4261,7 +3957,6 @@ const emojis = [
             '👨🏼‍🎨',
             '👨🏻‍🎨',
         ],
-        index: 304,
     },
     {
         name: 'woman_artist',
@@ -4277,7 +3972,6 @@ const emojis = [
             '👩🏼‍🎨',
             '👩🏻‍🎨',
         ],
-        index: 305,
     },
     {
         name: 'pilot',
@@ -4292,7 +3986,6 @@ const emojis = [
             '🧑🏼‍✈️',
             '🧑🏻‍✈️',
         ],
-        index: 306,
     },
     {
         name: 'man_pilot',
@@ -4307,7 +4000,6 @@ const emojis = [
             '👨🏼‍✈️',
             '👨🏻‍✈️',
         ],
-        index: 307,
     },
     {
         name: 'woman_pilot',
@@ -4322,7 +4014,6 @@ const emojis = [
             '👩🏼‍✈️',
             '👩🏻‍✈️',
         ],
-        index: 308,
     },
     {
         name: 'astronaut',
@@ -4337,7 +4028,6 @@ const emojis = [
             '🧑🏼‍🚀',
             '🧑🏻‍🚀',
         ],
-        index: 309,
     },
     {
         name: 'man_astronaut',
@@ -4353,7 +4043,6 @@ const emojis = [
             '👨🏼‍🚀',
             '👨🏻‍🚀',
         ],
-        index: 310,
     },
     {
         name: 'woman_astronaut',
@@ -4369,7 +4058,6 @@ const emojis = [
             '👩🏼‍🚀',
             '👩🏻‍🚀',
         ],
-        index: 311,
     },
     {
         name: 'firefighter',
@@ -4384,7 +4072,6 @@ const emojis = [
             '🧑🏼‍🚒',
             '🧑🏻‍🚒',
         ],
-        index: 312,
     },
     {
         name: 'man_firefighter',
@@ -4399,7 +4086,6 @@ const emojis = [
             '👨🏼‍🚒',
             '👨🏻‍🚒',
         ],
-        index: 313,
     },
     {
         name: 'woman_firefighter',
@@ -4414,7 +4100,6 @@ const emojis = [
             '👩🏼‍🚒',
             '👩🏻‍🚒',
         ],
-        index: 314,
     },
     {
         name: 'police_officer',
@@ -4433,7 +4118,6 @@ const emojis = [
             '👮🏼',
             '👮🏻',
         ],
-        index: 315,
     },
     {
         name: 'policeman',
@@ -4450,7 +4134,6 @@ const emojis = [
             '👮🏼‍♂️',
             '👮🏻‍♂️',
         ],
-        index: 316,
     },
     {
         name: 'policewoman',
@@ -4467,7 +4150,6 @@ const emojis = [
             '👮🏼‍♀️',
             '👮🏻‍♀️',
         ],
-        index: 317,
     },
     {
         name: 'detective',
@@ -4483,7 +4165,6 @@ const emojis = [
             '🕵🏼',
             '🕵🏻',
         ],
-        index: 318,
     },
     {
         name: 'male_detective',
@@ -4499,7 +4180,6 @@ const emojis = [
             '🕵🏼‍♂️',
             '🕵🏻‍♂️',
         ],
-        index: 319,
     },
     {
         name: 'female_detective',
@@ -4515,7 +4195,6 @@ const emojis = [
             '🕵🏼‍♀️',
             '🕵🏻‍♀️',
         ],
-        index: 320,
     },
     {
         name: 'guard',
@@ -4531,7 +4210,6 @@ const emojis = [
             '💂🏼',
             '💂🏻',
         ],
-        index: 321,
     },
     {
         name: 'guardsman',
@@ -4546,7 +4224,6 @@ const emojis = [
             '💂🏼‍♂️',
             '💂🏻‍♂️',
         ],
-        index: 322,
     },
     {
         name: 'guardswoman',
@@ -4561,7 +4238,6 @@ const emojis = [
             '💂🏼‍♀️',
             '💂🏻‍♀️',
         ],
-        index: 323,
     },
     {
         name: 'ninja',
@@ -4576,7 +4252,6 @@ const emojis = [
             '🥷🏼',
             '🥷🏻',
         ],
-        index: 324,
     },
     {
         name: 'construction_worker',
@@ -4595,7 +4270,6 @@ const emojis = [
             '👷🏼',
             '👷🏻',
         ],
-        index: 325,
     },
     {
         name: 'construction_worker_man',
@@ -4611,7 +4285,6 @@ const emojis = [
             '👷🏼‍♂️',
             '👷🏻‍♂️',
         ],
-        index: 326,
     },
     {
         name: 'construction_worker_woman',
@@ -4627,7 +4300,6 @@ const emojis = [
             '👷🏼‍♀️',
             '👷🏻‍♀️',
         ],
-        index: 327,
     },
     {
         name: 'prince',
@@ -4644,7 +4316,6 @@ const emojis = [
             '🤴🏼',
             '🤴🏻',
         ],
-        index: 328,
     },
     {
         name: 'princess',
@@ -4663,7 +4334,6 @@ const emojis = [
             '👸🏼',
             '👸🏻',
         ],
-        index: 329,
     },
     {
         name: 'person_with_turban',
@@ -4680,7 +4350,6 @@ const emojis = [
             '👳🏼',
             '👳🏻',
         ],
-        index: 330,
     },
     {
         name: 'man_with_turban',
@@ -4695,7 +4364,6 @@ const emojis = [
             '👳🏼‍♂️',
             '👳🏻‍♂️',
         ],
-        index: 331,
     },
     {
         name: 'woman_with_turban',
@@ -4710,7 +4378,6 @@ const emojis = [
             '👳🏼‍♀️',
             '👳🏻‍♀️',
         ],
-        index: 332,
     },
     {
         name: 'man_with_gua_pi_mao',
@@ -4728,7 +4395,6 @@ const emojis = [
             '👲🏼',
             '👲🏻',
         ],
-        index: 333,
     },
     {
         name: 'woman_with_headscarf',
@@ -4744,7 +4410,6 @@ const emojis = [
             '🧕🏼',
             '🧕🏻',
         ],
-        index: 334,
     },
     {
         name: 'person_in_tuxedo',
@@ -4764,7 +4429,6 @@ const emojis = [
             '🤵🏼',
             '🤵🏻',
         ],
-        index: 335,
     },
     {
         name: 'man_in_tuxedo',
@@ -4779,7 +4443,6 @@ const emojis = [
             '🤵🏼‍♂️',
             '🤵🏻‍♂️',
         ],
-        index: 336,
     },
     {
         name: 'woman_in_tuxedo',
@@ -4794,7 +4457,6 @@ const emojis = [
             '🤵🏼‍♀️',
             '🤵🏻‍♀️',
         ],
-        index: 337,
     },
     {
         name: 'person_with_veil',
@@ -4813,7 +4475,6 @@ const emojis = [
             '👰🏼',
             '👰🏻',
         ],
-        index: 338,
     },
     {
         name: 'man_with_veil',
@@ -4828,7 +4489,6 @@ const emojis = [
             '👰🏼‍♂️',
             '👰🏻‍♂️',
         ],
-        index: 339,
     },
     {
         name: 'woman_with_veil',
@@ -4844,7 +4504,6 @@ const emojis = [
             '👰🏼‍♀️',
             '👰🏻‍♀️',
         ],
-        index: 340,
     },
     {
         name: 'pregnant_woman',
@@ -4861,7 +4520,6 @@ const emojis = [
             '🤰🏼',
             '🤰🏻',
         ],
-        index: 341,
     },
     {
         name: 'breast_feeding',
@@ -4877,7 +4535,6 @@ const emojis = [
             '🤱🏼',
             '🤱🏻',
         ],
-        index: 342,
     },
     {
         name: 'woman_feeding_baby',
@@ -4892,7 +4549,6 @@ const emojis = [
             '👩🏼‍🍼',
             '👩🏻‍🍼',
         ],
-        index: 343,
     },
     {
         name: 'man_feeding_baby',
@@ -4907,7 +4563,6 @@ const emojis = [
             '👨🏼‍🍼',
             '👨🏻‍🍼',
         ],
-        index: 344,
     },
     {
         name: 'person_feeding_baby',
@@ -4922,7 +4577,6 @@ const emojis = [
             '🧑🏼‍🍼',
             '🧑🏻‍🍼',
         ],
-        index: 345,
     },
     {
         name: 'angel',
@@ -4941,7 +4595,6 @@ const emojis = [
             '👼🏼',
             '👼🏻',
         ],
-        index: 346,
     },
     {
         name: 'santa',
@@ -4962,7 +4615,6 @@ const emojis = [
             '🎅🏼',
             '🎅🏻',
         ],
-        index: 347,
     },
     {
         name: 'mrs_claus',
@@ -4981,7 +4633,6 @@ const emojis = [
             '🤶🏼',
             '🤶🏻',
         ],
-        index: 348,
     },
     {
         name: 'mx_claus',
@@ -4996,7 +4647,6 @@ const emojis = [
             '🧑🏼‍🎄',
             '🧑🏻‍🎄',
         ],
-        index: 349,
     },
     {
         name: 'superhero',
@@ -5011,7 +4661,6 @@ const emojis = [
             '🦸🏼',
             '🦸🏻',
         ],
-        index: 350,
     },
     {
         name: 'superhero_man',
@@ -5026,7 +4675,6 @@ const emojis = [
             '🦸🏼‍♂️',
             '🦸🏻‍♂️',
         ],
-        index: 351,
     },
     {
         name: 'superhero_woman',
@@ -5041,7 +4689,6 @@ const emojis = [
             '🦸🏼‍♀️',
             '🦸🏻‍♀️',
         ],
-        index: 352,
     },
     {
         name: 'supervillain',
@@ -5056,7 +4703,6 @@ const emojis = [
             '🦹🏼',
             '🦹🏻',
         ],
-        index: 353,
     },
     {
         name: 'supervillain_man',
@@ -5071,7 +4717,6 @@ const emojis = [
             '🦹🏼‍♂️',
             '🦹🏻‍♂️',
         ],
-        index: 354,
     },
     {
         name: 'supervillain_woman',
@@ -5086,7 +4731,6 @@ const emojis = [
             '🦹🏼‍♀️',
             '🦹🏻‍♀️',
         ],
-        index: 355,
     },
     {
         name: 'mage',
@@ -5102,7 +4746,6 @@ const emojis = [
             '🧙🏼',
             '🧙🏻',
         ],
-        index: 356,
     },
     {
         name: 'mage_man',
@@ -5118,7 +4761,6 @@ const emojis = [
             '🧙🏼‍♂️',
             '🧙🏻‍♂️',
         ],
-        index: 357,
     },
     {
         name: 'mage_woman',
@@ -5134,7 +4776,6 @@ const emojis = [
             '🧙🏼‍♀️',
             '🧙🏻‍♀️',
         ],
-        index: 358,
     },
     {
         name: 'fairy',
@@ -5149,7 +4790,6 @@ const emojis = [
             '🧚🏼',
             '🧚🏻',
         ],
-        index: 359,
     },
     {
         name: 'fairy_man',
@@ -5164,7 +4804,6 @@ const emojis = [
             '🧚🏼‍♂️',
             '🧚🏻‍♂️',
         ],
-        index: 360,
     },
     {
         name: 'fairy_woman',
@@ -5179,7 +4818,6 @@ const emojis = [
             '🧚🏼‍♀️',
             '🧚🏻‍♀️',
         ],
-        index: 361,
     },
     {
         name: 'vampire',
@@ -5194,7 +4832,6 @@ const emojis = [
             '🧛🏼',
             '🧛🏻',
         ],
-        index: 362,
     },
     {
         name: 'vampire_man',
@@ -5209,7 +4846,6 @@ const emojis = [
             '🧛🏼‍♂️',
             '🧛🏻‍♂️',
         ],
-        index: 363,
     },
     {
         name: 'vampire_woman',
@@ -5224,7 +4860,6 @@ const emojis = [
             '🧛🏼‍♀️',
             '🧛🏻‍♀️',
         ],
-        index: 364,
     },
     {
         name: 'merperson',
@@ -5239,7 +4874,6 @@ const emojis = [
             '🧜🏼',
             '🧜🏻',
         ],
-        index: 365,
     },
     {
         name: 'merman',
@@ -5254,7 +4888,6 @@ const emojis = [
             '🧜🏼‍♂️',
             '🧜🏻‍♂️',
         ],
-        index: 366,
     },
     {
         name: 'mermaid',
@@ -5269,7 +4902,6 @@ const emojis = [
             '🧜🏼‍♀️',
             '🧜🏻‍♀️',
         ],
-        index: 367,
     },
     {
         name: 'elf',
@@ -5284,7 +4916,6 @@ const emojis = [
             '🧝🏼',
             '🧝🏻',
         ],
-        index: 368,
     },
     {
         name: 'elf_man',
@@ -5299,7 +4930,6 @@ const emojis = [
             '🧝🏼‍♂️',
             '🧝🏻‍♂️',
         ],
-        index: 369,
     },
     {
         name: 'elf_woman',
@@ -5314,7 +4944,6 @@ const emojis = [
             '🧝🏼‍♀️',
             '🧝🏻‍♀️',
         ],
-        index: 370,
     },
     {
         name: 'genie',
@@ -5322,7 +4951,6 @@ const emojis = [
         keywords: [
             'genie',
         ],
-        index: 371,
     },
     {
         name: 'genie_man',
@@ -5330,7 +4958,6 @@ const emojis = [
         keywords: [
             'genie_man',
         ],
-        index: 372,
     },
     {
         name: 'genie_woman',
@@ -5338,7 +4965,6 @@ const emojis = [
         keywords: [
             'genie_woman',
         ],
-        index: 373,
     },
     {
         name: 'zombie',
@@ -5346,7 +4972,6 @@ const emojis = [
         keywords: [
             'zombie',
         ],
-        index: 374,
     },
     {
         name: 'zombie_man',
@@ -5354,7 +4979,6 @@ const emojis = [
         keywords: [
             'zombie_man',
         ],
-        index: 375,
     },
     {
         name: 'zombie_woman',
@@ -5362,7 +4986,6 @@ const emojis = [
         keywords: [
             'zombie_woman',
         ],
-        index: 376,
     },
     {
         name: 'massage',
@@ -5379,7 +5002,6 @@ const emojis = [
             '💆🏼',
             '💆🏻',
         ],
-        index: 377,
     },
     {
         name: 'massage_man',
@@ -5395,7 +5017,6 @@ const emojis = [
             '💆🏼‍♂️',
             '💆🏻‍♂️',
         ],
-        index: 378,
     },
     {
         name: 'massage_woman',
@@ -5411,7 +5032,6 @@ const emojis = [
             '💆🏼‍♀️',
             '💆🏻‍♀️',
         ],
-        index: 379,
     },
     {
         name: 'haircut',
@@ -5429,7 +5049,6 @@ const emojis = [
             '💇🏼',
             '💇🏻',
         ],
-        index: 380,
     },
     {
         name: 'haircut_man',
@@ -5444,7 +5063,6 @@ const emojis = [
             '💇🏼‍♂️',
             '💇🏻‍♂️',
         ],
-        index: 381,
     },
     {
         name: 'haircut_woman',
@@ -5459,7 +5077,6 @@ const emojis = [
             '💇🏼‍♀️',
             '💇🏻‍♀️',
         ],
-        index: 382,
     },
     {
         name: 'walking',
@@ -5477,7 +5094,6 @@ const emojis = [
             '🚶🏼',
             '🚶🏻',
         ],
-        index: 383,
     },
     {
         name: 'walking_man',
@@ -5492,7 +5108,6 @@ const emojis = [
             '🚶🏼‍♂️',
             '🚶🏻‍♂️',
         ],
-        index: 384,
     },
     {
         name: 'walking_woman',
@@ -5507,7 +5122,6 @@ const emojis = [
             '🚶🏼‍♀️',
             '🚶🏻‍♀️',
         ],
-        index: 385,
     },
     {
         name: 'standing_person',
@@ -5522,7 +5136,6 @@ const emojis = [
             '🧍🏼',
             '🧍🏻',
         ],
-        index: 386,
     },
     {
         name: 'standing_man',
@@ -5537,7 +5150,6 @@ const emojis = [
             '🧍🏼‍♂️',
             '🧍🏻‍♂️',
         ],
-        index: 387,
     },
     {
         name: 'standing_woman',
@@ -5552,7 +5164,6 @@ const emojis = [
             '🧍🏼‍♀️',
             '🧍🏻‍♀️',
         ],
-        index: 388,
     },
     {
         name: 'kneeling_person',
@@ -5567,7 +5178,6 @@ const emojis = [
             '🧎🏼',
             '🧎🏻',
         ],
-        index: 389,
     },
     {
         name: 'kneeling_man',
@@ -5582,7 +5192,6 @@ const emojis = [
             '🧎🏼‍♂️',
             '🧎🏻‍♂️',
         ],
-        index: 390,
     },
     {
         name: 'kneeling_woman',
@@ -5597,7 +5206,6 @@ const emojis = [
             '🧎🏼‍♀️',
             '🧎🏻‍♀️',
         ],
-        index: 391,
     },
     {
         name: 'person_with_probing_cane',
@@ -5612,7 +5220,6 @@ const emojis = [
             '🧑🏼‍🦯',
             '🧑🏻‍🦯',
         ],
-        index: 392,
     },
     {
         name: 'man_with_probing_cane',
@@ -5627,7 +5234,6 @@ const emojis = [
             '👨🏼‍🦯',
             '👨🏻‍🦯',
         ],
-        index: 393,
     },
     {
         name: 'woman_with_probing_cane',
@@ -5642,7 +5248,6 @@ const emojis = [
             '👩🏼‍🦯',
             '👩🏻‍🦯',
         ],
-        index: 394,
     },
     {
         name: 'person_in_motorized_wheelchair',
@@ -5657,7 +5262,6 @@ const emojis = [
             '🧑🏼‍🦼',
             '🧑🏻‍🦼',
         ],
-        index: 395,
     },
     {
         name: 'man_in_motorized_wheelchair',
@@ -5672,7 +5276,6 @@ const emojis = [
             '👨🏼‍🦼',
             '👨🏻‍🦼',
         ],
-        index: 396,
     },
     {
         name: 'woman_in_motorized_wheelchair',
@@ -5687,7 +5290,6 @@ const emojis = [
             '👩🏼‍🦼',
             '👩🏻‍🦼',
         ],
-        index: 397,
     },
     {
         name: 'person_in_manual_wheelchair',
@@ -5702,7 +5304,6 @@ const emojis = [
             '🧑🏼‍🦽',
             '🧑🏻‍🦽',
         ],
-        index: 398,
     },
     {
         name: 'man_in_manual_wheelchair',
@@ -5717,7 +5318,6 @@ const emojis = [
             '👨🏼‍🦽',
             '👨🏻‍🦽',
         ],
-        index: 399,
     },
     {
         name: 'woman_in_manual_wheelchair',
@@ -5732,7 +5332,6 @@ const emojis = [
             '👩🏼‍🦽',
             '👩🏻‍🦽',
         ],
-        index: 400,
     },
     {
         name: 'runner',
@@ -5751,7 +5350,6 @@ const emojis = [
             '🏃🏼',
             '🏃🏻',
         ],
-        index: 401,
     },
     {
         name: 'running_man',
@@ -5769,7 +5367,6 @@ const emojis = [
             '🏃🏼‍♂️',
             '🏃🏻‍♂️',
         ],
-        index: 402,
     },
     {
         name: 'running_woman',
@@ -5787,7 +5384,6 @@ const emojis = [
             '🏃🏼‍♀️',
             '🏃🏻‍♀️',
         ],
-        index: 403,
     },
     {
         name: 'woman_dancing',
@@ -5804,7 +5400,6 @@ const emojis = [
             '💃🏼',
             '💃🏻',
         ],
-        index: 404,
     },
     {
         name: 'man_dancing',
@@ -5822,7 +5417,6 @@ const emojis = [
             '🕺🏼',
             '🕺🏻',
         ],
-        index: 405,
     },
     {
         name: 'business_suit_levitating',
@@ -5837,7 +5431,6 @@ const emojis = [
             '🕴🏼',
             '🕴🏻',
         ],
-        index: 406,
     },
     {
         name: 'dancers',
@@ -5850,7 +5443,6 @@ const emojis = [
             'girl',
             'woman',
         ],
-        index: 407,
     },
     {
         name: 'dancing_men',
@@ -5859,7 +5451,6 @@ const emojis = [
             'bunny',
             'dancing_men',
         ],
-        index: 408,
     },
     {
         name: 'dancing_women',
@@ -5868,7 +5459,6 @@ const emojis = [
             'bunny',
             'dancing_women',
         ],
-        index: 409,
     },
     {
         name: 'sauna_person',
@@ -5884,7 +5474,6 @@ const emojis = [
             '🧖🏼',
             '🧖🏻',
         ],
-        index: 410,
     },
     {
         name: 'sauna_man',
@@ -5900,7 +5489,6 @@ const emojis = [
             '🧖🏼‍♂️',
             '🧖🏻‍♂️',
         ],
-        index: 411,
     },
     {
         name: 'sauna_woman',
@@ -5916,7 +5504,6 @@ const emojis = [
             '🧖🏼‍♀️',
             '🧖🏻‍♀️',
         ],
-        index: 412,
     },
     {
         name: 'climbing',
@@ -5932,7 +5519,6 @@ const emojis = [
             '🧗🏼',
             '🧗🏻',
         ],
-        index: 413,
     },
     {
         name: 'climbing_man',
@@ -5948,7 +5534,6 @@ const emojis = [
             '🧗🏼‍♂️',
             '🧗🏻‍♂️',
         ],
-        index: 414,
     },
     {
         name: 'climbing_woman',
@@ -5964,7 +5549,6 @@ const emojis = [
             '🧗🏼‍♀️',
             '🧗🏻‍♀️',
         ],
-        index: 415,
     },
     {
         name: 'person_fencing',
@@ -5975,7 +5559,6 @@ const emojis = [
             'fencing',
             'sword',
         ],
-        index: 416,
     },
     {
         name: 'horse_racing',
@@ -5994,7 +5577,6 @@ const emojis = [
             '🏇🏼',
             '🏇🏻',
         ],
-        index: 417,
     },
     {
         name: 'skier',
@@ -6002,7 +5584,6 @@ const emojis = [
         keywords: [
             'skier',
         ],
-        index: 418,
     },
     {
         name: 'snowboarder',
@@ -6020,7 +5601,6 @@ const emojis = [
             '🏂🏼',
             '🏂🏻',
         ],
-        index: 419,
     },
     {
         name: 'golfing',
@@ -6035,7 +5615,6 @@ const emojis = [
             '🏌🏼',
             '🏌🏻',
         ],
-        index: 420,
     },
     {
         name: 'golfing_man',
@@ -6050,7 +5629,6 @@ const emojis = [
             '🏌🏼‍♂️',
             '🏌🏻‍♂️',
         ],
-        index: 421,
     },
     {
         name: 'golfing_woman',
@@ -6065,7 +5643,6 @@ const emojis = [
             '🏌🏼‍♀️',
             '🏌🏻‍♀️',
         ],
-        index: 422,
     },
     {
         name: 'surfer',
@@ -6081,7 +5658,6 @@ const emojis = [
             '🏄🏼',
             '🏄🏻',
         ],
-        index: 423,
     },
     {
         name: 'surfing_man',
@@ -6096,7 +5672,6 @@ const emojis = [
             '🏄🏼‍♂️',
             '🏄🏻‍♂️',
         ],
-        index: 424,
     },
     {
         name: 'surfing_woman',
@@ -6111,7 +5686,6 @@ const emojis = [
             '🏄🏼‍♀️',
             '🏄🏻‍♀️',
         ],
-        index: 425,
     },
     {
         name: 'rowboat',
@@ -6128,7 +5702,6 @@ const emojis = [
             '🚣🏼',
             '🚣🏻',
         ],
-        index: 426,
     },
     {
         name: 'rowing_man',
@@ -6143,7 +5716,6 @@ const emojis = [
             '🚣🏼‍♂️',
             '🚣🏻‍♂️',
         ],
-        index: 427,
     },
     {
         name: 'rowing_woman',
@@ -6158,7 +5730,6 @@ const emojis = [
             '🚣🏼‍♀️',
             '🚣🏻‍♀️',
         ],
-        index: 428,
     },
     {
         name: 'swimmer',
@@ -6174,7 +5745,6 @@ const emojis = [
             '🏊🏼',
             '🏊🏻',
         ],
-        index: 429,
     },
     {
         name: 'swimming_man',
@@ -6189,7 +5759,6 @@ const emojis = [
             '🏊🏼‍♂️',
             '🏊🏻‍♂️',
         ],
-        index: 430,
     },
     {
         name: 'swimming_woman',
@@ -6204,7 +5773,6 @@ const emojis = [
             '🏊🏼‍♀️',
             '🏊🏻‍♀️',
         ],
-        index: 431,
     },
     {
         name: 'bouncing_ball_person',
@@ -6220,7 +5788,6 @@ const emojis = [
             '⛹🏼',
             '⛹🏻',
         ],
-        index: 432,
     },
     {
         name: 'bouncing_ball_man',
@@ -6236,7 +5803,6 @@ const emojis = [
             '⛹🏼‍♂️',
             '⛹🏻‍♂️',
         ],
-        index: 433,
     },
     {
         name: 'bouncing_ball_woman',
@@ -6252,7 +5818,6 @@ const emojis = [
             '⛹🏼‍♀️',
             '⛹🏻‍♀️',
         ],
-        index: 434,
     },
     {
         name: 'weight_lifting',
@@ -6269,7 +5834,6 @@ const emojis = [
             '🏋🏼',
             '🏋🏻',
         ],
-        index: 435,
     },
     {
         name: 'weight_lifting_man',
@@ -6286,7 +5850,6 @@ const emojis = [
             '🏋🏼‍♂️',
             '🏋🏻‍♂️',
         ],
-        index: 436,
     },
     {
         name: 'weight_lifting_woman',
@@ -6303,7 +5866,6 @@ const emojis = [
             '🏋🏼‍♀️',
             '🏋🏻‍♀️',
         ],
-        index: 437,
     },
     {
         name: 'bicyclist',
@@ -6321,7 +5883,6 @@ const emojis = [
             '🚴🏼',
             '🚴🏻',
         ],
-        index: 438,
     },
     {
         name: 'biking_man',
@@ -6336,7 +5897,6 @@ const emojis = [
             '🚴🏼‍♂️',
             '🚴🏻‍♂️',
         ],
-        index: 439,
     },
     {
         name: 'biking_woman',
@@ -6351,7 +5911,6 @@ const emojis = [
             '🚴🏼‍♀️',
             '🚴🏻‍♀️',
         ],
-        index: 440,
     },
     {
         name: 'mountain_bicyclist',
@@ -6371,7 +5930,6 @@ const emojis = [
             '🚵🏼',
             '🚵🏻',
         ],
-        index: 441,
     },
     {
         name: 'mountain_biking_man',
@@ -6386,7 +5944,6 @@ const emojis = [
             '🚵🏼‍♂️',
             '🚵🏻‍♂️',
         ],
-        index: 442,
     },
     {
         name: 'mountain_biking_woman',
@@ -6401,7 +5958,6 @@ const emojis = [
             '🚵🏼‍♀️',
             '🚵🏻‍♀️',
         ],
-        index: 443,
     },
     {
         name: 'cartwheeling',
@@ -6418,7 +5974,6 @@ const emojis = [
             '🤸🏼',
             '🤸🏻',
         ],
-        index: 444,
     },
     {
         name: 'man_cartwheeling',
@@ -6433,7 +5988,6 @@ const emojis = [
             '🤸🏼‍♂️',
             '🤸🏻‍♂️',
         ],
-        index: 445,
     },
     {
         name: 'woman_cartwheeling',
@@ -6448,7 +6002,6 @@ const emojis = [
             '🤸🏼‍♀️',
             '🤸🏻‍♀️',
         ],
-        index: 446,
     },
     {
         name: 'wrestling',
@@ -6458,7 +6011,6 @@ const emojis = [
             'wrestle',
             'wrestler',
         ],
-        index: 447,
     },
     {
         name: 'men_wrestling',
@@ -6466,7 +6018,6 @@ const emojis = [
         keywords: [
             'men_wrestling',
         ],
-        index: 448,
     },
     {
         name: 'women_wrestling',
@@ -6474,7 +6025,6 @@ const emojis = [
         keywords: [
             'women_wrestling',
         ],
-        index: 449,
     },
     {
         name: 'water_polo',
@@ -6491,7 +6041,6 @@ const emojis = [
             '🤽🏼',
             '🤽🏻',
         ],
-        index: 450,
     },
     {
         name: 'man_playing_water_polo',
@@ -6506,7 +6055,6 @@ const emojis = [
             '🤽🏼‍♂️',
             '🤽🏻‍♂️',
         ],
-        index: 451,
     },
     {
         name: 'woman_playing_water_polo',
@@ -6521,7 +6069,6 @@ const emojis = [
             '🤽🏼‍♀️',
             '🤽🏻‍♀️',
         ],
-        index: 452,
     },
     {
         name: 'handball_person',
@@ -6538,7 +6085,6 @@ const emojis = [
             '🤾🏼',
             '🤾🏻',
         ],
-        index: 453,
     },
     {
         name: 'man_playing_handball',
@@ -6553,7 +6099,6 @@ const emojis = [
             '🤾🏼‍♂️',
             '🤾🏻‍♂️',
         ],
-        index: 454,
     },
     {
         name: 'woman_playing_handball',
@@ -6568,7 +6113,6 @@ const emojis = [
             '🤾🏼‍♀️',
             '🤾🏻‍♀️',
         ],
-        index: 455,
     },
     {
         name: 'juggling_person',
@@ -6587,7 +6131,6 @@ const emojis = [
             '🤹🏼',
             '🤹🏻',
         ],
-        index: 456,
     },
     {
         name: 'man_juggling',
@@ -6602,7 +6145,6 @@ const emojis = [
             '🤹🏼‍♂️',
             '🤹🏻‍♂️',
         ],
-        index: 457,
     },
     {
         name: 'woman_juggling',
@@ -6617,7 +6159,6 @@ const emojis = [
             '🤹🏼‍♀️',
             '🤹🏻‍♀️',
         ],
-        index: 458,
     },
     {
         name: 'lotus_position',
@@ -6633,7 +6174,6 @@ const emojis = [
             '🧘🏼',
             '🧘🏻',
         ],
-        index: 459,
     },
     {
         name: 'lotus_position_man',
@@ -6649,7 +6189,6 @@ const emojis = [
             '🧘🏼‍♂️',
             '🧘🏻‍♂️',
         ],
-        index: 460,
     },
     {
         name: 'lotus_position_woman',
@@ -6665,7 +6204,6 @@ const emojis = [
             '🧘🏼‍♀️',
             '🧘🏻‍♀️',
         ],
-        index: 461,
     },
     {
         name: 'bath',
@@ -6682,7 +6220,6 @@ const emojis = [
             '🛀🏼',
             '🛀🏻',
         ],
-        index: 462,
     },
     {
         name: 'sleeping_bed',
@@ -6699,7 +6236,6 @@ const emojis = [
             '🛌🏼',
             '🛌🏻',
         ],
-        index: 463,
     },
     {
         name: 'people_holding_hands',
@@ -6736,7 +6272,6 @@ const emojis = [
             '🧑🏻‍🤝‍🧑🏼',
             '🧑🏻‍🤝‍🧑🏻',
         ],
-        index: 464,
     },
     {
         name: 'two_women_holding_hands',
@@ -6776,7 +6311,6 @@ const emojis = [
             '👭🏼',
             '👭🏻',
         ],
-        index: 465,
     },
     {
         name: 'couple',
@@ -6816,7 +6350,6 @@ const emojis = [
             '👫🏼',
             '👫🏻',
         ],
-        index: 466,
     },
     {
         name: 'two_men_holding_hands',
@@ -6859,7 +6392,6 @@ const emojis = [
             '👬🏼',
             '👬🏻',
         ],
-        index: 467,
     },
     {
         name: 'couplekiss',
@@ -6897,7 +6429,6 @@ const emojis = [
             '💏🏼',
             '💏🏻',
         ],
-        index: 468,
     },
     {
         name: 'couplekiss_man_woman',
@@ -6932,7 +6463,6 @@ const emojis = [
             '👩🏻‍❤️‍💋‍👨🏼',
             '👩🏻‍❤️‍💋‍👨🏻',
         ],
-        index: 469,
     },
     {
         name: 'couplekiss_man_man',
@@ -6967,7 +6497,6 @@ const emojis = [
             '👨🏻‍❤️‍💋‍👨🏼',
             '👨🏻‍❤️‍💋‍👨🏻',
         ],
-        index: 470,
     },
     {
         name: 'couplekiss_woman_woman',
@@ -7002,7 +6531,6 @@ const emojis = [
             '👩🏻‍❤️‍💋‍👩🏼',
             '👩🏻‍❤️‍💋‍👩🏻',
         ],
-        index: 471,
     },
     {
         name: 'couple_with_heart',
@@ -7041,7 +6569,6 @@ const emojis = [
             '💑🏼',
             '💑🏻',
         ],
-        index: 472,
     },
     {
         name: 'couple_with_heart_woman_man',
@@ -7076,7 +6603,6 @@ const emojis = [
             '👩🏻‍❤️‍👨🏼',
             '👩🏻‍❤️‍👨🏻',
         ],
-        index: 473,
     },
     {
         name: 'couple_with_heart_man_man',
@@ -7111,7 +6637,6 @@ const emojis = [
             '👨🏻‍❤️‍👨🏼',
             '👨🏻‍❤️‍👨🏻',
         ],
-        index: 474,
     },
     {
         name: 'couple_with_heart_woman_woman',
@@ -7146,7 +6671,6 @@ const emojis = [
             '👩🏻‍❤️‍👩🏼',
             '👩🏻‍❤️‍👩🏻',
         ],
-        index: 475,
     },
     {
         name: 'family',
@@ -7159,7 +6683,6 @@ const emojis = [
             'father',
             'mother',
         ],
-        index: 476,
     },
     {
         name: 'family_man_woman_boy',
@@ -7171,7 +6694,6 @@ const emojis = [
             'man',
             'woman',
         ],
-        index: 477,
     },
     {
         name: 'family_man_woman_girl',
@@ -7183,7 +6705,6 @@ const emojis = [
             'man',
             'woman',
         ],
-        index: 478,
     },
     {
         name: 'family_man_woman_girl_boy',
@@ -7196,7 +6717,6 @@ const emojis = [
             'man',
             'woman',
         ],
-        index: 479,
     },
     {
         name: 'family_man_woman_boy_boy',
@@ -7208,7 +6728,6 @@ const emojis = [
             'man',
             'woman',
         ],
-        index: 480,
     },
     {
         name: 'family_man_woman_girl_girl',
@@ -7220,7 +6739,6 @@ const emojis = [
             'man',
             'woman',
         ],
-        index: 481,
     },
     {
         name: 'family_man_man_boy',
@@ -7231,7 +6749,6 @@ const emojis = [
             'family',
             'man',
         ],
-        index: 482,
     },
     {
         name: 'family_man_man_girl',
@@ -7242,7 +6759,6 @@ const emojis = [
             'girl',
             'man',
         ],
-        index: 483,
     },
     {
         name: 'family_man_man_girl_boy',
@@ -7254,7 +6770,6 @@ const emojis = [
             'girl',
             'man',
         ],
-        index: 484,
     },
     {
         name: 'family_man_man_boy_boy',
@@ -7265,7 +6780,6 @@ const emojis = [
             'family',
             'man',
         ],
-        index: 485,
     },
     {
         name: 'family_man_man_girl_girl',
@@ -7276,7 +6790,6 @@ const emojis = [
             'girl',
             'man',
         ],
-        index: 486,
     },
     {
         name: 'family_woman_woman_boy',
@@ -7287,7 +6800,6 @@ const emojis = [
             'family',
             'woman',
         ],
-        index: 487,
     },
     {
         name: 'family_woman_woman_girl',
@@ -7298,7 +6810,6 @@ const emojis = [
             'girl',
             'woman',
         ],
-        index: 488,
     },
     {
         name: 'family_woman_woman_girl_boy',
@@ -7310,7 +6821,6 @@ const emojis = [
             'girl',
             'woman',
         ],
-        index: 489,
     },
     {
         name: 'family_woman_woman_boy_boy',
@@ -7321,7 +6831,6 @@ const emojis = [
             'family',
             'woman',
         ],
-        index: 490,
     },
     {
         name: 'family_woman_woman_girl_girl',
@@ -7332,7 +6841,6 @@ const emojis = [
             'girl',
             'woman',
         ],
-        index: 491,
     },
     {
         name: 'family_man_boy',
@@ -7340,7 +6848,6 @@ const emojis = [
         keywords: [
             'family_man_boy',
         ],
-        index: 492,
     },
     {
         name: 'family_man_boy_boy',
@@ -7348,7 +6855,6 @@ const emojis = [
         keywords: [
             'family_man_boy_boy',
         ],
-        index: 493,
     },
     {
         name: 'family_man_girl',
@@ -7356,7 +6862,6 @@ const emojis = [
         keywords: [
             'family_man_girl',
         ],
-        index: 494,
     },
     {
         name: 'family_man_girl_boy',
@@ -7364,7 +6869,6 @@ const emojis = [
         keywords: [
             'family_man_girl_boy',
         ],
-        index: 495,
     },
     {
         name: 'family_man_girl_girl',
@@ -7372,7 +6876,6 @@ const emojis = [
         keywords: [
             'family_man_girl_girl',
         ],
-        index: 496,
     },
     {
         name: 'family_woman_boy',
@@ -7380,7 +6883,6 @@ const emojis = [
         keywords: [
             'family_woman_boy',
         ],
-        index: 497,
     },
     {
         name: 'family_woman_boy_boy',
@@ -7388,7 +6890,6 @@ const emojis = [
         keywords: [
             'family_woman_boy_boy',
         ],
-        index: 498,
     },
     {
         name: 'family_woman_girl',
@@ -7396,7 +6897,6 @@ const emojis = [
         keywords: [
             'family_woman_girl',
         ],
-        index: 499,
     },
     {
         name: 'family_woman_girl_boy',
@@ -7404,7 +6904,6 @@ const emojis = [
         keywords: [
             'family_woman_girl_boy',
         ],
-        index: 500,
     },
     {
         name: 'family_woman_girl_girl',
@@ -7412,7 +6911,6 @@ const emojis = [
         keywords: [
             'family_woman_girl_girl',
         ],
-        index: 501,
     },
     {
         name: 'speaking_head',
@@ -7420,7 +6918,6 @@ const emojis = [
         keywords: [
             'speaking_head',
         ],
-        index: 502,
     },
     {
         name: 'bust_in_silhouette',
@@ -7431,7 +6928,6 @@ const emojis = [
             'bust',
             'silhouette',
         ],
-        index: 503,
     },
     {
         name: 'busts_in_silhouette',
@@ -7444,7 +6940,6 @@ const emojis = [
             'bust',
             'silhouette',
         ],
-        index: 504,
     },
     {
         name: 'people_hugging',
@@ -7452,7 +6947,6 @@ const emojis = [
         keywords: [
             'people_hugging',
         ],
-        index: 505,
     },
     {
         name: 'footprints',
@@ -7466,12 +6960,10 @@ const emojis = [
             'footprint',
             'print',
         ],
-        index: 506,
     },
     {
         code: 'animalsAndNature',
         header: true,
-        index: 507,
     },
     {
         name: 'monkey_face',
@@ -7481,7 +6973,6 @@ const emojis = [
             'face',
             'monkey',
         ],
-        index: 508,
     },
     {
         name: 'monkey',
@@ -7489,7 +6980,6 @@ const emojis = [
         keywords: [
             'monkey',
         ],
-        index: 509,
     },
     {
         name: 'gorilla',
@@ -7497,7 +6987,6 @@ const emojis = [
         keywords: [
             'gorilla',
         ],
-        index: 510,
     },
     {
         name: 'orangutan',
@@ -7505,7 +6994,6 @@ const emojis = [
         keywords: [
             'orangutan',
         ],
-        index: 511,
     },
     {
         name: 'dog',
@@ -7515,7 +7003,6 @@ const emojis = [
             'dog',
             'face',
         ],
-        index: 512,
     },
     {
         name: 'dog2',
@@ -7525,7 +7012,6 @@ const emojis = [
             'dog',
             'pet',
         ],
-        index: 513,
     },
     {
         name: 'guide_dog',
@@ -7533,7 +7019,6 @@ const emojis = [
         keywords: [
             'guide_dog',
         ],
-        index: 514,
     },
     {
         name: 'service_dog',
@@ -7541,7 +7026,6 @@ const emojis = [
         keywords: [
             'service_dog',
         ],
-        index: 515,
     },
     {
         name: 'poodle',
@@ -7550,7 +7034,6 @@ const emojis = [
             'dog',
             'poodle',
         ],
-        index: 516,
     },
     {
         name: 'wolf',
@@ -7559,7 +7042,6 @@ const emojis = [
             'wolf',
             'face',
         ],
-        index: 517,
     },
     {
         name: 'fox_face',
@@ -7569,7 +7051,6 @@ const emojis = [
             'face',
             'fox',
         ],
-        index: 518,
     },
     {
         name: 'raccoon',
@@ -7577,7 +7058,6 @@ const emojis = [
         keywords: [
             'raccoon',
         ],
-        index: 519,
     },
     {
         name: 'cat',
@@ -7587,7 +7067,6 @@ const emojis = [
             'cat',
             'face',
         ],
-        index: 520,
     },
     {
         name: 'cat2',
@@ -7597,7 +7076,6 @@ const emojis = [
             'cat',
             'pet',
         ],
-        index: 521,
     },
     {
         name: 'black_cat',
@@ -7605,7 +7083,6 @@ const emojis = [
         keywords: [
             'black_cat',
         ],
-        index: 522,
     },
     {
         name: 'lion',
@@ -7616,7 +7093,6 @@ const emojis = [
             'leo',
             'zodiac',
         ],
-        index: 523,
     },
     {
         name: 'tiger',
@@ -7625,7 +7101,6 @@ const emojis = [
             'tiger',
             'face',
         ],
-        index: 524,
     },
     {
         name: 'tiger2',
@@ -7634,7 +7109,6 @@ const emojis = [
             'tiger2',
             'tiger',
         ],
-        index: 525,
     },
     {
         name: 'leopard',
@@ -7642,7 +7116,6 @@ const emojis = [
         keywords: [
             'leopard',
         ],
-        index: 526,
     },
     {
         name: 'horse',
@@ -7651,7 +7124,6 @@ const emojis = [
             'horse',
             'face',
         ],
-        index: 527,
     },
     {
         name: 'racehorse',
@@ -7662,7 +7134,6 @@ const emojis = [
             'horse',
             'racing',
         ],
-        index: 528,
     },
     {
         name: 'unicorn',
@@ -7671,7 +7142,6 @@ const emojis = [
             'unicorn',
             'face',
         ],
-        index: 529,
     },
     {
         name: 'zebra',
@@ -7679,7 +7149,6 @@ const emojis = [
         keywords: [
             'zebra',
         ],
-        index: 530,
     },
     {
         name: 'deer',
@@ -7687,7 +7156,6 @@ const emojis = [
         keywords: [
             'deer',
         ],
-        index: 531,
     },
     {
         name: 'bison',
@@ -7695,7 +7163,6 @@ const emojis = [
         keywords: [
             'bison',
         ],
-        index: 532,
     },
     {
         name: 'cow',
@@ -7704,7 +7171,6 @@ const emojis = [
             'cow',
             'face',
         ],
-        index: 533,
     },
     {
         name: 'ox',
@@ -7715,7 +7181,6 @@ const emojis = [
             'taurus',
             'zodiac',
         ],
-        index: 534,
     },
     {
         name: 'water_buffalo',
@@ -7725,7 +7190,6 @@ const emojis = [
             'buffalo',
             'water',
         ],
-        index: 535,
     },
     {
         name: 'cow2',
@@ -7734,7 +7198,6 @@ const emojis = [
             'cow2',
             'cow',
         ],
-        index: 536,
     },
     {
         name: 'pig',
@@ -7743,7 +7206,6 @@ const emojis = [
             'pig',
             'face',
         ],
-        index: 537,
     },
     {
         name: 'pig2',
@@ -7753,7 +7215,6 @@ const emojis = [
             'pig',
             'sow',
         ],
-        index: 538,
     },
     {
         name: 'boar',
@@ -7762,7 +7223,6 @@ const emojis = [
             'boar',
             'pig',
         ],
-        index: 539,
     },
     {
         name: 'pig_nose',
@@ -7773,7 +7233,6 @@ const emojis = [
             'nose',
             'pig',
         ],
-        index: 540,
     },
     {
         name: 'ram',
@@ -7784,7 +7243,6 @@ const emojis = [
             'sheep',
             'zodiac',
         ],
-        index: 541,
     },
     {
         name: 'sheep',
@@ -7793,7 +7251,6 @@ const emojis = [
             'sheep',
             'ewe',
         ],
-        index: 542,
     },
     {
         name: 'goat',
@@ -7803,7 +7260,6 @@ const emojis = [
             'capricorn',
             'zodiac',
         ],
-        index: 543,
     },
     {
         name: 'dromedary_camel',
@@ -7815,7 +7271,6 @@ const emojis = [
             'dromedary',
             'hump',
         ],
-        index: 544,
     },
     {
         name: 'camel',
@@ -7825,7 +7280,6 @@ const emojis = [
             'bactrian',
             'hump',
         ],
-        index: 545,
     },
     {
         name: 'llama',
@@ -7833,7 +7287,6 @@ const emojis = [
         keywords: [
             'llama',
         ],
-        index: 546,
     },
     {
         name: 'giraffe',
@@ -7841,7 +7294,6 @@ const emojis = [
         keywords: [
             'giraffe',
         ],
-        index: 547,
     },
     {
         name: 'elephant',
@@ -7849,7 +7301,6 @@ const emojis = [
         keywords: [
             'elephant',
         ],
-        index: 548,
     },
     {
         name: 'mammoth',
@@ -7857,7 +7308,6 @@ const emojis = [
         keywords: [
             'mammoth',
         ],
-        index: 549,
     },
     {
         name: 'rhinoceros',
@@ -7865,7 +7315,6 @@ const emojis = [
         keywords: [
             'rhinoceros',
         ],
-        index: 550,
     },
     {
         name: 'hippopotamus',
@@ -7873,7 +7322,6 @@ const emojis = [
         keywords: [
             'hippopotamus',
         ],
-        index: 551,
     },
     {
         name: 'mouse',
@@ -7882,7 +7330,6 @@ const emojis = [
             'mouse',
             'face',
         ],
-        index: 552,
     },
     {
         name: 'mouse2',
@@ -7891,7 +7338,6 @@ const emojis = [
             'mouse2',
             'mouse',
         ],
-        index: 553,
     },
     {
         name: 'rat',
@@ -7899,7 +7345,6 @@ const emojis = [
         keywords: [
             'rat',
         ],
-        index: 554,
     },
     {
         name: 'hamster',
@@ -7909,7 +7354,6 @@ const emojis = [
             'hamster',
             'face',
         ],
-        index: 555,
     },
     {
         name: 'rabbit',
@@ -7920,7 +7364,6 @@ const emojis = [
             'face',
             'pet',
         ],
-        index: 556,
     },
     {
         name: 'rabbit2',
@@ -7931,7 +7374,6 @@ const emojis = [
             'pet',
             'rabbit',
         ],
-        index: 557,
     },
     {
         name: 'chipmunk',
@@ -7939,7 +7381,6 @@ const emojis = [
         keywords: [
             'chipmunk',
         ],
-        index: 558,
     },
     {
         name: 'beaver',
@@ -7947,7 +7388,6 @@ const emojis = [
         keywords: [
             'beaver',
         ],
-        index: 559,
     },
     {
         name: 'hedgehog',
@@ -7955,7 +7395,6 @@ const emojis = [
         keywords: [
             'hedgehog',
         ],
-        index: 560,
     },
     {
         name: 'bat',
@@ -7964,7 +7403,6 @@ const emojis = [
             'bat',
             'vampire',
         ],
-        index: 561,
     },
     {
         name: 'bear',
@@ -7973,7 +7411,6 @@ const emojis = [
             'bear',
             'face',
         ],
-        index: 562,
     },
     {
         name: 'polar_bear',
@@ -7981,7 +7418,6 @@ const emojis = [
         keywords: [
             'polar_bear',
         ],
-        index: 563,
     },
     {
         name: 'koala',
@@ -7990,7 +7426,6 @@ const emojis = [
             'koala',
             'bear',
         ],
-        index: 564,
     },
     {
         name: 'panda_face',
@@ -8000,7 +7435,6 @@ const emojis = [
             'face',
             'panda',
         ],
-        index: 565,
     },
     {
         name: 'sloth',
@@ -8008,7 +7442,6 @@ const emojis = [
         keywords: [
             'sloth',
         ],
-        index: 566,
     },
     {
         name: 'otter',
@@ -8016,7 +7449,6 @@ const emojis = [
         keywords: [
             'otter',
         ],
-        index: 567,
     },
     {
         name: 'skunk',
@@ -8024,7 +7456,6 @@ const emojis = [
         keywords: [
             'skunk',
         ],
-        index: 568,
     },
     {
         name: 'kangaroo',
@@ -8032,7 +7463,6 @@ const emojis = [
         keywords: [
             'kangaroo',
         ],
-        index: 569,
     },
     {
         name: 'badger',
@@ -8040,7 +7470,6 @@ const emojis = [
         keywords: [
             'badger',
         ],
-        index: 570,
     },
     {
         name: 'feet',
@@ -8051,7 +7480,6 @@ const emojis = [
             'paw',
             'print',
         ],
-        index: 571,
     },
     {
         name: 'turkey',
@@ -8060,7 +7488,6 @@ const emojis = [
             'thanksgiving',
             'turkey',
         ],
-        index: 572,
     },
     {
         name: 'chicken',
@@ -8068,7 +7495,6 @@ const emojis = [
         keywords: [
             'chicken',
         ],
-        index: 573,
     },
     {
         name: 'rooster',
@@ -8076,7 +7502,6 @@ const emojis = [
         keywords: [
             'rooster',
         ],
-        index: 574,
     },
     {
         name: 'hatching_chick',
@@ -8087,7 +7512,6 @@ const emojis = [
             'chick',
             'hatching',
         ],
-        index: 575,
     },
     {
         name: 'baby_chick',
@@ -8097,7 +7521,6 @@ const emojis = [
             'baby',
             'chick',
         ],
-        index: 576,
     },
     {
         name: 'hatched_chick',
@@ -8107,7 +7530,6 @@ const emojis = [
             'baby',
             'chick',
         ],
-        index: 577,
     },
     {
         name: 'bird',
@@ -8115,7 +7537,6 @@ const emojis = [
         keywords: [
             'bird',
         ],
-        index: 578,
     },
     {
         name: 'penguin',
@@ -8123,7 +7544,6 @@ const emojis = [
         keywords: [
             'penguin',
         ],
-        index: 579,
     },
     {
         name: 'dove',
@@ -8132,7 +7552,6 @@ const emojis = [
             'peace',
             'dove',
         ],
-        index: 580,
     },
     {
         name: 'eagle',
@@ -8141,7 +7560,6 @@ const emojis = [
             'eagle',
             'bird',
         ],
-        index: 581,
     },
     {
         name: 'duck',
@@ -8150,7 +7568,6 @@ const emojis = [
             'duck',
             'bird',
         ],
-        index: 582,
     },
     {
         name: 'swan',
@@ -8158,7 +7575,6 @@ const emojis = [
         keywords: [
             'swan',
         ],
-        index: 583,
     },
     {
         name: 'owl',
@@ -8168,7 +7584,6 @@ const emojis = [
             'bird',
             'wise',
         ],
-        index: 584,
     },
     {
         name: 'dodo',
@@ -8176,7 +7591,6 @@ const emojis = [
         keywords: [
             'dodo',
         ],
-        index: 585,
     },
     {
         name: 'feather',
@@ -8184,7 +7598,6 @@ const emojis = [
         keywords: [
             'feather',
         ],
-        index: 586,
     },
     {
         name: 'flamingo',
@@ -8192,7 +7605,6 @@ const emojis = [
         keywords: [
             'flamingo',
         ],
-        index: 587,
     },
     {
         name: 'peacock',
@@ -8200,7 +7612,6 @@ const emojis = [
         keywords: [
             'peacock',
         ],
-        index: 588,
     },
     {
         name: 'parrot',
@@ -8208,7 +7619,6 @@ const emojis = [
         keywords: [
             'parrot',
         ],
-        index: 589,
     },
     {
         name: 'frog',
@@ -8217,7 +7627,6 @@ const emojis = [
             'frog',
             'face',
         ],
-        index: 590,
     },
     {
         name: 'crocodile',
@@ -8225,7 +7634,6 @@ const emojis = [
         keywords: [
             'crocodile',
         ],
-        index: 591,
     },
     {
         name: 'turtle',
@@ -8234,7 +7642,6 @@ const emojis = [
             'slow',
             'turtle',
         ],
-        index: 592,
     },
     {
         name: 'lizard',
@@ -8243,7 +7650,6 @@ const emojis = [
             'lizard',
             'reptile',
         ],
-        index: 593,
     },
     {
         name: 'snake',
@@ -8255,7 +7661,6 @@ const emojis = [
             'serpent',
             'zodiac',
         ],
-        index: 594,
     },
     {
         name: 'dragon_face',
@@ -8266,7 +7671,6 @@ const emojis = [
             'face',
             'fairy tale',
         ],
-        index: 595,
     },
     {
         name: 'dragon',
@@ -8275,7 +7679,6 @@ const emojis = [
             'dragon',
             'fairy tale',
         ],
-        index: 596,
     },
     {
         name: 'sauropod',
@@ -8284,7 +7687,6 @@ const emojis = [
             'dinosaur',
             'sauropod',
         ],
-        index: 597,
     },
     {
         name: 't-rex',
@@ -8293,7 +7695,6 @@ const emojis = [
             'dinosaur',
             't-rex',
         ],
-        index: 598,
     },
     {
         name: 'whale',
@@ -8304,7 +7705,6 @@ const emojis = [
             'face',
             'spouting',
         ],
-        index: 599,
     },
     {
         name: 'whale2',
@@ -8313,7 +7713,6 @@ const emojis = [
             'whale2',
             'whale',
         ],
-        index: 600,
     },
     {
         name: 'dolphin',
@@ -8322,7 +7721,6 @@ const emojis = [
             'dolphin',
             'flipper',
         ],
-        index: 601,
     },
     {
         name: 'seal',
@@ -8330,7 +7728,6 @@ const emojis = [
         keywords: [
             'seal',
         ],
-        index: 602,
     },
     {
         name: 'fish',
@@ -8340,7 +7737,6 @@ const emojis = [
             'pisces',
             'zodiac',
         ],
-        index: 603,
     },
     {
         name: 'tropical_fish',
@@ -8350,7 +7746,6 @@ const emojis = [
             'fish',
             'tropical',
         ],
-        index: 604,
     },
     {
         name: 'blowfish',
@@ -8359,7 +7754,6 @@ const emojis = [
             'blowfish',
             'fish',
         ],
-        index: 605,
     },
     {
         name: 'shark',
@@ -8368,7 +7762,6 @@ const emojis = [
             'shark',
             'fish',
         ],
-        index: 606,
     },
     {
         name: 'octopus',
@@ -8376,7 +7769,6 @@ const emojis = [
         keywords: [
             'octopus',
         ],
-        index: 607,
     },
     {
         name: 'shell',
@@ -8387,7 +7779,6 @@ const emojis = [
             'shell',
             'spiral',
         ],
-        index: 608,
     },
     {
         name: 'snail',
@@ -8396,7 +7787,6 @@ const emojis = [
             'slow',
             'snail',
         ],
-        index: 609,
     },
     {
         name: 'butterfly',
@@ -8406,7 +7796,6 @@ const emojis = [
             'insect',
             'pretty',
         ],
-        index: 610,
     },
     {
         name: 'bug',
@@ -8415,7 +7804,6 @@ const emojis = [
             'bug',
             'insect',
         ],
-        index: 611,
     },
     {
         name: 'ant',
@@ -8424,7 +7812,6 @@ const emojis = [
             'ant',
             'insect',
         ],
-        index: 612,
     },
     {
         name: 'bee',
@@ -8434,7 +7821,6 @@ const emojis = [
             'honeybee',
             'insect',
         ],
-        index: 613,
     },
     {
         name: 'beetle',
@@ -8442,7 +7828,6 @@ const emojis = [
         keywords: [
             'beetle',
         ],
-        index: 614,
     },
     {
         name: 'lady_beetle',
@@ -8456,7 +7841,6 @@ const emojis = [
             'ladybird',
             'ladybug',
         ],
-        index: 615,
     },
     {
         name: 'cricket',
@@ -8464,7 +7848,6 @@ const emojis = [
         keywords: [
             'cricket',
         ],
-        index: 616,
     },
     {
         name: 'cockroach',
@@ -8472,7 +7855,6 @@ const emojis = [
         keywords: [
             'cockroach',
         ],
-        index: 617,
     },
     {
         name: 'spider',
@@ -8480,7 +7862,6 @@ const emojis = [
         keywords: [
             'spider',
         ],
-        index: 618,
     },
     {
         name: 'spider_web',
@@ -8488,7 +7869,6 @@ const emojis = [
         keywords: [
             'spider_web',
         ],
-        index: 619,
     },
     {
         name: 'scorpion',
@@ -8499,7 +7879,6 @@ const emojis = [
             'scorpius',
             'zodiac',
         ],
-        index: 620,
     },
     {
         name: 'mosquito',
@@ -8507,7 +7886,6 @@ const emojis = [
         keywords: [
             'mosquito',
         ],
-        index: 621,
     },
     {
         name: 'fly',
@@ -8515,7 +7893,6 @@ const emojis = [
         keywords: [
             'fly',
         ],
-        index: 622,
     },
     {
         name: 'worm',
@@ -8523,7 +7900,6 @@ const emojis = [
         keywords: [
             'worm',
         ],
-        index: 623,
     },
     {
         name: 'microbe',
@@ -8532,7 +7908,6 @@ const emojis = [
             'germ',
             'microbe',
         ],
-        index: 624,
     },
     {
         name: 'bouquet',
@@ -8544,7 +7919,6 @@ const emojis = [
             'plant',
             'romance',
         ],
-        index: 625,
     },
     {
         name: 'cherry_blossom',
@@ -8557,7 +7931,6 @@ const emojis = [
             'cherry',
             'plant',
         ],
-        index: 626,
     },
     {
         name: 'white_flower',
@@ -8566,7 +7939,6 @@ const emojis = [
             'white_flower',
             'flower',
         ],
-        index: 627,
     },
     {
         name: 'rosette',
@@ -8574,7 +7946,6 @@ const emojis = [
         keywords: [
             'rosette',
         ],
-        index: 628,
     },
     {
         name: 'rose',
@@ -8584,7 +7955,6 @@ const emojis = [
             'rose',
             'plant',
         ],
-        index: 629,
     },
     {
         name: 'wilted_flower',
@@ -8594,7 +7964,6 @@ const emojis = [
             'flower',
             'wilted',
         ],
-        index: 630,
     },
     {
         name: 'hibiscus',
@@ -8604,7 +7973,6 @@ const emojis = [
             'flower',
             'plant',
         ],
-        index: 631,
     },
     {
         name: 'sunflower',
@@ -8615,7 +7983,6 @@ const emojis = [
             'plant',
             'sun',
         ],
-        index: 632,
     },
     {
         name: 'blossom',
@@ -8625,7 +7992,6 @@ const emojis = [
             'flower',
             'plant',
         ],
-        index: 633,
     },
     {
         name: 'tulip',
@@ -8635,7 +8001,6 @@ const emojis = [
             'tulip',
             'plant',
         ],
-        index: 634,
     },
     {
         name: 'seedling',
@@ -8645,7 +8010,6 @@ const emojis = [
             'seedling',
             'young',
         ],
-        index: 635,
     },
     {
         name: 'potted_plant',
@@ -8653,7 +8017,6 @@ const emojis = [
         keywords: [
             'potted_plant',
         ],
-        index: 636,
     },
     {
         name: 'evergreen_tree',
@@ -8665,7 +8028,6 @@ const emojis = [
             'plant',
             'tree',
         ],
-        index: 637,
     },
     {
         name: 'deciduous_tree',
@@ -8678,7 +8040,6 @@ const emojis = [
             'shedding',
             'tree',
         ],
-        index: 638,
     },
     {
         name: 'palm_tree',
@@ -8689,7 +8050,6 @@ const emojis = [
             'plant',
             'tree',
         ],
-        index: 639,
     },
     {
         name: 'cactus',
@@ -8698,7 +8058,6 @@ const emojis = [
             'cactus',
             'plant',
         ],
-        index: 640,
     },
     {
         name: 'ear_of_rice',
@@ -8709,7 +8068,6 @@ const emojis = [
             'plant',
             'rice',
         ],
-        index: 641,
     },
     {
         name: 'herb',
@@ -8719,7 +8077,6 @@ const emojis = [
             'leaf',
             'plant',
         ],
-        index: 642,
     },
     {
         name: 'shamrock',
@@ -8728,7 +8085,6 @@ const emojis = [
             'shamrock',
             'plant',
         ],
-        index: 643,
     },
     {
         name: 'four_leaf_clover',
@@ -8742,7 +8098,6 @@ const emojis = [
             'leaf',
             'plant',
         ],
-        index: 644,
     },
     {
         name: 'maple_leaf',
@@ -8755,7 +8110,6 @@ const emojis = [
             'maple',
             'plant',
         ],
-        index: 645,
     },
     {
         name: 'fallen_leaf',
@@ -8767,7 +8121,6 @@ const emojis = [
             'leaf',
             'plant',
         ],
-        index: 646,
     },
     {
         name: 'leaves',
@@ -8780,12 +8133,10 @@ const emojis = [
             'plant',
             'wind',
         ],
-        index: 647,
     },
     {
         code: 'foodAndDrink',
         header: true,
-        index: 648,
     },
     {
         name: 'grapes',
@@ -8796,7 +8147,6 @@ const emojis = [
             'grape',
             'plant',
         ],
-        index: 649,
     },
     {
         name: 'melon',
@@ -8806,7 +8156,6 @@ const emojis = [
             'fruit',
             'plant',
         ],
-        index: 650,
     },
     {
         name: 'watermelon',
@@ -8816,7 +8165,6 @@ const emojis = [
             'fruit',
             'plant',
         ],
-        index: 651,
     },
     {
         name: 'tangerine',
@@ -8828,7 +8176,6 @@ const emojis = [
             'fruit',
             'plant',
         ],
-        index: 652,
     },
     {
         name: 'lemon',
@@ -8839,7 +8186,6 @@ const emojis = [
             'fruit',
             'plant',
         ],
-        index: 653,
     },
     {
         name: 'banana',
@@ -8849,7 +8195,6 @@ const emojis = [
             'banana',
             'plant',
         ],
-        index: 654,
     },
     {
         name: 'pineapple',
@@ -8859,7 +8204,6 @@ const emojis = [
             'fruit',
             'plant',
         ],
-        index: 655,
     },
     {
         name: 'mango',
@@ -8867,7 +8211,6 @@ const emojis = [
         keywords: [
             'mango',
         ],
-        index: 656,
     },
     {
         name: 'apple',
@@ -8878,7 +8221,6 @@ const emojis = [
             'plant',
             'red',
         ],
-        index: 657,
     },
     {
         name: 'green_apple',
@@ -8890,7 +8232,6 @@ const emojis = [
             'green',
             'plant',
         ],
-        index: 658,
     },
     {
         name: 'pear',
@@ -8900,7 +8241,6 @@ const emojis = [
             'fruit',
             'plant',
         ],
-        index: 659,
     },
     {
         name: 'peach',
@@ -8910,7 +8250,6 @@ const emojis = [
             'fruit',
             'plant',
         ],
-        index: 660,
     },
     {
         name: 'cherries',
@@ -8921,7 +8260,6 @@ const emojis = [
             'cherry',
             'plant',
         ],
-        index: 661,
     },
     {
         name: 'strawberry',
@@ -8932,7 +8270,6 @@ const emojis = [
             'berry',
             'plant',
         ],
-        index: 662,
     },
     {
         name: 'blueberries',
@@ -8940,7 +8277,6 @@ const emojis = [
         keywords: [
             'blueberries',
         ],
-        index: 663,
     },
     {
         name: 'kiwi_fruit',
@@ -8950,7 +8286,6 @@ const emojis = [
             'fruit',
             'kiwi',
         ],
-        index: 664,
     },
     {
         name: 'tomato',
@@ -8960,7 +8295,6 @@ const emojis = [
             'plant',
             'vegetable',
         ],
-        index: 665,
     },
     {
         name: 'olive',
@@ -8968,7 +8302,6 @@ const emojis = [
         keywords: [
             'olive',
         ],
-        index: 666,
     },
     {
         name: 'coconut',
@@ -8976,7 +8309,6 @@ const emojis = [
         keywords: [
             'coconut',
         ],
-        index: 667,
     },
     {
         name: 'avocado',
@@ -8985,7 +8317,6 @@ const emojis = [
             'avocado',
             'fruit',
         ],
-        index: 668,
     },
     {
         name: 'eggplant',
@@ -8996,7 +8327,6 @@ const emojis = [
             'plant',
             'vegetable',
         ],
-        index: 669,
     },
     {
         name: 'potato',
@@ -9005,7 +8335,6 @@ const emojis = [
             'potato',
             'vegetable',
         ],
-        index: 670,
     },
     {
         name: 'carrot',
@@ -9014,7 +8343,6 @@ const emojis = [
             'carrot',
             'vegetable',
         ],
-        index: 671,
     },
     {
         name: 'corn',
@@ -9026,7 +8354,6 @@ const emojis = [
             'maze',
             'plant',
         ],
-        index: 672,
     },
     {
         name: 'hot_pepper',
@@ -9035,7 +8362,6 @@ const emojis = [
             'spicy',
             'hot_pepper',
         ],
-        index: 673,
     },
     {
         name: 'bell_pepper',
@@ -9043,7 +8369,6 @@ const emojis = [
         keywords: [
             'bell_pepper',
         ],
-        index: 674,
     },
     {
         name: 'cucumber',
@@ -9053,7 +8378,6 @@ const emojis = [
             'pickle',
             'vegetable',
         ],
-        index: 675,
     },
     {
         name: 'leafy_green',
@@ -9061,7 +8385,6 @@ const emojis = [
         keywords: [
             'leafy_green',
         ],
-        index: 676,
     },
     {
         name: 'broccoli',
@@ -9069,7 +8392,6 @@ const emojis = [
         keywords: [
             'broccoli',
         ],
-        index: 677,
     },
     {
         name: 'garlic',
@@ -9077,7 +8399,6 @@ const emojis = [
         keywords: [
             'garlic',
         ],
-        index: 678,
     },
     {
         name: 'onion',
@@ -9085,7 +8406,6 @@ const emojis = [
         keywords: [
             'onion',
         ],
-        index: 679,
     },
     {
         name: 'mushroom',
@@ -9094,7 +8414,6 @@ const emojis = [
             'mushroom',
             'plant',
         ],
-        index: 680,
     },
     {
         name: 'peanuts',
@@ -9105,7 +8424,6 @@ const emojis = [
             'peanut',
             'vegetable',
         ],
-        index: 681,
     },
     {
         name: 'chestnut',
@@ -9114,7 +8432,6 @@ const emojis = [
             'chestnut',
             'plant',
         ],
-        index: 682,
     },
     {
         name: 'bread',
@@ -9124,7 +8441,6 @@ const emojis = [
             'bread',
             'loaf',
         ],
-        index: 683,
     },
     {
         name: 'croissant',
@@ -9135,7 +8451,6 @@ const emojis = [
             'crescent roll',
             'french',
         ],
-        index: 684,
     },
     {
         name: 'baguette_bread',
@@ -9146,7 +8461,6 @@ const emojis = [
             'bread',
             'french',
         ],
-        index: 685,
     },
     {
         name: 'flatbread',
@@ -9154,7 +8468,6 @@ const emojis = [
         keywords: [
             'flatbread',
         ],
-        index: 686,
     },
     {
         name: 'pretzel',
@@ -9162,7 +8475,6 @@ const emojis = [
         keywords: [
             'pretzel',
         ],
-        index: 687,
     },
     {
         name: 'bagel',
@@ -9170,7 +8482,6 @@ const emojis = [
         keywords: [
             'bagel',
         ],
-        index: 688,
     },
     {
         name: 'pancakes',
@@ -9181,7 +8492,6 @@ const emojis = [
             'hotcake',
             'pancake',
         ],
-        index: 689,
     },
     {
         name: 'waffle',
@@ -9189,7 +8499,6 @@ const emojis = [
         keywords: [
             'waffle',
         ],
-        index: 690,
     },
     {
         name: 'cheese',
@@ -9197,7 +8506,6 @@ const emojis = [
         keywords: [
             'cheese',
         ],
-        index: 691,
     },
     {
         name: 'meat_on_bone',
@@ -9207,7 +8515,6 @@ const emojis = [
             'bone',
             'meat',
         ],
-        index: 692,
     },
     {
         name: 'poultry_leg',
@@ -9220,7 +8527,6 @@ const emojis = [
             'leg',
             'poultry',
         ],
-        index: 693,
     },
     {
         name: 'cut_of_meat',
@@ -9228,7 +8534,6 @@ const emojis = [
         keywords: [
             'cut_of_meat',
         ],
-        index: 694,
     },
     {
         name: 'bacon',
@@ -9237,7 +8542,6 @@ const emojis = [
             'bacon',
             'meat',
         ],
-        index: 695,
     },
     {
         name: 'hamburger',
@@ -9246,7 +8550,6 @@ const emojis = [
             'burger',
             'hamburger',
         ],
-        index: 696,
     },
     {
         name: 'fries',
@@ -9255,7 +8558,6 @@ const emojis = [
             'fries',
             'french',
         ],
-        index: 697,
     },
     {
         name: 'pizza',
@@ -9265,7 +8567,6 @@ const emojis = [
             'cheese',
             'slice',
         ],
-        index: 698,
     },
     {
         name: 'hotdog',
@@ -9276,7 +8577,6 @@ const emojis = [
             'hot dog',
             'sausage',
         ],
-        index: 699,
     },
     {
         name: 'sandwich',
@@ -9284,7 +8584,6 @@ const emojis = [
         keywords: [
             'sandwich',
         ],
-        index: 700,
     },
     {
         name: 'taco',
@@ -9293,7 +8592,6 @@ const emojis = [
             'taco',
             'mexican',
         ],
-        index: 701,
     },
     {
         name: 'burrito',
@@ -9302,7 +8600,6 @@ const emojis = [
             'burrito',
             'mexican',
         ],
-        index: 702,
     },
     {
         name: 'tamale',
@@ -9310,7 +8607,6 @@ const emojis = [
         keywords: [
             'tamale',
         ],
-        index: 703,
     },
     {
         name: 'stuffed_flatbread',
@@ -9323,7 +8619,6 @@ const emojis = [
             'kebab',
             'stuffed',
         ],
-        index: 704,
     },
     {
         name: 'falafel',
@@ -9331,7 +8626,6 @@ const emojis = [
         keywords: [
             'falafel',
         ],
-        index: 705,
     },
     {
         name: 'egg',
@@ -9339,7 +8633,6 @@ const emojis = [
         keywords: [
             'egg',
         ],
-        index: 706,
     },
     {
         name: 'fried_egg',
@@ -9352,7 +8645,6 @@ const emojis = [
             'frying',
             'pan',
         ],
-        index: 707,
     },
     {
         name: 'shallow_pan_of_food',
@@ -9365,7 +8657,6 @@ const emojis = [
             'pan',
             'shallow',
         ],
-        index: 708,
     },
     {
         name: 'stew',
@@ -9374,7 +8665,6 @@ const emojis = [
             'stew',
             'pot',
         ],
-        index: 709,
     },
     {
         name: 'fondue',
@@ -9382,7 +8672,6 @@ const emojis = [
         keywords: [
             'fondue',
         ],
-        index: 710,
     },
     {
         name: 'bowl_with_spoon',
@@ -9390,7 +8679,6 @@ const emojis = [
         keywords: [
             'bowl_with_spoon',
         ],
-        index: 711,
     },
     {
         name: 'green_salad',
@@ -9400,7 +8688,6 @@ const emojis = [
             'green',
             'salad',
         ],
-        index: 712,
     },
     {
         name: 'popcorn',
@@ -9408,7 +8695,6 @@ const emojis = [
         keywords: [
             'popcorn',
         ],
-        index: 713,
     },
     {
         name: 'butter',
@@ -9416,7 +8702,6 @@ const emojis = [
         keywords: [
             'butter',
         ],
-        index: 714,
     },
     {
         name: 'salt',
@@ -9424,7 +8709,6 @@ const emojis = [
         keywords: [
             'salt',
         ],
-        index: 715,
     },
     {
         name: 'canned_food',
@@ -9432,7 +8716,6 @@ const emojis = [
         keywords: [
             'canned_food',
         ],
-        index: 716,
     },
     {
         name: 'bento',
@@ -9441,7 +8724,6 @@ const emojis = [
             'bento',
             'box',
         ],
-        index: 717,
     },
     {
         name: 'rice_cracker',
@@ -9451,7 +8733,6 @@ const emojis = [
             'cracker',
             'rice',
         ],
-        index: 718,
     },
     {
         name: 'rice_ball',
@@ -9462,7 +8743,6 @@ const emojis = [
             'japanese',
             'rice',
         ],
-        index: 719,
     },
     {
         name: 'rice',
@@ -9471,7 +8751,6 @@ const emojis = [
             'rice',
             'cooked',
         ],
-        index: 720,
     },
     {
         name: 'curry',
@@ -9480,7 +8759,6 @@ const emojis = [
             'curry',
             'rice',
         ],
-        index: 721,
     },
     {
         name: 'ramen',
@@ -9491,7 +8769,6 @@ const emojis = [
             'bowl',
             'steaming',
         ],
-        index: 722,
     },
     {
         name: 'spaghetti',
@@ -9500,7 +8777,6 @@ const emojis = [
             'pasta',
             'spaghetti',
         ],
-        index: 723,
     },
     {
         name: 'sweet_potato',
@@ -9511,7 +8787,6 @@ const emojis = [
             'roasted',
             'sweet',
         ],
-        index: 724,
     },
     {
         name: 'oden',
@@ -9523,7 +8798,6 @@ const emojis = [
             'skewer',
             'stick',
         ],
-        index: 725,
     },
     {
         name: 'sushi',
@@ -9531,7 +8805,6 @@ const emojis = [
         keywords: [
             'sushi',
         ],
-        index: 726,
     },
     {
         name: 'fried_shrimp',
@@ -9543,7 +8816,6 @@ const emojis = [
             'prawn',
             'shrimp',
         ],
-        index: 727,
     },
     {
         name: 'fish_cake',
@@ -9555,7 +8827,6 @@ const emojis = [
             'pastry',
             'swirl',
         ],
-        index: 728,
     },
     {
         name: 'moon_cake',
@@ -9563,7 +8834,6 @@ const emojis = [
         keywords: [
             'moon_cake',
         ],
-        index: 729,
     },
     {
         name: 'dango',
@@ -9576,7 +8846,6 @@ const emojis = [
             'stick',
             'sweet',
         ],
-        index: 730,
     },
     {
         name: 'dumpling',
@@ -9584,7 +8853,6 @@ const emojis = [
         keywords: [
             'dumpling',
         ],
-        index: 731,
     },
     {
         name: 'fortune_cookie',
@@ -9592,7 +8860,6 @@ const emojis = [
         keywords: [
             'fortune_cookie',
         ],
-        index: 732,
     },
     {
         name: 'takeout_box',
@@ -9600,7 +8867,6 @@ const emojis = [
         keywords: [
             'takeout_box',
         ],
-        index: 733,
     },
     {
         name: 'crab',
@@ -9610,7 +8876,6 @@ const emojis = [
             'cancer',
             'zodiac',
         ],
-        index: 734,
     },
     {
         name: 'lobster',
@@ -9618,7 +8883,6 @@ const emojis = [
         keywords: [
             'lobster',
         ],
-        index: 735,
     },
     {
         name: 'shrimp',
@@ -9628,7 +8892,6 @@ const emojis = [
             'shellfish',
             'small',
         ],
-        index: 736,
     },
     {
         name: 'squid',
@@ -9637,7 +8900,6 @@ const emojis = [
             'squid',
             'molusc',
         ],
-        index: 737,
     },
     {
         name: 'oyster',
@@ -9645,7 +8907,6 @@ const emojis = [
         keywords: [
             'oyster',
         ],
-        index: 738,
     },
     {
         name: 'icecream',
@@ -9658,7 +8919,6 @@ const emojis = [
             'soft',
             'sweet',
         ],
-        index: 739,
     },
     {
         name: 'shaved_ice',
@@ -9670,7 +8930,6 @@ const emojis = [
             'shaved',
             'sweet',
         ],
-        index: 740,
     },
     {
         name: 'ice_cream',
@@ -9682,7 +8941,6 @@ const emojis = [
             'ice',
             'sweet',
         ],
-        index: 741,
     },
     {
         name: 'doughnut',
@@ -9693,7 +8951,6 @@ const emojis = [
             'donut',
             'sweet',
         ],
-        index: 742,
     },
     {
         name: 'cookie',
@@ -9703,7 +8960,6 @@ const emojis = [
             'dessert',
             'sweet',
         ],
-        index: 743,
     },
     {
         name: 'birthday',
@@ -9717,7 +8973,6 @@ const emojis = [
             'pastry',
             'sweet',
         ],
-        index: 744,
     },
     {
         name: 'cake',
@@ -9730,7 +8985,6 @@ const emojis = [
             'slice',
             'sweet',
         ],
-        index: 745,
     },
     {
         name: 'cupcake',
@@ -9738,7 +8992,6 @@ const emojis = [
         keywords: [
             'cupcake',
         ],
-        index: 746,
     },
     {
         name: 'pie',
@@ -9746,7 +8999,6 @@ const emojis = [
         keywords: [
             'pie',
         ],
-        index: 747,
     },
     {
         name: 'chocolate_bar',
@@ -9758,7 +9010,6 @@ const emojis = [
             'dessert',
             'sweet',
         ],
-        index: 748,
     },
     {
         name: 'candy',
@@ -9768,7 +9019,6 @@ const emojis = [
             'candy',
             'dessert',
         ],
-        index: 749,
     },
     {
         name: 'lollipop',
@@ -9779,7 +9029,6 @@ const emojis = [
             'dessert',
             'sweet',
         ],
-        index: 750,
     },
     {
         name: 'custard',
@@ -9790,7 +9039,6 @@ const emojis = [
             'pudding',
             'sweet',
         ],
-        index: 751,
     },
     {
         name: 'honey_pot',
@@ -9802,7 +9050,6 @@ const emojis = [
             'pot',
             'sweet',
         ],
-        index: 752,
     },
     {
         name: 'baby_bottle',
@@ -9814,7 +9061,6 @@ const emojis = [
             'bottle',
             'drink',
         ],
-        index: 753,
     },
     {
         name: 'milk_glass',
@@ -9825,7 +9071,6 @@ const emojis = [
             'glass',
             'milk',
         ],
-        index: 754,
     },
     {
         name: 'coffee',
@@ -9840,7 +9085,6 @@ const emojis = [
             'steaming',
             'tea',
         ],
-        index: 755,
     },
     {
         name: 'teapot',
@@ -9848,7 +9092,6 @@ const emojis = [
         keywords: [
             'teapot',
         ],
-        index: 756,
     },
     {
         name: 'tea',
@@ -9862,7 +9105,6 @@ const emojis = [
             'drink',
             'teacup',
         ],
-        index: 757,
     },
     {
         name: 'sake',
@@ -9875,7 +9117,6 @@ const emojis = [
             'cup',
             'drink',
         ],
-        index: 758,
     },
     {
         name: 'champagne',
@@ -9890,7 +9131,6 @@ const emojis = [
             'drink',
             'popping',
         ],
-        index: 759,
     },
     {
         name: 'wine_glass',
@@ -9903,7 +9143,6 @@ const emojis = [
             'glass',
             'wine',
         ],
-        index: 760,
     },
     {
         name: 'cocktail',
@@ -9914,7 +9153,6 @@ const emojis = [
             'bar',
             'glass',
         ],
-        index: 761,
     },
     {
         name: 'tropical_drink',
@@ -9927,7 +9165,6 @@ const emojis = [
             'drink',
             'tropical',
         ],
-        index: 762,
     },
     {
         name: 'beer',
@@ -9938,7 +9175,6 @@ const emojis = [
             'bar',
             'mug',
         ],
-        index: 763,
     },
     {
         name: 'beers',
@@ -9952,7 +9188,6 @@ const emojis = [
             'drink',
             'mug',
         ],
-        index: 764,
     },
     {
         name: 'clinking_glasses',
@@ -9966,7 +9201,6 @@ const emojis = [
             'drink',
             'glass',
         ],
-        index: 765,
     },
     {
         name: 'tumbler_glass',
@@ -9979,7 +9213,6 @@ const emojis = [
             'shot',
             'tumbler',
         ],
-        index: 766,
     },
     {
         name: 'cup_with_straw',
@@ -9987,7 +9220,6 @@ const emojis = [
         keywords: [
             'cup_with_straw',
         ],
-        index: 767,
     },
     {
         name: 'bubble_tea',
@@ -9995,7 +9227,6 @@ const emojis = [
         keywords: [
             'bubble_tea',
         ],
-        index: 768,
     },
     {
         name: 'beverage_box',
@@ -10003,7 +9234,6 @@ const emojis = [
         keywords: [
             'beverage_box',
         ],
-        index: 769,
     },
     {
         name: 'mate',
@@ -10011,7 +9241,6 @@ const emojis = [
         keywords: [
             'mate',
         ],
-        index: 770,
     },
     {
         name: 'ice_cube',
@@ -10019,7 +9248,6 @@ const emojis = [
         keywords: [
             'ice_cube',
         ],
-        index: 771,
     },
     {
         name: 'chopsticks',
@@ -10027,7 +9255,6 @@ const emojis = [
         keywords: [
             'chopsticks',
         ],
-        index: 772,
     },
     {
         name: 'plate_with_cutlery',
@@ -10037,7 +9264,6 @@ const emojis = [
             'dinner',
             'plate_with_cutlery',
         ],
-        index: 773,
     },
     {
         name: 'fork_and_knife',
@@ -10049,7 +9275,6 @@ const emojis = [
             'fork',
             'knife',
         ],
-        index: 774,
     },
     {
         name: 'spoon',
@@ -10058,7 +9283,6 @@ const emojis = [
             'spoon',
             'tableware',
         ],
-        index: 775,
     },
     {
         name: 'hocho',
@@ -10072,7 +9296,6 @@ const emojis = [
             'tool',
             'weapon',
         ],
-        index: 776,
     },
     {
         name: 'amphora',
@@ -10087,12 +9310,10 @@ const emojis = [
             'weapon',
             'zodiac',
         ],
-        index: 777,
     },
     {
         code: 'travelAndPlaces',
         header: true,
-        index: 778,
     },
     {
         name: 'earth_africa',
@@ -10106,7 +9327,6 @@ const emojis = [
             'earth',
             'europe',
         ],
-        index: 779,
     },
     {
         name: 'earth_americas',
@@ -10119,7 +9339,6 @@ const emojis = [
             'americas',
             'earth',
         ],
-        index: 780,
     },
     {
         name: 'earth_asia',
@@ -10133,7 +9352,6 @@ const emojis = [
             'australia',
             'earth',
         ],
-        index: 781,
     },
     {
         name: 'globe_with_meridians',
@@ -10147,7 +9365,6 @@ const emojis = [
             'globe',
             'meridians',
         ],
-        index: 782,
     },
     {
         name: 'world_map',
@@ -10156,7 +9373,6 @@ const emojis = [
             'travel',
             'world_map',
         ],
-        index: 783,
     },
     {
         name: 'japan',
@@ -10165,7 +9381,6 @@ const emojis = [
             'japan',
             'map',
         ],
-        index: 784,
     },
     {
         name: 'compass',
@@ -10173,7 +9388,6 @@ const emojis = [
         keywords: [
             'compass',
         ],
-        index: 785,
     },
     {
         name: 'mountain_snow',
@@ -10181,7 +9395,6 @@ const emojis = [
         keywords: [
             'mountain_snow',
         ],
-        index: 786,
     },
     {
         name: 'mountain',
@@ -10189,7 +9402,6 @@ const emojis = [
         keywords: [
             'mountain',
         ],
-        index: 787,
     },
     {
         name: 'volcano',
@@ -10200,7 +9412,6 @@ const emojis = [
             'mountain',
             'weather',
         ],
-        index: 788,
     },
     {
         name: 'mount_fuji',
@@ -10210,7 +9421,6 @@ const emojis = [
             'fuji',
             'mountain',
         ],
-        index: 789,
     },
     {
         name: 'camping',
@@ -10218,7 +9428,6 @@ const emojis = [
         keywords: [
             'camping',
         ],
-        index: 790,
     },
     {
         name: 'beach_umbrella',
@@ -10226,7 +9435,6 @@ const emojis = [
         keywords: [
             'beach_umbrella',
         ],
-        index: 791,
     },
     {
         name: 'desert',
@@ -10234,7 +9442,6 @@ const emojis = [
         keywords: [
             'desert',
         ],
-        index: 792,
     },
     {
         name: 'desert_island',
@@ -10242,7 +9449,6 @@ const emojis = [
         keywords: [
             'desert_island',
         ],
-        index: 793,
     },
     {
         name: 'national_park',
@@ -10250,7 +9456,6 @@ const emojis = [
         keywords: [
             'national_park',
         ],
-        index: 794,
     },
     {
         name: 'stadium',
@@ -10258,7 +9463,6 @@ const emojis = [
         keywords: [
             'stadium',
         ],
-        index: 795,
     },
     {
         name: 'classical_building',
@@ -10266,7 +9470,6 @@ const emojis = [
         keywords: [
             'classical_building',
         ],
-        index: 796,
     },
     {
         name: 'building_construction',
@@ -10274,7 +9477,6 @@ const emojis = [
         keywords: [
             'building_construction',
         ],
-        index: 797,
     },
     {
         name: 'bricks',
@@ -10282,7 +9484,6 @@ const emojis = [
         keywords: [
             'bricks',
         ],
-        index: 798,
     },
     {
         name: 'rock',
@@ -10290,7 +9491,6 @@ const emojis = [
         keywords: [
             'rock',
         ],
-        index: 799,
     },
     {
         name: 'wood',
@@ -10298,7 +9498,6 @@ const emojis = [
         keywords: [
             'wood',
         ],
-        index: 800,
     },
     {
         name: 'hut',
@@ -10306,7 +9505,6 @@ const emojis = [
         keywords: [
             'hut',
         ],
-        index: 801,
     },
     {
         name: 'houses',
@@ -10314,7 +9512,6 @@ const emojis = [
         keywords: [
             'houses',
         ],
-        index: 802,
     },
     {
         name: 'derelict_house',
@@ -10322,7 +9519,6 @@ const emojis = [
         keywords: [
             'derelict_house',
         ],
-        index: 803,
     },
     {
         name: 'house',
@@ -10332,7 +9528,6 @@ const emojis = [
             'building',
             'home',
         ],
-        index: 804,
     },
     {
         name: 'house_with_garden',
@@ -10344,7 +9539,6 @@ const emojis = [
             'home',
             'house',
         ],
-        index: 805,
     },
     {
         name: 'office',
@@ -10353,7 +9547,6 @@ const emojis = [
             'office',
             'building',
         ],
-        index: 806,
     },
     {
         name: 'post_office',
@@ -10364,7 +9557,6 @@ const emojis = [
             'japanese',
             'post',
         ],
-        index: 807,
     },
     {
         name: 'european_post_office',
@@ -10375,7 +9567,6 @@ const emojis = [
             'european',
             'post',
         ],
-        index: 808,
     },
     {
         name: 'hospital',
@@ -10386,7 +9577,6 @@ const emojis = [
             'doctor',
             'medicine',
         ],
-        index: 809,
     },
     {
         name: 'bank',
@@ -10395,7 +9585,6 @@ const emojis = [
             'bank',
             'building',
         ],
-        index: 810,
     },
     {
         name: 'hotel',
@@ -10404,7 +9593,6 @@ const emojis = [
             'hotel',
             'building',
         ],
-        index: 811,
     },
     {
         name: 'love_hotel',
@@ -10415,7 +9603,6 @@ const emojis = [
             'hotel',
             'love',
         ],
-        index: 812,
     },
     {
         name: 'convenience_store',
@@ -10426,7 +9613,6 @@ const emojis = [
             'convenience',
             'store',
         ],
-        index: 813,
     },
     {
         name: 'school',
@@ -10435,7 +9621,6 @@ const emojis = [
             'school',
             'building',
         ],
-        index: 814,
     },
     {
         name: 'department_store',
@@ -10446,7 +9631,6 @@ const emojis = [
             'department',
             'store',
         ],
-        index: 815,
     },
     {
         name: 'factory',
@@ -10455,7 +9639,6 @@ const emojis = [
             'factory',
             'building',
         ],
-        index: 816,
     },
     {
         name: 'japanese_castle',
@@ -10466,7 +9649,6 @@ const emojis = [
             'castle',
             'japanese',
         ],
-        index: 817,
     },
     {
         name: 'european_castle',
@@ -10477,7 +9659,6 @@ const emojis = [
             'castle',
             'european',
         ],
-        index: 818,
     },
     {
         name: 'wedding',
@@ -10489,7 +9670,6 @@ const emojis = [
             'chapel',
             'romance',
         ],
-        index: 819,
     },
     {
         name: 'tokyo_tower',
@@ -10499,7 +9679,6 @@ const emojis = [
             'tokyo',
             'tower',
         ],
-        index: 820,
     },
     {
         name: 'statue_of_liberty',
@@ -10509,7 +9688,6 @@ const emojis = [
             'liberty',
             'statue',
         ],
-        index: 821,
     },
     {
         name: 'church',
@@ -10521,7 +9699,6 @@ const emojis = [
             'cross',
             'religion',
         ],
-        index: 822,
     },
     {
         name: 'mosque',
@@ -10532,7 +9709,6 @@ const emojis = [
             'muslim',
             'religion',
         ],
-        index: 823,
     },
     {
         name: 'hindu_temple',
@@ -10540,7 +9716,6 @@ const emojis = [
         keywords: [
             'hindu_temple',
         ],
-        index: 824,
     },
     {
         name: 'synagogue',
@@ -10552,7 +9727,6 @@ const emojis = [
             'religion',
             'temple',
         ],
-        index: 825,
     },
     {
         name: 'shinto_shrine',
@@ -10560,7 +9734,6 @@ const emojis = [
         keywords: [
             'shinto_shrine',
         ],
-        index: 826,
     },
     {
         name: 'kaaba',
@@ -10571,7 +9744,6 @@ const emojis = [
             'muslim',
             'religion',
         ],
-        index: 827,
     },
     {
         name: 'fountain',
@@ -10579,7 +9751,6 @@ const emojis = [
         keywords: [
             'fountain',
         ],
-        index: 828,
     },
     {
         name: 'tent',
@@ -10588,7 +9759,6 @@ const emojis = [
             'camping',
             'tent',
         ],
-        index: 829,
     },
     {
         name: 'foggy',
@@ -10599,7 +9769,6 @@ const emojis = [
             'fog',
             'weather',
         ],
-        index: 830,
     },
     {
         name: 'night_with_stars',
@@ -10610,7 +9779,6 @@ const emojis = [
             'star',
             'weather',
         ],
-        index: 831,
     },
     {
         name: 'cityscape',
@@ -10619,7 +9787,6 @@ const emojis = [
             'skyline',
             'cityscape',
         ],
-        index: 832,
     },
     {
         name: 'sunrise_over_mountains',
@@ -10632,7 +9799,6 @@ const emojis = [
             'sunrise',
             'weather',
         ],
-        index: 833,
     },
     {
         name: 'sunrise',
@@ -10643,7 +9809,6 @@ const emojis = [
             'sun',
             'weather',
         ],
-        index: 834,
     },
     {
         name: 'city_sunset',
@@ -10659,7 +9824,6 @@ const emojis = [
             'sunset',
             'weather',
         ],
-        index: 835,
     },
     {
         name: 'city_sunrise',
@@ -10672,7 +9836,6 @@ const emojis = [
             'sunset',
             'weather',
         ],
-        index: 836,
     },
     {
         name: 'bridge_at_night',
@@ -10683,7 +9846,6 @@ const emojis = [
             'night',
             'weather',
         ],
-        index: 837,
     },
     {
         name: 'hotsprings',
@@ -10694,7 +9856,6 @@ const emojis = [
             'springs',
             'steaming',
         ],
-        index: 838,
     },
     {
         name: 'carousel_horse',
@@ -10706,7 +9867,6 @@ const emojis = [
             'entertainment',
             'horse',
         ],
-        index: 839,
     },
     {
         name: 'ferris_wheel',
@@ -10719,7 +9879,6 @@ const emojis = [
             'ferris',
             'wheel',
         ],
-        index: 840,
     },
     {
         name: 'roller_coaster',
@@ -10732,7 +9891,6 @@ const emojis = [
             'entertainment',
             'roller',
         ],
-        index: 841,
     },
     {
         name: 'barber',
@@ -10742,7 +9900,6 @@ const emojis = [
             'haircut',
             'pole',
         ],
-        index: 842,
     },
     {
         name: 'circus_tent',
@@ -10754,7 +9911,6 @@ const emojis = [
             'entertainment',
             'tent',
         ],
-        index: 843,
     },
     {
         name: 'steam_locomotive',
@@ -10768,7 +9924,6 @@ const emojis = [
             'steam',
             'vehicle',
         ],
-        index: 844,
     },
     {
         name: 'railway_car',
@@ -10783,7 +9938,6 @@ const emojis = [
             'trolleybus',
             'vehicle',
         ],
-        index: 845,
     },
     {
         name: 'bullettrain_side',
@@ -10796,7 +9950,6 @@ const emojis = [
             'speed',
             'vehicle',
         ],
-        index: 846,
     },
     {
         name: 'bullettrain_front',
@@ -10810,7 +9963,6 @@ const emojis = [
             'speed',
             'vehicle',
         ],
-        index: 847,
     },
     {
         name: 'train2',
@@ -10821,7 +9973,6 @@ const emojis = [
             'train',
             'vehicle',
         ],
-        index: 848,
     },
     {
         name: 'metro',
@@ -10831,7 +9982,6 @@ const emojis = [
             'subway',
             'vehicle',
         ],
-        index: 849,
     },
     {
         name: 'light_rail',
@@ -10841,7 +9991,6 @@ const emojis = [
             'railway',
             'vehicle',
         ],
-        index: 850,
     },
     {
         name: 'station',
@@ -10852,7 +10001,6 @@ const emojis = [
             'train',
             'vehicle',
         ],
-        index: 851,
     },
     {
         name: 'tram',
@@ -10862,7 +10010,6 @@ const emojis = [
             'trolleybus',
             'vehicle',
         ],
-        index: 852,
     },
     {
         name: 'monorail',
@@ -10871,7 +10018,6 @@ const emojis = [
             'monorail',
             'vehicle',
         ],
-        index: 853,
     },
     {
         name: 'mountain_railway',
@@ -10883,7 +10029,6 @@ const emojis = [
             'railway',
             'vehicle',
         ],
-        index: 854,
     },
     {
         name: 'train',
@@ -10895,7 +10040,6 @@ const emojis = [
             'trolleybus',
             'vehicle',
         ],
-        index: 855,
     },
     {
         name: 'bus',
@@ -10904,7 +10048,6 @@ const emojis = [
             'bus',
             'vehicle',
         ],
-        index: 856,
     },
     {
         name: 'oncoming_bus',
@@ -10915,7 +10058,6 @@ const emojis = [
             'oncoming',
             'vehicle',
         ],
-        index: 857,
     },
     {
         name: 'trolleybus',
@@ -10927,7 +10069,6 @@ const emojis = [
             'trolley',
             'vehicle',
         ],
-        index: 858,
     },
     {
         name: 'minibus',
@@ -10937,7 +10078,6 @@ const emojis = [
             'bus',
             'vehicle',
         ],
-        index: 859,
     },
     {
         name: 'ambulance',
@@ -10946,7 +10086,6 @@ const emojis = [
             'ambulance',
             'vehicle',
         ],
-        index: 860,
     },
     {
         name: 'fire_engine',
@@ -10958,7 +10097,6 @@ const emojis = [
             'truck',
             'vehicle',
         ],
-        index: 861,
     },
     {
         name: 'police_car',
@@ -10970,7 +10108,6 @@ const emojis = [
             'police',
             'vehicle',
         ],
-        index: 862,
     },
     {
         name: 'oncoming_police_car',
@@ -10982,7 +10119,6 @@ const emojis = [
             'police',
             'vehicle',
         ],
-        index: 863,
     },
     {
         name: 'taxi',
@@ -10991,7 +10127,6 @@ const emojis = [
             'taxi',
             'vehicle',
         ],
-        index: 864,
     },
     {
         name: 'oncoming_taxi',
@@ -11002,7 +10137,6 @@ const emojis = [
             'taxi',
             'vehicle',
         ],
-        index: 865,
     },
     {
         name: 'car',
@@ -11013,7 +10147,6 @@ const emojis = [
             'automobile',
             'vehicle',
         ],
-        index: 866,
     },
     {
         name: 'oncoming_automobile',
@@ -11025,7 +10158,6 @@ const emojis = [
             'oncoming',
             'vehicle',
         ],
-        index: 867,
     },
     {
         name: 'blue_car',
@@ -11036,7 +10168,6 @@ const emojis = [
             'rv',
             'vehicle',
         ],
-        index: 868,
     },
     {
         name: 'pickup_truck',
@@ -11044,7 +10175,6 @@ const emojis = [
         keywords: [
             'pickup_truck',
         ],
-        index: 869,
     },
     {
         name: 'truck',
@@ -11054,7 +10184,6 @@ const emojis = [
             'delivery',
             'vehicle',
         ],
-        index: 870,
     },
     {
         name: 'articulated_lorry',
@@ -11066,7 +10195,6 @@ const emojis = [
             'truck',
             'vehicle',
         ],
-        index: 871,
     },
     {
         name: 'tractor',
@@ -11075,7 +10203,6 @@ const emojis = [
             'tractor',
             'vehicle',
         ],
-        index: 872,
     },
     {
         name: 'racing_car',
@@ -11083,7 +10210,6 @@ const emojis = [
         keywords: [
             'racing_car',
         ],
-        index: 873,
     },
     {
         name: 'motorcycle',
@@ -11091,7 +10217,6 @@ const emojis = [
         keywords: [
             'motorcycle',
         ],
-        index: 874,
     },
     {
         name: 'motor_scooter',
@@ -11101,7 +10226,6 @@ const emojis = [
             'motor',
             'scooter',
         ],
-        index: 875,
     },
     {
         name: 'manual_wheelchair',
@@ -11109,7 +10233,6 @@ const emojis = [
         keywords: [
             'manual_wheelchair',
         ],
-        index: 876,
     },
     {
         name: 'motorized_wheelchair',
@@ -11117,7 +10240,6 @@ const emojis = [
         keywords: [
             'motorized_wheelchair',
         ],
-        index: 877,
     },
     {
         name: 'auto_rickshaw',
@@ -11125,7 +10247,6 @@ const emojis = [
         keywords: [
             'auto_rickshaw',
         ],
-        index: 878,
     },
     {
         name: 'bike',
@@ -11135,7 +10256,6 @@ const emojis = [
             'bike',
             'vehicle',
         ],
-        index: 879,
     },
     {
         name: 'kick_scooter',
@@ -11145,7 +10265,6 @@ const emojis = [
             'kick',
             'scooter',
         ],
-        index: 880,
     },
     {
         name: 'skateboard',
@@ -11153,7 +10272,6 @@ const emojis = [
         keywords: [
             'skateboard',
         ],
-        index: 881,
     },
     {
         name: 'roller_skate',
@@ -11161,7 +10279,6 @@ const emojis = [
         keywords: [
             'roller_skate',
         ],
-        index: 882,
     },
     {
         name: 'busstop',
@@ -11171,7 +10288,6 @@ const emojis = [
             'bus',
             'stop',
         ],
-        index: 883,
     },
     {
         name: 'motorway',
@@ -11179,7 +10295,6 @@ const emojis = [
         keywords: [
             'motorway',
         ],
-        index: 884,
     },
     {
         name: 'railway_track',
@@ -11187,7 +10302,6 @@ const emojis = [
         keywords: [
             'railway_track',
         ],
-        index: 885,
     },
     {
         name: 'oil_drum',
@@ -11195,7 +10309,6 @@ const emojis = [
         keywords: [
             'oil_drum',
         ],
-        index: 886,
     },
     {
         name: 'fuelpump',
@@ -11207,7 +10320,6 @@ const emojis = [
             'pump',
             'station',
         ],
-        index: 887,
     },
     {
         name: 'rotating_light',
@@ -11223,7 +10335,6 @@ const emojis = [
             'revolving',
             'vehicle',
         ],
-        index: 888,
     },
     {
         name: 'traffic_light',
@@ -11234,7 +10345,6 @@ const emojis = [
             'signal',
             'traffic',
         ],
-        index: 889,
     },
     {
         name: 'vertical_traffic_light',
@@ -11246,7 +10356,6 @@ const emojis = [
             'signal',
             'traffic',
         ],
-        index: 890,
     },
     {
         name: 'stop_sign',
@@ -11256,7 +10365,6 @@ const emojis = [
             'octagonal',
             'stop',
         ],
-        index: 891,
     },
     {
         name: 'construction',
@@ -11266,7 +10374,6 @@ const emojis = [
             'construction',
             'barrier',
         ],
-        index: 892,
     },
     {
         name: 'anchor',
@@ -11276,7 +10383,6 @@ const emojis = [
             'anchor',
             'tool',
         ],
-        index: 893,
     },
     {
         name: 'boat',
@@ -11289,7 +10395,6 @@ const emojis = [
             'vehicle',
             'yacht',
         ],
-        index: 894,
     },
     {
         name: 'canoe',
@@ -11298,7 +10403,6 @@ const emojis = [
             'canoe',
             'boat',
         ],
-        index: 895,
     },
     {
         name: 'speedboat',
@@ -11309,7 +10413,6 @@ const emojis = [
             'boat',
             'vehicle',
         ],
-        index: 896,
     },
     {
         name: 'passenger_ship',
@@ -11318,7 +10421,6 @@ const emojis = [
             'cruise',
             'passenger_ship',
         ],
-        index: 897,
     },
     {
         name: 'ferry',
@@ -11326,7 +10428,6 @@ const emojis = [
         keywords: [
             'ferry',
         ],
-        index: 898,
     },
     {
         name: 'motor_boat',
@@ -11334,7 +10435,6 @@ const emojis = [
         keywords: [
             'motor_boat',
         ],
-        index: 899,
     },
     {
         name: 'ship',
@@ -11343,7 +10443,6 @@ const emojis = [
             'ship',
             'vehicle',
         ],
-        index: 900,
     },
     {
         name: 'airplane',
@@ -11353,7 +10452,6 @@ const emojis = [
             'airplane',
             'vehicle',
         ],
-        index: 901,
     },
     {
         name: 'small_airplane',
@@ -11362,7 +10460,6 @@ const emojis = [
             'flight',
             'small_airplane',
         ],
-        index: 902,
     },
     {
         name: 'flight_departure',
@@ -11375,7 +10472,6 @@ const emojis = [
             'departures',
             'vehicle',
         ],
-        index: 903,
     },
     {
         name: 'flight_arrival',
@@ -11388,7 +10484,6 @@ const emojis = [
             'landing',
             'vehicle',
         ],
-        index: 904,
     },
     {
         name: 'parachute',
@@ -11396,7 +10491,6 @@ const emojis = [
         keywords: [
             'parachute',
         ],
-        index: 905,
     },
     {
         name: 'seat',
@@ -11405,7 +10499,6 @@ const emojis = [
             'seat',
             'chair',
         ],
-        index: 906,
     },
     {
         name: 'helicopter',
@@ -11414,7 +10507,6 @@ const emojis = [
             'helicopter',
             'vehicle',
         ],
-        index: 907,
     },
     {
         name: 'suspension_railway',
@@ -11425,7 +10517,6 @@ const emojis = [
             'suspension',
             'vehicle',
         ],
-        index: 908,
     },
     {
         name: 'mountain_cableway',
@@ -11437,7 +10528,6 @@ const emojis = [
             'mountain',
             'vehicle',
         ],
-        index: 909,
     },
     {
         name: 'aerial_tramway',
@@ -11452,7 +10542,6 @@ const emojis = [
             'tramway',
             'vehicle',
         ],
-        index: 910,
     },
     {
         name: 'artificial_satellite',
@@ -11462,7 +10551,6 @@ const emojis = [
             'space',
             'artificial_satellite',
         ],
-        index: 911,
     },
     {
         name: 'rocket',
@@ -11474,7 +10562,6 @@ const emojis = [
             'space',
             'vehicle',
         ],
-        index: 912,
     },
     {
         name: 'flying_saucer',
@@ -11483,7 +10570,6 @@ const emojis = [
             'ufo',
             'flying_saucer',
         ],
-        index: 913,
     },
     {
         name: 'bellhop_bell',
@@ -11491,7 +10577,6 @@ const emojis = [
         keywords: [
             'bellhop_bell',
         ],
-        index: 914,
     },
     {
         name: 'luggage',
@@ -11499,7 +10584,6 @@ const emojis = [
         keywords: [
             'luggage',
         ],
-        index: 915,
     },
     {
         name: 'hourglass',
@@ -11510,7 +10594,6 @@ const emojis = [
             'sand',
             'timer',
         ],
-        index: 916,
     },
     {
         name: 'hourglass_flowing_sand',
@@ -11522,7 +10605,6 @@ const emojis = [
             'sand',
             'timer',
         ],
-        index: 917,
     },
     {
         name: 'watch',
@@ -11532,7 +10614,6 @@ const emojis = [
             'watch',
             'clock',
         ],
-        index: 918,
     },
     {
         name: 'alarm_clock',
@@ -11543,7 +10624,6 @@ const emojis = [
             'alarm',
             'clock',
         ],
-        index: 919,
     },
     {
         name: 'stopwatch',
@@ -11551,7 +10631,6 @@ const emojis = [
         keywords: [
             'stopwatch',
         ],
-        index: 920,
     },
     {
         name: 'timer_clock',
@@ -11559,7 +10638,6 @@ const emojis = [
         keywords: [
             'timer_clock',
         ],
-        index: 921,
     },
     {
         name: 'mantelpiece_clock',
@@ -11567,7 +10645,6 @@ const emojis = [
         keywords: [
             'mantelpiece_clock',
         ],
-        index: 922,
     },
     {
         name: 'clock12',
@@ -11581,7 +10658,6 @@ const emojis = [
             'o’clock',
             'twelve',
         ],
-        index: 923,
     },
     {
         name: 'clock1230',
@@ -11595,7 +10671,6 @@ const emojis = [
             'thirty',
             'twelve',
         ],
-        index: 924,
     },
     {
         name: 'clock1',
@@ -11609,7 +10684,6 @@ const emojis = [
             'o’clock',
             'one',
         ],
-        index: 925,
     },
     {
         name: 'clock130',
@@ -11623,7 +10697,6 @@ const emojis = [
             'one',
             'thirty',
         ],
-        index: 926,
     },
     {
         name: 'clock2',
@@ -11637,7 +10710,6 @@ const emojis = [
             'o’clock',
             'two',
         ],
-        index: 927,
     },
     {
         name: 'clock230',
@@ -11651,7 +10723,6 @@ const emojis = [
             'thirty',
             'two',
         ],
-        index: 928,
     },
     {
         name: 'clock3',
@@ -11665,7 +10736,6 @@ const emojis = [
             'o’clock',
             'three',
         ],
-        index: 929,
     },
     {
         name: 'clock330',
@@ -11679,7 +10749,6 @@ const emojis = [
             'thirty',
             'three',
         ],
-        index: 930,
     },
     {
         name: 'clock4',
@@ -11693,7 +10762,6 @@ const emojis = [
             'four',
             'o’clock',
         ],
-        index: 931,
     },
     {
         name: 'clock430',
@@ -11707,7 +10775,6 @@ const emojis = [
             'four',
             'thirty',
         ],
-        index: 932,
     },
     {
         name: 'clock5',
@@ -11721,7 +10788,6 @@ const emojis = [
             'five',
             'o’clock',
         ],
-        index: 933,
     },
     {
         name: 'clock530',
@@ -11735,7 +10801,6 @@ const emojis = [
             'five',
             'thirty',
         ],
-        index: 934,
     },
     {
         name: 'clock6',
@@ -11749,7 +10814,6 @@ const emojis = [
             'o’clock',
             'six',
         ],
-        index: 935,
     },
     {
         name: 'clock630',
@@ -11763,7 +10827,6 @@ const emojis = [
             'six',
             'thirty',
         ],
-        index: 936,
     },
     {
         name: 'clock7',
@@ -11777,7 +10840,6 @@ const emojis = [
             'o’clock',
             'seven',
         ],
-        index: 937,
     },
     {
         name: 'clock730',
@@ -11791,7 +10853,6 @@ const emojis = [
             'seven',
             'thirty',
         ],
-        index: 938,
     },
     {
         name: 'clock8',
@@ -11805,7 +10866,6 @@ const emojis = [
             'eight',
             'o’clock',
         ],
-        index: 939,
     },
     {
         name: 'clock830',
@@ -11819,7 +10879,6 @@ const emojis = [
             'eight',
             'thirty',
         ],
-        index: 940,
     },
     {
         name: 'clock9',
@@ -11833,7 +10892,6 @@ const emojis = [
             'nine',
             'o’clock',
         ],
-        index: 941,
     },
     {
         name: 'clock930',
@@ -11847,7 +10905,6 @@ const emojis = [
             'nine',
             'thirty',
         ],
-        index: 942,
     },
     {
         name: 'clock10',
@@ -11861,7 +10918,6 @@ const emojis = [
             'o’clock',
             'ten',
         ],
-        index: 943,
     },
     {
         name: 'clock1030',
@@ -11875,7 +10931,6 @@ const emojis = [
             'ten',
             'thirty',
         ],
-        index: 944,
     },
     {
         name: 'clock11',
@@ -11889,7 +10944,6 @@ const emojis = [
             'eleven',
             'o’clock',
         ],
-        index: 945,
     },
     {
         name: 'clock1130',
@@ -11903,7 +10957,6 @@ const emojis = [
             'eleven',
             'thirty',
         ],
-        index: 946,
     },
     {
         name: 'new_moon',
@@ -11915,7 +10968,6 @@ const emojis = [
             'space',
             'weather',
         ],
-        index: 947,
     },
     {
         name: 'waxing_crescent_moon',
@@ -11928,7 +10980,6 @@ const emojis = [
             'waxing',
             'weather',
         ],
-        index: 948,
     },
     {
         name: 'first_quarter_moon',
@@ -11940,7 +10991,6 @@ const emojis = [
             'space',
             'weather',
         ],
-        index: 949,
     },
     {
         name: 'moon',
@@ -11953,7 +11003,6 @@ const emojis = [
             'waxing',
             'weather',
         ],
-        index: 950,
     },
     {
         name: 'full_moon',
@@ -11965,7 +11014,6 @@ const emojis = [
             'space',
             'weather',
         ],
-        index: 951,
     },
     {
         name: 'waning_gibbous_moon',
@@ -11978,7 +11026,6 @@ const emojis = [
             'waning',
             'weather',
         ],
-        index: 952,
     },
     {
         name: 'last_quarter_moon',
@@ -11990,7 +11037,6 @@ const emojis = [
             'space',
             'weather',
         ],
-        index: 953,
     },
     {
         name: 'waning_crescent_moon',
@@ -12003,7 +11049,6 @@ const emojis = [
             'waning',
             'weather',
         ],
-        index: 954,
     },
     {
         name: 'crescent_moon',
@@ -12016,7 +11061,6 @@ const emojis = [
             'space',
             'weather',
         ],
-        index: 955,
     },
     {
         name: 'new_moon_with_face',
@@ -12028,7 +11072,6 @@ const emojis = [
             'space',
             'weather',
         ],
-        index: 956,
     },
     {
         name: 'first_quarter_moon_with_face',
@@ -12041,7 +11084,6 @@ const emojis = [
             'space',
             'weather',
         ],
-        index: 957,
     },
     {
         name: 'last_quarter_moon_with_face',
@@ -12054,7 +11096,6 @@ const emojis = [
             'space',
             'weather',
         ],
-        index: 958,
     },
     {
         name: 'thermometer',
@@ -12062,7 +11103,6 @@ const emojis = [
         keywords: [
             'thermometer',
         ],
-        index: 959,
     },
     {
         name: 'sunny',
@@ -12075,7 +11115,6 @@ const emojis = [
             'space',
             'sun',
         ],
-        index: 960,
     },
     {
         name: 'full_moon_with_face',
@@ -12089,7 +11128,6 @@ const emojis = [
             'space',
             'weather',
         ],
-        index: 961,
     },
     {
         name: 'sun_with_face',
@@ -12103,7 +11141,6 @@ const emojis = [
             'sun',
             'weather',
         ],
-        index: 962,
     },
     {
         name: 'ringed_planet',
@@ -12111,7 +11148,6 @@ const emojis = [
         keywords: [
             'ringed_planet',
         ],
-        index: 963,
     },
     {
         name: 'star',
@@ -12119,7 +11155,6 @@ const emojis = [
         keywords: [
             'star',
         ],
-        index: 964,
     },
     {
         name: 'star2',
@@ -12132,7 +11167,6 @@ const emojis = [
             'sparkle',
             'star',
         ],
-        index: 965,
     },
     {
         name: 'stars',
@@ -12145,7 +11179,6 @@ const emojis = [
             'space',
             'star',
         ],
-        index: 966,
     },
     {
         name: 'milky_way',
@@ -12156,7 +11189,6 @@ const emojis = [
             'space',
             'weather',
         ],
-        index: 967,
     },
     {
         name: 'cloud',
@@ -12165,7 +11197,6 @@ const emojis = [
             'cloud',
             'weather',
         ],
-        index: 968,
     },
     {
         name: 'partly_sunny',
@@ -12176,7 +11207,6 @@ const emojis = [
             'partly_sunny',
             'sun',
         ],
-        index: 969,
     },
     {
         name: 'cloud_with_lightning_and_rain',
@@ -12184,7 +11214,6 @@ const emojis = [
         keywords: [
             'cloud_with_lightning_and_rain',
         ],
-        index: 970,
     },
     {
         name: 'sun_behind_small_cloud',
@@ -12192,7 +11221,6 @@ const emojis = [
         keywords: [
             'sun_behind_small_cloud',
         ],
-        index: 971,
     },
     {
         name: 'sun_behind_large_cloud',
@@ -12200,7 +11228,6 @@ const emojis = [
         keywords: [
             'sun_behind_large_cloud',
         ],
-        index: 972,
     },
     {
         name: 'sun_behind_rain_cloud',
@@ -12208,7 +11235,6 @@ const emojis = [
         keywords: [
             'sun_behind_rain_cloud',
         ],
-        index: 973,
     },
     {
         name: 'cloud_with_rain',
@@ -12216,7 +11242,6 @@ const emojis = [
         keywords: [
             'cloud_with_rain',
         ],
-        index: 974,
     },
     {
         name: 'cloud_with_snow',
@@ -12224,7 +11249,6 @@ const emojis = [
         keywords: [
             'cloud_with_snow',
         ],
-        index: 975,
     },
     {
         name: 'cloud_with_lightning',
@@ -12232,7 +11256,6 @@ const emojis = [
         keywords: [
             'cloud_with_lightning',
         ],
-        index: 976,
     },
     {
         name: 'tornado',
@@ -12240,7 +11263,6 @@ const emojis = [
         keywords: [
             'tornado',
         ],
-        index: 977,
     },
     {
         name: 'fog',
@@ -12248,7 +11270,6 @@ const emojis = [
         keywords: [
             'fog',
         ],
-        index: 978,
     },
     {
         name: 'wind_face',
@@ -12256,7 +11277,6 @@ const emojis = [
         keywords: [
             'wind_face',
         ],
-        index: 979,
     },
     {
         name: 'cyclone',
@@ -12269,7 +11289,6 @@ const emojis = [
             'typhoon',
             'weather',
         ],
-        index: 980,
     },
     {
         name: 'rainbow',
@@ -12279,7 +11298,6 @@ const emojis = [
             'rain',
             'weather',
         ],
-        index: 981,
     },
     {
         name: 'closed_umbrella',
@@ -12291,7 +11309,6 @@ const emojis = [
             'clothing',
             'umbrella',
         ],
-        index: 982,
     },
     {
         name: 'open_umbrella',
@@ -12303,7 +11320,6 @@ const emojis = [
             'umbrella',
             'weather',
         ],
-        index: 983,
     },
     {
         name: 'umbrella',
@@ -12315,7 +11331,6 @@ const emojis = [
             'clothing',
             'drop',
         ],
-        index: 984,
     },
     {
         name: 'parasol_on_ground',
@@ -12324,7 +11339,6 @@ const emojis = [
             'beach_umbrella',
             'parasol_on_ground',
         ],
-        index: 985,
     },
     {
         name: 'zap',
@@ -12338,7 +11352,6 @@ const emojis = [
             'electricity',
             'voltage',
         ],
-        index: 986,
     },
     {
         name: 'snowflake',
@@ -12350,7 +11363,6 @@ const emojis = [
             'snowflake',
             'snow',
         ],
-        index: 987,
     },
     {
         name: 'snowman_with_snow',
@@ -12364,7 +11376,6 @@ const emojis = [
             'snowman',
             'weather',
         ],
-        index: 988,
     },
     {
         name: 'snowman',
@@ -12376,7 +11387,6 @@ const emojis = [
             'snow',
             'weather',
         ],
-        index: 989,
     },
     {
         name: 'comet',
@@ -12385,7 +11395,6 @@ const emojis = [
             'comet',
             'space',
         ],
-        index: 990,
     },
     {
         name: 'fire',
@@ -12396,7 +11405,6 @@ const emojis = [
             'flame',
             'tool',
         ],
-        index: 991,
     },
     {
         name: 'droplet',
@@ -12410,7 +11418,6 @@ const emojis = [
             'sweat',
             'weather',
         ],
-        index: 992,
     },
     {
         name: 'ocean',
@@ -12422,12 +11429,10 @@ const emojis = [
             'wave',
             'weather',
         ],
-        index: 993,
     },
     {
         code: 'activities',
         header: true,
-        index: 994,
     },
     {
         name: 'jack_o_lantern',
@@ -12441,7 +11446,6 @@ const emojis = [
             'jack',
             'lantern',
         ],
-        index: 995,
     },
     {
         name: 'christmas_tree',
@@ -12454,7 +11458,6 @@ const emojis = [
             'entertainment',
             'tree',
         ],
-        index: 996,
     },
     {
         name: 'fireworks',
@@ -12466,7 +11469,6 @@ const emojis = [
             'activity',
             'entertainment',
         ],
-        index: 997,
     },
     {
         name: 'sparkler',
@@ -12479,7 +11481,6 @@ const emojis = [
             'fireworks',
             'sparkle',
         ],
-        index: 998,
     },
     {
         name: 'firecracker',
@@ -12487,7 +11488,6 @@ const emojis = [
         keywords: [
             'firecracker',
         ],
-        index: 999,
     },
     {
         name: 'sparkles',
@@ -12499,7 +11499,6 @@ const emojis = [
             'sparkle',
             'star',
         ],
-        index: 1000,
     },
     {
         name: 'balloon',
@@ -12512,7 +11511,6 @@ const emojis = [
             'celebration',
             'entertainment',
         ],
-        index: 1001,
     },
     {
         name: 'tada',
@@ -12526,7 +11524,6 @@ const emojis = [
             'entertainment',
             'popper',
         ],
-        index: 1002,
     },
     {
         name: 'confetti_ball',
@@ -12539,7 +11536,6 @@ const emojis = [
             'confetti',
             'entertainment',
         ],
-        index: 1003,
     },
     {
         name: 'tanabata_tree',
@@ -12553,7 +11549,6 @@ const emojis = [
             'japanese',
             'tree',
         ],
-        index: 1004,
     },
     {
         name: 'bamboo',
@@ -12566,7 +11561,6 @@ const emojis = [
             'pine',
             'plant',
         ],
-        index: 1005,
     },
     {
         name: 'dolls',
@@ -12580,7 +11574,6 @@ const emojis = [
             'festival',
             'japanese',
         ],
-        index: 1006,
     },
     {
         name: 'flags',
@@ -12594,7 +11587,6 @@ const emojis = [
             'flag',
             'streamer',
         ],
-        index: 1007,
     },
     {
         name: 'wind_chime',
@@ -12608,7 +11600,6 @@ const emojis = [
             'entertainment',
             'wind',
         ],
-        index: 1008,
     },
     {
         name: 'rice_scene',
@@ -12621,7 +11612,6 @@ const emojis = [
             'entertainment',
             'moon',
         ],
-        index: 1009,
     },
     {
         name: 'red_envelope',
@@ -12629,7 +11619,6 @@ const emojis = [
         keywords: [
             'red_envelope',
         ],
-        index: 1010,
     },
     {
         name: 'ribbon',
@@ -12638,7 +11627,6 @@ const emojis = [
             'ribbon',
             'celebration',
         ],
-        index: 1011,
     },
     {
         name: 'gift',
@@ -12653,7 +11641,6 @@ const emojis = [
             'entertainment',
             'wrapped',
         ],
-        index: 1012,
     },
     {
         name: 'reminder_ribbon',
@@ -12661,7 +11648,6 @@ const emojis = [
         keywords: [
             'reminder_ribbon',
         ],
-        index: 1013,
     },
     {
         name: 'tickets',
@@ -12669,7 +11655,6 @@ const emojis = [
         keywords: [
             'tickets',
         ],
-        index: 1014,
     },
     {
         name: 'ticket',
@@ -12680,7 +11665,6 @@ const emojis = [
             'admission',
             'entertainment',
         ],
-        index: 1015,
     },
     {
         name: 'medal_military',
@@ -12688,7 +11672,6 @@ const emojis = [
         keywords: [
             'medal_military',
         ],
-        index: 1016,
     },
     {
         name: 'trophy',
@@ -12700,7 +11683,6 @@ const emojis = [
             'trophy',
             'prize',
         ],
-        index: 1017,
     },
     {
         name: 'medal_sports',
@@ -12711,7 +11693,6 @@ const emojis = [
             'medal_sports',
             'medal',
         ],
-        index: 1018,
     },
     {
         name: '1st_place_medal',
@@ -12722,7 +11703,6 @@ const emojis = [
             'first',
             'medal',
         ],
-        index: 1019,
     },
     {
         name: '2nd_place_medal',
@@ -12733,7 +11713,6 @@ const emojis = [
             'medal',
             'second',
         ],
-        index: 1020,
     },
     {
         name: '3rd_place_medal',
@@ -12744,7 +11723,6 @@ const emojis = [
             'medal',
             'third',
         ],
-        index: 1021,
     },
     {
         name: 'soccer',
@@ -12754,7 +11732,6 @@ const emojis = [
             'soccer',
             'ball',
         ],
-        index: 1022,
     },
     {
         name: 'baseball',
@@ -12764,7 +11741,6 @@ const emojis = [
             'baseball',
             'ball',
         ],
-        index: 1023,
     },
     {
         name: 'softball',
@@ -12772,7 +11748,6 @@ const emojis = [
         keywords: [
             'softball',
         ],
-        index: 1024,
     },
     {
         name: 'basketball',
@@ -12783,7 +11758,6 @@ const emojis = [
             'ball',
             'hoop',
         ],
-        index: 1025,
     },
     {
         name: 'volleyball',
@@ -12793,7 +11767,6 @@ const emojis = [
             'ball',
             'game',
         ],
-        index: 1026,
     },
     {
         name: 'football',
@@ -12804,7 +11777,6 @@ const emojis = [
             'american',
             'ball',
         ],
-        index: 1027,
     },
     {
         name: 'rugby_football',
@@ -12815,7 +11787,6 @@ const emojis = [
             'football',
             'rugby',
         ],
-        index: 1028,
     },
     {
         name: 'tennis',
@@ -12826,7 +11797,6 @@ const emojis = [
             'ball',
             'racquet',
         ],
-        index: 1029,
     },
     {
         name: 'flying_disc',
@@ -12834,7 +11804,6 @@ const emojis = [
         keywords: [
             'flying_disc',
         ],
-        index: 1030,
     },
     {
         name: 'bowling',
@@ -12844,7 +11813,6 @@ const emojis = [
             'ball',
             'game',
         ],
-        index: 1031,
     },
     {
         name: 'cricket_game',
@@ -12856,7 +11824,6 @@ const emojis = [
             'cricket',
             'game',
         ],
-        index: 1032,
     },
     {
         name: 'field_hockey',
@@ -12869,7 +11836,6 @@ const emojis = [
             'hockey',
             'stick',
         ],
-        index: 1033,
     },
     {
         name: 'ice_hockey',
@@ -12882,7 +11848,6 @@ const emojis = [
             'puck',
             'stick',
         ],
-        index: 1034,
     },
     {
         name: 'lacrosse',
@@ -12890,7 +11855,6 @@ const emojis = [
         keywords: [
             'lacrosse',
         ],
-        index: 1035,
     },
     {
         name: 'ping_pong',
@@ -12903,7 +11867,6 @@ const emojis = [
             'paddle',
             'table tennis',
         ],
-        index: 1036,
     },
     {
         name: 'badminton',
@@ -12915,7 +11878,6 @@ const emojis = [
             'racquet',
             'shuttlecock',
         ],
-        index: 1037,
     },
     {
         name: 'boxing_glove',
@@ -12925,7 +11887,6 @@ const emojis = [
             'boxing',
             'glove',
         ],
-        index: 1038,
     },
     {
         name: 'martial_arts_uniform',
@@ -12938,7 +11899,6 @@ const emojis = [
             'taekwondo',
             'uniform',
         ],
-        index: 1039,
     },
     {
         name: 'goal_net',
@@ -12948,7 +11908,6 @@ const emojis = [
             'goal',
             'net',
         ],
-        index: 1040,
     },
     {
         name: 'golf',
@@ -12958,7 +11917,6 @@ const emojis = [
             'flag',
             'hole',
         ],
-        index: 1041,
     },
     {
         name: 'ice_skate',
@@ -12967,7 +11925,6 @@ const emojis = [
             'skating',
             'ice_skate',
         ],
-        index: 1042,
     },
     {
         name: 'fishing_pole_and_fish',
@@ -12978,7 +11935,6 @@ const emojis = [
             'fish',
             'pole',
         ],
-        index: 1043,
     },
     {
         name: 'diving_mask',
@@ -12986,7 +11942,6 @@ const emojis = [
         keywords: [
             'diving_mask',
         ],
-        index: 1044,
     },
     {
         name: 'running_shirt_with_sash',
@@ -12998,7 +11953,6 @@ const emojis = [
             'sash',
             'shirt',
         ],
-        index: 1045,
     },
     {
         name: 'ski',
@@ -13007,7 +11961,6 @@ const emojis = [
             'ski',
             'snow',
         ],
-        index: 1046,
     },
     {
         name: 'sled',
@@ -13015,7 +11968,6 @@ const emojis = [
         keywords: [
             'sled',
         ],
-        index: 1047,
     },
     {
         name: 'curling_stone',
@@ -13023,7 +11975,6 @@ const emojis = [
         keywords: [
             'curling_stone',
         ],
-        index: 1048,
     },
     {
         name: 'dart',
@@ -13039,7 +11990,6 @@ const emojis = [
             'game',
             'hit',
         ],
-        index: 1049,
     },
     {
         name: 'yo_yo',
@@ -13047,7 +11997,6 @@ const emojis = [
         keywords: [
             'yo_yo',
         ],
-        index: 1050,
     },
     {
         name: 'kite',
@@ -13055,7 +12004,6 @@ const emojis = [
         keywords: [
             'kite',
         ],
-        index: 1051,
     },
     {
         name: '8ball',
@@ -13071,7 +12019,6 @@ const emojis = [
             'eight',
             'game',
         ],
-        index: 1052,
     },
     {
         name: 'crystal_ball',
@@ -13085,7 +12032,6 @@ const emojis = [
             'fantasy',
             'tool',
         ],
-        index: 1053,
     },
     {
         name: 'magic_wand',
@@ -13093,7 +12039,6 @@ const emojis = [
         keywords: [
             'magic_wand',
         ],
-        index: 1054,
     },
     {
         name: 'nazar_amulet',
@@ -13101,7 +12046,6 @@ const emojis = [
         keywords: [
             'nazar_amulet',
         ],
-        index: 1055,
     },
     {
         name: 'video_game',
@@ -13115,7 +12059,6 @@ const emojis = [
             'game',
             'video game',
         ],
-        index: 1056,
     },
     {
         name: 'joystick',
@@ -13123,7 +12066,6 @@ const emojis = [
         keywords: [
             'joystick',
         ],
-        index: 1057,
     },
     {
         name: 'slot_machine',
@@ -13134,7 +12076,6 @@ const emojis = [
             'game',
             'slot',
         ],
-        index: 1058,
     },
     {
         name: 'game_die',
@@ -13147,7 +12088,6 @@ const emojis = [
             'entertainment',
             'game',
         ],
-        index: 1059,
     },
     {
         name: 'jigsaw',
@@ -13155,7 +12095,6 @@ const emojis = [
         keywords: [
             'jigsaw',
         ],
-        index: 1060,
     },
     {
         name: 'teddy_bear',
@@ -13163,7 +12102,6 @@ const emojis = [
         keywords: [
             'teddy_bear',
         ],
-        index: 1061,
     },
     {
         name: 'pinata',
@@ -13171,7 +12109,6 @@ const emojis = [
         keywords: [
             'pinata',
         ],
-        index: 1062,
     },
     {
         name: 'nesting_dolls',
@@ -13179,7 +12116,6 @@ const emojis = [
         keywords: [
             'nesting_dolls',
         ],
-        index: 1063,
     },
     {
         name: 'spades',
@@ -13191,7 +12127,6 @@ const emojis = [
             'spade',
             'suit',
         ],
-        index: 1064,
     },
     {
         name: 'hearts',
@@ -13203,7 +12138,6 @@ const emojis = [
             'heart',
             'suit',
         ],
-        index: 1065,
     },
     {
         name: 'diamonds',
@@ -13215,7 +12149,6 @@ const emojis = [
             'game',
             'suit',
         ],
-        index: 1066,
     },
     {
         name: 'clubs',
@@ -13227,7 +12160,6 @@ const emojis = [
             'game',
             'suit',
         ],
-        index: 1067,
     },
     {
         name: 'chess_pawn',
@@ -13235,7 +12167,6 @@ const emojis = [
         keywords: [
             'chess_pawn',
         ],
-        index: 1068,
     },
     {
         name: 'black_joker',
@@ -13248,7 +12179,6 @@ const emojis = [
             'joker',
             'playing',
         ],
-        index: 1069,
     },
     {
         name: 'mahjong',
@@ -13258,7 +12188,6 @@ const emojis = [
             'game',
             'red',
         ],
-        index: 1070,
     },
     {
         name: 'flower_playing_cards',
@@ -13273,7 +12202,6 @@ const emojis = [
             'japanese',
             'playing',
         ],
-        index: 1071,
     },
     {
         name: 'performing_arts',
@@ -13289,7 +12217,6 @@ const emojis = [
             'performing',
             'theatre',
         ],
-        index: 1072,
     },
     {
         name: 'framed_picture',
@@ -13297,7 +12224,6 @@ const emojis = [
         keywords: [
             'framed_picture',
         ],
-        index: 1073,
     },
     {
         name: 'art',
@@ -13312,7 +12238,6 @@ const emojis = [
             'painting',
             'palette',
         ],
-        index: 1074,
     },
     {
         name: 'thread',
@@ -13320,7 +12245,6 @@ const emojis = [
         keywords: [
             'thread',
         ],
-        index: 1075,
     },
     {
         name: 'sewing_needle',
@@ -13328,7 +12252,6 @@ const emojis = [
         keywords: [
             'sewing_needle',
         ],
-        index: 1076,
     },
     {
         name: 'yarn',
@@ -13336,7 +12259,6 @@ const emojis = [
         keywords: [
             'yarn',
         ],
-        index: 1077,
     },
     {
         name: 'knot',
@@ -13344,12 +12266,10 @@ const emojis = [
         keywords: [
             'knot',
         ],
-        index: 1078,
     },
     {
         code: 'objects',
         header: true,
-        index: 1079,
     },
     {
         name: 'eyeglasses',
@@ -13361,7 +12281,6 @@ const emojis = [
             'eye',
             'eyewear',
         ],
-        index: 1080,
     },
     {
         name: 'dark_sunglasses',
@@ -13369,7 +12288,6 @@ const emojis = [
         keywords: [
             'dark_sunglasses',
         ],
-        index: 1081,
     },
     {
         name: 'goggles',
@@ -13377,7 +12295,6 @@ const emojis = [
         keywords: [
             'goggles',
         ],
-        index: 1082,
     },
     {
         name: 'lab_coat',
@@ -13385,7 +12302,6 @@ const emojis = [
         keywords: [
             'lab_coat',
         ],
-        index: 1083,
     },
     {
         name: 'safety_vest',
@@ -13393,7 +12309,6 @@ const emojis = [
         keywords: [
             'safety_vest',
         ],
-        index: 1084,
     },
     {
         name: 'necktie',
@@ -13404,7 +12319,6 @@ const emojis = [
             'necktie',
             'clothing',
         ],
-        index: 1085,
     },
     {
         name: 'shirt',
@@ -13414,7 +12328,6 @@ const emojis = [
             'tshirt',
             'clothing',
         ],
-        index: 1086,
     },
     {
         name: 'jeans',
@@ -13425,7 +12338,6 @@ const emojis = [
             'clothing',
             'trousers',
         ],
-        index: 1087,
     },
     {
         name: 'scarf',
@@ -13433,7 +12345,6 @@ const emojis = [
         keywords: [
             'scarf',
         ],
-        index: 1088,
     },
     {
         name: 'gloves',
@@ -13441,7 +12352,6 @@ const emojis = [
         keywords: [
             'gloves',
         ],
-        index: 1089,
     },
     {
         name: 'coat',
@@ -13449,7 +12359,6 @@ const emojis = [
         keywords: [
             'coat',
         ],
-        index: 1090,
     },
     {
         name: 'socks',
@@ -13457,7 +12366,6 @@ const emojis = [
         keywords: [
             'socks',
         ],
-        index: 1091,
     },
     {
         name: 'dress',
@@ -13466,7 +12374,6 @@ const emojis = [
             'dress',
             'clothing',
         ],
-        index: 1092,
     },
     {
         name: 'kimono',
@@ -13475,7 +12382,6 @@ const emojis = [
             'kimono',
             'clothing',
         ],
-        index: 1093,
     },
     {
         name: 'sari',
@@ -13483,7 +12389,6 @@ const emojis = [
         keywords: [
             'sari',
         ],
-        index: 1094,
     },
     {
         name: 'one_piece_swimsuit',
@@ -13491,7 +12396,6 @@ const emojis = [
         keywords: [
             'one_piece_swimsuit',
         ],
-        index: 1095,
     },
     {
         name: 'swim_brief',
@@ -13499,7 +12403,6 @@ const emojis = [
         keywords: [
             'swim_brief',
         ],
-        index: 1096,
     },
     {
         name: 'shorts',
@@ -13507,7 +12410,6 @@ const emojis = [
         keywords: [
             'shorts',
         ],
-        index: 1097,
     },
     {
         name: 'bikini',
@@ -13518,7 +12420,6 @@ const emojis = [
             'clothing',
             'swim',
         ],
-        index: 1098,
     },
     {
         name: 'womans_clothes',
@@ -13528,7 +12429,6 @@ const emojis = [
             'clothing',
             'woman',
         ],
-        index: 1099,
     },
     {
         name: 'purse',
@@ -13538,7 +12438,6 @@ const emojis = [
             'clothing',
             'coin',
         ],
-        index: 1100,
     },
     {
         name: 'handbag',
@@ -13548,7 +12447,6 @@ const emojis = [
             'handbag',
             'clothing',
         ],
-        index: 1101,
     },
     {
         name: 'pouch',
@@ -13558,7 +12456,6 @@ const emojis = [
             'pouch',
             'clothing',
         ],
-        index: 1102,
     },
     {
         name: 'shopping',
@@ -13567,7 +12464,6 @@ const emojis = [
             'bags',
             'shopping',
         ],
-        index: 1103,
     },
     {
         name: 'school_satchel',
@@ -13579,7 +12475,6 @@ const emojis = [
             'satchel',
             'school',
         ],
-        index: 1104,
     },
     {
         name: 'thong_sandal',
@@ -13587,7 +12482,6 @@ const emojis = [
         keywords: [
             'thong_sandal',
         ],
-        index: 1105,
     },
     {
         name: 'mans_shoe',
@@ -13598,7 +12492,6 @@ const emojis = [
             'clothing',
             'man',
         ],
-        index: 1106,
     },
     {
         name: 'athletic_shoe',
@@ -13612,7 +12505,6 @@ const emojis = [
             'clothing',
             'shoe',
         ],
-        index: 1107,
     },
     {
         name: 'hiking_boot',
@@ -13620,7 +12512,6 @@ const emojis = [
         keywords: [
             'hiking_boot',
         ],
-        index: 1108,
     },
     {
         name: 'flat_shoe',
@@ -13628,7 +12519,6 @@ const emojis = [
         keywords: [
             'flat_shoe',
         ],
-        index: 1109,
     },
     {
         name: 'high_heel',
@@ -13640,7 +12530,6 @@ const emojis = [
             'heel',
             'woman',
         ],
-        index: 1110,
     },
     {
         name: 'sandal',
@@ -13651,7 +12540,6 @@ const emojis = [
             'clothing',
             'woman',
         ],
-        index: 1111,
     },
     {
         name: 'ballet_shoes',
@@ -13659,7 +12547,6 @@ const emojis = [
         keywords: [
             'ballet_shoes',
         ],
-        index: 1112,
     },
     {
         name: 'boot',
@@ -13670,7 +12557,6 @@ const emojis = [
             'shoe',
             'woman',
         ],
-        index: 1113,
     },
     {
         name: 'crown',
@@ -13682,7 +12568,6 @@ const emojis = [
             'crown',
             'clothing',
         ],
-        index: 1114,
     },
     {
         name: 'womans_hat',
@@ -13693,7 +12578,6 @@ const emojis = [
             'hat',
             'woman',
         ],
-        index: 1115,
     },
     {
         name: 'tophat',
@@ -13707,7 +12591,6 @@ const emojis = [
             'entertainment',
             'top',
         ],
-        index: 1116,
     },
     {
         name: 'mortar_board',
@@ -13724,7 +12607,6 @@ const emojis = [
             'clothing',
             'hat',
         ],
-        index: 1117,
     },
     {
         name: 'billed_cap',
@@ -13732,7 +12614,6 @@ const emojis = [
         keywords: [
             'billed_cap',
         ],
-        index: 1118,
     },
     {
         name: 'military_helmet',
@@ -13740,7 +12621,6 @@ const emojis = [
         keywords: [
             'military_helmet',
         ],
-        index: 1119,
     },
     {
         name: 'rescue_worker_helmet',
@@ -13748,7 +12628,6 @@ const emojis = [
         keywords: [
             'rescue_worker_helmet',
         ],
-        index: 1120,
     },
     {
         name: 'prayer_beads',
@@ -13761,7 +12640,6 @@ const emojis = [
             'prayer',
             'religion',
         ],
-        index: 1121,
     },
     {
         name: 'lipstick',
@@ -13771,7 +12649,6 @@ const emojis = [
             'lipstick',
             'cosmetics',
         ],
-        index: 1122,
     },
     {
         name: 'ring',
@@ -13784,7 +12661,6 @@ const emojis = [
             'diamond',
             'romance',
         ],
-        index: 1123,
     },
     {
         name: 'gem',
@@ -13795,7 +12671,6 @@ const emojis = [
             'jewel',
             'romance',
         ],
-        index: 1124,
     },
     {
         name: 'mute',
@@ -13808,7 +12683,6 @@ const emojis = [
             'silent',
             'speaker',
         ],
-        index: 1125,
     },
     {
         name: 'speaker',
@@ -13817,7 +12691,6 @@ const emojis = [
             'speaker',
             'volume',
         ],
-        index: 1126,
     },
     {
         name: 'sound',
@@ -13829,7 +12702,6 @@ const emojis = [
             'speaker',
             'wave',
         ],
-        index: 1127,
     },
     {
         name: 'loud_sound',
@@ -13844,7 +12716,6 @@ const emojis = [
             'speaker',
             'three',
         ],
-        index: 1128,
     },
     {
         name: 'loudspeaker',
@@ -13856,7 +12727,6 @@ const emojis = [
             'loud',
             'public address',
         ],
-        index: 1129,
     },
     {
         name: 'mega',
@@ -13867,7 +12737,6 @@ const emojis = [
             'communication',
             'megaphone',
         ],
-        index: 1130,
     },
     {
         name: 'postal_horn',
@@ -13880,7 +12749,6 @@ const emojis = [
             'post',
             'postal',
         ],
-        index: 1131,
     },
     {
         name: 'bell',
@@ -13890,7 +12758,6 @@ const emojis = [
             'notification',
             'bell',
         ],
-        index: 1132,
     },
     {
         name: 'no_bell',
@@ -13908,7 +12775,6 @@ const emojis = [
             'quiet',
             'silent',
         ],
-        index: 1133,
     },
     {
         name: 'musical_score',
@@ -13920,7 +12786,6 @@ const emojis = [
             'music',
             'score',
         ],
-        index: 1134,
     },
     {
         name: 'musical_note',
@@ -13932,7 +12797,6 @@ const emojis = [
             'music',
             'note',
         ],
-        index: 1135,
     },
     {
         name: 'notes',
@@ -13944,7 +12808,6 @@ const emojis = [
             'entertainment',
             'note',
         ],
-        index: 1136,
     },
     {
         name: 'studio_microphone',
@@ -13953,7 +12816,6 @@ const emojis = [
             'podcast',
             'studio_microphone',
         ],
-        index: 1137,
     },
     {
         name: 'level_slider',
@@ -13961,7 +12823,6 @@ const emojis = [
         keywords: [
             'level_slider',
         ],
-        index: 1138,
     },
     {
         name: 'control_knobs',
@@ -13969,7 +12830,6 @@ const emojis = [
         keywords: [
             'control_knobs',
         ],
-        index: 1139,
     },
     {
         name: 'microphone',
@@ -13982,7 +12842,6 @@ const emojis = [
             'karaoke',
             'mic',
         ],
-        index: 1140,
     },
     {
         name: 'headphones',
@@ -13996,7 +12855,6 @@ const emojis = [
             'entertainment',
             'headphone',
         ],
-        index: 1141,
     },
     {
         name: 'radio',
@@ -14007,7 +12865,6 @@ const emojis = [
             'entertainment',
             'video',
         ],
-        index: 1142,
     },
     {
         name: 'saxophone',
@@ -14020,7 +12877,6 @@ const emojis = [
             'music',
             'sax',
         ],
-        index: 1143,
     },
     {
         name: 'accordion',
@@ -14028,7 +12884,6 @@ const emojis = [
         keywords: [
             'accordion',
         ],
-        index: 1144,
     },
     {
         name: 'guitar',
@@ -14041,7 +12896,6 @@ const emojis = [
             'instrument',
             'music',
         ],
-        index: 1145,
     },
     {
         name: 'musical_keyboard',
@@ -14055,7 +12909,6 @@ const emojis = [
             'keyboard',
             'music',
         ],
-        index: 1146,
     },
     {
         name: 'trumpet',
@@ -14067,7 +12920,6 @@ const emojis = [
             'instrument',
             'music',
         ],
-        index: 1147,
     },
     {
         name: 'violin',
@@ -14079,7 +12931,6 @@ const emojis = [
             'instrument',
             'music',
         ],
-        index: 1148,
     },
     {
         name: 'banjo',
@@ -14087,7 +12938,6 @@ const emojis = [
         keywords: [
             'banjo',
         ],
-        index: 1149,
     },
     {
         name: 'drum',
@@ -14097,7 +12947,6 @@ const emojis = [
             'drumsticks',
             'music',
         ],
-        index: 1150,
     },
     {
         name: 'long_drum',
@@ -14105,7 +12954,6 @@ const emojis = [
         keywords: [
             'long_drum',
         ],
-        index: 1151,
     },
     {
         name: 'iphone',
@@ -14119,7 +12967,6 @@ const emojis = [
             'phone',
             'telephone',
         ],
-        index: 1152,
     },
     {
         name: 'calling',
@@ -14136,7 +12983,6 @@ const emojis = [
             'receive',
             'telephone',
         ],
-        index: 1153,
     },
     {
         name: 'phone',
@@ -14145,7 +12991,6 @@ const emojis = [
             'phone',
             'telephone',
         ],
-        index: 1154,
     },
     {
         name: 'telephone_receiver',
@@ -14158,7 +13003,6 @@ const emojis = [
             'receiver',
             'telephone',
         ],
-        index: 1155,
     },
     {
         name: 'pager',
@@ -14167,7 +13011,6 @@ const emojis = [
             'pager',
             'communication',
         ],
-        index: 1156,
     },
     {
         name: 'fax',
@@ -14176,7 +13019,6 @@ const emojis = [
             'fax',
             'communication',
         ],
-        index: 1157,
     },
     {
         name: 'battery',
@@ -14185,7 +13027,6 @@ const emojis = [
             'power',
             'battery',
         ],
-        index: 1158,
     },
     {
         name: 'electric_plug',
@@ -14196,7 +13037,6 @@ const emojis = [
             'electricity',
             'plug',
         ],
-        index: 1159,
     },
     {
         name: 'computer',
@@ -14208,7 +13048,6 @@ const emojis = [
             'pc',
             'personal',
         ],
-        index: 1160,
     },
     {
         name: 'desktop_computer',
@@ -14216,7 +13055,6 @@ const emojis = [
         keywords: [
             'desktop_computer',
         ],
-        index: 1161,
     },
     {
         name: 'printer',
@@ -14224,7 +13062,6 @@ const emojis = [
         keywords: [
             'printer',
         ],
-        index: 1162,
     },
     {
         name: 'keyboard',
@@ -14233,7 +13070,6 @@ const emojis = [
             'keyboard',
             'computer',
         ],
-        index: 1163,
     },
     {
         name: 'computer_mouse',
@@ -14241,7 +13077,6 @@ const emojis = [
         keywords: [
             'computer_mouse',
         ],
-        index: 1164,
     },
     {
         name: 'trackball',
@@ -14249,7 +13084,6 @@ const emojis = [
         keywords: [
             'trackball',
         ],
-        index: 1165,
     },
     {
         name: 'minidisc',
@@ -14262,7 +13096,6 @@ const emojis = [
             'minidisk',
             'optical',
         ],
-        index: 1166,
     },
     {
         name: 'floppy_disk',
@@ -14274,7 +13107,6 @@ const emojis = [
             'disk',
             'floppy',
         ],
-        index: 1167,
     },
     {
         name: 'cd',
@@ -14287,7 +13119,6 @@ const emojis = [
             'dvd',
             'optical',
         ],
-        index: 1168,
     },
     {
         name: 'dvd',
@@ -14301,7 +13132,6 @@ const emojis = [
             'entertainment',
             'optical',
         ],
-        index: 1169,
     },
     {
         name: 'abacus',
@@ -14309,7 +13139,6 @@ const emojis = [
         keywords: [
             'abacus',
         ],
-        index: 1170,
     },
     {
         name: 'movie_camera',
@@ -14324,7 +13153,6 @@ const emojis = [
             'entertainment',
             'movie',
         ],
-        index: 1171,
     },
     {
         name: 'film_strip',
@@ -14332,7 +13160,6 @@ const emojis = [
         keywords: [
             'film_strip',
         ],
-        index: 1172,
     },
     {
         name: 'film_projector',
@@ -14340,7 +13167,6 @@ const emojis = [
         keywords: [
             'film_projector',
         ],
-        index: 1173,
     },
     {
         name: 'clapper',
@@ -14352,7 +13178,6 @@ const emojis = [
             'entertainment',
             'movie',
         ],
-        index: 1174,
     },
     {
         name: 'tv',
@@ -14363,7 +13188,6 @@ const emojis = [
             'television',
             'video',
         ],
-        index: 1175,
     },
     {
         name: 'camera',
@@ -14374,7 +13198,6 @@ const emojis = [
             'entertainment',
             'video',
         ],
-        index: 1176,
     },
     {
         name: 'camera_flash',
@@ -14386,7 +13209,6 @@ const emojis = [
             'flash',
             'video',
         ],
-        index: 1177,
     },
     {
         name: 'video_camera',
@@ -14397,7 +13219,6 @@ const emojis = [
             'entertainment',
             'video',
         ],
-        index: 1178,
     },
     {
         name: 'vhs',
@@ -14409,7 +13230,6 @@ const emojis = [
             'video',
             'videocassette',
         ],
-        index: 1179,
     },
     {
         name: 'mag',
@@ -14422,7 +13242,6 @@ const emojis = [
             'magnifying',
             'tool',
         ],
-        index: 1180,
     },
     {
         name: 'mag_right',
@@ -14434,7 +13253,6 @@ const emojis = [
             'search',
             'tool',
         ],
-        index: 1181,
     },
     {
         name: 'candle',
@@ -14442,7 +13260,6 @@ const emojis = [
         keywords: [
             'candle',
         ],
-        index: 1182,
     },
     {
         name: 'bulb',
@@ -14454,7 +13271,6 @@ const emojis = [
             'comic',
             'electric',
         ],
-        index: 1183,
     },
     {
         name: 'flashlight',
@@ -14466,7 +13282,6 @@ const emojis = [
             'tool',
             'torch',
         ],
-        index: 1184,
     },
     {
         name: 'izakaya_lantern',
@@ -14479,7 +13294,6 @@ const emojis = [
             'light',
             'red',
         ],
-        index: 1185,
     },
     {
         name: 'diya_lamp',
@@ -14487,7 +13301,6 @@ const emojis = [
         keywords: [
             'diya_lamp',
         ],
-        index: 1186,
     },
     {
         name: 'notebook_with_decorative_cover',
@@ -14499,7 +13312,6 @@ const emojis = [
             'decorated',
             'notebook',
         ],
-        index: 1187,
     },
     {
         name: 'closed_book',
@@ -14509,7 +13321,6 @@ const emojis = [
             'book',
             'closed',
         ],
-        index: 1188,
     },
     {
         name: 'book',
@@ -14519,7 +13330,6 @@ const emojis = [
             'open_book',
             'open',
         ],
-        index: 1189,
     },
     {
         name: 'green_book',
@@ -14529,7 +13339,6 @@ const emojis = [
             'book',
             'green',
         ],
-        index: 1190,
     },
     {
         name: 'blue_book',
@@ -14539,7 +13348,6 @@ const emojis = [
             'blue',
             'book',
         ],
-        index: 1191,
     },
     {
         name: 'orange_book',
@@ -14549,7 +13357,6 @@ const emojis = [
             'book',
             'orange',
         ],
-        index: 1192,
     },
     {
         name: 'books',
@@ -14559,7 +13366,6 @@ const emojis = [
             'books',
             'book',
         ],
-        index: 1193,
     },
     {
         name: 'notebook',
@@ -14567,7 +13373,6 @@ const emojis = [
         keywords: [
             'notebook',
         ],
-        index: 1194,
     },
     {
         name: 'ledger',
@@ -14576,7 +13381,6 @@ const emojis = [
             'ledger',
             'notebook',
         ],
-        index: 1195,
     },
     {
         name: 'page_with_curl',
@@ -14587,7 +13391,6 @@ const emojis = [
             'document',
             'page',
         ],
-        index: 1196,
     },
     {
         name: 'scroll',
@@ -14597,7 +13400,6 @@ const emojis = [
             'scroll',
             'paper',
         ],
-        index: 1197,
     },
     {
         name: 'page_facing_up',
@@ -14607,7 +13409,6 @@ const emojis = [
             'page_facing_up',
             'page',
         ],
-        index: 1198,
     },
     {
         name: 'newspaper',
@@ -14619,7 +13420,6 @@ const emojis = [
             'news',
             'paper',
         ],
-        index: 1199,
     },
     {
         name: 'newspaper_roll',
@@ -14628,7 +13428,6 @@ const emojis = [
             'press',
             'newspaper_roll',
         ],
-        index: 1200,
     },
     {
         name: 'bookmark_tabs',
@@ -14640,7 +13439,6 @@ const emojis = [
             'marker',
             'tabs',
         ],
-        index: 1201,
     },
     {
         name: 'bookmark',
@@ -14649,7 +13447,6 @@ const emojis = [
             'bookmark',
             'mark',
         ],
-        index: 1202,
     },
     {
         name: 'label',
@@ -14658,7 +13455,6 @@ const emojis = [
             'tag',
             'label',
         ],
-        index: 1203,
     },
     {
         name: 'moneybag',
@@ -14670,7 +13466,6 @@ const emojis = [
             'bag',
             'money',
         ],
-        index: 1204,
     },
     {
         name: 'coin',
@@ -14678,7 +13473,6 @@ const emojis = [
         keywords: [
             'coin',
         ],
-        index: 1205,
     },
     {
         name: 'yen',
@@ -14692,7 +13486,6 @@ const emojis = [
             'money',
             'note',
         ],
-        index: 1206,
     },
     {
         name: 'dollar',
@@ -14706,7 +13499,6 @@ const emojis = [
             'currency',
             'note',
         ],
-        index: 1207,
     },
     {
         name: 'euro',
@@ -14720,7 +13512,6 @@ const emojis = [
             'money',
             'note',
         ],
-        index: 1208,
     },
     {
         name: 'pound',
@@ -14734,7 +13525,6 @@ const emojis = [
             'money',
             'note',
         ],
-        index: 1209,
     },
     {
         name: 'money_with_wings',
@@ -14750,7 +13540,6 @@ const emojis = [
             'note',
             'wings',
         ],
-        index: 1210,
     },
     {
         name: 'credit_card',
@@ -14763,7 +13552,6 @@ const emojis = [
             'credit',
             'money',
         ],
-        index: 1211,
     },
     {
         name: 'receipt',
@@ -14771,7 +13559,6 @@ const emojis = [
         keywords: [
             'receipt',
         ],
-        index: 1212,
     },
     {
         name: 'chart',
@@ -14789,7 +13576,6 @@ const emojis = [
             'upward',
             'yen',
         ],
-        index: 1213,
     },
     {
         name: 'envelope',
@@ -14800,7 +13586,6 @@ const emojis = [
             'envelope',
             'e-mail',
         ],
-        index: 1214,
     },
     {
         name: 'email',
@@ -14812,7 +13597,6 @@ const emojis = [
             'letter',
             'mail',
         ],
-        index: 1215,
     },
     {
         name: 'incoming_envelope',
@@ -14828,7 +13612,6 @@ const emojis = [
             'mail',
             'receive',
         ],
-        index: 1216,
     },
     {
         name: 'envelope_with_arrow',
@@ -14846,7 +13629,6 @@ const emojis = [
             'outgoing',
             'sent',
         ],
-        index: 1217,
     },
     {
         name: 'outbox_tray',
@@ -14861,7 +13643,6 @@ const emojis = [
             'sent',
             'tray',
         ],
-        index: 1218,
     },
     {
         name: 'inbox_tray',
@@ -14876,7 +13657,6 @@ const emojis = [
             'receive',
             'tray',
         ],
-        index: 1219,
     },
     {
         name: 'package',
@@ -14888,7 +13668,6 @@ const emojis = [
             'communication',
             'parcel',
         ],
-        index: 1220,
     },
     {
         name: 'mailbox',
@@ -14901,7 +13680,6 @@ const emojis = [
             'mail',
             'postbox',
         ],
-        index: 1221,
     },
     {
         name: 'mailbox_closed',
@@ -14916,7 +13694,6 @@ const emojis = [
             'mailbox',
             'postbox',
         ],
-        index: 1222,
     },
     {
         name: 'mailbox_with_mail',
@@ -14930,7 +13707,6 @@ const emojis = [
             'open',
             'postbox',
         ],
-        index: 1223,
     },
     {
         name: 'mailbox_with_no_mail',
@@ -14945,7 +13721,6 @@ const emojis = [
             'open',
             'postbox',
         ],
-        index: 1224,
     },
     {
         name: 'postbox',
@@ -14956,7 +13731,6 @@ const emojis = [
             'mail',
             'mailbox',
         ],
-        index: 1225,
     },
     {
         name: 'ballot_box',
@@ -14964,7 +13738,6 @@ const emojis = [
         keywords: [
             'ballot_box',
         ],
-        index: 1226,
     },
     {
         name: 'pencil2',
@@ -14972,7 +13745,6 @@ const emojis = [
         keywords: [
             'pencil2',
         ],
-        index: 1227,
     },
     {
         name: 'black_nib',
@@ -14982,7 +13754,6 @@ const emojis = [
             'nib',
             'pen',
         ],
-        index: 1228,
     },
     {
         name: 'fountain_pen',
@@ -14990,7 +13761,6 @@ const emojis = [
         keywords: [
             'fountain_pen',
         ],
-        index: 1229,
     },
     {
         name: 'pen',
@@ -14998,7 +13768,6 @@ const emojis = [
         keywords: [
             'pen',
         ],
-        index: 1230,
     },
     {
         name: 'paintbrush',
@@ -15006,7 +13775,6 @@ const emojis = [
         keywords: [
             'paintbrush',
         ],
-        index: 1231,
     },
     {
         name: 'crayon',
@@ -15014,7 +13782,6 @@ const emojis = [
         keywords: [
             'crayon',
         ],
-        index: 1232,
     },
     {
         name: 'memo',
@@ -15026,7 +13793,6 @@ const emojis = [
             'pencil',
             'communication',
         ],
-        index: 1233,
     },
     {
         name: 'briefcase',
@@ -15035,7 +13801,6 @@ const emojis = [
             'business',
             'briefcase',
         ],
-        index: 1234,
     },
     {
         name: 'file_folder',
@@ -15046,7 +13811,6 @@ const emojis = [
             'file',
             'folder',
         ],
-        index: 1235,
     },
     {
         name: 'open_file_folder',
@@ -15057,7 +13821,6 @@ const emojis = [
             'folder',
             'open',
         ],
-        index: 1236,
     },
     {
         name: 'card_index_dividers',
@@ -15065,7 +13828,6 @@ const emojis = [
         keywords: [
             'card_index_dividers',
         ],
-        index: 1237,
     },
     {
         name: 'date',
@@ -15075,7 +13837,6 @@ const emojis = [
             'schedule',
             'date',
         ],
-        index: 1238,
     },
     {
         name: 'calendar',
@@ -15084,7 +13845,6 @@ const emojis = [
             'schedule',
             'calendar',
         ],
-        index: 1239,
     },
     {
         name: 'spiral_notepad',
@@ -15092,7 +13852,6 @@ const emojis = [
         keywords: [
             'spiral_notepad',
         ],
-        index: 1240,
     },
     {
         name: 'spiral_calendar',
@@ -15100,7 +13859,6 @@ const emojis = [
         keywords: [
             'spiral_calendar',
         ],
-        index: 1241,
     },
     {
         name: 'card_index',
@@ -15111,7 +13869,6 @@ const emojis = [
             'index',
             'rolodex',
         ],
-        index: 1242,
     },
     {
         name: 'chart_with_upwards_trend',
@@ -15125,7 +13882,6 @@ const emojis = [
             'trend',
             'upward',
         ],
-        index: 1243,
     },
     {
         name: 'chart_with_downwards_trend',
@@ -15138,7 +13894,6 @@ const emojis = [
             'down',
             'trend',
         ],
-        index: 1244,
     },
     {
         name: 'bar_chart',
@@ -15151,7 +13906,6 @@ const emojis = [
             'chart',
             'graph',
         ],
-        index: 1245,
     },
     {
         name: 'clipboard',
@@ -15159,7 +13913,6 @@ const emojis = [
         keywords: [
             'clipboard',
         ],
-        index: 1246,
     },
     {
         name: 'pushpin',
@@ -15169,7 +13922,6 @@ const emojis = [
             'pushpin',
             'pin',
         ],
-        index: 1247,
     },
     {
         name: 'round_pushpin',
@@ -15180,7 +13932,6 @@ const emojis = [
             'pin',
             'pushpin',
         ],
-        index: 1248,
     },
     {
         name: 'paperclip',
@@ -15188,7 +13939,6 @@ const emojis = [
         keywords: [
             'paperclip',
         ],
-        index: 1249,
     },
     {
         name: 'paperclips',
@@ -15196,7 +13946,6 @@ const emojis = [
         keywords: [
             'paperclips',
         ],
-        index: 1250,
     },
     {
         name: 'straight_ruler',
@@ -15206,7 +13955,6 @@ const emojis = [
             'ruler',
             'straight edge',
         ],
-        index: 1251,
     },
     {
         name: 'triangular_ruler',
@@ -15217,7 +13965,6 @@ const emojis = [
             'set',
             'triangle',
         ],
-        index: 1252,
     },
     {
         name: 'scissors',
@@ -15227,7 +13974,6 @@ const emojis = [
             'scissors',
             'tool',
         ],
-        index: 1253,
     },
     {
         name: 'card_file_box',
@@ -15235,7 +13981,6 @@ const emojis = [
         keywords: [
             'card_file_box',
         ],
-        index: 1254,
     },
     {
         name: 'file_cabinet',
@@ -15243,7 +13988,6 @@ const emojis = [
         keywords: [
             'file_cabinet',
         ],
-        index: 1255,
     },
     {
         name: 'wastebasket',
@@ -15252,7 +13996,6 @@ const emojis = [
             'trash',
             'wastebasket',
         ],
-        index: 1256,
     },
     {
         name: 'lock',
@@ -15263,7 +14006,6 @@ const emojis = [
             'lock',
             'closed',
         ],
-        index: 1257,
     },
     {
         name: 'unlock',
@@ -15274,7 +14016,6 @@ const emojis = [
             'lock',
             'open',
         ],
-        index: 1258,
     },
     {
         name: 'lock_with_ink_pen',
@@ -15287,7 +14028,6 @@ const emojis = [
             'pen',
             'privacy',
         ],
-        index: 1259,
     },
     {
         name: 'closed_lock_with_key',
@@ -15300,7 +14040,6 @@ const emojis = [
             'lock',
             'secure',
         ],
-        index: 1260,
     },
     {
         name: 'key',
@@ -15310,7 +14049,6 @@ const emojis = [
             'password',
             'key',
         ],
-        index: 1261,
     },
     {
         name: 'old_key',
@@ -15318,7 +14056,6 @@ const emojis = [
         keywords: [
             'old_key',
         ],
-        index: 1262,
     },
     {
         name: 'hammer',
@@ -15327,7 +14064,6 @@ const emojis = [
             'tool',
             'hammer',
         ],
-        index: 1263,
     },
     {
         name: 'axe',
@@ -15335,7 +14071,6 @@ const emojis = [
         keywords: [
             'axe',
         ],
-        index: 1264,
     },
     {
         name: 'pick',
@@ -15343,7 +14078,6 @@ const emojis = [
         keywords: [
             'pick',
         ],
-        index: 1265,
     },
     {
         name: 'hammer_and_pick',
@@ -15354,7 +14088,6 @@ const emojis = [
             'pick',
             'tool',
         ],
-        index: 1266,
     },
     {
         name: 'hammer_and_wrench',
@@ -15362,7 +14095,6 @@ const emojis = [
         keywords: [
             'hammer_and_wrench',
         ],
-        index: 1267,
     },
     {
         name: 'dagger',
@@ -15370,7 +14102,6 @@ const emojis = [
         keywords: [
             'dagger',
         ],
-        index: 1268,
     },
     {
         name: 'crossed_swords',
@@ -15381,7 +14112,6 @@ const emojis = [
             'swords',
             'weapon',
         ],
-        index: 1269,
     },
     {
         name: 'gun',
@@ -15395,7 +14125,6 @@ const emojis = [
             'revolver',
             'tool',
         ],
-        index: 1270,
     },
     {
         name: 'boomerang',
@@ -15403,7 +14132,6 @@ const emojis = [
         keywords: [
             'boomerang',
         ],
-        index: 1271,
     },
     {
         name: 'bow_and_arrow',
@@ -15419,7 +14147,6 @@ const emojis = [
             'weapon',
             'zodiac',
         ],
-        index: 1272,
     },
     {
         name: 'shield',
@@ -15427,7 +14154,6 @@ const emojis = [
         keywords: [
             'shield',
         ],
-        index: 1273,
     },
     {
         name: 'carpentry_saw',
@@ -15435,7 +14161,6 @@ const emojis = [
         keywords: [
             'carpentry_saw',
         ],
-        index: 1274,
     },
     {
         name: 'wrench',
@@ -15444,7 +14169,6 @@ const emojis = [
             'tool',
             'wrench',
         ],
-        index: 1275,
     },
     {
         name: 'screwdriver',
@@ -15452,7 +14176,6 @@ const emojis = [
         keywords: [
             'screwdriver',
         ],
-        index: 1276,
     },
     {
         name: 'nut_and_bolt',
@@ -15463,7 +14186,6 @@ const emojis = [
             'nut',
             'tool',
         ],
-        index: 1277,
     },
     {
         name: 'gear',
@@ -15472,7 +14194,6 @@ const emojis = [
             'gear',
             'tool',
         ],
-        index: 1278,
     },
     {
         name: 'clamp',
@@ -15480,7 +14201,6 @@ const emojis = [
         keywords: [
             'clamp',
         ],
-        index: 1279,
     },
     {
         name: 'balance_scale',
@@ -15495,7 +14215,6 @@ const emojis = [
             'weight',
             'zodiac',
         ],
-        index: 1280,
     },
     {
         name: 'probing_cane',
@@ -15503,7 +14222,6 @@ const emojis = [
         keywords: [
             'probing_cane',
         ],
-        index: 1281,
     },
     {
         name: 'link',
@@ -15511,7 +14229,6 @@ const emojis = [
         keywords: [
             'link',
         ],
-        index: 1282,
     },
     {
         name: 'chains',
@@ -15519,7 +14236,6 @@ const emojis = [
         keywords: [
             'chains',
         ],
-        index: 1283,
     },
     {
         name: 'hook',
@@ -15527,7 +14243,6 @@ const emojis = [
         keywords: [
             'hook',
         ],
-        index: 1284,
     },
     {
         name: 'toolbox',
@@ -15535,7 +14250,6 @@ const emojis = [
         keywords: [
             'toolbox',
         ],
-        index: 1285,
     },
     {
         name: 'magnet',
@@ -15543,7 +14257,6 @@ const emojis = [
         keywords: [
             'magnet',
         ],
-        index: 1286,
     },
     {
         name: 'ladder',
@@ -15551,7 +14264,6 @@ const emojis = [
         keywords: [
             'ladder',
         ],
-        index: 1287,
     },
     {
         name: 'alembic',
@@ -15561,7 +14273,6 @@ const emojis = [
             'chemistry',
             'tool',
         ],
-        index: 1288,
     },
     {
         name: 'test_tube',
@@ -15569,7 +14280,6 @@ const emojis = [
         keywords: [
             'test_tube',
         ],
-        index: 1289,
     },
     {
         name: 'petri_dish',
@@ -15577,7 +14287,6 @@ const emojis = [
         keywords: [
             'petri_dish',
         ],
-        index: 1290,
     },
     {
         name: 'dna',
@@ -15585,7 +14294,6 @@ const emojis = [
         keywords: [
             'dna',
         ],
-        index: 1291,
     },
     {
         name: 'microscope',
@@ -15597,7 +14305,6 @@ const emojis = [
             'microscope',
             'tool',
         ],
-        index: 1292,
     },
     {
         name: 'telescope',
@@ -15606,7 +14313,6 @@ const emojis = [
             'telescope',
             'tool',
         ],
-        index: 1293,
     },
     {
         name: 'satellite',
@@ -15618,7 +14324,6 @@ const emojis = [
             'communication',
             'dish',
         ],
-        index: 1294,
     },
     {
         name: 'syringe',
@@ -15634,7 +14339,6 @@ const emojis = [
             'sick',
             'tool',
         ],
-        index: 1295,
     },
     {
         name: 'drop_of_blood',
@@ -15642,7 +14346,6 @@ const emojis = [
         keywords: [
             'drop_of_blood',
         ],
-        index: 1296,
     },
     {
         name: 'pill',
@@ -15654,7 +14357,6 @@ const emojis = [
             'doctor',
             'sick',
         ],
-        index: 1297,
     },
     {
         name: 'adhesive_bandage',
@@ -15662,7 +14364,6 @@ const emojis = [
         keywords: [
             'adhesive_bandage',
         ],
-        index: 1298,
     },
     {
         name: 'stethoscope',
@@ -15670,7 +14371,6 @@ const emojis = [
         keywords: [
             'stethoscope',
         ],
-        index: 1299,
     },
     {
         name: 'door',
@@ -15678,7 +14378,6 @@ const emojis = [
         keywords: [
             'door',
         ],
-        index: 1300,
     },
     {
         name: 'elevator',
@@ -15686,7 +14385,6 @@ const emojis = [
         keywords: [
             'elevator',
         ],
-        index: 1301,
     },
     {
         name: 'mirror',
@@ -15694,7 +14392,6 @@ const emojis = [
         keywords: [
             'mirror',
         ],
-        index: 1302,
     },
     {
         name: 'window',
@@ -15702,7 +14399,6 @@ const emojis = [
         keywords: [
             'window',
         ],
-        index: 1303,
     },
     {
         name: 'bed',
@@ -15710,7 +14406,6 @@ const emojis = [
         keywords: [
             'bed',
         ],
-        index: 1304,
     },
     {
         name: 'couch_and_lamp',
@@ -15718,7 +14413,6 @@ const emojis = [
         keywords: [
             'couch_and_lamp',
         ],
-        index: 1305,
     },
     {
         name: 'chair',
@@ -15726,7 +14420,6 @@ const emojis = [
         keywords: [
             'chair',
         ],
-        index: 1306,
     },
     {
         name: 'toilet',
@@ -15735,7 +14428,6 @@ const emojis = [
             'wc',
             'toilet',
         ],
-        index: 1307,
     },
     {
         name: 'plunger',
@@ -15743,7 +14435,6 @@ const emojis = [
         keywords: [
             'plunger',
         ],
-        index: 1308,
     },
     {
         name: 'shower',
@@ -15753,7 +14444,6 @@ const emojis = [
             'shower',
             'water',
         ],
-        index: 1309,
     },
     {
         name: 'bathtub',
@@ -15762,7 +14452,6 @@ const emojis = [
             'bathtub',
             'bath',
         ],
-        index: 1310,
     },
     {
         name: 'mouse_trap',
@@ -15770,7 +14459,6 @@ const emojis = [
         keywords: [
             'mouse_trap',
         ],
-        index: 1311,
     },
     {
         name: 'razor',
@@ -15778,7 +14466,6 @@ const emojis = [
         keywords: [
             'razor',
         ],
-        index: 1312,
     },
     {
         name: 'lotion_bottle',
@@ -15786,7 +14473,6 @@ const emojis = [
         keywords: [
             'lotion_bottle',
         ],
-        index: 1313,
     },
     {
         name: 'safety_pin',
@@ -15794,7 +14480,6 @@ const emojis = [
         keywords: [
             'safety_pin',
         ],
-        index: 1314,
     },
     {
         name: 'broom',
@@ -15802,7 +14487,6 @@ const emojis = [
         keywords: [
             'broom',
         ],
-        index: 1315,
     },
     {
         name: 'basket',
@@ -15810,7 +14494,6 @@ const emojis = [
         keywords: [
             'basket',
         ],
-        index: 1316,
     },
     {
         name: 'roll_of_paper',
@@ -15819,7 +14502,6 @@ const emojis = [
             'toilet',
             'roll_of_paper',
         ],
-        index: 1317,
     },
     {
         name: 'bucket',
@@ -15827,7 +14509,6 @@ const emojis = [
         keywords: [
             'bucket',
         ],
-        index: 1318,
     },
     {
         name: 'soap',
@@ -15835,7 +14516,6 @@ const emojis = [
         keywords: [
             'soap',
         ],
-        index: 1319,
     },
     {
         name: 'toothbrush',
@@ -15843,7 +14523,6 @@ const emojis = [
         keywords: [
             'toothbrush',
         ],
-        index: 1320,
     },
     {
         name: 'sponge',
@@ -15851,7 +14530,6 @@ const emojis = [
         keywords: [
             'sponge',
         ],
-        index: 1321,
     },
     {
         name: 'fire_extinguisher',
@@ -15859,7 +14537,6 @@ const emojis = [
         keywords: [
             'fire_extinguisher',
         ],
-        index: 1322,
     },
     {
         name: 'shopping_cart',
@@ -15870,7 +14547,6 @@ const emojis = [
             'shopping',
             'trolley',
         ],
-        index: 1323,
     },
     {
         name: 'smoking',
@@ -15880,7 +14556,6 @@ const emojis = [
             'smoking',
             'activity',
         ],
-        index: 1324,
     },
     {
         name: 'coffin',
@@ -15889,7 +14564,6 @@ const emojis = [
             'funeral',
             'coffin',
         ],
-        index: 1325,
     },
     {
         name: 'headstone',
@@ -15897,7 +14571,6 @@ const emojis = [
         keywords: [
             'headstone',
         ],
-        index: 1326,
     },
     {
         name: 'funeral_urn',
@@ -15905,7 +14578,6 @@ const emojis = [
         keywords: [
             'funeral_urn',
         ],
-        index: 1327,
     },
     {
         name: 'moyai',
@@ -15916,7 +14588,6 @@ const emojis = [
             'face',
             'statue',
         ],
-        index: 1328,
     },
     {
         name: 'placard',
@@ -15924,12 +14595,10 @@ const emojis = [
         keywords: [
             'placard',
         ],
-        index: 1329,
     },
     {
         code: 'symbols',
         header: true,
-        index: 1330,
     },
     {
         name: 'atm',
@@ -15940,7 +14609,6 @@ const emojis = [
             'bank',
             'teller',
         ],
-        index: 1331,
     },
     {
         name: 'put_litter_in_its_place',
@@ -15950,7 +14618,6 @@ const emojis = [
             'litter',
             'litterbox',
         ],
-        index: 1332,
     },
     {
         name: 'potable_water',
@@ -15961,7 +14628,6 @@ const emojis = [
             'potable',
             'water',
         ],
-        index: 1333,
     },
     {
         name: 'wheelchair',
@@ -15971,7 +14637,6 @@ const emojis = [
             'wheelchair',
             'access',
         ],
-        index: 1334,
     },
     {
         name: 'mens',
@@ -15983,7 +14648,6 @@ const emojis = [
             'restroom',
             'wc',
         ],
-        index: 1335,
     },
     {
         name: 'womens',
@@ -15995,7 +14659,6 @@ const emojis = [
             'wc',
             'woman',
         ],
-        index: 1336,
     },
     {
         name: 'restroom',
@@ -16006,7 +14669,6 @@ const emojis = [
             'lavatory',
             'wc',
         ],
-        index: 1337,
     },
     {
         name: 'baby_symbol',
@@ -16016,7 +14678,6 @@ const emojis = [
             'baby',
             'changing',
         ],
-        index: 1338,
     },
     {
         name: 'wc',
@@ -16029,7 +14690,6 @@ const emojis = [
             'lavatory',
             'water',
         ],
-        index: 1339,
     },
     {
         name: 'passport_control',
@@ -16039,7 +14699,6 @@ const emojis = [
             'control',
             'passport',
         ],
-        index: 1340,
     },
     {
         name: 'customs',
@@ -16047,7 +14706,6 @@ const emojis = [
         keywords: [
             'customs',
         ],
-        index: 1341,
     },
     {
         name: 'baggage_claim',
@@ -16058,7 +14716,6 @@ const emojis = [
             'baggage',
             'claim',
         ],
-        index: 1342,
     },
     {
         name: 'left_luggage',
@@ -16070,7 +14727,6 @@ const emojis = [
             'locker',
             'luggage',
         ],
-        index: 1343,
     },
     {
         name: 'warning',
@@ -16079,7 +14735,6 @@ const emojis = [
             'wip',
             'warning',
         ],
-        index: 1344,
     },
     {
         name: 'children_crossing',
@@ -16091,7 +14746,6 @@ const emojis = [
             'pedestrian',
             'traffic',
         ],
-        index: 1345,
     },
     {
         name: 'no_entry',
@@ -16106,7 +14760,6 @@ const emojis = [
             'prohibited',
             'traffic',
         ],
-        index: 1346,
     },
     {
         name: 'no_entry_sign',
@@ -16120,7 +14773,6 @@ const emojis = [
             'not',
             'prohibited',
         ],
-        index: 1347,
     },
     {
         name: 'no_bicycles',
@@ -16135,7 +14787,6 @@ const emojis = [
             'prohibited',
             'vehicle',
         ],
-        index: 1348,
     },
     {
         name: 'no_smoking',
@@ -16148,7 +14799,6 @@ const emojis = [
             'prohibited',
             'smoking',
         ],
-        index: 1349,
     },
     {
         name: 'do_not_litter',
@@ -16161,7 +14811,6 @@ const emojis = [
             'not',
             'prohibited',
         ],
-        index: 1350,
     },
     {
         name: 'non-potable_water',
@@ -16176,7 +14825,6 @@ const emojis = [
             'prohibited',
             'water',
         ],
-        index: 1351,
     },
     {
         name: 'no_pedestrians',
@@ -16189,7 +14837,6 @@ const emojis = [
             'pedestrian',
             'prohibited',
         ],
-        index: 1352,
     },
     {
         name: 'no_mobile_phones',
@@ -16206,7 +14853,6 @@ const emojis = [
             'prohibited',
             'telephone',
         ],
-        index: 1353,
     },
     {
         name: 'underage',
@@ -16221,7 +14867,6 @@ const emojis = [
             'not',
             'prohibited',
         ],
-        index: 1354,
     },
     {
         name: 'radioactive',
@@ -16229,7 +14874,6 @@ const emojis = [
         keywords: [
             'radioactive',
         ],
-        index: 1355,
     },
     {
         name: 'biohazard',
@@ -16237,7 +14881,6 @@ const emojis = [
         keywords: [
             'biohazard',
         ],
-        index: 1356,
     },
     {
         name: 'arrow_up',
@@ -16245,7 +14888,6 @@ const emojis = [
         keywords: [
             'arrow_up',
         ],
-        index: 1357,
     },
     {
         name: 'arrow_upper_right',
@@ -16257,7 +14899,6 @@ const emojis = [
             'intercardinal',
             'northeast',
         ],
-        index: 1358,
     },
     {
         name: 'arrow_right',
@@ -16265,7 +14906,6 @@ const emojis = [
         keywords: [
             'arrow_right',
         ],
-        index: 1359,
     },
     {
         name: 'arrow_lower_right',
@@ -16277,7 +14917,6 @@ const emojis = [
             'intercardinal',
             'southeast',
         ],
-        index: 1360,
     },
     {
         name: 'arrow_down',
@@ -16285,7 +14924,6 @@ const emojis = [
         keywords: [
             'arrow_down',
         ],
-        index: 1361,
     },
     {
         name: 'arrow_lower_left',
@@ -16297,7 +14935,6 @@ const emojis = [
             'intercardinal',
             'southwest',
         ],
-        index: 1362,
     },
     {
         name: 'arrow_left',
@@ -16305,7 +14942,6 @@ const emojis = [
         keywords: [
             'arrow_left',
         ],
-        index: 1363,
     },
     {
         name: 'arrow_upper_left',
@@ -16317,7 +14953,6 @@ const emojis = [
             'intercardinal',
             'northwest',
         ],
-        index: 1364,
     },
     {
         name: 'arrow_up_down',
@@ -16326,7 +14961,6 @@ const emojis = [
             'arrow_up_down',
             'arrow',
         ],
-        index: 1365,
     },
     {
         name: 'left_right_arrow',
@@ -16335,7 +14969,6 @@ const emojis = [
             'left_right_arrow',
             'arrow',
         ],
-        index: 1366,
     },
     {
         name: 'leftwards_arrow_with_hook',
@@ -16344,7 +14977,6 @@ const emojis = [
             'return',
             'leftwards_arrow_with_hook',
         ],
-        index: 1367,
     },
     {
         name: 'arrow_right_hook',
@@ -16352,7 +14984,6 @@ const emojis = [
         keywords: [
             'arrow_right_hook',
         ],
-        index: 1368,
     },
     {
         name: 'arrow_heading_up',
@@ -16362,7 +14993,6 @@ const emojis = [
             'arrow',
             'up',
         ],
-        index: 1369,
     },
     {
         name: 'arrow_heading_down',
@@ -16372,7 +15002,6 @@ const emojis = [
             'arrow',
             'down',
         ],
-        index: 1370,
     },
     {
         name: 'arrows_clockwise',
@@ -16383,7 +15012,6 @@ const emojis = [
             'clockwise',
             'reload',
         ],
-        index: 1371,
     },
     {
         name: 'arrows_counterclockwise',
@@ -16396,7 +15024,6 @@ const emojis = [
             'counterclockwise',
             'withershins',
         ],
-        index: 1372,
     },
     {
         name: 'back',
@@ -16405,7 +15032,6 @@ const emojis = [
             'back',
             'arrow',
         ],
-        index: 1373,
     },
     {
         name: 'end',
@@ -16414,7 +15040,6 @@ const emojis = [
             'end',
             'arrow',
         ],
-        index: 1374,
     },
     {
         name: 'on',
@@ -16424,7 +15049,6 @@ const emojis = [
             'arrow',
             'mark',
         ],
-        index: 1375,
     },
     {
         name: 'soon',
@@ -16433,7 +15057,6 @@ const emojis = [
             'soon',
             'arrow',
         ],
-        index: 1376,
     },
     {
         name: 'top',
@@ -16443,7 +15066,6 @@ const emojis = [
             'arrow',
             'up',
         ],
-        index: 1377,
     },
     {
         name: 'place_of_worship',
@@ -16453,7 +15075,6 @@ const emojis = [
             'religion',
             'worship',
         ],
-        index: 1378,
     },
     {
         name: 'atom_symbol',
@@ -16461,7 +15082,6 @@ const emojis = [
         keywords: [
             'atom_symbol',
         ],
-        index: 1379,
     },
     {
         name: 'om',
@@ -16469,7 +15089,6 @@ const emojis = [
         keywords: [
             'om',
         ],
-        index: 1380,
     },
     {
         name: 'star_of_david',
@@ -16482,7 +15101,6 @@ const emojis = [
             'religion',
             'star',
         ],
-        index: 1381,
     },
     {
         name: 'wheel_of_dharma',
@@ -16494,7 +15112,6 @@ const emojis = [
             'religion',
             'wheel',
         ],
-        index: 1382,
     },
     {
         name: 'yin_yang',
@@ -16502,7 +15119,6 @@ const emojis = [
         keywords: [
             'yin_yang',
         ],
-        index: 1383,
     },
     {
         name: 'latin_cross',
@@ -16510,7 +15126,6 @@ const emojis = [
         keywords: [
             'latin_cross',
         ],
-        index: 1384,
     },
     {
         name: 'orthodox_cross',
@@ -16521,7 +15136,6 @@ const emojis = [
             'cross',
             'religion',
         ],
-        index: 1385,
     },
     {
         name: 'star_and_crescent',
@@ -16529,7 +15143,6 @@ const emojis = [
         keywords: [
             'star_and_crescent',
         ],
-        index: 1386,
     },
     {
         name: 'peace_symbol',
@@ -16537,7 +15150,6 @@ const emojis = [
         keywords: [
             'peace_symbol',
         ],
-        index: 1387,
     },
     {
         name: 'menorah',
@@ -16548,7 +15160,6 @@ const emojis = [
             'candlestick',
             'religion',
         ],
-        index: 1388,
     },
     {
         name: 'six_pointed_star',
@@ -16558,7 +15169,6 @@ const emojis = [
             'fortune',
             'star',
         ],
-        index: 1389,
     },
     {
         name: 'aries',
@@ -16568,7 +15178,6 @@ const emojis = [
             'ram',
             'zodiac',
         ],
-        index: 1390,
     },
     {
         name: 'taurus',
@@ -16579,7 +15188,6 @@ const emojis = [
             'ox',
             'zodiac',
         ],
-        index: 1391,
     },
     {
         name: 'gemini',
@@ -16589,7 +15197,6 @@ const emojis = [
             'twins',
             'zodiac',
         ],
-        index: 1392,
     },
     {
         name: 'cancer',
@@ -16599,7 +15206,6 @@ const emojis = [
             'crab',
             'zodiac',
         ],
-        index: 1393,
     },
     {
         name: 'leo',
@@ -16609,7 +15215,6 @@ const emojis = [
             'lion',
             'zodiac',
         ],
-        index: 1394,
     },
     {
         name: 'virgo',
@@ -16620,7 +15225,6 @@ const emojis = [
             'virgin',
             'zodiac',
         ],
-        index: 1395,
     },
     {
         name: 'libra',
@@ -16632,7 +15236,6 @@ const emojis = [
             'scales',
             'zodiac',
         ],
-        index: 1396,
     },
     {
         name: 'scorpius',
@@ -16643,7 +15246,6 @@ const emojis = [
             'scorpion',
             'zodiac',
         ],
-        index: 1397,
     },
     {
         name: 'sagittarius',
@@ -16653,7 +15255,6 @@ const emojis = [
             'archer',
             'zodiac',
         ],
-        index: 1398,
     },
     {
         name: 'capricorn',
@@ -16663,7 +15264,6 @@ const emojis = [
             'goat',
             'zodiac',
         ],
-        index: 1399,
     },
     {
         name: 'aquarius',
@@ -16674,7 +15274,6 @@ const emojis = [
             'water',
             'zodiac',
         ],
-        index: 1400,
     },
     {
         name: 'pisces',
@@ -16684,7 +15283,6 @@ const emojis = [
             'fish',
             'zodiac',
         ],
-        index: 1401,
     },
     {
         name: 'ophiuchus',
@@ -16696,7 +15294,6 @@ const emojis = [
             'snake',
             'zodiac',
         ],
-        index: 1402,
     },
     {
         name: 'twisted_rightwards_arrows',
@@ -16707,7 +15304,6 @@ const emojis = [
             'arrow',
             'crossed',
         ],
-        index: 1403,
     },
     {
         name: 'repeat',
@@ -16718,7 +15314,6 @@ const emojis = [
             'arrow',
             'clockwise',
         ],
-        index: 1404,
     },
     {
         name: 'repeat_one',
@@ -16729,7 +15324,6 @@ const emojis = [
             'clockwise',
             'once',
         ],
-        index: 1405,
     },
     {
         name: 'arrow_forward',
@@ -16737,7 +15331,6 @@ const emojis = [
         keywords: [
             'arrow_forward',
         ],
-        index: 1406,
     },
     {
         name: 'fast_forward',
@@ -16749,7 +15342,6 @@ const emojis = [
             'fast',
             'forward',
         ],
-        index: 1407,
     },
     {
         name: 'next_track_button',
@@ -16757,7 +15349,6 @@ const emojis = [
         keywords: [
             'next_track_button',
         ],
-        index: 1408,
     },
     {
         name: 'play_or_pause_button',
@@ -16765,7 +15356,6 @@ const emojis = [
         keywords: [
             'play_or_pause_button',
         ],
-        index: 1409,
     },
     {
         name: 'arrow_backward',
@@ -16773,7 +15363,6 @@ const emojis = [
         keywords: [
             'arrow_backward',
         ],
-        index: 1410,
     },
     {
         name: 'rewind',
@@ -16783,7 +15372,6 @@ const emojis = [
             'arrow',
             'double',
         ],
-        index: 1411,
     },
     {
         name: 'previous_track_button',
@@ -16791,7 +15379,6 @@ const emojis = [
         keywords: [
             'previous_track_button',
         ],
-        index: 1412,
     },
     {
         name: 'arrow_up_small',
@@ -16802,7 +15389,6 @@ const emojis = [
             'button',
             'red',
         ],
-        index: 1413,
     },
     {
         name: 'arrow_double_up',
@@ -16812,7 +15398,6 @@ const emojis = [
             'arrow',
             'double',
         ],
-        index: 1414,
     },
     {
         name: 'arrow_down_small',
@@ -16824,7 +15409,6 @@ const emojis = [
             'down',
             'red',
         ],
-        index: 1415,
     },
     {
         name: 'arrow_double_down',
@@ -16835,7 +15419,6 @@ const emojis = [
             'double',
             'down',
         ],
-        index: 1416,
     },
     {
         name: 'pause_button',
@@ -16843,7 +15426,6 @@ const emojis = [
         keywords: [
             'pause_button',
         ],
-        index: 1417,
     },
     {
         name: 'stop_button',
@@ -16851,7 +15433,6 @@ const emojis = [
         keywords: [
             'stop_button',
         ],
-        index: 1418,
     },
     {
         name: 'record_button',
@@ -16859,7 +15440,6 @@ const emojis = [
         keywords: [
             'record_button',
         ],
-        index: 1419,
     },
     {
         name: 'eject_button',
@@ -16867,7 +15447,6 @@ const emojis = [
         keywords: [
             'eject_button',
         ],
-        index: 1420,
     },
     {
         name: 'cinema',
@@ -16880,7 +15459,6 @@ const emojis = [
             'camera',
             'entertainment',
         ],
-        index: 1421,
     },
     {
         name: 'low_brightness',
@@ -16891,7 +15469,6 @@ const emojis = [
             'dim',
             'low',
         ],
-        index: 1422,
     },
     {
         name: 'high_brightness',
@@ -16901,7 +15478,6 @@ const emojis = [
             'bright',
             'brightness',
         ],
-        index: 1423,
     },
     {
         name: 'signal_strength',
@@ -16918,7 +15494,6 @@ const emojis = [
             'signal',
             'telephone',
         ],
-        index: 1424,
     },
     {
         name: 'vibration_mode',
@@ -16933,7 +15508,6 @@ const emojis = [
             'telephone',
             'vibration',
         ],
-        index: 1425,
     },
     {
         name: 'mobile_phone_off',
@@ -16948,7 +15522,6 @@ const emojis = [
             'phone',
             'telephone',
         ],
-        index: 1426,
     },
     {
         name: 'female_sign',
@@ -16956,7 +15529,6 @@ const emojis = [
         keywords: [
             'female_sign',
         ],
-        index: 1427,
     },
     {
         name: 'male_sign',
@@ -16964,7 +15536,6 @@ const emojis = [
         keywords: [
             'male_sign',
         ],
-        index: 1428,
     },
     {
         name: 'transgender_symbol',
@@ -16972,7 +15543,6 @@ const emojis = [
         keywords: [
             'transgender_symbol',
         ],
-        index: 1429,
     },
     {
         name: 'heavy_multiplication_x',
@@ -16984,7 +15554,6 @@ const emojis = [
             'multiply',
             'x',
         ],
-        index: 1430,
     },
     {
         name: 'heavy_plus_sign',
@@ -16994,7 +15563,6 @@ const emojis = [
             'math',
             'plus',
         ],
-        index: 1431,
     },
     {
         name: 'heavy_minus_sign',
@@ -17004,7 +15572,6 @@ const emojis = [
             'math',
             'minus',
         ],
-        index: 1432,
     },
     {
         name: 'heavy_division_sign',
@@ -17014,7 +15581,6 @@ const emojis = [
             'division',
             'math',
         ],
-        index: 1433,
     },
     {
         name: 'infinity',
@@ -17022,7 +15588,6 @@ const emojis = [
         keywords: [
             'infinity',
         ],
-        index: 1434,
     },
     {
         name: 'bangbang',
@@ -17030,7 +15595,6 @@ const emojis = [
         keywords: [
             'bangbang',
         ],
-        index: 1435,
     },
     {
         name: 'interrobang',
@@ -17042,7 +15606,6 @@ const emojis = [
             'punctuation',
             'question',
         ],
-        index: 1436,
     },
     {
         name: 'question',
@@ -17053,7 +15616,6 @@ const emojis = [
             'mark',
             'punctuation',
         ],
-        index: 1437,
     },
     {
         name: 'grey_question',
@@ -17065,7 +15627,6 @@ const emojis = [
             'punctuation',
             'question',
         ],
-        index: 1438,
     },
     {
         name: 'grey_exclamation',
@@ -17077,7 +15638,6 @@ const emojis = [
             'outlined',
             'punctuation',
         ],
-        index: 1439,
     },
     {
         name: 'exclamation',
@@ -17089,7 +15649,6 @@ const emojis = [
             'mark',
             'punctuation',
         ],
-        index: 1440,
     },
     {
         name: 'wavy_dash',
@@ -17100,7 +15659,6 @@ const emojis = [
             'punctuation',
             'wavy',
         ],
-        index: 1441,
     },
     {
         name: 'currency_exchange',
@@ -17112,7 +15670,6 @@ const emojis = [
             'exchange',
             'money',
         ],
-        index: 1442,
     },
     {
         name: 'heavy_dollar_sign',
@@ -17123,7 +15680,6 @@ const emojis = [
             'dollar',
             'money',
         ],
-        index: 1443,
     },
     {
         name: 'medical_symbol',
@@ -17131,7 +15687,6 @@ const emojis = [
         keywords: [
             'medical_symbol',
         ],
-        index: 1444,
     },
     {
         name: 'recycle',
@@ -17141,7 +15696,6 @@ const emojis = [
             'green',
             'recycle',
         ],
-        index: 1445,
     },
     {
         name: 'fleur_de_lis',
@@ -17149,7 +15703,6 @@ const emojis = [
         keywords: [
             'fleur_de_lis',
         ],
-        index: 1446,
     },
     {
         name: 'trident',
@@ -17161,7 +15714,6 @@ const emojis = [
             'ship',
             'tool',
         ],
-        index: 1447,
     },
     {
         name: 'name_badge',
@@ -17171,7 +15723,6 @@ const emojis = [
             'badge',
             'name',
         ],
-        index: 1448,
     },
     {
         name: 'beginner',
@@ -17185,7 +15736,6 @@ const emojis = [
             'tool',
             'yellow',
         ],
-        index: 1449,
     },
     {
         name: 'o',
@@ -17194,7 +15744,6 @@ const emojis = [
             'o',
             'circle',
         ],
-        index: 1450,
     },
     {
         name: 'white_check_mark',
@@ -17204,7 +15753,6 @@ const emojis = [
             'check',
             'mark',
         ],
-        index: 1451,
     },
     {
         name: 'ballot_box_with_check',
@@ -17215,7 +15763,6 @@ const emojis = [
             'box',
             'check',
         ],
-        index: 1452,
     },
     {
         name: 'heavy_check_mark',
@@ -17225,7 +15772,6 @@ const emojis = [
             'check',
             'mark',
         ],
-        index: 1453,
     },
     {
         name: 'x',
@@ -17237,7 +15783,6 @@ const emojis = [
             'multiplication',
             'multiply',
         ],
-        index: 1454,
     },
     {
         name: 'negative_squared_cross_mark',
@@ -17247,7 +15792,6 @@ const emojis = [
             'mark',
             'square',
         ],
-        index: 1455,
     },
     {
         name: 'curly_loop',
@@ -17257,7 +15801,6 @@ const emojis = [
             'curl',
             'loop',
         ],
-        index: 1456,
     },
     {
         name: 'loop',
@@ -17267,7 +15810,6 @@ const emojis = [
             'curl',
             'double',
         ],
-        index: 1457,
     },
     {
         name: 'part_alternation_mark',
@@ -17275,7 +15817,6 @@ const emojis = [
         keywords: [
             'part_alternation_mark',
         ],
-        index: 1458,
     },
     {
         name: 'eight_spoked_asterisk',
@@ -17284,7 +15825,6 @@ const emojis = [
             'eight_spoked_asterisk',
             'asterisk',
         ],
-        index: 1459,
     },
     {
         name: 'eight_pointed_black_star',
@@ -17293,7 +15833,6 @@ const emojis = [
             'eight_pointed_black_star',
             'star',
         ],
-        index: 1460,
     },
     {
         name: 'sparkle',
@@ -17301,7 +15840,6 @@ const emojis = [
         keywords: [
             'sparkle',
         ],
-        index: 1461,
     },
     {
         name: 'copyright',
@@ -17309,7 +15847,6 @@ const emojis = [
         keywords: [
             'copyright',
         ],
-        index: 1462,
     },
     {
         name: 'registered',
@@ -17317,7 +15854,6 @@ const emojis = [
         keywords: [
             'registered',
         ],
-        index: 1463,
     },
     {
         name: 'tm',
@@ -17327,7 +15863,6 @@ const emojis = [
             'tm',
             'mark',
         ],
-        index: 1464,
     },
     {
         name: 'hash',
@@ -17338,7 +15873,6 @@ const emojis = [
             'keycap',
             'pound',
         ],
-        index: 1465,
     },
     {
         name: 'asterisk',
@@ -17348,7 +15882,6 @@ const emojis = [
             'keycap',
             'star',
         ],
-        index: 1466,
     },
     {
         name: 'zero',
@@ -17358,7 +15891,6 @@ const emojis = [
             '0',
             'keycap',
         ],
-        index: 1467,
     },
     {
         name: 'one',
@@ -17368,7 +15900,6 @@ const emojis = [
             '1',
             'keycap',
         ],
-        index: 1468,
     },
     {
         name: 'two',
@@ -17378,7 +15909,6 @@ const emojis = [
             '2',
             'keycap',
         ],
-        index: 1469,
     },
     {
         name: 'three',
@@ -17388,7 +15918,6 @@ const emojis = [
             '3',
             'keycap',
         ],
-        index: 1470,
     },
     {
         name: 'four',
@@ -17398,7 +15927,6 @@ const emojis = [
             '4',
             'keycap',
         ],
-        index: 1471,
     },
     {
         name: 'five',
@@ -17408,7 +15936,6 @@ const emojis = [
             '5',
             'keycap',
         ],
-        index: 1472,
     },
     {
         name: 'six',
@@ -17418,7 +15945,6 @@ const emojis = [
             '6',
             'keycap',
         ],
-        index: 1473,
     },
     {
         name: 'seven',
@@ -17428,7 +15954,6 @@ const emojis = [
             '7',
             'keycap',
         ],
-        index: 1474,
     },
     {
         name: 'eight',
@@ -17438,7 +15963,6 @@ const emojis = [
             '8',
             'keycap',
         ],
-        index: 1475,
     },
     {
         name: 'nine',
@@ -17448,7 +15972,6 @@ const emojis = [
             '9',
             'keycap',
         ],
-        index: 1476,
     },
     {
         name: 'keycap_ten',
@@ -17459,7 +15982,6 @@ const emojis = [
             'keycap',
             'ten',
         ],
-        index: 1477,
     },
     {
         name: 'capital_abcd',
@@ -17471,7 +15993,6 @@ const emojis = [
             'latin',
             'uppercase',
         ],
-        index: 1478,
     },
     {
         name: 'abcd',
@@ -17483,7 +16004,6 @@ const emojis = [
             'letters',
             'lowercase',
         ],
-        index: 1479,
     },
     {
         name: '1234',
@@ -17493,7 +16013,6 @@ const emojis = [
             '1234',
             'input',
         ],
-        index: 1480,
     },
     {
         name: 'symbols',
@@ -17502,7 +16021,6 @@ const emojis = [
             'symbols',
             'input',
         ],
-        index: 1481,
     },
     {
         name: 'abc',
@@ -17514,7 +16032,6 @@ const emojis = [
             'latin',
             'letters',
         ],
-        index: 1482,
     },
     {
         name: 'a',
@@ -17522,7 +16039,6 @@ const emojis = [
         keywords: [
             'a',
         ],
-        index: 1483,
     },
     {
         name: 'ab',
@@ -17531,7 +16047,6 @@ const emojis = [
             'ab',
             'blood',
         ],
-        index: 1484,
     },
     {
         name: 'b',
@@ -17539,7 +16054,6 @@ const emojis = [
         keywords: [
             'b',
         ],
-        index: 1485,
     },
     {
         name: 'cl',
@@ -17547,7 +16061,6 @@ const emojis = [
         keywords: [
             'cl',
         ],
-        index: 1486,
     },
     {
         name: 'cool',
@@ -17555,7 +16068,6 @@ const emojis = [
         keywords: [
             'cool',
         ],
-        index: 1487,
     },
     {
         name: 'free',
@@ -17563,7 +16075,6 @@ const emojis = [
         keywords: [
             'free',
         ],
-        index: 1488,
     },
     {
         name: 'information_source',
@@ -17573,7 +16084,6 @@ const emojis = [
             'i',
             'information',
         ],
-        index: 1489,
     },
     {
         name: 'id',
@@ -17582,7 +16092,6 @@ const emojis = [
             'id',
             'identity',
         ],
-        index: 1490,
     },
     {
         name: 'm',
@@ -17590,7 +16099,6 @@ const emojis = [
         keywords: [
             'm',
         ],
-        index: 1491,
     },
     {
         name: 'new',
@@ -17599,7 +16107,6 @@ const emojis = [
             'fresh',
             'new',
         ],
-        index: 1492,
     },
     {
         name: 'ng',
@@ -17607,7 +16114,6 @@ const emojis = [
         keywords: [
             'ng',
         ],
-        index: 1493,
     },
     {
         name: 'o2',
@@ -17615,7 +16121,6 @@ const emojis = [
         keywords: [
             'o2',
         ],
-        index: 1494,
     },
     {
         name: 'ok',
@@ -17624,7 +16129,6 @@ const emojis = [
             'yes',
             'ok',
         ],
-        index: 1495,
     },
     {
         name: 'parking',
@@ -17632,7 +16136,6 @@ const emojis = [
         keywords: [
             'parking',
         ],
-        index: 1496,
     },
     {
         name: 'sos',
@@ -17642,7 +16145,6 @@ const emojis = [
             'emergency',
             'sos',
         ],
-        index: 1497,
     },
     {
         name: 'up',
@@ -17651,7 +16153,6 @@ const emojis = [
             'up',
             'mark',
         ],
-        index: 1498,
     },
     {
         name: 'vs',
@@ -17660,7 +16161,6 @@ const emojis = [
             'vs',
             'versus',
         ],
-        index: 1499,
     },
     {
         name: 'koko',
@@ -17669,7 +16169,6 @@ const emojis = [
             'koko',
             'japanese',
         ],
-        index: 1500,
     },
     {
         name: 'sa',
@@ -17677,7 +16176,6 @@ const emojis = [
         keywords: [
             'sa',
         ],
-        index: 1501,
     },
     {
         name: 'u6708',
@@ -17685,7 +16183,6 @@ const emojis = [
         keywords: [
             'u6708',
         ],
-        index: 1502,
     },
     {
         name: 'u6709',
@@ -17694,7 +16191,6 @@ const emojis = [
             'u6709',
             'japanese',
         ],
-        index: 1503,
     },
     {
         name: 'u6307',
@@ -17703,7 +16199,6 @@ const emojis = [
             'u6307',
             'japanese',
         ],
-        index: 1504,
     },
     {
         name: 'ideograph_advantage',
@@ -17712,7 +16207,6 @@ const emojis = [
             'ideograph_advantage',
             'japanese',
         ],
-        index: 1505,
     },
     {
         name: 'u5272',
@@ -17721,7 +16215,6 @@ const emojis = [
             'u5272',
             'japanese',
         ],
-        index: 1506,
     },
     {
         name: 'u7121',
@@ -17730,7 +16223,6 @@ const emojis = [
             'u7121',
             'japanese',
         ],
-        index: 1507,
     },
     {
         name: 'u7981',
@@ -17739,7 +16231,6 @@ const emojis = [
             'u7981',
             'japanese',
         ],
-        index: 1508,
     },
     {
         name: 'accept',
@@ -17748,7 +16239,6 @@ const emojis = [
             'accept',
             'chinese',
         ],
-        index: 1509,
     },
     {
         name: 'u7533',
@@ -17757,7 +16247,6 @@ const emojis = [
             'u7533',
             'chinese',
         ],
-        index: 1510,
     },
     {
         name: 'u5408',
@@ -17766,7 +16255,6 @@ const emojis = [
             'u5408',
             'chinese',
         ],
-        index: 1511,
     },
     {
         name: 'u7a7a',
@@ -17775,7 +16263,6 @@ const emojis = [
             'u7a7a',
             'chinese',
         ],
-        index: 1512,
     },
     {
         name: 'congratulations',
@@ -17786,7 +16273,6 @@ const emojis = [
             'congratulation',
             'ideograph',
         ],
-        index: 1513,
     },
     {
         name: 'secret',
@@ -17796,7 +16282,6 @@ const emojis = [
             'chinese',
             'ideograph',
         ],
-        index: 1514,
     },
     {
         name: 'u55b6',
@@ -17805,7 +16290,6 @@ const emojis = [
             'u55b6',
             'chinese',
         ],
-        index: 1515,
     },
     {
         name: 'u6e80',
@@ -17814,7 +16298,6 @@ const emojis = [
             'u6e80',
             'chinese',
         ],
-        index: 1516,
     },
     {
         name: 'red_circle',
@@ -17825,7 +16308,6 @@ const emojis = [
             'geometric',
             'red',
         ],
-        index: 1517,
     },
     {
         name: 'orange_circle',
@@ -17833,7 +16315,6 @@ const emojis = [
         keywords: [
             'orange_circle',
         ],
-        index: 1518,
     },
     {
         name: 'yellow_circle',
@@ -17841,7 +16322,6 @@ const emojis = [
         keywords: [
             'yellow_circle',
         ],
-        index: 1519,
     },
     {
         name: 'green_circle',
@@ -17849,7 +16329,6 @@ const emojis = [
         keywords: [
             'green_circle',
         ],
-        index: 1520,
     },
     {
         name: 'large_blue_circle',
@@ -17860,7 +16339,6 @@ const emojis = [
             'circle',
             'geometric',
         ],
-        index: 1521,
     },
     {
         name: 'purple_circle',
@@ -17868,7 +16346,6 @@ const emojis = [
         keywords: [
             'purple_circle',
         ],
-        index: 1522,
     },
     {
         name: 'brown_circle',
@@ -17876,7 +16353,6 @@ const emojis = [
         keywords: [
             'brown_circle',
         ],
-        index: 1523,
     },
     {
         name: 'black_circle',
@@ -17886,7 +16362,6 @@ const emojis = [
             'circle',
             'geometric',
         ],
-        index: 1524,
     },
     {
         name: 'white_circle',
@@ -17896,7 +16371,6 @@ const emojis = [
             'circle',
             'geometric',
         ],
-        index: 1525,
     },
     {
         name: 'red_square',
@@ -17904,7 +16378,6 @@ const emojis = [
         keywords: [
             'red_square',
         ],
-        index: 1526,
     },
     {
         name: 'orange_square',
@@ -17912,7 +16385,6 @@ const emojis = [
         keywords: [
             'orange_square',
         ],
-        index: 1527,
     },
     {
         name: 'yellow_square',
@@ -17920,7 +16392,6 @@ const emojis = [
         keywords: [
             'yellow_square',
         ],
-        index: 1528,
     },
     {
         name: 'green_square',
@@ -17928,7 +16399,6 @@ const emojis = [
         keywords: [
             'green_square',
         ],
-        index: 1529,
     },
     {
         name: 'blue_square',
@@ -17936,7 +16406,6 @@ const emojis = [
         keywords: [
             'blue_square',
         ],
-        index: 1530,
     },
     {
         name: 'purple_square',
@@ -17944,7 +16413,6 @@ const emojis = [
         keywords: [
             'purple_square',
         ],
-        index: 1531,
     },
     {
         name: 'brown_square',
@@ -17952,7 +16420,6 @@ const emojis = [
         keywords: [
             'brown_square',
         ],
-        index: 1532,
     },
     {
         name: 'black_large_square',
@@ -17962,7 +16429,6 @@ const emojis = [
             'geometric',
             'square',
         ],
-        index: 1533,
     },
     {
         name: 'white_large_square',
@@ -17972,7 +16438,6 @@ const emojis = [
             'geometric',
             'square',
         ],
-        index: 1534,
     },
     {
         name: 'black_medium_square',
@@ -17980,7 +16445,6 @@ const emojis = [
         keywords: [
             'black_medium_square',
         ],
-        index: 1535,
     },
     {
         name: 'white_medium_square',
@@ -17988,7 +16452,6 @@ const emojis = [
         keywords: [
             'white_medium_square',
         ],
-        index: 1536,
     },
     {
         name: 'black_medium_small_square',
@@ -17998,7 +16461,6 @@ const emojis = [
             'geometric',
             'square',
         ],
-        index: 1537,
     },
     {
         name: 'white_medium_small_square',
@@ -18008,7 +16470,6 @@ const emojis = [
             'geometric',
             'square',
         ],
-        index: 1538,
     },
     {
         name: 'black_small_square',
@@ -18016,7 +16477,6 @@ const emojis = [
         keywords: [
             'black_small_square',
         ],
-        index: 1539,
     },
     {
         name: 'white_small_square',
@@ -18024,7 +16484,6 @@ const emojis = [
         keywords: [
             'white_small_square',
         ],
-        index: 1540,
     },
     {
         name: 'large_orange_diamond',
@@ -18035,7 +16494,6 @@ const emojis = [
             'geometric',
             'orange',
         ],
-        index: 1541,
     },
     {
         name: 'large_blue_diamond',
@@ -18046,7 +16504,6 @@ const emojis = [
             'diamond',
             'geometric',
         ],
-        index: 1542,
     },
     {
         name: 'small_orange_diamond',
@@ -18057,7 +16514,6 @@ const emojis = [
             'geometric',
             'orange',
         ],
-        index: 1543,
     },
     {
         name: 'small_blue_diamond',
@@ -18068,7 +16524,6 @@ const emojis = [
             'diamond',
             'geometric',
         ],
-        index: 1544,
     },
     {
         name: 'small_red_triangle',
@@ -18078,7 +16533,6 @@ const emojis = [
             'geometric',
             'red',
         ],
-        index: 1545,
     },
     {
         name: 'small_red_triangle_down',
@@ -18089,7 +16543,6 @@ const emojis = [
             'geometric',
             'red',
         ],
-        index: 1546,
     },
     {
         name: 'diamond_shape_with_a_dot_inside',
@@ -18101,7 +16554,6 @@ const emojis = [
             'geometric',
             'inside',
         ],
-        index: 1547,
     },
     {
         name: 'radio_button',
@@ -18112,7 +16564,6 @@ const emojis = [
             'geometric',
             'radio',
         ],
-        index: 1548,
     },
     {
         name: 'white_square_button',
@@ -18124,7 +16575,6 @@ const emojis = [
             'outlined',
             'square',
         ],
-        index: 1549,
     },
     {
         name: 'black_square_button',
@@ -18135,12 +16585,10 @@ const emojis = [
             'geometric',
             'square',
         ],
-        index: 1550,
     },
     {
         code: 'flags',
         header: true,
-        index: 1551,
     },
     {
         name: 'checkered_flag',
@@ -18154,7 +16602,6 @@ const emojis = [
             'flag',
             'racing',
         ],
-        index: 1552,
     },
     {
         name: 'triangular_flag_on_post',
@@ -18164,7 +16611,6 @@ const emojis = [
             'flag',
             'post',
         ],
-        index: 1553,
     },
     {
         name: 'crossed_flags',
@@ -18178,7 +16624,6 @@ const emojis = [
             'flag',
             'japanese',
         ],
-        index: 1554,
     },
     {
         name: 'black_flag',
@@ -18188,7 +16633,6 @@ const emojis = [
             'flag',
             'waving',
         ],
-        index: 1555,
     },
     {
         name: 'white_flag',
@@ -18196,7 +16640,6 @@ const emojis = [
         keywords: [
             'white_flag',
         ],
-        index: 1556,
     },
     {
         name: 'rainbow_flag',
@@ -18205,7 +16648,6 @@ const emojis = [
             'pride',
             'rainbow_flag',
         ],
-        index: 1557,
     },
     {
         name: 'transgender_flag',
@@ -18213,7 +16655,6 @@ const emojis = [
         keywords: [
             'transgender_flag',
         ],
-        index: 1558,
     },
     {
         name: 'pirate_flag',
@@ -18221,7 +16662,6 @@ const emojis = [
         keywords: [
             'pirate_flag',
         ],
-        index: 1559,
     },
     {
         name: 'ascension_island',
@@ -18232,7 +16672,6 @@ const emojis = [
             'flag',
             'island',
         ],
-        index: 1560,
     },
     {
         name: 'andorra',
@@ -18241,7 +16680,6 @@ const emojis = [
             'andorra',
             'flag',
         ],
-        index: 1561,
     },
     {
         name: 'united_arab_emirates',
@@ -18253,7 +16691,6 @@ const emojis = [
             'uae',
             'united',
         ],
-        index: 1562,
     },
     {
         name: 'afghanistan',
@@ -18262,7 +16699,6 @@ const emojis = [
             'afghanistan',
             'flag',
         ],
-        index: 1563,
     },
     {
         name: 'antigua_barbuda',
@@ -18273,7 +16709,6 @@ const emojis = [
             'barbuda',
             'flag',
         ],
-        index: 1564,
     },
     {
         name: 'anguilla',
@@ -18282,7 +16717,6 @@ const emojis = [
             'anguilla',
             'flag',
         ],
-        index: 1565,
     },
     {
         name: 'albania',
@@ -18291,7 +16725,6 @@ const emojis = [
             'albania',
             'flag',
         ],
-        index: 1566,
     },
     {
         name: 'armenia',
@@ -18300,7 +16733,6 @@ const emojis = [
             'armenia',
             'flag',
         ],
-        index: 1567,
     },
     {
         name: 'angola',
@@ -18309,7 +16741,6 @@ const emojis = [
             'angola',
             'flag',
         ],
-        index: 1568,
     },
     {
         name: 'antarctica',
@@ -18318,7 +16749,6 @@ const emojis = [
             'antarctica',
             'flag',
         ],
-        index: 1569,
     },
     {
         name: 'argentina',
@@ -18327,7 +16757,6 @@ const emojis = [
             'argentina',
             'flag',
         ],
-        index: 1570,
     },
     {
         name: 'american_samoa',
@@ -18338,7 +16767,6 @@ const emojis = [
             'flag',
             'samoa',
         ],
-        index: 1571,
     },
     {
         name: 'austria',
@@ -18347,7 +16775,6 @@ const emojis = [
             'austria',
             'flag',
         ],
-        index: 1572,
     },
     {
         name: 'australia',
@@ -18356,7 +16783,6 @@ const emojis = [
             'australia',
             'flag',
         ],
-        index: 1573,
     },
     {
         name: 'aruba',
@@ -18365,7 +16791,6 @@ const emojis = [
             'aruba',
             'flag',
         ],
-        index: 1574,
     },
     {
         name: 'aland_islands',
@@ -18375,7 +16800,6 @@ const emojis = [
             'åland',
             'flag',
         ],
-        index: 1575,
     },
     {
         name: 'azerbaijan',
@@ -18384,7 +16808,6 @@ const emojis = [
             'azerbaijan',
             'flag',
         ],
-        index: 1576,
     },
     {
         name: 'bosnia_herzegovina',
@@ -18395,7 +16818,6 @@ const emojis = [
             'flag',
             'herzegovina',
         ],
-        index: 1577,
     },
     {
         name: 'barbados',
@@ -18404,7 +16826,6 @@ const emojis = [
             'barbados',
             'flag',
         ],
-        index: 1578,
     },
     {
         name: 'bangladesh',
@@ -18413,7 +16834,6 @@ const emojis = [
             'bangladesh',
             'flag',
         ],
-        index: 1579,
     },
     {
         name: 'belgium',
@@ -18422,7 +16842,6 @@ const emojis = [
             'belgium',
             'flag',
         ],
-        index: 1580,
     },
     {
         name: 'burkina_faso',
@@ -18432,7 +16851,6 @@ const emojis = [
             'burkina faso',
             'flag',
         ],
-        index: 1581,
     },
     {
         name: 'bulgaria',
@@ -18441,7 +16859,6 @@ const emojis = [
             'bulgaria',
             'flag',
         ],
-        index: 1582,
     },
     {
         name: 'bahrain',
@@ -18450,7 +16867,6 @@ const emojis = [
             'bahrain',
             'flag',
         ],
-        index: 1583,
     },
     {
         name: 'burundi',
@@ -18459,7 +16875,6 @@ const emojis = [
             'burundi',
             'flag',
         ],
-        index: 1584,
     },
     {
         name: 'benin',
@@ -18468,7 +16883,6 @@ const emojis = [
             'benin',
             'flag',
         ],
-        index: 1585,
     },
     {
         name: 'st_barthelemy',
@@ -18480,7 +16894,6 @@ const emojis = [
             'flag',
             'saint',
         ],
-        index: 1586,
     },
     {
         name: 'bermuda',
@@ -18489,7 +16902,6 @@ const emojis = [
             'bermuda',
             'flag',
         ],
-        index: 1587,
     },
     {
         name: 'brunei',
@@ -18499,7 +16911,6 @@ const emojis = [
             'darussalam',
             'flag',
         ],
-        index: 1588,
     },
     {
         name: 'bolivia',
@@ -18508,7 +16919,6 @@ const emojis = [
             'bolivia',
             'flag',
         ],
-        index: 1589,
     },
     {
         name: 'caribbean_netherlands',
@@ -18523,7 +16933,6 @@ const emojis = [
             'saba',
             'sint',
         ],
-        index: 1590,
     },
     {
         name: 'brazil',
@@ -18532,7 +16941,6 @@ const emojis = [
             'brazil',
             'flag',
         ],
-        index: 1591,
     },
     {
         name: 'bahamas',
@@ -18541,7 +16949,6 @@ const emojis = [
             'bahamas',
             'flag',
         ],
-        index: 1592,
     },
     {
         name: 'bhutan',
@@ -18550,7 +16957,6 @@ const emojis = [
             'bhutan',
             'flag',
         ],
-        index: 1593,
     },
     {
         name: 'bouvet_island',
@@ -18561,7 +16967,6 @@ const emojis = [
             'flag',
             'island',
         ],
-        index: 1594,
     },
     {
         name: 'botswana',
@@ -18570,7 +16975,6 @@ const emojis = [
             'botswana',
             'flag',
         ],
-        index: 1595,
     },
     {
         name: 'belarus',
@@ -18579,7 +16983,6 @@ const emojis = [
             'belarus',
             'flag',
         ],
-        index: 1596,
     },
     {
         name: 'belize',
@@ -18588,7 +16991,6 @@ const emojis = [
             'belize',
             'flag',
         ],
-        index: 1597,
     },
     {
         name: 'canada',
@@ -18597,7 +16999,6 @@ const emojis = [
             'canada',
             'flag',
         ],
-        index: 1598,
     },
     {
         name: 'cocos_islands',
@@ -18609,7 +17010,6 @@ const emojis = [
             'flag',
             'island',
         ],
-        index: 1599,
     },
     {
         name: 'congo_kinshasa',
@@ -18624,7 +17024,6 @@ const emojis = [
             'kinshasa',
             'republic',
         ],
-        index: 1600,
     },
     {
         name: 'central_african_republic',
@@ -18635,7 +17034,6 @@ const emojis = [
             'flag',
             'republic',
         ],
-        index: 1601,
     },
     {
         name: 'congo_brazzaville',
@@ -18650,7 +17048,6 @@ const emojis = [
             'republic',
             'republic of the congo',
         ],
-        index: 1602,
     },
     {
         name: 'switzerland',
@@ -18659,7 +17056,6 @@ const emojis = [
             'switzerland',
             'flag',
         ],
-        index: 1603,
     },
     {
         name: 'cote_divoire',
@@ -18672,7 +17068,6 @@ const emojis = [
             'flag',
             'ivory coast',
         ],
-        index: 1604,
     },
     {
         name: 'cook_islands',
@@ -18683,7 +17078,6 @@ const emojis = [
             'flag',
             'island',
         ],
-        index: 1605,
     },
     {
         name: 'chile',
@@ -18692,7 +17086,6 @@ const emojis = [
             'chile',
             'flag',
         ],
-        index: 1606,
     },
     {
         name: 'cameroon',
@@ -18701,7 +17094,6 @@ const emojis = [
             'cameroon',
             'flag',
         ],
-        index: 1607,
     },
     {
         name: 'cn',
@@ -18711,7 +17103,6 @@ const emojis = [
             'cn',
             'flag',
         ],
-        index: 1608,
     },
     {
         name: 'colombia',
@@ -18720,7 +17111,6 @@ const emojis = [
             'colombia',
             'flag',
         ],
-        index: 1609,
     },
     {
         name: 'clipperton_island',
@@ -18731,7 +17121,6 @@ const emojis = [
             'flag',
             'island',
         ],
-        index: 1610,
     },
     {
         name: 'costa_rica',
@@ -18741,7 +17130,6 @@ const emojis = [
             'costa rica',
             'flag',
         ],
-        index: 1611,
     },
     {
         name: 'cuba',
@@ -18750,7 +17138,6 @@ const emojis = [
             'cuba',
             'flag',
         ],
-        index: 1612,
     },
     {
         name: 'cape_verde',
@@ -18762,7 +17149,6 @@ const emojis = [
             'flag',
             'verde',
         ],
-        index: 1613,
     },
     {
         name: 'curacao',
@@ -18773,7 +17159,6 @@ const emojis = [
             'curaçao',
             'flag',
         ],
-        index: 1614,
     },
     {
         name: 'christmas_island',
@@ -18784,7 +17169,6 @@ const emojis = [
             'flag',
             'island',
         ],
-        index: 1615,
     },
     {
         name: 'cyprus',
@@ -18793,7 +17177,6 @@ const emojis = [
             'cyprus',
             'flag',
         ],
-        index: 1616,
     },
     {
         name: 'czech_republic',
@@ -18803,7 +17186,6 @@ const emojis = [
             'czech republic',
             'flag',
         ],
-        index: 1617,
     },
     {
         name: 'de',
@@ -18813,7 +17195,6 @@ const emojis = [
             'germany',
             'de',
         ],
-        index: 1618,
     },
     {
         name: 'diego_garcia',
@@ -18823,7 +17204,6 @@ const emojis = [
             'diego garcia',
             'flag',
         ],
-        index: 1619,
     },
     {
         name: 'djibouti',
@@ -18832,7 +17212,6 @@ const emojis = [
             'djibouti',
             'flag',
         ],
-        index: 1620,
     },
     {
         name: 'denmark',
@@ -18841,7 +17220,6 @@ const emojis = [
             'denmark',
             'flag',
         ],
-        index: 1621,
     },
     {
         name: 'dominica',
@@ -18850,7 +17228,6 @@ const emojis = [
             'dominica',
             'flag',
         ],
-        index: 1622,
     },
     {
         name: 'dominican_republic',
@@ -18860,7 +17237,6 @@ const emojis = [
             'dominican republic',
             'flag',
         ],
-        index: 1623,
     },
     {
         name: 'algeria',
@@ -18869,7 +17245,6 @@ const emojis = [
             'algeria',
             'flag',
         ],
-        index: 1624,
     },
     {
         name: 'ceuta_melilla',
@@ -18880,7 +17255,6 @@ const emojis = [
             'flag',
             'melilla',
         ],
-        index: 1625,
     },
     {
         name: 'ecuador',
@@ -18889,7 +17263,6 @@ const emojis = [
             'ecuador',
             'flag',
         ],
-        index: 1626,
     },
     {
         name: 'estonia',
@@ -18898,7 +17271,6 @@ const emojis = [
             'estonia',
             'flag',
         ],
-        index: 1627,
     },
     {
         name: 'egypt',
@@ -18907,7 +17279,6 @@ const emojis = [
             'egypt',
             'flag',
         ],
-        index: 1628,
     },
     {
         name: 'western_sahara',
@@ -18919,7 +17290,6 @@ const emojis = [
             'west',
             'western sahara',
         ],
-        index: 1629,
     },
     {
         name: 'eritrea',
@@ -18928,7 +17298,6 @@ const emojis = [
             'eritrea',
             'flag',
         ],
-        index: 1630,
     },
     {
         name: 'es',
@@ -18938,7 +17307,6 @@ const emojis = [
             'es',
             'flag',
         ],
-        index: 1631,
     },
     {
         name: 'ethiopia',
@@ -18947,7 +17315,6 @@ const emojis = [
             'ethiopia',
             'flag',
         ],
-        index: 1632,
     },
     {
         name: 'eu',
@@ -18958,7 +17325,6 @@ const emojis = [
             'european union',
             'flag',
         ],
-        index: 1633,
     },
     {
         name: 'finland',
@@ -18967,7 +17333,6 @@ const emojis = [
             'finland',
             'flag',
         ],
-        index: 1634,
     },
     {
         name: 'fiji',
@@ -18976,7 +17341,6 @@ const emojis = [
             'fiji',
             'flag',
         ],
-        index: 1635,
     },
     {
         name: 'falkland_islands',
@@ -18990,7 +17354,6 @@ const emojis = [
             'islas',
             'malvinas',
         ],
-        index: 1636,
     },
     {
         name: 'micronesia',
@@ -18999,7 +17362,6 @@ const emojis = [
             'micronesia',
             'flag',
         ],
-        index: 1637,
     },
     {
         name: 'faroe_islands',
@@ -19010,7 +17372,6 @@ const emojis = [
             'flag',
             'island',
         ],
-        index: 1638,
     },
     {
         name: 'fr',
@@ -19021,7 +17382,6 @@ const emojis = [
             'fr',
             'flag',
         ],
-        index: 1639,
     },
     {
         name: 'gabon',
@@ -19030,7 +17390,6 @@ const emojis = [
             'gabon',
             'flag',
         ],
-        index: 1640,
     },
     {
         name: 'gb',
@@ -19052,7 +17411,6 @@ const emojis = [
             'united kingdom',
             'wales',
         ],
-        index: 1641,
     },
     {
         name: 'grenada',
@@ -19061,7 +17419,6 @@ const emojis = [
             'grenada',
             'flag',
         ],
-        index: 1642,
     },
     {
         name: 'georgia',
@@ -19070,7 +17427,6 @@ const emojis = [
             'georgia',
             'flag',
         ],
-        index: 1643,
     },
     {
         name: 'french_guiana',
@@ -19081,7 +17437,6 @@ const emojis = [
             'french',
             'guiana',
         ],
-        index: 1644,
     },
     {
         name: 'guernsey',
@@ -19090,7 +17445,6 @@ const emojis = [
             'guernsey',
             'flag',
         ],
-        index: 1645,
     },
     {
         name: 'ghana',
@@ -19099,7 +17453,6 @@ const emojis = [
             'ghana',
             'flag',
         ],
-        index: 1646,
     },
     {
         name: 'gibraltar',
@@ -19108,7 +17461,6 @@ const emojis = [
             'gibraltar',
             'flag',
         ],
-        index: 1647,
     },
     {
         name: 'greenland',
@@ -19117,7 +17469,6 @@ const emojis = [
             'greenland',
             'flag',
         ],
-        index: 1648,
     },
     {
         name: 'gambia',
@@ -19126,7 +17477,6 @@ const emojis = [
             'gambia',
             'flag',
         ],
-        index: 1649,
     },
     {
         name: 'guinea',
@@ -19135,7 +17485,6 @@ const emojis = [
             'guinea',
             'flag',
         ],
-        index: 1650,
     },
     {
         name: 'guadeloupe',
@@ -19144,7 +17493,6 @@ const emojis = [
             'guadeloupe',
             'flag',
         ],
-        index: 1651,
     },
     {
         name: 'equatorial_guinea',
@@ -19155,7 +17503,6 @@ const emojis = [
             'flag',
             'guinea',
         ],
-        index: 1652,
     },
     {
         name: 'greece',
@@ -19164,7 +17511,6 @@ const emojis = [
             'greece',
             'flag',
         ],
-        index: 1653,
     },
     {
         name: 'south_georgia_south_sandwich_islands',
@@ -19178,7 +17524,6 @@ const emojis = [
             'south georgia',
             'south sandwich',
         ],
-        index: 1654,
     },
     {
         name: 'guatemala',
@@ -19187,7 +17532,6 @@ const emojis = [
             'guatemala',
             'flag',
         ],
-        index: 1655,
     },
     {
         name: 'guam',
@@ -19196,7 +17540,6 @@ const emojis = [
             'guam',
             'flag',
         ],
-        index: 1656,
     },
     {
         name: 'guinea_bissau',
@@ -19207,7 +17550,6 @@ const emojis = [
             'flag',
             'guinea',
         ],
-        index: 1657,
     },
     {
         name: 'guyana',
@@ -19216,7 +17558,6 @@ const emojis = [
             'guyana',
             'flag',
         ],
-        index: 1658,
     },
     {
         name: 'hong_kong',
@@ -19227,7 +17568,6 @@ const emojis = [
             'flag',
             'hong kong',
         ],
-        index: 1659,
     },
     {
         name: 'heard_mcdonald_islands',
@@ -19239,7 +17579,6 @@ const emojis = [
             'island',
             'mcdonald',
         ],
-        index: 1660,
     },
     {
         name: 'honduras',
@@ -19248,7 +17587,6 @@ const emojis = [
             'honduras',
             'flag',
         ],
-        index: 1661,
     },
     {
         name: 'croatia',
@@ -19257,7 +17595,6 @@ const emojis = [
             'croatia',
             'flag',
         ],
-        index: 1662,
     },
     {
         name: 'haiti',
@@ -19266,7 +17603,6 @@ const emojis = [
             'haiti',
             'flag',
         ],
-        index: 1663,
     },
     {
         name: 'hungary',
@@ -19275,7 +17611,6 @@ const emojis = [
             'hungary',
             'flag',
         ],
-        index: 1664,
     },
     {
         name: 'canary_islands',
@@ -19286,7 +17621,6 @@ const emojis = [
             'flag',
             'island',
         ],
-        index: 1665,
     },
     {
         name: 'indonesia',
@@ -19295,7 +17629,6 @@ const emojis = [
             'indonesia',
             'flag',
         ],
-        index: 1666,
     },
     {
         name: 'ireland',
@@ -19304,7 +17637,6 @@ const emojis = [
             'ireland',
             'flag',
         ],
-        index: 1667,
     },
     {
         name: 'israel',
@@ -19313,7 +17645,6 @@ const emojis = [
             'israel',
             'flag',
         ],
-        index: 1668,
     },
     {
         name: 'isle_of_man',
@@ -19323,7 +17654,6 @@ const emojis = [
             'flag',
             'isle of man',
         ],
-        index: 1669,
     },
     {
         name: 'india',
@@ -19332,7 +17662,6 @@ const emojis = [
             'india',
             'flag',
         ],
-        index: 1670,
     },
     {
         name: 'british_indian_ocean_territory',
@@ -19345,7 +17674,6 @@ const emojis = [
             'indian ocean',
             'island',
         ],
-        index: 1671,
     },
     {
         name: 'iraq',
@@ -19354,7 +17682,6 @@ const emojis = [
             'iraq',
             'flag',
         ],
-        index: 1672,
     },
     {
         name: 'iran',
@@ -19363,7 +17690,6 @@ const emojis = [
             'iran',
             'flag',
         ],
-        index: 1673,
     },
     {
         name: 'iceland',
@@ -19372,7 +17698,6 @@ const emojis = [
             'iceland',
             'flag',
         ],
-        index: 1674,
     },
     {
         name: 'it',
@@ -19382,7 +17707,6 @@ const emojis = [
             'it',
             'flag',
         ],
-        index: 1675,
     },
     {
         name: 'jersey',
@@ -19391,7 +17715,6 @@ const emojis = [
             'jersey',
             'flag',
         ],
-        index: 1676,
     },
     {
         name: 'jamaica',
@@ -19400,7 +17723,6 @@ const emojis = [
             'jamaica',
             'flag',
         ],
-        index: 1677,
     },
     {
         name: 'jordan',
@@ -19409,7 +17731,6 @@ const emojis = [
             'jordan',
             'flag',
         ],
-        index: 1678,
     },
     {
         name: 'jp',
@@ -19419,7 +17740,6 @@ const emojis = [
             'jp',
             'flag',
         ],
-        index: 1679,
     },
     {
         name: 'kenya',
@@ -19428,7 +17748,6 @@ const emojis = [
             'kenya',
             'flag',
         ],
-        index: 1680,
     },
     {
         name: 'kyrgyzstan',
@@ -19437,7 +17756,6 @@ const emojis = [
             'kyrgyzstan',
             'flag',
         ],
-        index: 1681,
     },
     {
         name: 'cambodia',
@@ -19446,7 +17764,6 @@ const emojis = [
             'cambodia',
             'flag',
         ],
-        index: 1682,
     },
     {
         name: 'kiribati',
@@ -19455,7 +17772,6 @@ const emojis = [
             'kiribati',
             'flag',
         ],
-        index: 1683,
     },
     {
         name: 'comoros',
@@ -19464,7 +17780,6 @@ const emojis = [
             'comoros',
             'flag',
         ],
-        index: 1684,
     },
     {
         name: 'st_kitts_nevis',
@@ -19476,7 +17791,6 @@ const emojis = [
             'nevis',
             'saint',
         ],
-        index: 1685,
     },
     {
         name: 'north_korea',
@@ -19488,7 +17802,6 @@ const emojis = [
             'north',
             'north korea',
         ],
-        index: 1686,
     },
     {
         name: 'kr',
@@ -19500,7 +17813,6 @@ const emojis = [
             'south',
             'south korea',
         ],
-        index: 1687,
     },
     {
         name: 'kuwait',
@@ -19509,7 +17821,6 @@ const emojis = [
             'kuwait',
             'flag',
         ],
-        index: 1688,
     },
     {
         name: 'cayman_islands',
@@ -19520,7 +17831,6 @@ const emojis = [
             'flag',
             'island',
         ],
-        index: 1689,
     },
     {
         name: 'kazakhstan',
@@ -19529,7 +17839,6 @@ const emojis = [
             'kazakhstan',
             'flag',
         ],
-        index: 1690,
     },
     {
         name: 'laos',
@@ -19538,7 +17847,6 @@ const emojis = [
             'laos',
             'flag',
         ],
-        index: 1691,
     },
     {
         name: 'lebanon',
@@ -19547,7 +17855,6 @@ const emojis = [
             'lebanon',
             'flag',
         ],
-        index: 1692,
     },
     {
         name: 'st_lucia',
@@ -19558,7 +17865,6 @@ const emojis = [
             'lucia',
             'saint',
         ],
-        index: 1693,
     },
     {
         name: 'liechtenstein',
@@ -19567,7 +17873,6 @@ const emojis = [
             'liechtenstein',
             'flag',
         ],
-        index: 1694,
     },
     {
         name: 'sri_lanka',
@@ -19577,7 +17882,6 @@ const emojis = [
             'flag',
             'sri lanka',
         ],
-        index: 1695,
     },
     {
         name: 'liberia',
@@ -19586,7 +17890,6 @@ const emojis = [
             'liberia',
             'flag',
         ],
-        index: 1696,
     },
     {
         name: 'lesotho',
@@ -19595,7 +17898,6 @@ const emojis = [
             'lesotho',
             'flag',
         ],
-        index: 1697,
     },
     {
         name: 'lithuania',
@@ -19604,7 +17906,6 @@ const emojis = [
             'lithuania',
             'flag',
         ],
-        index: 1698,
     },
     {
         name: 'luxembourg',
@@ -19613,7 +17914,6 @@ const emojis = [
             'luxembourg',
             'flag',
         ],
-        index: 1699,
     },
     {
         name: 'latvia',
@@ -19622,7 +17922,6 @@ const emojis = [
             'latvia',
             'flag',
         ],
-        index: 1700,
     },
     {
         name: 'libya',
@@ -19631,7 +17930,6 @@ const emojis = [
             'libya',
             'flag',
         ],
-        index: 1701,
     },
     {
         name: 'morocco',
@@ -19640,7 +17938,6 @@ const emojis = [
             'morocco',
             'flag',
         ],
-        index: 1702,
     },
     {
         name: 'monaco',
@@ -19649,7 +17946,6 @@ const emojis = [
             'monaco',
             'flag',
         ],
-        index: 1703,
     },
     {
         name: 'moldova',
@@ -19658,7 +17954,6 @@ const emojis = [
             'moldova',
             'flag',
         ],
-        index: 1704,
     },
     {
         name: 'montenegro',
@@ -19667,7 +17962,6 @@ const emojis = [
             'montenegro',
             'flag',
         ],
-        index: 1705,
     },
     {
         name: 'st_martin',
@@ -19679,7 +17973,6 @@ const emojis = [
             'martin',
             'saint',
         ],
-        index: 1706,
     },
     {
         name: 'madagascar',
@@ -19688,7 +17981,6 @@ const emojis = [
             'madagascar',
             'flag',
         ],
-        index: 1707,
     },
     {
         name: 'marshall_islands',
@@ -19699,7 +17991,6 @@ const emojis = [
             'island',
             'marshall',
         ],
-        index: 1708,
     },
     {
         name: 'macedonia',
@@ -19708,7 +17999,6 @@ const emojis = [
             'macedonia',
             'flag',
         ],
-        index: 1709,
     },
     {
         name: 'mali',
@@ -19717,7 +18007,6 @@ const emojis = [
             'mali',
             'flag',
         ],
-        index: 1710,
     },
     {
         name: 'myanmar',
@@ -19727,7 +18016,6 @@ const emojis = [
             'myanmar',
             'flag',
         ],
-        index: 1711,
     },
     {
         name: 'mongolia',
@@ -19736,7 +18024,6 @@ const emojis = [
             'mongolia',
             'flag',
         ],
-        index: 1712,
     },
     {
         name: 'macau',
@@ -19747,7 +18034,6 @@ const emojis = [
             'flag',
             'macao',
         ],
-        index: 1713,
     },
     {
         name: 'northern_mariana_islands',
@@ -19760,7 +18046,6 @@ const emojis = [
             'north',
             'northern mariana',
         ],
-        index: 1714,
     },
     {
         name: 'martinique',
@@ -19769,7 +18054,6 @@ const emojis = [
             'martinique',
             'flag',
         ],
-        index: 1715,
     },
     {
         name: 'mauritania',
@@ -19778,7 +18062,6 @@ const emojis = [
             'mauritania',
             'flag',
         ],
-        index: 1716,
     },
     {
         name: 'montserrat',
@@ -19787,7 +18070,6 @@ const emojis = [
             'montserrat',
             'flag',
         ],
-        index: 1717,
     },
     {
         name: 'malta',
@@ -19796,7 +18078,6 @@ const emojis = [
             'malta',
             'flag',
         ],
-        index: 1718,
     },
     {
         name: 'mauritius',
@@ -19805,7 +18086,6 @@ const emojis = [
             'mauritius',
             'flag',
         ],
-        index: 1719,
     },
     {
         name: 'maldives',
@@ -19814,7 +18094,6 @@ const emojis = [
             'maldives',
             'flag',
         ],
-        index: 1720,
     },
     {
         name: 'malawi',
@@ -19823,7 +18102,6 @@ const emojis = [
             'malawi',
             'flag',
         ],
-        index: 1721,
     },
     {
         name: 'mexico',
@@ -19832,7 +18110,6 @@ const emojis = [
             'mexico',
             'flag',
         ],
-        index: 1722,
     },
     {
         name: 'malaysia',
@@ -19841,7 +18118,6 @@ const emojis = [
             'malaysia',
             'flag',
         ],
-        index: 1723,
     },
     {
         name: 'mozambique',
@@ -19850,7 +18126,6 @@ const emojis = [
             'mozambique',
             'flag',
         ],
-        index: 1724,
     },
     {
         name: 'namibia',
@@ -19859,7 +18134,6 @@ const emojis = [
             'namibia',
             'flag',
         ],
-        index: 1725,
     },
     {
         name: 'new_caledonia',
@@ -19870,7 +18144,6 @@ const emojis = [
             'new',
             'new caledonia',
         ],
-        index: 1726,
     },
     {
         name: 'niger',
@@ -19879,7 +18152,6 @@ const emojis = [
             'niger',
             'flag',
         ],
-        index: 1727,
     },
     {
         name: 'norfolk_island',
@@ -19890,7 +18162,6 @@ const emojis = [
             'island',
             'norfolk',
         ],
-        index: 1728,
     },
     {
         name: 'nigeria',
@@ -19899,7 +18170,6 @@ const emojis = [
             'nigeria',
             'flag',
         ],
-        index: 1729,
     },
     {
         name: 'nicaragua',
@@ -19908,7 +18178,6 @@ const emojis = [
             'nicaragua',
             'flag',
         ],
-        index: 1730,
     },
     {
         name: 'netherlands',
@@ -19917,7 +18186,6 @@ const emojis = [
             'netherlands',
             'flag',
         ],
-        index: 1731,
     },
     {
         name: 'norway',
@@ -19926,7 +18194,6 @@ const emojis = [
             'norway',
             'flag',
         ],
-        index: 1732,
     },
     {
         name: 'nepal',
@@ -19935,7 +18202,6 @@ const emojis = [
             'nepal',
             'flag',
         ],
-        index: 1733,
     },
     {
         name: 'nauru',
@@ -19944,7 +18210,6 @@ const emojis = [
             'nauru',
             'flag',
         ],
-        index: 1734,
     },
     {
         name: 'niue',
@@ -19953,7 +18218,6 @@ const emojis = [
             'niue',
             'flag',
         ],
-        index: 1735,
     },
     {
         name: 'new_zealand',
@@ -19964,7 +18228,6 @@ const emojis = [
             'new',
             'new zealand',
         ],
-        index: 1736,
     },
     {
         name: 'oman',
@@ -19973,7 +18236,6 @@ const emojis = [
             'oman',
             'flag',
         ],
-        index: 1737,
     },
     {
         name: 'panama',
@@ -19982,7 +18244,6 @@ const emojis = [
             'panama',
             'flag',
         ],
-        index: 1738,
     },
     {
         name: 'peru',
@@ -19991,7 +18252,6 @@ const emojis = [
             'peru',
             'flag',
         ],
-        index: 1739,
     },
     {
         name: 'french_polynesia',
@@ -20002,7 +18262,6 @@ const emojis = [
             'french',
             'polynesia',
         ],
-        index: 1740,
     },
     {
         name: 'papua_new_guinea',
@@ -20014,7 +18273,6 @@ const emojis = [
             'new',
             'papua new guinea',
         ],
-        index: 1741,
     },
     {
         name: 'philippines',
@@ -20023,7 +18281,6 @@ const emojis = [
             'philippines',
             'flag',
         ],
-        index: 1742,
     },
     {
         name: 'pakistan',
@@ -20032,7 +18289,6 @@ const emojis = [
             'pakistan',
             'flag',
         ],
-        index: 1743,
     },
     {
         name: 'poland',
@@ -20041,7 +18297,6 @@ const emojis = [
             'poland',
             'flag',
         ],
-        index: 1744,
     },
     {
         name: 'st_pierre_miquelon',
@@ -20053,7 +18308,6 @@ const emojis = [
             'pierre',
             'saint',
         ],
-        index: 1745,
     },
     {
         name: 'pitcairn_islands',
@@ -20064,7 +18318,6 @@ const emojis = [
             'island',
             'pitcairn',
         ],
-        index: 1746,
     },
     {
         name: 'puerto_rico',
@@ -20074,7 +18327,6 @@ const emojis = [
             'flag',
             'puerto rico',
         ],
-        index: 1747,
     },
     {
         name: 'palestinian_territories',
@@ -20084,7 +18336,6 @@ const emojis = [
             'flag',
             'palestine',
         ],
-        index: 1748,
     },
     {
         name: 'portugal',
@@ -20093,7 +18344,6 @@ const emojis = [
             'portugal',
             'flag',
         ],
-        index: 1749,
     },
     {
         name: 'palau',
@@ -20102,7 +18352,6 @@ const emojis = [
             'palau',
             'flag',
         ],
-        index: 1750,
     },
     {
         name: 'paraguay',
@@ -20111,7 +18360,6 @@ const emojis = [
             'paraguay',
             'flag',
         ],
-        index: 1751,
     },
     {
         name: 'qatar',
@@ -20120,7 +18368,6 @@ const emojis = [
             'qatar',
             'flag',
         ],
-        index: 1752,
     },
     {
         name: 'reunion',
@@ -20130,7 +18377,6 @@ const emojis = [
             'flag',
             'réunion',
         ],
-        index: 1753,
     },
     {
         name: 'romania',
@@ -20139,7 +18385,6 @@ const emojis = [
             'romania',
             'flag',
         ],
-        index: 1754,
     },
     {
         name: 'serbia',
@@ -20148,7 +18393,6 @@ const emojis = [
             'serbia',
             'flag',
         ],
-        index: 1755,
     },
     {
         name: 'ru',
@@ -20158,7 +18402,6 @@ const emojis = [
             'ru',
             'flag',
         ],
-        index: 1756,
     },
     {
         name: 'rwanda',
@@ -20167,7 +18410,6 @@ const emojis = [
             'rwanda',
             'flag',
         ],
-        index: 1757,
     },
     {
         name: 'saudi_arabia',
@@ -20177,7 +18419,6 @@ const emojis = [
             'flag',
             'saudi arabia',
         ],
-        index: 1758,
     },
     {
         name: 'solomon_islands',
@@ -20188,7 +18429,6 @@ const emojis = [
             'island',
             'solomon',
         ],
-        index: 1759,
     },
     {
         name: 'seychelles',
@@ -20197,7 +18437,6 @@ const emojis = [
             'seychelles',
             'flag',
         ],
-        index: 1760,
     },
     {
         name: 'sudan',
@@ -20206,7 +18445,6 @@ const emojis = [
             'sudan',
             'flag',
         ],
-        index: 1761,
     },
     {
         name: 'sweden',
@@ -20215,7 +18453,6 @@ const emojis = [
             'sweden',
             'flag',
         ],
-        index: 1762,
     },
     {
         name: 'singapore',
@@ -20224,7 +18461,6 @@ const emojis = [
             'singapore',
             'flag',
         ],
-        index: 1763,
     },
     {
         name: 'st_helena',
@@ -20235,7 +18471,6 @@ const emojis = [
             'helena',
             'saint',
         ],
-        index: 1764,
     },
     {
         name: 'slovenia',
@@ -20244,7 +18479,6 @@ const emojis = [
             'slovenia',
             'flag',
         ],
-        index: 1765,
     },
     {
         name: 'svalbard_jan_mayen',
@@ -20255,7 +18489,6 @@ const emojis = [
             'jan mayen',
             'svalbard',
         ],
-        index: 1766,
     },
     {
         name: 'slovakia',
@@ -20264,7 +18497,6 @@ const emojis = [
             'slovakia',
             'flag',
         ],
-        index: 1767,
     },
     {
         name: 'sierra_leone',
@@ -20274,7 +18506,6 @@ const emojis = [
             'flag',
             'sierra leone',
         ],
-        index: 1768,
     },
     {
         name: 'san_marino',
@@ -20284,7 +18515,6 @@ const emojis = [
             'flag',
             'san marino',
         ],
-        index: 1769,
     },
     {
         name: 'senegal',
@@ -20293,7 +18523,6 @@ const emojis = [
             'senegal',
             'flag',
         ],
-        index: 1770,
     },
     {
         name: 'somalia',
@@ -20302,7 +18531,6 @@ const emojis = [
             'somalia',
             'flag',
         ],
-        index: 1771,
     },
     {
         name: 'suriname',
@@ -20311,7 +18539,6 @@ const emojis = [
             'suriname',
             'flag',
         ],
-        index: 1772,
     },
     {
         name: 'south_sudan',
@@ -20323,7 +18550,6 @@ const emojis = [
             'south sudan',
             'sudan',
         ],
-        index: 1773,
     },
     {
         name: 'sao_tome_principe',
@@ -20336,7 +18562,6 @@ const emojis = [
             'sao tome',
             'são tomé',
         ],
-        index: 1774,
     },
     {
         name: 'el_salvador',
@@ -20346,7 +18571,6 @@ const emojis = [
             'el salvador',
             'flag',
         ],
-        index: 1775,
     },
     {
         name: 'sint_maarten',
@@ -20357,7 +18581,6 @@ const emojis = [
             'maarten',
             'sint',
         ],
-        index: 1776,
     },
     {
         name: 'syria',
@@ -20366,7 +18589,6 @@ const emojis = [
             'syria',
             'flag',
         ],
-        index: 1777,
     },
     {
         name: 'swaziland',
@@ -20375,7 +18597,6 @@ const emojis = [
             'swaziland',
             'flag',
         ],
-        index: 1778,
     },
     {
         name: 'tristan_da_cunha',
@@ -20385,7 +18606,6 @@ const emojis = [
             'flag',
             'tristan da cunha',
         ],
-        index: 1779,
     },
     {
         name: 'turks_caicos_islands',
@@ -20397,7 +18617,6 @@ const emojis = [
             'island',
             'turks',
         ],
-        index: 1780,
     },
     {
         name: 'chad',
@@ -20406,7 +18625,6 @@ const emojis = [
             'chad',
             'flag',
         ],
-        index: 1781,
     },
     {
         name: 'french_southern_territories',
@@ -20417,7 +18635,6 @@ const emojis = [
             'flag',
             'french',
         ],
-        index: 1782,
     },
     {
         name: 'togo',
@@ -20426,7 +18643,6 @@ const emojis = [
             'togo',
             'flag',
         ],
-        index: 1783,
     },
     {
         name: 'thailand',
@@ -20435,7 +18651,6 @@ const emojis = [
             'thailand',
             'flag',
         ],
-        index: 1784,
     },
     {
         name: 'tajikistan',
@@ -20444,7 +18659,6 @@ const emojis = [
             'tajikistan',
             'flag',
         ],
-        index: 1785,
     },
     {
         name: 'tokelau',
@@ -20453,7 +18667,6 @@ const emojis = [
             'tokelau',
             'flag',
         ],
-        index: 1786,
     },
     {
         name: 'timor_leste',
@@ -20465,7 +18678,6 @@ const emojis = [
             'flag',
             'timor-leste',
         ],
-        index: 1787,
     },
     {
         name: 'turkmenistan',
@@ -20474,7 +18686,6 @@ const emojis = [
             'turkmenistan',
             'flag',
         ],
-        index: 1788,
     },
     {
         name: 'tunisia',
@@ -20483,7 +18694,6 @@ const emojis = [
             'tunisia',
             'flag',
         ],
-        index: 1789,
     },
     {
         name: 'tonga',
@@ -20492,7 +18702,6 @@ const emojis = [
             'tonga',
             'flag',
         ],
-        index: 1790,
     },
     {
         name: 'tr',
@@ -20502,7 +18711,6 @@ const emojis = [
             'tr',
             'flag',
         ],
-        index: 1791,
     },
     {
         name: 'trinidad_tobago',
@@ -20513,7 +18721,6 @@ const emojis = [
             'tobago',
             'trinidad',
         ],
-        index: 1792,
     },
     {
         name: 'tuvalu',
@@ -20522,7 +18729,6 @@ const emojis = [
             'tuvalu',
             'flag',
         ],
-        index: 1793,
     },
     {
         name: 'taiwan',
@@ -20532,7 +18738,6 @@ const emojis = [
             'china',
             'flag',
         ],
-        index: 1794,
     },
     {
         name: 'tanzania',
@@ -20541,7 +18746,6 @@ const emojis = [
             'tanzania',
             'flag',
         ],
-        index: 1795,
     },
     {
         name: 'ukraine',
@@ -20550,7 +18754,6 @@ const emojis = [
             'ukraine',
             'flag',
         ],
-        index: 1796,
     },
     {
         name: 'uganda',
@@ -20559,7 +18762,6 @@ const emojis = [
             'uganda',
             'flag',
         ],
-        index: 1797,
     },
     {
         name: 'us_outlying_islands',
@@ -20575,7 +18777,6 @@ const emojis = [
             'us',
             'usa',
         ],
-        index: 1798,
     },
     {
         name: 'united_nations',
@@ -20584,7 +18785,6 @@ const emojis = [
             'united_nations',
             'flag',
         ],
-        index: 1799,
     },
     {
         name: 'us',
@@ -20597,7 +18797,6 @@ const emojis = [
             'stars and stripes',
             'united states',
         ],
-        index: 1800,
     },
     {
         name: 'uruguay',
@@ -20606,7 +18805,6 @@ const emojis = [
             'uruguay',
             'flag',
         ],
-        index: 1801,
     },
     {
         name: 'uzbekistan',
@@ -20615,7 +18813,6 @@ const emojis = [
             'uzbekistan',
             'flag',
         ],
-        index: 1802,
     },
     {
         name: 'vatican_city',
@@ -20625,7 +18822,6 @@ const emojis = [
             'flag',
             'vatican',
         ],
-        index: 1803,
     },
     {
         name: 'st_vincent_grenadines',
@@ -20637,7 +18833,6 @@ const emojis = [
             'saint',
             'vincent',
         ],
-        index: 1804,
     },
     {
         name: 'venezuela',
@@ -20646,7 +18841,6 @@ const emojis = [
             'venezuela',
             'flag',
         ],
-        index: 1805,
     },
     {
         name: 'british_virgin_islands',
@@ -20658,7 +18852,6 @@ const emojis = [
             'island',
             'virgin',
         ],
-        index: 1806,
     },
     {
         name: 'us_virgin_islands',
@@ -20675,7 +18868,6 @@ const emojis = [
             'usa',
             'virgin',
         ],
-        index: 1807,
     },
     {
         name: 'vietnam',
@@ -20685,7 +18877,6 @@ const emojis = [
             'flag',
             'viet nam',
         ],
-        index: 1808,
     },
     {
         name: 'vanuatu',
@@ -20694,7 +18885,6 @@ const emojis = [
             'vanuatu',
             'flag',
         ],
-        index: 1809,
     },
     {
         name: 'wallis_futuna',
@@ -20705,7 +18895,6 @@ const emojis = [
             'futuna',
             'wallis',
         ],
-        index: 1810,
     },
     {
         name: 'samoa',
@@ -20714,7 +18903,6 @@ const emojis = [
             'samoa',
             'flag',
         ],
-        index: 1811,
     },
     {
         name: 'kosovo',
@@ -20723,7 +18911,6 @@ const emojis = [
             'kosovo',
             'flag',
         ],
-        index: 1812,
     },
     {
         name: 'yemen',
@@ -20732,7 +18919,6 @@ const emojis = [
             'yemen',
             'flag',
         ],
-        index: 1813,
     },
     {
         name: 'mayotte',
@@ -20741,7 +18927,6 @@ const emojis = [
             'mayotte',
             'flag',
         ],
-        index: 1814,
     },
     {
         name: 'south_africa',
@@ -20752,7 +18937,6 @@ const emojis = [
             'south',
             'south africa',
         ],
-        index: 1815,
     },
     {
         name: 'zambia',
@@ -20761,7 +18945,6 @@ const emojis = [
             'zambia',
             'flag',
         ],
-        index: 1816,
     },
     {
         name: 'zimbabwe',
@@ -20770,7 +18953,6 @@ const emojis = [
             'zimbabwe',
             'flag',
         ],
-        index: 1817,
     },
     {
         name: 'england',
@@ -20779,7 +18961,6 @@ const emojis = [
             'england',
             'flag',
         ],
-        index: 1818,
     },
     {
         name: 'scotland',
@@ -20788,7 +18969,6 @@ const emojis = [
             'scotland',
             'flag',
         ],
-        index: 1819,
     },
     {
         name: 'wales',
@@ -20797,7 +18977,6 @@ const emojis = [
             'wales',
             'flag',
         ],
-        index: 1820,
     },
 ];
 
