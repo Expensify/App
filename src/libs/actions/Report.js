@@ -327,8 +327,24 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
         }],
     };
 
+    const params = {
+        reportID,
+        emailList: participantList ? participantList.join(',') : '',
+    };
+
     // If we are creating a new report, we need to add the optimistic report data and a report action
     if (!_.isEmpty(newReportObject)) {
+        // Change the method to set for new reports because it doesn't exist yet, is faster,
+        // and we need the data to be available when we navigate to the chat page
+        onyxData.optimisticData[0].onyxMethod = CONST.ONYX.METHOD.SET;
+
+        const optimisticCreatedActionData = ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail);
+        onyxData.optimisticData[1] = {
+            onyxMethod: CONST.ONYX.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: optimisticCreatedActionData,
+        };
+
         onyxData.optimisticData[0].value = {
             ...onyxData.optimisticData[0].value,
             ...newReportObject,
@@ -338,23 +354,11 @@ function openReport(reportID, participantList = [], newReportObject = {}) {
             isOptimisticReport: true,
         };
 
-        // Change the method to set for new reports because it doesn't exist yet, is faster,
-        // and we need the data to be available when we navigate to the chat page
-        onyxData.optimisticData[0].onyxMethod = CONST.ONYX.METHOD.SET;
-
-        // Also create a report action so that the page isn't endlessly loading
-        onyxData.optimisticData[1] = {
-            onyxMethod: CONST.ONYX.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail),
-        };
+        // Add the createdReportActionID parameter to the API call
+        params.createdReportActionID = optimisticCreatedActionData[0].reportActionID;
     }
-    API.write('OpenReport',
-        {
-            reportID,
-            emailList: participantList ? participantList.join(',') : '',
-        },
-        onyxData);
+
+    API.write('OpenReport', params, onyxData);
 }
 
 /**
@@ -458,6 +462,34 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
     API.read('OpenPaymentDetailsPage', {
         reportID: chatReportID,
         iouReportID,
+    }, {
+        optimisticData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IOU,
+                value: {
+                    loading: true,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IOU,
+                value: {
+                    loading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: ONYXKEYS.IOU,
+                value: {
+                    loading: false,
+                },
+            },
+        ],
     });
 }
 
