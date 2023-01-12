@@ -537,7 +537,6 @@ const styles = {
         alignItems: 'center',
         height: variables.componentSizeNormal,
         justifyContent: 'center',
-        marginRight: 8,
         width: variables.componentSizeNormal,
     },
 
@@ -2011,9 +2010,6 @@ const styles = {
     },
 
     roomHeaderAvatar: {
-        height: variables.componentSizeLarge,
-        width: variables.componentSizeLarge,
-        borderRadius: 100,
         borderColor: themeColors.componentBG,
         borderWidth: 4,
         marginLeft: -16,
@@ -2229,10 +2225,6 @@ const styles = {
         flexGrow: 1,
         paddingStart: 20,
         paddingEnd: 20,
-    },
-
-    noScrollbars: {
-        scrollbarWidth: 'none',
     },
 
     codeWordWrapper: {
