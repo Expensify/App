@@ -50,7 +50,7 @@ const Default = (args) => {
                     ]}
                     nativeID={CONST.REPORT.DROP_NATIVE_ID}
                 >
-                    <Text style={[styles.mb2, styles.formLabel]}>Entered Comment (Drop Enabled)</Text>
+                    <Text style={[styles.mb2, styles.textLabelSupporting]}>Entered Comment (Drop Enabled)</Text>
                     <Text>{comment}</Text>
                 </View>
                 <View
@@ -62,7 +62,7 @@ const Default = (args) => {
                         styles.flex1,
                     ]}
                 >
-                    <Text style={[styles.mb2, styles.formLabel]}>Rendered Comment</Text>
+                    <Text style={[styles.mb2, styles.textLabelSupporting]}>Rendered Comment</Text>
                     {Boolean(renderedHTML) && <RenderHTML html={renderedHTML} />}
                     {pastedFile && (
                         <View style={styles.mv3}>
