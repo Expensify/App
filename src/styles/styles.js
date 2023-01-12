@@ -350,10 +350,6 @@ const styles = {
         paddingLeft: 0,
     },
 
-    pl6: {
-        paddingLeft: 6,
-    },
-
     textDanger: {
         color: themeColors.danger,
     },
@@ -714,7 +710,7 @@ const styles = {
     // Actions
     actionAvatar: {
         borderRadius: 20,
-        marginRight: 6,
+        marginRight: variables.avatarChatSpacing,
     },
 
     componentHeightLarge: {
@@ -1425,7 +1421,7 @@ const styles = {
         // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
         // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
-        paddingHorizontal: 8,
+        paddingHorizontal: variables.avatarChatSpacing,
         paddingTop: 0,
         paddingBottom: 0,
         alignSelf: 'center',
@@ -1750,13 +1746,13 @@ const styles = {
     },
 
     emptyAvatar: {
-        marginRight: variables.componentSizeNormal - 26,
+        marginRight: variables.avatarChatSpacing,
         height: variables.avatarSizeNormal,
         width: variables.avatarSizeNormal,
     },
 
     emptyAvatarSmall: {
-        marginRight: variables.componentSizeNormal - 30,
+        marginRight: variables.avatarChatSpacing - 4,
         height: variables.avatarSizeSmall,
         width: variables.avatarSizeSmall,
     },
