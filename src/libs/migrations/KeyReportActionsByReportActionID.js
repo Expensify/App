@@ -18,34 +18,41 @@ export default function () {
 
                 if (!allReportActions) {
                     Log.info('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID');
-                    resolve();
+                    return resolve();
                 }
 
                 const newReportActions = {};
-                for (let i = 0; i < Object.entries(allReportActions).length; i++) {
-                    const [onyxKey, reportActionsForReport] = Object.entries(allReportActions)[i];
-                    const newReportActionsForReport = {};
-                    for (let j = 0; j < Object.entries(reportActionsForReport).length; j++) {
-                        const [reportActionKey, reportAction] = Object.entries(reportActionsForReport)[j];
+                _.each(allReportActions, (reportActionsForReport, onyxKey) => {
+                    if (!reportActionsForReport) {
+                        return;
+                    }
 
+                    const newReportActionsForReport = {};
+                    _.each(reportActionsForReport, (reportAction, reportActionKey) => {
                         // If we find a reportAction that's already keyed by reportActionID instead of sequenceNumber,
                         // then we assume the migration already happened and return early.
                         if (!_.isNaN(Number(reportActionKey))
                             && Number(reportActionKey) === Number(reportAction.reportActionID)
                             && Number(reportActionKey) !== Number(reportAction.sequenceNumber)) {
                             Log.info('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID');
-                            resolve();
+                            return resolve();
                         }
 
                         // Move it to be keyed by reportActionID instead
                         newReportActionsForReport[reportAction.reportActionID] = reportAction;
-                    }
+                    });
+
                     newReportActions[onyxKey] = newReportActionsForReport;
+                });
+
+                if (_.isEmpty(newReportActions)) {
+                    Log.info('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID');
+                    return resolve();
                 }
 
                 Log.info(`[Migrate Onyx] Re-keying reportActions by reportActionID for ${_.keys(newReportActions).length} reports`);
                 // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                Onyx.multiSet(newReportActions)
+                return Onyx.multiSet(newReportActions)
                     .then(resolve);
             },
         });

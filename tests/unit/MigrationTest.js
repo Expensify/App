@@ -167,6 +167,25 @@ describe('Migrations', () => {
                 .then(() => expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID'))
         ));
 
+        it("Should work even if there's zombie reportAction data in Onyx", () => (
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: null,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: null,
+            })
+                .then(KeyReportActionsByReportActionID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID');
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                        waitForCollectionCallback: true,
+                        callback: (allReportActions) => {
+                            Onyx.disconnect(connectionID);
+                            _.each(allReportActions, reportActionsForReport => expect(reportActionsForReport).toBeNull());
+                        },
+                    });
+                })
+        ));
+
         it('Should migrate reportActions to be keyed by reportActionID instead of sequenceNumber', () => (
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
