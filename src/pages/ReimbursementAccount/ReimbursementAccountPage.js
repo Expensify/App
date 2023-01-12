@@ -31,8 +31,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
-import * as ReimbursementAccountUtils from "../../libs/ReimbursementAccountUtils";
-import {updateReimbursementAccountDraft} from "../../libs/actions/BankAccounts";
+import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
@@ -101,7 +100,12 @@ class ReimbursementAccountPage extends React.Component {
             this.fetchData();
         }
         const currentStep = this.getDefaultStateForField('currentStep', CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
-        const previousStep = ReimbursementAccountUtils.getDefaultStateForField(this.props.reimbursementAccountDraft, this.props.reimbursementAccount, 'currentStep', CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
+        const previousStep = ReimbursementAccountUtils.getDefaultStateForField(
+            this.props.reimbursementAccountDraft,
+            this.props.reimbursementAccount,
+            'currentStep',
+            CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
+        );
 
         if (currentStep === previousStep) {
             return;

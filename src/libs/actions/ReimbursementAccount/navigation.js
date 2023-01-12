@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-import * as store from './store';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ROUTES from '../../../ROUTES';
 import Navigation from '../../Navigation/Navigation';

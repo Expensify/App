@@ -25,7 +25,6 @@ import Picker from '../../components/Picker';
 import AddressForm from './AddressForm';
 import Form from '../../components/Form';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import StepPropTypes from './StepPropTypes';
 
 const propTypes = {

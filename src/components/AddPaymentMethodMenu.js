@@ -10,7 +10,6 @@ import withWindowDimensions from './withWindowDimensions';
 import Permissions from '../libs/Permissions';
 import PopoverMenu from './PopoverMenu';
 import paypalMeDataPropTypes from './paypalMeDataPropTypes';
-import * as BankAccounts from '../libs/actions/BankAccounts';
 
 const propTypes = {
     isVisible: PropTypes.bool.isRequired,

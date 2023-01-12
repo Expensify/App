@@ -11,7 +11,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import Growl from '../../libs/Growl';
 import CONST from '../../CONST';
 import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
-import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import StepPropTypes from './StepPropTypes';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';

@@ -16,7 +16,6 @@ import Form from '../../components/Form';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import * as PlaidDataProps from './plaidDataPropTypes';
-import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import StepPropTypes from './StepPropTypes';
 
 const propTypes = {

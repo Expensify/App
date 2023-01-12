@@ -5,8 +5,8 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
 import * as PlaidDataProps from '../../pages/ReimbursementAccount/plaidDataPropTypes';
-import Navigation from "../Navigation/Navigation";
-import ROUTES from "../../ROUTES";
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 export {
     goToWithdrawalAccountSetupStep,
