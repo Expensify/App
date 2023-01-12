@@ -81,19 +81,19 @@ class WorkspaceNewRoomPage extends React.Component {
     validate(values) {
         const errors = {};
 
-        // We error if the user doesn't enter a room name or left blank
+        // The following validations are ordered by precedence.
+        // First priority: We error if the user doesn't enter a room name or left blank
         if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
             errors.roomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
-        }
-
-        // We error if the room name already exists.
-        if (ValidationUtils.isExistingRoomName(values.roomName, this.props.reports, values.policyID)) {
-            errors.roomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
-        }
-
-        // Certain names are reserved for default rooms and should not be used for policy rooms.
-        if (ValidationUtils.isReservedRoomName(values.roomName)) {
+        } else if (ValidationUtils.isReservedRoomName(values.roomName)) {
+            // Second priority: Certain names are reserved for default rooms and should not be used for policy rooms.
             errors.roomName = this.props.translate('newRoomPage.roomNameReservedError');
+        } else if (ValidationUtils.isExistingRoomName(values.roomName, this.props.reports, values.policyID)) {
+            // Third priority: We error if the room name already exists.
+            errors.roomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
+        } else if (!ValidationUtils.isValidRoomName(values.roomName)) {
+            // Fourth priority: We error if the room name has invalid characters
+            errors.roomName = this.props.translate('newRoomPage.roomNameInvalidError');
         }
 
         if (!values.policyID) {
@@ -123,7 +123,7 @@ class WorkspaceNewRoomPage extends React.Component {
         }));
 
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('newRoomPage.newRoom')}
                     onCloseButtonPress={() => Navigation.dismissModal()}

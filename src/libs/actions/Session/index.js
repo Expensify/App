@@ -24,6 +24,32 @@ Onyx.connect({
 });
 
 /**
+ * Manage push notification subscriptions on sign-in/sign-out.
+ *
+ * On Android, AuthScreens unmounts when the app is closed with the back button so we manage the
+ * push subscription when the session changes here.
+ */
+let previousAccountID;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        const accountID = lodashGet(session, 'accountID');
+        if (previousAccountID === accountID) {
+            return;
+        }
+
+        if (accountID) {
+            PushNotification.register(accountID);
+        } else {
+            PushNotification.deregister();
+            PushNotification.clearNotifications();
+        }
+
+        previousAccountID = accountID;
+    },
+});
+
+/**
  * Clears the Onyx store and redirects user to the sign in page
  */
 function signOut() {
@@ -297,8 +323,6 @@ function clearSignInData() {
  * Put any logic that needs to run when we are signed out here. This can be triggered when the current tab or another tab signs out.
  */
 function cleanupSession() {
-    PushNotification.deregister();
-    PushNotification.clearNotifications();
     Pusher.disconnect();
     Timers.clearAll();
     Welcome.resetReadyCheck();
@@ -434,13 +458,13 @@ export {
     updatePasswordAndSignin,
     signIn,
     signInWithShortLivedAuthToken,
+    cleanupSession,
     signOut,
     signOutAndRedirectToSignIn,
     resendValidationLink,
     resetPassword,
     resendResetPassword,
     clearSignInData,
-    cleanupSession,
     clearAccountMessages,
     authenticatePusher,
     reauthenticatePusher,
