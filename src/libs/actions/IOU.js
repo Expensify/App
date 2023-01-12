@@ -251,7 +251,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         ? chatReports[`${ONYXKEYS.COLLECTION.REPORT}${existingGroupChatReportID}`]
         : ReportUtils.getChatByParticipants(participantLogins);
     const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(participantLogins);
-    const groupCreatedReportAction = existingGroupChatReport ? {} : ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
+    const groupCreatedReportActionData = existingGroupChatReport ? {} : ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
     const groupChatReportMaxSequenceNumber = lodashGet(groupChatReport, 'maxSequenceNumber', 0);
     const groupIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         groupChatReportMaxSequenceNumber + 1,
@@ -287,7 +287,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             onyxMethod: existingGroupChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChatReport.reportID}`,
             value: {
-                ...groupCreatedReportAction,
+                ...groupCreatedReportActionData,
                 [groupIOUReportAction.sequenceNumber]: groupIOUReportAction,
             },
         },
@@ -365,7 +365,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             oneOnOneChatReport.iouReportID = oneOnOneIOUReport.reportID;
         }
 
-        const oneOnOneCreatedReportAction = existingOneOnOneChatReport ? {} : ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
+        const oneOnOneCreatedReportActionData = existingOneOnOneChatReport ? {} : ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
         const oneOnOneChatReportMaxSequenceNumber = lodashGet(oneOnOneChatReport, 'maxSequenceNumber', 0);
         const oneOnOneIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
             oneOnOneChatReportMaxSequenceNumber + 1,
@@ -399,7 +399,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 onyxMethod: existingOneOnOneChatReport ? CONST.ONYX.METHOD.MERGE : CONST.ONYX.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
                 value: {
-                    ...oneOnOneCreatedReportAction,
+                    ...oneOnOneCreatedReportActionData,
                     [oneOnOneIOUReportAction.sequenceNumber]: oneOnOneIOUReportAction,
                 },
             },
@@ -464,7 +464,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             amount: splitAmount,
             iouReportID: oneOnOneIOUReport.reportID,
             chatReportID: oneOnOneChatReport.reportID,
-            createdReportActionID: oneOnOneCreatedReportAction.reportActionID,
+            createdReportActionID: oneOnOneCreatedReportActionData[0].reportActionID,
             transactionID: oneOnOneIOUReportAction.originalMessage.IOUTransactionID,
             reportActionID: oneOnOneIOUReportAction.reportActionID,
             clientID: oneOnOneIOUReportAction.clientID.toString(),
@@ -474,7 +474,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     return {
         groupData: {
             chatReportID: groupChatReport.reportID,
-            createdReportActionID: groupCreatedReportAction.reportActionID,
+            createdReportActionID: groupCreatedReportActionData[0].reportActionID,
             transactionID: groupIOUReportAction.originalMessage.IOUTransactionID,
             reportActionID: groupIOUReportAction.reportActionID,
             clientID: groupIOUReportAction.clientID.toString(),
