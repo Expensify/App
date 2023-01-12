@@ -61,9 +61,11 @@ const RoomHeaderAvatars = (props) => {
     }
 
     const iconsToDisplay = props.icons.slice(0, CONST.REPORT.MAX_PREVIEW_AVATARS);
+    console.log('this is large bordered', StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.LARGE_BORDERED));
+
     const iconStyle = [
         styles.roomHeaderAvatar,
-        StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.MEDIUM),
+        StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.LARGE_BORDERED),
     ];
     return (
         <View pointerEvents="none">

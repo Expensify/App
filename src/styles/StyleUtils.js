@@ -22,7 +22,12 @@ function getAvatarSize(size) {
         [CONST.AVATAR_SIZE.SMALLER]: variables.avatarSizeSmaller,
         [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
         [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
+        [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
     };
+
+    if (!size) {
+        console.log('nothing was sent to size either', size, AVATAR_SIZES[size]);
+    }
     return AVATAR_SIZES[size];
 }
 
@@ -33,6 +38,10 @@ function getAvatarSize(size) {
  * @returns {Object}
  */
 function getAvatarStyle(size) {
+    if (!size) {
+        console.log('yourenot sending anything to style');
+    }
+
     const avatarSize = getAvatarSize(size);
     return {
         height: avatarSize,
