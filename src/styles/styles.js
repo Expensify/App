@@ -2181,7 +2181,7 @@ const styles = {
         color: themeColors.heading,
         padding: 0,
         lineHeight: undefined,
-    }),
+    }, 0),
 
     iouPreviewBox: {
         backgroundColor: themeColors.cardBG,
