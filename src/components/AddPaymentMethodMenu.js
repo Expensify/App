@@ -50,7 +50,6 @@ const AddPaymentMethodMenu = props => (
                 text: props.translate('common.bankAccount'),
                 icon: Expensicons.Bank,
                 onSelected: () => {
-                    BankAccounts.clearPlaid();
                     props.onItemSelected(CONST.PAYMENT_METHODS.BANK_ACCOUNT);
                 },
             },

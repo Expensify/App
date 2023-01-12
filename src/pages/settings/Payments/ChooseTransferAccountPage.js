@@ -15,6 +15,7 @@ import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import walletTransferPropTypes from './walletTransferPropTypes';
 import styles from '../../../styles/styles';
+import * as BankAccounts from "../../../libs/actions/BankAccounts";
 
 const propTypes = {
     /** Wallet transfer propTypes */
@@ -52,7 +53,7 @@ const ChooseTransferAccountPage = (props) => {
             Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT);
+        BankAccounts.openPersonalBankAccountSetupView();
     };
 
     return (

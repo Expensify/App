@@ -5,6 +5,8 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as Localize from '../Localize';
 import DateUtils from '../DateUtils';
 import * as PlaidDataProps from '../../pages/ReimbursementAccount/plaidDataPropTypes';
+import Navigation from "../Navigation/Navigation";
+import ROUTES from "../../ROUTES";
 
 export {
     goToWithdrawalAccountSetupStep,
@@ -30,8 +32,18 @@ export {
 } from './Wallet';
 
 function clearPlaid() {
-    Onyx.set(ONYXKEYS.PLAID_DATA, PlaidDataProps.plaidDataDefaultProps);
-    Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
+    return Onyx.multiSet({
+        [ONYXKEYS.PLAID_DATA]: PlaidDataProps.plaidDataDefaultProps,
+        [ONYXKEYS.PLAID_LINK_TOKEN]: '',
+    });
+}
+
+function openPlaidView() {
+    clearPlaid().then(() => this.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID));
+}
+
+function openPersonalBankAccountSetupView() {
+    clearPlaid().then(() => Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
 }
 
 function clearPersonalBankAccount() {
@@ -379,9 +391,11 @@ export {
     clearOnfidoToken,
     clearPersonalBankAccount,
     clearPlaid,
+    openPlaidView,
     connectBankAccountManually,
     connectBankAccountWithPlaid,
     deletePaymentBankAccount,
+    openPersonalBankAccountSetupView,
     openReimbursementAccountPage,
     updateBeneficialOwnersForBankAccount,
     updateCompanyInformationForBankAccount,
