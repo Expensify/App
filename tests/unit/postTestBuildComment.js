@@ -26,14 +26,14 @@ const desktopQRCode = `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=1
 const iOSQRCode = `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${iOSLink})`;
 const webQRCode = `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${webLink})`;
 
-let message = ':test_tube::test_tube: Use the links below to test this build in android and iOS. Happy testing! :test_tube::test_tube:';
-message += '\n| android :robot:  | iOS :apple: |';
-message += '\n| ------------- | ------------- |';
-message += `\n| ${androidLink}  | ${iOSLink}  |`;
-message += `\n| ${androidQRCode}  | ${iOSQRCode}  |`;
-message += '\n| desktop :computer: | web :spider_web: |';
-message += `\n| ${desktopLink}  | ${webLink}  |`;
-message += `\n| ${desktopQRCode}  | ${webQRCode}  |`;
+const message = `:test_tube::test_tube: Use the links below to test this build in android and iOS. Happy testing! :test_tube::test_tube:
+| android :robot:  | iOS :apple: |
+| ------------- | ------------- |
+| ${androidLink}  | ${iOSLink}  |
+| ${androidQRCode}  | ${iOSQRCode}  |
+| desktop :computer: | web :spider_web: |
+| ${desktopLink}  | ${webLink}  |
+| ${desktopQRCode}  | ${webQRCode}  |`;
 
 describe('Post test build comments action tests', () => {
     beforeAll(() => {

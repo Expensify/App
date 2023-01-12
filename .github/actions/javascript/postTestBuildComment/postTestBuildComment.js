@@ -30,14 +30,14 @@ function getTestBuildMessage() {
         ? `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${webLink})`
         : "The QR code can't be generated, because the web build failed";
 
-    let message = ':test_tube::test_tube: Use the links below to test this build in android and iOS. Happy testing! :test_tube::test_tube:';
-    message += '\n| android :robot:  | iOS :apple: |';
-    message += '\n| ------------- | ------------- |';
-    message += `\n| ${androidLink}  | ${iOSLink}  |`;
-    message += `\n| ${androidQRCode}  | ${iOSQRCode}  |`;
-    message += '\n| desktop :computer: | web :spider_web: |';
-    message += `\n| ${desktopLink}  | ${webLink}  |`;
-    message += `\n| ${desktopQRCode}  | ${webQRCode}  |`;
+    const message = `:test_tube::test_tube: Use the links below to test this build in android and iOS. Happy testing! :test_tube::test_tube:
+| android :robot:  | iOS :apple: |
+| ------------- | ------------- |
+| ${androidLink}  | ${iOSLink}  |
+| ${androidQRCode}  | ${iOSQRCode}  |
+| desktop :computer: | web :spider_web: |
+| ${desktopLink}  | ${webLink}  |
+| ${desktopQRCode}  | ${webQRCode}  |`;
 
     return message;
 }
@@ -50,6 +50,7 @@ function getTestBuildMessage() {
  * @returns {Promise<void>}
  */
 function commentPR(PR, message) {
+    console.log(`Posting test build comment on #${PR}`);
     return GithubUtils.createComment(context.repo.repo, PR, message)
         .then(() => console.log(`Comment created on #${PR} successfully 🎉`))
         .catch((err) => {
