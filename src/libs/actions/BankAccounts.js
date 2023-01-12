@@ -32,10 +32,9 @@ export {
 } from './Wallet';
 
 function clearPlaid() {
-    return Onyx.multiSet({
-        [ONYXKEYS.PLAID_DATA]: PlaidDataProps.plaidDataDefaultProps,
-        [ONYXKEYS.PLAID_LINK_TOKEN]: '',
-    });
+    Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
+
+    return Onyx.set(ONYXKEYS.PLAID_DATA, PlaidDataProps.plaidDataDefaultProps);
 }
 
 function openPlaidView() {
