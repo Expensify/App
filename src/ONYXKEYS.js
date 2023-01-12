@@ -112,9 +112,6 @@ export default {
     // Stores information about additional details form entry
     WALLET_ADDITIONAL_DETAILS: 'walletAdditionalDetails',
 
-    // Stores values put into the additional details step of the wallet KYC flow
-    WALLET_ADDITIONAL_DETAILS_DRAFT: 'walletAdditionalDetailsDraft',
-
     // Object containing Wallet terms step state
     WALLET_TERMS: 'walletTerms',
 
