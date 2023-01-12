@@ -36,23 +36,8 @@ function clearSendMoneyErrors(chatReportID, reportActionID) {
     });
 }
 
-/**
- * This method clears the errors for a chat where send money action was done
- * @param {String} chatReportID
- * @param {String} reportActionID
- * @param {Boolean} isLoading
- */
-function setIsLoading(chatReportID, reportActionID, isLoading) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
-        [reportActionID]: {
-            isLoading,
-        },
-    });
-}
-
 export {
     clearReportActionErrors,
     deleteOptimisticReportAction,
     clearSendMoneyErrors,
-    setIsLoading,
 };
