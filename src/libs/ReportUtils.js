@@ -65,6 +65,10 @@ Onyx.connect({
     callback: val => allReports = val,
 });
 
+function getChatType(report) {
+    return report ? report.chatType : '';
+}
+
 /**
  * Returns the concatenated title for the PrimaryLogins of a report
  *
@@ -96,16 +100,16 @@ function isReportMessageAttachment({text, html}) {
 }
 
 /**
- * Given a collection of reports returns them sorted by last visited
+ * Given a collection of reports returns them sorted by last read
  *
  * @param {Object} reports
  * @returns {Array}
  */
-function sortReportsByLastVisited(reports) {
+function sortReportsByLastRead(reports) {
     return _.chain(reports)
         .toArray()
         .filter(report => report && report.reportID && !isIOUReport(report))
-        .sortBy('lastVisitedTimestamp')
+        .sortBy('lastReadTime')
         .value();
 }
 
@@ -150,7 +154,7 @@ function canDeleteReportAction(reportAction) {
  * @returns {Boolean}
  */
 function isAdminRoom(report) {
-    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
 }
 
 /**
@@ -160,7 +164,7 @@ function isAdminRoom(report) {
  * @returns {Boolean}
  */
 function isAnnounceRoom(report) {
-    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE;
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE;
 }
 
 /**
@@ -170,11 +174,11 @@ function isAnnounceRoom(report) {
  * @returns {Boolean}
  */
 function isDefaultRoom(report) {
-    return _.contains([
+    return [
         CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
         CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
         CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
-    ], lodashGet(report, ['chatType'], ''));
+    ].indexOf(getChatType(report)) > -1;
 }
 
 /**
@@ -184,7 +188,7 @@ function isDefaultRoom(report) {
  * @returns {Boolean}
  */
 function isDomainRoom(report) {
-    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL;
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL;
 }
 
 /**
@@ -194,7 +198,7 @@ function isDomainRoom(report) {
  * @returns {Boolean}
  */
 function isUserCreatedPolicyRoom(report) {
-    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
 }
 
 /**
@@ -204,7 +208,7 @@ function isUserCreatedPolicyRoom(report) {
  * @returns {Boolean}
  */
 function isPolicyExpenseChat(report) {
-    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT;
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT;
 }
 
 /**
@@ -238,15 +242,13 @@ function hasExpensifyGuidesEmails(emails) {
 }
 
 /**
- * Given a collection of reports returns the most recently accessed one
- *
- * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
+ * @param {Record<String, {lastReadTime, reportID}>|Array<{lastReadTime, reportID}>} reports
  * @param {Boolean} [ignoreDefaultRooms]
  * @param {Object} policies
  * @returns {Object}
  */
 function findLastAccessedReport(reports, ignoreDefaultRooms, policies) {
-    let sortedReports = sortReportsByLastVisited(reports);
+    let sortedReports = sortReportsByLastRead(reports);
 
     if (ignoreDefaultRooms) {
         sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report)
@@ -301,7 +303,7 @@ function getChatRoomSubtitle(report, policiesMap) {
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
     }
-    if (report.chatType === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL) {
+    if (getChatType(report) === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL) {
         // The domainAll rooms are just #domainName, so we ignore the prefix '#' to get the domainName
         return report.reportName.substring(1);
     }
@@ -432,7 +434,7 @@ function getDefaultAvatar(login = '') {
  * @returns {Array<*>}
  */
 function getIcons(report, personalDetails, policies, defaultIcon = null) {
-    if (!report) {
+    if (_.isEmpty(report)) {
         return [defaultIcon || getDefaultAvatar()];
     }
     if (isArchivedRoom(report)) {
@@ -468,12 +470,27 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
         ];
     }
 
-    // Return avatar sources for Group chats
-    const sortedParticipants = _.map(report.participants, dmParticipant => ({
-        firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
-        avatar: lodashGet(personalDetails, [dmParticipant, 'avatar']) || getDefaultAvatar(dmParticipant),
-    })).sort((first, second) => first.firstName - second.firstName);
-    return _.map(sortedParticipants, item => item.avatar);
+    const participantDetails = [];
+    const participants = report.participants || [];
+    for (let i = 0; i < participants.length; i++) {
+        const login = participants[i];
+        participantDetails.push([
+            login,
+            lodashGet(personalDetails, [login, 'firstName'], ''),
+            lodashGet(personalDetails, [login, 'avatar']) || getDefaultAvatar(login),
+        ]);
+    }
+
+    // Sort all logins by first name (which is the second element in the array)
+    const sortedParticipantDetails = participantDetails.sort((a, b) => a[1] - b[1]);
+
+    // Now that things are sorted, gather only the avatars (third element in the array) and return those
+    const avatars = [];
+    for (let i = 0; i < sortedParticipantDetails.length; i++) {
+        avatars.push(sortedParticipantDetails[i][2]);
+    }
+
+    return avatars;
 }
 
 /**
@@ -570,7 +587,13 @@ function getReportName(report, policies = {}) {
     const participants = (report && report.participants) || [];
     const participantsWithoutCurrentUser = _.without(participants, sessionEmail);
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
-    return _.map(participantsWithoutCurrentUser, login => getDisplayNameForParticipant(login, isMultipleParticipantReport)).join(', ');
+
+    const displayNames = [];
+    for (let i = 0; i < participantsWithoutCurrentUser.length; i++) {
+        const login = participantsWithoutCurrentUser[i];
+        displayNames.push(getDisplayNameForParticipant(login, isMultipleParticipantReport));
+    }
+    return displayNames.join(', ');
 }
 
 /**
@@ -680,25 +703,30 @@ function buildOptimisticReportAction(sequenceNumber, text, file) {
  * @param {String} chatReportID - Report ID of the chat where the IOU is.
  * @param {String} currency - IOU currency.
  * @param {String} locale - Locale where the IOU is created
+ * @param {Boolean} isSendingMoney - If we send money the IOU should be created as settled
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, currency, locale) {
+function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, currency, locale, isSendingMoney = false) {
     const formattedTotal = NumberFormatUtils.format(locale,
         total, {
             style: 'currency',
             currency,
         });
+
     return {
+        // If we're sending money, hasOutstandingIOU should be false
+        hasOutstandingIOU: !isSendingMoney,
         cachedTotal: formattedTotal,
         chatReportID,
         currency,
-        hasOutstandingIOU: true,
         managerEmail: userEmail,
         ownerEmail,
         reportID: generateReportID(),
         state: CONST.REPORT.STATE.SUBMITTED,
-        stateNum: 1,
+        stateNum: isSendingMoney
+            ? CONST.REPORT.STATE_NUM.SUBMITTED
+            : CONST.REPORT.STATE_NUM.PROCESSING,
         total,
     };
 }
@@ -709,14 +737,31 @@ function buildOptimisticIOUReport(ownerEmail, userEmail, total, chatReportID, cu
  * @param {Array} participants - List of logins for the IOU participants, excluding the current user login
  * @param {String} comment - IOU comment
  * @param {String} currency - IOU currency
+ * @param {String} paymentType - IOU paymentMethodType. Can be oneOf(Elsewhere, Expensify, PayPal.me)
+ * @param {Boolean} isSettlingUp - Whether we are settling up an IOU
  * @returns {Array}
  */
-function getIOUReportActionMessage(type, total, participants, comment, currency) {
+function getIOUReportActionMessage(type, total, participants, comment, currency, paymentType = '', isSettlingUp = false) {
     const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
     const displayNames = _.map(participants, participant => getDisplayNameForParticipant(participant.login, true));
     const who = displayNames.length < 3
         ? displayNames.join(' and ')
         : `${displayNames.slice(0, -1).join(', ')}, and ${_.last(displayNames)}`;
+
+    let paymentMethodMessage;
+    switch (paymentType) {
+        case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
+            paymentMethodMessage = '!';
+            break;
+        case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
+            paymentMethodMessage = ' elsewhere';
+            break;
+        case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
+            paymentMethodMessage = ' using PayPal.me';
+            break;
+        default:
+            break;
+    }
 
     let iouMessage;
     switch (type) {
@@ -733,7 +778,9 @@ function getIOUReportActionMessage(type, total, participants, comment, currency)
             iouMessage = `Declined the ${amount} request${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
-            iouMessage = `Paid ${amount} to ${who}${comment && ` for ${comment}`}`;
+            iouMessage = isSettlingUp
+                ? `Settled up ${paymentMethodMessage}`
+                : `Sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
             break;
         default:
             break;
@@ -759,10 +806,11 @@ function getIOUReportActionMessage(type, total, participants, comment, currency)
  * @param {String} paymentType - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
  * @param {String} iouTransactionID - Only required if the IOUReportAction type is oneOf(cancel, decline). Generates a randomID as default.
  * @param {String} iouReportID - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
+ * @param {String} isSettlingUp - Whether we are settling up an IOU.
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, comment, participants, paymentType = '', iouTransactionID = '', iouReportID = '') {
+function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, comment, participants, paymentType = '', iouTransactionID = '', iouReportID = '', isSettlingUp) {
     const IOUTransactionID = iouTransactionID || NumberUtils.rand64();
     const IOUReportID = iouReportID || generateReportID();
     const originalMessage = {
@@ -797,7 +845,7 @@ function buildOptimisticIOUReportAction(sequenceNumber, type, amount, currency, 
         clientID: NumberUtils.generateReportActionClientID(),
         isAttachment: false,
         originalMessage,
-        message: getIOUReportActionMessage(type, amount, participants, comment, currency),
+        message: getIOUReportActionMessage(type, amount, participants, comment, currency, paymentType, isSettlingUp),
         person: [{
             style: 'strong',
             text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
@@ -836,6 +884,7 @@ function buildOptimisticChatReport(
     visibility = undefined,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
 ) {
+    const currentTime = DateUtils.getDBTime();
     return {
         chatType,
         hasOutstandingIOU: false,
@@ -845,8 +894,8 @@ function buildOptimisticChatReport(
         lastMessageHtml: '',
         lastMessageText: null,
         lastReadSequenceNumber: 0,
-        lastActionCreated: '',
-        lastVisitedTimestamp: 0,
+        lastReadTime: currentTime,
+        lastActionCreated: currentTime,
         maxSequenceNumber: 0,
         notificationPreference,
         oldPolicyName,
@@ -870,6 +919,7 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
     return {
         0: {
             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            reportActionID: NumberUtils.rand64(),
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             actorAccountID: currentUserAccountID,
             message: [
@@ -893,7 +943,6 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
             ],
             automatic: false,
             sequenceNumber: 0,
-            reportActionID: NumberUtils.rand64(),
             avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
             created: DateUtils.getDBTime(),
             shouldShow: true,
@@ -922,6 +971,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
     );
     const announceChatReportID = announceChatData.reportID;
     const announceReportActionData = buildOptimisticCreatedReportAction(announceChatData.ownerEmail);
+    const announceCreatedReportActionID = announceReportActionData[0].reportActionID;
 
     const adminsChatData = buildOptimisticChatReport(
         [currentUserEmail],
@@ -934,6 +984,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
     );
     const adminsChatReportID = adminsChatData.reportID;
     const adminsReportActionData = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
+    const adminsCreatedReportActionID = adminsReportActionData[0].reportActionID;
 
     const expenseChatData = buildOptimisticChatReport(
         [currentUserEmail],
@@ -946,17 +997,21 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
     );
     const expenseChatReportID = expenseChatData.reportID;
     const expenseReportActionData = buildOptimisticCreatedReportAction(expenseChatData.ownerEmail);
+    const expenseCreatedReportActionID = expenseReportActionData[0].reportActionID;
 
     return {
         announceChatReportID,
         announceChatData,
         announceReportActionData,
+        announceCreatedReportActionID,
         adminsChatReportID,
         adminsChatData,
         adminsReportActionData,
+        adminsCreatedReportActionID,
         expenseChatReportID,
         expenseChatData,
         expenseReportActionData,
+        expenseCreatedReportActionID,
     };
 }
 
@@ -965,9 +1020,14 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
  * @returns {Boolean}
  */
 function isUnread(report) {
-    const lastReadSequenceNumber = report.lastReadSequenceNumber || 0;
-    const maxSequenceNumber = report.maxSequenceNumber || 0;
-    return lastReadSequenceNumber < maxSequenceNumber;
+    if (!report) {
+        return false;
+    }
+
+    // lastActionCreated and lastReadTime are both datetime strings and can be compared directly
+    const lastActionCreated = report.lastActionCreated || '';
+    const lastReadTime = report.lastReadTime || '';
+    return lastReadTime < lastActionCreated;
 }
 
 /**
@@ -1132,13 +1192,34 @@ function chatIncludesChronos(report) {
                 && _.contains(report.participants, CONST.EMAIL.CHRONOS);
 }
 
+/**
+ * @param {Object} report
+ * @param {String} report.lastReadTime
+ * @param {Array} sortedAndFilteredReportActions - reportActions for the report, sorted newest to oldest, and filtered for only those that should be visible
+ *
+ * @returns {String|null}
+ */
+function getNewMarkerReportActionID(report, sortedAndFilteredReportActions) {
+    if (!isUnread(report)) {
+        return '';
+    }
+
+    const newMarkerIndex = _.findLastIndex(sortedAndFilteredReportActions, reportAction => (
+        (reportAction.created || '') > report.lastReadTime
+    ));
+
+    return _.has(sortedAndFilteredReportActions[newMarkerIndex], 'reportActionID')
+        ? sortedAndFilteredReportActions[newMarkerIndex].reportActionID
+        : '';
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
     findLastAccessedReport,
     canEditReportAction,
     canDeleteReportAction,
-    sortReportsByLastVisited,
+    sortReportsByLastRead,
     isDefaultRoom,
     isAdminRoom,
     isAnnounceRoom,
@@ -1179,4 +1260,5 @@ export {
     getDisplayNameForParticipant,
     isIOUReport,
     chatIncludesChronos,
+    getNewMarkerReportActionID,
 };

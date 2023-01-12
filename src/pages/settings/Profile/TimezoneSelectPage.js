@@ -16,6 +16,8 @@ import OptionsSelector from '../../../components/OptionsSelector';
 import themeColors from '../../../styles/themes/default';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 
+const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
+
 const propTypes = {
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -39,11 +41,11 @@ class TimezoneSelectPage extends Component {
                 text: timezone,
                 keyForList: timezone,
 
-                // Add green checkmark icon & bold the timezone text
-                customIcon: timezone === this.currentSelectedTimezone
-                    ? {src: Expensicons.Checkmark, color: themeColors.success}
-                    : null,
-                isUnread: timezone === this.currentSelectedTimezone,
+                // Include the green checkmark icon to indicate the currently selected value
+                customIcon: timezone === this.currentSelectedTimezone ? greenCheckmark : undefined,
+
+                // This property will make the currently selected value have bold text
+                boldStyle: timezone === this.currentSelectedTimezone,
             }))
             .value();
 
@@ -73,7 +75,7 @@ class TimezoneSelectPage extends Component {
 
     render() {
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('timezonePage.timezone')}
                     shouldShowBackButton

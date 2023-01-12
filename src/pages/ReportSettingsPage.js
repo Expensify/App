@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View, ScrollView, Keyboard} from 'react-native';
+import {View, Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -15,13 +15,13 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import Text from '../components/Text';
-import Button from '../components/Button';
 import RoomNameInput from '../components/RoomNameInput';
 import Picker from '../components/Picker';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import reportPropTypes from './reportPropTypes';
 import withReportOrNavigateHome from './home/report/withReportOrNavigateHome';
+import Form from '../components/Form';
 
 const propTypes = {
     /** Route params */
@@ -52,88 +52,60 @@ const propTypes = {
 class ReportSettingsPage extends Component {
     constructor(props) {
         super(props);
-        this.notificationPreferencesOptions = {
-            default: {
-                value: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                label: this.props.translate('notificationPreferences.immediately'),
-            },
-            daily: {
-                value: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
-                label: this.props.translate('notificationPreferences.daily'),
-            },
-            mute: {
-                value: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE,
-                label: this.props.translate('notificationPreferences.mute'),
-            },
-        };
 
-        this.roomNameInputRef = null;
+        this.validate = this.validate.bind(this);
+        this.updatePolicyRoomName = this.updatePolicyRoomName.bind(this);
+    }
 
-        this.state = {
-            newRoomName: this.props.report.reportName,
-            errors: {},
-        };
-
-        this.resetToPreviousName = this.resetToPreviousName.bind(this);
-        this.validateAndUpdatePolicyRoomName = this.validateAndUpdatePolicyRoomName.bind(this);
+    getNotificationPreferenceOptions() {
+        return [
+            {value: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, label: this.props.translate('notificationPreferences.immediately')},
+            {value: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY, label: this.props.translate('notificationPreferences.daily')},
+            {value: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE, label: this.props.translate('notificationPreferences.mute')},
+        ];
     }
 
     /**
-     * When the user dismisses the error updating the policy room name,
-     * reset the report name to the previously saved name and clear errors.
+     * @param {Object} values - form input values passed by the Form component
      */
-    resetToPreviousName() {
-        this.setState({newRoomName: this.props.report.reportName});
-        Report.clearPolicyRoomNameErrors(this.props.report.reportID);
-    }
+    updatePolicyRoomName(values) {
+        Keyboard.dismiss();
 
-    validateAndUpdatePolicyRoomName() {
-        if (!this.validate()) {
+        // When the room name has not changed, skip the Form submission
+        if (values.newRoomName === this.props.report.reportName) {
             return;
         }
-        Keyboard.dismiss();
-        Report.updatePolicyRoomName(this.props.report, this.state.newRoomName);
-    }
-
-    validate() {
-        const errors = {};
-
-        // When the report name is not changed, skip the form submission. Added check here to keep the code clean
-        if (this.state.newRoomName === this.props.report.reportName) {
-            return false;
-        }
-
-        // Show error if the room name already exists
-        if (ValidationUtils.isExistingRoomName(this.state.newRoomName, this.props.reports, this.props.report.policyID)) {
-            errors.newRoomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
-        }
-
-        // We error if the user doesn't enter a room name or left blank
-        if (!this.state.newRoomName || this.state.newRoomName === CONST.POLICY.ROOM_PREFIX) {
-            errors.newRoomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
-        }
-
-        // Certain names are reserved for default rooms and should not be used for policy rooms.
-        if (ValidationUtils.isReservedRoomName(this.state.newRoomName)) {
-            errors.newRoomName = this.props.translate('newRoomPage.roomNameReservedError');
-        }
-
-        this.setState({errors});
-        return _.isEmpty(errors);
+        Report.updatePolicyRoomName(this.props.report, values.newRoomName);
     }
 
     /**
-     * @param {String} inputKey
-     * @param {String} value
+     * @param {Object} values - form input values passed by the Form component
+     * @returns {Boolean}
      */
-    clearErrorAndSetValue(inputKey, value) {
-        this.setState(prevState => ({
-            [inputKey]: value,
-            errors: {
-                ...prevState.errors,
-                [inputKey]: '',
-            },
-        }));
+    validate(values) {
+        const errors = {};
+
+        // We should skip validation hence we return an empty errors and we skip Form submission on the onSubmit method
+        if (values.newRoomName === this.props.report.reportName) {
+            return errors;
+        }
+
+        // The following validations are ordered by precedence.
+        // First priority: We error if the user doesn't enter a room name or left blank
+        if (!values.newRoomName || values.newRoomName === CONST.POLICY.ROOM_PREFIX) {
+            errors.newRoomName = this.props.translate('newRoomPage.pleaseEnterRoomName');
+        } else if (ValidationUtils.isReservedRoomName(values.newRoomName)) {
+            // Second priority: Certain names are reserved for default rooms and should not be used for policy rooms.
+            errors.newRoomName = this.props.translate('newRoomPage.roomNameReservedError');
+        } else if (ValidationUtils.isExistingRoomName(values.newRoomName, this.props.reports, this.props.report.policyID)) {
+            // Third priority: Show error if the room name already exists
+            errors.newRoomName = this.props.translate('newRoomPage.roomAlreadyExistsError');
+        } else if (!ValidationUtils.isValidRoomName(values.newRoomName)) {
+            // Fourth priority: We error if the room name has invalid characters
+            errors.newRoomName = this.props.translate('newRoomPage.roomNameInvalidError');
+        }
+
+        return errors;
     }
 
     render() {
@@ -150,7 +122,15 @@ class ReportSettingsPage extends Component {
                     onBackButtonPress={Navigation.goBack}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5} keyboardShouldPersistTaps="handled">
+                <Form
+                    formID={ONYXKEYS.FORMS.ROOM_SETTINGS_FORM}
+                    submitButtonText={this.props.translate('common.save')}
+                    style={[styles.mh5, styles.mt5, styles.flexGrow1]}
+                    validate={this.validate}
+                    onSubmit={this.updatePolicyRoomName}
+                    isSubmitButtonVisible={shouldShowRoomName && !shouldDisableRename}
+                    enabledWhenOffline
+                >
                     <View>
                         <View style={[styles.mt2]}>
                             <Picker
@@ -166,7 +146,7 @@ class ReportSettingsPage extends Component {
                                         notificationPreference,
                                     );
                                 }}
-                                items={_.values(this.notificationPreferencesOptions)}
+                                items={this.getNotificationPreferenceOptions()}
                                 value={this.props.report.notificationPreference}
                             />
                         </View>
@@ -176,7 +156,7 @@ class ReportSettingsPage extends Component {
                             <OfflineWithFeedback
                                 pendingAction={lodashGet(this.props.report, 'pendingFields.reportName', null)}
                                 errors={lodashGet(this.props.report, 'errorFields.reportName', null)}
-                                onClose={this.resetToPreviousName}
+                                onClose={() => Report.clearPolicyRoomNameErrors(this.props.report.reportID)}
                             >
                                 <View style={[styles.flexRow]}>
                                     <View style={[styles.flex3]}>
@@ -186,33 +166,17 @@ class ReportSettingsPage extends Component {
                                                     {this.props.translate('newRoomPage.roomName')}
                                                 </Text>
                                                 <Text numberOfLines={1} style={[styles.optionAlternateText]}>
-                                                    {this.state.newRoomName}
+                                                    {this.props.report.reportName}
                                                 </Text>
                                             </View>
                                         )
                                             : (
                                                 <RoomNameInput
-                                                    ref={el => this.roomNameInputRef = el}
-                                                    value={this.state.newRoomName}
-                                                    policyID={linkedWorkspace && linkedWorkspace.id}
-                                                    errorText={this.state.errors.newRoomName}
-                                                    onChangeText={newRoomName => this.clearErrorAndSetValue('newRoomName', newRoomName)}
-                                                    disabled={shouldDisableRename}
+                                                    inputID="newRoomName"
+                                                    defaultValue={this.props.report.reportName}
                                                 />
                                             )}
                                     </View>
-                                    {!shouldDisableRename && (
-                                        <Button
-                                            large
-                                            success={!shouldDisableRename}
-                                            text={this.props.translate('common.save')}
-                                            onPress={this.validateAndUpdatePolicyRoomName}
-                                            style={[styles.ml2, styles.mnw25]}
-                                            textStyles={[styles.label]}
-                                            innerStyles={[styles.ph5]}
-                                            isDisabled={shouldDisableRename}
-                                        />
-                                    )}
                                 </View>
                             </OfflineWithFeedback>
                         </View>
@@ -244,7 +208,7 @@ class ReportSettingsPage extends Component {
                             </Text>
                         </View>
                     )}
-                </ScrollView>
+                </Form>
             </ScreenWrapper>
         );
     }

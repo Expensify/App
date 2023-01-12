@@ -107,8 +107,8 @@ class BaseOptionsSelector extends Component {
             allOptions: newOptions,
             focusedIndex: newFocusedIndex,
         }, () => {
-            // If we just toggled an option on a multi-selection page, scroll to top
-            if (this.props.selectedOptions.length !== prevProps.selectedOptions.length) {
+            // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
+            if (this.props.selectedOptions.length !== prevProps.selectedOptions.length || this.props.value === '') {
                 this.scrollToIndex(0);
                 return;
             }
@@ -239,7 +239,7 @@ class BaseOptionsSelector extends Component {
                 value={this.props.value}
                 label={this.props.textInputLabel}
                 onChangeText={this.props.onChangeText}
-                placeholder={this.props.placeholderText || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                placeholder={this.props.placeholderText}
                 onBlur={(e) => {
                     if (!this.props.shouldFocusOnSelectRow) {
                         return;
@@ -261,11 +261,11 @@ class BaseOptionsSelector extends Component {
                 canSelectMultipleOptions={this.props.canSelectMultipleOptions}
                 hideSectionHeaders={this.props.hideSectionHeaders}
                 headerMessage={this.props.headerMessage}
-                hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
-                forceTextUnreadStyle={this.props.forceTextUnreadStyle}
+                boldStyle={this.props.boldStyle}
                 showTitleTooltip={this.props.showTitleTooltip}
                 isDisabled={this.props.isDisabled}
                 shouldHaveOptionSeparator={this.props.shouldHaveOptionSeparator}
+                onLayout={this.props.onLayout}
             />
         ) : <FullScreenLoadingIndicator />;
         return (

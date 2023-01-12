@@ -15,6 +15,8 @@ const log = require('electron-log');
 const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
 const checkForUpdates = require('../src/libs/checkForUpdates');
 const CONFIG = require('../src/CONFIG').default;
+const CONST = require('../src/CONST');
+const Localize = require('../src/libs/Localize');
 
 const port = process.env.PORT || 8080;
 
@@ -73,6 +75,11 @@ for (let i = 0; i < process.argv.length; i++) {
 let hasUpdate = false;
 let downloadedVersion;
 
+// Note that we have to subscribe to this separately and cannot use Localize.translateLocal,
+// because the only way code can be shared between the main and renderer processes at runtime is via the context bridge
+// So we track preferredLocale separately via ELECTRON_EVENTS.LOCALE_UPDATED
+let preferredLocale = CONST.DEFAULT_LOCALE;
+
 const quitAndInstallWithUpdate = () => {
     if (!downloadedVersion) {
         return;
@@ -100,23 +107,23 @@ const manuallyCheckForUpdates = (menuItem, browserWindow) => {
             if (downloadPromise) {
                 dialog.showMessageBox(browserWindow, {
                     type: 'info',
-                    message: 'Update Available',
-                    detail: 'The new version will be available shortly. We’ll notify you when we’re ready to update.',
-                    buttons: ['Sounds good'],
+                    message: Localize.translate(preferredLocale, 'checkForUpdatesModal.available.title'),
+                    detail: Localize.translate(preferredLocale, 'checkForUpdatesModal.available.message'),
+                    buttons: [Localize.translate(preferredLocale, 'checkForUpdatesModal.available.soundsGood')],
                 });
             } else if (result && result.error) {
                 dialog.showMessageBox(browserWindow, {
                     type: 'error',
-                    message: 'Update Check Failed',
-                    detail: 'We couldn’t look for an update. Please check again in a bit!',
-                    buttons: ['Okay'],
+                    message: Localize.translate(preferredLocale, 'checkForUpdatesModal.error.title'),
+                    detail: Localize.translate(preferredLocale, 'checkForUpdatesModal.error.message'),
+                    buttons: [Localize.translate(preferredLocale, 'checkForUpdatesModal.notAvailable.okay')],
                 });
             } else {
                 dialog.showMessageBox(browserWindow, {
                     type: 'info',
-                    message: 'Update Not Available',
-                    detail: 'There is no update available as of now! Check again at a later time.',
-                    buttons: ['Okay'],
+                    message: Localize.translate(preferredLocale, 'checkForUpdatesModal.notAvailable.title'),
+                    detail: Localize.translate(preferredLocale, 'checkForUpdatesModal.notAvailable.message'),
+                    buttons: [Localize.translate(preferredLocale, 'checkForUpdatesModal.notAvailable.okay')],
                     cancelId: 2,
                 });
             }
@@ -141,34 +148,14 @@ const showKeyboardShortcutsModal = (browserWindow) => {
     browserWindow.webContents.send(ELECTRON_EVENTS.SHOW_KEYBOARD_SHORTCUTS_MODAL);
 };
 
-// Defines the system-level menu item to manually apply an update
-// This menu item should become visible after an update is downloaded and ready to be applied
-const updateAppMenuItem = new MenuItem({
-    label: 'Update New Expensify',
-    visible: false,
-    click: quitAndInstallWithUpdate,
-});
-
-// System-level menu item to manually check for App updates
-const checkForUpdateMenuItem = new MenuItem({
-    label: 'Check For Updates',
-    visible: true,
-    click: manuallyCheckForUpdates,
-});
-
-// Defines the system-level menu item for opening keyboard shortcuts modal
-const keyboardShortcutsMenu = new MenuItem({
-    label: 'View Keyboard Shortcuts',
-    accelerator: 'CmdOrCtrl+I',
-});
-
 // Actual auto-update listeners
 const electronUpdater = browserWindow => ({
     init: () => {
         autoUpdater.on(ELECTRON_EVENTS.UPDATE_DOWNLOADED, (info) => {
+            const systemMenu = Menu.getApplicationMenu();
             downloadedVersion = info.version;
-            updateAppMenuItem.visible = true;
-            checkForUpdateMenuItem.visible = false;
+            systemMenu.getMenuItemById(`updateAppMenuItem-${preferredLocale}`).visible = true;
+            systemMenu.getMenuItemById(`checkForUpdateMenuItem-${preferredLocale}`).visible = false;
             if (browserWindow.isVisible()) {
                 browserWindow.webContents.send(ELECTRON_EVENTS.UPDATE_DOWNLOADED, info.version);
             } else {
@@ -184,7 +171,65 @@ const electronUpdater = browserWindow => ({
     },
 });
 
+/*
+* @param {Menu} systemMenu
+*/
+const localizeMenuItems = (browserWindow, systemMenu) => {
+    // List the Expensify Chat instance under the Window menu, even when it's hidden
+    systemMenu.insert(4, new MenuItem({
+        id: `historyMenuItem-${preferredLocale}`,
+        label: Localize.translate(preferredLocale, 'desktopApplicationMenu.history'),
+        submenu: [{
+            id: `backMenuItem-${preferredLocale}`,
+            label: Localize.translate(preferredLocale, 'historyMenu.back'),
+            accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
+            click: () => { browserWindow.webContents.goBack(); },
+        },
+        {
+            id: `forwardMenuItem-${preferredLocale}`,
+            label: Localize.translate(preferredLocale, 'historyMenu.forward'),
+            accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
+            click: () => { browserWindow.webContents.goForward(); },
+        }],
+    }));
+
+    // Defines the system-level menu item to manually apply an update
+    // This menu item should become visible after an update is downloaded and ready to be applied
+    const updateAppMenuItem = new MenuItem({
+        id: `updateAppMenuItem-${preferredLocale}`,
+        label: Localize.translate(preferredLocale, 'desktopApplicationMenu.updateExpensify'),
+        visible: false,
+        click: quitAndInstallWithUpdate,
+    });
+
+    // System-level menu item to manually check for App updates
+    const checkForUpdateMenuItem = new MenuItem({
+        id: `checkForUpdateMenuItem-${preferredLocale}`,
+        label: Localize.translate(preferredLocale, 'desktopApplicationMenu.checkForUpdates'),
+        visible: true,
+        click: manuallyCheckForUpdates,
+    });
+
+    // Defines the system-level menu item for opening keyboard shortcuts modal
+    const keyboardShortcutsMenuItem = new MenuItem({
+        id: `keyboardShortcutsMenuItem-${preferredLocale}`,
+        label: Localize.translate(preferredLocale, 'initialSettingsPage.aboutPage.viewKeyboardShortcuts'),
+        accelerator: 'CmdOrCtrl+I',
+        click: () => {
+            showKeyboardShortcutsModal(browserWindow);
+        },
+    });
+
+    const appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');
+    appMenu.submenu.insert(1, updateAppMenuItem);
+    appMenu.submenu.insert(2, checkForUpdateMenuItem);
+    appMenu.submenu.insert(3, keyboardShortcutsMenuItem);
+};
+
 const mainWindow = (() => {
+    let deeplinkUrl;
+    let browserWindow;
+
     const loadURL = __DEV__
         ? win => win.loadURL(`http://localhost:${port}`)
         : serve({directory: `${__dirname}/www`});
@@ -196,6 +241,19 @@ const mainWindow = (() => {
         app.setName('New Expensify');
     }
 
+    app.on('will-finish-launching', () => {
+        app.on('open-url', (event, url) => {
+            event.preventDefault();
+            const urlObject = new URL(url);
+            deeplinkUrl = `${APP_DOMAIN}${urlObject.pathname}`;
+
+            if (browserWindow) {
+                browserWindow.loadURL(deeplinkUrl);
+                browserWindow.show();
+            }
+        });
+    });
+
     /*
     * Starting from Electron 20, it shall be required to set sandbox option to false explicitly.
     * Running a preload script contextBridge.js require access to nodeJS modules from the javascript code.
@@ -204,7 +262,15 @@ const mainWindow = (() => {
     * */
     return app.whenReady()
         .then(() => {
-            const browserWindow = new BrowserWindow({
+            /**
+             * We only want to register the scheme this way when in dev, since
+             * when the app is bundled electron-builder will take care of it.
+             */
+            if (__DEV__) {
+                app.setAsDefaultProtocolClient('new-expensify');
+            }
+
+            browserWindow = new BrowserWindow({
                 backgroundColor: '#FAFAFA',
                 width: 1200,
                 height: 900,
@@ -256,27 +322,7 @@ const mainWindow = (() => {
                 browserWindow.setTitle('New Expensify');
             }
 
-            keyboardShortcutsMenu.click = () => {
-                showKeyboardShortcutsModal(browserWindow);
-            };
-
-            // List the Expensify Chat instance under the Window menu, even when it's hidden
             const systemMenu = Menu.getApplicationMenu();
-            systemMenu.insert(4, new MenuItem({
-                label: 'History',
-                submenu: [{
-                    role: 'back',
-                    label: 'Back',
-                    accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
-                    click: () => { browserWindow.webContents.goBack(); },
-                },
-                {
-                    role: 'forward',
-                    label: 'Forward',
-                    accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
-                    click: () => { browserWindow.webContents.goForward(); },
-                }],
-            }));
 
             // Register the custom Paste and Match Style command and place it near the default shortcut of the same role.
             const editMenu = _.find(systemMenu.items, item => item.role === 'editmenu');
@@ -285,10 +331,8 @@ const mainWindow = (() => {
                 accelerator: 'CmdOrCtrl+Shift+V',
             }));
 
-            const appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');
-            appMenu.submenu.insert(1, updateAppMenuItem);
-            appMenu.submenu.insert(2, checkForUpdateMenuItem);
-            appMenu.submenu.insert(3, keyboardShortcutsMenu);
+            // Append custom context menu items using the preferred language of the user.
+            localizeMenuItems(browserWindow, systemMenu);
 
             // On mac, pressing cmd++ actually sends a cmd+=. cmd++ is generally the zoom in shortcut, but this is
             // not properly listened for by electron. Adding in an invisible cmd+= listener fixes this.
@@ -374,6 +418,37 @@ const mainWindow = (() => {
                 app.hide();
             }
 
+            ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale) => {
+                // Store the old locale so we can hide/remove these items after adding/showing the new ones.
+                const outdatedLocale = preferredLocale;
+                preferredLocale = updatedLocale;
+
+                const currentHistoryMenuItem = systemMenu.getMenuItemById(`historyMenuItem-${outdatedLocale}`);
+                const currentUpdateAppMenuItem = systemMenu.getMenuItemById(`updateAppMenuItem-${outdatedLocale}`);
+                const currentCheckForUpdateMenuItem = systemMenu.getMenuItemById(`checkForUpdateMenuItem-${outdatedLocale}`);
+                const currentKeyboardShortcutsMenuItem = systemMenu.getMenuItemById(`keyboardShortcutsMenuItem-${outdatedLocale}`);
+
+                // If we have previously added those languages, don't add new menu items, reshow them.
+                if (!systemMenu.getMenuItemById(`updateAppMenuItem-${updatedLocale}`)) {
+                    // Update the labels and ids to use the translations.
+                    localizeMenuItems(browserWindow, systemMenu);
+                }
+
+                // Show the localized menu items if there were visible before we updated the locale.
+                systemMenu.getMenuItemById(`updateAppMenuItem-${updatedLocale}`).visible = currentUpdateAppMenuItem.visible;
+                systemMenu.getMenuItemById(`checkForUpdateMenuItem-${updatedLocale}`).visible = currentCheckForUpdateMenuItem.visible;
+                systemMenu.getMenuItemById(`keyboardShortcutsMenuItem-${updatedLocale}`).visible = currentKeyboardShortcutsMenuItem.visible;
+                systemMenu.getMenuItemById(`historyMenuItem-${updatedLocale}`).visible = currentHistoryMenuItem.visible;
+
+                // Since we can't remove menu items, we hide the old ones.
+                currentUpdateAppMenuItem.visible = false;
+                currentCheckForUpdateMenuItem.visible = false;
+                currentKeyboardShortcutsMenuItem.visible = false;
+                currentHistoryMenuItem.visible = false;
+
+                Menu.setApplicationMenu(systemMenu);
+            });
+
             ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {
                 // This is how synchronous messages work in Electron
                 // eslint-disable-next-line no-param-reassign
@@ -404,18 +479,26 @@ const mainWindow = (() => {
         })
 
         // After initializing and configuring the browser window, load the compiled JavaScript
-        .then((browserWindow) => {
-            loadURL(browserWindow);
-            return browserWindow;
+        .then((browserWindowRef) => {
+            loadURL(browserWindow).then(() => {
+                if (!deeplinkUrl) {
+                    return;
+                }
+
+                browserWindow.loadURL(deeplinkUrl);
+                browserWindow.show();
+            });
+
+            return browserWindowRef;
         })
 
         // Start checking for JS updates
-        .then((browserWindow) => {
+        .then((browserWindowRef) => {
             if (__DEV__) {
                 return;
             }
 
-            checkForUpdates(electronUpdater(browserWindow));
+            checkForUpdates(electronUpdater(browserWindowRef));
         });
 });
 

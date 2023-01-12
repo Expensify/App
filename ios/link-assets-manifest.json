@@ -1,0 +1,37 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/fonts/native/ExpensifyMono-Bold.otf",
+      "sha1": "6b83b1c1c0c8650f6258fd05771b4e25696c4046"
+    },
+    {
+      "path": "assets/fonts/native/ExpensifyMono-Regular.otf",
+      "sha1": "c0522536213e24609badc298ed82a6c47cdb5b20"
+    },
+    {
+      "path": "assets/fonts/native/ExpensifyNeue-Bold.otf",
+      "sha1": "c61cccfb6091f06381fa5b514272eab7105246d8"
+    },
+    {
+      "path": "assets/fonts/native/ExpensifyNeue-BoldItalic.otf",
+      "sha1": "039065b262036e708ebb5f64b236ef08cc4e8f4e"
+    },
+    {
+      "path": "assets/fonts/native/ExpensifyNeue-Italic.otf",
+      "sha1": "7ddd0652175a9f27380fc63eec4395d65ed189eb"
+    },
+    {
+      "path": "assets/fonts/native/ExpensifyNeue-Regular.otf",
+      "sha1": "57b2cdd2f4adea3fad34464248502cd4edcaadd7"
+    },
+    {
+      "path": "assets/fonts/native/ExpensifyNewKansas-Medium.otf",
+      "sha1": "6c670679ccb67975edba5e8dd59dc883ff402b25"
+    },
+    {
+      "path": "assets/fonts/native/ExpensifyNewKansas-MediumItalic.otf",
+      "sha1": "42b8a320808e1f0aed6b65fd06edd51f6cf5515c"
+    }
+  ]
+}

@@ -104,6 +104,9 @@ export default function getTooltipStyles(
         ? tooltipTextWidth + (spacing.ph2.paddingHorizontal * 2) + 1
         : maxWidth;
 
+    // Hide the tooltip entirely if it's position hasn't finished measuring yet. This prevents UI jank where the tooltip flashes in the top left corner of the screen.
+    const opacity = (xOffset === 0 && yOffset === 0) ? 0 : 1;
+
     return {
         animationStyle: {
             // remember Transform causes a new Local cordinate system
@@ -116,7 +119,7 @@ export default function getTooltipStyles(
         tooltipWrapperStyle: {
             position: 'fixed',
             backgroundColor: themeColors.heading,
-            borderRadius: variables.buttonBorderRadius,
+            borderRadius: variables.componentBorderRadiusSmall,
             ...tooltipVerticalPadding,
             ...spacing.ph2,
             zIndex: variables.tooltipzIndex,
@@ -151,6 +154,8 @@ export default function getTooltipStyles(
             //   3) Add the horizontal shift (left or right) computed above to keep it out of the gutters.
             //   4) Lastly, add the manual horizontal shift passed in as a parameter.
             left: xOffset + ((componentWidth / 2) - (tooltipWidth / 2)) + horizontalShift + manualShiftHorizontal,
+
+            opacity,
         },
         tooltipTextStyle: {
             color: themeColors.textReversed,
@@ -161,20 +166,15 @@ export default function getTooltipStyles(
         pointerWrapperStyle: {
             position: 'fixed',
 
-            // By default, the pointer's top-left will align with the top-left of the wrapped tooltip.
+            // By default, the pointer's top-left will align with the top-left of the tooltip wrapper.
             //
             // To align it vertically, we'll:
+            //   If the pointer should be below the tooltip wrapper, shift the pointer down (+) by the tooltip height,
+            //   so that the top of the pointer lines up with the bottom of the tooltip
             //
-            //   Shift the pointer up (-) by component's height, so that the bottom of the pointer lines up
-            //   with the top of the wrapped component.
-            //
-            //   OR if it should show below:
-            //
-            //   Shift the pointer down (+) by the component's height,
-            //      so that the top of the pointer aligns with the bottom of the component.
-            //
-            // Always add the manual vertical shift passed in as a parameter.
-            top: shouldShowBelow ? (manualShiftVertical - POINTER_HEIGHT) : (tooltipHeight + manualShiftVertical),
+            //   OR if the pointer should be above the tooltip wrapper, then the pointer up (-) by the pointer's height
+            //   so that the bottom of the pointer lines up with the top of the tooltip
+            top: shouldShowBelow ? -POINTER_HEIGHT : tooltipHeight,
 
             // To align it horizontally, we'll:
             //   1) Shift the pointer to the right (+) by the half the tooltipWidth's width,
@@ -184,6 +184,8 @@ export default function getTooltipStyles(
             //   3) Due to the tip start from the left edge of wrapper Tooltip so we have to remove the
             //      horizontalShift which is added to adjust it into the Window
             left: -horizontalShift + ((tooltipWidth / 2) - (POINTER_WIDTH / 2)),
+
+            opacity,
         },
         pointerStyle: {
             width: 0,

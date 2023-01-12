@@ -3,6 +3,7 @@ import _ from 'underscore';
 import CONST from '../CONST';
 import * as CardUtils from './CardUtils';
 import * as LoginUtils from './LoginUtils';
+import * as Localize from './Localize';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -274,6 +275,14 @@ function isValidPassword(password) {
 }
 
 /**
+ * @param {String} code
+ * @returns {Boolean}
+ */
+function isValidTwoFactorCode(code) {
+    return Boolean(code.match(CONST.REGEX.CODE_2FA));
+}
+
+/**
  * @param {String} input
  * @returns {Boolean}
  */
@@ -337,6 +346,25 @@ function doesFailCharacterLimitAfterTrim(maxLength, valuesToBeValidated) {
 }
 
 /**
+ * Checks if input value includes comma or semicolon which are not accepted
+ *
+ * @param {String[]} valuesToBeValidated
+ * @returns {String[]}
+ */
+function findInvalidSymbols(valuesToBeValidated) {
+    return _.map(valuesToBeValidated, (value) => {
+        if (!value) {
+            return '';
+        }
+        let inValidSymbol = value.replace(/[,]+/g, '') !== value ? Localize.translateLocal('personalDetails.error.comma') : '';
+        if (_.isEmpty(inValidSymbol)) {
+            inValidSymbol = value.replace(/[;]+/g, '') !== value ? Localize.translateLocal('personalDetails.error.semicolon') : '';
+        }
+        return inValidSymbol;
+    });
+}
+
+/**
  * Checks if is one of the certain names which are reserved for default rooms
  * and should not be used for policy rooms.
  *
@@ -361,6 +389,19 @@ function isExistingRoomName(roomName, reports, policyID) {
         report => report && report.policyID === policyID
         && report.reportName === roomName,
     );
+}
+
+/**
+ * Checks if a room name is valid by checking that:
+ * - It starts with a hash '#'
+ * - After the first character, it contains only lowercase letters, numbers, and dashes
+ * - It's between 1 and MAX_ROOM_NAME_LENGTH characters long
+ *
+ * @param {String} roomName
+ * @returns {Boolean}
+ */
+function isValidRoomName(roomName) {
+    return CONST.REGEX.ROOM_NAME.test(roomName);
 }
 
 /**
@@ -389,6 +430,7 @@ export {
     isValidURL,
     validateIdentity,
     isValidPassword,
+    isValidTwoFactorCode,
     isPositiveInteger,
     isNumericWithSpecialChars,
     isValidPaypalUsername,
@@ -399,5 +441,7 @@ export {
     doesFailCharacterLimitAfterTrim,
     isReservedRoomName,
     isExistingRoomName,
+    isValidRoomName,
     isValidTaxID,
+    findInvalidSymbols,
 };

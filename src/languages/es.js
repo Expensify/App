@@ -132,12 +132,18 @@ export default {
         description: 'Arrastra, haz zoom y rota tu imagen para que quede como te gusta.',
     },
     composer: {
-        noExtentionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
+        noExtensionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
         problemGettingImageYouPasted: 'Ha ocurrido un problema al obtener la imagen que has pegado',
     },
     baseUpdateAppModal: {
         updateApp: 'Actualizar app',
         updatePrompt: 'Existe una nueva versión de esta aplicación.\nActualiza ahora or reinicia la aplicación más tarde para recibir la última versión.',
+    },
+    deeplinkWrapper: {
+        launching: 'Cargando Expensify',
+        redirectedToDesktopApp: 'Te hemos redirigido a la aplicación de escritorio.',
+        youCanAlso: 'También puedes',
+        openLinkInBrowser: 'abrir este enlace en tu navegador',
     },
     iOUConfirmationList: {
         whoPaid: '¿QUIÉN PAGO?',
@@ -166,6 +172,7 @@ export default {
     },
     reportActionCompose: {
         addAction: 'Acción',
+        dropToUpload: 'Suelta el archivo aquí para compartirlo',
         sendAttachment: 'Enviar adjunto',
         addAttachment: 'Agregar archivo adjunto',
         writeSomething: 'Escribe algo...',
@@ -259,6 +266,7 @@ export default {
         split: ({amount}) => `Dividir ${amount}`,
         send: ({amount}) => `Enviar ${amount}`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
+        pendingConversionMessage: 'El total se actualizará cuando estés online',
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
@@ -283,12 +291,13 @@ export default {
         imageUploadFailed: 'Error al cargar la imagen',
         deleteWorkspaceError: 'Lo sentimos, hubo un problema eliminando el avatar de su espacio de trabajo.',
         sizeExceeded: ({maxUploadSizeInMB}) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
-        tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Por favor elige una imagen mas grande que ${minHeightInPx}x${minWidthInPx} píxeles`,
+        resolutionConstraints: ({
+            minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx,
+        }) => `Por favor, elige una imagen más grande que ${minHeightInPx}x${minWidthInPx} píxeles y más pequeña que ${maxHeightInPx}x${maxWidthInPx} píxeles`,
         notAllowedExtension: ({allowedExtensions}) => `La foto de perfil debe ser de uno de los siguientes tipos: ${allowedExtensions.join(', ')}.`,
     },
     profilePage: {
         profile: 'Perfil',
-        tellUsAboutYourself: '¡Cuéntanos algo sobre tí, nos encantaría conocerte!',
         john: 'Juan',
         doe: 'Nadie',
         preferredPronouns: 'Pronombres preferidos',
@@ -382,7 +391,8 @@ export default {
         reasonForLeavingPrompt: '¡Lamentamos verte partir! ¿Serías tan amable de decirnos por qué, para que podamos mejorar?',
         enterMessageHere: 'Ingresa el mensaje aquí',
         closeAccountWarning: 'Una vez cerrada tu cuenta no se puede revertir.',
-        closeAccountPermanentlyDeleteData: 'Esta acción eliminará permanentemente toda la información de tus gastos no enviados. Escribe tu número de teléfono o correo electrónico para confirmar',
+        closeAccountPermanentlyDeleteData: 'Esta acción eliminará permanentemente toda la información de tus gastos no enviados y cancelará o rechazará cualquier solicitud de dinero pendiente. ¿Estás seguro de que quieres eliminar tu cuenta?',
+        enterDefaultContactToConfirm: 'Por favor escribe tu método de contacto predeterminado para confirmar que deseas eliminar tu cuenta. Tu método de contacto predeterminado es:',
         enterDefaultContact: 'Tu método de contacto predeterminado',
         defaultContact: 'Método de contacto predeterminado:',
         enterYourDefaultContactMethod: 'Por favor ingresa tu método de contacto predeterminado para cerrar tu cuenta.',
@@ -417,7 +427,7 @@ export default {
         nameOnCard: 'Nombre en la tarjeta',
         debitCardNumber: 'Numero de la tarjeta de débito',
         expiration: 'Fecha de vencimiento',
-        expirationDate: 'MM/AA',
+        expirationDate: 'MMAA',
         cvv: 'CVV',
         billingAddress: 'Dirección de envio',
         expensifyTermsOfService: 'Expensify Términos de servicio',
@@ -496,7 +506,7 @@ export default {
         heroHeading: 'Dividir cuentas\ny chatear con amigos.',
         heroDescription: {
             phrase1: 'El dinero habla. Y ahora que el chat y los pagos están en un solo lugar, también es fácil. Sus pagos le llegan tan rápido como puede transmitir su punto.',
-            phrase2: 'New Expensify es de código abierto. Vista',
+            phrase2: 'Nuevo Expensify es de código abierto. Vista',
             phrase3: 'el código',
             phrase4: 'Vista',
             phrase5: 'vacantes',
@@ -542,6 +552,9 @@ export default {
             firstNameLength: 'El nombre no debe tener más de 50 caracteres',
             lastNameLength: 'El apellido no debe tener más de 50 caracteres',
             characterLimit: ({limit}) => `Supera el límite de ${limit} caracteres`,
+            hasInvalidCharacter: ({invalidCharacter}) => `Por favor elimina ${invalidCharacter} del campo nombre.`,
+            comma: 'la coma',
+            semicolon: 'el punto y coma',
         },
     },
     resendValidationForm: {
@@ -631,6 +644,7 @@ export default {
         unknownFilename: 'Archivo desconocido',
         passwordRequired: 'Por favor introduce tu contraseña',
         passwordIncorrect: 'Contraseña incorrecta. Por favor intenta de nuevo.',
+        failedToLoadPDF: 'Hubo un error al intentar cargar el PDF.',
         pdfPasswordForm: {
             title: 'PDF protegido con contraseña',
             infoText: 'Este PDF esta protegido con contraseña.',
@@ -798,9 +812,6 @@ export default {
         letsChatCTA: 'Sí, vamos a chatear',
         letsChatText: 'Gracias. Necesitamos tu ayuda para verificar la información, pero podemos hacerlo rápidamente a través del chat. ¿Estás listo?',
         letsChatTitle: '¡Vamos a chatear!',
-        enable2FATitle: 'Evita fraudes, activa la autenticación de dos factores!',
-        enable2FAText: 'Tu seguridad es importante para nosotros, por favor configura ahora la autenticación de dos factores. Eso nos permitirá disputar las transacciones de la Tarjeta Expensify y reducirá tu riesgo de fraude.',
-        secureYourAccount: 'Asegura tu cuenta',
     },
     beneficialOwnersStep: {
         additionalInformation: 'Información adicional',
@@ -1026,6 +1037,7 @@ export default {
         createRoom: 'Crea una sala de chat',
         roomAlreadyExistsError: 'Ya existe una sala con este nombre',
         roomNameReservedError: 'Una sala en este espacio de trabajo ya usa este nombre',
+        roomNameInvalidError: 'Los nombres de las salas solo pueden contener letras, números y guiones',
         pleaseEnterRoomName: 'Por favor escribe el nombre de una sala',
         pleaseSelectWorkspace: 'Por favor, selecciona un espacio de trabajo',
         renamedRoomAction: ({oldName, newName}) => ` cambió el nombre de la sala de ${oldName} a ${newName}`,
@@ -1036,6 +1048,9 @@ export default {
             restricted: 'Restringida',
             private: 'Privada',
         },
+    },
+    statementPage: {
+        generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
     },
     keyboardShortcutModal: {
         title: 'Atajos de teclado',
@@ -1073,6 +1088,32 @@ export default {
         permissionError: {
             title: 'Se necesita acceso',
             message: 'Expensify no tiene acceso para guardar archivos. Para habilitar la descarga de archivos, entra en Settings y habilita el accesso',
+        },
+    },
+    desktopApplicationMenu: {
+        aboutExpensify: 'Sobre Nuevo Expensify',
+        updateExpensify: 'Actualizar Nuevo Expensify',
+        checkForUpdates: 'Buscar actualizaciones',
+        history: 'Historial',
+    },
+    historyMenu: {
+        forward: 'Adelante',
+        back: 'Atrás',
+    },
+    checkForUpdatesModal: {
+        available: {
+            title: 'Actualización disponible',
+            message: 'La nueva versión estará disponible dentro de poco. Te notificaremos cuando esté lista.',
+            soundsGood: 'Suena bien',
+        },
+        notAvailable: {
+            title: 'Actualización no disponible',
+            message: 'No existe ninguna actualización disponible! Inténtalo de nuevo más tarde.',
+            okay: 'Vale',
+        },
+        error: {
+            title: 'Comprobación fallida',
+            message: 'No hemos podido comprobar si existe una actualización. Inténtalo de nuevo más tarde!',
         },
     },
 };

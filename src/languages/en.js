@@ -132,12 +132,18 @@ export default {
         description: 'Drag, zoom, and rotate your image to your preferred specifications',
     },
     composer: {
-        noExtentionFoundForMimeType: 'No extension found for mime type',
+        noExtensionFoundForMimeType: 'No extension found for mime type',
         problemGettingImageYouPasted: 'There was a problem getting the image you pasted',
     },
     baseUpdateAppModal: {
         updateApp: 'Update app',
         updatePrompt: 'A new version of this app is available.\nUpdate now or restart the app at a later time to download the latest changes.',
+    },
+    deeplinkWrapper: {
+        launching: 'Launching Expensify',
+        redirectedToDesktopApp: 'We\'ve redirected you to the desktop app.',
+        youCanAlso: 'You can also',
+        openLinkInBrowser: 'open this link in your browser',
     },
     iOUConfirmationList: {
         whoPaid: 'WHO PAID?',
@@ -166,6 +172,7 @@ export default {
     },
     reportActionCompose: {
         addAction: 'Actions',
+        dropToUpload: 'Drop to upload',
         sendAttachment: 'Send attachment',
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
@@ -259,6 +266,7 @@ export default {
         split: ({amount}) => `Split ${amount}`,
         send: ({amount}) => `Send ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
+        pendingConversionMessage: 'Total will update when you\'re back online',
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
@@ -283,12 +291,13 @@ export default {
         imageUploadFailed: 'Image upload failed',
         deleteWorkspaceError: 'Sorry, there was an unexpected problem deleting your workspace avatar.',
         sizeExceeded: ({maxUploadSizeInMB}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
-        tooSmallResolution: ({minHeightInPx, minWidthInPx}) => `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels`,
+        resolutionConstraints: ({
+            minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx,
+        }) => `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels and smaller than ${maxHeightInPx}x${maxWidthInPx} pixels`,
         notAllowedExtension: ({allowedExtensions}) => `Profile picture must be one of the following types: ${allowedExtensions.join(', ')}.`,
     },
     profilePage: {
         profile: 'Profile',
-        tellUsAboutYourself: 'Tell us about yourself, we would love to get to know you!',
         john: 'John',
         doe: 'Doe',
         preferredPronouns: 'Preferred pronouns',
@@ -350,7 +359,7 @@ export default {
         aboutPage: {
             description: 'The New Expensify App is built by a community of open source developers from around the world. Help us build the future of Expensify.',
             appDownloadLinks: 'App download links',
-            viewKeyboardShortcuts: 'View Keyboard Shortcuts',
+            viewKeyboardShortcuts: 'View keyboard shortcuts',
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
             reportABug: 'Report a bug',
@@ -382,7 +391,8 @@ export default {
         reasonForLeavingPrompt: 'We’d hate to see you go! Would you kindly tell us why, so we can improve?',
         enterMessageHere: 'Enter message here',
         closeAccountWarning: 'Closing your account cannot be undone.',
-        closeAccountPermanentlyDeleteData: 'This will permanently delete all of your unsubmitted expense data. Type your phone number or email address to confirm.',
+        closeAccountPermanentlyDeleteData: 'This will permanently delete all of your unsubmitted expense data and will cancel and decline any outstanding money requests. Are you sure you want to delete the account?',
+        enterDefaultContactToConfirm: 'Please type your default contact method to confirm you wish to close your account. Your default contact method is:',
         enterDefaultContact: 'Enter your default contact method',
         defaultContact: 'Default contact method:',
         enterYourDefaultContactMethod: 'Please enter your default contact method to close your account.',
@@ -417,7 +427,7 @@ export default {
         nameOnCard: 'Name on card',
         debitCardNumber: 'Debit card number',
         expiration: 'Expiration date',
-        expirationDate: 'MM/YY',
+        expirationDate: 'MMYY',
         cvv: 'CVV',
         billingAddress: 'Billing address',
         expensifyTermsOfService: 'Expensify Terms of Service',
@@ -542,6 +552,9 @@ export default {
             firstNameLength: 'First name shouldn\'t be longer than 50 characters',
             lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
             characterLimit: ({limit}) => `Exceeds the max length of ${limit} characters`,
+            hasInvalidCharacter: ({invalidCharacter}) => `Please remove the ${invalidCharacter} from the name field.`,
+            comma: 'comma',
+            semicolon: 'semicolon',
         },
     },
     resendValidationForm: {
@@ -631,6 +644,7 @@ export default {
         unknownFilename: 'Unknown filename',
         passwordRequired: 'Please enter a password',
         passwordIncorrect: 'Incorrect password. Please try again.',
+        failedToLoadPDF: 'Failed to load PDF file.',
         pdfPasswordForm: {
             title: 'Password protected PDF',
             infoText: 'This PDF is password protected.',
@@ -796,9 +810,6 @@ export default {
         letsChatCTA: 'Yes, let\'s chat',
         letsChatText: 'Thanks for doing that. We need your help verifying a few pieces of information, but we can work this out quickly over chat. Ready?',
         letsChatTitle: 'Let\'s chat!',
-        enable2FATitle: 'Prevent fraud, enable two-factor authentication!',
-        enable2FAText: 'We take your security seriously, so please set up two-factor authentication for your account now. That will allow us to dispute Expensify Card digital transactions, and will reduce your risk for fraud.',
-        secureYourAccount: 'Secure your account',
     },
     beneficialOwnersStep: {
         additionalInformation: 'Additional information',
@@ -1024,6 +1035,7 @@ export default {
         createRoom: 'Create Room',
         roomAlreadyExistsError: 'A room with this name already exists',
         roomNameReservedError: 'A room on this workspace already uses this name',
+        roomNameInvalidError: 'Room names can only contain letters, numbers and hyphens',
         pleaseEnterRoomName: 'Please enter a room name',
         pleaseSelectWorkspace: 'Please select a workspace',
         renamedRoomAction: ({oldName, newName}) => ` renamed this room from ${oldName} to ${newName}`,
@@ -1034,6 +1046,9 @@ export default {
             restricted: 'Restricted',
             private: 'Private',
         },
+    },
+    statementPage: {
+        generatingPDF: 'We\'re generating your PDF right now. Please come back later!',
     },
     keyboardShortcutModal: {
         title: 'Keyboard Shortcuts',
@@ -1071,6 +1086,32 @@ export default {
         permissionError: {
             title: 'Access needed',
             message: 'Expensify does not have access to save attachments. To enable access, go to Settings and allow access',
+        },
+    },
+    desktopApplicationMenu: {
+        aboutExpensify: 'About New Expensify',
+        updateExpensify: 'Update New Expensify',
+        checkForUpdates: 'Check for updates',
+        history: 'History',
+    },
+    historyMenu: {
+        forward: 'Forward',
+        back: 'Back',
+    },
+    checkForUpdatesModal: {
+        available: {
+            title: 'Update Available',
+            message: 'The new version will be available shortly. We\'ll notify you when we\'re ready to update.',
+            soundsGood: 'Sounds good',
+        },
+        notAvailable: {
+            title: 'Update Not Available',
+            message: 'There is no update available as of now! Check again at a later time.',
+            okay: 'Okay',
+        },
+        error: {
+            title: 'Update Check Failed',
+            message: 'We couldn\'t look for an update. Please check again in a bit!',
         },
     },
 };

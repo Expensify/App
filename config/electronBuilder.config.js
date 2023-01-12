@@ -23,6 +23,14 @@ const macIcon = {
     internal: './desktop/icon-stg.png',
 };
 
+const isCorrectElectronEnv = ['production', 'staging', 'internal'].includes(
+    process.env.ELECTRON_ENV,
+);
+
+if (!isCorrectElectronEnv) {
+    throw new Error('Invalid ELECTRON_ENV!');
+}
+
 /**
  * The configuration for the production and staging Electron builds.
  * It can be used to create local builds of the same, by omitting the `--publish` flag
@@ -59,5 +67,9 @@ module.exports = {
     directories: {
         app: 'desktop',
         output: 'desktop-build',
+    },
+    protocols: {
+        name: 'New Expensify',
+        schemes: ['new-expensify'],
     },
 };

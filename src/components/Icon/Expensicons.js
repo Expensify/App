@@ -35,6 +35,7 @@ import Emoji from '../../../assets/images/emoji.svg';
 import Exclamation from '../../../assets/images/exclamation.svg';
 import Exit from '../../../assets/images/exit.svg';
 import ExpensifyCard from '../../../assets/images/expensifycard.svg';
+import ExpensifyWordmark from '../../../assets/images/expensify-wordmark.svg';
 import Expand from '../../../assets/images/expand.svg';
 import Eye from '../../../assets/images/eye.svg';
 import EyeDisabled from '../../../assets/images/eye-disabled.svg';
@@ -95,6 +96,7 @@ import Workspace from '../../../assets/images/workspace-default-avatar.svg';
 import Zoom from '../../../assets/images/zoom.svg';
 import FallbackAvatar from '../../../assets/images/avatars/fallback-avatar.svg';
 import FallbackWorkspaceAvatar from '../../../assets/images/avatars/fallback-workspace-avatar.svg';
+import DragAndDrop from '../../../assets/images/drag-and-drop.svg';
 
 export {
     ActiveRoomAvatar,
@@ -130,10 +132,12 @@ export {
     DotIndicator,
     DownArrow,
     Download,
+    DragAndDrop,
     Emoji,
     Exclamation,
     Exit,
     ExpensifyCard,
+    ExpensifyWordmark,
     Expand,
     Eye,
     EyeDisabled,

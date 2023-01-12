@@ -23,7 +23,6 @@ const darkTheme = {
     danger: colors.red,
     dangerHover: colors.redHover,
     dangerPressed: colors.redHover,
-    dangerDisabled: colors.redDisabled,
     warning: colors.yellow,
     success: colors.green,
     successHover: colors.greenHover,
@@ -31,6 +30,7 @@ const darkTheme = {
     transparent: colors.transparent,
 
     // Additional keys
+    overlay: colors.greenHighlightBackground,
     inverse: colors.white,
     shadow: colors.black,
     componentBG: colors.greenAppBackground,
@@ -46,8 +46,7 @@ const darkTheme = {
     textMutedReversed: colors.greenIcons,
     textError: colors.red,
     offline: colors.greenIcons,
-    opaqueAvatar: 'rgba(198, 201, 202, 0.64)',
-    modalBackdrop: colors.greenIcons,
+    modalBackdrop: colors.greenHighlightBackground,
     modalBackground: colors.greenAppBackground,
     cardBG: colors.greenHighlightBackground,
     cardBorder: colors.greenHighlightBackground,
@@ -56,7 +55,11 @@ const darkTheme = {
     placeholderText: colors.greenIcons,
     heroCard: colors.blue,
     uploadPreviewActivityIndicator: colors.greenHighlightBackground,
+    dropUIBG: 'rgba(6,27,9,0.92)',
+    dropTransparentOverlay: 'rgba(255,255,255,0)',
     checkBox: colors.green,
+    pickerOptionsTextColor: colors.midnight,
+    imageCropBackgroundColor: colors.greenIcons,
 };
 
 const oldTheme = {
@@ -85,8 +88,6 @@ const oldTheme = {
     textMutedReversed: colors.gray3,
     buttonDefaultBG: colors.gray2,
     offline: colors.gray3,
-    sidebarButtonBG: 'rgba(198, 201, 202, 0.25)',
-    opaqueAvatar: 'rgba(011, 027, 052, 0.64)',
     modalBackdrop: colors.gray3,
     modalBackground: colors.gray2,
     buttonDisabledBG: colors.gray2,
@@ -97,9 +98,12 @@ const oldTheme = {
     placeholderText: colors.gray3,
     heroCard: colors.blue,
     uploadPreviewActivityIndicator: colors.gray1,
+    dropUIBG: 'rgba(6,27,9,0.92)',
+    dropTransparentOverlay: 'rgba(255,255,255,0)',
     cardBG: colors.gray1,
     cardBorder: colors.gray1,
     checkBox: colors.blue,
+    overlay: colors.gray1,
 
     // Merging new Keys for Dark Mode merge. Delete after new branding is implemented.
     highlightBG: colors.gray1,
