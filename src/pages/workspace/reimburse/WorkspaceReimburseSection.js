@@ -48,7 +48,10 @@ class WorkspaceReimburseSection extends React.Component {
     }
 
     setShouldShowLoadingSpinner() {
-        this.setState({shouldShowLoadingSpinner: this.props.reimbursementAccount.isLoading || false});
+        const shouldShowLoadingSpinner = this.props.reimbursementAccount.isLoading || false;
+        if (shouldShowLoadingSpinner !== this.state.shouldShowLoadingSpinner) {
+            this.setState({shouldShowLoadingSpinner});
+        }
     }
 
     render() {

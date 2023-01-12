@@ -107,8 +107,8 @@ class BaseOptionsSelector extends Component {
             allOptions: newOptions,
             focusedIndex: newFocusedIndex,
         }, () => {
-            // If we just toggled an option on a multi-selection page, scroll to top
-            if (this.props.selectedOptions.length !== prevProps.selectedOptions.length) {
+            // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
+            if (this.props.selectedOptions.length !== prevProps.selectedOptions.length || this.props.value === '') {
                 this.scrollToIndex(0);
                 return;
             }
