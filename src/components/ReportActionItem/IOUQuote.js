@@ -67,7 +67,7 @@ const IOUQuote = props => (
                 ]}
                 focusable={props.shouldAllowViewDetails}
             >
-                <Text>
+                <Text style={[styles.flex1, styles.mr2]}>
                     <Text style={props.shouldAllowViewDetails && styles.chatItemMessageLink}>
                         {/* Get first word of IOU message */}
                         {Str.htmlDecode(fragment.text.split(' ')[0])}
