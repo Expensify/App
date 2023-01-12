@@ -146,8 +146,8 @@ export default {
         openLinkInBrowser: 'abrir este enlace en tu navegador',
     },
     iOUConfirmationList: {
-        whoPaid: '¿QUIÉN PAGO?',
-        whoWasThere: '¿QUIÉN ASISTIÓ?',
+        whoPaid: '¿Quién pago?',
+        whoWasThere: '¿Quién asistió?',
         whatsItFor: '¿Para qué es?',
     },
     iOUCurrencySelection: {
