@@ -147,8 +147,7 @@ const MenuItem = (props) => {
                         <Badge
                             text={props.badgeText}
                             badgeStyles={[styles.alignSelfCenter, (props.brickRoadIndicator ? styles.mr2 : undefined),
-                                (props.focused || hovered) ? styles.hoveredButton : {},
-                                pressed ? StyleUtils.getBadgeColorStyle(false, false) : {},
+                                (props.focused || hovered || pressed) ? styles.hoveredButton : {},
                             ]}
                         />
                         )}

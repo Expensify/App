@@ -251,7 +251,7 @@ function getBadgeColorStyle(success, error, isPressed = false) {
     if (error) {
         return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
     }
-    return isPressed ? styles.buttonPressedBG : {};
+    return {};
 }
 
 /**
