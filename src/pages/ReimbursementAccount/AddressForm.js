@@ -46,7 +46,12 @@ const propTypes = {
     }),
 
     /** Any errors that can arise from form validation */
-    errors: PropTypes.objectOf(PropTypes.bool),
+    errors: PropTypes.shape({
+        street: PropTypes.bool,
+        city: PropTypes.bool,
+        state: PropTypes.bool,
+        zipCode: PropTypes.bool,
+    }),
 
     /** The map for inputID of the inputs */
     inputKeys: PropTypes.shape({
