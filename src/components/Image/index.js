@@ -2,19 +2,9 @@ import React from 'react';
 import {Image as RNImage} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import ONYXKEYS from '../../ONYXKEYS';
 import {defaultProps, imagePropTypes} from './imagePropTypes';
 import RESIZE_MODES from './resizeModes';
-
-const propTypes = {
-    ...imagePropTypes,
-
-    /** The URI source of the image */
-    source: PropTypes.shape({
-        uri: PropTypes.string.isRequired,
-    }).isRequired,
-};
 
 class Image extends React.Component {
     constructor(props) {
@@ -36,9 +26,11 @@ class Image extends React.Component {
         this.configureImageSource();
     }
 
-    // Check if the image source is a URL - if so the `encryptedAuthToken` is appended
-    // to the source. The natural image dimensions can then be retrieved using this source
-    // and as a result the `onLoad` event needs to be maunually invoked to return these dimensions
+    /**
+     * Check if the image source is a URL - if so the `encryptedAuthToken` is appended
+     * to the source. The natural image dimensions can then be retrieved using this source
+     * and as a result the `onLoad` event needs to be maunually invoked to return these dimensions
+     */
     configureImageSource() {
         const source = this.props.source;
         let imageSource = source;
@@ -70,7 +62,7 @@ class Image extends React.Component {
     }
 }
 
-Image.propTypes = propTypes;
+Image.propTypes = imagePropTypes;
 Image.defaultProps = defaultProps;
 
 const ImageWithOnyx = withOnyx({
