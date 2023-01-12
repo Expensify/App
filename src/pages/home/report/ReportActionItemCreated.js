@@ -49,7 +49,7 @@ const ReportActionItemCreated = (props) => {
         <OfflineWithFeedback
             pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}
             errors={lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat')}
-            errorRowStyles={styles.addWorkspaceRoomErrorRow}
+            errorRowStyles={[styles.ml10, styles.mr2]}
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
         >
             <View pointerEvents="none" style={[styles.emptyStateBackgroundContainer, StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)]}>

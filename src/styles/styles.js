@@ -2790,12 +2790,6 @@ const styles = {
         marginLeft: 6,
     },
 
-    addWorkspaceRoomErrorRow: {
-        paddingHorizontal: 20,
-        maxWidth: 450,
-        alignSelf: 'center',
-    },
-
     fullScreenTransparentOverlay: {
         position: 'absolute',
         width: '100%',
