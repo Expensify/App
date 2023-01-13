@@ -7,7 +7,6 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Section from '../components/Section';
 import Navigation from '../libs/Navigation/Navigation';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
 import Text from '../components/Text';
 import * as Expensicons from '../components/Icon/Expensicons';
 import * as Illustrations from '../components/Icon/Illustrations';

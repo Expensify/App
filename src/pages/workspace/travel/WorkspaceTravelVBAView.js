@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';

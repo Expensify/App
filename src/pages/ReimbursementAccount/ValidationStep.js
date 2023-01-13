@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import * as Report from '../../libs/actions/Report';

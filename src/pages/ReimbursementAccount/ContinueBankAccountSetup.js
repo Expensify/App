@@ -15,7 +15,6 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import MenuItem from '../../components/MenuItem';
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Section from '../../components/Section';
 import Text from '../../components/Text';
