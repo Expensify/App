@@ -228,7 +228,7 @@ function suggestEmojis(text, limit = 5) {
                 if (matching.length === limit) {
                     return matching;
                 }
-                matching.unshift({code: nodes[j].metaData.code, name: nodes[j].name});
+                matching.push({code: nodes[j].metaData.code, name: nodes[j].name});
             }
             const suggestions = nodes[j].metaData.suggestions;
             for (let i = 0; i < suggestions.length; i++) {
@@ -236,7 +236,7 @@ function suggestEmojis(text, limit = 5) {
                     return matching;
                 }
                 if (!_.find(matching, obj => obj.name === suggestions[i].name)) {
-                    matching.unshift(suggestions[i]);
+                    matching.push(suggestions[i]);
                 }
             }
         }
