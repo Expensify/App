@@ -329,6 +329,7 @@ class IOUModal extends Component {
      */
     createTransaction(selectedParticipants) {
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
+        const comment = this.state.comment.trim();
 
         // IOUs created from a group report will have a reportID param in the route.
         // Since the user is already viewing the report, we don't need to navigate them to the report
@@ -337,7 +338,7 @@ class IOUModal extends Component {
                 selectedParticipants,
                 this.props.currentUserPersonalDetails.login,
                 this.state.amount,
-                this.state.comment,
+                comment,
                 this.props.iou.selectedCurrencyCode,
                 this.props.preferredLocale,
                 reportID,
@@ -351,7 +352,7 @@ class IOUModal extends Component {
                 selectedParticipants,
                 this.props.currentUserPersonalDetails.login,
                 this.state.amount,
-                this.state.comment,
+                comment,
                 this.props.iou.selectedCurrencyCode,
                 this.props.preferredLocale,
             );
@@ -362,7 +363,7 @@ class IOUModal extends Component {
             this.props.iou.selectedCurrencyCode,
             this.props.currentUserPersonalDetails.login,
             selectedParticipants[0],
-            this.state.comment);
+            comment);
     }
 
     renderHeader() {
