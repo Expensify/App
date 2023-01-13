@@ -1308,7 +1308,7 @@ const styles = {
     },
 
     chatItemMessageHeader: {
-        alignItems: 'center',
+        alignItems: 'baseline',
         display: 'flex',
         flexDirection: 'row',
         flexWrap: 'nowrap',
