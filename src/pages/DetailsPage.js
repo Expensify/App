@@ -84,7 +84,7 @@ class DetailsPage extends React.PureComponent {
     render() {
         let details = lodashGet(this.props.personalDetails, lodashGet(this.props.route.params, 'login'));
         const login = lodashGet(this.props.route.params, 'login');
-        const avatar = ReportUtils.getCorrectAvatar(lodashGet(details, 'avatar', ''), login);
+        const avatar = ReportUtils.getAvatar(lodashGet(details, 'avatar', ''), login);
 
         if (!details) {
             details = {
@@ -126,7 +126,7 @@ class DetailsPage extends React.PureComponent {
                             <View style={styles.pageWrapper}>
                                 <AttachmentModal
                                     headerTitle={isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
-                                    source={ReportUtils.getCorrectAvatar(details.avatar, details.login)}
+                                    source={ReportUtils.getAvatar(details.avatar, details.login)}
                                     isAuthTokenRequired
                                 >
                                     {({show}) => (
@@ -140,7 +140,7 @@ class DetailsPage extends React.PureComponent {
                                                 <Avatar
                                                     containerStyles={[styles.avatarLarge, styles.mb3]}
                                                     imageStyles={[styles.avatarLarge]}
-                                                    source={ReportUtils.getCorrectAvatar(details.avatar, details.login)}
+                                                    source={ReportUtils.getAvatar(details.avatar, details.login)}
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                 />
                                             </OfflineWithFeedback>

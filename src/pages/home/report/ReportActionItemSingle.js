@@ -57,7 +57,7 @@ const ReportActionItemSingle = (props) => {
         login,
         pendingFields,
     } = props.personalDetails[props.action.actorEmail] || {};
-    const avatarSource = ReportUtils.getCorrectAvatar(avatar, props.action.actorEmail);
+    const avatarSource = ReportUtils.getAvatar(avatar, props.action.actorEmail);
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,

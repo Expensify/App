@@ -473,7 +473,7 @@ function isDefaultAvatar(avatarURL) {
  * @param {String} [login] - the email of the user
  * @returns {String | Function}
  */
-function getCorrectAvatar(avatarURL, login) {
+function getAvatar(avatarURL, login) {
     if (isDefaultAvatar(avatarURL)) {
         return getDefaultAvatar(login);
     }
@@ -536,7 +536,7 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
     for (let i = 0; i < participants.length; i++) {
         const login = participants[i];
 
-        const avatarSource = getCorrectAvatar(lodashGet(personalDetails, [login, 'avatar'], ''), login);
+        const avatarSource = getAvatar(lodashGet(personalDetails, [login, 'avatar'], ''), login);
         participantDetails.push([
             login,
             lodashGet(personalDetails, [login, 'firstName'], ''),
@@ -1323,7 +1323,7 @@ export {
     getDisplayNameForParticipant,
     isIOUReport,
     chatIncludesChronos,
-    getCorrectAvatar,
+    getAvatar,
     isDefaultAvatar,
     getOldDotDefaultAvatar,
     getNewMarkerReportActionID,

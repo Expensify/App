@@ -58,7 +58,7 @@ const getAllParticipants = (report, personalDetails) => {
         return ({
             alternateText: userLogin,
             displayName: userPersonalDetail.displayName,
-            icons: [ReportUtils.getCorrectAvatar(userPersonalDetail.avatar, login)],
+            icons: [ReportUtils.getAvatar(userPersonalDetail.avatar, login)],
             keyForList: userLogin,
             login,
             text: userPersonalDetail.displayName,

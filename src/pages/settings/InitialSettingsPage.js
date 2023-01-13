@@ -249,7 +249,7 @@ class InitialSettingsPage extends React.Component {
                                     >
                                         <Avatar
                                             imageStyles={[styles.avatarLarge]}
-                                            source={ReportUtils.getCorrectAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.email)}
+                                            source={ReportUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.email)}
                                             size={CONST.AVATAR_SIZE.LARGE}
                                         />
                                     </OfflineWithFeedback>

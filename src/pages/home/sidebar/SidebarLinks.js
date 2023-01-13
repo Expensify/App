@@ -173,7 +173,7 @@ class SidebarLinks extends React.Component {
                             pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
                         >
                             <AvatarWithIndicator
-                                source={ReportUtils.getCorrectAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
+                                source={ReportUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
                                 tooltipText={this.props.translate('common.settings')}
                             />
                         </OfflineWithFeedback>

@@ -137,8 +137,8 @@ const IOUPreview = (props) => {
     const managerName = lodashGet(props.personalDetails, [managerEmail, 'firstName'], '')
                         || Str.removeSMSDomain(managerEmail);
     const ownerName = lodashGet(props.personalDetails, [ownerEmail, 'firstName'], '') || Str.removeSMSDomain(ownerEmail);
-    const managerAvatar = ReportUtils.getCorrectAvatar(lodashGet(props.personalDetails, [managerEmail, 'avatar']), managerEmail);
-    const ownerAvatar = ReportUtils.getCorrectAvatar(lodashGet(props.personalDetails, [ownerEmail, 'avatar']), ownerEmail);
+    const managerAvatar = ReportUtils.getAvatar(lodashGet(props.personalDetails, [managerEmail, 'avatar']), managerEmail);
+    const ownerAvatar = ReportUtils.getAvatar(lodashGet(props.personalDetails, [ownerEmail, 'avatar']), ownerEmail);
     const cachedTotal = props.iouReport.total && props.iouReport.currency
         ? props.numberFormat(
             Math.abs(props.iouReport.total) / 100,
