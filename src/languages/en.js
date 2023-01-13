@@ -146,13 +146,13 @@ export default {
         openLinkInBrowser: 'open this link in your browser',
     },
     iOUConfirmationList: {
-        whoPaid: 'WHO PAID?',
-        whoWasThere: 'WHO WAS THERE?',
+        whoPaid: 'Who paid?',
+        whoWasThere: 'Who was there?',
         whatsItFor: 'What\'s it for?',
     },
     iOUCurrencySelection: {
         selectCurrency: 'Select a currency',
-        allCurrencies: 'ALL CURRENCIES',
+        allCurrencies: 'All currencies',
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
