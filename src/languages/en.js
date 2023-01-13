@@ -1032,7 +1032,7 @@ export default {
         visibility: 'Visibility',
         restrictedDescription: 'People in your workspace can find this room',
         privateDescription: 'People invited to this room can find it',
-        createRoom: 'Create Room',
+        createRoom: 'Create room',
         roomAlreadyExistsError: 'A room with this name already exists',
         roomNameReservedError: 'A room on this workspace already uses this name',
         roomNameInvalidError: 'Room names can only contain letters, numbers and hyphens',
@@ -1051,11 +1051,11 @@ export default {
         generatingPDF: 'We\'re generating your PDF right now. Please come back later!',
     },
     keyboardShortcutModal: {
-        title: 'Keyboard Shortcuts',
+        title: 'Keyboard shortcuts',
         subtitle: 'Save time with these handy keyboard shortcuts:',
         shortcuts: {
             openShortcutDialog: 'Opens the keyboard shortcuts dialog',
-            escape: 'Escape Dialogs',
+            escape: 'Escape dialogs',
             search: 'Open search dialog',
             newGroup: 'New group screen',
             copy: 'Copy comment',
