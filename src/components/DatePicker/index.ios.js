@@ -3,7 +3,7 @@ import React from 'react';
 import {Button, View, Keyboard} from 'react-native';
 import RNDatePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
-import _, { compose } from 'underscore';
+import _, {compose} from 'underscore';
 import TextInput from '../TextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Popover from '../Popover';
@@ -37,13 +37,13 @@ class DatePicker extends React.Component {
      * @param {Event} event
      */
     showPicker(event) {
-        if(this.props.isKeyboardShown){
+        if (this.props.isKeyboardShown) {
             const listener = Keyboard.addListener('keyboardDidHide', () => {
                 this.setState({isPickerVisible: true});
                 listener.remove();
             });
             Keyboard.dismiss();
-        }else{
+        } else {
             this.setState({isPickerVisible: true});
         }
         this.initialValue = this.state.selectedDate;
@@ -145,7 +145,7 @@ DatePicker.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withKeyboardState,
-    )(React.forwardRef((props, ref) => (
-        /* eslint-disable-next-line react/jsx-props-no-spreading */
-        <DatePicker {...props} innerRef={ref} />
-    )));
+)(React.forwardRef((props, ref) => (
+    /* eslint-disable-next-line react/jsx-props-no-spreading */
+    <DatePicker {...props} innerRef={ref} />
+)));
