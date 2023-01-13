@@ -45,8 +45,6 @@ class ACHContractStep extends React.Component {
 
         this.state = {
             // These variables determine how many Identity Forms will be rendered
-            ownsMoreThan25Percent: ReimbursementAccountUtils.getDefaultStateForField(props, 'ownsMoreThan25Percent', false),
-            hasOtherBeneficialOwners: ReimbursementAccountUtils.getDefaultStateForField(props, 'hasOtherBeneficialOwners', false),
             beneficialOwners: ReimbursementAccountUtils.getDefaultStateForField(props, 'beneficialOwners', []),
         };
     }
@@ -64,7 +62,7 @@ class ACHContractStep extends React.Component {
             state: 'addressState',
         };
         const requiredFields = ['firstName', 'lastName', 'dob', 'ssnLast4', 'street', 'city', 'zipCode', 'state'];
-        if (this.state.hasOtherBeneficialOwners) {
+        if (values.hasOtherBeneficialOwners) {
             _.each(this.state.beneficialOwners, (ownerKey) => {
                 // eslint-disable-next-line rulesdir/prefer-early-return
                 _.each(requiredFields, (inputKey) => {
@@ -128,11 +126,12 @@ class ACHContractStep extends React.Component {
     }
 
     /**
+     * @param {Boolean} ownsMoreThan25Percent
      * @returns {Boolean}
      */
-    canAddMoreBeneficialOwners() {
+    canAddMoreBeneficialOwners(ownsMoreThan25Percent) {
         return _.size(this.state.beneficialOwners) < 3
-            || (_.size(this.state.beneficialOwners) === 3 && !this.state.ownsMoreThan25Percent);
+            || (_.size(this.state.beneficialOwners) === 3 && !ownsMoreThan25Percent);
     }
 
     /**
@@ -141,7 +140,7 @@ class ACHContractStep extends React.Component {
     submit(values) {
         const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
 
-        const beneficialOwners = !this.state.hasOtherBeneficialOwners ? []
+        const beneficialOwners = !values.hasOtherBeneficialOwners ? []
             : _.map(this.state.beneficialOwners, ownerKey => ({
                 firstName: lodashGet(values, `beneficialOwner_${ownerKey}_firstName`),
                 lastName: lodashGet(values, `beneficialOwner_${ownerKey}_lastName`),
@@ -185,116 +184,124 @@ class ACHContractStep extends React.Component {
                     submitButtonText={this.props.translate('common.saveAndContinue')}
                     style={[styles.mh5, styles.flexGrow1]}
                 >
-                    <Text style={[styles.mb5]}>
-                        <Text>{this.props.translate('beneficialOwnersStep.checkAllThatApply')}</Text>
-                    </Text>
-                    <CheckboxWithLabel
-                        inputID="ownsMoreThan25Percent"
-                        style={[styles.mb2]}
-                        LabelComponent={() => (
-                            <Text>
-                                {this.props.translate('beneficialOwnersStep.iOwnMoreThan25Percent')}
-                                <Text style={[styles.textStrong]}>{this.props.companyName}</Text>
-                            </Text>
-                        )}
-                        onValueChange={(ownsMoreThan25Percent) => {
-                            this.setState({ownsMoreThan25Percent});
-                            if (ownsMoreThan25Percent && this.state.beneficialOwners.length > 3) {
-                                // If the user owns more than 25% of the company, then there can only be a maximum of 3 other beneficial owners who owns more than 25%.
-                                // We have to remove the 4th beneficial owner if the checkbox is checked.
-                                this.setState(prevState => ({beneficialOwners: prevState.beneficialOwners.slice(0, -1)}));
+                    {({inputValues}) => (
+                        <>
+                            {
+                                // eslint-disable-next-line no-console
+                                console.log(inputValues)
                             }
-                        }}
-                        shouldSaveDraft
-                    />
-                    <CheckboxWithLabel
-                        inputID="hasOtherBeneficialOwners"
-                        style={[styles.mb2]}
-                        LabelComponent={() => (
-                            <Text>
-                                {this.props.translate('beneficialOwnersStep.someoneOwnsMoreThan25Percent')}
-                                <Text style={[styles.textStrong]}>{this.props.companyName}</Text>
+                            <Text style={[styles.mb5]}>
+                                <Text>{this.props.translate('beneficialOwnersStep.checkAllThatApply')}</Text>
                             </Text>
-                        )}
-                        onValueChange={(hasOtherBeneficialOwners) => {
-                            this.setState({hasOtherBeneficialOwners});
-                            if (hasOtherBeneficialOwners && this.state.beneficialOwners.length === 0) {
-                                this.addBeneficialOwner();
-                            }
-                        }}
-                        shouldSaveDraft
-                    />
-                    {this.state.hasOtherBeneficialOwners && (
-                        <View style={[styles.mb2]}>
-                            {_.map(this.state.beneficialOwners, (ownerKey, index) => (
-                                <View key={index} style={[styles.p5, styles.border, styles.mb2]}>
-                                    <Text style={[styles.textStrong, styles.mb2, styles.textWhite]}>
-                                        {this.props.translate('beneficialOwnersStep.additionalOwner')}
+                            <CheckboxWithLabel
+                                inputID="ownsMoreThan25Percent"
+                                style={[styles.mb2]}
+                                LabelComponent={() => (
+                                    <Text>
+                                        {this.props.translate('beneficialOwnersStep.iOwnMoreThan25Percent')}
+                                        <Text style={[styles.textStrong]}>{this.props.companyName}</Text>
                                     </Text>
-                                    <IdentityForm
-                                        translate={this.props.translate}
-                                        style={[styles.mb2]}
-                                        defaultValues={{
-                                            firstName: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner_${ownerKey}_firstName`),
-                                            lastName: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner_${ownerKey}_lastName`),
-                                            street: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner_${ownerKey}_street`),
-                                            city: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner_${ownerKey}_city`),
-                                            state: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner_${ownerKey}_state`),
-                                            zipCode: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner_${ownerKey}_zipCode`),
-                                            dob: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner_${ownerKey}_dob`),
-                                            ssnLast4: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner_${ownerKey}_ssnLast4`),
-                                        }}
-                                        inputKeys={{
-                                            firstName: `beneficialOwner_${ownerKey}_firstName`,
-                                            lastName: `beneficialOwner_${ownerKey}_lastName`,
-                                            dob: `beneficialOwner_${ownerKey}_dob`,
-                                            ssnLast4: `beneficialOwner_${ownerKey}_ssnLast4`,
-                                            street: `beneficialOwner_${ownerKey}_street`,
-                                            city: `beneficialOwner_${ownerKey}_city`,
-                                            state: `beneficialOwner_${ownerKey}_state`,
-                                            zipCode: `beneficialOwner_${ownerKey}_zipCode`,
-                                        }}
-                                        shouldSaveDraft
-                                    />
-                                    {this.state.beneficialOwners.length > 1 && (
-                                        <TextLink onPress={() => this.removeBeneficialOwner(ownerKey)}>
-                                            {this.props.translate('beneficialOwnersStep.removeOwner')}
+                                )}
+                                // eslint-disable-next-line rulesdir/prefer-early-return
+                                onValueChange={(ownsMoreThan25Percent) => {
+                                    if (ownsMoreThan25Percent && this.state.beneficialOwners.length > 3) {
+                                        // If the user owns more than 25% of the company, then there can only be a maximum of 3 other beneficial owners who owns more than 25%.
+                                        // We have to remove the 4th beneficial owner if the checkbox is checked.
+                                        this.setState(prevState => ({beneficialOwners: prevState.beneficialOwners.slice(0, -1)}));
+                                    }
+                                }}
+                                shouldSaveDraft
+                            />
+                            <CheckboxWithLabel
+                                inputID="hasOtherBeneficialOwners"
+                                style={[styles.mb2]}
+                                LabelComponent={() => (
+                                    <Text>
+                                        {this.props.translate('beneficialOwnersStep.someoneOwnsMoreThan25Percent')}
+                                        <Text style={[styles.textStrong]}>{this.props.companyName}</Text>
+                                    </Text>
+                                )}
+                                // eslint-disable-next-line rulesdir/prefer-early-return
+                                onValueChange={(hasOtherBeneficialOwners) => {
+                                    if (hasOtherBeneficialOwners && this.state.beneficialOwners.length === 0) {
+                                        this.addBeneficialOwner();
+                                    }
+                                }}
+                                shouldSaveDraft
+                            />
+                            {inputValues.hasOtherBeneficialOwners && (
+                                <View style={[styles.mb2]}>
+                                    {_.map(this.state.beneficialOwners, (ownerKey, index) => (
+                                        <View key={index} style={[styles.p5, styles.border, styles.mb2]}>
+                                            <Text style={[styles.textStrong, styles.mb2, styles.textWhite]}>
+                                                {this.props.translate('beneficialOwnersStep.additionalOwner')}
+                                            </Text>
+                                            <IdentityForm
+                                                translate={this.props.translate}
+                                                style={[styles.mb2]}
+                                                defaultValues={{
+                                                    firstName: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner_${ownerKey}_firstName`),
+                                                    lastName: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner_${ownerKey}_lastName`),
+                                                    street: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner_${ownerKey}_street`),
+                                                    city: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner_${ownerKey}_city`),
+                                                    state: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner_${ownerKey}_state`),
+                                                    zipCode: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner_${ownerKey}_zipCode`),
+                                                    dob: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner_${ownerKey}_dob`),
+                                                    ssnLast4: ReimbursementAccountUtils.getDefaultStateForField(this.props, `beneficialOwner_${ownerKey}_ssnLast4`),
+                                                }}
+                                                inputKeys={{
+                                                    firstName: `beneficialOwner_${ownerKey}_firstName`,
+                                                    lastName: `beneficialOwner_${ownerKey}_lastName`,
+                                                    dob: `beneficialOwner_${ownerKey}_dob`,
+                                                    ssnLast4: `beneficialOwner_${ownerKey}_ssnLast4`,
+                                                    street: `beneficialOwner_${ownerKey}_street`,
+                                                    city: `beneficialOwner_${ownerKey}_city`,
+                                                    state: `beneficialOwner_${ownerKey}_state`,
+                                                    zipCode: `beneficialOwner_${ownerKey}_zipCode`,
+                                                }}
+                                                shouldSaveDraft
+                                            />
+                                            {this.state.beneficialOwners.length > 1 && (
+                                                <TextLink onPress={() => this.removeBeneficialOwner(ownerKey)}>
+                                                    {this.props.translate('beneficialOwnersStep.removeOwner')}
+                                                </TextLink>
+                                            )}
+                                        </View>
+                                    ))}
+                                    {this.canAddMoreBeneficialOwners(inputValues.ownsMoreThan25Percent) && (
+                                        <TextLink onPress={this.addBeneficialOwner}>
+                                            {this.props.translate('beneficialOwnersStep.addAnotherIndividual')}
+                                            <Text style={[styles.textStrong, styles.link]}>{this.props.companyName}</Text>
                                         </TextLink>
                                     )}
                                 </View>
-                            ))}
-                            {this.canAddMoreBeneficialOwners() && (
-                                <TextLink onPress={this.addBeneficialOwner}>
-                                    {this.props.translate('beneficialOwnersStep.addAnotherIndividual')}
-                                    <Text style={[styles.textStrong, styles.link]}>{this.props.companyName}</Text>
-                                </TextLink>
                             )}
-                        </View>
+                            <Text style={[styles.mv5]}>
+                                {this.props.translate('beneficialOwnersStep.agreement')}
+                            </Text>
+                            <CheckboxWithLabel
+                                inputID="acceptTermsAndConditions"
+                                style={[styles.mt4]}
+                                LabelComponent={() => (
+                                    <View style={[styles.flexRow]}>
+                                        <Text>{this.props.translate('common.iAcceptThe')}</Text>
+                                        <TextLink href="https://use.expensify.com/achterms">
+                                            {`${this.props.translate('beneficialOwnersStep.termsAndConditions')}`}
+                                        </TextLink>
+                                    </View>
+                                )}
+                                shouldSaveDraft
+                            />
+                            <CheckboxWithLabel
+                                inputID="certifyTrueInformation"
+                                style={[styles.mt4]}
+                                LabelComponent={() => (
+                                    <Text>{this.props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}</Text>
+                                )}
+                                shouldSaveDraft
+                            />
+                        </>
                     )}
-                    <Text style={[styles.mv5]}>
-                        {this.props.translate('beneficialOwnersStep.agreement')}
-                    </Text>
-                    <CheckboxWithLabel
-                        inputID="acceptTermsAndConditions"
-                        style={[styles.mt4]}
-                        LabelComponent={() => (
-                            <View style={[styles.flexRow]}>
-                                <Text>{this.props.translate('common.iAcceptThe')}</Text>
-                                <TextLink href="https://use.expensify.com/achterms">
-                                    {`${this.props.translate('beneficialOwnersStep.termsAndConditions')}`}
-                                </TextLink>
-                            </View>
-                        )}
-                        shouldSaveDraft
-                    />
-                    <CheckboxWithLabel
-                        inputID="certifyTrueInformation"
-                        style={[styles.mt4]}
-                        LabelComponent={() => (
-                            <Text>{this.props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}</Text>
-                        )}
-                        shouldSaveDraft
-                    />
                 </Form>
             </>
         );

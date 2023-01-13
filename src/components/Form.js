@@ -29,7 +29,11 @@ const propTypes = {
     /** Callback to submit the form */
     onSubmit: PropTypes.func.isRequired,
 
-    children: PropTypes.node.isRequired,
+    /** Children to render. */
+    children: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.node,
+    ]).isRequired,
 
     /* Onyx Props */
 
@@ -157,7 +161,7 @@ class Form extends React.Component {
     /**
      * Loops over Form's children and automatically supplies Form props to them
      *
-     * @param {Array} children - An array containing all Form children
+     * @param {Array | Function | Node} children - An array containing all Form children
      * @returns {React.Component}
      */
     childrenWrapperWithProps(children) {
@@ -259,7 +263,7 @@ class Form extends React.Component {
                         ref={el => this.form = el}
                     >
                         <View style={[this.props.style, safeAreaPaddingBottomStyle]}>
-                            {this.childrenWrapperWithProps(this.props.children)}
+                            {this.childrenWrapperWithProps(_.isFunction(this.props.children) ? this.props.children({inputValues: this.state.inputValues}) : this.props.children)}
                             {this.props.isSubmitButtonVisible && (
                             <FormAlertWithSubmitButton
                                 buttonText={this.props.submitButtonText}
