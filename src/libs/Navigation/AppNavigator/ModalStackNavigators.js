@@ -247,7 +247,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const SettingsPersonalDetailsInitialPage = require('../../../pages/settings/Profile/PersonalDetails/PersonalDetailsPage').default;
+            const SettingsPersonalDetailsInitialPage = require('../../../pages/settings/Profile/PersonalDetails/PersonalDetailsInitialPage').default;
             return SettingsPersonalDetailsInitialPage;
         },
         name: 'Settings_PersonalDetails_Initial',
