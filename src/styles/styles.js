@@ -2849,12 +2849,6 @@ const styles = {
         paddingRight: 18,
     },
 
-    pushToPageEmptyItemLabel: {
-        color: themeColors.textSupporting,
-        fontSize: variables.fontSizeNormal,
-        maxWidth: 240,
-    },
-
     deeplinkWrapperContainer: {
         padding: 20,
         flex: 1,
