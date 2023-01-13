@@ -57,7 +57,6 @@ const ReportActionItemCreated = (props) => {
                     <Pressable onPress={() => ReportUtils.navigateToDetailsPage(props.report)}>
                         <RoomHeaderAvatars
                             icons={icons}
-                            shouldShowLargeAvatars={isPolicyExpenseChat}
                         />
                     </Pressable>
                     <ReportWelcomeText report={props.report} />

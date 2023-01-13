@@ -38,32 +38,12 @@ const RoomHeaderAvatars = (props) => {
         );
     }
 
-    if (props.shouldShowLargeAvatars) {
-        return (
-            <View style={[styles.flexRow, styles.wAuto, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <View style={styles.leftSideLargeAvatar}>
-                    <Avatar
-                        source={props.icons[1]}
-                        imageStyles={[styles.avatarLarge]}
-                        size={CONST.AVATAR_SIZE.LARGE}
-                        fill={themeColors.iconSuccessFill}
-                    />
-                </View>
-                <View style={[styles.rightSideLargeAvatar, StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG)]}>
-                    <Avatar
-                        source={props.icons[0]}
-                        imageStyles={[styles.avatarLarge]}
-                        size={CONST.AVATAR_SIZE.LARGE}
-                    />
-                </View>
-            </View>
-        );
-    }
-
     const iconsToDisplay = props.icons.slice(0, CONST.REPORT.MAX_PREVIEW_AVATARS);
 
     const iconStyle = [
         styles.roomHeaderAvatar,
+
+        // Because the border is applied to the Avatars when there are multiple they need to be slightly larger to match size
         StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.LARGE_BORDERED),
     ];
     return (
