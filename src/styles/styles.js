@@ -2031,7 +2031,8 @@ const styles = {
         textAlign: 'center',
         fontWeight: 'normal',
         position: 'absolute',
-        marginLeft: -16,
+        width: 88,
+        left: -16,
     },
 
     pageWrapper: {
