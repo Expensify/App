@@ -231,6 +231,13 @@ function openIOUModalPage() {
 }
 
 /**
+ * Fetches additional personal data like legal name, date of birth, address
+ */
+function openPersonalDetailsPage() {
+    API.read('OpenPersonalDetailsPage');
+}
+
+/**
  * Updates the user's avatar image
  *
  * @param {File|Object} file
@@ -330,6 +337,7 @@ export {
     updateAvatar,
     deleteAvatar,
     openIOUModalPage,
+    openPersonalDetailsPage,
     extractFirstAndLastNameFromAvailableDetails,
     updateDisplayName,
     updatePronouns,

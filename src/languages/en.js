@@ -347,6 +347,13 @@ export default {
         isShownOnProfile: 'Your timezone is shown on your profile.',
         getLocationAutomatically: 'Automatically determine your location.',
     },
+    personalDetailsPages: {
+        personalDetails: 'Personal details',
+        privateDataMessage: 'These details are used for travel and payments. They are never shown on your public profile.',
+        legalName: 'Legal name',
+        dateOfBirth: 'Date of birth',
+        homeAddress: 'Home address',
+    },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add phone number',
         addEmailAddress: 'Add email address',

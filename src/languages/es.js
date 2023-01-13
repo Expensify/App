@@ -347,6 +347,13 @@ export default {
         isShownOnProfile: 'Tu zona horaria se muestra en tu perfil.',
         getLocationAutomatically: 'Detecta tu ubicación automáticamente.',
     },
+    personalDetails: {
+        personalDetails: '',
+        privateDataMessage: '',
+        legalName: '',
+        dateOfBirth: '',
+        homeAddress: '',
+    },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Agregar número de teléfono',
         addEmailAddress: 'Agregar dirección de email',
