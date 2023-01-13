@@ -22,6 +22,7 @@ import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
 import PopoverMenu from '../../../components/PopoverMenu';
+import shouldOverrideRnFocusBehavior from '../../../libs/shouldOverrideRnFocusBehavior';
 import CONST from '../../../CONST';
 import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -138,11 +139,10 @@ class ReportActionCompose extends React.Component {
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
         // code that will refocus the compose input after a user closes a modal or some other actions, see usage of ReportActionComposeFocusManager
-        this.isWeb = Platform.select({native: () => false, default: () => true});
-        console.log('bondydaa '+this.isWeb);
+        this.shouldOverrideRnFocusBehavior = shouldOverrideRnFocusBehavior();
 
         this.state = {
-            isFocused: this.isWeb && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible,
+            isFocused: this.shouldOverrideRnFocusBehavior && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible,
             isFullComposerAvailable: props.isComposerFullSize,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
@@ -163,7 +163,7 @@ class ReportActionCompose extends React.Component {
         // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
         // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
         ReportActionComposeFocusManager.onComposerFocus(() => {
-            if (!this.isWeb || !this.props.isFocused) {
+            if (!this.shouldOverrideRnFocusBehavior || !this.props.isFocused) {
                 return;
             }
 
@@ -182,7 +182,7 @@ class ReportActionCompose extends React.Component {
         // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (this.isWeb && this.props.isFocused
+        if (this.shouldOverrideRnFocusBehavior && this.props.isFocused
             && prevProps.modal.isVisible && !this.props.modal.isVisible) {
             this.focus();
         }
@@ -664,7 +664,7 @@ class ReportActionCompose extends React.Component {
                                         disabled={this.props.disabled}
                                     >
                                         <Composer
-                                            autoFocus={!this.props.modal.isVisible && (this.isWeb || this.isEmptyChat())}
+                                            autoFocus={!this.props.modal.isVisible && (this.shouldOverrideRnFocusBehavior || this.isEmptyChat())}
                                             multiline
                                             ref={this.setTextInputRef}
                                             textAlignVertical="top"
