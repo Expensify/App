@@ -19,6 +19,7 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
+import Performance from '../libs/Performance';
 
 const propTypes = {
     /* Onyx Props */
@@ -48,7 +49,9 @@ class SearchPage extends Component {
         super(props);
 
         Timing.start(CONST.TIMING.SEARCH_RENDER);
+        Performance.markStart(CONST.TIMING.SEARCH_RENDER);
 
+        this.searchRendered = this.searchRendered.bind(this);
         this.selectReport = this.selectReport.bind(this);
         this.onChangeText = this.onChangeText.bind(this);
         this.debouncedUpdateOptions = _.debounce(this.updateOptions.bind(this), 75);
@@ -70,10 +73,6 @@ class SearchPage extends Component {
             personalDetails,
             userToInvite,
         };
-    }
-
-    componentDidMount() {
-        Timing.end(CONST.TIMING.SEARCH_RENDER);
     }
 
     onChangeText(searchValue = '') {
@@ -116,6 +115,11 @@ class SearchPage extends Component {
         }
 
         return sections;
+    }
+
+    searchRendered() {
+        Timing.end(CONST.TIMING.SEARCH_RENDER);
+        Performance.markEnd(CONST.TIMING.SEARCH_RENDER);
     }
 
     updateOptions() {
@@ -165,7 +169,7 @@ class SearchPage extends Component {
             this.state.searchValue,
         );
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({didScreenTransitionEnd}) => (
                     <>
                         <HeaderWithCloseButton
@@ -182,6 +186,8 @@ class SearchPage extends Component {
                                 hideSectionHeaders
                                 showTitleTooltip
                                 shouldShowOptions={didScreenTransitionEnd}
+                                placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                onLayout={this.searchRendered}
                             />
                         </View>
                     </>

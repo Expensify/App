@@ -310,6 +310,7 @@ class WorkspaceInvitePage extends React.Component {
                                         hideSectionHeaders
                                         boldStyle
                                         shouldFocusOnSelectRow
+                                        placeholderText={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                                     />
                                 ) : (
                                     <FullScreenLoadingIndicator />
@@ -344,15 +345,11 @@ class WorkspaceInvitePage extends React.Component {
                                     href={CONST.PRIVACY_URL}
                                     style={[styles.mh5, styles.mv2, styles.alignSelfStart]}
                                 >
-                                    {({hovered, pressed}) => (
-                                        <View style={[styles.flexRow]}>
-                                            <Text
-                                                style={[styles.mr1, styles.label, (hovered || pressed) ? styles.linkHovered : styles.link]}
-                                            >
-                                                {this.props.translate('common.privacyPolicy')}
-                                            </Text>
-                                        </View>
-                                    )}
+                                    <View style={[styles.flexRow]}>
+                                        <Text style={[styles.mr1, styles.label, styles.link]}>
+                                            {this.props.translate('common.privacyPolicy')}
+                                        </Text>
+                                    </View>
                                 </Pressable>
                             </View>
                         </>

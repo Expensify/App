@@ -164,6 +164,7 @@ class IOUModal extends Component {
             // Navigating to Enter Amount Page
             // eslint-disable-next-line react/no-did-update-set-state
             this.setState({currentStepIndex: 0});
+            this.creatingIOUTransaction = false;
         }
 
         const currentSelectedCurrencyCode = lodashGet(this.props, 'iou.selectedCurrencyCode');
@@ -308,6 +309,18 @@ class IOUModal extends Component {
                 this.props.currentUserPersonalDetails.login,
                 participant,
             );
+            return;
+        }
+
+        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+            IOU.sendMoneyWithWallet(
+                this.props.report,
+                amount,
+                currency,
+                comment,
+                this.props.currentUserPersonalDetails.login,
+                participant,
+            );
         }
     }
 
@@ -327,6 +340,7 @@ class IOUModal extends Component {
                 this.state.comment,
                 this.props.iou.selectedCurrencyCode,
                 this.props.preferredLocale,
+                reportID,
             );
             return;
         }
@@ -365,6 +379,7 @@ class IOUModal extends Component {
                 >
                     {this.state.currentStepIndex > 0
                         && (
+                        <View style={[styles.mr2]}>
                             <Tooltip text={this.props.translate('common.back')}>
                                 <TouchableOpacity
                                     onPress={this.navigateToPreviousStep}
@@ -373,13 +388,14 @@ class IOUModal extends Component {
                                     <Icon src={Expensicons.BackArrow} />
                                 </TouchableOpacity>
                             </Tooltip>
+                        </View>
                         )}
                     <Header title={this.getTitleForStep()} />
                     <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
                         <Tooltip text={this.props.translate('common.close')}>
                             <TouchableOpacity
                                 onPress={() => Navigation.dismissModal()}
-                                style={[styles.touchableButtonImage, styles.mr0]}
+                                style={[styles.touchableButtonImage]}
                                 accessibilityRole="button"
                                 accessibilityLabel={this.props.translate('common.close')}
                             >
@@ -396,8 +412,8 @@ class IOUModal extends Component {
         const currentStep = this.steps[this.state.currentStepIndex];
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
         return (
-            <ScreenWrapper>
-                {({didScreenTransitionEnd}) => (
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+                {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
                         <View style={[styles.pRelative, styles.flex1]}>
                             {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
@@ -406,7 +422,7 @@ class IOUModal extends Component {
                                     {currentStep === Steps.IOUAmount && (
                                         <AnimatedStep
                                             direction={this.getDirection()}
-                                            style={[styles.flex1]}
+                                            style={[styles.flex1, safeAreaPaddingBottomStyle]}
                                         >
                                             {this.renderHeader()}
                                             <IOUAmountPage
@@ -438,13 +454,26 @@ class IOUModal extends Component {
                                     )}
                                     {currentStep === Steps.IOUConfirm && (
                                         <AnimatedStep
-                                            style={[styles.flex1]}
+                                            style={[styles.flex1, safeAreaPaddingBottomStyle]}
                                             direction={this.getDirection()}
                                         >
                                             {this.renderHeader()}
                                             <IOUConfirmPage
-                                                onConfirm={this.createTransaction}
-                                                onSendMoney={this.sendMoney}
+                                                onConfirm={(selectedParticipants) => {
+                                                    // Prevent creating multiple transactions if the button is pressed repeatedly
+                                                    if (this.creatingIOUTransaction) {
+                                                        return;
+                                                    }
+                                                    this.creatingIOUTransaction = true;
+                                                    this.createTransaction(selectedParticipants);
+                                                }}
+                                                onSendMoney={(paymentMethodType) => {
+                                                    if (this.creatingIOUTransaction) {
+                                                        return;
+                                                    }
+                                                    this.creatingIOUTransaction = true;
+                                                    this.sendMoney(paymentMethodType);
+                                                }}
                                                 hasMultipleParticipants={this.props.hasMultipleParticipants}
                                                 participants={_.filter(this.state.participants, email => this.props.currentUserPersonalDetails.login !== email.login)}
                                                 iouAmount={this.state.amount}

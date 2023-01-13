@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
@@ -17,19 +16,15 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import TextLink from '../../components/TextLink';
 import TextInput from '../../components/TextInput';
-import FormScrollView from '../../components/FormScrollView';
-import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import * as Wallet from '../../libs/actions/Wallet';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as LoginUtils from '../../libs/LoginUtils';
 import AddressForm from '../ReimbursementAccount/AddressForm';
 import DatePicker from '../../components/DatePicker';
-import FormHelper from '../../libs/FormHelper';
-import walletAdditionalDetailsDraftPropTypes from './walletAdditionalDetailsDraftPropTypes';
+import Form from '../../components/Form';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import OfflineIndicator from '../../components/OfflineIndicator';
-import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -59,9 +54,6 @@ const propTypes = {
         /** Error code to determine additional behavior */
         errorCode: PropTypes.string,
     }),
-
-    /** Stores the personal details typed by the user */
-    walletAdditionalDetailsDraft: walletAdditionalDetailsDraftPropTypes,
 };
 
 const defaultProps = {
@@ -73,18 +65,21 @@ const defaultProps = {
         idNumber: '',
         errorCode: '',
     },
-    walletAdditionalDetailsDraft: {
-        legalFirstName: '',
-        legalLastName: '',
-        addressStreet: '',
-        addressCity: '',
-        addressState: '',
-        addressZip: '',
-        phoneNumber: '',
-        dob: '',
-        ssn: '',
-    },
     ...withCurrentUserPersonalDetailsDefaultProps,
+};
+
+const INPUT_IDS = {
+    LEGAL_FIRST_NAME: 'legalFirstName',
+    LEGAL_LAST_NAME: 'legalLastName',
+    PHONE_NUMBER: 'phoneNumber',
+    DOB: 'dob',
+    SSN: 'ssn',
+    ADDRESS: {
+        street: 'addressStreet',
+        city: 'addressCity',
+        state: 'addressState',
+        zipCode: 'addressZip',
+    },
 };
 
 class AdditionalDetailsStep extends React.Component {
@@ -92,6 +87,7 @@ class AdditionalDetailsStep extends React.Component {
         super(props);
 
         this.activateWallet = this.activateWallet.bind(this);
+        this.validate = this.validate.bind(this);
 
         this.errorTranslationKeys = {
             legalFirstName: 'bankAccount.error.firstName',
@@ -112,146 +108,82 @@ class AdditionalDetailsStep extends React.Component {
             ssn: 'common.ssnLast4',
             ssnFull9: 'common.ssnFull9',
         };
-
-        this.formHelper = new FormHelper({
-            errorPath: 'walletAdditionalDetails.errorFields',
-            setErrors: Wallet.setAdditionalDetailsErrors,
-        });
-    }
-
-    getFirstName() {
-        const {firstName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
-        return this.props.walletAdditionalDetailsDraft.legalFirstName || firstName;
-    }
-
-    getLastName() {
-        const {lastName} = PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails);
-        return this.props.walletAdditionalDetailsDraft.legalLastName || lastName;
     }
 
     /**
+     * @param {Object} values The values object is passed from Form.js and contains info for each form element that has an inputID
      * @returns {Object}
      */
-    getErrors() {
-        return this.formHelper.getErrors(this.props);
-    }
-
-    /**
-     * @param {String} fieldName
-     * @returns {String}
-     */
-    getErrorText(fieldName) {
-        if (!this.getErrors()[fieldName]) {
-            return '';
-        }
-
-        return this.props.translate(this.errorTranslationKeys[fieldName]);
-    }
-
-    /**
-     * @param {String} path
-     */
-    clearError(path) {
-        this.formHelper.clearError(this.props, path);
-    }
-
-    /**
-     * @returns {Boolean}
-     */
-    validate() {
-        // Reset server error messages when resubmitting form
-        Wallet.setAdditionalDetailsErrorMessage('');
-
+    validate(values) {
         const errors = {};
 
-        if (!this.getFirstName()) {
-            errors.legalFirstName = true;
+        if (_.isEmpty(values[INPUT_IDS.LEGAL_FIRST_NAME])) {
+            errors[INPUT_IDS.LEGAL_FIRST_NAME] = this.props.translate(this.errorTranslationKeys.legalFirstName);
         }
 
-        if (!this.getLastName()) {
-            errors.legalLastName = true;
+        if (_.isEmpty(values[INPUT_IDS.LEGAL_LAST_NAME])) {
+            errors[INPUT_IDS.LEGAL_LAST_NAME] = this.props.translate(this.errorTranslationKeys.legalLastName);
         }
 
-        if (!ValidationUtils.isValidPastDate(this.props.walletAdditionalDetailsDraft.dob)) {
-            errors.dob = true;
+        if (!ValidationUtils.isValidPastDate(values[INPUT_IDS.DOB])) {
+            errors[INPUT_IDS.DOB] = this.props.translate(this.errorTranslationKeys.dob);
         }
 
-        if (!ValidationUtils.meetsAgeRequirements(this.props.walletAdditionalDetailsDraft.dob)) {
-            errors.age = true;
+        if (!ValidationUtils.meetsAgeRequirements(values[INPUT_IDS.DOB])) {
+            errors[INPUT_IDS.DOB] = this.props.translate(this.errorTranslationKeys.age);
         }
 
-        if (!ValidationUtils.isValidAddress(this.props.walletAdditionalDetailsDraft.addressStreet)) {
-            errors.addressStreet = true;
+        if (!ValidationUtils.isValidAddress(values[INPUT_IDS.ADDRESS.street]) || _.isEmpty(values[INPUT_IDS.ADDRESS.street])) {
+            errors[INPUT_IDS.ADDRESS.street] = this.props.translate('bankAccount.error.addressStreet');
         }
 
-        if (_.isEmpty(this.props.walletAdditionalDetailsDraft.addressCity)) {
-            errors.addressCity = true;
+        if (_.isEmpty(values[INPUT_IDS.ADDRESS.city])) {
+            errors[INPUT_IDS.ADDRESS.city] = this.props.translate('bankAccount.error.addressCity');
         }
 
-        if (_.isEmpty(this.props.walletAdditionalDetailsDraft.addressState)) {
-            errors.addressState = true;
+        if (_.isEmpty(values[INPUT_IDS.ADDRESS.state])) {
+            errors[INPUT_IDS.ADDRESS.state] = this.props.translate('bankAccount.error.addressState');
         }
 
-        if (!ValidationUtils.isValidZipCode(this.props.walletAdditionalDetailsDraft.addressZip)) {
-            errors.addressZip = true;
+        if (!ValidationUtils.isValidZipCode(values[INPUT_IDS.ADDRESS.zipCode])) {
+            errors[INPUT_IDS.ADDRESS.zipCode] = this.props.translate('bankAccount.error.zipCode');
         }
 
-        if (!ValidationUtils.isValidUSPhone(this.props.walletAdditionalDetailsDraft.phoneNumber, true)) {
-            errors.phoneNumber = true;
+        if (!ValidationUtils.isValidUSPhone(values[INPUT_IDS.PHONE_NUMBER], true)) {
+            errors[INPUT_IDS.PHONE_NUMBER] = this.props.translate(this.errorTranslationKeys.phoneNumber);
         }
 
+        // this.props.walletAdditionalDetails stores errors returned by the server. If the server returns an SSN error
+        // then the user needs to provide the full 9 digit SSN.
         if (this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN) {
-            if (!ValidationUtils.isValidSSNFullNine(this.props.walletAdditionalDetailsDraft.ssn)) {
-                errors.ssnFull9 = true;
+            if (!ValidationUtils.isValidSSNFullNine(values[INPUT_IDS.SSN])) {
+                errors[INPUT_IDS.SSN] = this.props.translate(this.errorTranslationKeys.ssnFull9);
             }
-        } else if (!ValidationUtils.isValidSSNLastFour(this.props.walletAdditionalDetailsDraft.ssn)) {
-            errors.ssn = true;
+        } else if (!ValidationUtils.isValidSSNLastFour(values[INPUT_IDS.SSN])) {
+            errors[INPUT_IDS.SSN] = this.props.translate(this.errorTranslationKeys.ssn);
         }
 
-        Wallet.setAdditionalDetailsErrors(errors);
-        return _.size(errors) === 0;
+        return errors;
     }
 
-    activateWallet() {
-        if (!this.validate()) {
-            return;
-        }
+    /**
+     * @param {Object} values The values object is passed from Form.js and contains info for each form element that has an inputID
+     */
+    activateWallet(values) {
         const personalDetails = {
-            ...this.props.walletAdditionalDetailsDraft,
-            phoneNumber: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(this.props.walletAdditionalDetailsDraft.phoneNumber),
-            legalFirstName: this.getFirstName(),
-            legalLastName: this.getLastName(),
+            phoneNumber: LoginUtils.getPhoneNumberWithoutUSCountryCodeAndSpecialChars(values[INPUT_IDS.PHONE_NUMBER]),
+            legalFirstName: values[INPUT_IDS.LEGAL_FIRST_NAME],
+            legalLastName: values[INPUT_IDS.LEGAL_LAST_NAME],
+            addressStreet: values[INPUT_IDS.ADDRESS.street],
+            addressCity: values[INPUT_IDS.ADDRESS.city],
+            addressState: values[INPUT_IDS.ADDRESS.state],
+            addressZip: values[INPUT_IDS.ADDRESS.zipCode],
+            dob: moment(values[INPUT_IDS.DOB]).format(CONST.DATE.MOMENT_FORMAT_STRING),
+            ssn: values[INPUT_IDS.SSN],
         };
+
+        // Attempt to set the personal details
         Wallet.updatePersonalDetails(personalDetails);
-    }
-
-    /**
-     * Clear both errors associated with dob, and set the new value.
-     *
-     * @param {String} value
-     */
-    clearDateErrorsAndSetValue(value) {
-        this.formHelper.clearErrors(this.props, ['dob', 'age']);
-        Wallet.updateAdditionalDetailsDraft({dob: moment(value).format(CONST.DATE.MOMENT_FORMAT_STRING)});
-    }
-
-    /**
-     * Clear ssn and ssnFull9 error and set the new value
-     *
-     * @param {String} value
-     */
-    clearSSNErrorAndSetValue(value) {
-        this.formHelper.clearErrors(this.props, ['ssn', 'ssnFull9']);
-        Wallet.updateAdditionalDetailsDraft({ssn: value});
-    }
-
-    /**
-     * @param {String} fieldName
-     * @param {String} value
-     */
-    clearErrorAndSetValue(fieldName, value) {
-        Wallet.updateAdditionalDetailsDraft({[fieldName]: value});
-        this.clearError(fieldName);
     }
 
     render() {
@@ -271,9 +203,6 @@ class AdditionalDetailsStep extends React.Component {
                 </ScreenWrapper>
             );
         }
-
-        const errorMessage = ErrorUtils.getLatestErrorMessage(this.props.walletAdditionalDetails) || '';
-        const isErrorVisible = _.size(this.getErrors()) > 0 || Boolean(errorMessage);
         const shouldAskForFullSSN = this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN;
 
         return (
@@ -292,92 +221,58 @@ class AdditionalDetailsStep extends React.Component {
                             {this.props.translate('additionalDetailsStep.helpLink')}
                         </TextLink>
                     </View>
-                    <FormScrollView ref={el => this.form = el}>
-                        <View style={[styles.mh5, styles.mb5]}>
-                            <View style={styles.mt4}>
-                                <TextInput
-                                    containerStyles={[styles.mt4]}
-                                    label={this.props.translate(this.fieldNameTranslationKeys.legalFirstName)}
-                                    onChangeText={val => this.clearErrorAndSetValue('legalFirstName', val)}
-                                    value={this.getFirstName()}
-                                    errorText={this.getErrorText('legalFirstName')}
-                                />
-                                <TextInput
-                                    containerStyles={[styles.mt4]}
-                                    label={this.props.translate(this.fieldNameTranslationKeys.legalLastName)}
-                                    onChangeText={val => this.clearErrorAndSetValue('legalLastName', val)}
-                                    value={this.getLastName()}
-                                    errorText={this.getErrorText('legalLastName')}
-                                />
-                                <AddressForm
-                                    translate={this.props.translate}
-                                    streetTranslationKey={this.fieldNameTranslationKeys.addressStreet}
-                                    values={{
-                                        street: this.props.walletAdditionalDetailsDraft.addressStreet,
-                                        state: this.props.walletAdditionalDetailsDraft.addressState,
-                                        city: this.props.walletAdditionalDetailsDraft.addressCity,
-                                        zipCode: this.props.walletAdditionalDetailsDraft.addressZip,
-                                    }}
-                                    errors={{
-                                        street: this.getErrors().addressStreet,
-                                        state: this.getErrors().addressState,
-                                        city: this.getErrors().addressCity,
-                                        zipCode: this.getErrors().addressZip,
-                                    }}
-                                    onFieldChange={(values) => {
-                                        const renamedFields = {
-                                            street: 'addressStreet',
-                                            state: 'addressState',
-                                            city: 'addressCity',
-                                            zipCode: 'addressZip',
-                                        };
-                                        _.each(values, (value, inputKey) => {
-                                            const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
-                                            this.clearErrorAndSetValue(renamedInputKey, value);
-                                        });
-                                    }}
-                                />
-                            </View>
-                            <TextInput
-                                containerStyles={[styles.mt4]}
-                                keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
-                                label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
-                                onChangeText={val => this.clearErrorAndSetValue('phoneNumber', val)}
-                                value={this.props.walletAdditionalDetailsDraft.phoneNumber || ''}
-                                placeholder={this.props.translate('common.phoneNumberPlaceholder')}
-                                errorText={this.getErrorText('phoneNumber')}
-                            />
-                            <DatePicker
-                                containerStyles={[styles.mt4]}
-                                label={this.props.translate(this.fieldNameTranslationKeys.dob)}
-                                onInputChange={val => this.clearDateErrorsAndSetValue(val)}
-                                defaultValue={this.props.walletAdditionalDetailsDraft.dob || ''}
-                                placeholder={this.props.translate('common.dob')}
-                                errorText={this.getErrorText('dob') || this.getErrorText('age')}
-                                maximumDate={new Date()}
-                            />
-                            <TextInput
-                                containerStyles={[styles.mt4]}
-                                label={this.props.translate(this.fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
-                                onChangeText={val => this.clearSSNErrorAndSetValue(val)}
-                                value={this.props.walletAdditionalDetailsDraft.ssn || ''}
-                                errorText={this.getErrorText('ssnFull9') || this.getErrorText('ssn')}
-                                maxLength={shouldAskForFullSSN ? 9 : 4}
-                                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                            />
-                        </View>
-                        <FormAlertWithSubmitButton
-                            isAlertVisible={isErrorVisible}
-                            onSubmit={this.activateWallet}
-                            onFixTheErrorsLinkPressed={() => {
-                                this.form.scrollTo({y: 0, animated: true});
-                            }}
-                            message={errorMessage}
-                            isLoading={this.props.walletAdditionalDetails.isLoading}
-                            buttonText={this.props.translate('common.saveAndContinue')}
+                    <Form
+                        formID={ONYXKEYS.WALLET_ADDITIONAL_DETAILS}
+                        validate={this.validate}
+                        onSubmit={this.activateWallet}
+                        submitButtonText={this.props.translate('common.saveAndContinue')}
+                        style={[styles.mh5, styles.flexGrow1]}
+                    >
+                        <TextInput
+                            inputID={INPUT_IDS.LEGAL_FIRST_NAME}
+                            containerStyles={[styles.mt4]}
+                            label={this.props.translate(this.fieldNameTranslationKeys.legalFirstName)}
+                            defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails).firstName}
+                            shouldSaveDraft
+                        />
+                        <TextInput
+                            inputID={INPUT_IDS.LEGAL_LAST_NAME}
+                            containerStyles={[styles.mt4]}
+                            label={this.props.translate(this.fieldNameTranslationKeys.legalLastName)}
+                            defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails).lastName}
+                            shouldSaveDraft
+                        />
+                        <AddressForm
+                            inputKeys={INPUT_IDS.ADDRESS}
+                            translate={this.props.translate}
+                            streetTranslationKey={this.fieldNameTranslationKeys.addressStreet}
+                            shouldSaveDraft
+                        />
+                        <TextInput
+                            inputID={INPUT_IDS.PHONE_NUMBER}
+                            containerStyles={[styles.mt4]}
+                            keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                            label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
+                            defaultValue={this.props.currentUserPersonalDetails.phoneNumber}
+                            placeholder={this.props.translate('common.phoneNumberPlaceholder')}
+                            shouldSaveDraft
+                        />
+                        <DatePicker
+                            inputID={INPUT_IDS.DOB}
+                            containerStyles={[styles.mt4]}
+                            label={this.props.translate(this.fieldNameTranslationKeys.dob)}
+                            placeholder={this.props.translate('common.dob')}
+                            shouldSaveDraft
+                        />
+                        <TextInput
+                            inputID={INPUT_IDS.SSN}
+                            containerStyles={[styles.mt4]}
+                            label={this.props.translate(this.fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
+                            maxLength={shouldAskForFullSSN ? 9 : 4}
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         />
                         <OfflineIndicator containerStyles={[styles.mh5, styles.mb3]} />
-                    </FormScrollView>
+                    </Form>
                 </View>
             </>
         );
@@ -392,7 +287,6 @@ export default compose(
     withOnyx({
         walletAdditionalDetails: {
             key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-            initWithStoredValues: false,
         },
     }),
 )(AdditionalDetailsStep);

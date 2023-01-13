@@ -103,11 +103,11 @@ const OfflineWithFeedback = (props) => {
             )}
             {(props.shouldShowErrorMessages && hasErrors) && (
                 <View style={StyleUtils.combineStyles(styles.offlineFeedback.error, props.errorRowStyles)}>
-                    <DotIndicatorMessage messages={props.errors} type="error" />
+                    <DotIndicatorMessage style={[styles.flex1]} messages={props.errors} type="error" />
                     <Tooltip text={props.translate('common.close')}>
                         <Pressable
                             onPress={props.onClose}
-                            style={[styles.touchableButtonImage, styles.mr0]}
+                            style={[styles.touchableButtonImage]}
                             accessibilityRole="button"
                             accessibilityLabel={props.translate('common.close')}
                         >

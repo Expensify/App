@@ -48,6 +48,11 @@ const baseCodeTagStyles = {
     backgroundColor: themeColors.textBackground,
 };
 
+const headlineFont = {
+    fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+    fontWeight: '500',
+};
+
 const webViewStyles = {
     // As of react-native-render-html v6, don't declare distinct styles for
     // custom renderers, the API for custom renderers has changed. Declare the
@@ -169,10 +174,6 @@ const styles = {
 
     link,
 
-    linkHovered: {
-        color: themeColors.linkHover,
-    },
-
     linkMuted: {
         color: themeColors.textSupporting,
         textDecorationColor: themeColors.textSupporting,
@@ -261,15 +262,16 @@ const styles = {
         fontSize: variables.fontSizeLarge,
     },
 
+    textXLarge: {
+        fontSize: variables.fontSizeXLarge,
+    },
+
     textXXLarge: {
         fontSize: variables.fontSizeXXLarge,
     },
 
     textXXXLarge: {
-        color: themeColors.heading,
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontSize: variables.fontSizeXXXLarge,
-        fontWeight: fontWeightBold,
     },
 
     textStrong: {
@@ -280,6 +282,12 @@ const styles = {
     textItalic: {
         fontFamily: fontFamily.EXP_NEUE_ITALIC,
         fontStyle: 'italic',
+    },
+
+    textHeadline: {
+        ...headlineFont,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeXLarge,
     },
 
     textDecorationNoLine: {
@@ -334,6 +342,14 @@ const styles = {
         opacity: 1,
     },
 
+    pr0: {
+        paddingRight: 0,
+    },
+
+    pl0: {
+        paddingLeft: 0,
+    },
+
     textDanger: {
         color: themeColors.danger,
     },
@@ -350,6 +366,11 @@ const styles = {
         ...spacing.ph3,
     },
 
+    buttonContainer: {
+        padding: 1,
+        borderRadius: variables.buttonBorderRadius,
+    },
+
     buttonText: {
         color: themeColors.text,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
@@ -360,6 +381,9 @@ const styles = {
         // It is needed to unset the Lineheight. We don't need it for buttons as button always contains single line of text.
         // It allows to vertically center the text.
         lineHeight: undefined,
+
+        // Add 1px to the Button text to give optical vertical alignment.
+        paddingBottom: 1,
     },
 
     buttonSmall: {
@@ -432,7 +456,7 @@ const styles = {
     },
 
     buttonDangerDisabled: {
-        backgroundColor: themeColors.dangerDisabled,
+        opacity: 0.5,
     },
 
     buttonDangerHovered: {
@@ -445,9 +469,11 @@ const styles = {
         borderWidth: 0,
     },
 
-    buttonDropdown: {
-        borderLeftWidth: 1,
-        borderColor: themeColors.textLight,
+    buttonDivider: {
+        width: 1,
+        alignSelf: 'stretch',
+        backgroundColor: themeColors.appBG,
+        marginVertical: 1,
     },
 
     noRightBorderRadius: {
@@ -467,6 +493,10 @@ const styles = {
 
     buttonCTAIcon: {
         marginRight: 22,
+
+        // Align vertically with the Button text
+        paddingBottom: 1,
+        paddingTop: 1,
     },
 
     buttonConfirm: {
@@ -507,7 +537,6 @@ const styles = {
         alignItems: 'center',
         height: variables.componentSizeNormal,
         justifyContent: 'center',
-        marginRight: 8,
         width: variables.componentSizeNormal,
     },
 
@@ -523,8 +552,8 @@ const styles = {
     },
 
     loadingVBAAnimation: {
-        width: 160,
-        height: 160,
+        width: 140,
+        height: 140,
     },
 
     pickerSmall: {
@@ -680,7 +709,6 @@ const styles = {
     // Actions
     actionAvatar: {
         borderRadius: 20,
-        marginRight: 8,
     },
 
     componentHeightLarge: {
@@ -744,6 +772,10 @@ const styles = {
 
     textInputMultiline: {
         scrollPadding: '23px 0 0 0',
+    },
+
+    textInputMultilineContainer: {
+        paddingTop: 23,
     },
 
     textInputAndIconContainer: {
@@ -998,13 +1030,19 @@ const styles = {
         },
     },
 
+    floatingActionButtonContainer: {
+        position: 'absolute',
+        right: 20,
+
+        // The bottom of the floating action button should align with the bottom of the compose box.
+        // The value should be equal to the height + marginBottom + marginTop of chatItemComposeSecondaryRow
+        bottom: 25,
+    },
+
     floatingActionButton: {
         backgroundColor: themeColors.success,
-        position: 'absolute',
         height: variables.componentSizeLarge,
         width: variables.componentSizeLarge,
-        right: 20,
-        bottom: 34,
         borderRadius: 999,
         alignItems: 'center',
         justifyContent: 'center',
@@ -1098,7 +1136,6 @@ const styles = {
     popoverMenuText: {
         fontSize: variables.fontSizeNormal,
         color: themeColors.heading,
-        maxWidth: 240,
     },
 
     menuItemTextContainer: {
@@ -1291,7 +1328,6 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         lineHeight: variables.lineHeightXLarge,
-        paddingRight: 5,
         paddingBottom: 4,
         ...wordBreak.breakWord,
     },
@@ -1423,7 +1459,7 @@ const styles = {
     },
 
     emojiPickerList: {
-        height: 300,
+        height: 288,
         width: '100%',
         ...spacing.ph4,
     },
@@ -1434,7 +1470,9 @@ const styles = {
     emojiHeaderStyle: {
         backgroundColor: themeColors.componentBG,
         width: '100%',
-        ...spacing.pv3,
+        height: 32,
+        display: 'flex',
+        alignItems: 'center',
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
@@ -1475,11 +1513,19 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
+    emojiItemKeyboardHighlighted: {
+        transition: '0.2s ease',
+        borderWidth: 1,
+        borderColor: themeColors.link,
+        borderRadius: variables.buttonBorderRadius,
+    },
+
     chatItemEmojiButton: {
         alignSelf: 'flex-end',
         borderRadius: variables.buttonBorderRadius,
         height: 32,
         marginVertical: 4,
+        marginLeft: 3,
         paddingHorizontal: 6,
         justifyContent: 'center',
     },
@@ -1734,7 +1780,6 @@ const styles = {
         width: 28,
         borderWidth: 2,
         borderStyle: 'solid',
-        backgroundColor: themeColors.opaqueAvatar,
         borderRadius: 24,
         zIndex: 6,
     },
@@ -1875,10 +1920,11 @@ const styles = {
     },
 
     notFoundTextHeader: {
-        color: themeColors.link,
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
-        fontSize: 150,
+        ...headlineFont,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeXLarge,
+        marginTop: 20,
+        marginBottom: 8,
     },
 
     notFoundTextBody: {
@@ -1964,22 +2010,19 @@ const styles = {
     },
 
     roomHeaderAvatar: {
-        height: variables.componentSizeLarge,
-        width: variables.componentSizeLarge,
-        borderRadius: 100,
         borderColor: themeColors.componentBG,
         borderWidth: 4,
         marginLeft: -16,
     },
 
-    screenBlur: {
+    roomHeaderAvatarOverlay: {
         position: 'absolute',
         top: 0,
         right: 0,
         bottom: 0,
         left: 0,
-        backgroundColor: themeColors.inverse,
-        opacity: 0.5,
+        backgroundColor: themeColors.overlay,
+        opacity: variables.overlayOpacity,
     },
 
     avatarInnerTextChat: {
@@ -1989,13 +2032,6 @@ const styles = {
         textAlign: 'center',
         fontWeight: 'normal',
         position: 'absolute',
-    },
-
-    displayName: {
-        fontSize: variables.fontSizeLarge,
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
-        color: themeColors.heading,
     },
 
     pageWrapper: {
@@ -2136,15 +2172,14 @@ const styles = {
     },
 
     iouAmountText: {
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
+        ...headlineFont,
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
+        lineHeight: variables.inputHeight,
     },
 
     iouAmountTextInput: addOutlineWidth({
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
+        ...headlineFont,
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
         padding: 0,
@@ -2190,10 +2225,6 @@ const styles = {
         flexGrow: 1,
         paddingStart: 20,
         paddingEnd: 20,
-    },
-
-    noScrollbars: {
-        scrollbarWidth: 'none',
     },
 
     codeWordWrapper: {
@@ -2367,7 +2398,7 @@ const styles = {
 
     smallEditIcon: {
         alignItems: 'center',
-        backgroundColor: themeColors.icon,
+        backgroundColor: themeColors.buttonHoveredBG,
         borderColor: themeColors.textReversed,
         borderRadius: 14,
         borderWidth: 3,
@@ -2495,13 +2526,13 @@ const styles = {
     },
 
     cardOverlay: {
-        backgroundColor: themeColors.modalBackdrop,
+        backgroundColor: themeColors.overlay,
         position: 'absolute',
         top: 0,
         left: 0,
         width: '100%',
         height: '100%',
-        opacity: 0.5,
+        opacity: variables.overlayOpacity,
     },
 
     communicationsLinkIcon: {
@@ -2512,18 +2543,18 @@ const styles = {
 
     shortTermsBorder: {
         borderWidth: 1,
-        borderColor: themeColors.shadow,
+        borderColor: themeColors.border,
     },
 
     shortTermsHorizontalRule: {
         borderBottomWidth: 1,
-        borderColor: themeColors.shadow,
+        borderColor: themeColors.border,
         ...spacing.mh3,
     },
 
     shortTermsLargeHorizontalRule: {
         borderWidth: 1,
-        borderColor: themeColors.shadow,
+        borderColor: themeColors.border,
         ...spacing.mh3,
     },
 
@@ -2591,9 +2622,9 @@ const styles = {
         ],
     }),
 
-    confettiIcon: {
-        height: 100,
-        width: 100,
+    confirmationAnimation: {
+        height: 180,
+        width: 180,
         marginBottom: 20,
     },
 
@@ -2700,7 +2731,7 @@ const styles = {
         overflow: 'hidden',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: themeColors.shadow,
+        backgroundColor: themeColors.imageCropBackgroundColor,
         cursor: 'move',
     },
 
@@ -2817,9 +2848,39 @@ const styles = {
         marginBottom: 0,
     },
 
+    archivedReportFooter: {
+        borderRadius: variables.componentBorderRadius,
+        ...wordBreak.breakWord,
+    },
+
     saveButtonPadding: {
         paddingLeft: 18,
         paddingRight: 18,
+    },
+
+    pushToPageEmptyItemLabel: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeNormal,
+        maxWidth: 240,
+    },
+
+    deeplinkWrapperContainer: {
+        padding: 20,
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: themeColors.appBG,
+    },
+
+    deeplinkWrapperMessage: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    deeplinkWrapperFooter: {
+        paddingTop: 80,
+        paddingBottom: 45,
     },
 };
 

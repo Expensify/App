@@ -111,6 +111,11 @@ class LoginForm extends React.Component {
         if (this.props.account.errors) {
             Session.clearAccountMessages();
         }
+
+        // Clear the "Account successfully closed" message when the user starts typing
+        if (this.props.closeAccount.success) {
+            CloseAccount.setDefaultData();
+        }
     }
 
     /**

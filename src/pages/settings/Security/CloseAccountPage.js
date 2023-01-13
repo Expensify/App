@@ -18,6 +18,8 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import * as CloseAccount from '../../../libs/actions/CloseAccount';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Form from '../../../components/Form';
+import CONST from '../../../CONST';
+import ConfirmModal from '../../../components/ConfirmModal';
 
 const propTypes = {
 
@@ -34,17 +36,35 @@ class CloseAccountPage extends Component {
     constructor(props) {
         super(props);
 
-        this.onSubmit = this.onSubmit.bind(this);
+        this.onConfirm = this.onConfirm.bind(this);
         this.validate = this.validate.bind(this);
+        this.hideConfirmModal = this.hideConfirmModal.bind(this);
+        this.showConfirmModal = this.showConfirmModal.bind(this);
         CloseAccount.clearError();
+        this.state = {
+            isConfirmModalVisible: false,
+            reasonForLeaving: '',
+        };
     }
 
     componentWillUnmount() {
         CloseAccount.clearError();
     }
 
-    onSubmit(values) {
-        User.closeAccount(values.reasonForLeaving);
+    onConfirm() {
+        User.closeAccount(this.state.reasonForLeaving);
+        this.hideConfirmModal();
+    }
+
+    showConfirmModal(values) {
+        this.setState({
+            isConfirmModalVisible: true,
+            reasonForLeaving: values.reasonForLeaving,
+        });
+    }
+
+    hideConfirmModal() {
+        this.setState({isConfirmModalVisible: false});
     }
 
     validate(values) {
@@ -60,7 +80,7 @@ class CloseAccountPage extends Component {
     render() {
         const userEmailOrPhone = Str.removeSMSDomain(this.props.session.email);
         return (
-            <ScreenWrapper>
+            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
                     title={this.props.translate('closeAccountPage.closeAccount')}
                     shouldShowBackButton
@@ -70,7 +90,7 @@ class CloseAccountPage extends Component {
                 <Form
                     formID={ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM}
                     validate={this.validate}
-                    onSubmit={this.onSubmit}
+                    onSubmit={this.showConfirmModal}
                     submitButtonText={this.props.translate('closeAccountPage.closeAccount')}
                     style={[styles.flexGrow1, styles.mh5]}
                     isDangerousAction
@@ -86,24 +106,30 @@ class CloseAccountPage extends Component {
                             containerStyles={[styles.mt5, styles.closeAccountMessageInput]}
                         />
                         <Text style={[styles.mt5]}>
-                            <Text style={[styles.textStrong]}>
-                                {this.props.translate('closeAccountPage.closeAccountWarning')}
-                            </Text>
+                            {this.props.translate('closeAccountPage.enterDefaultContactToConfirm')}
                             {' '}
-                            {this.props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
-                        </Text>
-                        <Text textBreakStrategy="simple" style={[styles.mt5]}>
                             <Text style={[styles.textStrong]}>
-                                {this.props.translate('closeAccountPage.defaultContact')}
+                                {userEmailOrPhone}
                             </Text>
-                            {' '}
-                            {userEmailOrPhone}
+                            .
                         </Text>
                         <TextInput
                             inputID="phoneOrEmail"
                             autoCapitalize="none"
                             label={this.props.translate('closeAccountPage.enterDefaultContact')}
                             containerStyles={[styles.mt5]}
+                            autoCorrect={false}
+                            keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
+                        />
+                        <ConfirmModal
+                            title={this.props.translate('closeAccountPage.closeAccountWarning')}
+                            onConfirm={this.onConfirm}
+                            onCancel={this.hideConfirmModal}
+                            isVisible={this.state.isConfirmModalVisible}
+                            prompt={this.props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
+                            confirmText={this.props.translate('common.yes')}
+                            cancelText={this.props.translate('common.cancel')}
+                            shouldShowCancelButton
                         />
                     </View>
                 </Form>

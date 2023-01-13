@@ -232,11 +232,12 @@ function getMergeLogsAsJSON(fromRef, toRef) {
             // Remove any double-quotes from commit subjects
             let sanitizedOutput = stdout.replace(/(?<="subject": ").*(?="})/g, subject => subject.replace(/"/g, "'"));
 
-            // Also remove any newlines
-            sanitizedOutput = sanitizedOutput.replace(/(\r\n|\n|\r)/gm, '');
+            // Also remove any newlines and escape backslashes
+            sanitizedOutput = sanitizedOutput.replace(/(\r\n|\n|\r)/gm, '').replace(/\\/g, '\\\\');
 
             // Then format as JSON and convert to a proper JS object
             const json = `[${sanitizedOutput}]`.replace('},]', '}]');
+
             return JSON.parse(json);
         });
 }
@@ -645,7 +646,7 @@ class GithubUtils {
                 // eslint-disable-next-line max-len
                 issueBody += `\r\n- [${isTimingDashboardChecked ? 'x' : ' '}] I checked the [App Timing Dashboard](https://graphs.expensify.com/grafana/d/yj2EobAGz/app-timing?orgId=1) and verified this release does not cause a noticeable performance regression.`;
                 // eslint-disable-next-line max-len
-                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes.`;
+                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-chat/crashlytics/app/android:com.expensify.chat/issues?state=open&time=last-seven-days&tag=all) and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
 
                 issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
                 return issueBody;

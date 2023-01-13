@@ -61,19 +61,23 @@ const RoomHeaderAvatars = (props) => {
     }
 
     const iconsToDisplay = props.icons.slice(0, CONST.REPORT.MAX_PREVIEW_AVATARS);
+    const iconStyle = [
+        styles.roomHeaderAvatar,
+        StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.MEDIUM),
+    ];
     return (
         <View pointerEvents="none">
             <View style={[styles.flexRow, styles.wAuto, styles.ml3]}>
                 {_.map(iconsToDisplay, (val, index) => (
                     <View key={`${val}${index}`} style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
-                        <Image source={{uri: val}} style={[styles.roomHeaderAvatar]} />
+                        <Image source={{uri: val}} style={iconStyle} />
 
                         {index === CONST.REPORT.MAX_PREVIEW_AVATARS - 1 && props.icons.length - CONST.REPORT.MAX_PREVIEW_AVATARS !== 0 && (
                             <>
                                 <View
                                     style={[
                                         styles.roomHeaderAvatar,
-                                        styles.screenBlur,
+                                        styles.roomHeaderAvatarOverlay,
                                     ]}
                                 />
                                 <Text style={styles.avatarInnerTextChat}>

@@ -179,6 +179,16 @@ function deletePaymentBankAccount(bankAccountID) {
                 value: {[bankAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
             },
         ],
+
+        // Sometimes pusher updates aren't received when we close the App while still offline,
+        // so we are setting the bankAccount to null here to ensure that it gets cleared out once we come back online.
+        successData: [
+            {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
+                value: {[bankAccountID]: null},
+            },
+        ],
     });
 }
 
@@ -363,6 +373,15 @@ function openWorkspaceView() {
     API.read('OpenWorkspaceView');
 }
 
+/**
+ * Set the reimbursement account loading so that it happens right away, instead of when the API command is processed.
+ *
+ * @param {Boolean} isLoading
+ */
+function setReimbursementAccountLoading(isLoading) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading});
+}
+
 export {
     addPersonalBankAccount,
     clearOnfidoToken,
@@ -379,4 +398,5 @@ export {
     openWorkspaceView,
     validateBankAccount,
     verifyIdentityForBankAccount,
+    setReimbursementAccountLoading,
 };

@@ -118,13 +118,11 @@ class BaseVideoChatButtonAndMenu extends Component {
                                 }
                                 this.toggleVideoChatMenu();
                             }}
-                            style={[styles.touchableButtonImage, styles.mr0]}
+                            style={[styles.touchableButtonImage]}
                         >
                             <Icon
                                 src={Expensicons.Phone}
-                                fill={(this.props.isConcierge || this.state.isVideoChatMenuActive)
-                                    ? themeColors.heading
-                                    : themeColors.icon}
+                                fill={this.state.isVideoChatMenuActive ? themeColors.heading : themeColors.icon}
                             />
                         </Pressable>
                     </Tooltip>

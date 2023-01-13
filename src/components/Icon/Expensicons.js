@@ -35,6 +35,7 @@ import Emoji from '../../../assets/images/emoji.svg';
 import Exclamation from '../../../assets/images/exclamation.svg';
 import Exit from '../../../assets/images/exit.svg';
 import ExpensifyCard from '../../../assets/images/expensifycard.svg';
+import ExpensifyWordmark from '../../../assets/images/expensify-wordmark.svg';
 import Expand from '../../../assets/images/expand.svg';
 import Eye from '../../../assets/images/eye.svg';
 import EyeDisabled from '../../../assets/images/eye-disabled.svg';
@@ -136,6 +137,7 @@ export {
     Exclamation,
     Exit,
     ExpensifyCard,
+    ExpensifyWordmark,
     Expand,
     Eye,
     EyeDisabled,
