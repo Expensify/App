@@ -340,7 +340,7 @@ function updateBeneficialOwnersForBankAccount(params) {
 /**
  * Create the bank account with manually entered data.
  *
- * @param {String} [bankAccountID]
+ * @param {number} [bankAccountID]
  * @param {String} [accountNumber]
  * @param {String} [routingNumber]
  * @param {String} [plaidMask]

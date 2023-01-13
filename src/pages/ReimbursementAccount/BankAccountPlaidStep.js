@@ -59,12 +59,12 @@ class BankAccountPlaidStep extends React.Component {
         };
         ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
 
-        const bankAccountID = this.props.getDefaultStateForField('bankAccountID', 0);
+        const bankAccountID = this.props.reimbursementAccount.bankAccountID || 0;
         BankAccounts.connectBankAccountWithPlaid(bankAccountID, bankAccountData);
     }
 
     render() {
-        const bankAccountID = this.props.getDefaultStateForField('bankAccountID', 0);
+        const bankAccountID = this.props.reimbursementAccount.bankAccountID || 0;
         const selectedPlaidAccountID = this.props.getDefaultStateForField('plaidAccountID', '');
 
         return (

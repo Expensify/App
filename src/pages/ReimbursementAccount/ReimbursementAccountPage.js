@@ -85,9 +85,11 @@ class ReimbursementAccountPage extends React.Component {
         this.continue = this.continue.bind(this);
         this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
         this.goBack = this.goBack.bind(this);
+        const achData = lodashGet(this.props.reimbursementAccount, 'achData', {});
+        const hasInProgressVBBA = achData.bankAccountID && achData.state !== BankAccount.STATE.OPEN && achData.state !== BankAccount.STATE.LOCKED;
 
         this.state = {
-            shouldHideContinueSetupButton: false,
+            shouldHideContinueSetupButton: !hasInProgressVBBA,
         };
     }
 

@@ -3,7 +3,6 @@ import lodashGet from 'lodash/get';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import * as store from '../../libs/actions/ReimbursementAccount/store';
 import Text from '../../components/Text';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import styles from '../../styles/styles';
@@ -137,7 +136,7 @@ class ACHContractStep extends React.Component {
             return;
         }
 
-        const bankAccountID = lodashGet(store.getReimbursementAccountInSetup(), 'bankAccountID');
+        const bankAccountID = this.props.reimbursementAccount.bankAccountID;
 
         // If they did not select that there are other beneficial owners, then we need to clear out the array here. The
         // reason we do it here is that if they filled out several beneficial owners, but then toggled the checkbox, we

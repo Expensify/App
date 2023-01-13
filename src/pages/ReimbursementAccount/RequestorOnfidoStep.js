@@ -33,7 +33,7 @@ class RequestorOnfidoStep extends React.Component {
 
     submit(onfidoData) {
         BankAccounts.verifyIdentityForBankAccount(
-            this.props.getDefaultStateForField('bankAccountID', 0),
+            this.props.reimbursementAccount.bankAccountID || 0,
             onfidoData,
         );
 
