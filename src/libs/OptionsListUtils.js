@@ -108,7 +108,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
             personalDetail = {
                 login,
                 displayName: Str.removeSMSDomain(login),
-                avatar: ReportUtils.getAvatar('', login),
+                avatar: ReportUtils.getDefaultAvatar(login),
             };
         }
 
