@@ -102,7 +102,7 @@ class Trie {
             return matching;
         }
         if (node.isEndOfWord) {
-            matching.push({name: prefix, metaData: node.metaData});
+            matching.unshift({name: prefix, metaData: node.metaData});
         }
         const children = _.keys(node.children);
         for (let i = 0; i < children.length; i++) {
