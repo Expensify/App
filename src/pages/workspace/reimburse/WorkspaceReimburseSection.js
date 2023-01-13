@@ -97,7 +97,6 @@ class WorkspaceReimburseSection extends React.Component {
                                 icon: Expensicons.Bank,
                                 shouldShowRightIcon: true,
                                 iconRight: Expensicons.NewWindow,
-                                iconFill: themeColors.success,
                                 wrapperStyle: [styles.cardMenuItem],
                             },
                         ]}
