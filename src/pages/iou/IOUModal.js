@@ -285,7 +285,7 @@ class IOUModal extends Component {
     sendMoney(paymentMethodType) {
         const amount = Math.round(this.state.amount * 100);
         const currency = this.props.iou.selectedCurrencyCode;
-        const comment = this.state.comment;
+        const comment = this.state.comment.trim();
         const participant = this.state.participants[0];
 
         if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
