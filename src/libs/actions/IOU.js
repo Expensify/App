@@ -459,26 +459,36 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             value: existingIOUReport || oneOnOneIOUReport,
         });
 
-        splits.push({
+        const splitData = {
             email,
             amount: splitAmount,
             iouReportID: oneOnOneIOUReport.reportID,
             chatReportID: oneOnOneChatReport.reportID,
-            createdReportActionID: oneOnOneCreatedReportActionData[0].reportActionID,
             transactionID: oneOnOneIOUReportAction.originalMessage.IOUTransactionID,
             reportActionID: oneOnOneIOUReportAction.reportActionID,
             clientID: oneOnOneIOUReportAction.clientID.toString(),
-        });
+        };
+
+        if (!_.isEmpty(oneOnOneCreatedReportActionData)) {
+            splitData.createdReportActionID = oneOnOneCreatedReportActionData[0].reportActionID;
+        }
+
+        splits.push(splitData);
     });
 
+    const groupData = {
+        chatReportID: groupChatReport.reportID,
+        transactionID: groupIOUReportAction.originalMessage.IOUTransactionID,
+        reportActionID: groupIOUReportAction.reportActionID,
+        clientID: groupIOUReportAction.clientID.toString(),
+    };
+
+    if (!_.isEmpty(groupCreatedReportActionData)) {
+        groupData.createdReportActionID = groupCreatedReportActionData[0].reportActionID;
+    }
+
     return {
-        groupData: {
-            chatReportID: groupChatReport.reportID,
-            createdReportActionID: groupCreatedReportActionData[0].reportActionID,
-            transactionID: groupIOUReportAction.originalMessage.IOUTransactionID,
-            reportActionID: groupIOUReportAction.reportActionID,
-            clientID: groupIOUReportAction.clientID.toString(),
-        },
+        groupData,
         splits,
         onyxData: {optimisticData, successData, failureData},
     };
