@@ -43,7 +43,6 @@ const reimbursementAccountDefaultProps = {
     errorFields: {},
     errors: {},
     maxAttemptsReached: false,
-    shouldHideContinueSetupButton: false,
     shouldShowResetModal: false,
 };
 

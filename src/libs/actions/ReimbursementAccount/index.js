@@ -20,7 +20,7 @@ export {
  * @param {String} subStep
  */
 function setBankAccountSubStep(subStep) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, {subStep});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
 }
 
 function hideBankAccountErrors() {

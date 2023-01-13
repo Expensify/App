@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import * as store from './store';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ROUTES from '../../../ROUTES';
 import Navigation from '../../Navigation/Navigation';
@@ -10,7 +11,9 @@ import Navigation from '../../Navigation/Navigation';
  * @param {Object} newAchData
  */
 function goToWithdrawalAccountSetupStep(stepID, newAchData) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, {...newAchData, currentStep: stepID});
+    const originalACHData = {...store.getReimbursementAccountInSetup()};
+
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...originalACHData, ...newAchData, currentStep: stepID}});
 }
 
 /**

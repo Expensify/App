@@ -174,8 +174,12 @@ class ReimbursementAccountPage extends React.Component {
         }
     }
 
+    /**
+     * Retrieve verified business bank account currently being set up.
+     * @param {boolean} ignoreLocalCurrentStep Pass true if you want the last "updated" view (from db), not the last "viewed" view (from onyx).
+     */
     fetchData(ignoreLocalCurrentStep) {
-        // This is so that when clicking on Continue, it starts on the last "updated" view (from reimbursementAccount), not the last "viewed" view (from reimbursementAccountDraft).
+        // Pass true if you want the last "updated" view (from db), not the last "viewed" view (from onyx).
         if (ignoreLocalCurrentStep) {
             BankAccounts.updateReimbursementAccountDraft({currentStep: '', subStep: ''});
         }
@@ -183,9 +187,10 @@ class ReimbursementAccountPage extends React.Component {
         // We can specify a step to navigate to by using route params when the component mounts.
         // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
         const stepToOpen = this.getStepToOpenFromRouteParams();
-        const subStep = this.getDefaultStateForField('subStep', '');
-        const localCurrentStep = this.getDefaultStateForField('currentStep', '');
-        BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep);
+        const achData = lodashGet(this.props.reimbursementAccount, 'achData', {});
+        const subStep = achData.subStep || '';
+        const localCurrentStep = achData.currentStep || '';
+        BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, ignoreLocalCurrentStep ? '' : localCurrentStep);
     }
 
     continue() {
@@ -197,8 +202,8 @@ class ReimbursementAccountPage extends React.Component {
 
     goBack() {
         const achData = lodashGet(this.props.reimbursementAccount, 'achData', {});
-        const currentStep = this.getDefaultStateForField('currentStep', CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
-        const subStep = this.getDefaultStateForField('subStep', '');
+        const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+        const subStep = achData.subStep;
         const shouldShowOnfido = this.props.onfidoToken && !achData.isOnfidoSetupComplete;
         const hasInProgressVBBA = achData.bankAccountID && achData.state !== BankAccount.STATE.OPEN && achData.state !== BankAccount.STATE.LOCKED;
         switch (currentStep) {
@@ -248,7 +253,7 @@ class ReimbursementAccountPage extends React.Component {
         // mounts which will set the achData.currentStep after the account data is fetched and overwrite the logical
         // next step.
         const achData = lodashGet(this.props.reimbursementAccount, 'achData', {});
-        const currentStep = this.getDefaultStateForField('currentStep', CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
+        const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
 
         if (this.props.reimbursementAccount.isLoading) {
             const isSubmittingVerificationsData = _.contains([
