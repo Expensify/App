@@ -2028,10 +2028,10 @@ const styles = {
     avatarInnerTextChat: {
         color: themeColors.textLight,
         fontSize: variables.fontSizeNormal,
-        left: 1,
         textAlign: 'center',
         fontWeight: 'normal',
         position: 'absolute',
+        marginLeft: -16,
     },
 
     pageWrapper: {
