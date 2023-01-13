@@ -502,7 +502,7 @@ function getAvatar(avatarURL, login) {
  */
 function getIcons(report, personalDetails, policies, defaultIcon = null) {
     if (_.isEmpty(report)) {
-        return [defaultIcon || getDefaultAvatar(personalDetails.login || '')];
+        return [defaultIcon || Expensicons.FallbackAvatar];
     }
     if (isConciergeChatReport(report)) {
         return [CONST.CONCIERGE_ICON_URL];
@@ -535,7 +535,7 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
         // If the user is an admin, return avatar source of the other participant of the report
         // (their workspace chat) and the avatar source of the workspace
         return [
-            lodashGet(personalDetails, [report.ownerEmail, 'avatar']) || getDefaultAvatar(report.ownerEmail),
+            getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
             policyExpenseChatAvatarSource,
         ];
     }

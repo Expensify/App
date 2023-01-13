@@ -250,7 +250,7 @@ const personalDetailsSelector = personalDetails => _.reduce(personalDetails, (fi
         login: personalData.login,
         displayName: personalData.displayName,
         firstName: personalData.firstName,
-        avatar: personalData.avatar,
+        avatar: ReportUtils.getAvatar(personalData.avatar, personalData.login),
     };
     return finalPersonalDetails;
 }, {});
