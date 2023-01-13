@@ -174,6 +174,26 @@ function updateDisplayName(firstName, lastName) {
 }
 
 /**
+ * @param {String} legalFirstName
+ * @param {String} legalLastName
+ */
+function updateLegalName(legalFirstName, legalLastName) {
+    API.write('UpdateDisplayName', {legalFirstName, legalLastName}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    legalFirstName,
+                    legalLastName,
+                },
+            },
+        }],
+    });
+    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+}
+
+/**
  * Updates timezone's 'automatic' setting, and updates
  * selected timezone if set to automatically update.
  *
@@ -340,6 +360,7 @@ export {
     openPersonalDetailsPage,
     extractFirstAndLastNameFromAvailableDetails,
     updateDisplayName,
+    updateLegalName,
     updatePronouns,
     clearAvatarErrors,
     updateAutomaticTimezone,

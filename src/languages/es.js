@@ -351,6 +351,8 @@ export default {
         personalDetails: '',
         privateDataMessage: '',
         legalName: '',
+        legalFirstName: '',
+        legalLastName: '',
         dateOfBirth: '',
         homeAddress: '',
     },
