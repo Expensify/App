@@ -1027,8 +1027,8 @@ export default {
         },
     },
     newRoomPage: {
-        newRoom: 'New Room',
-        roomName: 'Room Name',
+        newRoom: 'New room',
+        roomName: 'Room name',
         visibility: 'Visibility',
         restrictedDescription: 'People in your workspace can find this room',
         privateDescription: 'People invited to this room can find it',
