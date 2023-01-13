@@ -126,6 +126,6 @@ describe('EmojiTest', () => {
 
     it('correct suggests emojis accounting for keywords', () => {
         const text = ':thumb';
-        expect(EmojiUtils.suggestEmojis(text)).toEqual([{code: '👎', name: '-1'}, {code: '👍', name: '+1'}]);
+        expect(EmojiUtils.suggestEmojis(text)).toEqual([{code: '👍', name: '+1'}, {code: '👎', name: '-1'}]);
     });
 });
