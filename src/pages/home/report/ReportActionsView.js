@@ -27,8 +27,6 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
 
 const propTypes = {
-    /* Onyx Props */
-
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
 
@@ -67,6 +65,7 @@ class ReportActionsView extends React.Component {
 
         // We need this.sortedAndFilteredReportActions to be set before this.state is initialized because the function to calculate the newMarkerReportActionID uses the sorted report actions
         this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(props.reportActions);
+        console.log('RORY_DEBUG sortedAndFilteredReportActions', this.sortedAndFilteredReportActions);
 
         this.state = {
             isFloatingMessageCounterVisible: false,
@@ -132,6 +131,7 @@ class ReportActionsView extends React.Component {
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
             this.sortedAndFilteredReportActions = this.getSortedReportActionsForDisplay(nextProps.reportActions);
+            console.log('RORY_DEBUG sortedAndFilteredReportActions', this.sortedAndFilteredReportActions);
             this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOUReportActionID(nextProps.reportActions);
             return true;
         }
@@ -279,24 +279,22 @@ class ReportActionsView extends React.Component {
      * displaying.
      */
     loadMoreChats() {
+        console.log('RORY_DEBUG loadMoreChats called');
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
         if (this.props.report.isLoadingMoreReportActions) {
+            console.log('RORY_DEBUG loadMoreChatsReturning early because report.isLoadingMoreReportActions');
             return;
         }
 
-        const minSequenceNumber = _.chain(this.props.reportActions)
-            .pluck('sequenceNumber')
-            .min()
-            .value();
+        const oldestReportAction = _.last(this.sortedAndFilteredReportActions);
 
-        if (minSequenceNumber === 0) {
+        // Don't load more chats if we're already at the beginning of the chat history
+        if (oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return;
         }
 
-        // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
-        // case just get everything starting from 0.
-        const oldestActionSequenceNumber = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
-        Report.readOldestAction(this.props.report.reportID, oldestActionSequenceNumber);
+        // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
+        Report.readOldestAction(this.props.report.reportID, oldestReportAction.reportActionID);
     }
 
     scrollToBottomAndMarkReportAsRead() {

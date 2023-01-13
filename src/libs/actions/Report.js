@@ -422,13 +422,14 @@ function reconnect(reportID) {
  * Normally happens when you scroll up on a chat, and the actions have not been read yet.
  *
  * @param {String} reportID
- * @param {Number} oldestActionSequenceNumber
+ * @param {String} reportActionID
  */
-function readOldestAction(reportID, oldestActionSequenceNumber) {
+function readOldestAction(reportID, reportActionID) {
+    console.log('RORY_DEBUG calling ReadOldestAction:', {reportID, reportActionID});
     API.read('ReadOldestAction',
         {
             reportID,
-            reportActionsOffset: oldestActionSequenceNumber,
+            reportActionID,
         },
         {
             optimisticData: [{
