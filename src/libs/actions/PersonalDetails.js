@@ -211,6 +211,25 @@ function updateDateOfBirth(dateOfBirth) {
     Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
+function updateAddress(street, city, state, zip, country) {
+    API.write('UpdateHomeAddress', {street, city, state, zip, country}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    street,
+                    city,
+                    state,
+                    zip,
+                    country,
+                },
+            },
+        }],
+    });
+    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+}
+
 /**
  * Updates timezone's 'automatic' setting, and updates
  * selected timezone if set to automatically update.
@@ -380,6 +399,7 @@ export {
     updateDisplayName,
     updateLegalName,
     updateDateOfBirth,
+    updateAddress,
     updatePronouns,
     clearAvatarErrors,
     updateAutomaticTimezone,

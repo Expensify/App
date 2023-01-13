@@ -171,6 +171,7 @@ export default {
         DISPLAY_NAME_FORM: 'displayNameForm',
         LEGAL_NAME_FORM: 'legalNameForm',
         DATE_OF_BIRTH_FORM: 'dateOfBirthForm',
+        HOME_ADDRESS_FORM: 'homeAddressForm',
         NEW_ROOM_FORM: 'newRoomForm',
         ROOM_SETTINGS_FORM: 'roomSettingsForm',
     },
