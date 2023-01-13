@@ -50,10 +50,6 @@ function clearPersonalBankAccount() {
     Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {});
 }
 
-function updatePlaidData(plaidData) {
-    Onyx.merge(ONYXKEYS.PLAID_DATA, plaidData);
-}
-
 function clearOnfidoToken() {
     Onyx.merge(ONYXKEYS.ONFIDO_TOKEN, '');
 }
@@ -399,7 +395,6 @@ export {
     updateBeneficialOwnersForBankAccount,
     updateCompanyInformationForBankAccount,
     updatePersonalInformationForBankAccount,
-    updatePlaidData,
     openWorkspaceView,
     validateBankAccount,
     verifyIdentityForBankAccount,

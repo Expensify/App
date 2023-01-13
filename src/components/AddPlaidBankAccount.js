@@ -104,7 +104,7 @@ class AddPlaidBankAccount extends React.Component {
             label: `${account.addressName} ${account.mask}`,
         }));
         const {icon, iconSize} = getBankIcon();
-        const plaidDataErrorMessage = !_.isEmpty(this.props.plaidData.errors) ? _.chain(this.props.plaidData.errors).values().first().value() : this.props.plaidData.error;
+        const plaidDataErrorMessage = !_.isEmpty(this.props.plaidData.errors) ? _.chain(this.props.plaidData.errors).values().first().value() : '';
 
         // Plaid Link view
         if (!plaidBankAccounts.length) {
@@ -121,13 +121,12 @@ class AddPlaidBankAccount extends React.Component {
                             {plaidDataErrorMessage}
                         </Text>
                     )}
-                    {Boolean(token) && (
+                    {Boolean(token) && !this.props.plaidData.bankName && (
                         <PlaidLink
                             token={token}
                             onSuccess={({publicToken, metadata}) => {
                                 Log.info('[PlaidLink] Success!');
                                 BankAccounts.openPlaidBankAccountSelector(publicToken, metadata.institution.name, this.props.allowDebit);
-                                BankAccounts.updatePlaidData({institution: metadata.institution});
                             }}
                             onError={(error) => {
                                 Log.hmmm('[PlaidLink] Error: ', error.message);

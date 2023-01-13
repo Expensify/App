@@ -4,8 +4,8 @@ const plaidDataPropTypes = PropTypes.shape({
     /** Whether we are fetching the bank accounts from the API */
     isLoading: PropTypes.bool,
 
-    /** Error message */
-    error: PropTypes.string,
+    /** Any additional error message to show */
+    errors: PropTypes.objectOf(PropTypes.string),
 
     /** Name of the bank */
     bankName: PropTypes.string,

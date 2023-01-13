@@ -185,9 +185,6 @@ export default compose(
         user: {
             key: ONYXKEYS.USER,
         },
-        plaidData: {
-            key: ONYXKEYS.PLAID_DATA,
-        },
         isPlaidDisabled: {
             key: ONYXKEYS.IS_PLAID_DISABLED,
         },
