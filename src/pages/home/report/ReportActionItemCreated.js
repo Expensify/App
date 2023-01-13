@@ -51,6 +51,7 @@ const ReportActionItemCreated = (props) => {
             errors={lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat')}
             errorRowStyles={[styles.ml10, styles.mr2]}
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
+            style={[styles.reportActionItemCreatedContainer]}
         >
             <View pointerEvents="none" style={[styles.emptyStateBackgroundContainer, StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)]}>
                 <ImageBackground

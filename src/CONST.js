@@ -43,6 +43,8 @@ const CONST = {
         WIDE_SCREEN: 450,
     },
 
+    WELCOME_BACKGROUND_IMAGE_CONTAINER_MINHEIGHT: 500,
+
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,

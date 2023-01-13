@@ -2896,6 +2896,12 @@ const styles = {
         height: '100%',
         bottom: '-40%',
     },
+
+    reportActionItemCreatedContainer: {
+        minHeight: CONST.WELCOME_BACKGROUND_IMAGE_CONTAINER_MINHEIGHT,
+        display: 'flex',
+        justifyContent: 'flex-end',
+    },
 };
 
 export default styles;
