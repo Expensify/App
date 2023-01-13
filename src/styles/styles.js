@@ -2227,10 +2227,6 @@ const styles = {
         paddingEnd: 20,
     },
 
-    noScrollbars: {
-        scrollbarWidth: 'none',
-    },
-
     codeWordWrapper: {
         ...codeStyles.codeWordWrapper,
     },
