@@ -53,7 +53,7 @@ function getAvatarSVGBorder(isSVG) {
     if (!isSVG) {
         return {};
     }
-    return styles.SVGAvatarBorder;
+    return styles.svgAvatarBorder;
 }
 
 /**
