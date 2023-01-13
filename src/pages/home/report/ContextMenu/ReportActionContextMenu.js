@@ -14,6 +14,8 @@ const contextMenuRef = React.createRef();
  * @param {String} draftMessage - ReportAction Draftmessage
  * @param {Function} [onShow=() => {}] - Run a callback when Menu is shown
  * @param {Function} [onHide=() => {}] - Run a callback when Menu is hidden
+ * @param {Boolean} isArchivedRoom - isArchivedRoom
+ * @param {Boolean} isChronosReport - isChronosReport
  */
 function showContextMenu(
     type,
@@ -25,6 +27,8 @@ function showContextMenu(
     draftMessage = '',
     onShow = () => {},
     onHide = () => {},
+    isArchivedRoom = false,
+    isChronosReport = false,
 ) {
     if (!contextMenuRef.current) {
         return;
@@ -39,6 +43,8 @@ function showContextMenu(
         draftMessage,
         onShow,
         onHide,
+        isArchivedRoom,
+        isChronosReport,
     );
 }
 
