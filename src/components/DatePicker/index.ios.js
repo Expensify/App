@@ -3,7 +3,8 @@ import React from 'react';
 import {Button, View, Keyboard} from 'react-native';
 import RNDatePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
-import _, {compose} from 'underscore';
+import _ from 'underscore';
+import compose from '../../libs/compose';
 import TextInput from '../TextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Popover from '../Popover';
@@ -11,11 +12,12 @@ import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import {propTypes, defaultProps} from './datepickerPropTypes';
-import withKeyboardState from '../withKeyboardState';
+import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
 
 const datepickerPropTypes = {
     ...propTypes,
     ...withLocalizePropTypes,
+    ...keyboardStatePropTypes,
 };
 
 class DatePicker extends React.Component {
@@ -37,6 +39,10 @@ class DatePicker extends React.Component {
      * @param {Event} event
      */
     showPicker(event) {
+        /**
+         * Ios will auto dismiss the keyboard when popover is opened and open again when it's closed
+         * We need the keyboardDidHide listener to make sure that the popover will only be opened after the keyboard is closed
+         */
         if (this.props.isKeyboardShown) {
             const listener = Keyboard.addListener('keyboardDidHide', () => {
                 this.setState({isPickerVisible: true});
