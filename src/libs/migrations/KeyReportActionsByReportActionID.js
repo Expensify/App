@@ -22,28 +22,27 @@ export default function () {
                 }
 
                 const newReportActions = {};
-                _.each(allReportActions, (reportActionsForReport, onyxKey) => {
-                    if (!reportActionsForReport) {
-                        return;
-                    }
+                const allReportActionsEntires = Object.entries(allReportActions || {});
+                for (let i = 0; i < allReportActionsEntires.length; i++) {
+                    const [onyxKey, reportActionsForReport] = allReportActionsEntires[i];
+                    if (reportActionsForReport) {
+                        const newReportActionsForReport = {};
+                        const reportActionsForReportEntries = Object.entries(reportActionsForReport);
+                        for (let j = 0; j < reportActionsForReportEntries.length; j++) {
+                            const [reportActionKey, reportAction] = reportActionsForReportEntries[j];
+                            if (!_.isNaN(Number(reportActionKey))
+                                && Number(reportActionKey) === Number(reportAction.reportActionID)
+                                && Number(reportActionKey) !== Number(reportAction.sequenceNumber)) {
+                                Log.info('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID');
+                                return resolve();
+                            }
 
-                    const newReportActionsForReport = {};
-                    _.each(reportActionsForReport, (reportAction, reportActionKey) => {
-                        // If we find a reportAction that's already keyed by reportActionID instead of sequenceNumber,
-                        // then we assume the migration already happened and return early.
-                        if (!_.isNaN(Number(reportActionKey))
-                            && Number(reportActionKey) === Number(reportAction.reportActionID)
-                            && Number(reportActionKey) !== Number(reportAction.sequenceNumber)) {
-                            Log.info('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID');
-                            return resolve();
+                            // Move it to be keyed by reportActionID instead
+                            newReportActionsForReport[reportAction.reportActionID] = reportAction;
                         }
-
-                        // Move it to be keyed by reportActionID instead
-                        newReportActionsForReport[reportAction.reportActionID] = reportAction;
-                    });
-
-                    newReportActions[onyxKey] = newReportActionsForReport;
-                });
+                        newReportActions[onyxKey] = newReportActionsForReport;
+                    }
+                }
 
                 if (_.isEmpty(newReportActions)) {
                     Log.info('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID');
