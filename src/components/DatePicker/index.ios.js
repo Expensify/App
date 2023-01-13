@@ -3,7 +3,7 @@ import React from 'react';
 import {Button, View, Keyboard} from 'react-native';
 import RNDatePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
-import _ from 'underscore';
+import _, { compose } from 'underscore';
 import TextInput from '../TextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Popover from '../Popover';
@@ -11,6 +11,7 @@ import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import {propTypes, defaultProps} from './datepickerPropTypes';
+import withKeyboardState from '../withKeyboardState';
 
 const datepickerPropTypes = {
     ...propTypes,
@@ -36,9 +37,16 @@ class DatePicker extends React.Component {
      * @param {Event} event
      */
     showPicker(event) {
-        Keyboard.dismiss();
+        if(this.props.isKeyboardShown){
+            const listener = Keyboard.addListener('keyboardDidHide', () => {
+                this.setState({isPickerVisible: true});
+                listener.remove();
+            });
+            Keyboard.dismiss();
+        }else{
+            this.setState({isPickerVisible: true});
+        }
         this.initialValue = this.state.selectedDate;
-        this.setState({isPickerVisible: true});
         event.preventDefault();
     }
 
@@ -134,7 +142,10 @@ DatePicker.defaultProps = defaultProps;
  * locale. Otherwise the spinner would be present in the system locale and it would be weird if it happens
  * that the modal buttons are in one locale (app) while the (spinner) month names are another (system)
  */
-export default withLocalize(React.forwardRef((props, ref) => (
-    /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <DatePicker {...props} innerRef={ref} />
-)));
+export default compose(
+    withLocalize,
+    withKeyboardState,
+    )(React.forwardRef((props, ref) => (
+        /* eslint-disable-next-line react/jsx-props-no-spreading */
+        <DatePicker {...props} innerRef={ref} />
+    )));
