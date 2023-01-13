@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -42,10 +43,10 @@ const propTypes = {
     }),
 
     /** IOU report data object */
-    iouReport: iouReportPropTypes.isRequired,
+    iouReport: iouReportPropTypes,
 
     /** Array of report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)).isRequired,
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** Whether the IOU is hovered so we can modify its style */
     isHovered: PropTypes.bool,
@@ -59,6 +60,8 @@ const defaultProps = {
     chatReport: {
         participants: [],
     },
+    iouReport: {},
+    reportActions: {},
     isHovered: false,
 };
 
@@ -74,7 +77,8 @@ const IOUAction = (props) => {
 
     let shouldShowPendingConversionMessage = false;
     if (
-        props.iouReport
+        !_.isEmpty(props.iouReport)
+        && !_.isEmpty(props.reportActions)
         && props.chatReport.hasOutstandingIOU
         && props.isMostRecentIOUReportAction
         && props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
