@@ -194,6 +194,24 @@ function updateLegalName(legalFirstName, legalLastName) {
 }
 
 /**
+ * @param {String} dateOfBirth
+ */
+function updateDateOfBirth(dateOfBirth) {
+    API.write('UpdateDateOfBirth', {dateOfBirth}, {
+        optimisticData: [{
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    dateOfBirth,
+                },
+            },
+        }],
+    });
+    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+}
+
+/**
  * Updates timezone's 'automatic' setting, and updates
  * selected timezone if set to automatically update.
  *
@@ -361,6 +379,7 @@ export {
     extractFirstAndLastNameFromAvailableDetails,
     updateDisplayName,
     updateLegalName,
+    updateDateOfBirth,
     updatePronouns,
     clearAvatarErrors,
     updateAutomaticTimezone,

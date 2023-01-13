@@ -53,6 +53,7 @@ export default {
         members: 'Members',
         invite: 'Invite',
         here: 'here',
+        date: 'Date',
         dob: 'Date of birth',
         ssnLast4: 'Last 4 digits of SSN',
         ssnFull9: 'Full 9 digits of SSN',
@@ -355,6 +356,10 @@ export default {
         legalLastName: 'Legal last name',
         dateOfBirth: 'Date of birth',
         homeAddress: 'Home address',
+        error: {
+            dobInvalid: 'Please enter a valid date.',
+            dobTooYoung: ({age}) => `You must be older than ${age} to fill out this form.`,
+        },
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add phone number',

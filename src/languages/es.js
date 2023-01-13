@@ -53,6 +53,7 @@ export default {
         members: 'Miembros',
         invite: 'Invitar',
         here: 'aquí',
+        date: '',
         dob: 'Fecha de Nacimiento',
         ssnLast4: 'Últimos 4 dígitos de su SSN',
         ssnFull9: 'Los 9 dígitos del SSN',
@@ -355,6 +356,10 @@ export default {
         legalLastName: '',
         dateOfBirth: '',
         homeAddress: '',
+        error: {
+            dobInvalid: '',
+            dobTooYoung: ({age}) => ``,
+        },
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Agregar número de teléfono',

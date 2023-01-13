@@ -170,6 +170,7 @@ export default {
         PROFILE_SETTINGS_FORM: 'profileSettingsForm',
         DISPLAY_NAME_FORM: 'displayNameForm',
         LEGAL_NAME_FORM: 'legalNameForm',
+        DATE_OF_BIRTH_FORM: 'dateOfBirthForm',
         NEW_ROOM_FORM: 'newRoomForm',
         ROOM_SETTINGS_FORM: 'roomSettingsForm',
     },
