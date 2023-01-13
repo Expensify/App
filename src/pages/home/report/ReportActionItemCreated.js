@@ -36,7 +36,6 @@ const defaultProps = {
 };
 
 const ReportActionItemCreated = (props) => {
-    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
     return (
         <OfflineWithFeedback
