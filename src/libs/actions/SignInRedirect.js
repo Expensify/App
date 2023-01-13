@@ -5,7 +5,6 @@ import DateUtils from '../DateUtils';
 import * as Localize from '../Localize';
 import * as PersistedRequests from './PersistedRequests';
 import NetworkConnection from '../NetworkConnection';
-import Timing from './Timing';
 
 let currentIsOffline;
 let currentShouldForceOffline;
