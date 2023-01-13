@@ -247,6 +247,34 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsPersonalDetailsInitialPage = require('../../../pages/settings/Profile/PersonalDetails/PersonalDetailsPage').default;
+            return SettingsPersonalDetailsInitialPage;
+        },
+        name: 'Settings_PersonalDetails_Initial',
+    },
+    {
+        getComponent: () => {
+            const SettingsLegalNamePage = require('../../../pages/settings/Profile/PersonalDetails/LegalNamePage').default;
+            return SettingsLegalNamePage;
+        },
+        name: 'Settings_PersonalDetails_LegalName',
+    },
+    {
+        getComponent: () => {
+            const SettingsDateOfBirthPage = require('../../../pages/settings/Profile/PersonalDetails/DateOfBirthPage').default;
+            return SettingsDateOfBirthPage;
+        },
+        name: 'Settings_PersonalDetails_DateOfBirth',
+    },
+    {
+        getComponent: () => {
+            const SettingsAddressPage = require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default;
+            return SettingsAddressPage;
+        },
+        name: 'Settings_PersonalDetails_Address',
+    },
+    {
+        getComponent: () => {
             const SettingsAddSecondaryLoginPage = require('../../../pages/settings/AddSecondaryLoginPage').default;
             return SettingsAddSecondaryLoginPage;
         },
