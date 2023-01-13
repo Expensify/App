@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import stylePropTypes from '../../styles/stylePropTypes';
 import {windowDimensionsPropTypes} from '../withWindowDimensions';
-import {keyboardStatePropTypes} from '../withKeyboardState';
 
 const propTypes = {
     /** URL to full-sized image */
@@ -14,7 +13,6 @@ const propTypes = {
     onToggleKeyboard: PropTypes.func,
 
     ...windowDimensionsPropTypes,
-    ...keyboardStatePropTypes,
 };
 
 const defaultProps = {
