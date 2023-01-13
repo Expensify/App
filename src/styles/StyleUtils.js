@@ -51,7 +51,7 @@ function getAvatarStyle(size) {
  */
 function getAvatarSVGBorder(isSVG) {
     if (!isSVG) {
-        return [];
+        return {};
     }
     return styles.SVGAvatarBorder;
 }

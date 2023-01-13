@@ -412,6 +412,16 @@ function formatReportLastMessageText(lastMessageText) {
 }
 
 /**
+ * Hashes provided string and returns a value between [1, range]
+ * @param {String} login
+ * @param {Number} range
+ * @returns {Number}
+ */
+function hashLogin(login, range) {
+    return (Math.abs(hashCode(login.toLowerCase())) % range) + 1;
+}
+
+/**
  * Helper method to return the default avatar associated with the given login
  * @param {String} [login]
  * @returns {String}
@@ -426,7 +436,7 @@ function getDefaultAvatar(login = '') {
         return Expensicons.ConciergeAvatar;
     }
 
-    const loginHashBucket = (Math.abs(hashCode(login.toLowerCase())) % 24) + 1;
+    const loginHashBucket = hashLogin(login, CONST.DEFAULT_AVATAR_COUNT);
 
     return defaultAvatars[`Avatar${loginHashBucket}`];
 }
@@ -443,7 +453,7 @@ function getOldDotDefaultAvatar(login = '') {
     if (login === CONST.EMAIL.CONCIERGE) {
         return CONST.CONCIERGE_ICON_URL;
     }
-    const loginHashBucket = (Math.abs(hashCode(login.toLowerCase())) % 8) + 1;
+    const loginHashBucket = hashLogin(login, CONST.OLD_DEFAULT_AVATAR_COUNT);
 
     return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
 }
@@ -454,7 +464,7 @@ function getOldDotDefaultAvatar(login = '') {
  * @returns {Boolean}
  */
 function isDefaultAvatar(avatarURL) {
-    if (_.isString(avatarURL) && (avatarURL.includes('images/avatars/avatar_') || (avatarURL.includes('images/avatars/user/default')))) {
+    if (_.isString(avatarURL) && (avatarURL.includes('images/avatars/avatar_') || avatarURL.includes('images/avatars/user/default'))) {
         return true;
     }
 
