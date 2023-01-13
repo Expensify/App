@@ -4,7 +4,6 @@ import {
     View,
     TouchableOpacity,
     InteractionManager,
-    Platform,
 } from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
