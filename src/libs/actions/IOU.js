@@ -288,7 +288,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChatReport.reportID}`,
             value: {
                 ...groupCreatedReportActionData,
-                [groupIOUReportAction.sequenceNumber]: groupIOUReportAction,
+                [groupIOUReportAction.clientID]: groupIOUReportAction,
             },
         },
     ];
@@ -304,7 +304,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChatReport.reportID}`,
             value: {
                 0: {pendingAction: null},
-                [groupIOUReportAction.sequenceNumber]: {pendingAction: null},
+                [groupIOUReportAction.clientID]: {pendingAction: null},
             },
         },
     ];
@@ -322,7 +322,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChatReport.reportID}`,
             value: {
                 0: {pendingAction: null},
-                [groupIOUReportAction.sequenceNumber]: {pendingAction: null},
+                [groupIOUReportAction.clientID]: {pendingAction: null},
             },
         },
     ];
@@ -400,7 +400,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
                 value: {
                     ...oneOnOneCreatedReportActionData,
-                    [oneOnOneIOUReportAction.sequenceNumber]: oneOnOneIOUReportAction,
+                    [oneOnOneIOUReportAction.clientID]: oneOnOneIOUReportAction,
                 },
             },
         );
@@ -416,7 +416,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
                 value: {
                     0: {pendingAction: null},
-                    [oneOnOneIOUReportAction.sequenceNumber]: {pendingAction: null},
+                    [oneOnOneIOUReportAction.clientID]: {pendingAction: null},
                 },
             },
         );
@@ -438,7 +438,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneOnOneChatReport.reportID}`,
                 value: {
                     0: {pendingAction: null},
-                    [oneOnOneIOUReportAction.sequenceNumber]: {pendingAction: null},
+                    [oneOnOneIOUReportAction.clientID]: {pendingAction: null},
                 },
             },
         );
