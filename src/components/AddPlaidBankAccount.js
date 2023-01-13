@@ -119,8 +119,7 @@ class AddPlaidBankAccount extends React.Component {
         if (!plaidBankAccounts.length) {
             return (
                 <FullPageOfflineBlockingView>
-                    {(this.props.plaidData.isLoading || (!token && !plaidDataErrorMessage))
-                    && (
+                    {this.props.plaidData.isLoading && (
                         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <ActivityIndicator color={themeColors.spinner} size="large" />
                         </View>
