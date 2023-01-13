@@ -1308,7 +1308,7 @@ const styles = {
     },
 
     chatItemMessageHeader: {
-        alignItems: 'baseline',
+        alignItems: 'center',
         display: 'flex',
         flexDirection: 'row',
         flexWrap: 'nowrap',
@@ -1328,8 +1328,9 @@ const styles = {
         flexShrink: 0,
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeSmall,
-        height: 24,
+        height: 20,
         lineHeight: variables.lineHeightXLarge,
+        paddingBottom: 4,
     },
 
     chatItemMessage: {
