@@ -6,6 +6,7 @@ import styles from '../../../styles/styles';
 import ThumbnailImage from '../../ThumbnailImage';
 import PressableWithoutFocus from '../../PressableWithoutFocus';
 import CONST from '../../../CONST';
+import {ShowContextMenuContext, showContextMenuForReport} from '../../ShowContextMenuContext';
 
 const ImageRenderer = (props) => {
     const htmlAttribs = props.tnode.attributes;
@@ -57,27 +58,37 @@ const ImageRenderer = (props) => {
             imageHeight={imageHeight}
         />
     ) : (
-        <AttachmentModal
-            allowDownload
-            source={source}
-            isAuthTokenRequired={isAttachment}
-            originalFileName={originalFileName}
-        >
-            {({show}) => (
-                <PressableWithoutFocus
-                    style={styles.noOutline}
-                    onPress={show}
+        <ShowContextMenuContext.Consumer>
+            {({
+                anchor,
+                reportID,
+                action,
+                checkIfContextMenuActive,
+            }) => (
+                <AttachmentModal
+                    allowDownload
+                    source={source}
+                    isAuthTokenRequired={isAttachment}
+                    originalFileName={originalFileName}
                 >
-                    <ThumbnailImage
-                        previewSourceURL={previewSource}
-                        style={styles.webViewStyles.tagStyles.img}
-                        isAuthTokenRequired={isAttachment}
-                        imageWidth={imageWidth}
-                        imageHeight={imageHeight}
-                    />
-                </PressableWithoutFocus>
+                    {({show}) => (
+                        <PressableWithoutFocus
+                            style={styles.noOutline}
+                            onPress={show}
+                            onLongPress={event => showContextMenuForReport(event, anchor, reportID, action, checkIfContextMenuActive)}
+                        >
+                            <ThumbnailImage
+                                previewSourceURL={previewSource}
+                                style={styles.webViewStyles.tagStyles.img}
+                                isAuthTokenRequired={isAttachment}
+                                imageWidth={imageWidth}
+                                imageHeight={imageHeight}
+                            />
+                        </PressableWithoutFocus>
+                    )}
+                </AttachmentModal>
             )}
-        </AttachmentModal>
+        </ShowContextMenuContext.Consumer>
     );
 };
 
