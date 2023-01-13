@@ -222,7 +222,7 @@ function suggestEmojis(text, limit = 5) {
     const emojiData = text.match(CONST.REGEX.EMOJI_SUGGESTIONS);
     if (emojiData) {
         const matching = [];
-        const nodes = emojisTrie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1));
+        const nodes = emojisTrie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1), limit);
         for (let j = 0; j < nodes.length; j++) {
             if (nodes[j].metaData.code && !_.find(matching, obj => obj.name === nodes[j].name)) {
                 if (matching.length === limit) {
