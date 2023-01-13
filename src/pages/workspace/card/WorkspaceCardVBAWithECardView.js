@@ -22,7 +22,6 @@ const WorkspaceCardVBAWithECardView = (props) => {
             icon: Expensicons.ExpensifyCard,
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
-            iconFill: themeColors.success,
             wrapperStyle: [styles.cardMenuItem],
         },
         {
@@ -31,7 +30,6 @@ const WorkspaceCardVBAWithECardView = (props) => {
             icon: Expensicons.ReceiptSearch,
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
-            iconFill: themeColors.success,
             wrapperStyle: [styles.cardMenuItem],
         },
         {
@@ -40,7 +38,6 @@ const WorkspaceCardVBAWithECardView = (props) => {
             icon: Expensicons.Gear,
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
-            iconFill: themeColors.success,
             wrapperStyle: [styles.cardMenuItem],
         },
     ];

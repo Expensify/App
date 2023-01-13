@@ -229,7 +229,6 @@ class WorkspaceReimburseView extends React.Component {
                             icon: Expensicons.Receipt,
                             shouldShowRightIcon: true,
                             iconRight: Expensicons.NewWindow,
-                            iconFill: themeColors.success,
                             wrapperStyle: [styles.cardMenuItem],
                         },
                     ]}

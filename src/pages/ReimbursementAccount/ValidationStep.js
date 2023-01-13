@@ -209,7 +209,6 @@ class ValidationStep extends React.Component {
                                 icon={Expensicons.RotateLeft}
                                 onPress={BankAccounts.requestResetFreePlanBankAccount}
                                 shouldShowRightIcon
-                                iconFill={themeColors.success}
                                 wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                             />
                         </Section>

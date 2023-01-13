@@ -28,7 +28,6 @@ const WorkspaceInvoicesFirstSection = props => (
                 icon: Expensicons.Send,
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
-                iconFill: themeColors.success,
                 wrapperStyle: [styles.cardMenuItem],
             },
             {
@@ -39,7 +38,6 @@ const WorkspaceInvoicesFirstSection = props => (
                 icon: Expensicons.Invoice,
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
-                iconFill: themeColors.success,
                 wrapperStyle: [styles.cardMenuItem],
             },
         ]}

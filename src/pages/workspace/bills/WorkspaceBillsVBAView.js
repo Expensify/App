@@ -32,7 +32,6 @@ const WorkspaceBillsVBAView = props => (
                     icon: Expensicons.Bill,
                     shouldShowRightIcon: true,
                     iconRight: Expensicons.NewWindow,
-                    iconFill: themeColors.success,
                     wrapperStyle: [styles.cardMenuItem],
                 },
             ]}
