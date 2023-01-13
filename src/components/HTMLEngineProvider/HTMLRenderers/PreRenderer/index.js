@@ -3,6 +3,8 @@ import _ from 'underscore';
 import withLocalize from '../../../withLocalize';
 import htmlRendererPropTypes from '../htmlRendererPropTypes';
 import BasePreRenderer from './BasePreRenderer';
+import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
+import ControlSelection from '../../../../libs/ControlSelection';
 
 class PreRenderer extends React.Component {
     constructor(props) {
@@ -58,6 +60,8 @@ class PreRenderer extends React.Component {
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
                 ref={el => this.ref = el}
+                onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                onPressOut={() => ControlSelection.unblock()}
             />
         );
     }

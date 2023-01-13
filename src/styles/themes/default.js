@@ -23,7 +23,6 @@ const darkTheme = {
     danger: colors.red,
     dangerHover: colors.redHover,
     dangerPressed: colors.redHover,
-    dangerDisabled: colors.redDisabled,
     warning: colors.yellow,
     success: colors.green,
     successHover: colors.greenHover,
@@ -60,6 +59,7 @@ const darkTheme = {
     dropTransparentOverlay: 'rgba(255,255,255,0)',
     checkBox: colors.green,
     pickerOptionsTextColor: colors.midnight,
+    imageCropBackgroundColor: colors.greenIcons,
 };
 
 const oldTheme = {

@@ -161,7 +161,7 @@ function hasActiveFreePolicy(policies) {
  */
 function removeMembers(members, policyID) {
     // In case user selects only themselves (admin), their email will be filtered out and the members
-    // array passed will be empty, prevent the funtion from proceeding in that case as there is noone to remove
+    // array passed will be empty, prevent the function from proceeding in that case as there is noone to remove
     if (members.length === 0) {
         return;
     }
@@ -707,12 +707,15 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
         announceChatReportID,
         announceChatData,
         announceReportActionData,
+        announceCreatedReportActionID,
         adminsChatReportID,
         adminsChatData,
         adminsReportActionData,
+        adminsCreatedReportActionID,
         expenseChatReportID,
         expenseChatData,
         expenseReportActionData,
+        expenseCreatedReportActionID,
     } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
 
     API.write('CreateWorkspace', {
@@ -724,6 +727,9 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
         makeMeAdmin,
         policyName: workspaceName,
         type: CONST.POLICY.TYPE.FREE,
+        announceCreatedReportActionID,
+        adminsCreatedReportActionID,
+        expenseCreatedReportActionID,
     },
     {
         optimisticData: [{

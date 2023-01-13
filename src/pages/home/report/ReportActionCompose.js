@@ -36,7 +36,7 @@ import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
-import canUseTouchScreen from '../../../libs/canUseTouchscreen';
+import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
 import OfflineIndicator from '../../../components/OfflineIndicator';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
@@ -329,13 +329,12 @@ class ReportActionCompose extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        const emojiWithSpace = `${emoji} `;
         const newComment = this.comment.slice(0, this.state.selection.start)
-            + emojiWithSpace + this.comment.slice(this.state.selection.end, this.comment.length);
+            + emoji + this.comment.slice(this.state.selection.end, this.comment.length);
         this.setState(prevState => ({
             selection: {
-                start: prevState.selection.start + emojiWithSpace.length,
-                end: prevState.selection.start + emojiWithSpace.length,
+                start: prevState.selection.start + emoji.length,
+                end: prevState.selection.start + emoji.length,
             },
         }));
         this.updateComment(newComment);
@@ -391,10 +390,10 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(comment, shouldDebounceSaveComment) {
-        const newComment = EmojiUtils.replaceEmojis(comment);
+        const newComment = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth);
         this.setState((prevState) => {
             const newState = {
-                isCommentEmpty: !!newComment.match(/^(\s|`)*$/),
+                isCommentEmpty: !!newComment.match(/^(\s)*$/),
                 value: newComment,
             };
             if (comment !== newComment) {
@@ -601,20 +600,22 @@ class ReportActionCompose extends React.Component {
                                                     </Tooltip>
                                                 )}
                                                 <Tooltip text={this.props.translate('reportActionCompose.addAction')}>
-                                                    <TouchableOpacity
-                                                        ref={el => this.actionButton = el}
-                                                        onPress={(e) => {
-                                                            e.preventDefault();
+                                                    <View style={styles.chatItemAttachBorder}>
+                                                        <TouchableOpacity
+                                                            ref={el => this.actionButton = el}
+                                                            onPress={(e) => {
+                                                                e.preventDefault();
 
-                                                            // Drop focus to avoid blue focus ring.
-                                                            this.actionButton.blur();
-                                                            this.setMenuVisibility(true);
-                                                        }}
-                                                        style={styles.chatItemAttachButton}
-                                                        disabled={isBlockedFromConcierge || this.props.disabled}
-                                                    >
-                                                        <Icon src={Expensicons.Plus} />
-                                                    </TouchableOpacity>
+                                                                // Drop focus to avoid blue focus ring.
+                                                                this.actionButton.blur();
+                                                                this.setMenuVisibility(true);
+                                                            }}
+                                                            style={styles.chatItemAttachButton}
+                                                            disabled={isBlockedFromConcierge || this.props.disabled}
+                                                        >
+                                                            <Icon src={Expensicons.Plus} />
+                                                        </TouchableOpacity>
+                                                    </View>
                                                 </Tooltip>
                                             </View>
                                             <PopoverMenu
@@ -638,7 +639,7 @@ class ReportActionCompose extends React.Component {
                                         </>
                                     )}
                                 </AttachmentPicker>
-                                <View style={styles.textInputComposeSpacing}>
+                                <View style={[styles.textInputComposeSpacing]}>
                                     <DragAndDrop
                                         dropZoneId={CONST.REPORT.DROP_NATIVE_ID}
                                         activeDropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID}
@@ -688,7 +689,7 @@ class ReportActionCompose extends React.Component {
                             </>
                         )}
                     </AttachmentModal>
-                    {canUseTouchScreen() && this.props.isMediumScreenWidth ? null : (
+                    {DeviceCapabilities.canUseTouchScreen() && this.props.isMediumScreenWidth ? null : (
                         <EmojiPickerButton
                             isDisabled={isBlockedFromConcierge || this.props.disabled}
                             onModalHide={() => this.focus(true)}

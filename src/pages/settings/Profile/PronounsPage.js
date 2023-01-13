@@ -52,7 +52,7 @@ const PronounsPage = (props) => {
     };
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithCloseButton
                 title={props.translate('pronounsPage.pronouns')}
                 shouldShowBackButton

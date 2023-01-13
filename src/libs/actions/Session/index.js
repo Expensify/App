@@ -9,7 +9,6 @@ import PushNotification from '../../Notification/PushNotification';
 import Timing from '../Timing';
 import CONST from '../../../CONST';
 import * as Localize from '../../Localize';
-import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
 import Timers from '../../Timers';
 import * as Pusher from '../../Pusher/pusher';
 import * as Authentication from '../../Authentication';
@@ -22,6 +21,32 @@ let credentials = {};
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
     callback: val => credentials = val || {},
+});
+
+/**
+ * Manage push notification subscriptions on sign-in/sign-out.
+ *
+ * On Android, AuthScreens unmounts when the app is closed with the back button so we manage the
+ * push subscription when the session changes here.
+ */
+let previousAccountID;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        const accountID = lodashGet(session, 'accountID');
+        if (previousAccountID === accountID) {
+            return;
+        }
+
+        if (accountID) {
+            PushNotification.register(accountID);
+        } else {
+            PushNotification.deregister();
+            PushNotification.clearNotifications();
+        }
+
+        previousAccountID = accountID;
+    },
 });
 
 /**
@@ -310,10 +335,6 @@ function clearSignInData() {
  * Put any logic that needs to run when we are signed out here. This can be triggered when the current tab or another tab signs out.
  */
 function cleanupSession() {
-    // We got signed out in this tab or another so clean up any subscriptions and timers
-    UnreadIndicatorUpdater.stopListeningForReportChanges();
-    PushNotification.deregister();
-    PushNotification.clearNotifications();
     Pusher.disconnect();
     Timers.clearAll();
     Welcome.resetReadyCheck();
@@ -449,13 +470,13 @@ export {
     updatePasswordAndSignin,
     signIn,
     signInWithShortLivedAuthToken,
+    cleanupSession,
     signOut,
     signOutAndRedirectToSignIn,
     resendValidationLink,
     resetPassword,
     resendResetPassword,
     clearSignInData,
-    cleanupSession,
     clearAccountMessages,
     authenticatePusher,
     reauthenticatePusher,

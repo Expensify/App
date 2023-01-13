@@ -19,7 +19,7 @@ import ReportActionItemCreated from './ReportActionItemCreated';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import ControlSelection from '../../../libs/ControlSelection';
-import canUseTouchScreen from '../../../libs/canUseTouchscreen';
+import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
@@ -33,6 +33,7 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ReportActions from '../../../libs/actions/ReportActions';
 import reportPropTypes from '../../reportPropTypes';
+import {ShowContextMenuContext} from '../../../components/ShowContextMenuContext';
 import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
 
 const propTypes = {
@@ -51,8 +52,8 @@ const propTypes = {
     /** Whether there is an outstanding amount in IOU */
     hasOutstandingIOU: PropTypes.bool,
 
-    /** Should we display the new indicator on top of the comment? */
-    shouldDisplayNewIndicator: PropTypes.bool.isRequired,
+    /** Should we display the new marker on top of the comment? */
+    shouldDisplayNewMarker: PropTypes.bool.isRequired,
 
     /** Position index of the report action in the overall report FlatList view */
     index: PropTypes.number.isRequired,
@@ -85,7 +86,7 @@ class ReportActionItem extends Component {
             || this.props.draftMessage !== nextProps.draftMessage
             || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
             || this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU
-            || this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator
+            || this.props.shouldDisplayNewMarker !== nextProps.shouldDisplayNewMarker
             || !_.isEqual(this.props.action, nextProps.action)
             || this.state.isContextMenuActive !== nextState.isContextMenuActive;
     }
@@ -117,7 +118,11 @@ class ReportActionItem extends Component {
         }
 
         this.setState({isContextMenuActive: true});
-        const selection = SelectionScraper.getCurrentSelection();
+
+        // Newline characters need to be removed here because getCurrentSelection() returns html mixed with newlines, and when
+        // <br> tags are converted later to markdown, it creates duplicate newline characters. This means that when the content
+        // is pasted, there are extra newlines in the content that we want to avoid.
+        const selection = SelectionScraper.getCurrentSelection().replace(/\n/g, '');
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
@@ -142,29 +147,43 @@ class ReportActionItem extends Component {
             children = (
                 <IOUAction
                     chatReportID={this.props.report.reportID}
+                    iouReportID={this.props.report.iouReportID}
                     action={this.props.action}
                     isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
                     isHovered={hovered}
+                    contextMenuAnchor={this.popoverAnchor}
+                    checkIfContextMenuActive={this.checkIfContextMenuActive}
                 />
             );
         } else {
-            children = !this.props.draftMessage
-                ? (
-                    <ReportActionItemMessage action={this.props.action} />
-                ) : (
-                    <ReportActionItemMessageEdit
-                        action={this.props.action}
-                        draftMessage={this.props.draftMessage}
-                        reportID={this.props.report.reportID}
-                        index={this.props.index}
-                        ref={el => this.textInput = el}
-                        report={this.props.report}
-                        shouldDisableEmojiPicker={
-                            (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge))
-                            || ReportUtils.isArchivedRoom(this.props.report)
-                        }
-                    />
-                );
+            children = (
+                <ShowContextMenuContext.Provider
+                    value={{
+                        anchor: this.popoverAnchor,
+                        reportID: this.props.report.reportID,
+                        action: this.props.action,
+                        checkIfContextMenuActive: this.checkIfContextMenuActive,
+                    }}
+                >
+                    {!this.props.draftMessage
+                        ? (
+                            <ReportActionItemMessage action={this.props.action} />
+                        ) : (
+                            <ReportActionItemMessageEdit
+                                action={this.props.action}
+                                draftMessage={this.props.draftMessage}
+                                reportID={this.props.report.reportID}
+                                index={this.props.index}
+                                ref={el => this.textInput = el}
+                                report={this.props.report}
+                                shouldDisableEmojiPicker={
+                                    (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge))
+                                    || ReportUtils.isArchivedRoom(this.props.report)
+                                }
+                            />
+                        )}
+                </ShowContextMenuContext.Provider>
+            );
         }
         return children;
     }
@@ -179,7 +198,7 @@ class ReportActionItem extends Component {
         return (
             <PressableWithSecondaryInteraction
                 ref={el => this.popoverAnchor = el}
-                onPressIn={() => this.props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
+                onPressIn={() => this.props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 onSecondaryInteraction={this.showPopover}
                 preventDefaultContentMenu={!this.props.draftMessage}
@@ -187,8 +206,8 @@ class ReportActionItem extends Component {
                 <Hoverable>
                     {hovered => (
                         <View accessibilityLabel="Chat message">
-                            {this.props.shouldDisplayNewIndicator && (
-                                <UnreadActionIndicator sequenceNumber={this.props.action.sequenceNumber} />
+                            {this.props.shouldDisplayNewMarker && (
+                                <UnreadActionIndicator reportActionID={this.props.action.reportActionID} />
                             )}
                             <View
                                 style={StyleUtils.getReportActionItemStyle(

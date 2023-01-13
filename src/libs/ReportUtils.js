@@ -109,7 +109,7 @@ function sortReportsByLastRead(reports) {
     return _.chain(reports)
         .toArray()
         .filter(report => report && report.reportID && !isIOUReport(report))
-        .sortBy('lastReadTimestamp')
+        .sortBy('lastReadTime')
         .value();
 }
 
@@ -242,9 +242,7 @@ function hasExpensifyGuidesEmails(emails) {
 }
 
 /**
- * Given a collection of reports returns the most recently accessed one
- *
- * @param {Record<String, {lastReadTimestamp, reportID}>|Array<{lastReadTimestamp, reportID}>} reports
+ * @param {Record<String, {lastReadTime, reportID}>|Array<{lastReadTime, reportID}>} reports
  * @param {Boolean} [ignoreDefaultRooms]
  * @param {Object} policies
  * @returns {Object}
@@ -473,8 +471,9 @@ function getIcons(report, personalDetails, policies, defaultIcon = null) {
     }
 
     const participantDetails = [];
-    for (let i = 0; i < report.participants.length; i++) {
-        const login = report.participants[i];
+    const participants = report.participants || [];
+    for (let i = 0; i < participants.length; i++) {
+        const login = participants[i];
         participantDetails.push([
             login,
             lodashGet(personalDetails, [login, 'firstName'], ''),
@@ -885,6 +884,7 @@ function buildOptimisticChatReport(
     visibility = undefined,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
 ) {
+    const currentTime = DateUtils.getDBTime();
     return {
         chatType,
         hasOutstandingIOU: false,
@@ -894,8 +894,8 @@ function buildOptimisticChatReport(
         lastMessageHtml: '',
         lastMessageText: null,
         lastReadSequenceNumber: 0,
-        lastActionCreated: DateUtils.getDBTime(),
-        lastReadTimestamp: 0,
+        lastReadTime: currentTime,
+        lastActionCreated: currentTime,
         maxSequenceNumber: 0,
         notificationPreference,
         oldPolicyName,
@@ -971,6 +971,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
     );
     const announceChatReportID = announceChatData.reportID;
     const announceReportActionData = buildOptimisticCreatedReportAction(announceChatData.ownerEmail);
+    const announceCreatedReportActionID = announceReportActionData[0].reportActionID;
 
     const adminsChatData = buildOptimisticChatReport(
         [currentUserEmail],
@@ -983,6 +984,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
     );
     const adminsChatReportID = adminsChatData.reportID;
     const adminsReportActionData = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
+    const adminsCreatedReportActionID = adminsReportActionData[0].reportActionID;
 
     const expenseChatData = buildOptimisticChatReport(
         [currentUserEmail],
@@ -995,17 +997,21 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
     );
     const expenseChatReportID = expenseChatData.reportID;
     const expenseReportActionData = buildOptimisticCreatedReportAction(expenseChatData.ownerEmail);
+    const expenseCreatedReportActionID = expenseReportActionData[0].reportActionID;
 
     return {
         announceChatReportID,
         announceChatData,
         announceReportActionData,
+        announceCreatedReportActionID,
         adminsChatReportID,
         adminsChatData,
         adminsReportActionData,
+        adminsCreatedReportActionID,
         expenseChatReportID,
         expenseChatData,
         expenseReportActionData,
+        expenseCreatedReportActionID,
     };
 }
 
@@ -1014,9 +1020,14 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
  * @returns {Boolean}
  */
 function isUnread(report) {
-    const lastReadSequenceNumber = report.lastReadSequenceNumber || 0;
-    const maxSequenceNumber = report.maxSequenceNumber || 0;
-    return lastReadSequenceNumber < maxSequenceNumber;
+    if (!report) {
+        return false;
+    }
+
+    // lastActionCreated and lastReadTime are both datetime strings and can be compared directly
+    const lastActionCreated = report.lastActionCreated || '';
+    const lastReadTime = report.lastReadTime || '';
+    return lastReadTime < lastActionCreated;
 }
 
 /**
@@ -1181,6 +1192,27 @@ function chatIncludesChronos(report) {
                 && _.contains(report.participants, CONST.EMAIL.CHRONOS);
 }
 
+/**
+ * @param {Object} report
+ * @param {String} report.lastReadTime
+ * @param {Array} sortedAndFilteredReportActions - reportActions for the report, sorted newest to oldest, and filtered for only those that should be visible
+ *
+ * @returns {String|null}
+ */
+function getNewMarkerReportActionID(report, sortedAndFilteredReportActions) {
+    if (!isUnread(report)) {
+        return '';
+    }
+
+    const newMarkerIndex = _.findLastIndex(sortedAndFilteredReportActions, reportAction => (
+        (reportAction.created || '') > report.lastReadTime
+    ));
+
+    return _.has(sortedAndFilteredReportActions[newMarkerIndex], 'reportActionID')
+        ? sortedAndFilteredReportActions[newMarkerIndex].reportActionID
+        : '';
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -1228,4 +1260,5 @@ export {
     getDisplayNameForParticipant,
     isIOUReport,
     chatIncludesChronos,
+    getNewMarkerReportActionID,
 };

@@ -18,7 +18,7 @@ export default {
     contentHeaderHeight: getValueUsingPixelRatio(65, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
     componentSizeNormal: 40,
-    inputComponentSizeNormal: 42,
+    inputComponentSizeNormal: 40,
     componentSizeLarge: 52,
     componentBorderRadius: 8,
     componentBorderRadiusSmall: 4,
@@ -27,6 +27,7 @@ export default {
     componentBorderRadiusRounded: 20,
     buttonBorderRadius: 100,
     avatarSizeLarge: 80,
+    avatarSizeMedium: 52,
     avatarSizeNormal: 40,
     avatarSizeSmall: 28,
     avatarSizeSmaller: 24,
@@ -42,6 +43,7 @@ export default {
     fontSizeLarge: getValueUsingPixelRatio(17, 19),
     fontSizeHero: 36,
     fontSizeh1: 19,
+    fontSizeXLarge: 22,
     fontSizeXXLarge: 28,
     fontSizeXXXLarge: 32,
     fontSizeNormalHeight: getValueUsingPixelRatio(20, 28),
@@ -82,4 +84,7 @@ export default {
     INACTIVE_LABEL_TRANSLATE_Y: getValueUsingPixelRatio(16, 21),
     sliderBarHeight: 8,
     sliderKnobSize: 26,
+    checkboxLabelActiveOpacity: 0.7,
+    avatarChatSpacing: 12,
+    chatInputSpacing: 52, // 40 + avatarChatSpacing
 };
