@@ -385,6 +385,7 @@ export default {
             phrase3: 'and',
             phrase4: 'privacy policy',
         },
+        help: 'Help',
     },
     closeAccountPage: {
         closeAccount: 'Close account',
@@ -979,6 +980,7 @@ export default {
         chatWithConcierge: 'Chat with Concierge',
         requestSetupCall: 'Request a setup call',
         questionMarkButtonTooltip: 'Get assistance from our team',
+        exploreHelpDocs: 'Explore help docs',
     },
     requestCallPage: {
         title: 'Request a call',
