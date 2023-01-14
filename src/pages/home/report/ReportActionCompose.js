@@ -560,7 +560,7 @@ class ReportActionCompose extends React.Component {
                                     {({openPicker}) => (
                                         <>
                                             <View style={[
-                                                styles.ml1, styles.dFlex, styles.flexColumn,
+                                                styles.dFlex, styles.flexColumn,
                                                 (this.state.isFullComposerAvailable || this.props.isComposerFullSize) ? styles.justifyContentBetween : styles.justifyContentEnd,
                                             ]}
                                             >
@@ -610,7 +610,7 @@ class ReportActionCompose extends React.Component {
                                                                 this.actionButton.blur();
                                                                 this.setMenuVisibility(true);
                                                             }}
-                                                            style={styles.chatItemAttachButton}
+                                                            style={styles.composerSizeButton}
                                                             disabled={isBlockedFromConcierge || this.props.disabled}
                                                         >
                                                             <Icon src={Expensicons.Plus} />
