@@ -41,12 +41,10 @@ class DatePicker extends React.Component {
     showPicker(event) {
         // Opens the popover only after the keyboard is hidden to avoid a "blinking" effect where the keyboard was on iOS
         // See https://github.com/Expensify/App/issues/14084 for more context
-        // Opens the popover only after the keyboard is hidden to avoid a "blinking" effect where the keyboard was on iOS.
-        // See https://github.com/Expensify/App/issues/14084 for more context
         if (!this.props.isKeyboardShown) {
             this.setState({isPickerVisible: true});
             return;
-        } 
+        }
         const listener = Keyboard.addListener('keyboardDidHide', () => {
             this.setState({isPickerVisible: true});
             listener.remove();
