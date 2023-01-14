@@ -39,10 +39,8 @@ class DatePicker extends React.Component {
      * @param {Event} event
      */
     showPicker(event) {
-        /**
-         * Ios will auto dismiss the keyboard when popover is opened and open again when it's closed
-         * We need the keyboardDidHide listener to make sure that the popover will only be opened after the keyboard is closed
-         */
+        // Opens the popover only after the keyboard is hidden to avoid a "blinking" effect where the keyboard was on iOS
+        // See https://github.com/Expensify/App/issues/14084 for more context
         if (this.props.isKeyboardShown) {
             const listener = Keyboard.addListener('keyboardDidHide', () => {
                 this.setState({isPickerVisible: true});
