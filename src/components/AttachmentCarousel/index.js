@@ -13,7 +13,7 @@ import * as Report from '../../libs/actions/Report';
 
 import AttachmentView from '../AttachmentView';
 import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
-import canUseTouchScreen from '../../libs/canUseTouchscreen';
+import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import Config from '../../CONFIG';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
