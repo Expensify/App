@@ -40,6 +40,8 @@ class Carousel extends React.Component {
      * @param {Object} e
      */
     handleKeyPress(e) {
+        // prevents focus from highlighting around the modal
+        e.target.blur();
         if (e.key === 'ArrowLeft') {
             this.props.onCycleThroughAttachments(1);
         }

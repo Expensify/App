@@ -32,7 +32,6 @@ const propTypes = {
 
     /** Object of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
-
 };
 
 const defaultProps = {
@@ -49,7 +48,7 @@ class AttachmentCarousel extends React.Component {
     constructor(props) {
         super(props);
 
-        this.canUseTouchScreen = canUseTouchScreen();
+        this.canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
         this.makeStateWithReports = this.makeStateWithReports.bind(this);
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
         this.toggleArrowsVisibility = this.toggleArrowsVisibility.bind(this);
@@ -116,7 +115,7 @@ class AttachmentCarousel extends React.Component {
         const attachments = [];
         _.forEach(actions, ({originalMessage}) => {
             if (originalMessage && originalMessage.html) {
-                const matches = [...originalMessage.html.matchAll(CONST.REGEX.ATTACHMENT_DATA];
+                const matches = [...originalMessage.html.matchAll(CONST.REGEX.ATTACHMENT_DATA)];
 
                 // matchAll captured both source url and name of the attachment
                 if (matches.length === 2) {
