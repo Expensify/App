@@ -116,8 +116,7 @@ class AttachmentCarousel extends React.Component {
         const attachments = [];
         _.forEach(actions, ({originalMessage}) => {
             if (originalMessage && originalMessage.html) {
-                const matchesIt = originalMessage.html.matchAll(CONST.REGEX.ATTACHMENT_DATA);
-                const matches = [...matchesIt];
+                const matches = [...originalMessage.html.matchAll(CONST.REGEX.ATTACHMENT_DATA];
 
                 // matchAll captured both source url and name of the attachment
                 if (matches.length === 2) {
