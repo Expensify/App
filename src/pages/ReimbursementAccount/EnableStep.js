@@ -2,7 +2,6 @@ import React from 'react';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -67,7 +66,6 @@ const EnableStep = (props) => {
                         disabled
                         interactive={false}
                         wrapperStyle={[styles.cardMenuItem, styles.mv3]}
-                        iconFill={themeColors.success}
                     />
                     <Text style={[styles.mv3]}>
                         {!isUsingExpensifyCard
@@ -93,7 +91,6 @@ const EnableStep = (props) => {
                         title={props.translate('workspace.bankAccount.disconnectBankAccount')}
                         icon={Expensicons.Close}
                         onPress={BankAccounts.requestResetFreePlanBankAccount}
-                        iconFill={themeColors.success}
                         wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                     />
                 </Section>

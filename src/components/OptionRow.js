@@ -80,7 +80,7 @@ const OptionRow = (props) => {
     const textStyle = props.optionIsFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
-    const textUnreadStyle = (props.boldStyle)
+    const textUnreadStyle = (props.boldStyle || props.option.boldStyle)
         ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, textUnreadStyle, props.style);
     const alternateTextStyle = StyleUtils.combineStyles(textStyle, styles.optionAlternateText, styles.textLabelSupporting, props.style);
