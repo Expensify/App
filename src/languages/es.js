@@ -517,7 +517,7 @@ export default {
         phrase1: 'Al iniciar sesión, estás accediendo a los',
         phrase2: 'términos de servicio',
         phrase3: 'y',
-        phrase4: 'política de privacidad',
+        phrase4: 'privacidad',
         phrase5: 'El envío de dinero es brindado por Expensify Payments LLC (NMLS ID:2017010) de conformidad con sus',
         phrase6: 'licencias',
     },

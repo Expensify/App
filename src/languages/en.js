@@ -517,7 +517,7 @@ export default {
         phrase1: 'By logging in, you agree to the',
         phrase2: 'terms of service',
         phrase3: 'and',
-        phrase4: 'privacy policy',
+        phrase4: 'privacy',
         phrase5: 'Money transmission is provided by Expensify Payments LLC (NMLS ID:2017010) pursuant to its',
         phrase6: 'licenses',
     },
