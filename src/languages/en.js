@@ -36,7 +36,6 @@ export default {
         and: 'and',
         details: 'Details',
         privacy: 'Privacy',
-        privacyPolicy: 'Privacy policy',
         delete: 'Delete',
         archived: 'archived',
         contacts: 'Contacts',
