@@ -133,14 +133,14 @@ class AddressPage extends Component {
      */
     parseAddressStreet(street) {
         return {
-            addressStreet1: street.split('\n')[0],
-            addressStreet2: street.split('\n').length > 1 ? street.split('\n')[1] : '',
+            addressLine1: street.split('\n')[0],
+            addressLine2: street.split('\n').length > 1 ? street.split('\n')[1] : '',
         }
     }
 
     render() {
         const currentUserDetails = this.props.currentUserPersonalDetails || {};
-        const {addressStreet1, addressStreet2} = this.parseAddressStreet(lodashGet(currentUserDetails, 'address.street', ''));
+        const {addressLine1, addressLine2} = this.parseAddressStreet(lodashGet(currentUserDetails, 'address.street', ''));
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -160,16 +160,16 @@ class AddressPage extends Component {
                 >
                     <View style={styles.mb4}>
                         <AddressSearch
-                            inputID="addressStreet1"
+                            inputID="addressLine1"
                             label={this.props.translate('common.addressLine', {lineNumber: 1})}
-                            defaultValue={addressStreet1}
+                            defaultValue={addressLine1}
                         />
                     </View>
                     <View style={styles.mb4}>
                         <TextInput
-                            inputID="addressStreet2"
+                            inputID="addressLine2"
                             label={this.props.translate('common.addressLine', {lineNumber: 2})}
-                            defaultValue={addressStreet2}
+                            defaultValue={addressLine2}
                             maxLength={50}
                         />
                     </View>
