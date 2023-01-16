@@ -65,6 +65,7 @@ class Composer extends React.Component {
         this.onChangeText = this.onChangeText.bind(this);
         this.setText = this.setText.bind(this);
         this.focus = this.focus.bind(this);
+        this.focusAndSetSelection = this.focusAndSetSelection.bind(this);
 
         this.state = {
             propStyles: StyleSheet.flatten(this.props.style),
@@ -85,6 +86,7 @@ class Composer extends React.Component {
         this.textInput.setText = this.setText;
         this.textInput.focusInput = this.textInput.focus;
         this.textInput.focus = this.focus;
+        this.textInput.focusAndSetSelection = this.focusAndSetSelection;
 
         this.props.forwardedRef(this.textInput);
     }
@@ -138,6 +140,36 @@ class Composer extends React.Component {
                 }
             });
         }, delay ? 100 : 0);
+    }
+
+    /**
+     * Call this when you have lost focus on the text input
+     * and want to re-focus it, but with a specific selection.
+     * Usually focus will set the selection to the end of the text.
+     * @param {Object} selection
+     * @param {Number} selection.start
+     * @param {Number} selection.end
+     * @param {Function} [onDone] Called once the input is focused
+     * @param {Boolean} [delay=false] Whether to delay the focus
+     */
+    focusAndSetSelection(selection, onDone, delay) {
+        // We first need to focus the input, and then set the selection, as otherwise
+        // the focus might cause the selection to be set to the end of the text input
+        this.focus(
+            () => {
+                requestAnimationFrame(() => {
+                    if (selection != null) {
+                        this.textInput.setSelection(selection.start, selection.end);
+                    }
+                    if (onDone) {
+                        onDone();
+                    }
+                });
+            },
+
+            // Run the focus with a delay. Note: Its platform dependent whether the delay will be respected or not.
+            delay,
+        );
     }
 
     render() {

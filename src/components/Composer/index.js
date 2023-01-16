@@ -98,6 +98,7 @@ class Composer extends React.Component {
 
         this.state = {
             numberOfLines: 1,
+            value: this.props.defaultValue,
         };
 
         this.paste = this.paste.bind(this);
@@ -107,6 +108,8 @@ class Composer extends React.Component {
         this.setText = this.setText.bind(this);
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
         this.focus = this.focus.bind(this);
+        this.focusAndSetSelection = this.focusAndSetSelection.bind(this);
+        this.onChangeText = this.onChangeText.bind(this);
         this.setSelection = this.setSelection.bind(this);
         this.putSelectionInClipboard = this.putSelectionInClipboard.bind(this);
     }
@@ -129,6 +132,7 @@ class Composer extends React.Component {
             this.textInput.setSelection = this.setSelection;
             this.textInput.focusInput = this.textInput.focus;
             this.textInput.focus = this.focus;
+            this.textInput.focusAndSetSelection = this.focusAndSetSelection;
 
             this.textInput.addEventListener('paste', this.handlePaste);
             this.textInput.addEventListener('wheel', this.handleWheel);
@@ -163,12 +167,24 @@ class Composer extends React.Component {
     }
 
     /**
+     * Handler for when the text of the text input changes.
+     * Will also propagate change to parent component, via
+     * onChangeText prop.
+     *
+     * @param {String} text
+     */
+    onChangeText(text) {
+        this.setState({value: text});
+        this.props.onChangeText(text);
+    }
+
+    /**
      * Updates the text of the input.
      * Useful when e.g. adding emojis using an emoji picker.
      * @param {String} text
      */
     setText(text) {
-        this.textInput.value = text;
+        this.setState({value: text});
 
         // Immediately update number of lines (otherwise we'd wait
         // for "onChange" callback which gets called "too late"):
@@ -182,8 +198,6 @@ class Composer extends React.Component {
      */
     setSelection(start, end) {
         this.textInput.setSelectionRange(start, end);
-        this.textInput.blur();
-        this.textInput.focus();
     }
 
     /**
@@ -194,9 +208,6 @@ class Composer extends React.Component {
         try {
             document.execCommand('insertText', false, text);
             this.updateNumberOfLines();
-
-            // Keep the textinput scrolled to the bottom (prevent flashes)
-            this.textInput.scrollTop = this.textInput.scrollHeight;
 
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
             this.textInput.blur();
@@ -356,10 +367,29 @@ class Composer extends React.Component {
         }, delay ? 100 : 0);
     }
 
+    /**
+     * Call this when you have lost focus on the text input
+     * and want to re-focus it, but with a specific selection.
+     * Usually focus will set the selection to the end of the text.
+     * @param {Object} selection
+     * @param {Number} selection.start
+     * @param {Number} selection.end
+     * @param {Function} [onDone] Called once the input is focused
+     * @param {Boolean} [delay=false] Whether to delay the focus
+     */
+    focusAndSetSelection(selection, onDone, delay) {
+        // On web, we need to set the selection first
+        // and then immediately focus the input.
+        if (selection != null) {
+            this.setSelection(selection.start, selection.end);
+        }
+        this.focus(onDone, delay);
+    }
+
     render() {
         const propStyles = StyleSheet.flatten(this.props.style);
         propStyles.outline = 'none';
-        const propsWithoutStyles = _.omit(this.props, 'style');
+        const propsWithoutStylesAndDefault = _.omit(this.props, ['style', 'defaultValue']);
 
         // We're disabling autoCorrect for iOS Safari until Safari fixes this issue. See https://github.com/Expensify/App/issues/8592
         return (
@@ -372,8 +402,10 @@ class Composer extends React.Component {
                 numberOfLines={this.state.numberOfLines}
                 style={propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...propsWithoutStyles}
+                {...propsWithoutStylesAndDefault}
                 disabled={this.props.isDisabled}
+                value={this.state.value}
+                onChangeText={this.onChangeText}
             />
         );
     }
