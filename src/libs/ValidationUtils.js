@@ -199,11 +199,11 @@ function isValidPaypalUsername(paypalUsername) {
  * @param {String} date
  * @returns {Boolean}
  */
-function meetsAgeRequirements(date) {
-    const eighteenYearsAgo = moment().subtract(18, 'years');
-    const oneHundredFiftyYearsAgo = moment().subtract(150, 'years');
+function meetsAgeRequirements(date, minimumAge = 18, maximumAge = 150) {
+    const minAgeYearsAgo = moment().subtract(minimumAge, 'years');
+    const maxAgeYearsAgo = moment().subtract(maximumAge, 'years');
     const testDate = moment(date);
-    return testDate.isValid() && testDate.isBetween(oneHundredFiftyYearsAgo, eighteenYearsAgo);
+    return testDate.isValid() && testDate.isBetween(maxAgeYearsAgo, minAgeYearsAgo);
 }
 
 /**
