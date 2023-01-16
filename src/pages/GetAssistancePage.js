@@ -59,7 +59,6 @@ const GetAssistancePage = props => (
                         onPress: () => Link.openExternalLink(CONST.NEWHELP_URL),
                         icon: Expensicons.QuestionMark,
                         shouldShowRightIcon: true,
-                        iconFill: themeColors.success,
                         wrapperStyle: [styles.cardMenuItem],
                     },
                 ]}
