@@ -252,6 +252,7 @@ Form.js will automatically provide the following props to any input with the inp
 
 Any `Form.js` that has a button will also add safe area padding by default. If the `<Form/>` is inside a `<ScreenWrapper>` we will want to disable the default safe area padding applied there e.g.
 
+
 ```js
 <ScreenWrapper includeSafeAreaPaddingBottom={false}>
     <Form>
