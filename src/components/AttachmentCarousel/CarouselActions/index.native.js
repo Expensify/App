@@ -13,8 +13,10 @@ const propTypes = {
     /** Callback to handle a press event because PanResponder will intercept all gestures */
     onPress: PropTypes.func.isRequired,
 
-    /** These help to prevent a swipe animation when at either end */
+    /** Boolean to prevent a left swipe action */
     canSwipeLeft: PropTypes.bool.isRequired,
+    
+    /** Boolean to prevent a right swipe action */
     canSwipeRight: PropTypes.bool.isRequired,
 };
 
