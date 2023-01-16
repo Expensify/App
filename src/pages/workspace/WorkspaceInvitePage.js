@@ -108,8 +108,13 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     getExcludedUsers() {
-        const policyMemberList = _.keys(lodashGet(this.props, 'policyMemberList', {}));
-        return [...CONST.EXPENSIFY_EMAILS, ...policyMemberList];
+        const policyMemberList = lodashGet(this.props, 'policyMemberList', {});
+        const usersToExclude = _.filter(_.keys(policyMemberList), policyMember => (
+            this.props.network.isOffline
+            || policyMemberList[policyMember].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+            || !_.isEmpty(policyMemberList[policyMember].errors)
+        ));
+        return [...CONST.EXPENSIFY_EMAILS, ...usersToExclude];
     }
 
     /**
