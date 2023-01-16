@@ -82,6 +82,8 @@ function deleteWorkspace(policyID, reports, policyName) {
                 oldPolicyName: allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`].name,
             },
         })),
+
+        // Add closed actions to all chat reports linked to this policy
         ..._.map(reports, ({reportID, ownerEmail}) => {
             const highestSequenceNumber = getMaxSequenceNumber(reportID);
             const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(
