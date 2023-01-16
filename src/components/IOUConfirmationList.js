@@ -101,15 +101,7 @@ class IOUConfirmationList extends Component {
             ...participant, selected: true,
         }));
 
-        this.splitOrRequestOptions = [{
-            text: props.translate(props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
-                amount: props.numberFormat(
-                    props.iouAmount,
-                    {style: 'currency', currency: props.iou.selectedCurrencyCode},
-                ),
-            }),
-            value: props.hasMultipleParticipants ? CONST.IOU.IOU_TYPE.SPLIT : CONST.IOU.IOU_TYPE.REQUEST,
-        }];
+        this.splitOrRequestOptions = this.getSplitOrRequestOptions();
 
         this.state = {
             participants: formattedParticipants,
@@ -117,6 +109,14 @@ class IOUConfirmationList extends Component {
 
         this.toggleOption = this.toggleOption.bind(this);
         this.confirm = this.confirm.bind(this);
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.preferredLocale === this.props.preferredLocale) {
+            return;
+        }
+
+        this.splitOrRequestOptions = this.getSplitOrRequestOptions();
     }
 
     getSplitOrRequestOptions() {
