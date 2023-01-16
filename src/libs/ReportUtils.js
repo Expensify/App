@@ -951,6 +951,77 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
 }
 
 /**
+ * Returns the necessary reportAction onyx data to indicate that a chat has been 
+ * @param {Number} sequenceNumber
+ * @param {String} ownerEmail
+ * @param {String} policyName
+ * @param {String} reason - Reason why the chat has been archived
+ * @returns {Object}
+ */
+function buildOptimisticClosedReportAction(sequenceNumber, ownerEmail, policyName, reason = CONST.REPORT.ARCHIVE_REASON.DEFAULT) {
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
+        actorAccountID: currentUserAccountID,
+        automatic: false,
+        avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
+        clientID: NumberUtils.generateReportActionClientID(),
+        created: DateUtils.getDBTime(),
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: ownerEmail === currentUserEmail ? 'You' : ownerEmail,
+            },
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: ' closed this report',
+            },
+        ],
+        originalMessage: {
+            policyName,
+            reason,
+        },
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: lodashGet(allPersonalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+            },
+        ],
+        reportActionID: NumberUtils.rand64(),
+        sequenceNumber,
+        shouldShow: true,
+    };
+}
+
+// actionName: "CLOSED"
+// actorAccountID: 32
+// actorEmail: "test3@test.com"
+// automatic: false
+// avatar: "https://d2g02b6ed2w9fz.cloudfront.net/dea8ae7de1308911b35e0b1189ca85d379dbdb83_128.jpeg"
+// clientID: ""
+// created: "2023-01-16 19:18:52.966"
+// message: Array(2)
+// 0: 
+// {type: 'TEXT', style: 'strong', text: 'You'}
+// 1: 
+// {type: 'TEXT', style: 'normal', text: ' closed this report'}
+
+// originalMessage: 
+// policyName: "Test's Workspace"
+// reason: "policyDeleted"
+// person: Array(1)
+// 0: {type: 'TEXT', style: 'strong', text: 'Test User'}
+// length: 1
+// reportActionID: "8939705822345818810"
+// reportActionTimestamp: 1673896732966
+// sequenceNumber: 1
+// shouldShow: true
+// timestamp: 1673896732
+
+/**
  * @param {String} policyID
  * @param {String} policyName
  * @returns {Object}
@@ -1250,6 +1321,7 @@ export {
     isUnread,
     buildOptimisticWorkspaceChats,
     buildOptimisticChatReport,
+    buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
     buildOptimisticIOUReport,
     buildOptimisticIOUReportAction,

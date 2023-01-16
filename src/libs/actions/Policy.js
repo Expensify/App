@@ -13,6 +13,7 @@ import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
 import * as ReportUtils from '../ReportUtils';
+import {getMaxSequenceNumber} from './Report';
 import Log from '../Log';
 
 const allPolicies = {};
@@ -59,8 +60,9 @@ function updateLastAccessedWorkspace(policyID) {
  *
  * @param {String} policyID
  * @param {Array<Object>} reports
+ * @param {String} policyName
  */
-function deleteWorkspace(policyID, reports) {
+function deleteWorkspace(policyID, reports, policyName) {
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
@@ -80,6 +82,22 @@ function deleteWorkspace(policyID, reports) {
                 oldPolicyName: allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`].name,
             },
         })),
+        ..._.map(reports, ({reportID, ownerEmail}) => {
+            const highestSequenceNumber = getMaxSequenceNumber(reportID);
+            const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(
+                highestSequenceNumber + 1,
+                ownerEmail,
+                policyName,
+                CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED
+            );
+            const optimisticReportActions = {};
+            optimisticReportActions[optimisticClosedReportAction.clientID] = optimisticClosedReportAction;
+            return {
+                onyxMethod: CONST.ONYX.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: optimisticReportActions,
+            }
+        }),
     ];
 
     // Restore the old report stateNum and statusNum
