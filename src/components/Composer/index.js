@@ -182,9 +182,10 @@ class Composer extends React.Component {
      * Updates the text of the input.
      * Useful when e.g. adding emojis using an emoji picker.
      * @param {String} text
+     * @param {Function} onDone
      */
-    setText(text) {
-        this.setState({value: text});
+    setText(text, onDone) {
+        this.setState({value: text}, onDone);
 
         // Immediately update number of lines (otherwise we'd wait
         // for "onChange" callback which gets called "too late"):
@@ -211,6 +212,7 @@ class Composer extends React.Component {
 
             // Keep the textinput scrolled to the bottom (prevent flashes)
             this.textInput.scrollTop = this.textInput.scrollHeight;
+            alert('Pasted text');
 
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
             this.textInput.blur();

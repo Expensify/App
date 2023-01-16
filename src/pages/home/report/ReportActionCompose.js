@@ -393,10 +393,11 @@ class ReportActionCompose extends React.PureComponent {
         // When the comment has changed after replacing emojis we need to update the text in the input
         if (newComment !== comment) {
             const newSelection = emojiReplaceResults.lastReplacedSelection;
-            this.textInput.setText(newComment);
+            this.textInput.setText(newComment, () => {
+                this.textInput.setSelection(newSelection.newSelectionEnd, newSelection.newSelectionEnd);
+            });
             this.selection = newSelection;
             this.nextSelectionAfterEmojiInsertion = newSelection;
-            this.textInput.setSelection(newSelection.newSelectionEnd, newSelection.newSelectionEnd);
         }
 
         // Indicate that draft has been created.
