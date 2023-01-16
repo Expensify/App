@@ -109,6 +109,10 @@ class IOUConfirmationList extends Component {
         this.confirm = this.confirm.bind(this);
     }
 
+    /**
+     * Get the confirmation button options
+     * @returns {Array}
+     */
     getSplitOrRequestOptions() {
         return [{
             text: this.props.translate(this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
