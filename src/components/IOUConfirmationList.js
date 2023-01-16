@@ -101,22 +101,12 @@ class IOUConfirmationList extends Component {
             ...participant, selected: true,
         }));
 
-        this.splitOrRequestOptions = this.getSplitOrRequestOptions();
-
         this.state = {
             participants: formattedParticipants,
         };
 
         this.toggleOption = this.toggleOption.bind(this);
         this.confirm = this.confirm.bind(this);
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.preferredLocale === this.props.preferredLocale) {
-            return;
-        }
-
-        this.splitOrRequestOptions = this.getSplitOrRequestOptions();
     }
 
     getSplitOrRequestOptions() {
@@ -321,7 +311,7 @@ class IOUConfirmationList extends Component {
                         <ButtonWithMenu
                             isDisabled={shouldDisableButton}
                             onPress={(_event, value) => this.confirm(value)}
-                            options={this.splitOrRequestOptions}
+                            options={this.getSplitOrRequestOptions()}
                         />
                     )}
             />
