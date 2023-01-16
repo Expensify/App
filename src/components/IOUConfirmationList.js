@@ -119,6 +119,18 @@ class IOUConfirmationList extends Component {
         this.confirm = this.confirm.bind(this);
     }
 
+    getSplitOrRequestOptions() {
+        return [{
+            text: this.props.translate(this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
+                amount: this.props.numberFormat(
+                    this.props.iouAmount,
+                    {style: 'currency', currency: this.props.iou.selectedCurrencyCode},
+                ),
+            }),
+            value: this.props.hasMultipleParticipants ? CONST.IOU.IOU_TYPE.SPLIT : CONST.IOU.IOU_TYPE.REQUEST,
+        }];
+    }
+
     /**
      * Get selected participants
      * @returns {Array}
