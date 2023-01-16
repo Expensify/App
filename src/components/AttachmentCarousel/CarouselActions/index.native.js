@@ -15,7 +15,7 @@ const propTypes = {
 
     /** Boolean to prevent a left swipe action */
     canSwipeLeft: PropTypes.bool.isRequired,
-    
+
     /** Boolean to prevent a right swipe action */
     canSwipeRight: PropTypes.bool.isRequired,
 };

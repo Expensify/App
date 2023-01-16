@@ -112,30 +112,29 @@ class AttachmentCarousel extends React.Component {
          */
         const attachments = [];
         _.forEach(actions, ({originalMessage}) => {
-            if (originalMessage && originalMessage.html) {
-                const matches = [...originalMessage.html.matchAll(CONST.REGEX.ATTACHMENT_DATA)];
+            if (!originalMessage || !originalMessage.html) { return; }
+            const matches = [...originalMessage.html.matchAll(CONST.REGEX.ATTACHMENT_DATA)];
 
-                // matchAll captured both source url and name of the attachment
-                if (matches.length === 2) {
-                    const [originalSourceURL, name] = _.map(matches, m => m[2]);
+            // matchAll captured both source url and name of the attachment
+            if (matches.length === 2) {
+                const [originalSourceURL, name] = _.map(matches, m => m[2]);
 
-                    // Update the image URL so the images can be accessed depending on the config environment.
-                    // Eg: while using Ngrok the image path is from an Ngrok URL and not an Expensify URL.
-                    const sourceURL = originalSourceURL.replace(
-                        Config.EXPENSIFY.EXPENSIFY_URL,
-                        Config.EXPENSIFY.URL_API_ROOT,
-                    );
+                // Update the image URL so the images can be accessed depending on the config environment.
+                // Eg: while using Ngrok the image path is from an Ngrok URL and not an Expensify URL.
+                const sourceURL = originalSourceURL.replace(
+                    Config.EXPENSIFY.EXPENSIFY_URL,
+                    Config.EXPENSIFY.URL_API_ROOT,
+                );
 
-                    if ((this.state.sourceURL && sourceURL.includes(this.state.sourceURL))
+                // Determing attachment index by matching source url with one that's used in state or props
+                if ((this.state.sourceURL && sourceURL.includes(this.state.sourceURL))
                         || (!this.state.sourceURL && sourceURL.includes(propsSourceURL))) {
-                        page = attachments.length;
-                    }
-
-                    attachments.push({sourceURL, file: {name}});
+                    page = attachments.length;
                 }
+
+                attachments.push({sourceURL, file: {name}});
             }
-            return attachments;
-        }, []);
+        });
 
         const {sourceURL, file} = this.getAttachment(attachments[page]);
         this.setState({
@@ -211,7 +210,6 @@ class AttachmentCarousel extends React.Component {
                         )}
                     </>
                 )}
-
                 <CarouselActions
                     styles={[styles.attachmentModalArrowsContainer]}
                     canSwipeLeft={!this.state.isBackDisabled}
@@ -221,9 +219,7 @@ class AttachmentCarousel extends React.Component {
                 >
                     <AttachmentView onPress={() => this.toggleArrowsVisibility(!this.state.shouldShowArrow)} sourceURL={authSourceURL} file={this.state.file} />
                 </CarouselActions>
-
             </View>
-
         );
     }
 }
