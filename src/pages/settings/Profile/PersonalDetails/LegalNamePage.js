@@ -62,7 +62,7 @@ class LegalNamePage extends Component {
         const [hasInvalidLegalFirstNameCharacter, hasInvalidLegalLastNameCharacter] = ValidationUtils.findInvalidSymbols(
             [values.legalFirstName, values.legalLastName],
         );
-        const [hasLegalFirstNameError, hasLegalLastNameError] = ValidationUtils.doesFailCharacterLimitAfterTrim(
+        const [hasLegalFirstNameLengthError, hasLegalLastNameLengthError] = ValidationUtils.doesFailCharacterLimitAfterTrim(
             CONST.LEGAL_NAMES_CHARACTER_LIMIT,
             [values.legalFirstName, values.legalLastName],
         );
@@ -74,7 +74,7 @@ class LegalNamePage extends Component {
             );
         } else if (_.isEmpty(values.legalFirstName)) {
             errors.legalFirstName = Localize.translateLocal('personalDetailsPages.error.legalFirstNameEmpty');
-        } else if (hasLegalFirstNameError) {
+        } else if (hasLegalFirstNameLengthError) {
             errors.legalFirstName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.LEGAL_NAMES_CHARACTER_LIMIT});
         }
 
@@ -85,7 +85,7 @@ class LegalNamePage extends Component {
             );
         } else if (_.isEmpty(values.legalLastName)) {
             errors.legalLastName = Localize.translateLocal('personalDetailsPages.error.legalLastNameEmpty');
-        } else if (hasLegalLastNameError) {
+        } else if (hasLegalLastNameLengthError) {
             errors.legalLastName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.LEGAL_NAMES_CHARACTER_LIMIT});
         }
 
