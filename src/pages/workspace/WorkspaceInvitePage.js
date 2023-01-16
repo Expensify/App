@@ -87,6 +87,7 @@ class WorkspaceInvitePage extends React.Component {
             selectedOptions: [],
             userToInvite,
             welcomeNote: this.getWelcomeNote(),
+            shouldDisableButton: false,
         };
     }
 
@@ -255,10 +256,12 @@ class WorkspaceInvitePage extends React.Component {
             return;
         }
 
-        const logins = _.map(this.state.selectedOptions, option => option.login);
-        const filteredLogins = _.uniq(_.compact(_.map(logins, login => login.toLowerCase().trim())));
-        Policy.addMembersToWorkspace(filteredLogins, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
-        Navigation.goBack();
+        this.setState({shouldDisableButton: true}, () => {
+            const logins = _.map(this.state.selectedOptions, option => option.login);
+            const filteredLogins = _.uniq(_.compact(_.map(logins, login => login.toLowerCase().trim())));
+            Policy.addMembersToWorkspace(filteredLogins, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID);
+            Navigation.goBack();
+        });
     }
 
     /**
@@ -336,7 +339,7 @@ class WorkspaceInvitePage extends React.Component {
                                     />
                                 </View>
                                 <FormAlertWithSubmitButton
-                                    isDisabled={!this.state.selectedOptions.length}
+                                    isDisabled={!this.state.selectedOptions.length || this.state.shouldDisableButton}
                                     isAlertVisible={this.getShouldShowAlertPrompt()}
                                     buttonText={this.props.translate('common.invite')}
                                     onSubmit={this.inviteUser}
