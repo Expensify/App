@@ -379,11 +379,11 @@ export default {
         signOut: 'Desconectar',
         signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',
         versionLetter: 'v',
-        readTheTermsAndPrivacyPolicy: {
+        readTheTermsAndPrivacy: {
             phrase1: 'Leer los',
             phrase2: 'términos de servicio',
             phrase3: 'y',
-            phrase4: 'política de privacidad',
+            phrase4: 'privacidad',
         },
         help: 'Ayuda',
     },

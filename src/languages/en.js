@@ -379,11 +379,11 @@ export default {
         signOut: 'Sign out',
         signOutConfirmationText: 'You\'ll lose any offline changes if you sign-out.',
         versionLetter: 'v',
-        readTheTermsAndPrivacyPolicy: {
+        readTheTermsAndPrivacy: {
             phrase1: 'Read the',
             phrase2: 'terms of service',
             phrase3: 'and',
-            phrase4: 'privacy policy',
+            phrase4: 'privacy',
         },
         help: 'Help',
     },
