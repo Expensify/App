@@ -153,9 +153,11 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         },
     ];
 
+    let optimisticCreatedAction;
+
     // Now, let's add the data we need just when we are creating a new chat report
     if (isNewChat) {
-        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
+        optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
 
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
@@ -218,6 +220,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         chatReportID: chatReport.reportID,
         transactionID: optimisticReportAction.originalMessage.IOUTransactionID,
         reportActionID: optimisticReportAction.reportActionID,
+        createdReportActionID: isNewChat ? optimisticCreatedAction[0].reportActionID : 0,
         clientID: optimisticReportAction.sequenceNumber,
     }, {optimisticData, successData, failureData});
     Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
@@ -756,9 +759,11 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         },
     ];
 
+    let optimisticCreatedAction;
+
     // Now, let's add the data we need just when we are creating a new chat report
     if (isNewChat) {
-        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
+        optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
 
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
@@ -784,6 +789,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             transactionID: optimisticIOUReportAction.originalMessage.IOUTransactionID,
             clientID: optimisticIOUReportAction.sequenceNumber,
             newIOUReportDetails,
+            createdReportActionID: isNewChat ? optimisticCreatedAction[0].reportActionID : 0,
         },
         optimisticData,
         successData,
