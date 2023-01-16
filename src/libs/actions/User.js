@@ -17,6 +17,7 @@ import * as Localize from '../Localize';
 import * as Link from './Link';
 import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
+import * as Report from './Report';
 
 let currentUserAccountID = '';
 Onyx.connect({
@@ -256,6 +257,22 @@ function deletePaypalMeAddress() {
     Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
 }
 
+function triggerNotifications(onyxUpdates) {
+    _.each(onyxUpdates, (update) => {
+        if (!update.shouldNotify) {
+            return;
+        }
+
+        const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
+        const reportAction = _.chain(update.value)
+            .values()
+            .compact()
+            .first()
+            .value();
+        Report.showReportActionNotification(reportID, reportAction);
+    });
+}
+
 /**
  * Initialize our pusher subscription to listen for user changes
  */
@@ -271,6 +288,7 @@ function subscribeToUserEvents() {
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.ONYX_API_UPDATE, currentUserAccountID, (pushJSON) => {
         SequentialQueue.getCurrentRequest().then(() => {
             Onyx.update(pushJSON);
+            triggerNotifications(pushJSON);
         });
     });
 
