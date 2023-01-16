@@ -126,7 +126,7 @@ class AttachmentCarousel extends React.Component {
                     Config.EXPENSIFY.URL_API_ROOT,
                 );
 
-                // Determing attachment index by matching source url with one that's used in state or props
+                // Determine attachment index by matching source url with one that's used in state or props
                 if ((this.state.sourceURL && sourceURL.includes(this.state.sourceURL))
                         || (!this.state.sourceURL && sourceURL.includes(propsSourceURL))) {
                     page = attachments.length;
