@@ -33,6 +33,7 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ReportActions from '../../../libs/actions/ReportActions';
 import reportPropTypes from '../../reportPropTypes';
+import {ShowContextMenuContext} from '../../../components/ShowContextMenuContext';
 import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
 
 const propTypes = {
@@ -150,26 +151,39 @@ class ReportActionItem extends Component {
                     action={this.props.action}
                     isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
                     isHovered={hovered}
+                    contextMenuAnchor={this.popoverAnchor}
+                    checkIfContextMenuActive={this.checkIfContextMenuActive}
                 />
             );
         } else {
-            children = !this.props.draftMessage
-                ? (
-                    <ReportActionItemMessage action={this.props.action} />
-                ) : (
-                    <ReportActionItemMessageEdit
-                        action={this.props.action}
-                        draftMessage={this.props.draftMessage}
-                        reportID={this.props.report.reportID}
-                        index={this.props.index}
-                        ref={el => this.textInput = el}
-                        report={this.props.report}
-                        shouldDisableEmojiPicker={
-                            (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge))
-                            || ReportUtils.isArchivedRoom(this.props.report)
-                        }
-                    />
-                );
+            children = (
+                <ShowContextMenuContext.Provider
+                    value={{
+                        anchor: this.popoverAnchor,
+                        reportID: this.props.report.reportID,
+                        action: this.props.action,
+                        checkIfContextMenuActive: this.checkIfContextMenuActive,
+                    }}
+                >
+                    {!this.props.draftMessage
+                        ? (
+                            <ReportActionItemMessage action={this.props.action} />
+                        ) : (
+                            <ReportActionItemMessageEdit
+                                action={this.props.action}
+                                draftMessage={this.props.draftMessage}
+                                reportID={this.props.report.reportID}
+                                index={this.props.index}
+                                ref={el => this.textInput = el}
+                                report={this.props.report}
+                                shouldDisableEmojiPicker={
+                                    (ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge))
+                                    || ReportUtils.isArchivedRoom(this.props.report)
+                                }
+                            />
+                        )}
+                </ShowContextMenuContext.Provider>
+            );
         }
         return children;
     }
