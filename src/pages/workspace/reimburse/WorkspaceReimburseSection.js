@@ -48,7 +48,10 @@ class WorkspaceReimburseSection extends React.Component {
     }
 
     setShouldShowLoadingSpinner() {
-        this.setState({shouldShowLoadingSpinner: this.props.reimbursementAccount.isLoading || false});
+        const shouldShowLoadingSpinner = this.props.reimbursementAccount.isLoading || false;
+        if (shouldShowLoadingSpinner !== this.state.shouldShowLoadingSpinner) {
+            this.setState({shouldShowLoadingSpinner});
+        }
     }
 
     render() {
@@ -94,7 +97,6 @@ class WorkspaceReimburseSection extends React.Component {
                                 icon: Expensicons.Bank,
                                 shouldShowRightIcon: true,
                                 iconRight: Expensicons.NewWindow,
-                                iconFill: themeColors.success,
                                 wrapperStyle: [styles.cardMenuItem],
                             },
                         ]}

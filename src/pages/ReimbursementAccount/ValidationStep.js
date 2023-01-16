@@ -5,7 +5,6 @@ import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import * as Report from '../../libs/actions/Report';
@@ -202,7 +201,6 @@ class ValidationStep extends React.Component {
                                 icon={Expensicons.RotateLeft}
                                 onPress={BankAccounts.requestResetFreePlanBankAccount}
                                 shouldShowRightIcon
-                                iconFill={themeColors.success}
                                 wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                             />
                         </Section>

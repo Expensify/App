@@ -11,7 +11,6 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import MenuItem from '../../components/MenuItem';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import TextLink from '../../components/TextLink';
 import Icon from '../../components/Icon';
 import colors from '../../styles/colors';
@@ -134,7 +133,6 @@ const BankAccountStep = (props) => {
                                 disabled={!props.user.validated}
                                 onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
                                 shouldShowRightIcon
-                                iconFill={themeColors.success}
                                 wrapperStyle={[styles.cardMenuItem]}
                             />
                         </View>

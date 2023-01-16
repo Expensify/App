@@ -152,6 +152,17 @@ class AttachmentModal extends PureComponent {
      * @returns {Boolean}
      */
     isValidFile(file) {
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
+        if (!_.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
+            const invalidReason = `${this.props.translate('attachmentPicker.notAllowedExtension')} ${CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS.join(', ')}`;
+            this.setState({
+                isAttachmentInvalid: true,
+                attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.wrongFileType'),
+                attachmentInvalidReason: invalidReason,
+            });
+            return false;
+        }
+
         if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
             this.setState({
                 isAttachmentInvalid: true,
@@ -166,17 +177,6 @@ class AttachmentModal extends PureComponent {
                 isAttachmentInvalid: true,
                 attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.attachmentTooSmall'),
                 attachmentInvalidReason: this.props.translate('attachmentPicker.sizeNotMet'),
-            });
-            return false;
-        }
-
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
-        if (!_.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
-            const invalidReason = `${this.props.translate('attachmentPicker.notAllowedExtension')} ${CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS.join(', ')}`;
-            this.setState({
-                isAttachmentInvalid: true,
-                attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.wrongFileType'),
-                attachmentInvalidReason: invalidReason,
             });
             return false;
         }

@@ -707,12 +707,15 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
         announceChatReportID,
         announceChatData,
         announceReportActionData,
+        announceCreatedReportActionID,
         adminsChatReportID,
         adminsChatData,
         adminsReportActionData,
+        adminsCreatedReportActionID,
         expenseChatReportID,
         expenseChatData,
         expenseReportActionData,
+        expenseCreatedReportActionID,
     } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
 
     API.write('CreateWorkspace', {
@@ -724,6 +727,9 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
         makeMeAdmin,
         policyName: workspaceName,
         type: CONST.POLICY.TYPE.FREE,
+        announceCreatedReportActionID,
+        adminsCreatedReportActionID,
+        expenseCreatedReportActionID,
     },
     {
         optimisticData: [{

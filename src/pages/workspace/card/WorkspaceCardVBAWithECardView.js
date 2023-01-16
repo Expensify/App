@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
@@ -22,7 +21,6 @@ const WorkspaceCardVBAWithECardView = (props) => {
             icon: Expensicons.ExpensifyCard,
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
-            iconFill: themeColors.success,
             wrapperStyle: [styles.cardMenuItem],
         },
         {
@@ -31,7 +29,6 @@ const WorkspaceCardVBAWithECardView = (props) => {
             icon: Expensicons.ReceiptSearch,
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
-            iconFill: themeColors.success,
             wrapperStyle: [styles.cardMenuItem],
         },
         {
@@ -40,7 +37,6 @@ const WorkspaceCardVBAWithECardView = (props) => {
             icon: Expensicons.Gear,
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
-            iconFill: themeColors.success,
             wrapperStyle: [styles.cardMenuItem],
         },
     ];
