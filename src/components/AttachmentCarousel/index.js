@@ -108,9 +108,7 @@ class AttachmentCarousel extends React.Component {
         );
 
         /**
-         * Calling reducer will filter out attachments,
-         * determine the index of opened attachment,
-         * and retrieve the src url and name of attachements
+         * Looping to filter out attachments and retrieve the src URL and name of attachments.
          */
         const attachments = [];
         _.forEach(actions, ({originalMessage}) => {
