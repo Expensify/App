@@ -102,6 +102,11 @@ const OptionRow = (props) => {
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((props.option.participantsList || []).slice(0, 10), isMultipleParticipant);
     const avatarTooltips = props.showTitleTooltip && !props.option.isChatRoom && !props.option.isArchivedRoom ? _.pluck(displayNamesWithTooltips, 'tooltip') : undefined;
 
+    let subscriptColor = themeColors.appBG;
+    if (props.optionIsFocused) {
+        subscriptColor = focusedBackgroundColor;
+    }
+
     return (
         <OfflineWithFeedback
             pendingAction={props.option.pendingAction}
@@ -154,12 +159,18 @@ const OptionRow = (props) => {
                                             mainTooltip={props.option.ownerEmail}
                                             secondaryTooltip={props.option.subtitle}
                                             size={CONST.AVATAR_SIZE.DEFAULT}
+                                            backgroundColor={
+                                                hovered && !props.optionIsFocused
+                                                    ? hoveredBackgroundColor
+                                                    : subscriptColor
+                                            }
                                         />
                                     ) : (
                                         <MultipleAvatars
                                             icons={props.option.icons}
                                             size={CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[
+                                                StyleUtils.getBackgroundAndBorderStyle(themeColors.appBG),
                                                 props.optionIsFocused
                                                     ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor)
                                                     : undefined,
