@@ -10,7 +10,6 @@ import CarouselActions from './CarouselActions';
 import Button from '../Button';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import * as Report from '../../libs/actions/Report';
-
 import AttachmentView from '../AttachmentView';
 import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
@@ -160,6 +159,8 @@ class AttachmentCarousel extends React.Component {
 
         this.setState(({attachments, page}) => {
             const nextIndex = page + deltaSlide;
+
+            // Check if index is near the end of the list to fetch more reports
             if (attachments.length - nextIndex < 10) {
                 Report.loadMoreActions(this.props.report.reportID, this.props.reportActions, this.props.report.isLoadingMoreReportActions);
             }
