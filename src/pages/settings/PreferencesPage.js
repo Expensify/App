@@ -66,7 +66,7 @@ const PreferencesPage = (props) => {
             />
             <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                 <View style={[styles.settingsPageBody, styles.mb6]}>
-                    <Text style={[styles.formLabel]} numberOfLines={1}>
+                    <Text style={[styles.textLabelSupporting, styles.mb2]} numberOfLines={1}>
                         {props.translate('common.notifications')}
                     </Text>
                     <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween]}>
