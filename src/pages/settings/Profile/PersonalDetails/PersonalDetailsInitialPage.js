@@ -48,7 +48,7 @@ const PersonalDetailsInitialPage = (props) => {
      * @param {String} address.country
      * @returns {String}
      */
-    const formatAddress = (address) => {
+    const formatAddress = (address = {}) => {
         const formattedAddress = formatPiece(address.street)
             + formatPiece(address.city)
             + formatPiece(address.state)
@@ -56,7 +56,7 @@ const PersonalDetailsInitialPage = (props) => {
             + formatPiece(address.country);
 
         // Remove the last comma of the address
-        return formattedAddress.replace(/,$/, '');
+        return formattedAddress.replace(/,$/, '').trim();
     }
 
     return (
