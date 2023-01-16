@@ -361,6 +361,9 @@ export default {
         dateOfBirth: '',
         homeAddress: '',
         error: {
+            hasInvalidCharacter: '',
+            legalFirstNameEmpty: '',
+            legalLastNameEmpty: '',
             dobInvalid: '',
             dobTooYoung: ({age}) => ``,
         },

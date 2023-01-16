@@ -361,6 +361,9 @@ export default {
         dateOfBirth: 'Date of birth',
         homeAddress: 'Home address',
         error: {
+            hasInvalidCharacter: ({characterName}) => `Please remove the ${characterName} from the field above.`,
+            legalFirstNameEmpty: 'Please enter a valid legal first name',
+            legalLastNameEmpty: 'Please enter a valid legal last name',
             dobInvalid: 'Please enter a valid date.',
             dobTooYoung: ({age}) => `You must be older than ${age} to fill out this form.`,
         },

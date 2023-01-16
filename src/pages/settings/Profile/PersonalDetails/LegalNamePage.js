@@ -59,56 +59,37 @@ class LegalNamePage extends Component {
         const errors = {};
 
         // Check for invalid characters in legal first and last name
-        const [legalFirstNameInvalidCharacter, legalLastNameInvalidCharacter] = ValidationUtils.findInvalidSymbols(
+        const [hasInvalidLegalFirstNameCharacter, hasInvalidLegalLastNameCharacter] = ValidationUtils.findInvalidSymbols(
             [values.legalFirstName, values.legalLastName],
         );
-        this.assignError(
-            errors,
-            'legalFirstName',
-            !_.isEmpty(legalFirstNameInvalidCharacter),
-            Localize.translateLocal(
-                'personalDetails.error.hasInvalidCharacter',
-                {invalidCharacter: legalFirstNameInvalidCharacter},
-            ),
+        const [hasLegalFirstNameError, hasLegalLastNameError] = ValidationUtils.doesFailCharacterLimitAfterTrim(
+            CONST.LEGAL_NAMES_CHARACTER_LIMIT,
+            [values.legalFirstName, values.legalLastName],
         );
-        this.assignError(
-            errors,
-            'legalLastName',
-            !_.isEmpty(legalLastNameInvalidCharacter),
-            Localize.translateLocal(
-                'personalDetails.error.hasInvalidCharacter',
-                {invalidCharacter: legalLastNameInvalidCharacter},
-            ),
-        );
-        if (!_.isEmpty(errors)) {
-            return errors;
+
+        if (!_.isEmpty(hasInvalidLegalFirstNameCharacter)) {
+            errors.legalFirstName = Localize.translateLocal(
+                'personalDetailsPages.error.hasInvalidCharacter',
+                {characterName: hasInvalidLegalFirstNameCharacter},
+            );
+        } else if (_.isEmpty(values.legalFirstName)) {
+            errors.legalFirstName = Localize.translateLocal('personalDetailsPages.error.legalFirstNameEmpty');
+        } else if (hasLegalFirstNameError) {
+            errors.legalFirstName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.LEGAL_NAMES_CHARACTER_LIMIT});
         }
 
-        // Check the character limit for first and last name
-        const characterLimitError = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.FORM_CHARACTER_LIMIT});
-        const [hasLegalFirstNameError, hasLegalLastNameError] = ValidationUtils.doesFailCharacterLimitAfterTrim(
-            CONST.FORM_CHARACTER_LIMIT,
-            [values.legalFirstName, values.legalLastName],
-        );
-        this.assignError(errors, 'legalFirstName', hasLegalFirstNameError, characterLimitError);
-        this.assignError(errors, 'legalLastName', hasLegalLastNameError, characterLimitError);
+        if (!_.isEmpty(hasInvalidLegalLastNameCharacter)) {
+            errors.legalLastName = Localize.translateLocal(
+                'personalDetailsPages.error.hasInvalidCharacter',
+                {characterName: hasInvalidLegalLastNameCharacter},
+            );
+        } else if (_.isEmpty(values.legalLastName)) {
+            errors.legalLastName = Localize.translateLocal('personalDetailsPages.error.legalLastNameEmpty');
+        } else if (hasLegalLastNameError) {
+            errors.legalLastName = Localize.translateLocal('personalDetails.error.characterLimit', {limit: CONST.LEGAL_NAMES_CHARACTER_LIMIT});
+        }
 
         return errors;
-    }
-
-    /**
-     * @param {Object} errors
-     * @param {String} errorKey
-     * @param {Boolean} hasError
-     * @param {String} errorCopy
-     * @returns {Object} - An object containing the errors for each inputID
-     */
-    assignError(errors, errorKey, hasError, errorCopy) {
-        const validateErrors = errors;
-        if (hasError) {
-            validateErrors[errorKey] = errorCopy;
-        }
-        return validateErrors;
     }
 
     render() {
