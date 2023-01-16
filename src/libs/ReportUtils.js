@@ -951,7 +951,7 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
 }
 
 /**
- * Returns the necessary reportAction onyx data to indicate that a chat has been 
+ * Returns the necessary reportAction onyx data to indicate that a chat has been archived
  * @param {Number} sequenceNumber
  * @param {String} ownerEmail
  * @param {String} policyName
@@ -995,31 +995,6 @@ function buildOptimisticClosedReportAction(sequenceNumber, ownerEmail, policyNam
         shouldShow: true,
     };
 }
-
-// actionName: "CLOSED"
-// actorAccountID: 32
-// actorEmail: "test3@test.com"
-// automatic: false
-// avatar: "https://d2g02b6ed2w9fz.cloudfront.net/dea8ae7de1308911b35e0b1189ca85d379dbdb83_128.jpeg"
-// clientID: ""
-// created: "2023-01-16 19:18:52.966"
-// message: Array(2)
-// 0: 
-// {type: 'TEXT', style: 'strong', text: 'You'}
-// 1: 
-// {type: 'TEXT', style: 'normal', text: ' closed this report'}
-
-// originalMessage: 
-// policyName: "Test's Workspace"
-// reason: "policyDeleted"
-// person: Array(1)
-// 0: {type: 'TEXT', style: 'strong', text: 'Test User'}
-// length: 1
-// reportActionID: "8939705822345818810"
-// reportActionTimestamp: 1673896732966
-// sequenceNumber: 1
-// shouldShow: true
-// timestamp: 1673896732
 
 /**
  * @param {String} policyID
