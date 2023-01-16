@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'underscore';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import Config from '../../../CONFIG';
 import AttachmentModal from '../../AttachmentModal';
@@ -7,6 +8,28 @@ import ThumbnailImage from '../../ThumbnailImage';
 import PressableWithoutFocus from '../../PressableWithoutFocus';
 import CONST from '../../../CONST';
 import {ShowContextMenuContext, showContextMenuForReport} from '../../ShowContextMenuContext';
+
+/**
+ * Update the image URL so images can be accessed depending on the config environment
+ *
+ * @param {String} urlString
+ * @returns {*|String}
+ */
+function mapSource(urlString) {
+    // Attachments can come from either staging or prod, depending on the env they were uploaded by
+    // Both should be replaced and loaded from API ROOT of the current environment
+    const originsWeShouldReplace = [Config.EXPENSIFY.EXPENSIFY_URL, Config.EXPENSIFY.STAGING_EXPENSIFY_URL];
+
+    const originToReplace = _.find(originsWeShouldReplace, origin => urlString.startsWith(origin));
+    if (!originToReplace) {
+        return urlString;
+    }
+
+    return urlString.replace(
+        originToReplace,
+        Config.EXPENSIFY.URL_API_ROOT,
+    );
+}
 
 const ImageRenderer = (props) => {
     const htmlAttribs = props.tnode.attributes;
@@ -30,20 +53,10 @@ const ImageRenderer = (props) => {
     //
     const isAttachment = Boolean(htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
     const originalFileName = htmlAttribs['data-name'];
-    let previewSource = htmlAttribs.src;
-    let source = isAttachment
+    const previewSource = mapSource(htmlAttribs.src);
+    const source = mapSource(isAttachment
         ? htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]
-        : htmlAttribs.src;
-
-    // Update the image URL so the images can be accessed depending on the config environment
-    previewSource = previewSource.replace(
-        Config.EXPENSIFY.EXPENSIFY_URL,
-        Config.EXPENSIFY.URL_API_ROOT,
-    );
-    source = source.replace(
-        Config.EXPENSIFY.EXPENSIFY_URL,
-        Config.EXPENSIFY.URL_API_ROOT,
-    );
+        : htmlAttribs.src);
 
     const imageWidth = htmlAttribs['data-expensify-width'] ? parseInt(htmlAttribs['data-expensify-width'], 10) : undefined;
     const imageHeight = htmlAttribs['data-expensify-height'] ? parseInt(htmlAttribs['data-expensify-height'], 10) : undefined;
