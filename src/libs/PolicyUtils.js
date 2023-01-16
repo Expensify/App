@@ -54,9 +54,31 @@ function getPolicyBrickRoadIndicatorStatus(policy, policyMembers) {
     return '';
 }
 
+/**
+ * Check if the policy can be displayed
+ * If offline, always show the policy pending deletion.
+ * If online, show the policy pending deletion only if there is an error.
+ * Note: Using a local ONYXKEYS.NETWORK subscription will cause a delay in
+ * updating the screen. Passing the offline status from the component.
+ * @param {Object} policy
+ * @param {Boolean} isOffline
+ * @returns {Boolean}
+ */
+function shouldShowPolicy(policy, isOffline) {
+    return policy
+    && policy.type === CONST.POLICY.TYPE.FREE
+    && policy.role === CONST.POLICY.ROLE.ADMIN
+    && (
+        isOffline
+        || policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+        || !_.isEmpty(policy.errors)
+    );
+}
+
 export {
     hasPolicyMemberError,
     hasPolicyError,
     hasCustomUnitsError,
     getPolicyBrickRoadIndicatorStatus,
+    shouldShowPolicy,
 };
