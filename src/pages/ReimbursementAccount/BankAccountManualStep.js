@@ -55,7 +55,7 @@ class BankAccountManualStep extends React.Component {
 
     submit(values) {
         BankAccounts.connectBankAccountManually(
-            this.props.reimbursementAccount.bankAccountID || 0,
+            this.props.reimbursementAccount.achData.bankAccountID || 0,
             values.accountNumber,
             values.routingNumber,
             this.props.getDefaultStateForField('plaidMask'),
@@ -63,7 +63,7 @@ class BankAccountManualStep extends React.Component {
     }
 
     render() {
-        const shouldDisableInputs = Boolean(this.props.reimbursementAccount.bankAccountID);
+        const shouldDisableInputs = Boolean(this.props.reimbursementAccount.achData.bankAccountID);
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
