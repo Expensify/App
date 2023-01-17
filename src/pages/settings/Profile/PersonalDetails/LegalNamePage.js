@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
@@ -13,7 +12,6 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import CONST from '../../../../CONST';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import TextInput from '../../../../components/TextInput';
-import Text from '../../../../components/Text';
 import styles from '../../../../styles/styles';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
