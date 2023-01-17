@@ -1,5 +1,6 @@
 import sanitizeStringForJSONParse from '../../src/libs/sanitizeStringForJSONParse';
 
+// Bad inputs should just be ignored and an empty string returned.
 const badInputs = [
     ['', ''],
     [null, ''],
@@ -17,6 +18,7 @@ const invalidJSONData = [
     ['"Hello world!"', '"Hello world!"'],
 ];
 
+// Valid JSON Data should be able to get parsed and the input text should be unmodified.
 const validJSONData = [
     ['Hello world!', 'Hello world!'],
     ['Hello\\\\world!', 'Hello\\\\world!'],
