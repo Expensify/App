@@ -1,4 +1,4 @@
-# K2v2
+# KSv2
 
 In Expensify we have an engineering prioritization process called "Kernel Scheduler v2" (KSv2). This system prioritizes tasks based on time priorities:
 
