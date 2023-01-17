@@ -107,6 +107,7 @@ class WorkspaceMembersPage extends React.Component {
      * Remove selected users from the workspace
      */
     removeUsers() {
+        this.validate();
         Policy.removeMembers(this.state.selectedEmployees, this.props.route.params.policyID);
         this.setState({
             selectedEmployees: [],
@@ -196,6 +197,15 @@ class WorkspaceMembersPage extends React.Component {
         }
     }
 
+    validate() {
+        _.each(this.state.selectedEmployees, (member) => {
+            if (member === this.props.policy.owner) {
+                const error = this.props.translate('workspace.people.error.cannotRemove');
+                setWorkspaceMemberError(member, error);
+            }
+        });
+    }
+
     /**
      * Do not move this or make it an anonymous function it is a method
      * so it will not be recreated each time we render an item
@@ -248,13 +258,6 @@ class WorkspaceMembersPage extends React.Component {
                 </TouchableOpacity>
             </OfflineWithFeedback>
         );
-    }
-
-    validate() {
-        _.each(this.state.selectedEmployees, member => {
-            if (member)
-        });
-        // this.props.policy.owner !== item.login && this.props.session.email !== item.login && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     }
 
     render() {

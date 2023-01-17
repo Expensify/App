@@ -428,6 +428,19 @@ function setWorkspaceErrors(policyID, errors) {
 
 /**
  * @param {String} policyID
+ * @param {String} member
+ * @param {Object} errors
+ */
+function setWorkspaceMemberErrors(policyID, member, errors) {
+    if (!allPolicies[policyID]) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, {[member]: {errors}});
+}
+
+/**
+ * @param {String} policyID
  * @param {String} customUnitID
  * @param {String} customUnitRateID
  */
@@ -994,4 +1007,5 @@ export {
     openWorkspaceMembersPage,
     openWorkspaceInvitePage,
     removeWorkspace,
+    setWorkspaceMemberErrors,
 };
