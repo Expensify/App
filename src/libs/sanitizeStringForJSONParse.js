@@ -21,10 +21,8 @@ function sanitizeStringForJSONParse(inputString) {
         return '';
     }
 
-    return inputString
-
-        // Replace any newlines and escape backslashes
-        .replace(/\\|\t|\n|\r|\f|"/g, replacer);
+    // Replace any newlines and escape backslashes
+    return inputString.replace(/\\|\t|\n|\r|\f|"/g, replacer);
 }
 
 export default sanitizeStringForJSONParse;

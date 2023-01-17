@@ -14,8 +14,16 @@ const invalidJSONData = [
     ['Hello \t world!', 'Hello \t world!'],
     ['Hello \n world!', 'Hello \n world!'],
     ['Hello \n\tworld!', 'Hello \n\tworld!'],
-    ['Hello \\', 'Hello \\'],
     ['"Hello world!"', '"Hello world!"'],
+    ['Test "', 'Test "'],
+    ['something `\\ something', 'something `\\ something'],
+
+    // Real-life examples from git commits that broke getMergeLogsAsJSON
+    // From https://github.com/Expensify/App/commit/e472470893867648cfbd85a5c2c5d24da1efece6
+    ['Add \\', 'Add \\'],
+
+    // From https://github.com/Expensify/App/pull/13500/commits/b730d5c43643f32baa3b189f0238f4de61aae0b7
+    ['Prevent commit messages that end in `\\` from breaking `getMergeLogsAsJSON()`', 'Prevent commit messages that end in `\\` from breaking `getMergeLogsAsJSON()`'],
 ];
 
 // Valid JSON Data should be able to get parsed and the input text should be unmodified.
