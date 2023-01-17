@@ -1,32 +1,35 @@
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import * as Localize from '../../../../libs/Localize';
 import ROUTES from '../../../../ROUTES';
 import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import CONST from '../../../../CONST';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
-import TextInput from '../../../../components/TextInput';
-import Text from '../../../../components/Text';
 import styles from '../../../../styles/styles';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
 import DatePicker from '../../../../components/DatePicker';
+import { withOnyx } from 'react-native-onyx';
+import ONYXKEYS from '../../../../ONYXKEYS';
 
 const propTypes = {
+    /* Onyx Props */
+
+    /** User's private personal details */
+    privatePersonalDetails: PropTypes.shape({
+        dateOfBirth: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
-    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
-    ...withCurrentUserPersonalDetailsDefaultProps,
+    dateOfBirth: '',
 };
 
 class DateOfBirthPage extends Component {
@@ -70,7 +73,7 @@ class DateOfBirthPage extends Component {
     }
 
     render() {
-        const currentUserDetails = this.props.currentUserPersonalDetails || {};
+        const privateDetails = this.props.privatePersonalDetails || {};
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -91,7 +94,7 @@ class DateOfBirthPage extends Component {
                         <DatePicker
                             inputID={'dateOfBirth'}
                             label={this.props.translate('common.date')}
-                            defaultValue={currentUserDetails.dateOfBirth || ''}
+                            defaultValue={privateDetails.dateOfBirth || ''}
                             shouldSaveDraft
                         />
                     </View>
@@ -106,5 +109,9 @@ DateOfBirthPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withCurrentUserPersonalDetails,
+    withOnyx({
+        privatePersonalDetails: {
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+        },
+    }),
 )(DateOfBirthPage);

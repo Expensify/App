@@ -181,12 +181,10 @@ function updateLegalName(legalFirstName, legalLastName) {
     API.write('UpdateDisplayName', {legalFirstName, legalLastName}, {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
             value: {
-                [currentUserEmail]: {
-                    legalFirstName,
-                    legalLastName,
-                },
+                legalFirstName,
+                legalLastName,
             },
         }],
     });
@@ -200,11 +198,9 @@ function updateDateOfBirth(dateOfBirth) {
     API.write('UpdateDateOfBirth', {dateOfBirth}, {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
             value: {
-                [currentUserEmail]: {
-                    dateOfBirth,
-                },
+                dateOfBirth,
             },
         }],
     });
@@ -215,15 +211,13 @@ function updateAddress(street, city, state, zip, country) {
     API.write('UpdateHomeAddress', {street, city, state, zip, country}, {
         optimisticData: [{
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
             value: {
-                [currentUserEmail]: {
-                    street,
-                    city,
-                    state,
-                    zip,
-                    country,
-                },
+                street,
+                city,
+                state,
+                zip,
+                country,
             },
         }],
     });

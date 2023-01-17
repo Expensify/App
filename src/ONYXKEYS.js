@@ -39,6 +39,9 @@ export default {
     // Contains all the personalDetails the user has access to
     PERSONAL_DETAILS: 'personalDetails',
 
+    // Contains all the private personal details of the user
+    PRIVATE_PERSONAL_DETAILS: 'private_personalDetails',
+
     // Contains a list of all currencies available to the user - user can
     // select a currency based on the list
     CURRENCY_LIST: 'currencyList',

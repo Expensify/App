@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -16,14 +16,26 @@ import styles from '../../../../styles/styles';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
+import { withOnyx } from 'react-native-onyx';
+import ONYXKEYS from '../../../../ONYXKEYS';
 
 const propTypes = {
+    /* Onyx Props */
+
+    /** User's private personal details */
+    privatePersonalDetails: PropTypes.shape({
+        legalFirstName: PropTypes.string,
+        legalLastName: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
-    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
-    ...withCurrentUserPersonalDetailsDefaultProps,
+    privatePersonalDetails: {
+        legalFirstName: '',
+        legalLastName: '',
+    },
 };
 
 class LegalNamePage extends Component {
@@ -91,7 +103,7 @@ class LegalNamePage extends Component {
     }
 
     render() {
-        const currentUserDetails = this.props.currentUserPersonalDetails || {};
+        const privateDetails = this.props.privatePersonalDetails || {};
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -114,7 +126,7 @@ class LegalNamePage extends Component {
                             inputID="legalFirstName"
                             name="lfname"
                             label={this.props.translate('personalDetailsPages.legalFirstName')}
-                            defaultValue={currentUserDetails.legalFirstName || ''}
+                            defaultValue={privateDetails.legalFirstName || ''}
                         />
                     </View>
                     <View>
@@ -122,7 +134,7 @@ class LegalNamePage extends Component {
                             inputID="legalLastName"
                             name="llname"
                             label={this.props.translate('personalDetailsPages.legalLastName')}
-                            defaultValue={currentUserDetails.legalLastName || ''}
+                            defaultValue={privateDetails.legalLastName || ''}
                         />
                     </View>
                 </Form>
@@ -136,5 +148,9 @@ LegalNamePage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withCurrentUserPersonalDetails,
+    withOnyx({
+        privatePersonalDetails: {
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+        },
+    }),
 )(LegalNamePage);

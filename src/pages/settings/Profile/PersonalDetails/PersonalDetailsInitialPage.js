@@ -1,6 +1,6 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -11,21 +11,51 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import compose from '../../../../libs/compose';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
+import { withOnyx } from 'react-native-onyx';
+import ONYXKEYS from '../../../../ONYXKEYS';
 
 const propTypes = {
+    /* Onyx Props */
+
+    /** User's private personal details */
+    privatePersonalDetails: PropTypes.shape({
+        legalFirstName: PropTypes.string,
+        legalLastName: PropTypes.string,
+        dateOfBirth: PropTypes.string,
+
+        /** User's home address */
+        address: PropTypes.shape({
+            street: PropTypes.string,
+            city: PropTypes.string,
+            state: PropTypes.string,
+            zip: PropTypes.string,
+            country: PropTypes.string,
+        }),
+    }),
+
     ...withLocalizePropTypes,
-    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
-    ...withCurrentUserPersonalDetailsDefaultProps,
+    privatePersonalDetails: {
+        legalFirstName: '',
+        legalLastName: '',
+        dateOfBirth: '',
+        address: {
+            street: '',
+            city: '',
+            state: '',
+            zip: '',
+            country: '',
+        },
+    },
 };
 
 const PersonalDetailsInitialPage = (props) => {
     PersonalDetails.openPersonalDetailsPage();
 
-    const personalDetails = props.currentUserPersonalDetails || {};
-    const legalName = `${personalDetails.legalFirstName || ''} ${personalDetails.legalLastName || ''}`.trim();
+    const privateDetails = props.privatePersonalDetails || {};
+    const legalName = `${privateDetails.legalFirstName || ''} ${privateDetails.legalLastName || ''}`.trim();
 
     /**
      * Applies common formatting to each piece of an address
@@ -81,14 +111,14 @@ const PersonalDetailsInitialPage = (props) => {
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_LEGAL_NAME)}
                 />
                 <MenuItemWithTopDescription
-                    title={personalDetails.dateOfBirth || ''}
+                    title={privateDetails.dateOfBirth || ''}
                     description={props.translate('personalDetailsPages.dateOfBirth')}
                     shouldShowRightIcon
                     wrapperStyle={[styles.ph2]}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH)}
                 />
                 <MenuItemWithTopDescription
-                    title={formatAddress(personalDetails.address)}
+                    title={formatAddress(privateDetails.address)}
                     description={props.translate('personalDetailsPages.homeAddress')}
                     shouldShowRightIcon
                     wrapperStyle={[styles.ph2]}
@@ -105,5 +135,9 @@ PersonalDetailsInitialPage.displayName = 'PersonalDetailsInitialPage';
 
 export default compose(
     withLocalize,
-    withCurrentUserPersonalDetails,
+    withOnyx({
+        privatePersonalDetails: {
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+        },
+    }),
 )(PersonalDetailsInitialPage);

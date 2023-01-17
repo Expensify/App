@@ -1,8 +1,8 @@
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -22,14 +22,36 @@ import AddressForm from '../../../ReimbursementAccount/AddressForm';
 import AddressSearch from '../../../../components/AddressSearch';
 import CountryPicker from '../../../../components/CountryPicker';
 import StatePicker from '../../../../components/StatePicker';
+import { withOnyx } from 'react-native-onyx';
 
 const propTypes = {
+    /* Onyx Props */
+
+    /** User's private personal details */
+    privatePersonalDetails: PropTypes.shape({
+        /** User's home address */
+        address: PropTypes.shape({
+            street: PropTypes.string,
+            city: PropTypes.string,
+            state: PropTypes.string,
+            zip: PropTypes.string,
+            country: PropTypes.string,
+        }),
+    }),
+    
     ...withLocalizePropTypes,
-    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
-    ...withCurrentUserPersonalDetailsDefaultProps,
+    privatePersonalDetails: {
+        address: {
+            street: '',
+            city: '',
+            state: '',
+            zip: '',
+            country: '',
+        },
+    },
 };
 
 class AddressPage extends Component {
@@ -139,8 +161,8 @@ class AddressPage extends Component {
     }
 
     render() {
-        const currentUserDetails = this.props.currentUserPersonalDetails || {};
-        const {addressLine1, addressLine2} = this.parseAddressStreet(lodashGet(currentUserDetails, 'address.street', ''));
+        const privateDetails = this.props.privatePersonalDetails || {};
+        const {addressLine1, addressLine2} = this.parseAddressStreet(lodashGet(privateDetails, 'address.street') || '');
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -177,7 +199,7 @@ class AddressPage extends Component {
                         <TextInput
                             inputID="city"
                             label={this.props.translate('common.city')}
-                            defaultValue={lodashGet(currentUserDetails, 'address.city', '')}
+                            defaultValue={lodashGet(privateDetails, 'address.city', '')}
                             maxLength={50}
                         />
                     </View>
@@ -186,13 +208,13 @@ class AddressPage extends Component {
                             {this.state.isUsaForm ? (
                                 <StatePicker
                                     inputID="state"
-                                    defaultValue={lodashGet(currentUserDetails, 'address.state', '')}
+                                    defaultValue={lodashGet(privateDetails, 'address.state', '')}
                                 />
                             ) : (
                                 <TextInput
                                     inputID="stateOrProvince"
                                     label={this.props.translate('common.stateOrProvince')}
-                                    defaultValue={lodashGet(currentUserDetails, 'address.state', '')}
+                                    defaultValue={lodashGet(privateDetails, 'address.state', '')}
                                     maxLength={50}
                                 />
                             )}
@@ -202,7 +224,7 @@ class AddressPage extends Component {
                                 inputID="zipCode"
                                 label={this.props.translate('common.zipPostCode')}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                                defaultValue={lodashGet(currentUserDetails, 'address.zip', '')}
+                                defaultValue={lodashGet(privateDetails, 'address.zip', '')}
                                 // maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                             />
                         </View>
@@ -211,7 +233,7 @@ class AddressPage extends Component {
                         <CountryPicker
                             inputID="country"
                             onValueChange={this.onCountryUpdate}
-                            defaultValue={lodashGet(currentUserDetails, 'address.country', '')}
+                            defaultValue={lodashGet(privateDetails, 'address.country', '')}
                         />
                     </View>
                 </Form>
@@ -225,5 +247,9 @@ AddressPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withCurrentUserPersonalDetails,
+    withOnyx({
+        privatePersonalDetails: {
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+        },
+    }),
 )(AddressPage);
