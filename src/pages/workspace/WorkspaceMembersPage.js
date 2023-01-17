@@ -252,19 +252,18 @@ class WorkspaceMembersPage extends React.Component {
     renderItem({
         item,
     }) {
-        const canBeRemoved = this.props.policy.owner !== item.login && this.props.session.email !== item.login && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        // const canBeRemoved = this.props.policy.owner !== item.login && this.props.session.email !== item.login && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         return (
             <OfflineWithFeedback errorRowStyles={[styles.peopleRowBorderBottom]} onClose={() => this.dismissError(item)} pendingAction={item.pendingAction} errors={item.errors}>
                 <Hoverable onHoverIn={() => this.willTooltipShowForLogin(item.login, true)} onHoverOut={() => this.setState({showTooltipForLogin: ''})}>
                     <TouchableOpacity
-                        style={[styles.peopleRow, _.isEmpty(item.errors) && styles.peopleRowBorderBottom, !canBeRemoved && styles.cursorDisabled]}
+                        style={[styles.peopleRow, _.isEmpty(item.errors) && styles.peopleRowBorderBottom]}
                         onPress={() => this.toggleUser(item.login, item.pendingAction)}
                         activeOpacity={0.7}
                     >
                         <CheckboxWithTooltip
                             style={[styles.peopleRowCell]}
                             isChecked={_.contains(this.state.selectedEmployees, item.login)}
-                            disabled={!canBeRemoved}
                             onPress={() => this.toggleUser(item.login, item.pendingAction)}
                             toggleTooltip={this.state.showTooltipForLogin === item.login}
                             text={this.props.translate('workspace.people.error.cannotRemove')}
@@ -273,7 +272,6 @@ class WorkspaceMembersPage extends React.Component {
                             <OptionRow
                                 onSelectRow={() => this.toggleUser(item.login, item.pendingAction)}
                                 boldStyle
-                                isDisabled={!canBeRemoved}
                                 option={{
                                     text: Str.removeSMSDomain(item.displayName),
                                     alternateText: Str.removeSMSDomain(item.login),
