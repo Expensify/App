@@ -1,7 +1,6 @@
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import Log from '../libs/Log';
 import styles from '../styles/styles';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
@@ -45,7 +44,7 @@ class ImageWithSizeCalculation extends PureComponent {
         this.imageLoadingStart = this.imageLoadingStart.bind(this);
         this.imageLoadingEnd = this.imageLoadingEnd.bind(this);
         this.onError = this.onError.bind(this);
-        this.imageLoadedSuccessfuly = this.imageLoadedSuccessfuly.bind(this);
+        this.imageLoadedSuccessfully = this.imageLoadedSuccessfully.bind(this);
     }
 
     onError() {
@@ -60,13 +59,11 @@ class ImageWithSizeCalculation extends PureComponent {
         this.setState({isLoading: false});
     }
 
-    imageLoadedSuccessfuly(event) {
-        if (!lodashGet(event, 'nativeEvent.width', false) || !lodashGet(event, 'nativeEvent.height', false)) {
-            // Image didn't load properly
-            return;
-        }
-
-        this.props.onMeasure({width: event.nativeEvent.width, height: event.nativeEvent.height});
+    imageLoadedSuccessfully(event) {
+        this.props.onMeasure({
+            width: event.nativeEvent.width,
+            height: event.nativeEvent.height,
+        });
     }
 
     render() {
@@ -89,7 +86,7 @@ class ImageWithSizeCalculation extends PureComponent {
                     onLoadStart={this.imageLoadingStart}
                     onLoadEnd={this.imageLoadingEnd}
                     onError={this.onError}
-                    onLoad={this.imageLoadedSuccessfuly}
+                    onLoad={this.imageLoadedSuccessfully}
                 />
                 {this.state.isLoading && (
                     <FullscreenLoadingIndicator
