@@ -153,9 +153,11 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         },
     ];
 
+    let optimisticCreatedAction;
+
     // Now, let's add the data we need just when we are creating a new chat report
     if (isNewChat) {
-        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
+        optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
 
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
@@ -218,6 +220,7 @@ function requestMoney(report, amount, currency, recipientEmail, participant, com
         chatReportID: chatReport.reportID,
         transactionID: optimisticReportAction.originalMessage.IOUTransactionID,
         reportActionID: optimisticReportAction.reportActionID,
+        createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : 0,
         clientID: optimisticReportAction.sequenceNumber,
         shouldKeyReportActionsByID: true,
     }, {optimisticData, successData, failureData});
@@ -472,7 +475,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             value: existingIOUReport || oneOnOneIOUReport,
         });
 
-        splits.push({
+        const splitData = {
             email,
             amount: splitAmount,
             iouReportID: oneOnOneIOUReport.reportID,
@@ -480,16 +483,28 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             transactionID: oneOnOneIOUReportAction.originalMessage.IOUTransactionID,
             reportActionID: oneOnOneIOUReportAction.reportActionID,
             clientID: oneOnOneIOUReportAction.clientID.toString(),
-        });
+        };
+
+        if (!_.isEmpty(oneOnOneCreatedReportAction)) {
+            splitData.createdReportActionID = oneOnOneCreatedReportAction.reportActionID;
+        }
+
+        splits.push(splitData);
     });
 
+    const groupData = {
+        chatReportID: groupChatReport.reportID,
+        transactionID: groupIOUReportAction.originalMessage.IOUTransactionID,
+        reportActionID: groupIOUReportAction.reportActionID,
+        clientID: groupIOUReportAction.clientID.toString(),
+    };
+
+    if (!_.isEmpty(groupCreatedReportAction)) {
+        groupData.createdReportActionID = groupCreatedReportAction.reportActionID;
+    }
+
     return {
-        groupData: {
-            chatReportID: groupChatReport.reportID,
-            transactionID: groupIOUReportAction.originalMessage.IOUTransactionID,
-            reportActionID: groupIOUReportAction.reportActionID,
-            clientID: groupIOUReportAction.clientID.toString(),
-        },
+        groupData,
         splits,
         onyxData: {optimisticData, successData, failureData},
     };
@@ -515,6 +530,7 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, lo
         comment,
         transactionID: groupData.transactionID,
         reportActionID: groupData.reportActionID,
+        createdReportActionID: groupData.createdReportActionID,
         clientID: groupData.clientID,
         shouldKeyReportActionsByID: true,
     }, onyxData);
@@ -541,6 +557,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
         comment,
         transactionID: groupData.transactionID,
         reportActionID: groupData.reportActionID,
+        createdReportActionID: groupData.createdReportActionID,
         clientID: groupData.clientID,
         shouldKeyReportActionsByID: true,
     }, onyxData);
@@ -771,9 +788,11 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         },
     ];
 
+    let optimisticCreatedAction;
+
     // Now, let's add the data we need just when we are creating a new chat report
     if (isNewChat) {
-        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
+        optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
 
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
@@ -799,6 +818,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             transactionID: optimisticIOUReportAction.originalMessage.IOUTransactionID,
             clientID: optimisticIOUReportAction.sequenceNumber,
             newIOUReportDetails,
+            createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : 0,
         },
         optimisticData,
         successData,
