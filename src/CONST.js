@@ -772,7 +772,7 @@ const CONST = {
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
         EMOJI_NAME: /:[\w+-]+:/g,
-        EMOJI_SUGGESTIONS: /:[a-zA-Z]{1,20}(\s[a-zA-Z]{0,20})?$/,
+        EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
         CODE_2FA: /^\d{6}$/,
     },
