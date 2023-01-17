@@ -364,7 +364,7 @@ class IOUModal extends Component {
             this.props.iou.selectedCurrencyCode,
             this.props.currentUserPersonalDetails.login,
             selectedParticipants[0],
-            comment
+            comment,
         );
     }
 
