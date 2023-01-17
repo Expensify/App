@@ -256,12 +256,8 @@ class WorkspaceMembersPage extends React.Component {
 
     render() {
         const policyMemberList = lodashGet(this.props, 'policyMemberList', {});
-        const removableMembers = [];
         let data = [];
         _.each(policyMemberList, (policyMember, email) => {
-            if (email !== this.props.session.email && email !== this.props.policy.owner && policyMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                removableMembers.push(email);
-            }
             const details = lodashGet(this.props.personalDetails, email, {displayName: email, login: email, avatar: Expensicons.FallbackAvatar});
             data.push({
                 ...policyMember,
@@ -321,7 +317,7 @@ class WorkspaceMembersPage extends React.Component {
                             <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
                                 <View style={[styles.peopleRowCell]}>
                                     <Checkbox
-                                        isChecked={this.state.selectedEmployees.length === removableMembers.length && removableMembers.length !== 0}
+                                        isChecked={this.state.selectedEmployees.length === policyMemberList.length && policyMemberList.length !== 0}
                                         onPress={() => this.toggleAllUsers()}
                                     />
                                 </View>
