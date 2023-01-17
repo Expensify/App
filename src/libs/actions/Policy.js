@@ -22,8 +22,17 @@ Onyx.connect({
         if (!key) {
             return;
         }
-
         if (val === null || val === undefined) {
+            const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
+            const policyReports = ReportUtils.getPolicyReports(policyID);
+            const cleanUpMergeQueries = {};
+            const cleanUpSetQueries = {};
+            _.each(policyReports, ({reportID}) => {
+                cleanUpMergeQueries[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {hasDraft: false};
+                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
+            });
+            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, cleanUpMergeQueries);
+            Onyx.multiSet(cleanUpSetQueries);
             delete allPolicies[key];
             return;
         }
