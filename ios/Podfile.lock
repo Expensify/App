@@ -575,7 +575,7 @@ PODS:
     - React-Core
   - RNDateTimePicker (3.5.2):
     - React-Core
-  - RNFastImage (8.5.11):
+  - RNFastImage (8.6.3):
     - React-Core
     - SDWebImage (~> 5.11.1)
     - SDWebImageWebPCoder (~> 0.8.4)
@@ -730,7 +730,7 @@ DEPENDENCIES:
   - "RNCClipboard (from `../node_modules/@react-native-community/clipboard`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
-  - "RNFastImage (from `../node_modules/@pieter-pot/react-native-fast-image`)"
+  - RNFastImage (from `../node_modules/react-native-fast-image`)
   - "RNFBAnalytics (from `../node_modules/@react-native-firebase/analytics`)"
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - "RNFBCrashlytics (from `../node_modules/@react-native-firebase/crashlytics`)"
@@ -902,7 +902,7 @@ EXTERNAL SOURCES:
   RNDateTimePicker:
     :path: "../node_modules/@react-native-community/datetimepicker"
   RNFastImage:
-    :path: "../node_modules/@pieter-pot/react-native-fast-image"
+    :path: "../node_modules/react-native-fast-image"
   RNFBAnalytics:
     :path: "../node_modules/@react-native-firebase/analytics"
   RNFBApp:
@@ -1019,7 +1019,7 @@ SPEC CHECKSUMS:
   RNCClipboard: 41d8d918092ae8e676f18adada19104fa3e68495
   RNCPicker: 0b65be85fe7954fbb2062ef079e3d1cde252d888
   RNDateTimePicker: 7658208086d86d09e1627b5c34ba0cf237c60140
-  RNFastImage: 1f2cab428712a4baaf78d6169eaec7f622556dd7
+  RNFastImage: 5c9c9fed9c076e521b3f509fe79e790418a544e8
   RNFBAnalytics: f76bfa164ac235b00505deb9fc1776634056898c
   RNFBApp: 729c0666395b1953198dc4a1ec6deb8fbe1c302e
   RNFBCrashlytics: 2061ca863e8e2fa1aae9b12477d7dfa8e88ca0f9
