@@ -164,7 +164,7 @@ function getMergeLogsAsJSON(fromRef, toRef) {
     })
         .then((stdout) => {
             // Sanitize just the text within commit subjects as that's the only potentially un-parseable text.
-            const sanitizedOutput = stdout.replace(/(?<="subject": ").*(?="})/g, subject => sanitizeStringForJSONParse(subject));
+            const sanitizedOutput = stdout.replace(/(?<="subject": ").*?(?="})/g, subject => sanitizeStringForJSONParse(subject));
 
             // Then format as JSON and convert to a proper JS object
             const json = `[${sanitizedOutput}]`.replace('},]', '}]');
