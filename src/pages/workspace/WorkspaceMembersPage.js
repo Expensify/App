@@ -30,6 +30,7 @@ import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
 import * as Expensicons from '../../components/Icon/Expensicons';
+import FormHelpMessage from '../../components/FormHelpMessage';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -171,8 +172,6 @@ class WorkspaceMembersPage extends React.Component {
         } else {
             this.addUser(login);
         }
-
-        this.validate();
     }
 
     /**
@@ -183,7 +182,7 @@ class WorkspaceMembersPage extends React.Component {
     addUser(login) {
         this.setState(prevState => ({
             selectedEmployees: [...prevState.selectedEmployees, login],
-        }));
+        }), () => this.validate());
     }
 
     /**
@@ -194,7 +193,7 @@ class WorkspaceMembersPage extends React.Component {
     removeUser(login) {
         this.setState(prevState => ({
             selectedEmployees: _.without(prevState.selectedEmployees, login),
-        }));
+        }), () => this.validate());
     }
 
     /**
@@ -239,7 +238,6 @@ class WorkspaceMembersPage extends React.Component {
         item,
     }) {
         return (
-            // @TODO: display error
             <OfflineWithFeedback errorRowStyles={[styles.peopleRowBorderBottom]} onClose={() => this.dismissError(item)} pendingAction={item.pendingAction} errors={item.errors}>
                 <TouchableOpacity
                     style={[styles.peopleRow, (_.isEmpty(item.errors) || this.state.errors[item.login]) && styles.peopleRowBorderBottom]}
@@ -274,6 +272,9 @@ class WorkspaceMembersPage extends React.Component {
                         </View>
                     )}
                 </TouchableOpacity>
+                {!_.isEmpty(this.state.errors[item.login]) && (
+                    <FormHelpMessage isError message={this.state.errors[item.login]} />
+                )}
             </OfflineWithFeedback>
         );
     }
