@@ -59,6 +59,7 @@ class WorkspaceMembersPage extends React.Component {
         this.state = {
             selectedEmployees: [],
             isRemoveMembersConfirmModalVisible: false,
+            errors: {},
         };
 
         this.renderItem = this.renderItem.bind(this);
@@ -107,7 +108,9 @@ class WorkspaceMembersPage extends React.Component {
      * Remove selected users from the workspace
      */
     removeUsers() {
-        // @TODO: return early if errors
+        if (!_.isEmpty(this.state.errors)) {
+            return;
+        }
 
         // Remove the admin from the list
         const membersToRemove = _.without(this.state.selectedEmployees, this.props.session.email);
@@ -232,8 +235,7 @@ class WorkspaceMembersPage extends React.Component {
         return (
             <OfflineWithFeedback errorRowStyles={[styles.peopleRowBorderBottom]} onClose={() => this.dismissError(item)} pendingAction={item.pendingAction} errors={item.errors}>
                 <TouchableOpacity
-                    //@TODO: add error style if errors in state
-                    style={[styles.peopleRow, _.isEmpty(item.errors) && styles.peopleRowBorderBottom]}
+                    style={[styles.peopleRow, (_.isEmpty(item.errors) || this.state.errors[item.login]) && styles.peopleRowBorderBottom]}
                     onPress={() => this.toggleUser(item.login, item.pendingAction)}
                     activeOpacity={0.7}
                 >
