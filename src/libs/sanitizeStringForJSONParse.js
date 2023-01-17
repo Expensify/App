@@ -18,7 +18,7 @@ const replacer = str => ({
  */
 export default function (inputString) {
     if (!inputString || typeof inputString !== 'string') {
-        return '';
+        throw new TypeError('Input must me of type String');
     }
 
     // Replace any newlines and escape backslashes
