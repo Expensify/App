@@ -163,6 +163,27 @@ function unsubscribeFromReportChannel(reportID) {
     Pusher.unsubscribe(pusherChannelName);
 }
 
+const defaultNewActionSubscriber = {
+    reportID: '',
+    callback: () => {},
+};
+
+let newActionSubscriber = defaultNewActionSubscriber;
+
+/**
+ * Enables the Report actions file to let the ReportActionsView know that a new comment has arrived in realtime for the current report
+ *
+ * @param {String} reportID
+ * @param {Function} callback
+ * @returns {Function}
+ */
+function subscribeToNewActionEvent(reportID, callback) {
+    newActionSubscriber = {callback, reportID};
+    return () => {
+        newActionSubscriber = defaultNewActionSubscriber;
+    };
+}
+
 /**
  * Add up to two report actions to a report. This method can be called for the following situations:
  *
@@ -265,6 +286,12 @@ function addActions(reportID, text = '', file) {
     API.write(commandName, parameters, {
         optimisticData,
     });
+
+    // Notify the ReportActionsView that a new comment has arrived
+    if (reportID === newActionSubscriber.reportID) {
+        const isFromCurrentUser = lastAction.actorAccountID === currentUserAccountID;
+        newActionSubscriber.callback(isFromCurrentUser, lastAction.reportActionID);
+    }
 }
 
 /**
@@ -1063,27 +1090,6 @@ function clearPolicyRoomNameErrors(reportID) {
  */
 function setIsComposerFullSize(reportID, isComposerFullSize) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, isComposerFullSize);
-}
-
-const defaultNewActionSubscriber = {
-    reportID: '',
-    callback: () => {},
-};
-
-let newActionSubscriber = defaultNewActionSubscriber;
-
-/**
- * Enables the Report actions file to let the ReportActionsView know that a new comment has arrived in realtime for the current report
- *
- * @param {String} reportID
- * @param {Function} callback
- * @returns {Function}
- */
-function subscribeToNewActionEvent(reportID, callback) {
-    newActionSubscriber = {callback, reportID};
-    return () => {
-        newActionSubscriber = defaultNewActionSubscriber;
-    };
 }
 
 /**
