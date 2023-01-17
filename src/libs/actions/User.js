@@ -267,7 +267,8 @@ function triggerNotifications(onyxUpdates) {
         const reportAction = _.chain(update.value)
             .values()
             .compact()
-            .first()
+            .sort((actionA, actionB) => moment(actionA).unix() - moment(actionB).unix())
+            .last() // We want to notify for the most recent action
             .value();
         Report.showReportActionNotification(reportID, reportAction);
     });
