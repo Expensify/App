@@ -30,7 +30,6 @@ import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
 import * as Expensicons from '../../components/Icon/Expensicons';
-import DateUtils from '../../libs/DateUtils';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -108,12 +107,15 @@ class WorkspaceMembersPage extends React.Component {
      * Remove selected users from the workspace
      */
     removeUsers() {
-        this.validate();
-        // Policy.removeMembers(this.state.selectedEmployees, this.props.route.params.policyID);
-        // this.setState({
-        //     selectedEmployees: [],
-        //     isRemoveMembersConfirmModalVisible: false,
-        // });
+        // @TODO: return early if errors
+
+        // Remove the admin from the list
+        const membersToRemove = _.without(this.state.selectedEmployees, this.props.session.email);
+        Policy.removeMembers(membersToRemove, this.props.route.params.policyID);
+        this.setState({
+            selectedEmployees: [],
+            isRemoveMembersConfirmModalVisible: false,
+        });
     }
 
     /**
@@ -136,9 +138,10 @@ class WorkspaceMembersPage extends React.Component {
     toggleAllUsers() {
         let policyMemberList = lodashGet(this.props, 'policyMemberList', {});
         policyMemberList = _.filter(_.keys(policyMemberList), policyMember => policyMemberList[policyMember].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const removableMembers = _.without(policyMemberList, this.props.session.email, this.props.policy.owner);
         this.setState(prevState => ({
-            selectedEmployees: policyMemberList.length !== prevState.selectedEmployees.length
-                ? policyMemberList
+            selectedEmployees: removableMembers.length !== prevState.selectedEmployees.length
+                ? removableMembers
                 : [],
         }));
     }
@@ -151,6 +154,7 @@ class WorkspaceMembersPage extends React.Component {
      *
      */
     toggleUser(login, pendingAction) {
+        // @TODO: call validate here
         if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
@@ -198,21 +202,16 @@ class WorkspaceMembersPage extends React.Component {
         }
     }
 
+    // @TODO: implement method
     validate() {
-        const onyxUpdate = {};
+        const error = {};
         _.each(this.state.selectedEmployees, (member) => {
             if (member !== this.props.policy.owner && member !== this.props.session.email) {
                 return;
             }
 
-            onyxUpdate[member] = {
-                errors: {
-                    [DateUtils.getMicroseconds()]: this.props.translate('workspace.people.error.cannotRemove')
-                },
-            };
+            return error;
         });
-
-        Policy.setWorkspaceMemberErrors(this.props.route.params.policyID, onyxUpdate);
     }
 
     /**
@@ -233,6 +232,7 @@ class WorkspaceMembersPage extends React.Component {
         return (
             <OfflineWithFeedback errorRowStyles={[styles.peopleRowBorderBottom]} onClose={() => this.dismissError(item)} pendingAction={item.pendingAction} errors={item.errors}>
                 <TouchableOpacity
+                    //@TODO: add error style if errors in state
                     style={[styles.peopleRow, _.isEmpty(item.errors) && styles.peopleRowBorderBottom]}
                     onPress={() => this.toggleUser(item.login, item.pendingAction)}
                     activeOpacity={0.7}
@@ -271,8 +271,12 @@ class WorkspaceMembersPage extends React.Component {
 
     render() {
         const policyMemberList = lodashGet(this.props, 'policyMemberList', {});
+        const removableMembers = [];
         let data = [];
         _.each(policyMemberList, (policyMember, email) => {
+            if (email !== this.props.session.email && email !== this.props.policy.owner && policyMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                removableMembers.push(email);
+            }
             const details = lodashGet(this.props.personalDetails, email, {displayName: email, login: email, avatar: Expensicons.FallbackAvatar});
             data.push({
                 ...policyMember,
@@ -332,7 +336,7 @@ class WorkspaceMembersPage extends React.Component {
                             <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
                                 <View style={[styles.peopleRowCell]}>
                                     <Checkbox
-                                        isChecked={this.state.selectedEmployees.length === data.length && data.length !== 0}
+                                        isChecked={this.state.selectedEmployees.length === removableMembers.length && removableMembers.length !== 0}
                                         onPress={() => this.toggleAllUsers()}
                                     />
                                 </View>
