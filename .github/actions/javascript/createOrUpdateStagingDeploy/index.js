@@ -194,7 +194,7 @@ module.exports = run;
 
 const _ = __nccwpck_require__(3571);
 const {spawn} = __nccwpck_require__(3129);
-const sanitizeStringForJSONParse = __nccwpck_require__(8989);
+const sanitizeStringForJSONParse = __nccwpck_require__(8989)/* .default */ .Z;
 
 /**
  * Get merge logs between two refs (inclusive) as a JavaScript object.
@@ -19302,9 +19302,8 @@ function wrappy (fn, cb) {
 /***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
 
 "use strict";
-__nccwpck_require__.r(__webpack_exports__);
 /* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => /* export default binding */ __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */   "Z": () => /* export default binding */ __WEBPACK_DEFAULT_EXPORT__
 /* harmony export */ });
 const replacer = str => ({
     '\\': '\\\\',
