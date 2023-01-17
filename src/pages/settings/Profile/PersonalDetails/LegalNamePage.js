@@ -37,7 +37,7 @@ class LegalNamePage extends Component {
     }
 
     /**
-     * Submit form to update user's first and last legal name
+     * Submit form to update user's legal first and last name
      * @param {Object} values
      * @param {String} values.legalFirstName
      * @param {String} values.legalLastName
